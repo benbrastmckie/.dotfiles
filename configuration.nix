@@ -140,6 +140,7 @@
       vlc
       lua-language-server
       stylua
+      brave
     ])
 
     ++
