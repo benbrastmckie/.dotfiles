@@ -5,3 +5,5 @@ end
 bind --erase \ct
 # bind \ct true
 zoxide init fish --cmd cd | source
+neofetch
+# disfetch -l nixos

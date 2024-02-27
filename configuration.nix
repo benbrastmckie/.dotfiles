@@ -141,6 +141,8 @@
       lua-language-server
       stylua
       brave
+      neofetch
+      disfetch
     ])
 
     ++

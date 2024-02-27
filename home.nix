@@ -32,6 +32,7 @@
     ".config/fish/config.fish".source = config/config.fish;
     ".config/kitty/kitty.conf".source = config/kitty.conf;
     ".config/zathura/zathurarc".source = config/zathurarc;
+    ".config/neofetch".source = config/neofetch.conf;
     # # Building this configuration will create a copy of 'dotfiles/screenrc' in
     # # the Nix store. Activating the configuration will then make '~/.screenrc' a
     # # symlink to the Nix store copy.
@@ -47,6 +48,8 @@
   home.sessionVariables = {
     EDITOR = "nvim";
   };
+
+  # programs.pylint.enable = true;
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
