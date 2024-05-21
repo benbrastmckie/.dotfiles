@@ -143,6 +143,7 @@
       brave
       neofetch
       disfetch
+      pdftk
     ])
 
     ++

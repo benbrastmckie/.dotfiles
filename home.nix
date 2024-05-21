@@ -18,6 +18,11 @@
     (python311.withPackages(p: with p; [
       z3 
       setuptools 
+      pyinstrument
+      build
+      twine
+      # pip
+      # pytest
       # pynvim 
       # pylint 
       # black  
@@ -29,10 +34,10 @@
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
   home.file = {
-    ".config/fish/config.fish".source = config/config.fish;
-    ".config/kitty/kitty.conf".source = config/kitty.conf;
-    ".config/zathura/zathurarc".source = config/zathurarc;
-    ".config/neofetch".source = config/neofetch.conf;
+    # ".config/fish/config.fish".source = config/config.fish;
+    # ".config/kitty/kitty.conf".source = config/kitty.conf;
+    # ".config/zathura/zathurarc".source = config/zathurarc;
+    ".config/neofetch/config.conf".source = config/neofetch.conf;
     # # Building this configuration will create a copy of 'dotfiles/screenrc' in
     # # the Nix store. Activating the configuration will then make '~/.screenrc' a
     # # symlink to the Nix store copy.
