@@ -150,6 +150,7 @@
 
     (with pkgs-unstable; [
       pdfannots
+      python311Packages.model-checker
     ]);
 
   programs.fish.enable = true;

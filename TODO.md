@@ -4,3 +4,4 @@
 - [ ] switch back to tmux and alacritty
 - [ ] switch to hyperland wm
 - [ ] setup vm for testing pip
+- [ ] passwords
