@@ -11,7 +11,8 @@
     userEmail = "benbrastmckie@gmail.com";
   };
 
-  home.stateVersion = "23.11"; # Please read the comment before changing.
+  home.stateVersion = "24.05"; # Please read the comment before changing.
+  # home.stateVersion = "23.11"; # Please read the comment before changing.
 
   # home.packages allows you to install Nix packages into your environment.
   home.packages = with pkgs; [
@@ -22,7 +23,7 @@
       build
       twine
       # pip
-      # pytest
+      pytest
       pytest-timeout
       # pynvim 
       # pylint 

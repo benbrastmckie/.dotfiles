@@ -55,8 +55,8 @@
 
   # Configure keymap in X11
   services.xserver = {
-    layout = "us";
-    xkbVariant = "";
+    xkb.layout = "us";
+    # xkbVariant = "";
   };
 
   # Enable CUPS to print documents.
@@ -102,6 +102,9 @@
   # $ nix search wget
   environment.systemPackages = 
     (with pkgs; [
+      alacritty
+      tmux
+      # tmuxifier
       kitty
       vivaldi
       neovim
@@ -159,6 +162,7 @@
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  system.stateVersion = "23.11"; # man configuration.nix or on https://nixos.org/nixos/options.html
+  system.stateVersion = "24.05"; # man configuration.nix or on https://nixos.org/nixos/options.html
+  # system.stateVersion = "23.11"; # man configuration.nix or on https://nixos.org/nixos/options.html
 
 }
