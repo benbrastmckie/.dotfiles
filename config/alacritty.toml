@@ -121,9 +121,9 @@ columns = 65
 lines = 40
 
 [window.padding]
-x = 5
-y = 5
+x = 1
+y = 1
 
 [window.position]
-x = 0
+x = 950
 y = 0
