@@ -147,12 +147,13 @@
       neofetch
       disfetch
       pdftk
+      pdfannots
     ])
 
     ++
 
     (with pkgs-unstable; [
-      pdfannots
+      # pdfannots
       # python311Packages.model-checker
     ]);
 
