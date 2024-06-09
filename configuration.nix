@@ -148,6 +148,7 @@
       disfetch
       pdftk
       pdfannots
+      vscode
     ])
 
     ++

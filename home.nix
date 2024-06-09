@@ -52,10 +52,10 @@
     ".config/neofetch/config.conf".source = config/neofetch.conf;
     ".config/alacritty/alacritty.toml".source = config/alacritty.toml;
     ".tmux.conf".source = config/.tmux.conf;
+    ".config/Code/User/settings.json".source = config/settings.json;
     # # Building this configuration will create a copy of 'dotfiles/screenrc' in
     # # the Nix store. Activating the configuration will then make '~/.screenrc' a
-    # # symlink to the Nix store copy.
-    # ".screenrc".source = dotfiles/screenrc;
+    # # symlink to the Nix store copy. All files must at least be staged in git.
 
     # # You can also set the file content immediately.
     # ".gradle/gradle.properties".text = ''
