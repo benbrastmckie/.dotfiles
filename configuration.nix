@@ -110,6 +110,7 @@
       neovim
       neovim-remote
       zathura
+      xwayland
       zotero
       fish
       wget
@@ -148,7 +149,12 @@
       disfetch
       pdftk
       pdfannots
-      vscode
+      # vscode
+      vscodium
+      (writeShellScriptBin "zathura-xwayland" ''
+        export GDK_BACKEND=x11
+        exec ${pkgs.zathura}/bin/zathura "$@"
+      '')
     ])
 
     ++
