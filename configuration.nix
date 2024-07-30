@@ -109,8 +109,6 @@
       vivaldi
       neovim
       neovim-remote
-      zathura
-      xwayland
       zotero
       fish
       wget
@@ -149,9 +147,17 @@
       disfetch
       pdftk
       pdfannots
+      # xorg.xwininfo
       # vscode
       vscodium
-      (writeShellScriptBin "zathura-xwayland" ''
+      torrential 
+      # # attempt to get zathura to not close when moving the mouse and regenerating
+      # # yet to confirm that zathura-xwayland was being opened by neovim
+      xwayland
+      zathura
+      # (writeShellScriptBin "zathura-xwayland" '' # to have the option to run zathura without xwayland
+      (writeShellScriptBin "zathura" '' # not sure this worked
+        #!/bin/sh
         export GDK_BACKEND=x11
         exec ${pkgs.zathura}/bin/zathura "$@"
       '')

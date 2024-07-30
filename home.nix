@@ -26,6 +26,7 @@
         pytest
         pytest-timeout
         model-checker
+        tqdm
         # pip
         # pynvim 
         # pylint 
