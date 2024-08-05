@@ -147,6 +147,7 @@
       disfetch
       pdftk
       pdfannots
+      via
       # xorg.xwininfo
       # vscode
       vscodium
