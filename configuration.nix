@@ -10,6 +10,13 @@
       ./hardware-configuration.nix
     ];
 
+  # # Use both stable and unstable channels
+  # nixpkgs.overlays = [
+  #   (self: super: {
+  #     unstable = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixpkgs-unstable.tar.gz") {};
+  #   })
+  # ];
+
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -30,6 +37,14 @@
 
   # Update to local time
   services.localtimed.enable = true;
+
+  # makes the split mechanical keyboard recognized
+  services.udev = {
+    enable = true;
+    packages = [
+      pkgs.qmk-udev-rules
+    ];
+  };
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
@@ -62,8 +77,6 @@
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
-  # Enable sound with pipewire.
-  sound.enable = true;
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -98,66 +111,80 @@
   nixpkgs.config.input-fonts.acceptLicense = true;
 
 
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
   environment.systemPackages = 
     (with pkgs; [
+      # Terminals and Shells
       alacritty
-      tmux
-      # tmuxifier
       kitty
-      vivaldi
-      neovim
-      neovim-remote
-      zotero
+      tmux
       fish
-      wget
-      gnome3.gnome-tweaks
       oh-my-fish
-      git
-      python3
-      slides
       zoxide
-      plots
-      gnomeExtensions.unite
-      lazygit
-      fzf
-      ripgrep
-      pandoc
-      nodejs_20
-      xsel
-      texlive.combined.scheme-full
-      libsForQt5.okular
-      gcc
-      unzip
-      tree-sitter
-      perl
-      gnumake
-      fd
-      xdotool
-      pstree
-      nix-index
-      home-manager
-      zoom-us
-      vlc
-      lua-language-server
-      stylua
+
+      # Browsers
+      vivaldi
       brave
+
+      # Appearance
       neofetch
       disfetch
+
+      # Development Tools
+      git
+      python3
+      gcc
+      unzip
+      gnumake
+      nodejs_20
+      fd
+      ripgrep
+      fzf
+      lazygit
+      tree-sitter
+      lua-language-server
+      stylua
+
+      # Editors
+      neovim-remote
+      vscodium
+
+      # PDF and Document Tools
+      zotero
+      texlive.combined.scheme-full
+      libsForQt5.okular
       pdftk
       pdfannots
-      via
-      # xorg.xwininfo
-      # vscode
-      vscodium
-      torrential 
-      # # attempt to get zathura to not close when moving the mouse and regenerating
-      # # yet to confirm that zathura-xwayland was being opened by neovim
-      xwayland
+      xsel
+      pstree
+      pandoc
       zathura
-      # (writeShellScriptBin "zathura-xwayland" '' # to have the option to run zathura without xwayland
-      (writeShellScriptBin "zathura" '' # not sure this worked
+
+      # GNOME Extensions and Tools
+      gnome3.gnome-tweaks
+      gnomeExtensions.unite
+
+      # Multimedia
+      vlc
+      zoom-us
+
+      # File Transfer and Torrent
+      wget
+      torrential
+
+      # Input Tools
+      qmk
+      via
+
+      # Miscellaneous
+      xdotool
+      xwayland
+
+      # NixOS
+      home-manager
+      nix-index
+
+      # Custom zathura (Xwayland)
+      (writeShellScriptBin "zathura" ''
         #!/bin/sh
         export GDK_BACKEND=x11
         exec ${pkgs.zathura}/bin/zathura "$@"
@@ -167,8 +194,7 @@
     ++
 
     (with pkgs-unstable; [
-      # pdfannots
-      # python311Packages.model-checker
+      neovim  # Unstable package
     ]);
 
   programs.fish.enable = true;
@@ -177,6 +203,7 @@
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+  # system.stateVersion = "unstable"; # man configuration.nix or on https://nixos.org/nixos/options.html
   system.stateVersion = "24.05"; # man configuration.nix or on https://nixos.org/nixos/options.html
   # system.stateVersion = "23.11"; # man configuration.nix or on https://nixos.org/nixos/options.html
 

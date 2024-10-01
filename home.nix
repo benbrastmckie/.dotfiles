@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, pkgs-unstable, ... }:
 
 {
   # manage.
@@ -9,6 +9,11 @@
     enable = true;
     userName = "benbrastmckie";
     userEmail = "benbrastmckie@gmail.com";
+  };
+
+  programs.neovim = {
+    enable = true;
+    package = pkgs.neovim-unwrapped;  # Ensure you're using the latest neovim
   };
 
   home.stateVersion = "24.05"; # Please read the comment before changing.
@@ -34,15 +39,16 @@
         # isort  
       ]))
     (nerdfonts.override { fonts = [ "RobotoMono" ]; })
-  ]);
+  ])
 
-  # ++
-  #
-  # (with unstable; [
-  #   (python311.withPackages(p: with p; [
-  #     p.model-checker
-  #   ]))
-  # ]);
+  ++
+
+  (with pkgs-unstable; [
+    neovim
+    # (python311.withPackages(p: with p; [
+    #   p.model-checker
+    # ]))
+  ]);
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
