@@ -2,8 +2,10 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, lib, pkgs, pkgs-unstable, ... }:
-
+{ config, lib, pkgs, ... }:
+# let
+#   unstable = import <nixpkgs-unstable> {};
+# in
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -33,7 +35,7 @@
 
   # Set your time zone.
   # time.timeZone = "America/Los_Angeles";
-  time.timeZone = "America/New_York";
+  # time.timeZone = "America/New_York";
 
   # Update to local time
   services.localtimed.enable = true;
@@ -143,8 +145,11 @@
       tree-sitter
       lua-language-server
       stylua
+      lean4
+      mathlibtools
 
       # Editors
+      neovim
       neovim-remote
       vscodium
 
@@ -160,7 +165,7 @@
       zathura
 
       # GNOME Extensions and Tools
-      gnome3.gnome-tweaks
+      gnome.gnome-tweaks
       gnomeExtensions.unite
 
       # Multimedia
@@ -189,13 +194,13 @@
         export GDK_BACKEND=x11
         exec ${pkgs.zathura}/bin/zathura "$@"
       '')
-    ])
-
-    ++
-
-    (with pkgs-unstable; [
-      neovim  # Unstable package
     ]);
+
+    # ++
+    #
+    # (with pkgs-unstable; [
+    #   neovim  # Unstable package
+    # ]);
 
   programs.fish.enable = true;
 
@@ -204,7 +209,8 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # system.stateVersion = "unstable"; # man configuration.nix or on https://nixos.org/nixos/options.html
-  system.stateVersion = "24.05"; # man configuration.nix or on https://nixos.org/nixos/options.html
+  system.stateVersion = "24.11"; # man configuration.nix or on https://nixos.org/nixos/options.html
+  # system.stateVersion = "24.05"; # man configuration.nix or on https://nixos.org/nixos/options.html
   # system.stateVersion = "23.11"; # man configuration.nix or on https://nixos.org/nixos/options.html
 
 }

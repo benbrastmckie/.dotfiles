@@ -16,7 +16,8 @@
     package = pkgs.neovim-unwrapped;  # Ensure you're using the latest neovim
   };
 
-  home.stateVersion = "24.05"; # Please read the comment before changing.
+  home.stateVersion = "24.11"; # Please read the comment before changing.
+  # home.stateVersion = "24.05"; # Please read the comment before changing.
   # home.stateVersion = "23.11"; # Please read the comment before changing.
 
   # home.packages allows you to install Nix packages into your environment.
@@ -39,16 +40,16 @@
         # isort  
       ]))
     (nerdfonts.override { fonts = [ "RobotoMono" ]; })
-  ])
-
-  ++
-
-  (with pkgs-unstable; [
-    neovim
-    # (python311.withPackages(p: with p; [
-    #   p.model-checker
-    # ]))
   ]);
+
+  # ++
+  #
+  # (with pkgs-unstable; [
+  #   neovim
+  #   # (python311.withPackages(p: with p; [
+  #   #   p.model-checker
+  #   # ]))
+  # ]);
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
