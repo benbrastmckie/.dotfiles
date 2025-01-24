@@ -34,11 +34,11 @@
   networking.networkmanager.enable = true;
 
   # Set your time zone.
-  # time.timeZone = "America/Los_Angeles";
+  time.timeZone = "America/Los_Angeles";
   # time.timeZone = "America/New_York";
 
   # Update to local time
-  services.localtimed.enable = true;
+  # services.localtimed.enable = true;
 
   # makes the split mechanical keyboard recognized
   services.udev = {
@@ -145,8 +145,12 @@
       tree-sitter
       lua-language-server
       stylua
-      lean4
+      tree
+
+      # Lean
+      # lean4
       mathlibtools
+      elan
 
       # Editors
       neovim
@@ -156,6 +160,7 @@
       # PDF and Document Tools
       zotero
       texlive.combined.scheme-full
+      texlab
       libsForQt5.okular
       pdftk
       pdfannots
@@ -171,6 +176,7 @@
       # Multimedia
       vlc
       zoom-us
+      spotify
 
       # File Transfer and Torrent
       wget

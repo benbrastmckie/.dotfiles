@@ -33,7 +33,7 @@
         pytest-timeout
         model-checker
         tqdm
-        # pip
+        pip
         # pynvim 
         # pylint 
         # black  
