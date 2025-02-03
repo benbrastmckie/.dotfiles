@@ -33,8 +33,12 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
-  # Set your time zone.
-  time.timeZone = "America/Los_Angeles";
+  # Enable automatic timezone detection based on location
+  services.automatic-timezoned.enable = true;
+  services.geoclue2.enable = true;
+
+  # Set your static time zone
+  # time.timeZone = "America/Los_Angeles";
   # time.timeZone = "America/New_York";
 
   # Update to local time
