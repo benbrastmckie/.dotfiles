@@ -22,6 +22,11 @@
     pkgs-unstable = nixpkgs-unstable.legacyPackages.${system};
     username = "benjamin";
     name = "Ben";
+
+    # Override to use unstable for specific packages
+    finalPkgs = pkgs.extend (final: prev: {
+      niri = pkgs-unstable.niri;
+    });
   in {
     # Add ISO configuration
     nixosConfigurations.iso = lib.nixosSystem {
@@ -29,12 +34,15 @@
       modules = [
         "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-graphical-gnome.nix"
         ./configuration.nix
+        home-manager.nixosModules.home-manager {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.${username} = import ./home.nix;
+        }
         ({ pkgs, lib, ... }: {
           # ISO-specific configurations
-          isoImage.edition = "custom-nandi";
+          isoImage.edition = lib.mkForce "custom-nandi";
           isoImage.compressImage = true;
-          # Include your home-manager configuration
-          home-manager.users.${username} = import ./home.nix;
         })
       ];
       specialArgs = {
@@ -46,7 +54,21 @@
     nixosConfigurations = {
       nandi = lib.nixosSystem {
         inherit system;
-        modules = [ ./configuration.nix ];
+        modules = [ 
+          ./configuration.nix
+          home-manager.nixosModules.home-manager {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.${username} = import ./home.nix;
+          }
+          ({ config, pkgs, ... }: {
+            nixpkgs.overlays = [
+              (final: prev: {
+                niri = pkgs-unstable.niri;
+              })
+            ];
+          })
+        ];
         specialArgs = {
           inherit username;
           inherit name;

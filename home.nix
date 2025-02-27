@@ -73,6 +73,11 @@
 
   home.sessionVariables = {
     EDITOR = "nvim";
+    # Wayland-specific
+    MOZ_ENABLE_WAYLAND = "1";
+    QT_QPA_PLATFORM = "wayland";
+    SDL_VIDEODRIVER = "wayland";
+    _JAVA_AWT_WM_NONREPARENTING = "1";
   };
 
   # programs.pylint.enable = true;
