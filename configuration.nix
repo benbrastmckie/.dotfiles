@@ -174,7 +174,7 @@
       zathura
 
       # GNOME Extensions and Tools
-      gnome.gnome-tweaks
+      gnome-tweaks
       gnomeExtensions.unite
 
       # Multimedia

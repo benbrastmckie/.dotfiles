@@ -23,6 +23,26 @@
     username = "benjamin";
     name = "Ben";
   in {
+    # Add ISO configuration
+    nixosConfigurations.iso = lib.nixosSystem {
+      inherit system;
+      modules = [
+        "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-graphical-gnome.nix"
+        ./configuration.nix
+        ({ pkgs, lib, ... }: {
+          # ISO-specific configurations
+          isoImage.edition = "custom-nandi";
+          isoImage.compressImage = true;
+          # Include your home-manager configuration
+          home-manager.users.${username} = import ./home.nix;
+        })
+      ];
+      specialArgs = {
+        inherit username;
+        inherit name;
+        inherit pkgs-unstable;
+      };
+    };
     nixosConfigurations = {
       nandi = lib.nixosSystem {
         inherit system;
