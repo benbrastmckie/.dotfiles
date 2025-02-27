@@ -222,7 +222,6 @@
       fuzzel  # Application launcher
 
       # Terminals and Shells
-      alacritty
       kitty
       tmux
       fish
