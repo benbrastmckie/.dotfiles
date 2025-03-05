@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, niri, ... }:
 # let
 #   unstable = import <nixpkgs-unstable> {};
 # in
@@ -23,7 +23,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "nandi"; # Define your hostname.
+  networking.hostName = "garuda"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -81,92 +81,40 @@
   # Enable the X11 windowing system.
   services.xserver.enable = true;
 
+  # Enable Wayland support
+  services.xserver.displayManager.gdm.wayland = true;
+
   # Enable the GNOME Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
 
-  # Enable Niri Wayland compositor
-  programs.niri = {
-    enable = true;
+  # Add Niri session to display manager
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+  environment.etc."niri.desktop" = {
+    target = "share/wayland-sessions/niri.desktop";
+    text = ''
+      [Desktop Entry]
+      Name=Niri
+      Comment=Dynamic Wayland Compositor
+      Exec=niri
+      Type=Application
+    '';
   };
 
-  # Create a custom Niri config file
-  home-manager.users.benjamin.home.file.".config/niri/config.kdl".text = ''
-    input {
-        keyboard {
-            xkb {
-                layout "us"
-            }
-            repeat-delay 600
-            repeat-rate 25
-        }
-
-        touchpad {
-            natural-scroll true
-            tap true
-            dwt true
-        }
-    }
-
-    default_layout "tiles"
-
-    binds {
-        # Basic window management
-        Mod+Return "exec kitty"
-        Mod+q "close"
-        Mod+Shift+q "exit"
-        Mod+p "exec fuzzel"
-        
-        # Screenshots
-        Mod+Shift+s "screenshot"
-        Mod+Alt+s "screenshot-screen"
-        
-        # Window focus
-        Mod+h "focus left"
-        Mod+j "focus down"
-        Mod+k "focus up"
-        Mod+l "focus right"
-        
-        # Window movement
-        Mod+Shift+h "move left"
-        Mod+Shift+j "move down"
-        Mod+Shift+k "move up"
-        Mod+Shift+l "move right"
-        
-        # Workspaces
-        Mod+1 "workspace 1"
-        Mod+2 "workspace 2"
-        Mod+3 "workspace 3"
-        Mod+4 "workspace 4"
-        Mod+5 "workspace 5"
-        
-        # Move windows to workspaces
-        Mod+Shift+1 "move-to-workspace 1"
-        Mod+Shift+2 "move-to-workspace 2"
-        Mod+Shift+3 "move-to-workspace 3"
-        Mod+Shift+4 "move-to-workspace 4"
-        Mod+Shift+5 "move-to-workspace 5"
-        
-        # Layout management
-        Mod+f "toggle-fullscreen"
-        Mod+space "toggle-floating"
-    }
-
-    animations true
-    focus.follow-mouse true
-    prefer-no-csd true
-
-    cursor {
-        theme "Adwaita"
-        size 24
-    }
-  '';
-  
+  # Enable niri Wayland compositor
+  programs.niri = {
+    enable = true;
+    package = niri.packages.${pkgs.system}.default;
+  };
 
   # Configure keymap in X11
   services.xserver = {
     xkb.layout = "us";
     # xkbVariant = "";
+    
+    # # Configure key repeat delay and rate
+    # autoRepeatDelay = 50;    # Delay before key repeat starts (milliseconds)
+    # autoRepeatInterval = 30;  # Interval between key repeats (milliseconds)
   };
 
   # Enable CUPS to print documents.
@@ -209,17 +157,19 @@
 
   environment.systemPackages = 
     (with pkgs; [
-      # Wayland essentials
-      wayland
-      xdg-utils
-      wl-clipboard
-      qt6.qtwayland
-      libsForQt5.qt5.qtwayland
-      xwayland
-      grim    # Screenshot utility
-      slurp   # Region selection
-      mako    # Notification daemon
+      # # Wayland essentials
+      # wayland
+      # xdg-utils
+      # wl-clipboard
+      # qt6.qtwayland
+      # libsForQt5.qt5.qtwayland
+      # slurp   # Region selection
+
+      # Niri
+      niri.packages.${system}.default
       fuzzel  # Application launcher
+      mako    # Notification daemon
+      grim    # Screenshot utility
 
       # Terminals and Shells
       kitty
