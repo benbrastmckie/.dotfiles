@@ -21,9 +21,20 @@
     ./result/iso/nixos.iso
     ```
 
+- Find the name of the `zst` file and decompress it with:
+
+    ```
+    zstd -d ./result/iso/nixos-24.11.20250123.035f8c0-x86_64-linux.iso.zst -o ~/Downloads/nixos.iso
+    ```     
+
+- Check available drives before burning:
+    ```
+    lsblk
+    ```
+  This will list all block devices and their mount points. Make sure to identify the correct USB drive.
 - You can burn it to a USB drive using:
     ```
-    sudo dd if=./result/iso/nixos.iso of=/dev/sdX bs=4M status=progress conv=fsync
+    sudo dd if=/home/benjamin/Downloads/nixos.iso of=/dev/sdX bs=4M status=progress conv=fsync
     ```
   (Replace sdX with your USB drive device, be very careful to use the correct device!)
 
