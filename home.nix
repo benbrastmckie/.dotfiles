@@ -23,8 +23,8 @@
   # home.packages allows you to install Nix packages into your environment.
   home.packages = 
     (with pkgs; [
-      # Add niri to home packages for better integration
-      niri.packages.${system}.default
+      # Add niri package
+      niri
       
       (python312.withPackages(p: with p; [
         z3 
@@ -76,14 +76,12 @@
 
   home.sessionVariables = {
     EDITOR = "nvim";
-    # # Wayland-specific
-    # MOZ_ENABLE_WAYLAND = "1";
-    # QT_QPA_PLATFORM = "wayland";
-    # SDL_VIDEODRIVER = "wayland";
-    # _JAVA_AWT_WM_NONREPARENTING = "1";
     # Prefer Wayland over X11
     NIXOS_OZONE_WL = "1";
   };
+
+  # Configure niri
+  xdg.configFile."niri/config.kdl".text = ''
     input {
         keyboard {
             repeat-delay = 60
@@ -161,17 +159,9 @@
         Mod+space "toggle-floating"
     }
 
-    prefer-no-csd true
-
-    cursor {
-        theme "Adwaita"
-        size 24
-    }
-
     animations {
         enabled = true
     }
-
   '';
 
   # programs.pylint.enable = true;
