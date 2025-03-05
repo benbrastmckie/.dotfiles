@@ -66,6 +66,12 @@
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
 
+  # Set environment variables for Wayland
+  environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
+    WLR_NO_HARDWARE_CURSORS = "1";  # Helps with cursor issues
+  };
+
   i18n.extraLocaleSettings = {
     LC_ADDRESS = "en_US.UTF-8";
     LC_IDENTIFICATION = "en_US.UTF-8";
@@ -78,27 +84,29 @@
     LC_TIME = "en_US.UTF-8";
   };
 
-  # Enable the X11 windowing system.
-  services.xserver.enable = true;
-
-  # Enable Wayland support
-  services.xserver.displayManager.gdm.wayland = true;
-
-  # Enable the GNOME Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
-
-  # Add Niri session to display manager
-  environment.sessionVariables.NIXOS_OZONE_WL = "1";
-  environment.etc."niri.desktop" = {
-    target = "share/wayland-sessions/niri.desktop";
-    text = ''
-      [Desktop Entry]
-      Name=Niri
-      Comment=Dynamic Wayland Compositor
-      Exec=niri
-      Type=Application
-    '';
+  # Enable the X11 windowing system and display manager
+  services.xserver = {
+    enable = true;
+    
+    displayManager = {
+      gdm = {
+        enable = true;
+        wayland = true;
+      };
+      # Add Niri session
+      session = [
+        {
+          manage = "desktop";
+          name = "niri";
+          start = ''
+            ${niri.packages.${pkgs.system}.default}/bin/niri
+          '';
+        }
+      ];
+    };
+    
+    # Enable GNOME Desktop Environment
+    desktopManager.gnome.enable = true;
   };
 
   # Enable niri Wayland compositor
