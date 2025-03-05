@@ -42,7 +42,7 @@
         }
         ({ pkgs, lib, ... }: {
           # ISO-specific configurations
-          isoImage.edition = "garuda";
+          isoImage.edition = lib.mkForce "garuda";
           isoImage.compressImage = true;
         })
       ];
