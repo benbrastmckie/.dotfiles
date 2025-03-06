@@ -40,7 +40,7 @@
 
 - You can burn it to a USB drive using:
     ```
-    sudo dd if=/home/benjamin/Downloads/nixos.iso of=/dev/sda3 bs=4M status=progress conv=fsync
+    sudo dd if=/home/benjamin/Downloads/nixos.iso of=/dev/sdX bs=4M status=progress conv=fsync
     ```
   (Replace sdX with your USB drive device, be very careful to use the correct device!)
 
