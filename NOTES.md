@@ -49,7 +49,7 @@
 
 - first build should mention system name as in:
 
-    sudo nixos-rebuild switch --flake ~/.dotfiles#garuda
+    sudo nixos-rebuild switch --flake ~/.dotfiles#nandi
 
 - we can then run the following on subsequent rebuilds:
 

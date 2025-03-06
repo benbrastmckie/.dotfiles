@@ -42,7 +42,7 @@
         }
         ({ pkgs, lib, ... }: {
           # ISO-specific configurations
-          isoImage.edition = lib.mkForce "garuda";
+          isoImage.edition = lib.mkForce "nandi";
           isoImage.compressImage = true;
         })
       ];
@@ -54,7 +54,7 @@
       };
     };
     nixosConfigurations = {
-      garuda = lib.nixosSystem {
+      nandi = lib.nixosSystem {
         inherit system;
         modules = [ 
           ./configuration.nix
