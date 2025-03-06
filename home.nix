@@ -130,8 +130,8 @@
         Mod+Shift+5 { move-window-to-workspace 5 }
         
         # Layout management
-        Mod+f { toggle-fullscreen }
-        Mod+Space { toggle-floating }
+        Mod+Shift+k { toggle-fullscreen }
+        # Mod+Space { toggle-floating }
     }
 
     spawn-at-startup "waybar"
