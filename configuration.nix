@@ -165,19 +165,20 @@
 
   environment.systemPackages = 
     (with pkgs; [
-      # # Wayland essentials
-      # wayland
-      # xdg-utils
-      # wl-clipboard
-      # qt6.qtwayland
-      # libsForQt5.qt5.qtwayland
-      # slurp   # Region selection
-
-      # Niri
+      # Wayland and Niri essentials
       niri.packages.${system}.default
+      wayland
+      xdg-utils
+      wl-clipboard
+      qt6.qtwayland
+      libsForQt5.qt5.qtwayland
       fuzzel  # Application launcher
+      # wofi    # Application launcher (alternative to fuzzel)
       mako    # Notification daemon
       grim    # Screenshot utility
+      slurp   # Region selection
+      swaylock  # Screen locker
+      waybar  # Status bar
 
       # Terminals and Shells
       kitty

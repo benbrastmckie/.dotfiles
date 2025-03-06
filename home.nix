@@ -84,6 +84,9 @@
   xdg.configFile."niri/config.kdl".text = ''
     input {
         keyboard {
+            xkb {
+                layout "us"
+            }
             repeat-delay = 60
             repeat-rate = 30
         }
@@ -119,14 +122,10 @@
 
     binds {
         # Basic window management
-        Mod+Return "exec kitty"
+        Mod+t "exec kitty"
         Mod+q "close"
         Mod+Shift+q "exit"
         Mod+p "exec fuzzel"
-        
-        # Screenshots
-        Mod+Shift+s "screenshot"
-        Mod+Alt+s "screenshot-screen"
         
         # Window focus
         Mod+h "focus left"
@@ -159,8 +158,20 @@
         Mod+space "toggle-floating"
     }
 
+    # Default layout mode
+    layout {
+        // Default to tiling
+        default_placement "tile"
+    }
+
+    # Appearance
     animations {
-        enabled = true
+        enabled true
+    }
+
+    # Add some gaps between windows
+    gaps {
+        inner 5
     }
   '';
 
