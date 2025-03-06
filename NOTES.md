@@ -4,7 +4,7 @@
 
 - LLM API key is kept in private.fish
 
-## Build Iso
+## Build ISO
 
 - Navigate to your dotfiles directory:
     ```
@@ -18,9 +18,8 @@
 
 - Build the ISO with:
     ```
-    nixos-rebuild build-iso --flake .#iso
+    nix build .#nixosConfigurations.iso.config.system.build.isoImage
     ```
-    OLD: `nix build .#nixosConfigurations.iso.config.system.build.isoImage`
 
 - The ISO will be available at:
     ```
@@ -38,11 +37,18 @@
     lsblk
     ```
   This will list all block devices and their mount points. Make sure to identify the correct USB drive.
+
 - You can burn it to a USB drive using:
     ```
-    sudo dd if=/home/benjamin/Downloads/nixos.iso of=/dev/sdX bs=4M status=progress conv=fsync
+    sudo dd if=/home/benjamin/Downloads/nixos.iso of=/dev/sda3 bs=4M status=progress conv=fsync
     ```
   (Replace sdX with your USB drive device, be very careful to use the correct device!)
+
+- Delete the ISO with:
+
+    ```
+    rm -f ./result
+    ```  
 
 - The ISO includes:
   - GNOME desktop environment
@@ -51,9 +57,13 @@
   - Niri window manager
   - All your specified packages
 
-## Rebuild
+## First Build
 
-- first build should mention system name as in:
+- move `hardware-configuration.nix` into the hosts directory replacing `HOST_NAME`:
+    ```
+    cp /etc/nixos/hardware-configuration.nix ~/.dotfiles/hosts/HOST_NAME/hardware-configuration.nix
+    ```  
+ first build should mention system name as in:
 
     sudo nixos-rebuild switch --flake ~/.dotfiles#nandi
 

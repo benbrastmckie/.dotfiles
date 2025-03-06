@@ -21,24 +21,23 @@
   # home.stateVersion = "23.11"; # Please read the comment before changing.
 
   # home.packages allows you to install Nix packages into your environment.
-  home.packages = 
-    (with pkgs; [
-      (python312.withPackages(p: with p; [
-        z3 
-        setuptools 
-        pyinstrument
-        build
-        twine
-        pytest
-        pytest-timeout
-        model-checker
-        tqdm
-        pip
-        # pynvim 
-        # pylint 
-        # black  
-        # isort  
-      ]))
+  home.packages = with pkgs; [
+    (python312.withPackages(p: with p; [
+      z3 
+      setuptools 
+      pyinstrument
+      build
+      twine
+      pytest
+      pytest-timeout
+      model-checker
+      tqdm
+      pip
+      # pynvim 
+      # pylint 
+      # black  
+      # isort  
+    ]))
     (nerdfonts.override { fonts = [ "RobotoMono" ]; })
   ];
 

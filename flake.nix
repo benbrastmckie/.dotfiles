@@ -62,7 +62,7 @@
         inherit system;
         modules = [ 
           ./configuration.nix
-          /etc/nixos/hardware-configuration.nix
+          "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
@@ -72,6 +72,30 @@
             # ISO-specific configurations
             isoImage.edition = lib.mkForce "nandi";
             isoImage.compressImage = true;
+            # Enable copy-on-write for the ISO
+            isoImage.squashfsCompression = "zstd";
+            # Make the ISO compatible with most systems
+            nixpkgs.hostPlatform = system;
+            # Configure networking for ISO with NetworkManager only
+            networking = {
+              networkmanager = {
+                enable = true;
+                wifi.backend = "iwd";  # Use iwd backend for better performance
+              };
+              # Explicitly disable wpa_supplicant
+              wireless.enable = false;
+            };
+            # Enable basic system utilities for the live environment
+            environment.systemPackages = with pkgs; [
+              vim
+              git
+              wget
+              curl
+              # Add networking tools that might be helpful during installation
+              iw
+              wirelesstools
+              networkmanager
+            ];
           })
         ];
         specialArgs = {

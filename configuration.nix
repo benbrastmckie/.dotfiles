@@ -13,14 +13,20 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "nandi"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+  
+  # Networking configuration
+  networking = {
+    networkmanager = {
+      enable = true;  # Use NetworkManager for all networking
+      wifi.backend = "iwd";  # Use iwd backend for better performance
+    };
+    # Disable wpa_supplicant completely in the main system
+    wireless.enable = false;
+  };
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Enable networking
-  networking.networkmanager.enable = true;
 
   # Security hardening
   security.pam.services.swaylock = {};  # Enable screen locking
@@ -107,7 +113,7 @@
   };
 
   # Enable touchpad support (enabled default in most desktopManager).
-  services.xserver.libinput.enable = true;
+  services.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.benjamin = {
