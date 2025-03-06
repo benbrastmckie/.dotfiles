@@ -97,9 +97,11 @@
     }
 
     binds {
-        Mod+T { spawn "kitty" }
-        Mod+Q { close-window }
-        Mod+D { spawn "fuzzel" }
+        Mod+b { spawn "brave" }
+        Mod+t { spawn "kitty" }
+        Mod+q { close-window }
+        Mod+p { spawn "fuzzel" }
+        Mod+z { spawn "zotero" }
         
         # Window focus
         Mod+h { focus-column-left }
@@ -128,8 +130,8 @@
         Mod+Shift+5 { move-window-to-workspace 5 }
         
         # Layout management
-        Mod+f { toggle-fullscreen }
-        Mod+Space { toggle-floating }
+        Mod+Shift+k { toggle-fullscreen }
+        # Mod+Space { toggle-floating }
     }
 
     spawn-at-startup "waybar"
