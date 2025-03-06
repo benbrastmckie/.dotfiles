@@ -97,9 +97,11 @@
     }
 
     binds {
-        Mod+T { spawn "kitty" }
-        Mod+Q { close-window }
-        Mod+D { spawn "fuzzel" }
+        Mod+b { spawn "brave" }
+        Mod+p { spawn "fuzzel" }
+        Mod+q { close-window }
+        Mod+t { spawn "kitty" }
+        Mod+z { spawn "zotero" }
         
         # Window focus
         Mod+h { focus-column-left }
