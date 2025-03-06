@@ -5,17 +5,17 @@
     nixpkgs.url = "nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     lean4.url = "github:leanprover/lean4";
+    niri.url = "github:YaLTeR/niri";
     # nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    niri.url = "github:YaLTeR/niri";
     # home-manager = {
     #   url = "github:nix-community/home-manager/release-23.11";  
     #   inputs.nixpkgs.follows = "nixpkgs";
     # };
   };
-
   outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, ... }:
+
   let
     lib = nixpkgs.lib;
     system = "x86_64-linux";
@@ -24,10 +24,10 @@
     username = "benjamin";
     name = "Ben";
 
-    # Override to use unstable for specific packages
-    finalPkgs = pkgs.extend (final: prev: {
-      niri = pkgs-unstable.niri;
-    });
+    # # Override to use unstable for specific packages
+    # finalPkgs = pkgs.extend (final: prev: {
+    #   niri = pkgs-unstable.niri;
+    # });
   in {
     # Add ISO configuration
     nixosConfigurations.iso = lib.nixosSystem {
@@ -50,7 +50,7 @@
         inherit username;
         inherit name;
         inherit pkgs-unstable;
-        inherit niri;
+        # inherit niri;
       };
     };
     nixosConfigurations = {
@@ -63,19 +63,19 @@
             home-manager.useUserPackages = true;
             home-manager.users.${username} = import ./home.nix;
           }
-          ({ config, pkgs, ... }: {
-            nixpkgs.overlays = [
-              (final: prev: {
-                niri = pkgs-unstable.niri;
-              })
-            ];
-          })
+          # ({ config, pkgs, ... }: {
+          #   nixpkgs.overlays = [
+          #     (final: prev: {
+          #       niri = pkgs-unstable.niri;
+          #     })
+          #   ];
+          # })
         ];
         specialArgs = {
           inherit username;
           inherit name;
           inherit pkgs-unstable;
-          inherit niri;
+          # inherit niri;
         };
       };
     };

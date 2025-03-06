@@ -2,33 +2,18 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, lib, pkgs, niri, ... }:
-# let
-#   unstable = import <nixpkgs-unstable> {};
-# in
+{ config, lib, pkgs, ... }:
 {
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
 
-  # # Use both stable and unstable channels
-  # nixpkgs.overlays = [
-  #   (self: super: {
-  #     unstable = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixpkgs-unstable.tar.gz") {};
-  #   })
-  # ];
-
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "garuda"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable networking
   networking.networkmanager.enable = true;
@@ -72,18 +57,6 @@
     WLR_NO_HARDWARE_CURSORS = "1";  # Helps with cursor issues
   };
 
-  i18n.extraLocaleSettings = {
-    LC_ADDRESS = "en_US.UTF-8";
-    LC_IDENTIFICATION = "en_US.UTF-8";
-    LC_MEASUREMENT = "en_US.UTF-8";
-    LC_MONETARY = "en_US.UTF-8";
-    LC_NAME = "en_US.UTF-8";
-    LC_NUMERIC = "en_US.UTF-8";
-    LC_PAPER = "en_US.UTF-8";
-    LC_TELEPHONE = "en_US.UTF-8";
-    LC_TIME = "en_US.UTF-8";
-  };
-
   # Enable the X11 windowing system and display manager
   services.xserver = {
     enable = true;
@@ -93,16 +66,6 @@
         enable = true;
         wayland = true;
       };
-      # Add Niri session
-      session = [
-        {
-          manage = "desktop";
-          name = "niri";
-          start = ''
-            ${niri.packages.${pkgs.system}.default}/bin/niri
-          '';
-        }
-      ];
     };
     
     # Enable GNOME Desktop Environment
@@ -112,7 +75,7 @@
   # Enable niri Wayland compositor
   programs.niri = {
     enable = true;
-    package = niri.packages.${pkgs.system}.default;
+    package = pkgs.niri;
   };
 
   # Configure keymap in X11
@@ -137,25 +100,16 @@
       support32Bit = true;
     };
     pulse.enable = true;
-    #jack.enable = true;
-
-    # use the example session manager (no others are packaged yet so this is enabled by default,
-    # no need to redefine it in your config for now)
-    #media-session.enable = true;
   };
 
   # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
+  services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.benjamin = {
     isNormalUser = true;
     description = "Benjamin";
     extraGroups = [ "networkmanager" "wheel" ];
-    # packages = with pkgs; [
-    #   firefox
-    # #  thunderbird
-    # ];
   };
 
   # Allow unfree packages
@@ -166,10 +120,10 @@
   environment.systemPackages = 
     (with pkgs; [
       # Wayland and Niri essentials
-      niri.packages.${system}.default
+      wl-clipboard
+      wayland-utils
       wayland
       xdg-utils
-      wl-clipboard
       qt6.qtwayland
       libsForQt5.qt5.qtwayland
       fuzzel  # Application launcher
@@ -186,6 +140,8 @@
       fish
       oh-my-fish
       zoxide
+      ghostty
+      
 
       # Browsers
       vivaldi
