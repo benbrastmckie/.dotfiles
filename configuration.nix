@@ -8,8 +8,7 @@
 # in
 {
   imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
+    [ # Hardware configuration is now imported in flake.nix
     ];
 
   # # Use both stable and unstable channels

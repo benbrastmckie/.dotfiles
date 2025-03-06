@@ -29,35 +29,12 @@
       niri = pkgs-unstable.niri;
     });
   in {
-    # Add ISO configuration
-    nixosConfigurations.iso = lib.nixosSystem {
-      inherit system;
-      modules = [
-        "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-graphical-gnome.nix"
-        ./configuration.nix
-        home-manager.nixosModules.home-manager {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.users.${username} = import ./home.nix;
-        }
-        ({ pkgs, lib, ... }: {
-          # ISO-specific configurations
-          isoImage.edition = lib.mkForce "nandi";
-          isoImage.compressImage = true;
-        })
-      ];
-      specialArgs = {
-        inherit username;
-        inherit name;
-        inherit pkgs-unstable;
-        inherit niri;
-      };
-    };
     nixosConfigurations = {
       nandi = lib.nixosSystem {
         inherit system;
         modules = [ 
           ./configuration.nix
+          ./hosts/nandi/hardware-configuration.nix
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
@@ -69,6 +46,30 @@
                 niri = pkgs-unstable.niri;
               })
             ];
+          })
+        ];
+        specialArgs = {
+          inherit username;
+          inherit name;
+          inherit pkgs-unstable;
+          inherit niri;
+        };
+      };
+      # ISO configuration
+      iso = lib.nixosSystem {
+        inherit system;
+        modules = [ 
+          ./configuration.nix
+          /etc/nixos/hardware-configuration.nix
+          home-manager.nixosModules.home-manager {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.${username} = import ./home.nix;
+          }
+          ({ pkgs, lib, ... }: {
+            # ISO-specific configurations
+            isoImage.edition = lib.mkForce "nandi";
+            isoImage.compressImage = true;
           })
         ];
         specialArgs = {

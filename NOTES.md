@@ -11,10 +11,16 @@
     cd ~/.dotfiles
     ```
 
+- Build your regular system with:
+    ```
+    nixos-rebuild switch --flake .#nandi
+    ```
+
 - Build the ISO with:
     ```
-    nix build .#nixosConfigurations.iso.config.system.build.isoImage
+    nixos-rebuild build-iso --flake .#iso
     ```
+    OLD: `nix build .#nixosConfigurations.iso.config.system.build.isoImage`
 
 - The ISO will be available at:
     ```
