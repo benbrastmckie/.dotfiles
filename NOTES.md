@@ -44,10 +44,21 @@
     ```
   (Replace sdX with your USB drive device, be very careful to use the correct device!)
 
-- Delete the ISO with:
-
+- Delete the ISO symlink with:
     ```
     rm -f ./result
+    ```  
+
+- Clean up the build result with:
+
+    ```
+    nix-store --gc
+    ```
+
+  Or for a more targeted cleanup:
+
+    ```
+    nix-collect-garbage -d
     ```  
 
 - The ISO includes:
