@@ -1,0 +1,87 @@
+input {
+    keyboard {
+        xkb {
+            layout "us"
+        }
+        repeat-delay 600
+        repeat-rate 25
+    }
+    
+    touchpad {
+        natural-scroll true
+        tap true
+        dwt false
+    }
+
+    mouse {
+        natural-scroll false
+    }
+}
+
+layout {
+    focus-ring {
+        width 4
+        active.color "rgb(77, 156, 255)"
+        inactive.color "rgb(100, 100, 100)"
+    }
+    border {
+        width 4
+        active.color "rgb(77, 156, 255)"
+        inactive.color "rgb(100, 100, 100)"
+    }
+    gaps 8
+}
+
+animations {
+    enabled true
+}
+
+binds {
+    # Program launching
+    Mod+Return { spawn "alacritty" }
+    Mod+b { spawn "brave" }
+    Mod+p { spawn "fuzzel" }
+    Mod+z { spawn "zotero" }
+
+    # Window management
+    Mod+q { close-window }
+    
+    # Window focus
+    Mod+h { focus-column-left }
+    Mod+j { focus-window-down }
+    Mod+k { focus-window-up }
+    Mod+l { focus-column-right }
+    
+    # Window movement
+    Mod+Shift+h { move-column-left }
+    Mod+Shift+j { move-window-down }
+    Mod+Shift+k { move-window-up }
+    Mod+Shift+l { move-column-right }
+
+    # Workspaces
+    Mod+1 { focus-workspace 1 }
+    Mod+2 { focus-workspace 2 }
+    Mod+3 { focus-workspace 3 }
+    Mod+4 { focus-workspace 4 }
+    Mod+5 { focus-workspace 5 }
+
+    # Move windows to workspaces
+    Mod+Shift+1 { move-window-to-workspace 1 }
+    Mod+Shift+2 { move-window-to-workspace 2 }
+    Mod+Shift+3 { move-window-to-workspace 3 }
+    Mod+Shift+4 { move-window-to-workspace 4 }
+    Mod+Shift+5 { move-window-to-workspace 5 }
+
+    # Layout management
+    Mod+f { toggle-fullscreen }
+    Mod+Space { toggle-floating }
+
+    # Niri actions
+    Mod+Shift+q { quit }
+    Mod+Shift+r { reload-config }
+}
+
+# Autostart programs
+spawn-at-startup "waybar"
+spawn-at-startup "mako"
+

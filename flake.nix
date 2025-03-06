@@ -5,17 +5,20 @@
     nixpkgs.url = "nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     lean4.url = "github:leanprover/lean4";
-    # nixpkgs-unstable.url = "nixpkgs/nixos-unstable";
+    niri = {
+      url = "github:YaLTeR/niri";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    niri.url = "github:YaLTeR/niri";
     # home-manager = {
     #   url = "github:nix-community/home-manager/release-23.11";  
-    #   inputs.nixpkgs.follows = "nixpkgs";
     # };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, ... }@inputs:
+  # outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, ... }:
+
   let
     lib = nixpkgs.lib;
     system = "x86_64-linux";
@@ -24,10 +27,10 @@
     username = "benjamin";
     name = "Ben";
 
-    # Override to use unstable for specific packages
-    finalPkgs = pkgs.extend (final: prev: {
-      niri = pkgs-unstable.niri;
-    });
+    # # Override to use unstable for specific packages
+    # finalPkgs = pkgs.extend (final: prev: {
+    #   niri = pkgs-unstable.niri;
+    # });
   in {
     nixosConfigurations = {
       nandi = lib.nixosSystem {
@@ -52,7 +55,6 @@
           inherit username;
           inherit name;
           inherit pkgs-unstable;
-          inherit niri;
         };
       };
       # ISO configuration
