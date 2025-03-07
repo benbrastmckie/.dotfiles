@@ -78,8 +78,14 @@
       };
     };
     
-    # Enable GNOME Desktop Environment
-    desktopManager.gnome.enable = true;
+    # Enable full GNOME desktop environment
+    desktopManager.gnome = {
+      enable = true;
+      extraGSettingsOverrides = ''
+        [org.gnome.desktop.interface]
+        enable-hot-corners=false
+      '';
+    };
   };
 
   # Enable niri Wayland compositor
@@ -87,6 +93,29 @@
     enable = true;
     package = pkgs.niri;
   };
+
+  # # NOTE: note needed with config.kdl in /.config/niri
+  # # Create niri config directory and configuration
+  # environment.etc."niri/config.kdl".text = ''
+  #   spawn_at_startup = [
+  #       { command = "gnome-session --session=gnome" }
+  #   ]
+  # '';
+
+  # Enable GNOME services
+  services.gnome = {
+    gnome-settings-daemon.enable = true;
+    gnome-online-accounts.enable = true;
+    evolution-data-server.enable = true;
+    gnome-keyring.enable = true;
+  };
+
+  # Additional GNOME services that are useful for both environments
+  services.dbus.packages = [ pkgs.dconf ];
+  programs.dconf.enable = true;
+
+  # Enable GNOME Virtual File System
+  services.gvfs.enable = true;
 
   # Configure keymap in X11
   services.xserver = {
@@ -100,6 +129,10 @@
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
+
+  # Enable Bluetooth
+  hardware.bluetooth.enable = true;
+  # services.blueman.enable = true;  # Save for Niri without Gnome
 
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
@@ -130,19 +163,27 @@
   environment.systemPackages = 
     (with pkgs; [
       # Wayland and Niri essentials
-      wl-clipboard
-      wayland-utils
-      wayland
-      xdg-utils
-      qt6.qtwayland
-      libsForQt5.qt5.qtwayland
-      fuzzel  # Application launcher
-      # wofi    # Application launcher (alternative to fuzzel)
-      mako    # Notification daemon
-      grim    # Screenshot utility
-      slurp   # Region selection
-      swaylock  # Screen locker
-      waybar  # Status bar
+      wl-clipboard  # Still useful for command-line clipboard operations
+      wayland-utils  # Useful for debugging Wayland issues
+      xdg-utils  # Required for basic desktop integration
+      qt6.qtwayland  # Required for Qt6 apps
+      libsForQt5.qt5.qtwayland  # Required for Qt5 apps
+      swaybg  # Needed for niri wallpaper
+
+      # # For use with Niri on without Gnome
+      # fuzzel  # Application launcher
+      # mako    # Notification daemon
+      # grim    # Screenshot utility
+      # slurp   # Region selection
+      # swaylock  # Screen locker
+      # waybar  # Status bar
+      # swayidle  # Idle management
+      # network-manager-applet  # nm-applet
+      # blueman  # Bluetooth management
+      # polkit_gnome  # Authentication agent
+      # wl-clipboard-x11  # Extended clipboard support
+      # clipman  # Clipboard manager
+      # kanshi  # Output management
 
       # Terminals and Shells
       kitty

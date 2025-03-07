@@ -1,87 +1,203 @@
+// Visual and Input Configuration
 input {
     keyboard {
         xkb {
             layout "us"
+            // Enable common keyboard options
+            options "caps:escape,compose:ralt"
         }
-        repeat-delay 600
-        repeat-rate 25
+        // Faster key repeat for better responsiveness
+        repeat-delay 300
+        repeat-rate 50
     }
     
     touchpad {
         natural-scroll true
         tap true
-        dwt false
+        dwt false  // Disable while typing
+        accel-profile "adaptive"
+        accel-speed 0.2
+        scroll-factor 1.2
     }
 
     mouse {
         natural-scroll false
+        accel-profile "flat"
+        accel-speed 0
     }
 }
 
+// Visual Styling
 layout {
+    // Modern focus ring appearance
     focus-ring {
-        width 4
-        active.color "rgb(77, 156, 255)"
-        inactive.color "rgb(100, 100, 100)"
+        width 3
+        active.color "rgb(94, 129, 172)"  // Nord blue
+        inactive.color "rgb(67, 76, 94)"   // Nord muted
+        active.gradient.start "rgb(136, 192, 208)"  // Nord light blue
+        active.gradient.end "rgb(129, 161, 193)"    // Nord blue
     }
+    
+    // Window borders
     border {
-        width 4
-        active.color "rgb(77, 156, 255)"
-        inactive.color "rgb(100, 100, 100)"
+        width 2
+        active.color "rgb(94, 129, 172)"    // Nord blue
+        inactive.color "rgb(67, 76, 94)"    // Nord muted
+        active.gradient.start "rgb(136, 192, 208)"  // Nord light blue
+        active.gradient.end "rgb(129, 161, 193)"    // Nord blue
     }
+    
+    // Workspace layout settings
     gaps 8
+    struts {
+        left 0
+        right 0
+        top 32  // Reserve space for top bar
+        bottom 0
+    }
+    
+    // Default window dimensions
+    default-column-width "50%"
 }
 
+// Smooth animations
 animations {
     enabled true
+    speed 7  // Animation speed (1-10)
+    
+    // Window animations
+    window-open { duration 200 }
+    window-close { duration 200 }
+    window-move { duration 150 }
+    window-resize { duration 150 }
+    
+    // Workspace animations
+    workspace-switch { duration 200 }
 }
 
+// Window rules
+windows {
+    // Firefox PiP windows should float
+    match {
+        title "^Picture-in-Picture$"
+        float true
+        sticky true
+    }
+    
+    // System dialogs should float
+    match {
+        app-id "^pavucontrol$"
+        float true
+        center true
+    }
+}
+
+//// KEYBINDINGS ////
+
 binds {
-    # Program launching
+    // Program launching
     Mod+Return { spawn "alacritty" }
     Mod+b { spawn "brave" }
     Mod+p { spawn "fuzzel" }
     Mod+z { spawn "zotero" }
-
-    # Window management
-    Mod+q { close-window }
     
-    # Window focus
+    // Quick launchers
+    Mod+e { spawn "nautilus" }  // File manager
+    Mod+c { spawn "code" }      // VSCode
+    Mod+m { spawn "spotify" }   // Music
+    
+    // System controls
+    Mod+Shift+s { spawn "grimshot save area" }  // Screenshot area
+    Print { spawn "grimshot save screen" }      // Screenshot full
+    Mod+Shift+x { spawn "swaylock -f" }        // Lock screen
+    
+    // Audio controls
+    XF86AudioRaiseVolume { spawn "wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+" }
+    XF86AudioLowerVolume { spawn "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-" }
+    XF86AudioMute { spawn "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle" }
+    XF86AudioPlay { spawn "playerctl play-pause" }
+    XF86AudioNext { spawn "playerctl next" }
+    XF86AudioPrev { spawn "playerctl previous" }
+
+    // Window management
+    Mod+q { close-window }
+    Mod+f { toggle-fullscreen }
+    Mod+Space { toggle-floating }
+    
+    // Advanced window management
+    Mod+r { enter-resize-mode }
+    Mod+m { toggle-maximize }
+    Mod+Tab { focus-recent }
+    
+    // Window focus - vim style
     Mod+h { focus-column-left }
     Mod+j { focus-window-down }
     Mod+k { focus-window-up }
     Mod+l { focus-column-right }
     
-    # Window movement
+    // Window movement - vim style
     Mod+Shift+h { move-column-left }
     Mod+Shift+j { move-window-down }
     Mod+Shift+k { move-window-up }
     Mod+Shift+l { move-column-right }
 
-    # Workspaces
-    Mod+1 { focus-workspace 1 }
-    Mod+2 { focus-workspace 2 }
-    Mod+3 { focus-workspace 3 }
-    Mod+4 { focus-workspace 4 }
-    Mod+5 { focus-workspace 5 }
+    // Named workspaces
+    Mod+1 { focus-workspace "1:web" }
+    Mod+2 { focus-workspace "2:code" }
+    Mod+3 { focus-workspace "3:term" }
+    Mod+4 { focus-workspace "4:docs" }
+    Mod+5 { focus-workspace "5:media" }
+    Mod+6 { focus-workspace "6:chat" }
+    Mod+7 { focus-workspace "7:misc" }
+    Mod+8 { focus-workspace "8:extra" }
+    Mod+9 { focus-workspace "9:bg" }
 
-    # Move windows to workspaces
-    Mod+Shift+1 { move-window-to-workspace 1 }
-    Mod+Shift+2 { move-window-to-workspace 2 }
-    Mod+Shift+3 { move-window-to-workspace 3 }
-    Mod+Shift+4 { move-window-to-workspace 4 }
-    Mod+Shift+5 { move-window-to-workspace 5 }
+    // Move windows to workspaces
+    Mod+Shift+1 { move-window-to-workspace "1:web" }
+    Mod+Shift+2 { move-window-to-workspace "2:code" }
+    Mod+Shift+3 { move-window-to-workspace "3:term" }
+    Mod+Shift+4 { move-window-to-workspace "4:docs" }
+    Mod+Shift+5 { move-window-to-workspace "5:media" }
+    Mod+Shift+6 { move-window-to-workspace "6:chat" }
+    Mod+Shift+7 { move-window-to-workspace "7:misc" }
+    Mod+Shift+8 { move-window-to-workspace "8:extra" }
+    Mod+Shift+9 { move-window-to-workspace "9:bg" }
 
-    # Layout management
-    Mod+f { toggle-fullscreen }
-    Mod+Space { toggle-floating }
-
-    # Niri actions
+    // Layout management
+    Mod+v { split-column }
+    Mod+s { stacking-column }
+    
+    // Niri actions
     Mod+Shift+q { quit }
     Mod+Shift+r { reload-config }
+    Mod+Shift+c { reload-config }  // i3-style alternative
 }
 
-# Autostart programs
-spawn-at-startup "waybar"
-spawn-at-startup "mako"
+//// AUTOSTART PROGRAMS ////
 
+// Start GNOME Session and Core Services
+spawn-at-startup "/run/current-system/sw/bin/gnome-shell --mode=nested"  // GNOME Shell in nested mode
+spawn-at-startup "dbus-run-session gnome-session --session=gnome"        // Main GNOME session
+
+// System Tray and Basic Services
+spawn-at-startup "/run/current-system/sw/bin/nm-applet --indicator"  // Network manager
+spawn-at-startup "/run/current-system/sw/bin/blueman-applet"         // Bluetooth manager
+
+// System Management
+spawn-at-startup "/run/current-system/sw/bin/swayidle -w timeout 300 'swaylock -f' timeout 600 'systemctl suspend'"  // Auto lock/suspend
+spawn-at-startup "/run/current-system/sw/bin/kanshi"  // Output management
+
+// Visual Elements
+spawn-at-startup "/run/current-system/sw/bin/swaybg -i ~/.wallpapers/current -m fill"  // Wallpaper
+
+// // NOTE: for Niri without Gnome
+// // Autostart programs
+// spawn-at-startup "waybar -c ~/.config/waybar/config"  // Status bar
+// spawn-at-startup "mako"                               // Notifications
+// spawn-at-startup "swayidle -w timeout 300 'swaylock -f' timeout 600 'systemctl suspend'"  // Auto lock/suspend
+// spawn-at-startup "nm-applet --indicator"              // Network manager
+// spawn-at-startup "blueman-applet"                     // Bluetooth manager
+// spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"  // Authentication agent
+// spawn-at-startup "wl-paste -t text --watch clipman store"  // Clipboard manager
+// spawn-at-startup "kanshi"                             // Output management
+// spawn-at-startup "swaybg -i ~/.wallpapers/current -m fill"  // Wallpaper
