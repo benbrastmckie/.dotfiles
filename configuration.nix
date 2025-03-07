@@ -94,13 +94,9 @@
     package = pkgs.niri;
   };
 
-  # # NOTE: note needed with config.kdl in /.config/niri
-  # # Create niri config directory and configuration
-  # environment.etc."niri/config.kdl".text = ''
-  #   spawn_at_startup = [
-  #       { command = "gnome-session --session=gnome" }
-  #   ]
-  # '';
+  # Ensure proper Wayland and GNOME integration
+  services.xserver.displayManager.sessionPackages = [ pkgs.niri ];
+  programs.xwayland.enable = true;
 
   # Enable GNOME services
   services.gnome = {

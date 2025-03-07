@@ -84,3 +84,11 @@
 
 - run `home-manager switch --flake ~/.dotfiles/`
 - run `fish_vi_key_bindings`
+
+## Niri
+
+- You can check the logs by running:
+    ```bash
+    journalctl -b -u niri
+    ```
+
