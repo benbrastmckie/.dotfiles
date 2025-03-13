@@ -96,13 +96,13 @@ windows {
 
 binds {
     // Program launching
-    Mod+Return { spawn "alacritty" }
+    Mod+t { spawn "kitty" }
     Mod+b { spawn "brave" }
     Mod+p { spawn "fuzzel" }
     Mod+z { spawn "zotero" }
     
     // Quick launchers
-    Mod+e { spawn "nautilus" }  // File manager
+    Mod+f { spawn "nautilus" }  // File manager
     Mod+c { spawn "code" }      // VSCode
     Mod+m { spawn "spotify" }   // Music
     
@@ -121,8 +121,8 @@ binds {
 
     // Window management
     Mod+q { close-window }
-    Mod+f { toggle-fullscreen }
-    Mod+Space { toggle-floating }
+    // Mod+Shift+k { toggle-fullscreen }
+    // Mod+Shift+j { toggle-floating }
     
     // Advanced window management
     Mod+r { enter-resize-mode }
@@ -170,7 +170,6 @@ binds {
     // Niri actions
     Mod+Shift+q { quit }
     Mod+Shift+r { reload-config }
-    Mod+Shift+c { reload-config }  // i3-style alternative
 }
 
 //// AUTOSTART PROGRAMS ////
@@ -181,23 +180,6 @@ spawn-at-startup "dbus-daemon --session --address=unix:path=$XDG_RUNTIME_DIR/bus
 spawn-at-startup "gnome-session --session=gnome"
 // Visual Elements
 spawn-at-startup "/run/current-system/sw/bin/swaybg -i ~/.wallpapers/current -m fill"  // Wallpaper
-
-// Note: The following are handled by GNOME Session:
-// - Screen locking and power management
-// - Display configuration (replaces kanshi)
-// - Notifications and shell features (no need for nested shell)
-
-// // Start essential services first
-// spawn-at-startup "dbus-daemon --session --address=unix:path=$XDG_RUNTIME_DIR/bus"
-// // Start GNOME Session
-// spawn-at-startup "gnome-session --session=gnome"
-// // Start background services after GNOME session
-// spawn-at-startup "/run/current-system/sw/bin/gnome-shell --wayland --mode=nested"  // GNOME Shell in nested mode for notifications
-// // System Management
-// spawn-at-startup "/run/current-system/sw/bin/swayidle -w timeout 300 'swaylock -f' timeout 600 'systemctl suspend'"  // Auto lock/suspend
-// spawn-at-startup "/run/current-system/sw/bin/kanshi"  // Output management
-// // Visual Elements
-// spawn-at-startup "/run/current-system/sw/bin/swaybg -i ~/.wallpapers/current -m fill"  // Wallpaper
 
 // // NOTE: for Niri without Gnome
 // // Autostart programs

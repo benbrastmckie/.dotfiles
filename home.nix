@@ -33,6 +33,9 @@
       model-checker
       tqdm
       pip
+      pyyaml  # for lectic
+      requests  # for lectic
+      markdown  # for lectic
       # pynvim 
       # pylint 
       # black  

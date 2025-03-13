@@ -60,6 +60,22 @@
         "type": "github"
       }
     },
+    "lectic": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1741829072,
+        "narHash": "sha256-ZUMGteFXgMoDpsaTjUAGN1++CvefB1PpiWwUg7e86j8=",
+        "owner": "gleachkr",
+        "repo": "lectic",
+        "rev": "b831183a173f75f8e40a4cd7ef87ee2702e1cb8e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gleachkr",
+        "repo": "lectic",
+        "type": "github"
+      }
+    },
     "niri": {
       "inputs": {
         "nix-filter": "nix-filter",
@@ -181,6 +197,7 @@
       "inputs": {
         "home-manager": "home-manager",
         "lean4": "lean4",
+        "lectic": "lectic",
         "niri": "niri",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable"

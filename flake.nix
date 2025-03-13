@@ -9,6 +9,10 @@
       url = "github:YaLTeR/niri";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    lectic = {
+      url = "github:gleachkr/lectic";
+      flake = false;
+    };
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     # home-manager = {
@@ -16,7 +20,7 @@
     # };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, lectic, ... }@inputs:
   # outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, ... }:
 
   let
@@ -26,6 +30,11 @@
     pkgs-unstable = nixpkgs-unstable.legacyPackages.${system};
     username = "benjamin";
     name = "Ben";
+    
+    # Create a proper derivation for lectic
+    lectickPkg = pkgs.callPackage ./pkgs/lectic {
+      inherit (pkgs) lib python3 fetchFromGitHub;
+    };
 
     # # Override to use unstable for specific packages
     # finalPkgs = pkgs.extend (final: prev: {
@@ -47,6 +56,7 @@
             nixpkgs.overlays = [
               (final: prev: {
                 niri = pkgs-unstable.niri;
+                lectic = lectickPkg;
               })
             ];
           })
@@ -55,6 +65,7 @@
           inherit username;
           inherit name;
           inherit pkgs-unstable;
+          inherit lectic;
         };
       };
       # ISO configuration

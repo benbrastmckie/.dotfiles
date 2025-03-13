@@ -94,8 +94,16 @@
     package = pkgs.niri;
   };
 
+  # Configure Wayland properly
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
+
+  security.polkit.enable = true;
+
   # Ensure proper Wayland and GNOME integration
-  services.xserver.displayManager.sessionPackages = [ pkgs.niri ];
+  services.displayManager.sessionPackages = [ pkgs.niri ];
   programs.xwayland.enable = true;
 
   # Enable GNOME services
@@ -139,6 +147,10 @@
       support32Bit = true;
     };
     pulse.enable = true;
+    jack.enable = true;
+    wireplumber.enable = true;
+    # Use the system-wide installation
+    systemWide = false;
   };
 
   # Enable touchpad support (enabled default in most desktopManager).
@@ -154,13 +166,16 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.input-fonts.acceptLicense = true;
-
-
+  
   environment.systemPackages = 
+    # let
+    #   lectic-pkg = pkgs.callPackage ./pkgs/lectic { };
+    # in
     (with pkgs; [
+      # lectic-pkg  # Our custom lectic package
+      lectic  # Using the overlayed lectic package
       # Wayland and Niri essentials
       wl-clipboard  # Still useful for command-line clipboard operations
-      wayland-utils  # Useful for debugging Wayland issues
       xdg-utils  # Required for basic desktop integration
       qt6.qtwayland  # Required for Qt6 apps
       libsForQt5.qt5.qtwayland  # Required for Qt5 apps
