@@ -1,9 +1,10 @@
 { lib
-, python3
+, stdenv
+, nodejs_20
 , fetchFromGitHub
 }:
 
-python3.pkgs.buildPythonApplication rec {
+stdenv.mkDerivation rec {
   pname = "lectic";
   version = "0.0.0-alpha5";
 
@@ -11,17 +12,25 @@ python3.pkgs.buildPythonApplication rec {
     owner = "gleachkr";
     repo = "Lectic";  # Note: repository name is case-sensitive
     rev = "v${version}";
-    hash = "sha256-Ue+jPPmxBPPKEeHXGBJhVGGFEFBBGPPEHGPxVJGkVxE=";
+    hash = "sha256-ZUMGteFXgMoDpsaTjUAGN1++CvefB1PpiWwUg7e86j8=";
   };
 
-  propagatedBuildInputs = with python3.pkgs; [
-    pyyaml
-    requests
-    markdown
+  nativeBuildInputs = [
+    nodejs_20
   ];
 
-  # Add checkInputs if there are any test dependencies
-  doCheck = false;  # Disable tests temporarily if they're not set up
+  buildPhase = ''
+    # Install dependencies
+    npm ci
+    # Build the project
+    npm run build
+  '';
+
+  installPhase = ''
+    mkdir -p $out/bin
+    cp -r dist/* $out/bin/
+    chmod +x $out/bin/lectic
+  '';
 
   meta = with lib; {
     description = "A markdown-based frontend for Large Language Models (LLMs)";

@@ -33,8 +33,11 @@
     
     # Create a proper derivation for lectic
     lectickPkg = pkgs.callPackage ./pkgs/lectic {
-      inherit (pkgs) lib python3 fetchFromGitHub;
+      inherit (pkgs) nodejs_20;
     };
+    # lectickPkg = pkgs.callPackage ./pkgs/lectic {
+    #   inherit (pkgs) lib python3 fetchFromGitHub;
+    # };
 
     # # Override to use unstable for specific packages
     # finalPkgs = pkgs.extend (final: prev: {
@@ -56,7 +59,8 @@
             nixpkgs.overlays = [
               (final: prev: {
                 niri = pkgs-unstable.niri;
-                lectic = lectickPkg;
+                # lectic = lectickPkg;
+                lectic = final.callPackage ./pkgs/lectic {};
               })
             ];
           })
