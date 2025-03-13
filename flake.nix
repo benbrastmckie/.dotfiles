@@ -11,7 +11,17 @@
     };
     lectic = {
       url = "github:gleachkr/lectic";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        utils.follows = "utils";
+        nix-appimage.follows = "nix-appimage";
+        sqlite-vec-repo.follows = "sqlite-vec-repo";
+      };
+    };
+    utils.url = "github:numtide/flake-utils";
+    nix-appimage.url = "github:ralismark/nix-appimage";
+    sqlite-vec-repo = {
+      url = "github:asg017/sqlite-vec";
+      flake = false;
     };
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -20,7 +30,7 @@
     # };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, lectic, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, lectic, utils, nix-appimage, sqlite-vec-repo, ... }@inputs:
   # outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, ... }:
 
   let
@@ -31,12 +41,6 @@
     username = "benjamin";
     name = "Ben";
     
-    # Use lectic from its flake
-    lectickPkg = lectic.packages.${system}.default;
-    # lectickPkg = pkgs.callPackage ./pkgs/lectic {
-    #   inherit (pkgs) lib python3 fetchFromGitHub;
-    # };
-
     # # Override to use unstable for specific packages
     # finalPkgs = pkgs.extend (final: prev: {
     #   niri = pkgs-unstable.niri;
@@ -57,7 +61,7 @@
             nixpkgs.overlays = [
               (final: prev: {
                 niri = pkgs-unstable.niri;
-                lectic = lectickPkg;
+                lectic = lectic.packages.${system}.default;
               })
             ];
           })
@@ -66,7 +70,7 @@
           inherit username;
           inherit name;
           inherit pkgs-unstable;
-          inherit lectic;
+
         };
       };
       # ISO configuration
