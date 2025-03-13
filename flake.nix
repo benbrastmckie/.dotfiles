@@ -11,7 +11,7 @@
     };
     lectic = {
       url = "github:gleachkr/lectic";
-      flake = false;
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -31,10 +31,8 @@
     username = "benjamin";
     name = "Ben";
     
-    # Create a proper derivation for lectic
-    lectickPkg = pkgs.callPackage ./pkgs/lectic {
-      inherit (pkgs) nodejs_20;
-    };
+    # Use lectic from its flake
+    lectickPkg = lectic.packages.${system}.default;
     # lectickPkg = pkgs.callPackage ./pkgs/lectic {
     #   inherit (pkgs) lib python3 fetchFromGitHub;
     # };
@@ -59,8 +57,7 @@
             nixpkgs.overlays = [
               (final: prev: {
                 niri = pkgs-unstable.niri;
-                # lectic = lectickPkg;
-                lectic = final.callPackage ./pkgs/lectic {};
+                lectic = lectickPkg;
               })
             ];
           })
