@@ -169,6 +169,7 @@
   
   environment.systemPackages = 
     (with pkgs; [
+      lectic
       # Wayland and Niri essentials
       wl-clipboard  # Still useful for command-line clipboard operations
       xdg-utils  # Required for basic desktop integration
@@ -223,7 +224,6 @@
       lua-language-server
       stylua
       tree
-      lectic
 
       # Lean
       # lean4
@@ -234,6 +234,7 @@
       neovim
       neovim-remote
       vscodium
+      lectic
 
       # PDF and Document Tools
       zotero
