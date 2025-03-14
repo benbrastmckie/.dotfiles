@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, lectic, ... }:
 {
   imports =
     [ # Hardware configuration is now imported in flake.nix
@@ -168,12 +168,7 @@
   nixpkgs.config.input-fonts.acceptLicense = true;
   
   environment.systemPackages = 
-    # let
-    #   lectic-pkg = pkgs.callPackage ./pkgs/lectic { };
-    # in
     (with pkgs; [
-      # lectic-pkg  # Our custom lectic package
-      lectic  # Using the overlayed lectic package
       # Wayland and Niri essentials
       wl-clipboard  # Still useful for command-line clipboard operations
       xdg-utils  # Required for basic desktop integration
@@ -228,6 +223,7 @@
       lua-language-server
       stylua
       tree
+      lectic
 
       # Lean
       # lean4
