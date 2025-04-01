@@ -11,7 +11,6 @@
     };
     lectic = {
       url = "github:gleachkr/lectic";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     utils.url = "github:numtide/flake-utils";
     home-manager.url = "github:nix-community/home-manager/release-24.11";
@@ -22,7 +21,6 @@
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, lectic, utils, ... }@inputs:
-  # outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, ... }:
 
   let
     lib = nixpkgs.lib;
@@ -47,6 +45,10 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.${username} = import ./home.nix;
+            home-manager.extraSpecialArgs = {
+              inherit pkgs-unstable;
+              inherit lectic;
+            };
           }
           ({ config, pkgs, ... }: {
             nixpkgs.overlays = [
@@ -60,7 +62,8 @@
           inherit username;
           inherit name;
           inherit pkgs-unstable;
-          inherit lectic;
+          # inherit lectic;
+          lectic = lectic.packages.${system}.default;
         };
       };
       # ISO configuration
@@ -120,6 +123,8 @@
           inherit username;
           inherit name;
           inherit pkgs-unstable;
+          lectic = lectic.packages.${system}.default;
+          # lectic = lectic.defaultPackage.${system};
         };
       };
     };

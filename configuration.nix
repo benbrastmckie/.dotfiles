@@ -18,10 +18,10 @@
   networking = {
     networkmanager = {
       enable = true;  # Use NetworkManager for all networking
-      wifi.backend = "iwd";  # Use iwd backend for better performance
+      # wifi.backend = "iwd";  # Use iwd backend for better performance
     };
     # Disable wpa_supplicant completely in the main system
-    wireless.enable = false;
+    # wireless.enable = false;
   };
 
   # Configure network proxy if necessary
@@ -39,16 +39,34 @@
     allowedUDPPorts = [ ];
   };
 
-  # Enable automatic timezone detection based on location
-  services.automatic-timezoned.enable = true;
-  services.geoclue2.enable = true;
-
   # Set your static time zone
   # time.timeZone = "America/Los_Angeles";
   # time.timeZone = "America/New_York";
 
-  # Update to local time
-  # services.localtimed.enable = true;
+  # Configure GeoClue2 properly
+  services.geoclue2 = {
+    enable = true;
+    appConfig = {
+      "org.gnome.Shell.LocationServices" = {
+        isAllowed = true;
+        isSystem = true;
+      };
+      automatic-timezone = {
+        isAllowed = true;
+        isSystem = true;
+      };
+    };
+  };
+
+  # Enable location services
+  location.provider = "geoclue2";
+
+  # Enable automatic timezone detection based on location
+  services.automatic-timezoned.enable = true;
+  services.localtimed.enable = true;
+
+  # Configure time synchronization
+  services.timesyncd.enable = true;
 
   # makes the split mechanical keyboard recognized
   services.udev = {
@@ -112,6 +130,8 @@
     gnome-online-accounts.enable = true;
     evolution-data-server.enable = true;
     gnome-keyring.enable = true;
+    gnome-remote-desktop.enable = true;
+    # core-network.enable = true;  # Ensure GNOME network components are enabled
   };
 
   # Additional GNOME services that are useful for both environments
@@ -280,12 +300,6 @@
         exec ${pkgs.zathura}/bin/zathura "$@"
       '')
     ]);
-
-    # ++
-    #
-    # (with pkgs-unstable; [
-    #   neovim  # Unstable package
-    # ]);
 
   programs.fish.enable = true;
 

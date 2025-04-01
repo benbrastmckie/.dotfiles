@@ -1,4 +1,4 @@
-{ config, pkgs, pkgs-unstable, ... }:
+{ config, pkgs, pkgs-unstable, lectic, ... }:
 
 {
   # manage.
@@ -22,6 +22,7 @@
 
   # home.packages allows you to install Nix packages into your environment.
   home.packages = with pkgs; [
+    lectic
     (python312.withPackages(p: with p; [
       z3 
       setuptools 
