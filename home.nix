@@ -22,6 +22,7 @@
 
   # home.packages allows you to install Nix packages into your environment.
   home.packages = with pkgs; [
+    pkgs-unstable.claude-code
     lectic
     (python312.withPackages(p: with p; [
       z3 

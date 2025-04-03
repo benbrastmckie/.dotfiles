@@ -14,19 +14,16 @@
 
   networking.hostName = "nandi"; # Define your hostname.
   
-  # Networking configuration
-  networking = {
-    networkmanager = {
-      enable = true;  # Use NetworkManager for all networking
-      # wifi.backend = "iwd";  # Use iwd backend for better performance
-    };
-    # Disable wpa_supplicant completely in the main system
-    # wireless.enable = false;
+# Networking configuration
+networking = {
+  networkmanager = {
+    enable = true;  # Use NetworkManager for all networking
+    # Uncomment for better WiFi performance
+    # wifi.backend = "iwd";
   };
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+  # Explicitly disable wpa_supplicant when using NetworkManager
+  wireless.enable = false;
+};
 
   # Security hardening
   security.pam.services.swaylock = {};  # Enable screen locking
@@ -39,34 +36,34 @@
     allowedUDPPorts = [ ];
   };
 
-  # Set your static time zone
-  # time.timeZone = "America/Los_Angeles";
-  # time.timeZone = "America/New_York";
-
-  # Configure GeoClue2 properly
-  services.geoclue2 = {
-    enable = true;
-    appConfig = {
-      "org.gnome.Shell.LocationServices" = {
-        isAllowed = true;
-        isSystem = true;
-      };
-      automatic-timezone = {
-        isAllowed = true;
-        isSystem = true;
-      };
+# Time and location configuration
+services.geoclue2 = {
+  enable = true;
+  appConfig = {
+    "org.gnome.Shell.LocationServices" = {
+      isAllowed = true;
+      isSystem = true;
+    };
+    automatic-timezone = {
+      isAllowed = true;
+      isSystem = true;
     };
   };
+};
 
-  # Enable location services
-  location.provider = "geoclue2";
+# Enable location services
+location.provider = "geoclue2";
 
-  # Enable automatic timezone detection based on location
-  services.automatic-timezoned.enable = true;
-  services.localtimed.enable = true;
+# Choose ONE of the following approaches:
+# Option 1: Use automatic timezone detection (recommended with GNOME)
+services.automatic-timezoned.enable = true;
+# services.localtimed.enable = true;  # Don't enable both services
 
-  # Configure time synchronization
-  services.timesyncd.enable = true;
+# Option 2: Or set a static timezone (uncomment if you prefer this)
+# time.timeZone = "America/New_York";
+
+# Configure time synchronization (independent of timezone setting)
+services.timesyncd.enable = true;
 
   # makes the split mechanical keyboard recognized
   services.udev = {
@@ -141,22 +138,22 @@
   # Enable GNOME Virtual File System
   services.gvfs.enable = true;
 
-  # Configure keymap in X11
-  services.xserver = {
-    xkb.layout = "us";
-    # xkbVariant = "";
-    
-    # # Configure key repeat delay and rate
-    # autoRepeatDelay = 50;    # Delay before key repeat starts (milliseconds)
-    # autoRepeatInterval = 30;  # Interval between key repeats (milliseconds)
-  };
+# Configure keymap in X11
+services.xserver = {
+  xkb.layout = "us";
+  # Uncomment to set key repeat settings
+  # xkb.options = "caps:escape";  # Optional: remap caps lock to escape
+};
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
-  # Enable Bluetooth
-  hardware.bluetooth.enable = true;
-  # services.blueman.enable = true;  # Save for Niri without Gnome
+# Enable Bluetooth
+hardware.bluetooth = {
+  enable = true;
+  powerOnBoot = true;  # Automatically power on Bluetooth adapter at boot
+};
+services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnome.enable) true;
 
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
@@ -189,109 +186,108 @@
   
   environment.systemPackages = 
     (with pkgs; [
-      lectic
       # Wayland and Niri essentials
-      wl-clipboard  # Still useful for command-line clipboard operations
-      xdg-utils  # Required for basic desktop integration
-      qt6.qtwayland  # Required for Qt6 apps
-      libsForQt5.qt5.qtwayland  # Required for Qt5 apps
-      swaybg  # Needed for niri wallpaper
+      wl-clipboard         # Clipboard utility for Wayland compositors
+      xdg-utils            # Standard desktop integration utilities
+      qt6.qtwayland        # Wayland support for Qt6 applications
+      libsForQt5.qt5.qtwayland  # Wayland support for Qt5 applications
+      swaybg               # Simple wallpaper utility for Wayland
 
-      # # For use with Niri on without Gnome
-      # fuzzel  # Application launcher
-      # mako    # Notification daemon
-      # grim    # Screenshot utility
-      # slurp   # Region selection
-      # swaylock  # Screen locker
-      # waybar  # Status bar
-      # swayidle  # Idle management
-      # network-manager-applet  # nm-applet
-      # blueman  # Bluetooth management
-      # polkit_gnome  # Authentication agent
-      # wl-clipboard-x11  # Extended clipboard support
-      # clipman  # Clipboard manager
-      # kanshi  # Output management
+      # # For use with Niri without Gnome utilities
+      # fuzzel               # Lightweight application launcher for Wayland
+      # mako                 # Lightweight notification daemon for Wayland
+      # grim                 # Screenshot utility for Wayland
+      # slurp                # Area selection tool for Wayland screenshots
+      # swaylock             # Screen locker for Wayland compositors
+      # waybar               # Customizable status bar for Wayland
+      # swayidle             # Idle management daemon for Wayland
+      # network-manager-applet  # GUI for NetworkManager connections
+      # blueman              # Bluetooth management utility
+      # polkit_gnome         # PolicyKit authentication agent for GNOME
+      # wl-clipboard-x11     # X11 clipboard compatibility for Wayland
+      # clipman              # Clipboard manager for Wayland
+      # kanshi               # Dynamic display configuration tool
 
       # Terminals and Shells
-      kitty
-      tmux
-      fish
-      oh-my-fish
-      zoxide
-      ghostty
+      kitty                # GPU-accelerated terminal emulator
+      tmux                 # Terminal multiplexer for managing multiple terminal sessions
+      fish                 # User-friendly command line shell
+      oh-my-fish           # Framework to manage fish shell configuration
+      zoxide               # Smarter cd command with learning capabilities
+      ghostty              # Modern terminal emulator with GPU acceleration
       
-
       # Browsers
-      vivaldi
-      brave
+      vivaldi              # Feature-rich web browser with built-in tools
+      brave                # Privacy-focused web browser based on Chromium
 
       # Appearance
-      neofetch
-      disfetch
+      neofetch             # Command-line system information tool with ASCII art
+      disfetch             # Minimal system information display tool
 
       # Development Tools
-      git
-      python3
-      gcc
-      unzip
-      gnumake
-      nodejs_20
-      fd
-      ripgrep
-      fzf
-      lazygit
-      tree-sitter
-      lua-language-server
-      stylua
-      tree
+      git                  # Distributed version control system
+      python3              # Programming language interpreter
+      gcc                  # GNU Compiler Collection for C/C++
+      unzip                # Extract files from ZIP archives
+      gnumake              # Build automation tool
+      nodejs_20            # JavaScript runtime environment
+      uv                   # Fast Python package installer and resolver
+      fd                   # Simple, fast alternative to 'find'
+      ripgrep              # Fast line-oriented search tool (alternative to grep)
+      fzf                  # Command-line fuzzy finder
+      lazygit              # Terminal UI for git commands
+      tree-sitter          # Parsing library for code highlighting and navigation
+      lua-language-server  # Language server for Lua development
+      stylua               # Opinionated Lua code formatter
+      tree                 # Display directory structure in a tree-like format
 
       # Lean
-      # lean4
-      mathlibtools
-      elan
+      # lean4              # Theorem prover and programming language
+      mathlibtools         # Tools for working with mathlib (Lean math library)
+      elan                 # Version manager for Lean
 
       # Editors
-      neovim
-      neovim-remote
-      vscodium
-      lectic
+      neovim               # Highly configurable text editor (Vim-fork)
+      neovim-remote        # Tool for controlling Neovim processes
+      vscodium             # Open source build of VS Code without Microsoft telemetry
+      lectic               # Custom editor or tool (appears to be a local package)
 
       # PDF and Document Tools
-      zotero
-      texlive.combined.scheme-full
-      texlab
-      libsForQt5.okular
-      pdftk
-      pdfannots
-      xsel
-      pstree
-      pandoc
-      zathura
+      zotero               # Reference management software
+      texlive.combined.scheme-full  # Complete TeX Live distribution for document preparation
+      texlab               # Language server for LaTeX
+      libsForQt5.okular    # Universal document viewer
+      pdftk                # PDF toolkit for manipulating PDF documents
+      pdfannots            # Extract annotations from PDF files
+      xsel                 # Command-line tool for getting/setting X selection
+      pstree               # Display running processes as a tree
+      pandoc               # Universal document converter
+      zathura              # Lightweight PDF/document viewer
 
       # GNOME Extensions and Tools
-      gnome-tweaks
-      gnomeExtensions.unite
+      gnome-tweaks         # Tool to customize advanced GNOME settings
+      gnomeExtensions.unite # GNOME extension to remove title bars and merge elements
 
       # Multimedia
-      vlc
-      zoom-us
-      spotify
+      vlc                  # Cross-platform multimedia player
+      zoom-us              # Video conferencing tool
+      spotify              # Music streaming service client
 
       # File Transfer and Torrent
-      wget
-      torrential
+      wget                 # Tool for retrieving files using HTTP, HTTPS, and FTP
+      torrential           # GTK4 BitTorrent client
 
       # Input Tools
-      qmk
-      via
+      qmk                  # Quantum Mechanical Keyboard firmware utilities
+      via                  # Keyboard configuration tool for QMK-powered keyboards
 
       # Miscellaneous
-      xdotool
-      xwayland
+      xdotool              # Command-line X11 automation tool
+      xwayland             # X server for running X11 applications on Wayland
 
       # NixOS
-      home-manager
-      nix-index
+      home-manager         # Tool for managing user configuration
+      nix-index            # Utility for indexing Nix store files
 
       # Custom zathura (Xwayland)
       (writeShellScriptBin "zathura" ''
@@ -301,15 +297,50 @@
       '')
     ]);
 
-  programs.fish.enable = true;
+# Shell configuration
+programs.fish = {
+  enable = true;
+  interactiveShellInit = ''
+    # Initialize zoxide for better directory navigation
+    zoxide init fish | source
+  '';
+};
 
-  fonts.fontDir.enable = true;
+# Font configuration
+fonts = {
+  fontDir.enable = true;
+  enableDefaultPackages = true;
+  packages = with pkgs; [
+    noto-fonts
+    noto-fonts-cjk-sans
+    noto-fonts-emoji
+    liberation_ttf
+    fira-code
+    fira-code-symbols
+  ];
+  fontconfig = {
+    defaultFonts = {
+      serif = [ "Liberation Serif" "Noto Serif" ];
+      sansSerif = [ "Liberation Sans" "Noto Sans" ];
+      monospace = [ "Fira Code" "Liberation Mono" ];
+    };
+  };
+};
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+# Enable useful Nix features
+nix = {
+  settings = {
+    experimental-features = [ "nix-command" "flakes" ];
+    auto-optimise-store = true;  # Optimize the Nix store automatically
+  };
+  gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
+};
 
-  # system.stateVersion = "unstable"; # man configuration.nix or on https://nixos.org/nixos/options.html
-  system.stateVersion = "24.11"; # man configuration.nix or on https://nixos.org/nixos/options.html
-  # system.stateVersion = "24.05"; # man configuration.nix or on https://nixos.org/nixos/options.html
-  # system.stateVersion = "23.11"; # man configuration.nix or on https://nixos.org/nixos/options.html
+# Do not change this value after initial installation
+system.stateVersion = "24.11";
 
 }

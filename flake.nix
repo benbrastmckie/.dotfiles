@@ -26,7 +26,15 @@
     lib = nixpkgs.lib;
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
-    pkgs-unstable = nixpkgs-unstable.legacyPackages.${system};
+    pkgs-unstable = import nixpkgs-unstable {
+      inherit system;
+      config = {
+        allowUnfree = true;
+        allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
+          "claude-code"
+        ];
+      };
+    };
     username = "benjamin";
     name = "Ben";
     
