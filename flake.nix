@@ -90,8 +90,8 @@
           inherit username;
           inherit name;
           inherit pkgs-unstable;
-          # inherit lectic;
-          lectic = lectic.packages.${system}.default;
+          inherit lectic;
+          # lectic = lectic.packages.${system}.default;
         };
       };
       # ISO configuration
@@ -148,6 +148,7 @@
           inherit name;
           inherit pkgs-unstable;
           inherit niri;
+          inherit lectic;
         };
       };
     };
@@ -168,7 +169,8 @@
           inherit username;
           inherit name;
           inherit pkgs-unstable;
-          lectic = lectic.packages.${system}.default;
+          inherit lectic;
+          # lectic = lectic.packages.${system}.default;
           # lectic = lectic.defaultPackage.${system};
         };
       };
