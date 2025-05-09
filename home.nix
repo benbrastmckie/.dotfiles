@@ -32,13 +32,26 @@
       twine
       pytest
       pytest-timeout
-      model-checker
+      # model-checker  # don't install when in development 
       tqdm
       pip
-      pyyaml  # for lectic
-      requests  # for lectic
-      markdown  # for lectic
-      # pynvim 
+      pyyaml
+      requests
+      markdown
+      jupyter
+      jupyter-core
+      notebook
+      ipywidgets
+      matplotlib
+      networkx
+      pynvim
+      numpy
+
+      # Jupyter Notebooks
+      jupytext
+      ipython
+
+
       # pylint 
       # black  
       # isort  

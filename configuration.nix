@@ -267,6 +267,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       # GNOME Extensions and Tools
       gnome-tweaks         # Tool to customize advanced GNOME settings
       gnomeExtensions.unite # GNOME extension to remove title bars and merge elements
+      kooha
 
       # Multimedia
       vlc                  # Cross-platform multimedia player

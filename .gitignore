@@ -1,1 +1,32 @@
+# Nix build outputs
 result
+result-*
+
+# Temporary files
+*.swp
+*.swo
+*~
+\#*\#
+.\#*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+*.sublime-*
+
+# Direnv
+.direnv/
+.envrc
+
+# Flake
+.direnv/
+EOF < /dev/null
