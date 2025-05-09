@@ -13,7 +13,7 @@
 
   programs.neovim = {
     enable = true;
-    package = pkgs.neovim-unwrapped;  # Ensure you're using the latest neovim
+    package = pkgs-unstable.neovim-unwrapped;  # Use neovim-unwrapped directly from unstable
   };
 
   home.stateVersion = "24.11"; # Please read the comment before changing.
@@ -22,7 +22,7 @@
 
   # home.packages allows you to install Nix packages into your environment.
   home.packages = with pkgs; [
-    pkgs-unstable.claude-code
+    claude-code  # Using overlaid unstable package
     lectic
     (python312.withPackages(p: with p; [
       z3 
