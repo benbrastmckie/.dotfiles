@@ -25,7 +25,8 @@
   let
     lib = nixpkgs.lib;
     system = "x86_64-linux";
-    pkgs = nixpkgs.legacyPackages.${system};
+    
+    # Configure unstable packages with allowUnfree
     pkgs-unstable = import nixpkgs-unstable {
       inherit system;
       config = {
@@ -35,13 +36,35 @@
         ];
       };
     };
+    
+    # Create an overlay for unstable packages
+    unstablePackagesOverlay = final: prev: {
+      # Window Manager
+      niri = pkgs-unstable.niri; # Active development with frequent improvements
+      
+      # Applications
+      claude-code = pkgs-unstable.claude-code; # Latest AI capabilities
+      
+      # Add other packages that benefit from using unstable below
+      # Format: package-name = pkgs-unstable.package-name; # Reason for using unstable
+    };
+    
+    # Common nixpkgs configuration
+    nixpkgsConfig = {
+      inherit system;
+      config = {
+        allowUnfree = true;
+      };
+      overlays = [
+        unstablePackagesOverlay
+      ];
+    };
+    
+    # Apply the unstable overlay to the stable package set
+    pkgs = import nixpkgs nixpkgsConfig;
+    
     username = "benjamin";
     name = "Ben";
-    
-    # # Override to use unstable for specific packages
-    # finalPkgs = pkgs.extend (final: prev: {
-    #   niri = pkgs-unstable.niri;
-    # });
   in {
     nixosConfigurations = {
       nandi = lib.nixosSystem {
@@ -49,6 +72,10 @@
         modules = [ 
           ./configuration.nix
           ./hosts/nandi/hardware-configuration.nix
+          
+          # Apply our unstable packages overlay globally
+          { nixpkgs = nixpkgsConfig; }
+          
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
@@ -58,13 +85,6 @@
               inherit lectic;
             };
           }
-          ({ config, pkgs, ... }: {
-            nixpkgs.overlays = [
-              (final: prev: {
-                niri = pkgs-unstable.niri;
-              })
-            ];
-          })
         ];
         specialArgs = {
           inherit username;
@@ -80,10 +100,18 @@
         modules = [ 
           ./configuration.nix
           "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+          
+          # Apply our unstable packages overlay globally
+          { nixpkgs = nixpkgsConfig; }
+          
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.${username} = import ./home.nix;
+            home-manager.extraSpecialArgs = {
+              inherit pkgs-unstable;
+              inherit lectic;
+            };
           }
           ({ pkgs, lib, lectic, ... }: {
             # ISO-specific configurations
@@ -126,7 +154,16 @@
     homeConfigurations = {
       benjamin = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
-        modules = [ ./home.nix ];
+        modules = [
+          ./home.nix
+          # Apply our unstable packages overlay when using standalone home-manager
+          {
+            nixpkgs = {
+              overlays = [ unstablePackagesOverlay ];
+              config = { allowUnfree = true; };
+            };
+          }
+        ];
         extraSpecialArgs = {
           inherit username;
           inherit name;

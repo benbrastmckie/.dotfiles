@@ -30,3 +30,5 @@ Thumbs.db
 # Flake
 .direnv/
 EOF < /dev/null
+
+**/.claude/settings.local.json
