@@ -14,6 +14,10 @@
   programs.neovim = {
     enable = true;
     package = pkgs-unstable.neovim-unwrapped;  # Use neovim-unwrapped directly from unstable
+    extraPackages = [
+      pkgs.luajitPackages.jsregexp  # Add jsregexp package here
+      # pkgs.tree-sitter-grammars.tree-sitter-latex  # Add latex grammar for tree-sitter
+    ];
   };
 
   home.stateVersion = "24.11"; # Please read the comment before changing.
@@ -24,6 +28,10 @@
   home.packages = with pkgs; [
     claude-code  # Using overlaid unstable package
     lectic
+    # Required for running mcp-hub JavaScript tools
+    # See specs/NIXOS_HOMEMANAGER.md for details on the MCP-Hub setup
+    nodejs    # Required runtime dependency
+    mcp-hub-cli  # MCP-Hub package defined in the flake overlay
     (python312.withPackages(p: with p; [
       z3 
       setuptools 
@@ -35,6 +43,7 @@
       # model-checker  # don't install when in development 
       tqdm
       pip
+      pylatexenc
       pyyaml
       requests
       markdown
@@ -85,6 +94,9 @@
     EDITOR = "nvim";
     # Prefer Wayland over X11
     NIXOS_OZONE_WL = "1";
+    
+    # Path to MCP-Hub binary for Neovim integration
+    MCP_HUB_PATH = "${pkgs.mcp-hub-cli}/bin/mcp-hub";
   };
 
   # programs.pylint.enable = true;
