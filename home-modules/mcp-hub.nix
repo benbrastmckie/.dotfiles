@@ -31,63 +31,123 @@ in {
     # Install the MCP-Hub package
     home.packages = [ cfg.package ];
     
-    # Create configuration directory and files
-    home.file.".config/mcphub/servers.json".text = builtins.toJSON {
-      servers = [
-        {
-          name = "default";
-          description = "Default MCP Hub server";
-          url = "http://localhost:${toString cfg.port}";
-          apiKey = "";
-          default = true;
-        }
-      ];
-    };
-    
     # Set environment variables
     home.sessionVariables = {
       MCP_HUB_PATH = "${cfg.package}/bin/mcp-hub";
     };
     
-    # Neovim plugin configuration
-    programs.neovim.plugins = mkIf (config.programs.neovim.enable) [{
-      plugin = pkgs.vimPlugins.mcphub-nvim or pkgs.vimPlugins.vim-nix; # Fallback to prevent errors
-      config = ''
-        lua << EOF
-        local mcp_settings = ${builtins.toJSON cfg.settings}
+    # Create an autoload script that will be loaded by Neovim at startup
+    # A much simpler approach that just provides a direct command to run MCP-Hub
+    home.file.".config/nvim/after/plugin/mcp_home_manager.lua".text = ''
+      -- MCP-Hub Home Manager integration
+      -- This file is automatically loaded by Neovim after all plugins
+      
+      -- Create the MCPNix command
+      vim.api.nvim_create_user_command("MCPNix", function()
+        local cmd = "${cfg.package}/bin/mcp-hub"
         
-        require('mcphub').setup({
-          use_bundled_binary = false,
-          cmd = os.getenv("MCP_HUB_PATH") or "${cfg.package}/bin/mcp-hub",
-          cmdArgs = {},
-          port = ${toString cfg.port},
-          config = vim.fn.expand("~/.config/mcphub/servers.json"),
-          debug = mcp_settings.debug or true,
-          native_servers = mcp_settings.native_servers or {},
-          auto_approve = mcp_settings.auto_approve or false,
-          extensions = mcp_settings.extensions or {
-            avante = {},
-            codecompanion = {
-              show_result_in_chat = false,
-              make_vars = true,
+        -- Display what we're doing
+        vim.notify("Starting MCP-Hub server via Nix...", vim.log.levels.INFO)
+        
+        -- Start the server with the serve command
+        local jobid = vim.fn.jobstart({cmd, "serve", "--port=${toString cfg.port}"})
+        
+        if jobid > 0 then
+          vim.notify("MCP-Hub server started (job: " .. jobid .. ")", vim.log.levels.INFO)
+          
+          -- Update global state if it exists
+          if _G.mcp_hub_state then
+            _G.mcp_hub_state.running = true
+            _G.mcp_hub_state.port = ${toString cfg.port}
+          end
+        else
+          vim.notify("Failed to start MCP-Hub", vim.log.levels.ERROR)
+        end
+      end, { desc = "Start MCP-Hub server using Nix binary" })
+      
+      -- Create servers.json if it doesn't exist
+      local config_dir = vim.fn.expand("~/.config/mcphub")
+      if vim.fn.isdirectory(config_dir) == 0 then
+        vim.fn.mkdir(config_dir, "p")
+      end
+      
+      local servers_file = config_dir .. "/servers.json"
+      if vim.fn.filereadable(servers_file) == 0 then
+        local default_config = {
+          servers = {
+            {
+              name = "default",
+              description = "Default MCP Hub server",
+              url = "http://localhost:${toString cfg.port}",
+              apiKey = "",
+              default = true
+            }
+          }
+        }
+        
+        local file = io.open(servers_file, "w")
+        if file then
+          file:write(vim.json.encode(default_config))
+          file:close()
+        end
+      end
+      
+      -- Notify that the command is available
+      vim.notify("MCPNix command available - use :MCPNix to start MCP-Hub", vim.log.levels.INFO)
+    '';
+    
+    # Add a patch for the mcphub.nvim plugin to use our Nix binary
+    # This will be loaded by the plugin manager
+    home.file.".config/nvim/lua/neotex/plugins/ai/mcp_patch.lua".text = ''
+      -- MCP-Hub Nix integration patch
+      return {
+        "ravitemer/mcphub.nvim",
+        dependencies = {
+          "nvim-lua/plenary.nvim",
+        },
+        -- No build to prevent bundled binary usage
+        build = function() end,
+        cmd = { "MCPHub", "MCPHubStatus", "MCPHubSettings" },
+        config = function()
+          -- Get the mcp-hub binary path
+          local mcp_hub_path = "${cfg.package}/bin/mcp-hub"
+          
+          -- Load and configure mcphub
+          local ok, mcphub = pcall(require, "mcphub")
+          if not ok then
+            vim.notify("MCPHub plugin not loaded", vim.log.levels.WARN)
+            return
+          end
+          
+          -- Configure with our Nix binary
+          mcphub.setup({
+            use_bundled_binary = false,
+            cmd = mcp_hub_path,
+            cmdArgs = {"serve"},
+            port = ${toString cfg.port},
+            debug = true,
+            auto_approve = ${if cfg.settings.auto_approve or false then "true" else "false"},
+            extensions = {
+              avante = {},
+              codecompanion = {
+                show_result_in_chat = false,
+                make_vars = true,
+              },
             },
-          },
-          ui = mcp_settings.ui or {
-            window = {
-              width = 0.8,
-              height = 0.8,
-              relative = "editor",
-              zindex = 50,
-              border = "rounded",
+            ui = {
+              window = {
+                width = 0.8,
+                height = 0.8,
+                border = "rounded",
+              },
             },
-          },
-          log = mcp_settings.log or {
-            level = vim.log.levels.WARN,
-            to_file = false,
-          },
-        })
-        EOF
-      '';
-    }];
+            log = {
+              level = vim.log.levels.WARN,
+              to_file = false,
+            }
+          })
+        end,
+      }
+    '';
   };
 }
