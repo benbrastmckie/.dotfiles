@@ -52,6 +52,10 @@ Edit the following files to customize the setup:
 - `home.nix` for user-specific configuration
 - `flake.nix` to update inputs or add new modules
 
+### Special Configurations
+
+- **MCP-Hub**: MCP-Hub is integrated with Neovim using a custom Nix wrapper. See `specs/MCP_NEOVIM.md` for integration details and `specs/NIXOS_HOMEMANAGER.md` for the Home Manager implementation. For earlier approaches, see `specs/NIXOS_MCPHUB.md`.
+
 After making changes, rebuild the system:
 
 ```bash

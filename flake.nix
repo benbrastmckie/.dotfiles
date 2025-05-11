@@ -49,6 +49,41 @@
       # Format: package-name = pkgs-unstable.package-name; # Reason for using unstable
     };
     
+    # Create an overlay for MCP-Hub
+    mcphubOverlay = final: prev: {
+      mcp-hub-cli = prev.writeShellScriptBin "mcp-hub" ''
+        #!/bin/sh
+        
+        # This script finds and runs the MCP-Hub binary
+        # First, try to use the bundled binary that comes with the mcphub.nvim plugin
+        # This approach is more reliable as it uses the exact version that the plugin expects
+        
+        # Check if the plugin is installed in the default location
+        PLUGIN_DIR="$HOME/.local/share/nvim/lazy/mcphub.nvim"
+        if [ -d "$PLUGIN_DIR" ]; then
+          # Look for the binary
+          if [ -f "$PLUGIN_DIR/mcp-hub/index.js" ]; then
+            exec ${prev.nodejs_20}/bin/node "$PLUGIN_DIR/mcp-hub/index.js" "$@"
+            exit 0
+          fi
+        fi
+        
+        # If the plugin wasn't found, use npm to install and run mcp-hub
+        echo "MCP-Hub plugin not found in expected location. Attempting to install..."
+        export HOME=$HOME
+        TEMP_DIR=$(mktemp -d)
+        cd $TEMP_DIR
+        ${prev.nodePackages.npm}/bin/npm install mcp-hub
+        if [ -d "$TEMP_DIR/node_modules/mcp-hub" ]; then
+          echo "Running MCP-Hub from npm installation..."
+          exec ${prev.nodejs_20}/bin/node "$TEMP_DIR/node_modules/mcp-hub/index.js" "$@"
+        else
+          echo "Failed to install MCP-Hub. Please install the mcphub.nvim plugin in Neovim."
+          exit 1
+        fi
+      '';
+    };
+    
     # Common nixpkgs configuration
     nixpkgsConfig = {
       inherit system;
@@ -57,6 +92,7 @@
       };
       overlays = [
         unstablePackagesOverlay
+        mcphubOverlay
       ];
     };
     
@@ -159,7 +195,10 @@
           # Apply our unstable packages overlay when using standalone home-manager
           {
             nixpkgs = {
-              overlays = [ unstablePackagesOverlay ];
+              overlays = [ 
+                unstablePackagesOverlay 
+                mcphubOverlay
+              ];
               config = { allowUnfree = true; };
             };
           }
