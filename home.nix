@@ -1,6 +1,11 @@
 { config, pkgs, pkgs-unstable, lectic, ... }:
 
 {
+  # Import our custom MCP-Hub module
+  imports = [
+    ./home-modules/mcp-hub.nix
+  ];
+
   # manage.
   home.username = "benjamin";
   home.homeDirectory = "/home/benjamin";
@@ -18,6 +23,32 @@
       pkgs.luajitPackages.jsregexp  # Add jsregexp package here
       # pkgs.tree-sitter-grammars.tree-sitter-latex  # Add latex grammar for tree-sitter
     ];
+    
+    # Enable and configure MCP-Hub integration
+    mcp-hub = {
+      enable = true;
+      port = 37373;
+      settings = {
+        debug = true;
+        auto_approve = true;
+        extensions = {
+          avante = {
+            # Avante-specific settings can be added here
+          };
+          codecompanion = {
+            show_result_in_chat = false;
+            make_vars = true;
+          };
+        };
+        ui = {
+          window = {
+            width = 0.8;
+            height = 0.8;
+            border = "rounded";
+          };
+        };
+      };
+    };
   };
 
   home.stateVersion = "24.11"; # Please read the comment before changing.
@@ -29,9 +60,8 @@
     claude-code  # Using overlaid unstable package
     lectic
     # Required for running mcp-hub JavaScript tools
-    # See specs/NIXOS_HOMEMANAGER.md for details on the MCP-Hub setup
+    # MCP-Hub is now managed by the home module
     nodejs    # Required runtime dependency
-    mcp-hub-cli  # MCP-Hub package defined in the flake overlay
     (python312.withPackages(p: with p; [
       z3 
       setuptools 
@@ -94,9 +124,7 @@
     EDITOR = "nvim";
     # Prefer Wayland over X11
     NIXOS_OZONE_WL = "1";
-    
-    # Path to MCP-Hub binary for Neovim integration
-    MCP_HUB_PATH = "${pkgs.mcp-hub-cli}/bin/mcp-hub";
+    # MCP_HUB_PATH is now managed by the MCP-Hub module
   };
 
   # programs.pylint.enable = true;
