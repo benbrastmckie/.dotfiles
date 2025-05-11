@@ -57,22 +57,11 @@
         pkgs = prev;
       };
       
-      # Add mcphub-nvim to vimPlugins if not already present
+      # Use pre-packaged plugin if available, otherwise use a dummy
       vimPlugins = prev.vimPlugins // {
-        mcphub-nvim = prev.vimUtils.buildVimPlugin {
-          pname = "mcphub.nvim";
-          version = "latest";
-          src = prev.fetchFromGitHub {
-            owner = "ravitemer";
-            repo = "mcphub.nvim";
-            rev = "main";
-            sha256 = "sha256-w3d8NYw6nzkq8d6tsSvEV1b9r9E3J8aZKRjHR6zWzgg=";
-          };
-          meta = {
-            description = "MCP Hub integration for NeoVim";
-            homepage = "https://github.com/ravitemer/mcphub.nvim";
-          };
-        };
+        # If the plugin is not already in vimPlugins, use a dummy package
+        # This will be overridden by the plugin manager (lazy.nvim)
+        mcphub-nvim = prev.emptyDirectory;
       };
     };
     
