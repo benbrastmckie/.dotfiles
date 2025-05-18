@@ -54,7 +54,13 @@ Edit the following files to customize the setup:
 
 ### Special Configurations
 
-- **MCP-Hub**: MCP-Hub is integrated with Neovim using a custom Nix wrapper. See `specs/MCP_NEOVIM.md` for integration details and `specs/NIXOS_HOMEMANAGER.md` for the Home Manager implementation. For earlier approaches, see `specs/NIXOS_MCPHUB.md`.
+- **MCP-Hub**: MCP-Hub is integrated with Neovim using a custom Nix wrapper defined in `packages/mcp-hub.nix`. The integration uses a runtime package installation approach, which allows tools and extensions to be added dynamically without requiring system rebuilds. See `packages/README.md` for more details on the architecture and extension system.
+
+The MCP-Hub integration follows these principles:
+1. Core MCP-Hub binary is provided by NixOS
+2. Extensions are installed at runtime via NPM
+3. Configuration is managed by your Neovim setup, not NixOS
+4. This separation ensures that rebuilding your system won't interfere with your tool configuration
 
 After making changes, rebuild the system:
 
