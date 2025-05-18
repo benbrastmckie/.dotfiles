@@ -49,8 +49,38 @@ in {
         -- Display what we're doing
         vim.notify("Starting MCP-Hub server via Nix...", vim.log.levels.INFO)
         
-        -- Start the server with the serve command
-        local jobid = vim.fn.jobstart({cmd, "serve", "--port=${toString cfg.port}"})
+        -- Create config file if it doesn't exist
+        local config_dir = vim.fn.expand("~/.config/mcphub")
+        if vim.fn.isdirectory(config_dir) == 0 then
+          vim.fn.mkdir(config_dir, "p")
+        end
+        
+        local config_file = config_dir .. "/config.json"
+        if vim.fn.filereadable(config_file) == 0 then
+          local default_config = {
+            port = ${toString cfg.port},
+            debug = true,
+            apiKeys = {""},
+            logLevel = "debug"
+          }
+          
+          local file = io.open(config_file, "w")
+          if file then
+            file:write(vim.json.encode(default_config))
+            file:close()
+          end
+        end
+        
+        -- Start the server with the serve command and config file
+        local jobid = vim.fn.jobstart({cmd, "serve", "--port=${toString cfg.port}", "--config=" .. config_file}, {
+          env = {
+            ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY"),
+            OPENAI_API_KEY = os.getenv("OPENAI_API_KEY"),
+            MCP_HUB_DEBUG = "true",
+            NODE_ENV = "development",
+            DEBUG = "mcp-hub*"
+          }
+        })
         
         if jobid > 0 then
           vim.notify("MCP-Hub server started (job: " .. jobid .. ")", vim.log.levels.INFO)
@@ -71,26 +101,9 @@ in {
         vim.fn.mkdir(config_dir, "p")
       end
       
-      local servers_file = config_dir .. "/servers.json"
-      if vim.fn.filereadable(servers_file) == 0 then
-        local default_config = {
-          servers = {
-            {
-              name = "default",
-              description = "Default MCP Hub server",
-              url = "http://localhost:${toString cfg.port}",
-              apiKey = "",
-              default = true
-            }
-          }
-        }
-        
-        local file = io.open(servers_file, "w")
-        if file then
-          file:write(vim.json.encode(default_config))
-          file:close()
-        end
-      end
+      -- No longer managing servers.json from NixOS
+      -- This allows your Neovim config to manage it without conflicts
+      -- The mcphub.nvim plugin will create the appropriate file if needed
       
       -- Notify that the command is available
       vim.notify("MCPNix command available - use :MCPNix to start MCP-Hub", vim.log.levels.INFO)
@@ -126,7 +139,15 @@ in {
             cmdArgs = {"serve"},
             port = ${toString cfg.port},
             debug = true,
+            logLevel = "debug",
             auto_approve = ${if cfg.settings.auto_approve or false then "true" else "false"},
+            env = {
+              ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY"),
+              OPENAI_API_KEY = os.getenv("OPENAI_API_KEY"),
+              DEBUG = "true",
+              MCP_HUB_DEBUG = "true",
+              NODE_ENV = "development"
+            },
             extensions = {
               avante = {},
               codecompanion = {
@@ -142,8 +163,9 @@ in {
               },
             },
             log = {
-              level = vim.log.levels.WARN,
-              to_file = false,
+              level = vim.log.levels.DEBUG,
+              to_file = true,
+              file_path = vim.fn.expand("~/.config/mcphub/mcp-hub.log")
             }
           })
         end,
