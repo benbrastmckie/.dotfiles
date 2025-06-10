@@ -240,6 +240,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       lua-language-server  # Language server for Lua development
       stylua               # Opinionated Lua code formatter
       tree                 # Display directory structure in a tree-like format
+      # u-root-cmds           
 
       # Lean
       # lean4              # Theorem prover and programming language
@@ -273,6 +274,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       vlc                  # Cross-platform multimedia player
       zoom-us              # Video conferencing tool
       spotify              # Music streaming service client
+      signal-desktop       # Signal message app
 
       # File Transfer and Torrent
       wget                 # Tool for retrieving files using HTTP, HTTPS, and FTP
