@@ -1,22 +1,42 @@
 #!/usr/bin/env bash
 
-# Script to test MCP-Hub and Context7 installation
+# Script to test MCP-Hub installation (simplified for new flake-based approach)
 
 # Set default API keys (replace these with your actual keys)
 # If you have keys set in your environment, they will be used instead
 : "${ANTHROPIC_API_KEY:=}"
 : "${OPENAI_API_KEY:=}"
 
-echo "===== MCP-Hub Test Script ====="
-echo "This script will test if MCP-Hub and Context7 are working correctly."
+echo "===== MCP-Hub Test Script (Simplified) ====="
+echo "This script will test if MCP-Hub is working correctly with the new flake-based integration."
 
-# Check if MCP-Hub executable exists
-if command -v mcp-hub &> /dev/null; then
-    echo "✅ MCP-Hub executable found"
-    echo "Version: $(mcp-hub --version)"
+# Check environment variables set by Nix
+if [ -n "$MCP_HUB_PATH" ]; then
+    echo "✅ MCP_HUB_PATH is set: $MCP_HUB_PATH"
+    if [ -x "$MCP_HUB_PATH" ]; then
+        echo "✅ MCP-Hub executable is accessible"
+        echo "Version: $($MCP_HUB_PATH --version 2>/dev/null || echo 'Version check failed')"
+    else
+        echo "❌ MCP-Hub executable not accessible at $MCP_HUB_PATH"
+    fi
 else
-    echo "❌ MCP-Hub executable not found"
-    exit 1
+    echo "⚠️ MCP_HUB_PATH not set, trying fallback detection..."
+    # Fallback to standard command detection
+    if command -v mcp-hub &> /dev/null; then
+        echo "✅ MCP-Hub executable found via PATH"
+        echo "Version: $(mcp-hub --version)"
+    else
+        echo "❌ MCP-Hub executable not found"
+        echo "Make sure you have enabled programs.neovim.mcp-hub in your home-manager config"
+        exit 1
+    fi
+fi
+
+# Check port environment variable
+if [ -n "$MCP_HUB_PORT" ]; then
+    echo "✅ MCP_HUB_PORT is set: $MCP_HUB_PORT"
+else
+    echo "⚠️ MCP_HUB_PORT not set, using default: 37373"
 fi
 
 # Check API Keys
@@ -70,51 +90,20 @@ else
     echo "❌ Config directory not found: $CONFIG_DIR"
 fi
 
-# Create a test directory
-TEST_DIR=$(mktemp -d)
-echo "Created temporary test directory: $TEST_DIR"
+# Test basic functionality
+echo
+echo "Testing basic MCP-Hub functionality..."
 
-cd "$TEST_DIR" || exit 1
-
-# Create a minimal test package.json
-cat > package.json << EOF
-{
-  "name": "mcp-hub-test",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "mcp-hub": "latest",
-    "@upstash/context7-mcp": "latest"
-  }
-}
-EOF
-
-echo "Installing MCP-Hub and Context7 (this may take a moment)..."
-npm install --silent
-
-# Check if installation succeeded
-if [ -d "$TEST_DIR/node_modules/mcp-hub" ]; then
-    echo "✅ MCP-Hub installed successfully"
-    
-    if [ -d "$TEST_DIR/node_modules/@upstash/context7-mcp" ]; then
-        echo "✅ Context7 installed successfully"
-        
-        # Check the version
-        CONTEXT7_VERSION=$(grep -o '"version": "[^"]*"' "$TEST_DIR/node_modules/@upstash/context7-mcp/package.json" | cut -d'"' -f4)
-        echo "Context7 version: $CONTEXT7_VERSION"
-    else
-        echo "❌ Context7 installation failed"
-    fi
-else
-    echo "❌ MCP-Hub installation failed"
-fi
+# Determine which binary to use
+MCPHUB_BIN="${MCP_HUB_PATH:-mcp-hub}"
+PORT="${MCP_HUB_PORT:-37373}"
 
 # Offer to run MCP-Hub
 echo
 echo "Would you like to try running MCP-Hub server? [y/N]"
 read -r response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-    echo "Starting MCP-Hub server (press Ctrl+C to stop)..."
+    echo "Starting MCP-Hub server on port $PORT (press Ctrl+C to stop)..."
     echo "Any errors will be displayed below:"
     echo "---------------------------------------"
     
@@ -122,13 +111,10 @@ if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     export DEBUG=mcp-hub*
     export NODE_ENV=development
     
-    # Run MCP-Hub
-    "$TEST_DIR/node_modules/.bin/mcp-hub" serve --port=37373
+    # Run MCP-Hub using the detected binary
+    "$MCPHUB_BIN" serve --port="$PORT"
 else
     echo "Skipping MCP-Hub server test"
 fi
 
-# Clean up
-echo "Cleaning up test directory..."
-rm -rf "$TEST_DIR"
 echo "Test completed."

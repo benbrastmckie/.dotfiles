@@ -1,9 +1,9 @@
 { config, pkgs, pkgs-unstable, lectic, ... }:
 
 {
-  # Import our custom MCP-Hub module
+  # Import our custom modules
   imports = [
-    ./home-modules/mcp-hub.nix
+    # ./home-modules/mcp-hub.nix  # Disabled - using lazy.nvim approach
   ];
 
   # manage.
@@ -24,31 +24,7 @@
       # pkgs.tree-sitter-grammars.tree-sitter-latex  # Add latex grammar for tree-sitter
     ];
     
-    # Enable and configure MCP-Hub integration
-    mcp-hub = {
-      enable = true;
-      port = 37373;
-      settings = {
-        debug = true;
-        auto_approve = true;
-        extensions = {
-          avante = {
-            # Avante-specific settings can be added here
-          };
-          codecompanion = {
-            show_result_in_chat = false;
-            make_vars = true;
-          };
-        };
-        ui = {
-          window = {
-            width = 0.8;
-            height = 0.8;
-            border = "rounded";
-          };
-        };
-      };
-    };
+    # Note: MCP-Hub is managed via lazy.nvim in NeoVim config
   };
 
   home.stateVersion = "24.11"; # Please read the comment before changing.

@@ -2,188 +2,102 @@
 
 This directory contains custom package definitions and integrations for the dotfiles configuration.
 
-## MCP-Hub
+## Current Packages
 
-MCP-Hub is integrated with Neovim using a custom Nix wrapper defined in `mcp-hub.nix`. The wrapper provides a seamless integration with the Neovim environment.
+### neovim.nix
+A wrapper around Neovim unstable that fixes missing maintainers metadata to prevent build errors.
 
-### Implementation Details
+### test-mcphub.sh
+A diagnostic script for verifying MCPHub installation and configuration. This script is useful for debugging MCPHub issues when using the lazy.nvim plugin approach.
 
-The MCP-Hub integration works as follows:
+## MCPHub Integration (Final Implementation)
 
-1. The package is defined in `mcp-hub.nix` as a shell script that:
-   - Creates a temporary directory for installation
-   - Installs MCP-Hub and its dependencies via NPM
-   - Provides a command-line interface compatible with the Neovim plugin
+MCPHub integration has been **significantly simplified** after extensive refactoring. The final approach uses standard lazy.nvim plugin loading for maximum simplicity and reliability.
 
-2. The integration is managed through:
-   - An overlay in `flake.nix` that makes the package available
-   - A home-manager module in `home-modules/mcp-hub.nix` that configures the Neovim integration
+### Final Architecture: Lazy.nvim Only
 
-## MCP-Hub Extensions
+After testing multiple approaches including Nix flake integration, the cleanest solution is:
 
-MCP-Hub supports various extensions and tools that enhance its capabilities. These extensions are installed as dependencies when MCP-Hub is launched, making them automatically available for use.
+**NixOS Side**: No special configuration needed - clean separation of concerns
+**NeoVim Side**: Standard lazy.nvim plugin loading with simple configuration
 
-### Extension Architecture
+### Why This Approach Wins
 
-The MCP-Hub integration is designed with the following principles:
+1. **MCPHub is a vim plugin first** - The official flake provides plugin packaging, not a standalone binary
+2. **Avoids complexity** - No environment variables, home-manager modules, or dual loading needed
+3. **Standard approach** - How most users install MCPHub via their plugin manager
+4. **No collisions** - Single source of truth for plugin loading
+5. **Easier maintenance** - Standard lazy.nvim troubleshooting and updates
 
-1. **Runtime Dependencies**: Extensions are added as dependencies in the `package.json` created by `mcp-hub.nix`:
-   ```json
-   {
-     "dependencies": {
-       "mcp-hub": "latest",
-       "extension-package-name": "latest"
-     }
-   }
-   ```
+### Current Implementation
 
-2. **Dynamic Installation**: Extensions are installed on-demand when MCP-Hub is launched, ensuring they're always available when needed without requiring permanent installation.
-
-3. **Configuration Independence**: The NixOS configuration avoids modifying user-specific configuration files like `servers.json`, allowing your Neovim configuration to manage these files without conflicts.
-
-### Benefits of This Approach
-
-- **No Separate Packaging**: Extensions don't require separate Nix packaging
-- **Seamless Version Management**: Always uses the latest compatible versions
-- **Clean Integration**: Minimal system modifications needed
-- **User Control**: Your Neovim configuration maintains full control over which extensions are active
-
-### Configuration Management
-
-The MCP-Hub server configuration follows these principles:
-
-1. The NixOS module provides the core MCP-Hub server binary through the system
-2. Your Neovim configuration controls which extensions are active through `servers.json`
-3. This separation ensures rebuilding your NixOS configuration won't interfere with your tools setup
-
-## Usage
-
-MCP-Hub (with Context7) can be launched from within Neovim using the `:MCPHub` or `:MCPNix` commands, depending on which integration path is used.
-
-## Configuration
-
-The MCP-Hub integration can be configured through the `programs.neovim.mcp-hub` options in your `home.nix` file:
-
-```nix
-programs.neovim.mcp-hub = {
-  enable = true;
-  port = 37373;  # Optional, defaults to 37373
-  settings = {
-    debug = true;
-    auto_approve = true;
-    # Additional settings as needed
-  };
-};
-```
-
-These settings will be applied to both the MCP-Hub server and the Neovim plugin integration.
-
-## Troubleshooting
-
-### SSE Connection Failed with Code 7
-
-If you encounter an "SSE connection failed with code 7" error when starting MCP-Hub in Neovim, this is typically caused by MCP-Hub server configuration issues or Neovim plugin integration problems.
-
-#### MCP-Hub Server Configuration
-
-1. **Check the servers.json Format**:
-   - MCP-Hub can work with two different configuration formats
-   - For plugin setup (using the mcphub.nvim plugin directly), the format should be:
-   ```json
-   {
-     "mcpServers": {
-       "fetch": {
-         "command": "uvx",
-         "args": ["mcp-server-fetch"],
-         "env": {
-           "API_KEY": "",
-           "SERVER_URL": null,
-           "DEBUG": "true"
-         }
-       },
-       "github.com/upstash/context7-mcp": {
-         "command": "npx",
-         "args": ["-y", "@upstash/context7-mcp@latest"],
-         "env": {
-           "DEFAULT_MINIMUM_TOKENS": "10000"
-         }
-       }
-     }
-   }
-   ```
-
-2. **Set Environment Variables**:
-   ```bash
-   export ANTHROPIC_API_KEY=your_anthropic_api_key
-   export OPENAI_API_KEY=your_openai_api_key  # If using OpenAI
-   ```
-
-#### Fix Neovim Plugin Configuration
-
-If you're still experiencing issues, you might need to update your Neovim plugin configuration:
-
-1. **Update mcphub.nvim Configuration**:
-
-Create or edit your mcphub.nvim plugin configuration in your Neovim config. Here's a template for a proper setup:
+MCPHub is loaded via lazy.nvim in `/home/benjamin/.config/nvim/lua/neotex/plugins/ai/mcp-hub.lua`:
 
 ```lua
--- In your plugins configuration
-{
+return {
   "ravitemer/mcphub.nvim",
-  dependencies = {
-    "nvim-lua/plenary.nvim",
-  },
-  cmd = { "MCPHub", "MCPHubStatus", "MCPHubSettings" },
+  dependencies = { "nvim-lua/plenary.nvim" },
+  lazy = true,
+  cmd = { "MCPHub", "MCPHubStatus" },
+  event = { "User AvantePreLoad" },
   config = function()
-    local ok, mcphub = pcall(require, "mcphub")
-    if not ok then
-      vim.notify("MCPHub plugin not loaded", vim.log.levels.WARN)
-      return
-    end
-    
-    -- Configure with environment variable for the API key
-    mcphub.setup({
-      use_bundled_binary = false,  -- Use system-installed MCP-Hub
-      cmd = vim.env.MCP_HUB_PATH or "mcp-hub",
-      cmdArgs = {"serve"},
+    require("mcphub").setup({
       port = 37373,
-      debug = true,
-      auto_approve = true,
-      env = {
-        ANTHROPIC_API_KEY = vim.env.ANTHROPIC_API_KEY,
-        OPENAI_API_KEY = vim.env.OPENAI_API_KEY,
-        DEBUG = "true"
-      },
-      extensions = {
-        avante = {},
-        codecompanion = {
-          show_result_in_chat = false,
-          make_vars = true,
-        },
-      },
-      log = {
-        level = vim.log.levels.DEBUG,
-        to_file = true,
-        file_path = vim.fn.expand("~/.config/mcphub/mcphub.log")
-      }
+      config = vim.fn.expand("~/.config/mcphub/servers.json"),
+      extensions = { avante = { ... } },
+      -- ... other settings
     })
   end,
 }
 ```
 
-2. **Use MCPHub Commands Directly**:
-   - Instead of using `:MCPNix`, use the `:MCPHub` command provided by the plugin
-   - Check the log file at `~/.config/mcphub/mcphub.log` for detailed error information
+### What Was Removed
 
-3. **Restart Neovim**: After making these changes, restart Neovim completely
+During the refactoring process, the following complex components were removed:
 
-#### Direct Testing
+- **Custom Nix packages** (`packages/mcp-hub.nix`) - No longer needed
+- **Flake inputs** - MCPHub not included as flake dependency  
+- **Home-manager modules** (`home-modules/mcp-hub.nix`) - Disabled
+- **Environment variables** - No `MCP_HUB_PATH` or `MCP_HUB_PORT` needed
+- **Complex state management** - Simplified to essential functionality
+- **NixOS-specific workarounds** - ~200 lines of complex code removed
 
-If the issue persists, test MCP-Hub directly from the command line:
+### Benefits Achieved
+
+- ✅ **Clean separation** - NixOS handles system, NeoVim handles plugins
+- ✅ **No collisions** - Single source of plugin loading  
+- ✅ **Standard troubleshooting** - Use normal lazy.nvim debugging
+- ✅ **Easier updates** - Standard plugin manager handles updates
+- ✅ **Less maintenance** - No custom Nix packaging to maintain
+
+### Testing with test-mcphub.sh
+
+Use `test-mcphub.sh` to verify MCPHub installation and troubleshoot any issues:
+
 ```bash
-# Add API key to environment
-export ANTHROPIC_API_KEY=your_key_here
-
-# Start server in debug mode
-~/.nix-profile/bin/mcp-hub serve --port=37373
+bash ~/.dotfiles/packages/test-mcphub.sh
 ```
+
+**Note**: The test script may show warnings about missing environment variables - this is expected and normal with the new lazy.nvim approach.
+
+#### What the test script checks:
+
+1. **Basic MCPHub Detection**:
+   - Tests if MCPHub binary is accessible via standard detection
+   - Falls back to PATH detection (normal for lazy.nvim approach)
+
+2. **Configuration Files**:
+   - Checks for `~/.config/mcphub/` directory
+   - Verifies `servers.json` exists and contains expected servers
+
+3. **Optional Server Test**:
+   - Offers to start MCPHub server for live testing
+   - Shows any startup errors or warnings
+
+#### When to use:
+
+- **Troubleshooting**: Debug MCPHub connection issues in NeoVim
+- **After plugin updates**: Verify MCPHub still works after lazy.nvim updates
+- **Configuration issues**: Test MCPHub server functionality
+
+The script is designed to be safe and non-destructive - it only reads configuration and tests basic functionality.

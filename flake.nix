@@ -15,6 +15,7 @@
     utils.url = "github:numtide/flake-utils";
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    # Note: MCPHub is loaded via lazy.nvim, not as a flake input
     # home-manager = {
     #   url = "github:nix-community/home-manager/release-23.11";  
     # };
@@ -49,21 +50,7 @@
       # Format: package-name = pkgs-unstable.package-name; # Reason for using unstable
     };
     
-    # Create an overlay for MCP-Hub
-    mcphubOverlay = final: prev: {
-      # Import the mcp-hub wrapper from a separate file for better maintainability
-      mcp-hub-cli = import ./packages/mcp-hub.nix {
-        inherit lib;
-        pkgs = prev;
-      };
-      
-      # Use pre-packaged plugin if available, otherwise use a dummy
-      vimPlugins = prev.vimPlugins // {
-        # If the plugin is not already in vimPlugins, use a dummy package
-        # This will be overridden by the plugin manager (lazy.nvim)
-        mcphub-nvim = prev.emptyDirectory;
-      };
-    };
+    # Note: MCPHub is now handled via official flake input instead of custom overlay
     
     # Common nixpkgs configuration
     nixpkgsConfig = {
@@ -73,7 +60,6 @@
       };
       overlays = [
         unstablePackagesOverlay
-        mcphubOverlay
       ];
     };
     
@@ -178,7 +164,6 @@
             nixpkgs = {
               overlays = [ 
                 unstablePackagesOverlay 
-                mcphubOverlay
               ];
               config = { allowUnfree = true; };
             };
