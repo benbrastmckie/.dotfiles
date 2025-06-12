@@ -62,6 +62,12 @@ The MCP-Hub integration follows these principles:
 3. Configuration is managed by your Neovim setup, not NixOS
 4. This separation ensures that rebuilding your system won't interfere with your tool configuration
 
+- **PDF Viewer Title Bar Removal**: Custom wrappers for Zathura and Sioyek handle title bar removal differently due to their underlying UI toolkits:
+
+  - **Zathura (GTK)**: Uses server-side decorations that the Unite GNOME extension can hide. The custom wrapper forces X11 for consistency but isn't strictly required for title bar removal.
+  
+  - **Sioyek (Qt6)**: Uses client-side decorations that Unite cannot hide on Wayland. The custom wrapper forces X11 (`QT_QPA_PLATFORM=xcb`) to enable server-side decorations that Unite can control. The original sioyek package is excluded to prevent conflicts.
+
 After making changes, rebuild the system:
 
 ```bash
