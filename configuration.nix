@@ -263,7 +263,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       xsel                 # Command-line tool for getting/setting X selection
       pstree               # Display running processes as a tree
       pandoc               # Universal document converter
-      zathura              # Lightweight PDF/document viewer
+      zathura              # Light-weight PDF/document viewer
 
       # GNOME Extensions and Tools
       gnome-tweaks         # Tool to customize advanced GNOME settings
@@ -297,6 +297,13 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
         #!/bin/sh
         export GDK_BACKEND=x11
         exec ${pkgs.zathura}/bin/zathura "$@"
+      '')
+
+      # Custom sioyek (force X11 like zathura - Unite extension will handle title bar)
+      (writeShellScriptBin "sioyek" ''
+        #!/bin/sh
+        export QT_QPA_PLATFORM=xcb
+        exec ${pkgs.sioyek}/bin/sioyek "$@"
       '')
     ]);
 
