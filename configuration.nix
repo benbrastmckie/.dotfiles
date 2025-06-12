@@ -292,14 +292,19 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       home-manager         # Tool for managing user configuration
       nix-index            # Utility for indexing Nix store files
 
-      # Custom zathura (Xwayland)
+      # Custom zathura (force X11 for consistency)
+      # Note: Zathura uses GTK with server-side decorations, so Unite extension
+      # can hide title bars regardless. This wrapper ensures consistent X11 behavior.
       (writeShellScriptBin "zathura" ''
         #!/bin/sh
         export GDK_BACKEND=x11
         exec ${pkgs.zathura}/bin/zathura "$@"
       '')
 
-      # Custom sioyek (force X11 like zathura - Unite extension will handle title bar)
+      # Custom sioyek (force X11 for title bar removal)
+      # Note: Sioyek uses Qt6 with client-side decorations that Unite extension
+      # cannot hide on Wayland. Forcing X11 enables server-side decorations
+      # that Unite can control. Original sioyek package removed to avoid conflicts.
       (writeShellScriptBin "sioyek" ''
         #!/bin/sh
         export QT_QPA_PLATFORM=xcb
