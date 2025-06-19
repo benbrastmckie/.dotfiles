@@ -33,7 +33,7 @@ This configuration uses **Nix-managed config** for full declarative and reproduc
 The email configuration is managed in `home.nix` with:
 
 - **Account**: `gmail` (matches the wizard-generated config)
-- **Backend**: Maildir with local storage in `~/Mail/Gmail`
+- **Backend**: Maildir++ with local storage in `~/Mail/Gmail`
 - **OAuth2**: Full OAuth2 setup with multiple scopes (mail, contacts, calendar, carddav)
 - **SMTP**: TLS-encrypted sending via Gmail's SMTP server
 - **Keyring**: Secure token storage using system keyring
@@ -41,7 +41,7 @@ The email configuration is managed in `home.nix` with:
 ### Features
 
 - **Declarative Config**: Fully managed through Nix configuration
-- **Maildir Storage**: Local email storage with maildirpp format
+- **Maildir++ Storage**: Local email storage with Maildir++ format (INBOX in root, other folders as dot-prefixed subfolders)
 - **Full OAuth2 Scopes**: Access to mail, contacts, calendar, and CardDAV
 - **Integrated Tools**: Works with isync (mbsync), msmtp, pass, gnupg
 - **NeoVim Ready**: Configuration ready for Neovim integration
