@@ -40,7 +40,22 @@
     (pkgs-unstable.himalaya.overrideAttrs (oldAttrs: {
       cargoBuildFlags = (oldAttrs.cargoBuildFlags or []) ++ [ "--features=oauth2,keyring" ];
     }))     # Himalaya with OAuth2 support
-    pkgs-unstable.isync  # For mbsync (IMAP synchronization) with OAuth2 support via cyrus-sasl
+    # mbsync (isync) with XOAUTH2 support
+    # Option 1: Wrapper script (simpler, recommended)
+    (pkgs.writeShellScriptBin "mbsync" ''
+      export SASL_PATH="${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2"
+      exec ${pkgs-unstable.isync}/bin/mbsync "$@"
+    '')
+    
+    # Option 2: If you prefer, you can use this instead of the wrapper above:
+    # (pkgs-unstable.isync.overrideAttrs (oldAttrs: {
+    #   buildInputs = oldAttrs.buildInputs ++ [ pkgs.cyrus-sasl-xoauth2 ];
+    #   postInstall = (oldAttrs.postInstall or "") + ''
+    #     wrapProgram $out/bin/mbsync \
+    #       --set SASL_PATH "${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2"
+    #   '';
+    # }))
+    
     cyrus-sasl-xoauth2   # XOAUTH2 SASL plugin for OAuth2 authentication
     msmtp        # For sending emails via SMTP
     pass         # Password manager for storing OAuth2 tokens
@@ -135,7 +150,7 @@
       Port 993
       User benbrastmckie@gmail.com
       AuthMechs XOAUTH2
-      PassCmd "secret-tool lookup keyring gmail-smtp-oauth2-access-token"
+      PassCmd "secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-access-token"
       TLSType IMAPS
 
       # Gmail remote store
@@ -144,9 +159,8 @@
 
       # Gmail local store
       MaildirStore gmail-local
-      Path ~/Mail/Gmail/
-      Inbox ~/Mail/Gmail/INBOX
-      SubFolders Verbatim
+      Inbox ~/Mail/Gmail/
+      SubFolders Maildir++
 
       # Gmail sync channel
       Channel gmail
@@ -180,8 +194,6 @@
     # Prefer Wayland over X11
     NIXOS_OZONE_WL = "1";
     # MCP_HUB_PATH is now managed by the MCP-Hub module
-    # Set SASL plugin path for XOAUTH2 support
-    SASL_PATH = "${pkgs.cyrus-sasl-xoauth2}/lib/sasl2";
   };
 
   # programs.pylint.enable = true;

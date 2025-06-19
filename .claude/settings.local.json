@@ -6,7 +6,9 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:github.com)",
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(mbsync:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   },
