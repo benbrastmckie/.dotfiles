@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(nix flake check:*)",
-      "Bash(nix flake check:*)"
+      "Bash(nix flake check:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": []
   },
