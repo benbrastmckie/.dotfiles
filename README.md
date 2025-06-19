@@ -1,77 +1,90 @@
-# Dotfiles
+# NixOS Dotfiles
 
-This repository contains my personal dotfiles for NixOS configuration.
+This repository contains my personal NixOS configuration using flakes and Home Manager for comprehensive system and user environment management.
 
 ## Overview
 
-These dotfiles manage my NixOS system and home configuration using the following components:
+These dotfiles provide a complete NixOS setup with:
 
-- **NixOS Configuration**: System-wide settings defined in `configuration.nix`
-- **Home Manager**: User-specific configurations in `home.nix`
-- **Flake-based setup**: Modern Nix configuration using `flake.nix`
+- **System Configuration**: NixOS system-wide settings via `configuration.nix`
+- **User Environment**: Home Manager configuration in `home.nix`
+- **Flake Management**: Modern Nix flake setup with pinned inputs
+- **Custom Modules**: Extended functionality through custom Home Manager modules
+- **Application Integration**: Configured applications with seamless integration
 
-## Structure
+## Repository Structure
 
-- `configuration.nix`: System-wide NixOS configuration
-- `home.nix`: Home Manager configuration for user environment
-- `flake.nix`: Nix flake defining system inputs and outputs
-- `config/`: Directory containing configuration files for various programs
-- `hosts/`: Host-specific hardware configurations
+### Core Configuration Files
 
-## Setup
+- [`configuration.nix`](configuration.nix): System-wide NixOS configuration
+- [`home.nix`](home.nix): Home Manager user environment configuration  
+- [`flake.nix`](flake.nix): Nix flake with inputs and system definitions
+- [`unstable-packages.nix`](unstable-packages.nix): Packages from nixpkgs unstable
 
-### Prerequisites
+### Directory Organization
 
-- NixOS with flakes enabled
+- [`config/`](config/): Application configuration files
+- [`home-modules/`](home-modules/): Custom Home Manager modules
+- [`packages/`](packages/): Custom package definitions and Neovim configuration
+- [`hosts/`](hosts/): Host-specific hardware configurations (private)
+- [`docs/`](docs/): Detailed documentation for all components
 
-### Installation
+### Documentation Files
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/benbrastmckie/dotfiles.git ~/.dotfiles
-   ```
+- [`docs/configuration.md`](docs/configuration.md): Core configuration details
+- [`docs/installation.md`](docs/installation.md): Setup and installation guide
+- [`docs/applications.md`](docs/applications.md): Application-specific configurations
+- [`docs/packages.md`](docs/packages.md): Package management and custom packages
+- [`docs/unstable-packages.md`](docs/unstable-packages.md): Managing unstable channel packages
+- [`docs/testing.md`](docs/testing.md): Testing and validation procedures
+- [`docs/development.md`](docs/development.md): Development notes and ISO building
 
-2. Build and switch to the configuration:
-   ```bash
-   cd ~/.dotfiles
-   sudo nixos-rebuild switch --flake .#nandi
-   ```
-   
-   Replace `nandi` with your hostname if different.
+## Quick Start
 
-3. Apply home-manager configuration:
-   ```bash
-   home-manager switch --flake .#benjamin
-   ```
+For detailed installation instructions, see [`docs/installation.md`](docs/installation.md).
 
-## Configuration
+### Basic Setup
 
-Edit the following files to customize the setup:
+1. Clone repository: `git clone <repo-url> ~/.dotfiles`
+2. Build system: `sudo nixos-rebuild switch --flake .#hostname`
+3. Apply user config: `home-manager switch --flake .#benjamin`
 
-- `configuration.nix` for system-wide changes
-- `home.nix` for user-specific configuration
-- `flake.nix` to update inputs or add new modules
+### Customization
 
-### Special Configurations
+- **System changes**: Edit [`configuration.nix`](configuration.nix)
+- **User environment**: Edit [`home.nix`](home.nix)  
+- **Package updates**: Modify [`flake.nix`](flake.nix) inputs
+- **Application configs**: Update files in [`config/`](config/)
 
-- **MCP-Hub**: MCP-Hub is integrated with Neovim using the official MCPHub flake. The integration uses environment variables for clean communication between NixOS and Neovim. See `packages/README.md` for more details on the simplified architecture.
+For comprehensive configuration details, see [`docs/configuration.md`](docs/configuration.md).
 
-The MCP-Hub integration follows these principles:
-1. Core MCP-Hub binary is provided by NixOS
-2. Extensions are installed at runtime via NPM
-3. Configuration is managed by your Neovim setup, not NixOS
-4. This separation ensures that rebuilding your system won't interfere with your tool configuration
+## Featured Applications
 
-- **PDF Viewer Title Bar Removal**: Custom wrappers for Zathura and Sioyek handle title bar removal differently due to their underlying UI toolkits:
+### Email (Himalaya)
+Modern CLI email client with OAuth2 Gmail integration. See [`docs/applications.md`](docs/applications.md#email-himalaya) for setup.
 
-  - **Zathura (GTK)**: Uses server-side decorations that the Unite GNOME extension can hide. The custom wrapper forces X11 for consistency but isn't strictly required for title bar removal.
-  
-  - **Sioyek (Qt6)**: Uses client-side decorations that Unite cannot hide on Wayland. The custom wrapper forces X11 (`QT_QPA_PLATFORM=xcb`) to enable server-side decorations that Unite can control. The original sioyek package is excluded to prevent conflicts.
+### MCP-Hub 
+Model Context Protocol integration for AI tools with Neovim. Architecture details in [`docs/applications.md`](docs/applications.md#mcp-hub-integration).
 
-After making changes, rebuild the system:
+### PDF Viewers
+Custom Zathura and Sioyek configurations with title bar removal. Implementation details in [`docs/applications.md`](docs/applications.md#pdf-viewers).
 
+### Development Environment
+Comprehensive Neovim setup with language servers and tools. Package details in [`packages/`](packages/).
+
+For complete application configurations and setup instructions, see [`docs/applications.md`](docs/applications.md).
+
+## Maintenance
+
+### Updating System
 ```bash
-sudo nixos-rebuild switch --flake .#nandi
+sudo nixos-rebuild switch --flake .#hostname
+```
+
+### Updating Packages
+```bash
+nix flake update
+./update.sh
 ```
 
 ## License

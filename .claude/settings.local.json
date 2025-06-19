@@ -4,7 +4,9 @@
       "Bash(nix flake check:*)",
       "Bash(nix flake check:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(find:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   },
