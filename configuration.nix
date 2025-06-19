@@ -215,6 +215,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       oh-my-fish           # Framework to manage fish shell configuration
       zoxide               # Smarter cd command with learning capabilities
       ghostty              # Modern terminal emulator with GPU acceleration
+      libsecret            # Tool for managing secrets (provides secret-tool command)
       
       # Browsers
       vivaldi              # Feature-rich web browser with built-in tools
@@ -264,6 +265,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       pstree               # Display running processes as a tree
       pandoc               # Universal document converter
       zathura              # Light-weight PDF/document viewer
+      libreoffice          # RTF word processor with signature support
 
       # GNOME Extensions and Tools
       gnome-tweaks         # Tool to customize advanced GNOME settings

@@ -27,6 +27,11 @@
     # Note: MCP-Hub is managed via lazy.nvim in NeoVim config
   };
 
+  programs.himalaya = {
+    enable = true;
+    package = pkgs-unstable.himalaya;
+  };
+
   home.stateVersion = "24.11"; # Please read the comment before changing.
   # home.stateVersion = "24.05"; # Please read the comment before changing.
   # home.stateVersion = "23.11"; # Please read the comment before changing.
@@ -79,6 +84,57 @@
   home.file = {
     ".config/neofetch/config.conf".source = ./config/neofetch.conf;
     ".config/niri/config.kdl".source = ./config/config.kdl;
+    ".config/himalaya/config.toml".text = ''
+      [accounts.personal]
+      email = "benbrastmckie@gmail.com"
+      display-name = "Benjamin Brast-McKie"
+      default = true
+
+      [accounts.personal.backend]
+      type = "imap"
+      host = "imap.gmail.com"
+      port = 993
+      encryption = "tls"
+      login = "benbrastmckie@gmail.com"
+
+      [accounts.personal.backend.auth]
+      type = "oauth2"
+      client-id = "$GMAIL_CLIENT_ID"
+      client-secret = { keyring = "gmail-oauth2-client-secret" }
+      access-token = { keyring = "gmail-oauth2-access-token" }
+      refresh-token = { keyring = "gmail-oauth2-refresh-token" }
+      auth-url = "https://accounts.google.com/o/oauth2/v2/auth"
+      token-url = "https://www.googleapis.com/oauth2/v3/token"
+      pkce = true
+      scope = "https://mail.google.com/"
+
+      [accounts.personal.message]
+      [accounts.personal.message.send]
+      [accounts.personal.message.send.backend]
+      type = "smtp"
+      host = "smtp.gmail.com"
+      port = 465
+      encryption = "ssl"
+      login = "benbrastmckie@gmail.com"
+
+      [accounts.personal.message.send.backend.auth]
+      type = "oauth2"
+      client-id = "$GMAIL_CLIENT_ID"
+      client-secret = { keyring = "gmail-oauth2-client-secret" }
+      access-token = { keyring = "gmail-oauth2-access-token" }
+      refresh-token = { keyring = "gmail-oauth2-refresh-token" }
+      auth-url = "https://accounts.google.com/o/oauth2/v2/auth"
+      token-url = "https://www.googleapis.com/oauth2/v3/token"
+      pkce = true
+      scope = "https://mail.google.com/"
+
+      [accounts.personal.folder]
+      [accounts.personal.folder.aliases]
+      inbox = "INBOX"
+      sent = "[Gmail]/Sent Mail"
+      drafts = "[Gmail]/Drafts"
+      trash = "[Gmail]/Trash"
+    '';
     # NOTE: The following are excluded since they belong to .config for others to use
     # ".config/fish/config.fish".source = ./config/config.fish;
     # ".config/kitty/kitty.conf".source = ./config/kitty.conf;
