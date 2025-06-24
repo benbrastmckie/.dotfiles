@@ -27,6 +27,71 @@
     # Note: MCP-Hub is managed via lazy.nvim in NeoVim config
   };
 
+  # Configure mbsync via Home Manager
+  programs.mbsync = {
+    enable = true;
+  };
+
+  accounts.email.accounts.gmail = {
+    address = "benbrastmckie@gmail.com";
+    userName = "benbrastmckie@gmail.com";
+    realName = "benbrastmckie";
+    primary = true;
+    passwordCommand = "secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-access-token";
+    
+    imap = {
+      host = "imap.gmail.com";
+      port = 993;
+      tls.enable = true;
+    };
+    
+    mbsync = {
+      enable = true;
+      create = "both";
+      expunge = "both";
+      patterns = [ "*" ];
+      extraConfig.account = {
+        AuthMechs = "XOAUTH2";
+      };
+      extraConfig.local = {
+        Path = "~/Mail/Gmail/";
+        Inbox = "~/Mail/Gmail/INBOX";
+        SubFolders = "Verbatim";
+      };
+      groups.gmail = {
+        channels = {
+          inbox = {
+            farPattern = "INBOX";
+            nearPattern = "INBOX";
+          };
+          sent = {
+            farPattern = "[Gmail]/Sent Mail";
+            nearPattern = "Sent";
+          };
+          drafts = {
+            farPattern = "[Gmail]/Drafts";
+            nearPattern = "Drafts";
+          };
+          trash = {
+            farPattern = "[Gmail]/Trash";
+            nearPattern = "Trash";
+          };
+          all = {
+            farPattern = "[Gmail]/All Mail";
+            nearPattern = "All Mail";
+          };
+          spam = {
+            farPattern = "[Gmail]/Spam";
+            nearPattern = "Spam";
+          };
+          folders = {
+            patterns = [ "EuroTrip" "CrazyTown" "Letters" ];
+          };
+        };
+      };
+    };
+  };
+
   home.stateVersion = "24.11"; # Please read the comment before changing.
   # home.stateVersion = "24.05"; # Please read the comment before changing.
   # home.stateVersion = "23.11"; # Please read the comment before changing.
@@ -93,21 +158,6 @@
     (pkgs-unstable.himalaya.overrideAttrs (oldAttrs: {
       cargoBuildFlags = (oldAttrs.cargoBuildFlags or []) ++ [ "--features=oauth2,keyring" ];
     }))     # Himalaya with OAuth2 support
-    # mbsync (isync) with XOAUTH2 support
-    # Option 1: Wrapper script (simpler, recommended)
-    (pkgs.writeShellScriptBin "mbsync" ''
-      export SASL_PATH="${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2"
-      exec ${pkgs-unstable.isync}/bin/mbsync "$@"
-    '')
-    
-    # Option 2: If you prefer, you can use this instead of the wrapper above:
-    # (pkgs-unstable.isync.overrideAttrs (oldAttrs: {
-    #   buildInputs = oldAttrs.buildInputs ++ [ pkgs.cyrus-sasl-xoauth2 ];
-    #   postInstall = (oldAttrs.postInstall or "") + ''
-    #     wrapProgram $out/bin/mbsync \
-    #       --set SASL_PATH "${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2"
-    #   '';
-    # }))
     
     cyrus-sasl-xoauth2   # XOAUTH2 SASL plugin for OAuth2 authentication
     msmtp        # For sending emails via SMTP
@@ -158,20 +208,15 @@
 
   # Create mail directory for Himalaya with proper structure
   home.activation.createMailDir = config.lib.dag.entryAfter ["writeBoundary"] ''
-    mkdir -p /home/benjamin/Mail/Gmail
-    # Ensure Gmail special folders exist (they should be created by mbsync)
-    # Creating them here ensures they're available even before first sync
-    mkdir -p "/home/benjamin/Mail/Gmail/.[Gmail].Sent Mail"/{cur,new,tmp}
-    mkdir -p "/home/benjamin/Mail/Gmail/.[Gmail].Drafts"/{cur,new,tmp}
-    mkdir -p "/home/benjamin/Mail/Gmail/.[Gmail].Trash"/{cur,new,tmp}
-    mkdir -p "/home/benjamin/Mail/Gmail/.[Gmail].Spam"/{cur,new,tmp}
-    mkdir -p "/home/benjamin/Mail/Gmail/.[Gmail].All Mail"/{cur,new,tmp}
-    
-    # Create compatibility symlinks for applications expecting standard folder names
-    # This ensures maximum compatibility while maintaining Gmail's folder structure
-    ln -sfn "/home/benjamin/Mail/Gmail/.[Gmail].Sent Mail" "/home/benjamin/Mail/Gmail/.Sent"
-    ln -sfn "/home/benjamin/Mail/Gmail/.[Gmail].Drafts" "/home/benjamin/Mail/Gmail/.Drafts"
-    ln -sfn "/home/benjamin/Mail/Gmail/.[Gmail].Trash" "/home/benjamin/Mail/Gmail/.Trash"
+    mkdir -p /home/benjamin/Mail/Gmail/INBOX/{cur,new,tmp}
+    mkdir -p "/home/benjamin/Mail/Gmail/Sent"/{cur,new,tmp}
+    mkdir -p "/home/benjamin/Mail/Gmail/Drafts"/{cur,new,tmp}
+    mkdir -p "/home/benjamin/Mail/Gmail/Trash"/{cur,new,tmp}
+    mkdir -p "/home/benjamin/Mail/Gmail/All Mail"/{cur,new,tmp}
+    mkdir -p "/home/benjamin/Mail/Gmail/Spam"/{cur,new,tmp}
+    mkdir -p "/home/benjamin/Mail/Gmail/EuroTrip"/{cur,new,tmp}
+    mkdir -p "/home/benjamin/Mail/Gmail/CrazyTown"/{cur,new,tmp}
+    mkdir -p "/home/benjamin/Mail/Gmail/Letters"/{cur,new,tmp}
   '';
 
   # Systemd user services for OAuth2 token refresh
@@ -183,7 +228,6 @@
     Service = {
       Type = "oneshot";
       ExecStart = "${config.home.homeDirectory}/.nix-profile/bin/refresh-gmail-oauth2";
-      EnvironmentFile = "${config.home.homeDirectory}/.config/gmail-oauth2.env";
     };
   };
 
@@ -250,35 +294,6 @@
       folder.sent.name = "[Gmail].Sent Mail"
     '';
     
-    # mbsync configuration for IMAP synchronization
-    ".mbsyncrc".text = ''
-      # Gmail IMAP account
-      IMAPAccount gmail
-      Host imap.gmail.com
-      Port 993
-      User benbrastmckie@gmail.com
-      AuthMechs XOAUTH2
-      PassCmd "secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-access-token"
-      TLSType IMAPS
-
-      # Gmail remote store
-      IMAPStore gmail-remote
-      Account gmail
-
-      # Gmail local store
-      MaildirStore gmail-local
-      Inbox ~/Mail/Gmail/
-      SubFolders Maildir++
-
-      # Gmail sync channel
-      Channel gmail
-      Far :gmail-remote:
-      Near :gmail-local:
-      Patterns *
-      Create Both
-      SyncState *
-      Expunge Both
-    '';
     
     # Gmail OAuth2 environment file for systemd service
     ".config/gmail-oauth2.env".text = ''
@@ -307,6 +322,8 @@
     # Prefer Wayland over X11
     NIXOS_OZONE_WL = "1";
     # MCP_HUB_PATH is now managed by the MCP-Hub module
+    GMAIL_CLIENT_ID = "810486121108-i3d8dloc9hc0rg7g6ee9cj1tl8l1m0i8.apps.googleusercontent.com";
+    SASL_PATH = "${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2";
   };
 
   # programs.pylint.enable = true;
