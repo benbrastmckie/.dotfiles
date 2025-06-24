@@ -8,7 +8,9 @@
       "Bash(find:*)",
       "Bash(ls:*)",
       "Bash(mbsync:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(home-manager switch:*)"
     ],
     "deny": []
   },
