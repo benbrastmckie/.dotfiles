@@ -12,3 +12,5 @@ This directory contains configuration files for various applications used in the
 - **zathurarc**: PDF viewer configuration
 
 These configurations are referenced by `home.nix` and managed through Home Manager.
+
+[← Back to main README](../README.md)
