@@ -27,70 +27,9 @@
     # Note: MCP-Hub is managed via lazy.nvim in NeoVim config
   };
 
-  # Configure mbsync via Home Manager
-  programs.mbsync = {
-    enable = true;
-  };
+  # Don't manage fish config - preserve oh-my-fish setup
+  # Instead, manually source Home Manager session variables in fish
 
-  accounts.email.accounts.gmail = {
-    address = "benbrastmckie@gmail.com";
-    userName = "benbrastmckie@gmail.com";
-    realName = "benbrastmckie";
-    primary = true;
-    passwordCommand = "secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-access-token";
-    
-    imap = {
-      host = "imap.gmail.com";
-      port = 993;
-      tls.enable = true;
-    };
-    
-    mbsync = {
-      enable = true;
-      create = "both";
-      expunge = "both";
-      patterns = [ "*" ];
-      extraConfig.account = {
-        AuthMechs = "XOAUTH2";
-      };
-      extraConfig.local = {
-        Path = "~/Mail/Gmail/";
-        Inbox = "~/Mail/Gmail/INBOX";
-        SubFolders = "Verbatim";
-      };
-      groups.gmail = {
-        channels = {
-          inbox = {
-            farPattern = "INBOX";
-            nearPattern = "INBOX";
-          };
-          sent = {
-            farPattern = "[Gmail]/Sent Mail";
-            nearPattern = "Sent";
-          };
-          drafts = {
-            farPattern = "[Gmail]/Drafts";
-            nearPattern = "Drafts";
-          };
-          trash = {
-            farPattern = "[Gmail]/Trash";
-            nearPattern = "Trash";
-          };
-          all = {
-            farPattern = "[Gmail]/All Mail";
-            nearPattern = "All Mail";
-          };
-          spam = {
-            farPattern = "[Gmail]/Spam";
-            nearPattern = "Spam";
-          };
-          folders = {
-            patterns = [ "EuroTrip" "CrazyTown" "Letters" ];
-          };
-        };
-      };
-    };
-  };
 
   home.stateVersion = "24.11"; # Please read the comment before changing.
   # home.stateVersion = "24.05"; # Please read the comment before changing.
@@ -159,7 +98,22 @@
       cargoBuildFlags = (oldAttrs.cargoBuildFlags or []) ++ [ "--features=oauth2,keyring" ];
     }))     # Himalaya with OAuth2 support
     
-    cyrus-sasl-xoauth2   # XOAUTH2 SASL plugin for OAuth2 authentication
+    # Custom cyrus-sasl with XOAUTH2 plugin built-in and mbsync with proper linking
+    (let
+      cyrus-sasl-with-xoauth2 = pkgs.cyrus_sasl.overrideAttrs (oldAttrs: {
+        buildInputs = oldAttrs.buildInputs ++ [ pkgs.cyrus-sasl-xoauth2 ];
+        postInstall = (oldAttrs.postInstall or "") + ''
+          # Copy XOAUTH2 plugin to the main SASL plugin directory
+          cp ${pkgs.cyrus-sasl-xoauth2}/lib/sasl2/* $out/lib/sasl2/
+        '';
+      });
+
+      mbsync-with-xoauth2 = pkgs-unstable.isync.override {
+        cyrus_sasl = cyrus-sasl-with-xoauth2;
+      };
+    in mbsync-with-xoauth2)
+    
+    pkgs.cyrus-sasl-xoauth2   # Keep for reference
     msmtp        # For sending emails via SMTP
     pass         # Password manager for storing OAuth2 tokens
     gnupg        # Required for pass to work
@@ -295,6 +249,89 @@
     '';
     
     
+    # mbsync configuration for IMAP synchronization with XOAUTH2
+    ".mbsyncrc".text = ''
+      # Gmail IMAP account with XOAUTH2 support
+      IMAPAccount gmail
+      Host imap.gmail.com
+      Port 993
+      User benbrastmckie@gmail.com
+      AuthMechs XOAUTH2
+      PassCmd "secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-access-token"
+      TLSType IMAPS
+
+      # Gmail remote store
+      IMAPStore gmail-remote
+      Account gmail
+
+      # Gmail local store
+      MaildirStore gmail-local
+      Path ~/Mail/Gmail/
+      Inbox ~/Mail/Gmail/INBOX
+      SubFolders Verbatim
+
+      # Individual channels for each folder
+      Channel gmail-inbox
+      Far :gmail-remote:INBOX
+      Near :gmail-local:INBOX
+      Create Both
+      Expunge Both
+      SyncState *
+
+      Channel gmail-sent
+      Far :gmail-remote:"[Gmail]/Sent Mail"
+      Near :gmail-local:Sent
+      Create Both
+      Expunge Both
+      SyncState *
+
+      Channel gmail-drafts
+      Far :gmail-remote:"[Gmail]/Drafts"
+      Near :gmail-local:Drafts
+      Create Both
+      Expunge Both
+      SyncState *
+
+      Channel gmail-trash
+      Far :gmail-remote:"[Gmail]/Trash"
+      Near :gmail-local:Trash
+      Create Both
+      Expunge Both
+      SyncState *
+
+      Channel gmail-all
+      Far :gmail-remote:"[Gmail]/All Mail"
+      Near :gmail-local:"All Mail"
+      Create Both
+      Expunge Both
+      SyncState *
+
+      Channel gmail-spam
+      Far :gmail-remote:"[Gmail]/Spam"
+      Near :gmail-local:Spam
+      Create Both
+      Expunge Both
+      SyncState *
+
+      Channel gmail-folders
+      Far :gmail-remote:
+      Near :gmail-local:
+      Patterns "EuroTrip" "CrazyTown" "Letters"
+      Create Both
+      Expunge Both
+      SyncState *
+
+      # Group all channels together
+      Group gmail
+      Channel gmail-inbox
+      Channel gmail-sent
+      Channel gmail-drafts
+      Channel gmail-trash
+      Channel gmail-all
+      Channel gmail-spam
+      Channel gmail-folders
+    '';
+
     # Gmail OAuth2 environment file for systemd service
     ".config/gmail-oauth2.env".text = ''
       GMAIL_CLIENT_ID=$GMAIL_CLIENT_ID
@@ -322,8 +359,7 @@
     # Prefer Wayland over X11
     NIXOS_OZONE_WL = "1";
     # MCP_HUB_PATH is now managed by the MCP-Hub module
-    GMAIL_CLIENT_ID = "810486121108-i3d8dloc9hc0rg7g6ee9cj1tl8l1m0i8.apps.googleusercontent.com";
-    SASL_PATH = "${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2";
+    # GMAIL_CLIENT_ID and SASL_PATH are now managed in ~/.config/fish/conf.d/private.fish
   };
 
   # programs.pylint.enable = true;

@@ -10,7 +10,9 @@
       "Bash(mbsync:*)",
       "Bash(grep:*)",
       "Bash(rg:*)",
-      "Bash(home-manager switch:*)"
+      "Bash(home-manager switch:*)",
+      "Bash(source:*)",
+      "Bash(timeout:*)"
     ],
     "deny": []
   },

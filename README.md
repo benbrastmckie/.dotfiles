@@ -23,17 +23,18 @@ These dotfiles provide a complete NixOS setup with:
 
 ### Directory Organization
 
-- [`config/`](config/): Application configuration files
-- [`home-modules/`](home-modules/): Custom Home Manager modules
-- [`packages/`](packages/): Custom package definitions and Neovim configuration
-- [`hosts/`](hosts/): Host-specific hardware configurations (private)
-- [`docs/`](docs/): Detailed documentation for all components
+- **[`config/`](config/)** - Application configuration files ([README](config/README.md))
+- **[`docs/`](docs/)** - Detailed documentation for all components ([README](docs/README.md))
+- **[`home-modules/`](home-modules/)** - Custom Home Manager modules ([README](home-modules/README.md))
+- **[`hosts/`](hosts/)** - Host-specific hardware configurations ([README](hosts/README.md))
+- **[`packages/`](packages/)** - Custom package definitions and Neovim configuration ([README](packages/README.md))
 
 ### Documentation Files
 
 - [`docs/configuration.md`](docs/configuration.md): Core configuration details
 - [`docs/installation.md`](docs/installation.md): Setup and installation guide
 - [`docs/applications.md`](docs/applications.md): Application-specific configurations
+- [`docs/himalaya.md`](docs/himalaya.md): Himalaya email client setup and configuration
 - [`docs/packages.md`](docs/packages.md): Package management and custom packages
 - [`docs/unstable-packages.md`](docs/unstable-packages.md): Managing unstable channel packages
 - [`docs/testing.md`](docs/testing.md): Testing and validation procedures
@@ -61,7 +62,7 @@ For comprehensive configuration details, see [`docs/configuration.md`](docs/conf
 ## Featured Applications
 
 ### Email (Himalaya)
-Modern CLI email client with OAuth2 Gmail integration. See [`docs/applications.md`](docs/applications.md#email-himalaya) for setup.
+Modern CLI email client with Gmail OAuth2 authentication and mbsync synchronization. Complete setup guide at [`docs/himalaya.md`](docs/himalaya.md).
 
 ### MCP-Hub 
 Model Context Protocol integration for AI tools with Neovim. Architecture details in [`docs/applications.md`](docs/applications.md#mcp-hub-integration).
