@@ -18,18 +18,20 @@ Himalaya is configured as the primary email client with the following components
 2. **Outgoing Mail**: Himalaya → msmtp → Gmail SMTP
 3. **Authentication**: OAuth2 tokens stored in system keyring via libsecret
 
-### Directory Structure
+### Directory Structure (Maildir++)
 ```
 ~/Mail/Gmail/
-  INBOX/
-  Sent/
-  Drafts/
-  Trash/
-  All Mail/
-  Spam/
-  EuroTrip/
-  CrazyTown/
-  Letters/
+  cur/           # Inbox current messages
+  new/           # Inbox new messages  
+  tmp/           # Temporary files
+  .Sent/         # Sent messages
+  .Drafts/       # Draft messages
+  .Trash/        # Deleted messages
+  .All_Mail/     # All mail archive
+  .Spam/         # Spam messages
+  EuroTrip/      # Custom folder
+  CrazyTown/     # Custom folder
+  Letters/       # Custom folder
 ```
 
 ## NixOS Configuration
@@ -195,20 +197,20 @@ TLSType IMAPS
 IMAPStore gmail-remote
 Account gmail
 
-# Gmail local store
+# Gmail local store - MAILDIR++ FORMAT
 MaildirStore gmail-local
-Path ~/Mail/Gmail/
-Inbox ~/Mail/Gmail/INBOX
-SubFolders Verbatim
+Inbox ~/Mail/Gmail/
+SubFolders Maildir++
 
-# Individual channels for each folder
+# Inbox channel - emails go to root cur/new directories
 Channel gmail-inbox
 Far :gmail-remote:INBOX
-Near :gmail-local:INBOX
+Near :gmail-local:
 Create Both
 Expunge Both
 SyncState *
 
+# Subfolders - Maildir++ adds dot prefix automatically
 Channel gmail-sent
 Far :gmail-remote:"[Gmail]/Sent Mail"
 Near :gmail-local:Sent
@@ -232,7 +234,7 @@ SyncState *
 
 Channel gmail-all
 Far :gmail-remote:"[Gmail]/All Mail"
-Near :gmail-local:"All Mail"
+Near :gmail-local:All_Mail
 Create Both
 Expunge Both
 SyncState *
