@@ -182,6 +182,9 @@
     Service = {
       Type = "oneshot";
       ExecStart = "${config.home.homeDirectory}/.nix-profile/bin/refresh-gmail-oauth2";
+      Environment = [
+        "GMAIL_CLIENT_ID=${config.home.sessionVariables.GMAIL_CLIENT_ID}"
+      ];
     };
   };
 
@@ -359,7 +362,8 @@
     # Prefer Wayland over X11
     NIXOS_OZONE_WL = "1";
     # MCP_HUB_PATH is now managed by the MCP-Hub module
-    # GMAIL_CLIENT_ID and SASL_PATH are now managed in ~/.config/fish/conf.d/private.fish
+    GMAIL_CLIENT_ID = "810486121108-i3d8dloc9hc0rg7g6ee9cj1tl8l1m0i8.apps.googleusercontent.com";
+    SASL_PATH = "/nix/store/ja75va5vkxrmm0y95gdzk04kxa0pmw1s-cyrus-sasl-xoauth2-0.2/lib/sasl2:/nix/store/f4spmcr74xb2zwin34n8973jj7ppn4bv-cyrus-sasl-2.1.28-bin/lib/sasl2";
   };
 
   # programs.pylint.enable = true;
