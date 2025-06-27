@@ -203,6 +203,15 @@
     };
   };
 
+  # Add systemd user session variables for broader availability
+  systemd.user.sessionVariables = {
+    GMAIL_CLIENT_ID = "810486121108-i3d8dloc9hc0rg7g6ee9cj1tl8l1m0i8.apps.googleusercontent.com";
+    SASL_PATH = "${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2";
+  };
+
+  # Enable systemd integration
+  systemd.user.startServices = "sd-switch";
+
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
   home.file = {
