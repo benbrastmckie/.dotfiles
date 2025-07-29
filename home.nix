@@ -38,6 +38,8 @@
   # home.packages allows you to install Nix packages into your environment.
   home.packages = with pkgs; [
     claude-code  # Using overlaid unstable package
+    claude-squad # Terminal app for managing multiple AI agents
+    gh           # GitHub CLI (required by claude-squad)
     lectic
     
     # OAuth2 token refresh script
@@ -218,10 +220,11 @@
     ".config/neofetch/config.conf".source = ./config/neofetch.conf;
     ".config/niri/config.kdl".source = ./config/config.kdl;
     ".config/himalaya/config.toml".text = ''
+      # Primary account - reads from local maildir
       [accounts.gmail]
       default = true
       email = "benbrastmckie@gmail.com"
-      display-name = "benbrastmckie"
+      display-name = "Benjamin Brast-McKie"
       downloads-dir = "/home/benjamin/Downloads"
       
       backend.type = "maildir"
@@ -288,6 +291,16 @@
       Create Both
       Expunge Both
       SyncState *
+
+      # Quick inbox channel - syncs only the 50 most recent emails
+      Channel gmail-inbox-quick
+      Far :gmail-remote:INBOX
+      Near :gmail-local:
+      Create Both
+      Expunge Both
+      SyncState *
+      MaxMessages 50
+      ExpireUnread yes
 
       # Subfolders - Maildir++ adds dot prefix automatically
       Channel gmail-sent
