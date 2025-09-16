@@ -72,18 +72,73 @@ config.selection_word_boundary = " \t\n{}[]()\"'`"
 
 -- TAB BAR
 config.use_fancy_tab_bar = false
-config.tab_bar_at_bottom = false
+config.tab_bar_at_bottom = true
 config.show_tabs_in_tab_bar = true
 config.show_new_tab_button_in_tab_bar = false
-config.tab_max_width = 32
+config.tab_max_width = 25
 
--- Custom tab title formatting to match Kitty's "{index}" template
+-- Smaller, sleeker tab bar styling
+config.window_frame = {
+  font = wezterm.font({ family = 'RobotoMono Nerd Font Mono', weight = 'Bold' }),
+  font_size = 9.0,
+  active_titlebar_bg = '#202020',
+  inactive_titlebar_bg = '#202020',
+}
+
+-- Tab bar colors
+config.colors.tab_bar = {
+  background = '#1a1a1a',
+  
+  active_tab = {
+    bg_color = '#3a3a3a',
+    fg_color = '#d0d0d0',
+    intensity = 'Bold',
+    underline = 'None',
+    italic = false,
+    strikethrough = false,
+  },
+  
+  inactive_tab = {
+    bg_color = '#202020',
+    fg_color = '#808080',
+    intensity = 'Normal',
+  },
+  
+  inactive_tab_hover = {
+    bg_color = '#2a2a2a',
+    fg_color = '#a0a0a0',
+    italic = false,
+  },
+  
+  new_tab = {
+    bg_color = '#1a1a1a',
+    fg_color = '#808080',
+  },
+  
+  new_tab_hover = {
+    bg_color = '#2a2a2a',
+    fg_color = '#a0a0a0',
+  },
+}
+
+-- Custom tab title formatting with cleaner look
 wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_width)
+  local edge_background = '#1a1a1a'
+  local background = tab.is_active and '#3a3a3a' or '#202020'
+  local foreground = tab.is_active and '#d0d0d0' or '#808080'
+  
   local title = tostring(tab.tab_index + 1)
+  
+  -- Add separator between tabs
+  local separator = tab.tab_index < #tabs - 1 and '│' or ''
+  
   return {
-    { Background = { Color = tab.is_active and '#eee' or '#999' } },
-    { Foreground = { Color = tab.is_active and '#000' or '#444' } },
+    { Background = { Color = background } },
+    { Foreground = { Color = foreground } },
     { Text = ' ' .. title .. ' ' },
+    { Background = { Color = edge_background } },
+    { Foreground = { Color = '#404040' } },
+    { Text = separator },
   }
 end)
 
