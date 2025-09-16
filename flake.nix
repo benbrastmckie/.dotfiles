@@ -12,6 +12,10 @@
     lectic = {
       url = "github:gleachkr/lectic";
     };
+    nix-ai-tools = {
+      url = "github:numtide/nix-ai-tools";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
     utils.url = "github:numtide/flake-utils";
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -21,7 +25,7 @@
     # };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, lectic, utils, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, lectic, nix-ai-tools, utils, ... }@inputs:
 
   let
     lib = nixpkgs.lib;
@@ -72,54 +76,6 @@
       };
     };
 
-    # OpenCode v0.9.1 overlay - built from source like claude-squad
-    opencodeOverlay = final: prev: let
-      opencode-tui = (final.buildGoModule.override { go = final.go_1_24; }) rec {
-        pname = "opencode-tui";
-        version = "0.9.1";
-        
-        src = final.fetchFromGitHub {
-          owner = "sst";
-          repo = "opencode";
-          rev = "v${version}";
-          hash = "sha256-ZMHEvcMpMgwj9Tzb788xUF9nnPLnrSlr6LzcUg7+MDg=";
-        };
-        
-        # Correct vendor hash for v0.9.1
-        vendorHash = "sha256-3MBuzd5L8pGONk+euOG8YpXbmH6fxXxatokylklTZco=";
-        
-        modRoot = "./packages/tui";
-        subPackages = [ "cmd/opencode" ];
-        
-        # Remove problematic tool directive
-        preBuild = ''
-          sed -i '/^tool (/,/^)/d' go.mod
-        '';
-        
-        meta = with final.lib; {
-          description = "AI coding agent built for the terminal";
-          homepage = "https://github.com/sst/opencode";
-          license = licenses.mit;
-          platforms = platforms.linux ++ platforms.darwin;
-        };
-      };
-    in {
-      opencode = final.writeShellScriptBin "opencode" ''
-        # OpenCode wrapper script
-        export OPENCODE_API_URL="https://api.opencode.ai"
-        export OPENCODE_AGENT_URL="http://localhost:8080"
-        
-        # Check if running with local development
-        if [ -n "$OPENCODE_DEV" ]; then
-          echo "Running in development mode..."
-          export OPENCODE_AGENT_URL="http://localhost:3000"
-        fi
-        
-        # Run the actual OpenCode TUI
-        exec ${opencode-tui}/bin/opencode "$@"
-      '';
-    };
-    
     # Create an overlay for unstable packages
     unstablePackagesOverlay = final: prev: {
       # Window Manager
@@ -142,7 +98,6 @@
       };
       overlays = [
         claudeSquadOverlay
-        opencodeOverlay
         unstablePackagesOverlay
       ];
     };
@@ -170,6 +125,7 @@
             home-manager.extraSpecialArgs = {
               inherit pkgs-unstable;
               inherit lectic;
+              inherit nix-ai-tools;
             };
           }
         ];
@@ -197,6 +153,7 @@
             home-manager.extraSpecialArgs = {
               inherit pkgs-unstable;
               inherit lectic;
+              inherit nix-ai-tools;
             };
           }
           ({ pkgs, lib, lectic, ... }: {
@@ -248,8 +205,7 @@
             nixpkgs = {
               overlays = [ 
                 claudeSquadOverlay
-                opencodeOverlay
-                unstablePackagesOverlay 
+                        unstablePackagesOverlay 
               ];
               config = { allowUnfree = true; };
             };
@@ -259,6 +215,7 @@
           inherit username;
           inherit name;
           inherit pkgs-unstable;
+          inherit nix-ai-tools;
           lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
         };
       };

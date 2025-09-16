@@ -1,4 +1,4 @@
-{ config, pkgs, pkgs-unstable, lectic, ... }:
+{ config, pkgs, pkgs-unstable, lectic, nix-ai-tools, ... }:
 
 {
   # Import our custom modules
@@ -41,7 +41,6 @@
     claude-squad # Terminal app for managing multiple AI agents
     gh           # GitHub CLI (required by claude-squad)
     lectic
-    opencode     # AI coding agent v0.9.1 - built from source
     
     # OAuth2 token refresh script
     (pkgs.writeShellScriptBin "refresh-gmail-oauth2" ''
