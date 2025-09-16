@@ -20,6 +20,17 @@ config.window_padding = {
   bottom = 0,
 }
 
+-- Start in fullscreen mode
+config.launch_menu = {}
+config.enable_tab_bar = true
+config.hide_tab_bar_if_only_one_tab = false
+config.native_macos_fullscreen_mode = false
+-- Start maximized/fullscreen
+wezterm.on('gui-startup', function(cmd)
+  local tab, pane, window = wezterm.mux.spawn_window(cmd or {})
+  window:gui_window():toggle_fullscreen()
+end)
+
 -- APPEARANCE
 config.window_decorations = "NONE"
 config.window_background_opacity = 0.9
