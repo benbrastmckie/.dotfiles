@@ -41,6 +41,7 @@
     claude-squad # Terminal app for managing multiple AI agents
     gh           # GitHub CLI (required by claude-squad)
     lectic
+    wezterm      # GPU-accelerated terminal emulator
     
     # OAuth2 token refresh script
     (pkgs.writeShellScriptBin "refresh-gmail-oauth2" ''
@@ -218,6 +219,7 @@
   home.file = {
     ".config/neofetch/config.conf".source = ./config/neofetch.conf;
     ".config/niri/config.kdl".source = ./config/config.kdl;
+    ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
     ".config/himalaya/config.toml".text = ''
       # Primary account - reads from local maildir
       [accounts.gmail]
