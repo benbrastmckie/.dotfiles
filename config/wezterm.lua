@@ -1,5 +1,12 @@
 local wezterm = require 'wezterm'
 local config = wezterm.config_builder()
+local mux = wezterm.mux
+
+-- Start maximized
+wezterm.on('gui-startup', function(cmd)
+  local tab, pane, window = mux.spawn_window(cmd or {})
+  window:gui_window():maximize()
+end)
 
 -- FONT
 config.font_size = 12.0
@@ -87,8 +94,6 @@ config.colors = {
 -- GENERAL
 config.default_prog = { 'fish' }
 config.selection_word_boundary = " \t\n{}[]()\"'`"
-config.check_for_updates = true
-config.show_update_window = true
 
 -- SCROLLBACK
 config.scrollback_lines = 10000
