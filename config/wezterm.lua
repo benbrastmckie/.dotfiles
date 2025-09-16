@@ -70,6 +70,23 @@ config.colors = {
 config.default_prog = { 'fish' }
 config.selection_word_boundary = " \t\n{}[]()\"'`"
 
+-- MOUSE SUPPORT
+config.enable_scroll_bar = false
+config.mouse_bindings = {
+  -- Right click to paste
+  {
+    event = { Down = { streak = 1, button = 'Right' } },
+    mods = 'NONE',
+    action = wezterm.action.PasteFrom 'Clipboard',
+  },
+  -- Change selection to copy to clipboard
+  {
+    event = { Up = { streak = 1, button = 'Left' } },
+    mods = 'NONE',
+    action = wezterm.action.CompleteSelectionOrOpenLinkAtMouseCursor 'ClipboardAndPrimarySelection',
+  },
+}
+
 -- TAB BAR
 config.use_fancy_tab_bar = false
 config.tab_bar_at_bottom = true
@@ -186,15 +203,15 @@ config.keys = {
     action = wezterm.action.DecreaseFontSize,
   },
   
-  -- Copy on select (similar to Kitty's copy_on_select)
+  -- Copy/Paste with Ctrl+Shift (leaves Ctrl+C unbound for terminal use)
   {
     key = 'c',
-    mods = 'CTRL',
+    mods = 'CTRL|SHIFT',
     action = wezterm.action.CopyTo 'Clipboard',
   },
   {
     key = 'v',
-    mods = 'CTRL',
+    mods = 'CTRL|SHIFT',
     action = wezterm.action.PasteFrom 'Clipboard',
   },
 }
