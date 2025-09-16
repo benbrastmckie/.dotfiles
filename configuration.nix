@@ -227,12 +227,14 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
 
       # Development Tools
       git                  # Distributed version control system
-      python3              # Programming language interpreter
+      python3              # Python programming language
+      go                   # Go programming language
       gcc                  # GNU Compiler Collection for C/C++
       unzip                # Extract files from ZIP archives
       gnumake              # Build automation tool
       nodejs_20            # JavaScript runtime environment
       uv                   # Fast Python package installer and resolver
+      bun                  # Fast all-in-one JavaScript runtime
       fd                   # Simple, fast alternative to 'find'
       ripgrep              # Fast line-oriented search tool (alternative to grep)
       fzf                  # Command-line fuzzy finder
@@ -266,6 +268,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       pandoc               # Universal document converter
       zathura              # Light-weight PDF/document viewer
       libreoffice          # RTF word processor with signature support
+      evince               # GNOME document viewer (handles PDF, PS, DVI, etc.)
 
       # GNOME Extensions and Tools
       gnome-tweaks         # Tool to customize advanced GNOME settings
