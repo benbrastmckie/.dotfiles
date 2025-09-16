@@ -37,6 +37,32 @@ User-specific configuration managed by Home Manager:
 - Package installation for user environment
 - Service management for user sessions
 
+## Terminal Emulator Configurations
+
+### WezTerm
+
+The configuration at `config/wezterm.lua` provides a modern, GPU-accelerated terminal experience:
+
+**Key Features:**
+- RobotoMono Nerd Font with 12pt size
+- GPU acceleration via WebGpu with high performance preference
+- Fullscreen on startup with no window decorations
+- Semi-transparent background (0.9 opacity)
+- Custom color scheme matching Kitty terminal
+- Mouse support with right-click paste
+- Sleek tab bar at bottom with custom styling
+
+**Keybindings:**
+- Leader key: `Ctrl+Space` (matching Kitty)
+- Tab management: `Leader+c` (new), `Leader+k` (close), `Leader+n/p` (navigate)
+- Font size: `Ctrl+Shift+=/-` for zoom
+- Copy/Paste: `Ctrl+Shift+C/V` (leaves `Ctrl+C` for terminal interrupts)
+
+**Integration:**
+- Uses Fish shell as default
+- Copy-on-select enabled
+- Wayland support enabled for Linux systems
+
 ## Key Integration Points
 
 - Flake inputs provide package sources
