@@ -84,11 +84,11 @@
         "nixpkgs-older": "nixpkgs-older"
       },
       "locked": {
-        "lastModified": 1757994080,
-        "narHash": "sha256-2ABexhAjwnJh4cVrinSUONaeUj48fMogKO3AzJ7Y84s=",
+        "lastModified": 1758039992,
+        "narHash": "sha256-mi+1QkMGUChd5nzXSSYBXUjxxuNakxOX0ZziBDI/bFU=",
         "owner": "leanprover",
         "repo": "lean4",
-        "rev": "a1cd945e8288b4d9a43f38e2e318f75c27a682df",
+        "rev": "7b75db7c6ef545df22bc14ba24f7484933f6667d",
         "type": "github"
       },
       "original": {
@@ -126,11 +126,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1758000903,
-        "narHash": "sha256-FyfB40rl2mbRGIvF2/6Iwv9xHDxOmhaE1MhlV6Efsg4=",
+        "lastModified": 1758035401,
+        "narHash": "sha256-yDFq5/uwQV9NetcKduw0A/3XmGN/Z3ovMCTZkUv0B6Y=",
         "owner": "YaLTeR",
         "repo": "niri",
-        "rev": "c30e5c91851d77d48ff2120f0e710501b19d61b4",
+        "rev": "08f5c6fecb3c5c81d63a0bf7248c85ae3299a4a5",
         "type": "github"
       },
       "original": {
