@@ -41,6 +41,7 @@
     claude-squad # Terminal app for managing multiple AI agents
     gh           # GitHub CLI (required by claude-squad)
     lectic
+    opencode     # AI coding agent v0.9.1
     
     # OAuth2 token refresh script
     (pkgs.writeShellScriptBin "refresh-gmail-oauth2" ''
@@ -133,6 +134,7 @@
       build
       twine
       pytest
+      pytest-cov
       pytest-timeout
       # model-checker  # don't install when in development 
       tqdm
@@ -149,15 +151,13 @@
       networkx
       pynvim
       numpy
+      # pylint 
+      # black  
+      # isort  
 
       # Jupyter Notebooks
       jupytext
       ipython
-
-
-      # pylint 
-      # black  
-      # isort  
     ]))
     (nerdfonts.override { fonts = [ "RobotoMono" ]; })
   ];

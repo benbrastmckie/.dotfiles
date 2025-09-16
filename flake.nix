@@ -72,6 +72,41 @@
       };
     };
 
+    # Create an overlay for opencode v0.9.1  
+    opencodeOverlay = final: prev: {
+      opencode = final.buildGoModule.override { go = final.go_1_24; } rec {
+        pname = "opencode";
+        version = "0.9.1";
+        
+        src = final.fetchFromGitHub {
+          owner = "sst";
+          repo = "opencode";
+          rev = "v${version}";
+          hash = "sha256-ZMHEvcMpMgwj9Tzb788xUF9nnPLnrSlr6LzcUg7+MDg=";
+        };
+        
+        # Patch go.mod to remove the tool directive that's causing issues
+        postPatch = ''
+          # Remove the tool directive from go.mod
+          sed -i '/^tool (/,/^)/d' packages/tui/go.mod
+        '';
+        
+        vendorHash = null; # Use null to disable vendor hash checking
+        
+        # Set the correct working directory for the Go module
+        modRoot = "./packages/tui";
+        
+        # Build the opencode binary from the tui directory
+        subPackages = [ "." ];
+        
+        meta = with final.lib; {
+          description = "AI coding agent built for the terminal (v0.9.1)";
+          homepage = "https://github.com/sst/opencode";
+          license = licenses.mit;
+        };
+      };
+    };
+    
     # Create an overlay for unstable packages
     unstablePackagesOverlay = final: prev: {
       # Window Manager
@@ -94,6 +129,7 @@
       };
       overlays = [
         claudeSquadOverlay
+        opencodeOverlay
         unstablePackagesOverlay
       ];
     };
@@ -199,6 +235,7 @@
             nixpkgs = {
               overlays = [ 
                 claudeSquadOverlay
+                opencodeOverlay
                 unstablePackagesOverlay 
               ];
               config = { allowUnfree = true; };

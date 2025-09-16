@@ -12,7 +12,11 @@
       "Bash(rg:*)",
       "Bash(home-manager switch:*)",
       "Bash(source:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(gnome-extensions list:*)",
+      "Bash(nix search:*)",
+      "WebSearch",
+      "WebFetch(domain:mynixos.com)"
     ],
     "deny": []
   },
