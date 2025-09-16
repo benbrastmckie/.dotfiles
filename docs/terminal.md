@@ -4,12 +4,17 @@ This document covers terminal emulator configurations for WezTerm and Kitty.
 
 ## WezTerm Configuration
 
+### Startup Behavior
+- **Maximized on startup**: Window automatically maximizes when WezTerm starts
+- **No decorations**: Clean interface without window borders
+
 ### Performance Optimizations
 - **Max FPS**: 120 - Ensures smooth rendering on high refresh rate displays
 - **Animation FPS**: 60 - Provides fluid animations for transitions
 - **Cursor Blink**: 500ms rate with constant easing for predictable behavior
+- **GPU acceleration**: WebGpu frontend with high performance preference
 
-These settings leverage GPU acceleration (WebGpu) for optimal performance on Wayland.
+These settings leverage GPU acceleration for optimal performance on Wayland.
 
 ## Visual Feedback
 
@@ -27,7 +32,7 @@ These settings leverage GPU acceleration (WebGpu) for optimal performance on Way
 
 ### Enhanced Scrollback
 - **Buffer size**: 10,000 lines of history
-- **Wheel scroll speed**: 3 lines in alternate buffer mode (faster scrolling in apps like vim)
+- **Alternate buffer scroll**: 1 line per wheel tick for precise control in apps like vim
 - **No scroll bar**: Clean interface without visual clutter
 
 ### Search Capabilities
@@ -59,10 +64,10 @@ Your original keybindings remain:
 - **Leader + n**: Next tab
 - **Leader + p**: Previous tab
 
-## Update Management
+## Package Management
 
-- **Automatic update checks**: Enabled to notify you of new WezTerm versions
-- **Update window**: Shows changelog when updates are available
+- **Updates via NixOS**: WezTerm updates are managed through NixOS/home-manager
+- **No automatic checks**: Update notifications disabled as packages are managed declaratively
 
 ## Preserved Features
 
