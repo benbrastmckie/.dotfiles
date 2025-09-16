@@ -9,6 +9,11 @@ config.font = wezterm.font('RobotoMono Nerd Font Mono')
 config.enable_wayland = true
 config.front_end = "WebGpu"
 config.webgpu_power_preference = "HighPerformance"
+config.max_fps = 120
+config.animation_fps = 60
+config.cursor_blink_rate = 500
+config.cursor_blink_ease_in = 'Constant'
+config.cursor_blink_ease_out = 'Constant'
 
 -- LAYOUT
 config.initial_cols = 80
@@ -19,27 +24,34 @@ config.window_padding = {
   top = 0,
   bottom = 0,
 }
--- Start maximized (alternative approach)
-config.start_maximized = true
-
--- Start in fullscreen mode
-config.launch_menu = {}
+-- TAB BAR
 config.enable_tab_bar = true
 config.hide_tab_bar_if_only_one_tab = false
-config.native_macos_fullscreen_mode = false
 
--- Start maximized/fullscreen
+-- -- Option 1: Direct toggle_fullscreen (original approach)
+-- wezterm.on('gui-startup', function(cmd)
+--     local tab, pane, window = wezterm.mux.spawn_window(cmd or {})
+--     window:gui_window():toggle_fullscreen()
+-- end)
+
+-- Option 2: Maximize window (fills screen but keeps system bars)
 wezterm.on('gui-startup', function(cmd)
-  local tab, pane, window = wezterm.mux.spawn_window(cmd or {})
-  window:gui_window():maximize()
-  -- Add a small delay before toggling fullscreen
-  wezterm.sleep_ms(100)
-  window:gui_window():toggle_fullscreen()
+    local tab, pane, window = wezterm.mux.spawn_window(cmd or {})
+    window:gui_window():maximize()
 end)
+
+-- -- Option 3: Using perform_action (often more reliable)
+-- wezterm.on('gui-startup', function(cmd)
+--     local tab, pane, window = wezterm.mux.spawn_window(cmd or {})
+--     local gui_window = window:gui_window()
+--     gui_window:perform_action(wezterm.action.ToggleFullScreen, pane)
+-- end)
 
 -- APPEARANCE
 config.window_decorations = "NONE"
 config.window_background_opacity = 0.9
+config.text_background_opacity = 1.0
+config.adjust_window_size_when_changing_font_size = false
 
 -- Color scheme matching Kitty
 config.colors = {
@@ -75,11 +87,15 @@ config.colors = {
 -- GENERAL
 config.default_prog = { 'fish' }
 config.selection_word_boundary = " \t\n{}[]()\"'`"
+config.check_for_updates = true
+config.show_update_window = true
+
+-- SCROLLBACK
+config.scrollback_lines = 10000
+config.enable_scroll_bar = false
 
 -- MOUSE SUPPORT
-config.enable_scroll_bar = false
 config.hide_mouse_cursor_when_typing = false  -- Keep mouse cursor visible when typing
-config.xcursor_size = 16  -- Reduce mouse cursor size (default is usually 24)
 config.mouse_bindings = {
   -- Right click to paste
   {
@@ -92,6 +108,18 @@ config.mouse_bindings = {
     event = { Up = { streak = 1, button = 'Left' } },
     mods = 'NONE',
     action = wezterm.action.CompleteSelectionOrOpenLinkAtMouseCursor 'ClipboardAndPrimarySelection',
+  },
+  -- Middle click to paste from primary selection
+  {
+    event = { Down = { streak = 1, button = 'Middle' } },
+    mods = 'NONE',
+    action = wezterm.action.PasteFrom 'PrimarySelection',
+  },
+  -- Ctrl+Click to open URLs
+  {
+    event = { Up = { streak = 1, button = 'Left' } },
+    mods = 'CTRL',
+    action = wezterm.action.OpenLinkAtMouseCursor,
   },
 }
 
@@ -170,9 +198,26 @@ end)
 -- LEADER KEY - Ctrl+Space just like Kitty
 config.leader = { key = 'Space', mods = 'CTRL', timeout_milliseconds = 1000 }
 
--- KEYBINDINGS matching Kitty exactly
+-- Visual bell instead of audio
+config.audible_bell = 'Disabled'
+config.visual_bell = {
+  fade_in_function = 'EaseIn',
+  fade_in_duration_ms = 75,
+  fade_out_function = 'EaseOut',
+  fade_out_duration_ms = 75,
+  target = 'CursorColor',
+}
+
+-- KEYBINDINGS
 config.keys = {
-  -- Tab management with Ctrl+Space leader (exactly like Kitty)
+  -- Fullscreen toggle (Alt+Enter is the WezTerm default)
+  {
+    key = 'Enter',
+    mods = 'ALT',
+    action = wezterm.action.ToggleFullScreen,
+  },
+  
+  -- Tab management with Ctrl+Space leader
   {
     key = 'c',
     mods = 'LEADER',
@@ -222,9 +267,45 @@ config.keys = {
     mods = 'CTRL|SHIFT',
     action = wezterm.action.PasteFrom 'Clipboard',
   },
+  
+  
+  -- Search mode
+  {
+    key = '/',
+    mods = 'LEADER',
+    action = wezterm.action.Search { CaseSensitiveString = '' },
+  },
+  
+  -- Copy mode (vim-like scrolling)
+  {
+    key = '[',
+    mods = 'LEADER',
+    action = wezterm.action.ActivateCopyMode,
+  },
+  
+  -- Command palette (useful for discovering commands)
+  {
+    key = 'P',
+    mods = 'CTRL|SHIFT',
+    action = wezterm.action.ActivateCommandPalette,
+  },
 }
 
 -- Enable copy on select (similar to Kitty's copy_on_select = yes)
 config.selection_word_boundary = " \t\n{}[]()\"'`"
+
+-- Smart selection patterns for double-click
+config.quick_select_patterns = {
+  -- URLs
+  'https?://[\\w\\.-]+\\S*',
+  -- File paths
+  '(?:[\\w\\-\\.]+)?(?:/[\\w\\-\\.]+)+',
+  -- Email addresses
+  '[\\w\\.-]+@[\\w\\.-]+\\.[\\w]+',
+  -- IP addresses
+  '\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b',
+  -- Hex colors
+  '#[0-9a-fA-F]{3,8}',
+}
 
 return config
