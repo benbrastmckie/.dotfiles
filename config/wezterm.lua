@@ -76,27 +76,30 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_wid
   }
 end)
 
--- KEYBINDINGS matching Kitty
+-- LEADER KEY - Ctrl+Space just like Kitty
+config.leader = { key = 'Space', mods = 'CTRL', timeout_milliseconds = 1000 }
+
+-- KEYBINDINGS matching Kitty exactly
 config.keys = {
-  -- Tab management (Ctrl+Space prefix like Kitty)
+  -- Tab management with Ctrl+Space leader (exactly like Kitty)
   {
     key = 'c',
-    mods = 'CTRL|SHIFT',
+    mods = 'LEADER',
     action = wezterm.action.SpawnTab 'CurrentPaneDomain',
   },
   {
     key = 'k',
-    mods = 'CTRL|SHIFT',
+    mods = 'LEADER',
     action = wezterm.action.CloseCurrentTab { confirm = true },
   },
   {
     key = 'n',
-    mods = 'CTRL|SHIFT',
+    mods = 'LEADER',
     action = wezterm.action.ActivateTabRelative(1),
   },
   {
     key = 'p',
-    mods = 'CTRL|SHIFT',
+    mods = 'LEADER',
     action = wezterm.action.ActivateTabRelative(-1),
   },
 
