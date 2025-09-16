@@ -16,7 +16,9 @@
       "Bash(gnome-extensions list:*)",
       "Bash(nix search:*)",
       "WebSearch",
-      "WebFetch(domain:mynixos.com)"
+      "WebFetch(domain:mynixos.com)",
+      "Bash(wezterm:*)",
+      "WebFetch(domain:wezterm.org)"
     ],
     "deny": []
   },

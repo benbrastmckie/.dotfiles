@@ -19,15 +19,21 @@ config.window_padding = {
   top = 0,
   bottom = 0,
 }
+-- Start maximized (alternative approach)
+config.start_maximized = true
 
 -- Start in fullscreen mode
 config.launch_menu = {}
 config.enable_tab_bar = true
 config.hide_tab_bar_if_only_one_tab = false
 config.native_macos_fullscreen_mode = false
+
 -- Start maximized/fullscreen
 wezterm.on('gui-startup', function(cmd)
   local tab, pane, window = wezterm.mux.spawn_window(cmd or {})
+  window:gui_window():maximize()
+  -- Add a small delay before toggling fullscreen
+  wezterm.sleep_ms(100)
   window:gui_window():toggle_fullscreen()
 end)
 
@@ -72,6 +78,8 @@ config.selection_word_boundary = " \t\n{}[]()\"'`"
 
 -- MOUSE SUPPORT
 config.enable_scroll_bar = false
+config.hide_mouse_cursor_when_typing = false  -- Keep mouse cursor visible when typing
+config.xcursor_size = 16  -- Reduce mouse cursor size (default is usually 24)
 config.mouse_bindings = {
   -- Right click to paste
   {
