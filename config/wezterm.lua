@@ -101,6 +101,7 @@ config.enable_scroll_bar = false
 
 -- MOUSE SUPPORT
 config.hide_mouse_cursor_when_typing = false  -- Keep mouse cursor visible when typing
+config.xcursor_size = 16  -- Set cursor size to 16
 config.mouse_bindings = {
   -- Right click to paste
   {
