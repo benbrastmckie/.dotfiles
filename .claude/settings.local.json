@@ -18,7 +18,11 @@
       "WebSearch",
       "WebFetch(domain:mynixos.com)",
       "Bash(wezterm:*)",
-      "WebFetch(domain:wezterm.org)"
+      "WebFetch(domain:wezterm.org)",
+      "Read(//home/benjamin/**)",
+      "Bash(gsettings get:*)",
+      "Bash(stylua:*)",
+      "Bash(nix-env:*)"
     ],
     "deny": []
   },

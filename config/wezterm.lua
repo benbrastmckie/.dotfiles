@@ -2,19 +2,33 @@ local wezterm = require 'wezterm'
 local config = wezterm.config_builder()
 local mux = wezterm.mux
 
--- Start maximized
-wezterm.on('gui-startup', function(cmd)
-  local tab, pane, window = mux.spawn_window(cmd or {})
-  window:gui_window():maximize()
-end)
+-- Start maximized (removed duplicate - only one gui-startup handler should exist)
+-- Commented out to prevent double window issue
+-- wezterm.on('gui-startup', function(cmd)
+--   local tab, pane, window = mux.spawn_window(cmd or {})
+--   window:gui_window():maximize()
+-- end)
+
+-- Removed cursor theme forcing - let system handle it
+-- wezterm.on('window-focus-changed', function(window, pane)
+--   local overrides = window:get_config_overrides() or {}
+--   overrides.xcursor_theme = 'Adwaita'
+--   window:set_config_overrides(overrides)
+-- end)
 
 -- FONT
 config.font_size = 12.0
 config.font = wezterm.font('RobotoMono Nerd Font Mono')
 
 -- PERFORMANCE
-config.enable_wayland = true
-config.front_end = "WebGpu"
+-- PERFORMANCE & WAYLAND SETTINGS
+config.enable_wayland = true  -- Keep Wayland enabled
+config.front_end = "OpenGL"  -- OpenGL is more stable than WebGpu on NixOS
+-- Window decorations - try NONE to let compositor handle decorations
+config.window_decorations = "NONE"  -- Let Wayland compositor handle decorations
+-- DPI handling - let system manage this
+-- config.dpi = 96  -- Commenting out to let system handle DPI
+-- config.dpi_by_screen = {}
 config.webgpu_power_preference = "HighPerformance"
 config.max_fps = 120
 config.animation_fps = 60
@@ -41,9 +55,9 @@ config.hide_tab_bar_if_only_one_tab = false
 --     window:gui_window():toggle_fullscreen()
 -- end)
 
--- Option 2: Maximize window (fills screen but keeps system bars)
+-- Single gui-startup handler to maximize window
 wezterm.on('gui-startup', function(cmd)
-    local tab, pane, window = wezterm.mux.spawn_window(cmd or {})
+    local tab, pane, window = mux.spawn_window(cmd or {})
     window:gui_window():maximize()
 end)
 
@@ -55,7 +69,6 @@ end)
 -- end)
 
 -- APPEARANCE
-config.window_decorations = "NONE"
 config.window_background_opacity = 0.9
 config.text_background_opacity = 1.0
 config.adjust_window_size_when_changing_font_size = false
@@ -100,8 +113,8 @@ config.scrollback_lines = 10000
 config.enable_scroll_bar = false
 
 -- MOUSE SUPPORT
-config.hide_mouse_cursor_when_typing = false  -- Keep mouse cursor visible when typing
-config.xcursor_size = 16  -- Set cursor size to 16
+config.hide_mouse_cursor_when_typing = false  -- Disabled to prevent cursor disappearing bug on Wayland
+-- Let NixOS handle cursor theme through environment variables
 config.mouse_bindings = {
   -- Right click to paste
   {

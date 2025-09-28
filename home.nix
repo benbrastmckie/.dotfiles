@@ -41,6 +41,7 @@
     claude-squad # Terminal app for managing multiple AI agents
     gh           # GitHub CLI (required by claude-squad)
     lectic
+    stylua       # Lua formatter for Neovim
     wezterm      # GPU-accelerated terminal emulator
     
     # OAuth2 token refresh script
@@ -216,10 +217,26 @@
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
+  # Configure cursor theme properly
+  home.pointerCursor = {
+    name = "Adwaita";
+    package = pkgs.gnome.adwaita-icon-theme;
+    size = 24;
+    x11.enable = true;
+    gtk.enable = true;
+  };
+
+  # Configure WezTerm through home-manager
+  programs.wezterm = {
+    enable = true;
+    extraConfig = builtins.readFile ./config/wezterm.lua;
+  };
+
   home.file = {
     ".config/neofetch/config.conf".source = ./config/neofetch.conf;
     ".config/niri/config.kdl".source = ./config/config.kdl;
-    ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
+    # WezTerm config is now managed by programs.wezterm above
+    # ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
     ".config/himalaya/config.toml".text = ''
       # Primary account - reads from local maildir
       [accounts.gmail]
@@ -387,6 +404,9 @@
     # MCP_HUB_PATH is now managed by the MCP-Hub module
     GMAIL_CLIENT_ID = "810486121108-i3d8dloc9hc0rg7g6ee9cj1tl8l1m0i8.apps.googleusercontent.com";
     SASL_PATH = "/nix/store/ja75va5vkxrmm0y95gdzk04kxa0pmw1s-cyrus-sasl-xoauth2-0.2/lib/sasl2:/nix/store/f4spmcr74xb2zwin34n8973jj7ppn4bv-cyrus-sasl-2.1.28-bin/lib/sasl2";
+    # Cursor settings for WezTerm and other applications
+    XCURSOR_THEME = "Adwaita";
+    XCURSOR_SIZE = "24";
   };
 
   # programs.pylint.enable = true;
