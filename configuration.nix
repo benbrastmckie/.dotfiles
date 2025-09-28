@@ -280,6 +280,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       zoom-us              # Video conferencing tool
       spotify              # Music streaming service client
       signal-desktop       # Signal message app
+      # festival             # Voice support for AI assistants
 
       # File Transfer and Torrent
       wget                 # Tool for retrieving files using HTTP, HTTPS, and FTP
