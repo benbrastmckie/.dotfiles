@@ -393,3 +393,48 @@ program --<TAB><TAB>
 ```
 
 Remember: Exhausting local documentation before going online ensures accuracy for the specific version installed and reduces errors from outdated web resources.
+
+## NPX Wrapper Pattern for Node.js Tools
+
+For rapidly-updating Node.js development tools, consider using NPX wrappers instead of traditional Nix packaging when maintainability is prioritized over version pinning.
+
+### When to Use NPX Wrappers
+
+**Good candidates:**
+- Frequently updated development tools
+- Tools with complex npm dependency trees
+- Tools where latest version is always preferred
+- Tools without package-lock.json in npm packages
+
+**Example tools:** claude-code, create-react-app, @angular/cli
+
+### Implementation Pattern
+
+```nix
+# packages/tool-name.nix
+{ lib, writeShellScriptBin, nodejs }:
+
+writeShellScriptBin "tool-name" ''
+  exec ${nodejs}/bin/npx package-name@latest "$@"
+''
+```
+
+### Benefits
+- **Zero maintenance**: No version updates or hash calculations needed
+- **Always latest**: Automatically uses newest version from NPM registry
+- **Simple implementation**: Minimal code complexity
+- **Offline tolerance**: NPX caches versions for offline use
+- **Easy rollback**: Can revert to traditional packaging if needed
+
+### Trade-offs
+- Less precise version control
+- Requires internet for initial downloads
+- Slight startup delay for version checking (cached after first run)
+- Dependency on NPM registry availability
+
+### Usage Guidelines
+- Use for tools where breaking changes are rare
+- Ensure tool provides stable CLI interface
+- Document the approach in packages/README.md
+- Maintain fallback option in unstable-packages.nix (commented out)
+- Consider for tools with update frequency > monthly

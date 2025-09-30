@@ -35,9 +35,23 @@ nvim --version
 
 The version should match the one from the unstable channel. Since we're using neovim-unwrapped, check version details within Neovim as well.
 
+### Claude Code Verification
+
+Claude Code now uses an NPX wrapper for automatic version management:
+
+```bash
+# Check claude version
+claude --version
+# Should show latest version (2.0+) from NPM registry
+
+# Verify wrapper location
+which claude
+# Should point to Nix store path containing NPX wrapper
+```
+
 ### Other Package Verification
 
-For packages like `niri` and `claude-code`:
+For packages like `niri`:
 
 ```bash
 # Find the store path for a package
