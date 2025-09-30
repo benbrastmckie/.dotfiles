@@ -1,61 +1,283 @@
 ---
 allowed-tools: Task, TodoWrite, Read, Bash
 argument-hint: <phase-context> <task-list> [options]
-description: Utility command for parallel task execution within /implement phases
+description: Enhanced parallel task execution with cross-workflow coordination for orchestration
 command-type: utility
-dependent-commands: implement
+dependent-commands: implement, coordination-hub, resource-manager
 ---
 
-# Parallel Task Execution Utility
+# Enhanced Parallel Task Execution with Cross-Workflow Coordination
 
-I'll analyze the provided tasks and execute suitable ones in parallel using subagents, then return consolidated results.
+I'll analyze the provided tasks and execute suitable ones in parallel using subagents with orchestration-level coordination capabilities, then return consolidated results. This enhanced utility provides cross-workflow resource management, conflict detection, and global performance optimization.
+
+## Orchestration Enhancements
+
+### Cross-Workflow Coordination Features
+- **Global Resource Pool Management**: Coordinate resource allocation across multiple concurrent workflows
+- **Workflow-Aware Task Scheduling**: Prioritize tasks based on workflow criticality and interdependencies
+- **Cross-Workflow Conflict Detection**: Prevent resource conflicts and file collisions across workflows
+- **Global Performance Metrics**: Collect and optimize performance across all active workflows
+- **Orchestration Context Preservation**: Maintain workflow-specific context and optimization strategies
 
 ## Task Execution Engine
 
 Let me parse your phase context and task list to determine the optimal execution strategy.
 
-### 1. Input Parsing and Validation
-First, I'll parse the provided arguments:
+### 1. Enhanced Input Parsing and Workflow Registration
+First, I'll parse the provided arguments with orchestration awareness:
 - Extract phase context (JSON object with phase info)
 - Parse task list (array of task objects)
+- **Register workflow with coordination-hub** for cross-workflow tracking
+- **Query resource-manager** for current resource availability
 - Validate argument structure and completeness
 - Set execution options (defaults or user-provided)
+- **Extract workflow metadata**: priority, resource requirements, interdependencies
 
-### 2. Task Analysis and Scoring
+### 2. Enhanced Task Analysis with Cross-Workflow Awareness
 For each task in the list:
 - Analyze task description for dependency keywords
 - Extract file operation patterns (CREATE/MODIFY/READ)
 - Calculate independence score (0-100)
 - Identify potential file conflicts
-- Group tasks by parallelizability
+- **Query coordination-hub for active workflow conflicts**
+- **Check resource-manager for resource availability and conflicts**
+- **Apply workflow-aware priority scoring** based on workflow criticality
+- Group tasks by parallelizability with cross-workflow considerations
 
-### 3. Execution Decision Matrix
-Based on analysis results:
-- **Score >= 70 AND >= 3 tasks**: Proceed with parallel execution
-- **Score 40-69**: Use sequential execution with batching
-- **Score < 40**: Fallback to sequential execution
-- **Blocking conflicts detected**: Sequential execution required
+### 3. Enhanced Execution Decision Matrix with Orchestration Logic
+Based on analysis results and cross-workflow considerations:
+- **Score >= 70 AND >= 3 tasks AND no cross-workflow conflicts**: Proceed with parallel execution
+- **Score 40-69 OR minor cross-workflow conflicts**: Use sequential execution with batching
+- **Score < 40 OR major resource contention**: Fallback to sequential execution
+- **Blocking conflicts detected OR critical workflows active**: Sequential execution required
+- **Resource pool exhausted**: Queue for later execution or coordinate with resource-manager
 
-### 4. Parallel Execution Orchestration
+### 4. Enhanced Parallel Execution with Cross-Workflow Orchestration
 If parallelization is viable:
 - Generate optimized prompts for each parallel group
+- **Reserve resources through resource-manager** before execution
+- **Update coordination-hub with execution plan** for cross-workflow visibility
 - Execute tasks simultaneously using Task tool batch calls
-- Monitor execution progress and collect results
-- Handle partial failures gracefully
+- **Monitor execution progress with global performance tracking**
+- **Coordinate with other active workflows** to prevent conflicts
+- Handle partial failures gracefully with workflow-aware recovery
 - Validate results against success criteria
+- **Release reserved resources** after completion
 
-### 5. Result Aggregation and Formatting
+### 5. Enhanced Result Aggregation with Global Performance Tracking
 After execution completes:
 - Parse individual agent responses
 - Validate task completion status
 - Aggregate results into structured format
+- **Update global performance metrics** in coordination-hub
+- **Report cross-workflow performance impact** and optimizations
 - Generate summary for /implement consumption
-- Report performance metrics and recommendations
+- **Calculate resource efficiency and utilization metrics**
+- **Update workflow priority scores** based on performance data
+- **Recommend global optimization strategies** across all workflows
 
 ## Arguments
-- **phase-context**: JSON object with phase number, name, complexity, and file paths
+- **phase-context**: JSON object with phase number, name, complexity, file paths, and **workflow metadata**
 - **task-list**: Array of task objects with descriptions and markers
-- **options**: Configuration flags (--dry-run, --max-agents=N, --verbose)
+- **options**: Configuration flags (--dry-run, --max-agents=N, --verbose, **--workflow-priority=N**, **--coordination-mode=active|passive**, **--resource-reserve=N**)
+
+## Cross-Workflow Coordination System
+
+### Global Resource Pool Management
+
+#### Resource Pool Architecture
+```json
+{
+  "global_resource_pool": {
+    "available_agents": 50,
+    "reserved_agents": 15,
+    "active_workflows": 3,
+    "resource_allocation": {
+      "workflow_A": {"agents": 10, "priority": "high", "estimated_completion": "2024-01-15T14:30:00Z"},
+      "workflow_B": {"agents": 5, "priority": "medium", "estimated_completion": "2024-01-15T14:45:00Z"}
+    },
+    "queue": [
+      {"workflow_id": "workflow_C", "requested_agents": 8, "priority": "low", "queued_at": "2024-01-15T14:20:00Z"}
+    ]
+  }
+}
+```
+
+#### Resource Allocation Strategies
+1. **Priority-Based Allocation**: High-priority workflows get resource preference
+2. **Fair Share Scheduling**: Balanced resource distribution across workflows
+3. **Critical Path Optimization**: Prioritize workflows on critical dependency paths
+4. **Resource Pool Expansion**: Dynamic scaling based on demand patterns
+
+#### Resource Conflict Resolution
+```
+Conflict Detection Algorithm:
+1. Query resource-manager for current allocations
+2. Calculate required resources for current workflow
+3. Identify potential conflicts with active workflows
+4. Apply resolution strategy:
+   - QUEUE: Wait for resources to become available
+   - NEGOTIATE: Reduce resource requirements
+   - PREEMPT: Take resources from lower-priority workflows
+   - SCALE: Request additional resources from infrastructure
+```
+
+### Workflow-Aware Task Scheduling
+
+#### Scheduling Algorithm Components
+1. **Workflow Criticality Assessment**:
+   ```
+   Critical Factors:
+   - Workflow deadline proximity
+   - Dependency chain impact
+   - Resource utilization efficiency
+   - Cross-workflow blocking potential
+   ```
+
+2. **Inter-Workflow Dependency Mapping**:
+   ```json
+   {
+     "workflow_dependencies": {
+       "workflow_A": {
+         "blocks": ["workflow_C"],
+         "blocked_by": [],
+         "shared_resources": ["file_system_locks", "database_connections"]
+       }
+     }
+   }
+   ```
+
+3. **Dynamic Priority Adjustment**:
+   - Real-time priority scoring based on resource availability
+   - Workflow aging to prevent starvation
+   - Performance-based priority boosts
+
+#### Task Scheduling Decision Matrix
+```
+High Priority Workflows (Score >= 90):
+- Immediate resource allocation
+- Preemption rights over lower-priority workflows
+- Dedicated resource pool reservation
+
+Medium Priority Workflows (Score 60-89):
+- Standard resource allocation
+- Fair share scheduling
+- Queue position based on arrival time
+
+Low Priority Workflows (Score < 60):
+- Best-effort resource allocation
+- Extended queue tolerance
+- Background execution during low-demand periods
+```
+
+### Cross-Workflow Conflict Detection and Prevention
+
+#### File System Conflict Detection
+```
+Conflict Detection Process:
+1. Query coordination-hub for active file operations across all workflows
+2. Build global file operation matrix:
+   {
+     "file_path": {
+       "current_operations": ["READ", "WRITE"],
+       "workflows": ["workflow_A", "workflow_B"],
+       "lock_status": "exclusive_write",
+       "estimated_completion": "2024-01-15T14:35:00Z"
+     }
+   }
+3. Check proposed operations against active matrix
+4. Flag conflicts and suggest resolution strategies
+```
+
+#### Resource Lock Management
+- **Shared Read Locks**: Multiple workflows can read the same resources
+- **Exclusive Write Locks**: Only one workflow can modify a resource
+- **Hierarchical Locking**: Directory-level locks for file system operations
+- **Timeout-Based Release**: Automatic lock release after timeout
+
+#### Conflict Prevention Strategies
+1. **Predictive Analysis**: Forecast potential conflicts based on task patterns
+2. **Resource Partitioning**: Isolate workflows to non-overlapping resource sets
+3. **Temporal Separation**: Schedule conflicting operations at different times
+4. **Alternative Resource Mapping**: Redirect operations to equivalent resources
+
+### Global Performance Metrics Collection
+
+#### Metrics Collection Framework
+```json
+{
+  "global_performance_metrics": {
+    "timestamp": "2024-01-15T14:30:00Z",
+    "system_wide": {
+      "total_workflows_active": 3,
+      "total_agents_utilized": 15,
+      "average_task_completion_time": "2.3s",
+      "resource_utilization_percentage": 78,
+      "conflict_resolution_rate": 0.95
+    },
+    "workflow_specific": {
+      "workflow_A": {
+        "parallelization_efficiency": 0.85,
+        "resource_allocation_score": 92,
+        "cross_workflow_conflict_count": 2,
+        "performance_trend": "improving"
+      }
+    },
+    "optimization_opportunities": [
+      {
+        "type": "resource_reallocation",
+        "description": "Workflow B could benefit from additional 2 agents",
+        "estimated_improvement": "15% faster completion"
+      }
+    ]
+  }
+}
+```
+
+#### Performance Optimization Recommendations
+1. **Resource Reallocation Suggestions**: Optimize resource distribution
+2. **Workflow Sequencing Optimization**: Suggest better execution order
+3. **Conflict Hotspot Identification**: Identify frequently conflicting resources
+4. **Capacity Planning**: Recommend infrastructure scaling
+
+### Integration with Coordination Infrastructure
+
+#### Coordination-Hub Integration Points
+```
+Key Integration Functions:
+1. workflow_register(workflow_id, metadata)
+2. workflow_update_status(workflow_id, status, progress)
+3. conflict_query(resource_list, operation_type)
+4. performance_report(workflow_id, metrics)
+5. global_optimization_request()
+```
+
+#### Resource-Manager Integration Points
+```
+Key Integration Functions:
+1. resource_reserve(workflow_id, resource_count, duration)
+2. resource_release(workflow_id, resource_list)
+3. availability_query(resource_requirements)
+4. conflict_notification(resource_id, conflict_type)
+5. usage_metrics_report(workflow_id, resource_usage)
+```
+
+#### Orchestration Communication Protocol
+```json
+{
+  "orchestration_message": {
+    "type": "resource_request|conflict_notification|performance_update",
+    "workflow_id": "subagents_workflow_001",
+    "timestamp": "2024-01-15T14:30:00Z",
+    "payload": {
+      "requested_resources": 5,
+      "estimated_duration": "3m",
+      "priority": "medium",
+      "dependencies": ["workflow_A_phase_2"]
+    }
+  }
+}
+```
 
 ## Integration with /implement
 
@@ -586,7 +808,34 @@ Return structured results to /implement:
   "next_steps": ["Fix failing test in task3", "Continue with Phase 2"],
   "performance": {
     "time_saved": "1.2s",
-    "parallelization_score": 85
+    "parallelization_score": 85,
+    "cross_workflow_efficiency": 0.92,
+    "resource_utilization": 0.78,
+    "conflict_resolution_count": 2
+  },
+  "orchestration": {
+    "workflow_id": "subagents_workflow_001",
+    "coordination_mode": "active",
+    "resource_allocation": {
+      "reserved": 4,
+      "actually_used": 4,
+      "peak_usage": 4,
+      "efficiency": 1.0
+    },
+    "cross_workflow_interactions": {
+      "conflicts_detected": 1,
+      "conflicts_resolved": 1,
+      "coordination_overhead": "0.3s",
+      "parallel_workflows": ["workflow_B", "workflow_C"]
+    },
+    "global_impact": {
+      "resource_pool_utilization": 0.68,
+      "system_wide_efficiency_contribution": 0.15,
+      "optimization_recommendations": [
+        "Consider batching similar tasks across workflows",
+        "Resource pool could benefit from 2 additional agents during peak hours"
+      ]
+    }
   }
 }
 ```
@@ -599,12 +848,37 @@ Return structured results to /implement:
   "phase": 2,
   "name": "Core Implementation",
   "complexity": "High",
-  "standards_file": "/path/to/CLAUDE.md"
+  "standards_file": "/path/to/CLAUDE.md",
+  "workflow_metadata": {
+    "workflow_id": "auth_system_implementation",
+    "priority": "high",
+    "estimated_duration": "5m",
+    "dependencies": ["workflow_setup_phase"],
+    "critical_path": true
+  }
 }' '[
   {"id": 1, "description": "Create user authentication module", "files": ["auth/user.js"]},
   {"id": 2, "description": "Add database connection logic", "files": ["db/connection.js"]},
   {"id": 3, "description": "Implement API routes", "files": ["routes/api.js"]}
-]' --max-agents=5
+]' --max-agents=5 --workflow-priority=8 --coordination-mode=active --resource-reserve=5
+
+# Example with cross-workflow coordination:
+/subagents '{
+  "phase": 3,
+  "name": "Frontend Integration",
+  "complexity": "Medium",
+  "standards_file": "/path/to/CLAUDE.md",
+  "workflow_metadata": {
+    "workflow_id": "frontend_integration",
+    "priority": "medium",
+    "estimated_duration": "3m",
+    "dependencies": ["auth_system_implementation"],
+    "shared_resources": ["api_documentation", "type_definitions"]
+  }
+}' '[
+  {"id": 1, "description": "Create React components", "files": ["src/components/Auth.tsx"]},
+  {"id": 2, "description": "Add API client", "files": ["src/api/auth.ts"]}
+]' --workflow-priority=6 --coordination-mode=active
 ```
 
 ## Configuration
@@ -616,13 +890,40 @@ Default settings (can be overridden):
 - **min_task_count**: 3
 - **critical_phases**: [1] (never parallelize setup phases)
 
+### Cross-Workflow Coordination Settings:
+- **default_workflow_priority**: 5 (scale 1-10, higher = more priority)
+- **coordination_mode**: "active" (active|passive - active participates in global coordination)
+- **resource_reserve_percentage**: 0.2 (reserve 20% of requested resources for conflicts)
+- **cross_workflow_timeout**: 600s (10 minutes for cross-workflow operations)
+- **conflict_resolution_retries**: 3 (attempts to resolve resource conflicts)
+- **global_performance_reporting**: true (contribute to system-wide metrics)
+- **workflow_aging_factor**: 1.1 (priority boost factor for waiting workflows)
+- **resource_pool_query_interval**: 30s (frequency of resource availability checks)
+
 ---
 
 ## Integration Notes
 
-This command enhances /implement's efficiency by:
+This enhanced command provides orchestration-level capabilities while maintaining /implement efficiency:
+
+### Core Capabilities (Preserved):
 1. **Automatic Detection**: No user intervention required
 2. **Safe Parallelization**: Conservative scoring prevents issues
 3. **Graceful Fallback**: Sequential execution if parallelization unsafe
 4. **Performance Gains**: Significant speedup for suitable phases
 5. **Full Integration**: Maintains all /implement workflows and safeguards
+
+### Enhanced Orchestration Features:
+6. **Cross-Workflow Coordination**: Seamless integration with coordination-hub and resource-manager
+7. **Global Resource Management**: Intelligent resource allocation across multiple concurrent workflows
+8. **Conflict Prevention**: Proactive detection and resolution of cross-workflow conflicts
+9. **Performance Optimization**: System-wide performance monitoring and optimization recommendations
+10. **Workflow Prioritization**: Dynamic priority adjustment based on criticality and dependencies
+11. **Scalable Architecture**: Supports large-scale orchestration with efficient resource utilization
+12. **Backward Compatibility**: All existing /implement integrations continue to work without modification
+
+### Orchestration Ecosystem Integration:
+- **Coordination-Hub**: Provides workflow registration, status tracking, and conflict coordination
+- **Resource-Manager**: Handles resource allocation, reservation, and release management
+- **Global Performance Dashboard**: Contributes metrics to system-wide performance optimization
+- **Cross-Workflow Communication**: Enables workflows to coordinate and share resources efficiently
