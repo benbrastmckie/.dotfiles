@@ -24,7 +24,9 @@
       "Bash(stylua:*)",
       "Bash(nix-env:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(NIXPKGS_ALLOW_UNFREE=1 nix-build -E \"with import <nixpkgs> {}; callPackage ./packages/claude-code.nix {}\")",
+      "Read(//nix/store/sw432s1hc8vkx8lzicq5v19vrbs6c791-claude/bin/**)"
     ],
     "deny": []
   },
