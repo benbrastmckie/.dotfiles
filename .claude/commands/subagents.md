@@ -65,32 +65,251 @@ For parallelizable tasks:
 ## Task Dependency Detection Algorithm
 
 ### Independence Indicators (Positive Score)
+**High Independence (+20-30 points each):**
+- Keywords: "Create new", "Add new", "Implement standalone", "Build separate", "Generate fresh"
+- New file creation with unique paths
+- Module/component isolation
+- No cross-references to other task outputs
+
+**Medium Independence (+10-15 points each):**
 - Keywords: "Create", "Add", "Implement", "Build", "Generate", "Write"
-- Different file paths or new file creation
-- No reference to other tasks in description
-- Self-contained work that doesn't rely on previous steps
+- Different file paths with no overlaps
+- Self-contained functionality
+- Clear scope boundaries
 
 ### Dependency Indicators (Negative Score)
-- Keywords: "After", "Using", "Based on", "Update", "Modify", "Integration"
-- References to variables/functions from other tasks
-- Sequential numbering that implies order
-- File modifications that could conflict
+**High Dependencies (-30-40 points each):**
+- Keywords: "After completing", "Using results from", "Based on previous", "Integrate with"
+- Explicit task ordering phrases ("First", "Then", "Finally")
+- Variable/function references from other tasks
+- Sequential numbering with implied dependencies
 
-### File Conflict Detection
-- Parse file paths from task descriptions
-- Identify overlapping file modifications
-- Group conflicting tasks for sequential execution
-- Score based on independence of file operations
+**Medium Dependencies (-15-20 points each):**
+- Keywords: "Update", "Modify", "Extend", "Connect", "Link"
+- File modifications in shared areas
+- References to shared state or configuration
+- Import/export relationships
 
-## Prompt Generation Strategy
+**Low Dependencies (-5-10 points each):**
+- Generic dependency words ("Using", "With", "For")
+- Shared file access (read-only)
+- Common configuration references
 
-Each parallel task receives a prompt containing:
-- **Phase Context**: Phase number, name, objectives, complexity
-- **Standards**: Project standards from CLAUDE.md
-- **File Context**: Relevant file paths and existing code
-- **Success Criteria**: Specific validation requirements
-- **Output Format**: Structured response format for result parsing
-- **Rollback Plan**: Instructions for undoing changes if needed
+### File Conflict Detection Engine
+
+#### Conflict Severity Scoring
+1. **Parse File References**: Extract all file paths from task descriptions
+2. **Categorize Operations**:
+   - **CREATE**: New file creation (low conflict risk)
+   - **MODIFY**: Existing file changes (high conflict risk)
+   - **READ**: File access for context (no conflict)
+   - **DELETE**: File removal (highest conflict risk)
+
+3. **Conflict Matrix Analysis**:
+   ```
+   Task A + Task B Operations:
+   CREATE + CREATE (different files): Score +10
+   CREATE + CREATE (same directory): Score -5
+   MODIFY + MODIFY (same file): Score -50 (blocking)
+   MODIFY + READ (same file): Score -10
+   READ + READ: Score +5
+   ```
+
+4. **Path Overlap Detection**:
+   - Same file path: -50 points (blocking conflict)
+   - Same directory: -10 points (potential conflict)
+   - Related paths (parent/child): -15 points
+   - Different directories: +5 points
+
+### Task Grouping Algorithm
+
+#### Grouping Rules
+1. **Independent Groups**: Tasks with no file conflicts, score >= 70
+2. **Sequential Groups**: Tasks with dependencies, execute in order
+3. **Parallel-Safe Groups**: Related tasks that can run simultaneously
+4. **Blocking Groups**: Tasks that must run alone due to conflicts
+
+#### Grouping Process
+```
+For each task pair (A, B):
+  dependency_score = analyze_dependencies(A, B)
+  file_conflict_score = check_file_conflicts(A, B)
+  total_score = dependency_score + file_conflict_score
+
+  if total_score >= 70:
+    add_to_parallel_group(A, B)
+  elif total_score >= 40:
+    add_to_sequential_group(A, B)
+  else:
+    mark_as_blocking(A, B)
+```
+
+## Advanced Prompt Generation Strategy
+
+### Context-Aware Prompt Assembly
+
+Each parallel task receives a comprehensive prompt with these sections:
+
+#### 1. Executive Summary
+```
+Task: [Brief description]
+Phase: [N] - [Phase Name] ([Complexity])
+Priority: [High/Medium/Low] based on task criticality
+Estimated Time: [Based on complexity analysis]
+```
+
+#### 2. Phase Context Integration
+- **Phase Objectives**: Overall phase goals and success criteria
+- **Phase Number**: Current phase in implementation sequence
+- **Complexity Level**: Task complexity inherited from phase
+- **Standards Reference**: Direct link to project CLAUDE.md
+- **Previous Phase Context**: Summary of completed work (if Phase > 1)
+
+#### 3. Task-Specific Context
+- **File Operations**: Detailed list of files to create/modify/read
+- **Dependencies**: Libraries, modules, or previous task outputs needed
+- **Input Data**: Any data structures or configurations required
+- **Integration Points**: How this task connects to the larger system
+
+#### 4. Dynamic Success Criteria Generation
+
+Based on task analysis, generate specific validation requirements:
+
+**For File Creation Tasks:**
+```
+Success Criteria:
+- File created at exact path: [path]
+- File contains required sections: [list]
+- File follows project style guide
+- File passes syntax validation
+- No conflicts with existing files
+```
+
+**For Implementation Tasks:**
+```
+Success Criteria:
+- Feature implements specified behavior
+- All tests pass (unit and integration)
+- Code follows project patterns from [similar_files]
+- Documentation updated if required
+- Performance meets baseline requirements
+```
+
+**For Configuration Tasks:**
+```
+Success Criteria:
+- Configuration validates against schema
+- Service restarts successfully
+- No regression in existing functionality
+- Changes documented in appropriate location
+```
+
+#### 5. Structured Output Format Requirements
+
+Request specific output format for easy parsing:
+
+```markdown
+# Task Completion Report
+
+## Status
+- [x] COMPLETED | [ ] PARTIAL | [ ] FAILED
+
+## Summary
+[One-line description of what was accomplished]
+
+## Files Modified
+- `path/to/file1.ext`: [Description of changes]
+- `path/to/file2.ext`: [Description of changes]
+
+## Validation Results
+- [x] File syntax check passed
+- [x] Tests passed: [test_names]
+- [x] Integration check passed
+
+## Issues Encountered
+[Any problems or warnings encountered]
+
+## Next Steps
+[Any follow-up actions needed]
+```
+
+#### 6. Context-Sensitive Rollback Instructions
+
+**For Code Changes:**
+```
+Rollback Plan:
+1. If tests fail: `git checkout HEAD -- [files]`
+2. If service fails: `systemctl restart [service] && systemctl status [service]`
+3. If integration breaks: Revert to backup configuration at [backup_path]
+4. Emergency contacts: [relevant team members or documentation]
+```
+
+**For Configuration Changes:**
+```
+Rollback Plan:
+1. Restore backup: `cp [backup_file] [target_file]`
+2. Restart affected services: `sudo systemctl restart [services]`
+3. Verify system state: `[validation_commands]`
+4. Check logs for errors: `journalctl -u [service] --since="1 hour ago"`
+```
+
+### Prompt Template Engine
+
+#### Base Template Structure
+```
+# [TASK_TYPE] Task: [TASK_SUMMARY]
+
+## Context
+You are implementing Phase [PHASE_NUM] ([PHASE_NAME]) of an implementation plan.
+This task is part of: [PROJECT_OVERVIEW]
+
+## Standards and Guidelines
+Project follows standards documented in: [STANDARDS_FILE]
+Key patterns from this project:
+[EXTRACTED_PATTERNS]
+
+## Your Specific Task
+[DETAILED_TASK_DESCRIPTION]
+
+## Required Context Files
+[AUTO_GENERATED_FILE_LIST]
+
+## Success Validation
+[GENERATED_SUCCESS_CRITERIA]
+
+## Expected Output Format
+[STRUCTURED_OUTPUT_TEMPLATE]
+
+## Rollback Procedures
+[CONTEXT_APPROPRIATE_ROLLBACK]
+
+## Important Notes
+- This task will be executed in parallel with: [PARALLEL_TASKS]
+- Avoid conflicts with these file operations: [CONFLICT_WARNINGS]
+- Integration testing will be performed after all parallel tasks complete
+```
+
+#### Template Customization by Task Type
+
+**CREATE_FILE tasks:**
+- Include file structure examples from similar files
+- Add project-specific headers, imports, and patterns
+- Include style guide compliance checks
+
+**MODIFY_CODE tasks:**
+- Provide surrounding code context
+- Include related function/class definitions
+- Add backward compatibility requirements
+
+**CONFIGURE_SYSTEM tasks:**
+- Include current configuration state
+- Add service dependency information
+- Include testing procedures for configuration changes
+
+**TEST_IMPLEMENTATION tasks:**
+- Include existing test patterns
+- Add coverage requirements
+- Include performance benchmarks
 
 ## Error Handling
 
