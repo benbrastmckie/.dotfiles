@@ -2,8 +2,19 @@ if status is-interactive
     # Commands to run in interactive sessions can go here
 end
 
-bind --erase \ct
-# bind \ct true
+# removes the mapping <C-t> which is being used to close the terminal in NeoVim
+bind --erase --all \ct
+
+fish_config prompt choose scales
+
+set -x EDITOR nvim
+
+# runs zoxide if installed
+if type -q zoxide
 zoxide init fish --cmd cd | source
+end
+
+# runs neofetch if installed
+if type -q neofetch
 neofetch
-# disfetch -l nixos
+end

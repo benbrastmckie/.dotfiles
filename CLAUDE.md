@@ -1,5 +1,171 @@
 # Claude Assistant Guidelines
 
+## Project Standards and Quick Reference
+
+### Documentation Links
+- **Installation Guide**: [`docs/installation.md`](docs/installation.md)
+- **Configuration Details**: [`docs/configuration.md`](docs/configuration.md)
+- **Testing Procedures**: [`docs/testing.md`](docs/testing.md)
+- **Development Notes**: [`docs/development.md`](docs/development.md)
+- **Application Configs**: [`docs/applications.md`](docs/applications.md)
+- **Package Management**: [`docs/packages.md`](docs/packages.md)
+- **Unstable Packages**: [`docs/unstable-packages.md`](docs/unstable-packages.md)
+
+### Common Commands
+```bash
+# Update entire system (flakes + rebuild)
+./update.sh
+
+# Skip checks for problematic packages
+./update.sh --no-check
+
+# Rebuild NixOS system only
+sudo nixos-rebuild switch --flake .#$(hostname) --option allow-import-from-derivation false
+
+# Rebuild Home Manager only
+home-manager switch --flake .#benjamin --option allow-import-from-derivation false
+
+# Test configuration without applying
+nixos-rebuild dry-build --flake .#$(hostname)
+
+# Update flake inputs only
+nix flake update
+
+# Check flake validity
+nix flake check --option allow-import-from-derivation false
+```
+
+### Project Structure
+- **System Config**: `configuration.nix` (NixOS system-wide)
+- **User Config**: `home.nix` (Home Manager)
+- **Flake Definition**: `flake.nix` (inputs and outputs)
+- **Config Files**: `config/` (application configs)
+- **Custom Modules**: `home-modules/` (Home Manager extensions)
+- **Host Configs**: `hosts/` (hardware-specific)
+- **Packages**: `packages/` (custom packages, Neovim config)
+
+## Specs Directory Protocol
+
+### Purpose
+The `specs/` directory contains implementation plans, research reports, and summaries for significant changes and features.
+
+### Structure
+```
+specs/
+├── plans/       # Implementation plans (NNN_*.md format)
+├── reports/     # Research reports (NNN_*.md format)
+└── summaries/   # Implementation summaries (NNN_*.md format)
+```
+
+### File Naming Convention
+All specs files use `NNN_descriptive_name.md` format:
+- Three-digit numbers with leading zeros (001, 002, etc.)
+- Increment from highest existing number in that category
+- Lowercase with underscores for names
+- Example: `001_nix_flake_migration.md`, `002_email_setup.md`
+
+### Location Guidelines
+- **Feature-specific**: Place in the feature's directory (e.g., `packages/neovim/specs/`)
+- **Module-specific**: Place in the module's directory (e.g., `home-modules/specs/`)
+- **System-wide**: Place in project root `specs/` directory
+
+### Content Templates
+
+#### Plan Template (plans/NNN_*.md)
+```markdown
+# Plan: [Feature Name]
+Date: YYYY-MM-DD
+
+## Objective
+[Clear goal statement]
+
+## Current State
+[Existing functionality/issues]
+
+## Proposed Solution
+[High-level approach]
+
+## Implementation Steps
+1. [Specific, actionable steps]
+2. [...]
+
+## Testing Strategy
+[How to verify success]
+
+## Rollback Plan
+[How to revert if needed]
+```
+
+#### Report Template (reports/NNN_*.md)
+```markdown
+# Research Report: [Topic]
+Date: YYYY-MM-DD
+
+## Question/Problem
+[What we're investigating]
+
+## Findings
+[Key discoveries]
+
+## Options Considered
+1. **Option A**: [Description, pros/cons]
+2. **Option B**: [Description, pros/cons]
+
+## Recommendation
+[Chosen approach and rationale]
+
+## References
+[Links, documentation]
+```
+
+#### Summary Template (summaries/NNN_*.md)
+```markdown
+# Implementation Summary: [Feature]
+Date: YYYY-MM-DD
+
+## What Was Done
+[Brief overview of changes]
+
+## Files Modified
+- `path/to/file.nix`: [What changed]
+- `path/to/config.conf`: [What changed]
+
+## Key Decisions
+[Important choices made and why]
+
+## Results
+[Outcome, performance, issues resolved]
+
+## Future Considerations
+[Next steps, improvements, technical debt]
+```
+
+## Nix Development Standards
+
+### Code Style
+- **Indentation**: 2 spaces for Nix files
+- **Line Length**: Prefer under 80 characters
+- **Comments**: Use `#` for inline, avoid unless necessary
+- **Formatting**: Use `nixfmt` when available
+
+### File Organization
+- System configs in `configuration.nix`
+- User configs in `home.nix`
+- Custom packages in `packages/`
+- Host-specific in `hosts/hostname/`
+
+### Testing Requirements
+- Always test with `nixos-rebuild dry-build` first
+- Use `--option allow-import-from-derivation false` for problematic packages
+- Verify package versions after rebuild
+- Check systemd service status for enabled services
+
+### Git Commit Standards
+- Use conventional commits: `type: description`
+- Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
+- Reference issues when applicable
+- Keep commits atomic and focused
+
 ## Accessing Program Documentation
 
 When configuring programs, always try these methods first before searching online:
