@@ -12,7 +12,7 @@ final: prev: {
   niri = pkgs-unstable.niri; # Active development with frequent improvements
   
   # Applications
-  claude-code = pkgs-unstable.claude-code; # Latest AI capabilities
+  # claude-code = pkgs-unstable.claude-code; # Temporarily disabled - using custom version
   
   # Add other packages that benefit from using unstable below
   # Format: package-name = pkgs-unstable.package-name; # Reason for using unstable
