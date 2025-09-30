@@ -3,7 +3,7 @@ allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash, Grep, Glob, Task
 argument-hint: "[project-directory] [--orchestration-ready] [--validate-only] [--generate-templates]"
 description: "Setup or improve CLAUDE.md with links to standards and specs directory protocols, including orchestration readiness validation"
 command-type: primary
-dependent-commands: validate-setup, workflow-template, coordination-hub
+dependent-commands: validate-setup, workflow-template
 ---
 
 # Setup Project Standards with Orchestration Support

@@ -3,7 +3,7 @@ allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash, Grep, Glob
 argument-hint: "\"<workflow-description>\" [--dry-run] [--template=<template-name>] [--priority=<high|medium|low>]"
 description: "Multi-agent workflow orchestration for complete research → planning → implementation workflows"
 command-type: orchestration
-dependent-commands: coordination-hub, resource-manager, workflow-status, report, plan, implement, debug, refactor, document, test, test-all, subagents
+dependent-commands: coordination-hub, resource-manager, workflow-status, performance-monitor, workflow-recovery, progress-aggregator, dependency-resolver, report, plan, implement, debug, refactor, document, test, test-all, subagents
 ---
 
 # Multi-Agent Workflow Orchestration

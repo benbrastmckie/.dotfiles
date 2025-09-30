@@ -1,9 +1,9 @@
 ---
 allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash
 argument-hint: "<operation> [resource-type] [parameters]"
-description: "System resource allocation and conflict prevention"
+description: "Resource allocation and conflict management for orchestration workflows"
 command-type: utility
-dependent-commands: coordination-hub, subagents
+dependent-commands:
 ---
 
 # System Resource Manager
@@ -23,7 +23,139 @@ First, I'll analyze the requested operation:
 - **Optimization Operations**: optimize, tune, balance, scale
 - **Planning Operations**: plan-capacity, forecast, analyze-trends
 
-### 2. System Resource Tracking Architecture
+### 2. Standardized Coordination Protocols
+
+This component implements standardized coordination protocols for resource management as defined in [`specs/standards/command-protocols.md`](../specs/standards/command-protocols.md).
+
+#### Resource Allocation Protocol Implementation
+
+```bash
+# Standard resource allocation response
+handle_allocation_request() {
+  local request="$1"
+
+  local request_id=$(echo "$request" | jq -r '.allocation_request.request_id')
+  local workflow_id=$(echo "$request" | jq -r '.allocation_request.workflow_id')
+  local priority=$(echo "$request" | jq -r '.allocation_request.priority')
+  local resources=$(echo "$request" | jq -r '.allocation_request.resources')
+
+  # Process allocation
+  local allocation_result=$(process_resource_allocation "$resources" "$priority")
+  local status=$(echo "$allocation_result" | jq -r '.status')
+
+  local response="{
+    \"allocation_response\": {
+      \"response_id\": \"resp_$(uuidgen)\",
+      \"request_id\": \"$request_id\",
+      \"status\": \"$status\",
+      \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+      \"allocated_resources\": $(echo "$allocation_result" | jq '.allocated_resources // {}'),
+      \"restrictions\": $(echo "$allocation_result" | jq '.restrictions // {}'),
+      \"alternatives\": $(echo "$allocation_result" | jq '.alternatives // []')
+    }
+  }"
+
+  # Publish allocation event
+  if [ "$status" = "approved" ]; then
+    publish_coordination_event "RESOURCE_ALLOCATED" "$workflow_id" "$(get_current_phase "$workflow_id")" "{\"allocation_id\": \"$(echo "$allocation_result" | jq -r '.allocation_id')\"}"
+  elif [ "$status" = "denied" ]; then
+    publish_coordination_event "RESOURCE_CONFLICT" "$workflow_id" "$(get_current_phase "$workflow_id")" "{\"conflict_reason\": \"$(echo "$allocation_result" | jq -r '.denial_reason')\"}"
+  fi
+
+  echo "$response"
+}
+```
+
+#### Resource Monitoring and Event Publishing
+
+```bash
+# Standard resource threshold monitoring
+monitor_resource_thresholds() {
+  local current_usage=$(get_current_resource_usage)
+
+  # Check CPU threshold
+  local cpu_usage=$(echo "$current_usage" | jq -r '.cpu_utilization')
+  if (( $(echo "$cpu_usage > 80.0" | bc -l) )); then
+    publish_coordination_event "RESOURCE_THRESHOLD" "global" "global" "{\"metric\":\"cpu\",\"current\":$cpu_usage,\"threshold\":80.0,\"severity\":\"warning\"}"
+  fi
+
+  # Check memory threshold
+  local memory_usage=$(echo "$current_usage" | jq -r '.memory_utilization')
+  if (( $(echo "$memory_usage > 85.0" | bc -l) )); then
+    publish_coordination_event "RESOURCE_THRESHOLD" "global" "global" "{\"metric\":\"memory\",\"current\":$memory_usage,\"threshold\":85.0,\"severity\":\"warning\"}"
+  fi
+
+  # Check agent pool utilization
+  local agent_utilization=$(echo "$current_usage" | jq -r '.agent_utilization')
+  if (( $(echo "$agent_utilization > 90.0" | bc -l) )); then
+    publish_coordination_event "RESOURCE_THRESHOLD" "global" "global" "{\"metric\":\"agent_pool\",\"current\":$agent_utilization,\"threshold\":90.0,\"severity\":\"critical\"}"
+  fi
+}
+```
+
+#### Conflict Detection and Resolution
+
+```bash
+# Standard conflict reporting
+report_resource_conflict() {
+  local conflict_type="$1"
+  local affected_workflows="$2"
+  local conflict_details="$3"
+  local severity="$4"
+
+  local conflict_report="{
+    \"conflict_id\": \"conf_$(uuidgen)\",
+    \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+    \"conflict_type\": \"$conflict_type\",
+    \"severity\": \"$severity\",
+    \"affected_workflows\": $affected_workflows,
+    \"conflict_details\": $conflict_details,
+    \"resolution_strategies\": $(generate_conflict_resolution_strategies "$conflict_type"),
+    \"estimated_impact\": $(assess_conflict_impact "$affected_workflows")
+  }"
+
+  # Publish conflict event for all affected workflows
+  local workflows=($(echo "$affected_workflows" | jq -r '.[]'))
+  for workflow_id in "${workflows[@]}"; do
+    publish_coordination_event "RESOURCE_CONFLICT" "$workflow_id" "$(get_current_phase "$workflow_id")" "$conflict_report"
+  done
+
+  # Coordinate with coordination-hub for resolution
+  send_coordination_request "coordination-hub" "handle-resource-conflict" "$conflict_report"
+}
+```
+
+#### Performance Metric Reporting
+
+```bash
+# Standard performance metrics reporting
+report_resource_performance() {
+  local workflow_id="$1"
+  local resource_metrics="$2"
+
+  local performance_report="{
+    \"performance_metrics\": {
+      \"report_id\": \"perf_$(uuidgen)\",
+      \"workflow_id\": \"$workflow_id\",
+      \"component\": \"resource-manager\",
+      \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+      \"metrics\": {
+        \"allocation_efficiency\": $(echo "$resource_metrics" | jq '.allocation_efficiency'),
+        \"conflict_resolution_time\": $(echo "$resource_metrics" | jq '.conflict_resolution_time'),
+        \"resource_utilization\": $(echo "$resource_metrics" | jq '.resource_utilization'),
+        \"optimization_score\": $(echo "$resource_metrics" | jq '.optimization_score')
+      },
+      \"collection_period\": \"5m\",
+      \"baseline_comparison\": $(get_performance_baseline "$workflow_id")
+    }
+  }"
+
+  # Send to performance monitor
+  send_coordination_request "performance-monitor" "record-metrics" "$performance_report"
+}
+```
+
+### 3. System Resource Tracking Architecture
 
 #### Resource Categories
 ```json

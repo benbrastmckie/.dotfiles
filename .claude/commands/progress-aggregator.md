@@ -1,9 +1,9 @@
 ---
 allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash
 argument-hint: "<aggregation-type> [workflow-filter] [options]"
-description: "Multi-workflow progress aggregation and synthesis"
+description: "Cross-workflow progress tracking and aggregation for orchestration workflows"
 command-type: utility
-dependent-commands: workflow-status, coordination-hub
+dependent-commands: coordination-hub, resource-manager, workflow-status, performance-monitor
 ---
 
 # Progress Aggregator
@@ -24,7 +24,33 @@ First, I'll determine the type of progress aggregation requested:
 - **Performance Analytics**: Comprehensive efficiency and trend analysis
 - **Resource Impact**: Multi-workflow resource utilization and conflicts
 
-### 2. System-Wide Progress Dashboard
+### 2. Standardized Coordination Protocols
+
+This component implements standardized coordination protocols for progress aggregation as defined in [`specs/standards/command-protocols.md`](../specs/standards/command-protocols.md).
+
+#### Multi-Workflow Event Aggregation
+
+```bash
+# Aggregate progress events from multiple workflows
+aggregate_progress_events() {
+  local time_window="${1:-5m}"
+  local event_types=("WORKFLOW_PROGRESS" "PHASE_COMPLETED" "TASK_COMPLETED" "PERFORMANCE_METRICS_UPDATED")
+
+  local aggregation="{
+    \"aggregation_id\": \"agg_$(uuidgen)\",
+    \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+    \"time_window\": \"$time_window\",
+    \"aggregated_events\": [],
+    \"system_metrics\": $(calculate_system_metrics),
+    \"trend_analysis\": $(analyze_progress_trends)
+  }"
+
+  # Publish aggregated progress
+  publish_coordination_event "SYSTEM_PROGRESS_UPDATED" "global" "global" "$aggregation"
+}
+```
+
+### 3. System-Wide Progress Dashboard
 
 #### Global Workflow Overview
 ```

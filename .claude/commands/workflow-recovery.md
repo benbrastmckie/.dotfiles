@@ -1,9 +1,9 @@
 ---
 allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash
-argument-hint: <recovery-operation> [workflow-id] [checkpoint]
-description: Advanced workflow recovery and rollback capabilities
+argument-hint: "<recovery-operation>" [workflow-id] [checkpoint]
+description: "Advanced workflow recovery and rollback capabilities for orchestration workflows"
 command-type: utility
-dependent-commands: coordination-hub, resource-manager
+dependent-commands: coordination-hub, resource-manager, workflow-status, performance-monitor
 ---
 
 # Advanced Workflow Recovery System
@@ -23,7 +23,68 @@ First, I'll analyze the requested recovery operation:
 - **State Operations**: validate-state, repair-state, merge-states, backup-state
 - **Prevention Operations**: create-strategy, update-strategy, test-resilience, monitor-health
 
-### 2. Checkpoint-Based Recovery Architecture
+### 2. Standardized Coordination Protocols
+
+This component implements standardized coordination protocols for recovery operations as defined in [`specs/standards/command-protocols.md`](../specs/standards/command-protocols.md).
+
+#### Recovery Event Publishing
+
+```bash
+# Standard recovery event publishing
+publish_recovery_event() {
+  local event_type="$1"
+  local workflow_id="$2"
+  local recovery_data="$3"
+
+  publish_coordination_event "$event_type" "$workflow_id" "$(get_current_phase "$workflow_id")" "$recovery_data"
+
+  # Notify coordination hub of recovery status
+  send_coordination_request "coordination-hub" "recovery-status-update" "{
+    \"workflow_id\": \"$workflow_id\",
+    \"event_type\": \"$event_type\",
+    \"recovery_data\": $recovery_data,
+    \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+  }"
+}
+```
+
+#### Coordinated Recovery Protocol
+
+```bash
+# Coordinate recovery with other components
+coordinate_recovery_operation() {
+  local workflow_id="$1"
+  local recovery_type="$2"
+  local recovery_params="$3"
+
+  # Notify all components of impending recovery
+  publish_recovery_event "RECOVERY_INITIATED" "$workflow_id" "{
+    \"recovery_id\": \"rec_$(uuidgen)\",
+    \"recovery_type\": \"$recovery_type\",
+    \"parameters\": $recovery_params,
+    \"coordinator\": \"workflow-recovery\"
+  }"
+
+  # Request resource hold from resource manager
+  send_coordination_request "resource-manager" "hold-resources" "{
+    \"workflow_id\": \"$workflow_id\",
+    \"reason\": \"recovery_operation\",
+    \"duration\": \"$(estimate_recovery_duration "$recovery_type")\""
+  }"
+
+  # Execute recovery operation
+  local recovery_result=$(execute_recovery "$recovery_type" "$recovery_params")
+
+  # Report completion
+  if [ "$(echo "$recovery_result" | jq -r '.success')" = "true" ]; then
+    publish_recovery_event "RECOVERY_COMPLETED" "$workflow_id" "$recovery_result"
+  else
+    publish_recovery_event "RECOVERY_FAILED" "$workflow_id" "$recovery_result"
+  fi
+}
+```
+
+### 3. Checkpoint-Based Recovery Architecture
 
 #### Checkpoint Storage System
 ```

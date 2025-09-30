@@ -1,9 +1,9 @@
 ---
 allowed-tools: SlashCommand, Read, Write, TodoWrite
 argument-hint: "<operation> [template-name] [parameters]"
-description: "Workflow template management and generation"
+description: "Generate workflow templates showing configuration options"
 command-type: dependent
-dependent-commands: dependency-resolver, coordination-hub
+dependent-commands:
 ---
 
 # Workflow Template Management and Generation
@@ -24,7 +24,42 @@ First, I'll analyze the requested operation type:
 - **Template Application**: apply, use, instantiate, deploy
 - **Intelligence Operations**: analyze-project, recommend, suggest, auto-generate
 
-### 2. Intelligent Template Generation System
+### 2. Standardized Coordination Protocols
+
+This component implements standardized coordination protocols for template management as defined in [`specs/standards/command-protocols.md`](../specs/standards/command-protocols.md).
+
+#### Template Validation Coordination
+
+```bash
+# Coordinate template validation with dependency resolver
+coordinate_template_validation() {
+  local template_id="$1"
+  local validation_type="${2:-comprehensive}"
+
+  # Request dependency analysis for template
+  local dependency_analysis=$(send_coordination_request "dependency-resolver" "analyze" "{
+    \"template_id\": \"$template_id\",
+    \"analysis_type\": \"template_validation\",
+    \"include_optimization\": true
+  }")
+
+  # Get resource feasibility check
+  local resource_check=$(send_coordination_request "resource-manager" "validate-requirements" "{
+    \"template_id\": \"$template_id\",
+    \"resource_requirements\": $(extract_template_resources "$template_id")
+  }")
+
+  # Combine validation results
+  local validation_result=$(combine_validation_results "$dependency_analysis" "$resource_check")
+
+  # Publish validation completion
+  publish_coordination_event "TEMPLATE_VALIDATION_COMPLETED" "global" "global" "$validation_result"
+
+  echo "$validation_result"
+}
+```
+
+### 3. Intelligent Template Generation System
 
 #### Project Analysis Engine
 ```json

@@ -1,7 +1,7 @@
 ---
 allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash
-argument-hint: <monitoring-type> [workflow-id] [options]
-description: Performance monitoring and analytics for workflow optimization
+argument-hint: "<monitoring-type>" [workflow-id] [options]
+description: "Real-time workflow performance monitoring and analytics for orchestration workflows"
 command-type: utility
 dependent-commands: coordination-hub, resource-manager
 ---
@@ -23,7 +23,63 @@ First, I'll analyze the requested monitoring operation:
 - **Optimization Engine**: recommendations, tune-suggestions, capacity-planning, predictions
 - **Workflow Analytics**: execution-analysis, phase-performance, task-optimization, parallel-efficiency
 
-### 2. Execution Time and Resource Monitoring System
+### 2. Standardized Coordination Protocols
+
+This component implements standardized coordination protocols for performance monitoring as defined in [`specs/standards/command-protocols.md`](../specs/standards/command-protocols.md).
+
+#### Performance Metric Publishing
+
+```bash
+# Standard performance metric reporting
+publish_performance_metrics() {
+  local workflow_id="$1"
+  local metrics="$2"
+  local metric_type="${3:-general}"
+
+  local performance_report="{
+    \"performance_metrics\": {
+      \"report_id\": \"perf_$(uuidgen)\",
+      \"workflow_id\": \"$workflow_id\",
+      \"component\": \"performance-monitor\",
+      \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+      \"metric_type\": \"$metric_type\",
+      \"metrics\": $metrics,
+      \"collection_period\": \"$(get_collection_period)\",
+      \"baseline_comparison\": $(get_baseline_metrics "$workflow_id")
+    }
+  }"
+
+  # Publish performance event
+  publish_coordination_event "PERFORMANCE_METRICS_UPDATED" "$workflow_id" "$(get_current_phase "$workflow_id")" "$performance_report"
+
+  # Send to coordination hub for aggregation
+  send_coordination_request "coordination-hub" "performance-update" "$performance_report"
+}
+
+# Performance alert publishing
+publish_performance_alert() {
+  local workflow_id="$1"
+  local alert_type="$2"
+  local alert_data="$3"
+  local severity="$4"
+
+  local alert="{
+    \"performance_alert\": {
+      \"alert_id\": \"alert_$(uuidgen)\",
+      \"workflow_id\": \"$workflow_id\",
+      \"alert_type\": \"$alert_type\",
+      \"severity\": \"$severity\",
+      \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+      \"alert_data\": $alert_data,
+      \"recommended_actions\": $(generate_alert_recommendations "$alert_type" "$severity")
+    }
+  }"
+
+  publish_coordination_event "PERFORMANCE_ALERT" "$workflow_id" "$(get_current_phase "$workflow_id")" "$alert"
+}
+```
+
+### 3. Execution Time and Resource Monitoring System
 
 #### Comprehensive Metrics Collection Architecture
 ```json

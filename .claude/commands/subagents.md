@@ -3,7 +3,7 @@ allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash
 argument-hint: "<phase-context> <task-list> [options]"
 description: "Enhanced parallel task execution with cross-workflow coordination for orchestration"
 command-type: utility
-dependent-commands: implement, coordination-hub, resource-manager
+dependent-commands: implement
 ---
 
 # Enhanced Parallel Task Execution with Cross-Workflow Coordination

@@ -1,9 +1,9 @@
 ---
 allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash
 argument-hint: "<workflow-id> <operation> [parameters]"
-description: "Central workflow coordination and state management"
+description: "Central coordination service for workflow management in orchestration workflows"
 command-type: utility
-dependent-commands: orchestrate
+dependent-commands:
 ---
 
 # Workflow Coordination Hub
@@ -23,7 +23,151 @@ First, I'll analyze the requested operation:
 - **Event System**: publish-event, subscribe-event, get-events
 - **Recovery Operations**: checkpoint, restore, rollback
 
-### 2. Workflow Lifecycle Management
+### 2. Standardized Coordination Protocols
+
+This component implements standardized coordination protocols defined in [`specs/standards/command-protocols.md`](../specs/standards/command-protocols.md).
+
+#### Event Message Format Implementation
+
+All events follow the standard format: `EVENT_TYPE:workflow_id:phase:data`
+
+```bash
+# Standard event publishing
+publish_coordination_event() {
+  local event_type="$1"
+  local workflow_id="$2"
+  local phase="$3"
+  local data="$4"
+
+  # Format according to protocol standard
+  local event_message="${event_type}:${workflow_id}:${phase}:${data}"
+
+  local event_payload="{
+    \"event_id\": \"evt_$(uuidgen)\",
+    \"event_type\": \"$event_type\",
+    \"workflow_id\": \"$workflow_id\",
+    \"phase\": \"$phase\",
+    \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+    \"source_component\": \"coordination-hub\",
+    \"message\": \"$event_message\",
+    \"data\": $data,
+    \"routing_key\": \"${event_type}.${workflow_id}.${phase}\"
+  }"
+
+  # Broadcast to all subscribed components
+  coordination_publish_event "$event_payload"
+}
+```
+
+#### Resource Coordination Protocol
+
+```bash
+# Standard resource allocation coordination
+coordinate_resource_allocation() {
+  local workflow_id="$1"
+  local resource_requirements="$2"
+  local priority="$3"
+
+  local allocation_request="{
+    \"allocation_request\": {
+      \"request_id\": \"req_$(uuidgen)\",
+      \"workflow_id\": \"$workflow_id\",
+      \"requester\": \"coordination-hub\",
+      \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+      \"priority\": \"$priority\",
+      \"resources\": $resource_requirements,
+      \"constraints\": {
+        \"max_wait_time\": \"10m\",
+        \"conflict_tolerance\": \"low\"
+      }
+    }
+  }"
+
+  # Send to resource manager
+  local response=$(send_coordination_request "resource-manager" "allocate" "$allocation_request")
+  echo "$response"
+}
+```
+
+#### State Synchronization Protocol
+
+```bash
+# Standard state synchronization
+sync_workflow_state() {
+  local workflow_id="$1"
+  local state_data="$2"
+
+  local state_message="{
+    \"workflow_state\": {
+      \"message_type\": \"state_sync\",
+      \"workflow_id\": \"$workflow_id\",
+      \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+      \"state_version\": $(get_next_state_version "$workflow_id"),
+      \"checkpoint_id\": \"$(get_latest_checkpoint "$workflow_id")\",
+      \"current_phase\": $(get_current_phase_info "$workflow_id"),
+      \"agent_states\": $(get_agent_states "$workflow_id"),
+      \"resource_usage\": $(get_resource_usage "$workflow_id"),
+      \"validation_required\": [\"state_integrity\", \"dependency_consistency\"],
+      \"metadata\": {
+        \"last_update_source\": \"coordination-hub\",
+        \"synchronization_confidence\": 0.98
+      }
+    }
+  }"
+
+  # Broadcast state update to all interested components
+  publish_coordination_event "WORKFLOW_STATE_UPDATED" "$workflow_id" "$(get_current_phase "$workflow_id")" "$state_message"
+}
+```
+
+#### Error Reporting Implementation
+
+```bash
+# Standard error reporting
+report_coordination_error() {
+  local error_category="$1"
+  local error_type="$2"
+  local error_message="$3"
+  local workflow_id="$4"
+  local context="$5"
+
+  local error_report="{
+    \"error_report\": {
+      \"error_id\": \"err_$(uuidgen)\",
+      \"workflow_id\": \"$workflow_id\",
+      \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+      \"classification\": {
+        \"category\": \"$error_category\",
+        \"severity\": \"$(determine_error_severity "$error_type")\",
+        \"type\": \"$error_type\",
+        \"scope\": \"workflow\",
+        \"recoverable\": $(is_error_recoverable "$error_type")
+      },
+      \"context\": {
+        \"component\": \"coordination-hub\",
+        \"operation\": \"$(get_current_operation)\",
+        \"phase\": \"$(get_current_phase "$workflow_id")\",
+        \"additional_context\": $context
+      },
+      \"details\": {
+        \"error_message\": \"$error_message\",
+        \"technical_details\": \"$(get_technical_error_details)\",
+        \"related_events\": $(get_related_events "$workflow_id")
+      },
+      \"impact_assessment\": $(assess_workflow_impact "$workflow_id" "$error_type"),
+      \"recovery_suggestions\": $(generate_recovery_suggestions "$error_category" "$error_type")
+    }
+  }"
+
+  # Publish error event
+  publish_coordination_event "ERROR_ENCOUNTERED" "$workflow_id" "$(get_current_phase "$workflow_id")" "$error_report"
+
+  # Coordinate with workflow-recovery for resolution
+  send_coordination_request "workflow-recovery" "handle-error" "$error_report"
+}
+```
+
+### 3. Workflow Lifecycle Management
 
 #### Create Workflow
 ```json

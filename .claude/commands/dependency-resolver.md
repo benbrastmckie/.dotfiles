@@ -1,9 +1,9 @@
 ---
 allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash
 argument-hint: "<analysis-type> [workflow-file] [options]"
-description: "Intelligent workflow dependency analysis and optimization"
+description: "Dynamic dependency resolution and workflow ordering for orchestration workflows"
 command-type: utility
-dependent-commands: coordination-hub, workflow-template
+dependent-commands: coordination-hub, resource-manager, workflow-status, performance-monitor
 ---
 
 # Workflow Dependency Resolver
@@ -23,7 +23,36 @@ First, I'll analyze the requested analysis type:
 - **Path Analysis**: find-paths, alternative-routes, scenario-analysis
 - **Visualization**: visualize, graph, report, diagram
 
-### 2. Workflow Dependency Mapping System
+### 2. Standardized Coordination Protocols
+
+This component implements standardized coordination protocols for dependency analysis as defined in [`specs/standards/command-protocols.md`](../specs/standards/command-protocols.md).
+
+#### Dependency Analysis Coordination
+
+```bash
+# Coordinate dependency analysis with other components
+coordinate_dependency_analysis() {
+  local workflow_id="$1"
+  local analysis_type="$2"
+  local analysis_params="$3"
+
+  # Request workflow state from coordination hub
+  local workflow_state=$(send_coordination_request "coordination-hub" "get-state" "{\"workflow_id\": \"$workflow_id\"}")
+
+  # Get resource constraints from resource manager
+  local resource_constraints=$(send_coordination_request "resource-manager" "get-constraints" "{\"workflow_id\": \"$workflow_id\"}")
+
+  # Perform dependency analysis
+  local analysis_result=$(perform_dependency_analysis "$analysis_type" "$workflow_state" "$resource_constraints" "$analysis_params")
+
+  # Publish analysis results
+  publish_coordination_event "DEPENDENCY_ANALYSIS_COMPLETED" "$workflow_id" "$(get_current_phase "$workflow_id")" "$analysis_result"
+
+  echo "$analysis_result"
+}
+```
+
+### 3. Workflow Dependency Mapping System
 
 #### Dependency Graph Architecture
 ```json

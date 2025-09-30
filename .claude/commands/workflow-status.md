@@ -1,7 +1,7 @@
 ---
 allowed-tools: SlashCommand, Read, Write, TodoWrite
 argument-hint: "[workflow-id] [--detailed] [--json]"
-description: "Real-time workflow monitoring and progress tracking"
+description: "Display real-time workflow status and progress"
 command-type: dependent
 dependent-commands: coordination-hub, resource-manager
 ---
@@ -23,7 +23,148 @@ First, I'll determine the type of status monitoring requested:
 - **Interactive Control**: User intervention and manual override capabilities
 - **Debug Information**: Troubleshooting data and error analysis
 
-### 2. Workflow Status Dashboard
+### 2. Standardized Coordination Protocols
+
+This component implements standardized coordination protocols for workflow monitoring as defined in [`specs/standards/command-protocols.md`](../specs/standards/command-protocols.md).
+
+#### Status Event Publishing
+
+```bash
+# Standard status update publishing
+publish_status_update() {
+  local workflow_id="$1"
+  local status_data="$2"
+  local update_type="${3:-progress}"
+
+  local status_update="{
+    \"status_update\": {
+      \"update_id\": \"status_$(uuidgen)\",
+      \"workflow_id\": \"$workflow_id\",
+      \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+      \"update_type\": \"$update_type\",
+      \"current_status\": $(echo "$status_data" | jq '.status'),
+      \"progress_percentage\": $(echo "$status_data" | jq '.progress'),
+      \"phase_info\": $(echo "$status_data" | jq '.current_phase'),
+      \"agent_status\": $(echo "$status_data" | jq '.agents'),
+      \"performance_metrics\": $(echo "$status_data" | jq '.performance // {}'),
+      \"health_indicators\": $(echo "$status_data" | jq '.health // {}')
+    }
+  }"
+
+  # Publish status event
+  publish_coordination_event "WORKFLOW_STATUS_UPDATED" "$workflow_id" "$(get_current_phase "$workflow_id")" "$status_update"
+}
+```
+
+#### Real-Time Status Synchronization
+
+```bash
+# Synchronize status with coordination hub
+sync_status_with_hub() {
+  local workflow_id="$1"
+
+  # Get current status from coordination hub
+  local hub_status=$(send_coordination_request "coordination-hub" "get-status" "{\"workflow_id\": \"$workflow_id\", \"include_metrics\": true}")
+
+  # Extract and update local status cache
+  local hub_state=$(echo "$hub_status" | jq '.result.workflow_state')
+  update_local_status_cache "$workflow_id" "$hub_state"
+
+  # Get resource status from resource manager
+  local resource_status=$(send_coordination_request "resource-manager" "monitor" "{\"workflow_id\": \"$workflow_id\", \"include_allocation\": true}")
+  update_resource_status_cache "$workflow_id" "$(echo "$resource_status" | jq '.result')"
+
+  # Combine and format for display
+  generate_comprehensive_status "$workflow_id"
+}
+```
+
+#### Interactive Control Protocol
+
+```bash
+# Standard user intervention handling
+handle_user_control_request() {
+  local workflow_id="$1"
+  local control_action="$2"
+  local parameters="$3"
+  local user_id="${4:-system}"
+
+  local control_request="{
+    \"control_request\": {
+      \"request_id\": \"ctrl_$(uuidgen)\",
+      \"workflow_id\": \"$workflow_id\",
+      \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+      \"user_id\": \"$user_id\",
+      \"action\": \"$control_action\",
+      \"parameters\": $parameters,
+      \"reason\": \"$(echo "$parameters" | jq -r '.reason // "User intervention"')\",
+      \"approval_required\": $(requires_approval "$control_action")
+    }
+  }"
+
+  case "$control_action" in
+    "pause")
+      # Send pause request to coordination hub
+      send_coordination_request "coordination-hub" "pause-workflow" "$control_request"
+      ;;
+    "resume")
+      # Send resume request to coordination hub
+      send_coordination_request "coordination-hub" "resume-workflow" "$control_request"
+      ;;
+    "reassign")
+      # Send task reassignment request
+      send_coordination_request "coordination-hub" "reassign-task" "$control_request"
+      ;;
+    "emergency-stop")
+      # Coordinate emergency shutdown
+      coordinate_emergency_stop "$workflow_id" "$control_request"
+      ;;
+  esac
+
+  # Publish control event
+  publish_coordination_event "USER_INTERVENTION" "$workflow_id" "$(get_current_phase "$workflow_id")" "$control_request"
+}
+```
+
+#### Status Aggregation and Reporting
+
+```bash
+# Aggregate status from multiple sources
+aggregate_workflow_status() {
+  local workflow_id="$1"
+  local include_history="${2:-false}"
+
+  # Collect status from all relevant components
+  local hub_status=$(get_hub_status "$workflow_id")
+  local resource_status=$(get_resource_status "$workflow_id")
+  local performance_status=$(get_performance_status "$workflow_id")
+  local recovery_status=$(get_recovery_status "$workflow_id")
+
+  # Create comprehensive status report
+  local aggregated_status="{
+    \"workflow_status\": {
+      \"workflow_id\": \"$workflow_id\",
+      \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+      \"overall_health\": $(calculate_overall_health "$hub_status" "$resource_status" "$performance_status"),
+      \"coordination_data\": $hub_status,
+      \"resource_data\": $resource_status,
+      \"performance_data\": $performance_status,
+      \"recovery_data\": $recovery_status,
+      \"aggregation_confidence\": $(calculate_aggregation_confidence),
+      \"last_sync\": \"$(get_last_sync_time "$workflow_id")\"
+    }
+  }"
+
+  if [ "$include_history" = "true" ]; then
+    local status_history=$(get_status_history "$workflow_id")
+    aggregated_status=$(echo "$aggregated_status" | jq --argjson history "$status_history" '.workflow_status.history = $history')
+  fi
+
+  echo "$aggregated_status"
+}
+```
+
+### 3. Workflow Status Dashboard
 
 #### Active Workflow Overview
 ```
