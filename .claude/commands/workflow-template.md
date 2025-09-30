@@ -1,7 +1,7 @@
 ---
-allowed-tools: Read, Write, Grep, Glob
-argument-hint: <operation> [template-name] [parameters]
-description: Workflow template management and generation
+allowed-tools: SlashCommand, Read, Write, TodoWrite
+argument-hint: "<operation> [template-name] [parameters]"
+description: "Workflow template management and generation"
 command-type: dependent
 dependent-commands: dependency-resolver, coordination-hub
 ---

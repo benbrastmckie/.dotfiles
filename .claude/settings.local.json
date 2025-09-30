@@ -22,7 +22,9 @@
       "Read(//home/benjamin/**)",
       "Bash(gsettings get:*)",
       "Bash(stylua:*)",
-      "Bash(nix-env:*)"
+      "Bash(nix-env:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   },

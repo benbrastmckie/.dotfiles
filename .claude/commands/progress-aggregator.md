@@ -1,5 +1,5 @@
 ---
-allowed-tools: Read, TodoWrite
+allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash
 argument-hint: "<aggregation-type> [workflow-filter] [options]"
 description: "Multi-workflow progress aggregation and synthesis"
 command-type: utility

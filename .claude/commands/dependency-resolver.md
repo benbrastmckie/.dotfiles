@@ -1,7 +1,7 @@
 ---
-allowed-tools: Read, Grep, Glob, TodoWrite
-argument-hint: <analysis-type> [workflow-file] [options]
-description: Intelligent workflow dependency analysis and optimization
+allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash
+argument-hint: "<analysis-type> [workflow-file] [options]"
+description: "Intelligent workflow dependency analysis and optimization"
 command-type: utility
 dependent-commands: coordination-hub, workflow-template
 ---

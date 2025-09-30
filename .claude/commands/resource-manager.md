@@ -1,7 +1,7 @@
 ---
-allowed-tools: Bash, Read, Write, TodoWrite
-argument-hint: <operation> [resource-type] [parameters]
-description: System resource allocation and conflict prevention
+allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash
+argument-hint: "<operation> [resource-type] [parameters]"
+description: "System resource allocation and conflict prevention"
 command-type: utility
 dependent-commands: coordination-hub, subagents
 ---

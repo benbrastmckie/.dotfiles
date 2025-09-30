@@ -1,9 +1,9 @@
 ---
-allowed-tools: Bash, Glob, Read
-argument-hint: [search-pattern] [--json] [--orchestration-ready] [--workflow-context=<workflow-id>]
-description: List all implementation summaries showing plans executed and reports used
+allowed-tools: SlashCommand, Read, Write, TodoWrite
+argument-hint: "[search-pattern] [--json] [--orchestration-ready] [--workflow-context=<workflow-id>]"
+description: "List all implementation summaries showing plans executed and reports used"
 command-type: dependent
-parent-commands: implement
+dependent-commands: implement
 ---
 
 # List Implementation Summaries

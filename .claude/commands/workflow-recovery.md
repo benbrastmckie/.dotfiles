@@ -1,5 +1,5 @@
 ---
-allowed-tools: Read, Write, Bash, TodoWrite
+allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash
 argument-hint: <recovery-operation> [workflow-id] [checkpoint]
 description: Advanced workflow recovery and rollback capabilities
 command-type: utility

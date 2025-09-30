@@ -220,17 +220,17 @@
   # Configure cursor theme properly
   home.pointerCursor = {
     name = "Adwaita";
-    package = pkgs.gnome.adwaita-icon-theme;
+    package = pkgs.adwaita-icon-theme;
     size = 24;
     x11.enable = true;
     gtk.enable = true;
   };
 
   # Configure WezTerm through home-manager
-  programs.wezterm = {
-    enable = true;
-    extraConfig = builtins.readFile ./config/wezterm.lua;
-  };
+  # programs.wezterm = {
+  #   enable = true;
+  #   extraConfig = builtins.readFile ./config/wezterm.lua;
+  # };
 
   home.file = {
     ".config/neofetch/config.conf".source = ./config/neofetch.conf;
@@ -380,12 +380,21 @@
       GMAIL_CLIENT_ID=$GMAIL_CLIENT_ID
     '';
     
-    # NOTE: The following are excluded since they belong to .config for others to use
-    # ".config/fish/config.fish".source = ./config/config.fish;
-    # ".config/kitty/kitty.conf".source = ./config/kitty.conf;
-    # ".config/zathura/zathurarc".source = ./config/zathurarc;
-    # ".config/alacritty/alacritty.toml".source = ./config/alacritty.toml;
-    # ".tmux.conf".source = ./config/.tmux.conf;
+    # Active configuration files
+    ".config/fish/config.fish".source = ./config/config.fish;
+    ".config/kitty/kitty.conf".source = ./config/kitty.conf;
+    ".config/zathura/zathurarc".source = ./config/zathurarc;
+    ".config/alacritty/alacritty.toml".source = ./config/alacritty.toml;
+    ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
+    ".tmux.conf".source = ./config/.tmux.conf;
+
+    # Config-files directory (actual file copies for version control)
+    ".config/config-files/config.fish".text = builtins.readFile ./config/config.fish;
+    ".config/config-files/kitty.conf".text = builtins.readFile ./config/kitty.conf;
+    ".config/config-files/zathurarc".text = builtins.readFile ./config/zathurarc;
+    ".config/config-files/alacritty.toml".text = builtins.readFile ./config/alacritty.toml;
+    ".config/config-files/wezterm.lua".text = builtins.readFile ./config/wezterm.lua;
+    ".config/config-files/.tmux.conf".text = builtins.readFile ./config/.tmux.conf;
     # # Building this configuration will create a copy of 'dotfiles/screenrc' in
     # # the Nix store. Activating the configuration will then make '~/.screenrc' a
     # # symlink to the Nix store copy. All files must at least be staged in git.

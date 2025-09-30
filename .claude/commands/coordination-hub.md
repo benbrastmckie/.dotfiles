@@ -1,7 +1,7 @@
 ---
 allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash
-argument-hint: <workflow-id> <operation> [parameters]
-description: Central workflow coordination and state management
+argument-hint: "<workflow-id> <operation> [parameters]"
+description: "Central workflow coordination and state management"
 command-type: utility
 dependent-commands: orchestrate
 ---

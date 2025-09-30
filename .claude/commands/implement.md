@@ -1,7 +1,7 @@
 ---
-allowed-tools: Read, Edit, MultiEdit, Write, Bash, Grep, Glob, TodoWrite, SlashCommand
-argument-hint: [plan-file] [starting-phase] [--orchestrated]
-description: Execute implementation plan with automated testing and commits (auto-resumes most recent incomplete plan if no args)
+allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash, Grep, Glob, Task
+argument-hint: "[plan-file] [starting-phase] [--orchestrated]"
+description: "Execute implementation plan with automated testing and commits (auto-resumes most recent incomplete plan if no args)"
 command-type: primary
 dependent-commands: list-plans, update-plan, list-summaries, revise, debug, document, subagents, coordination-hub, resource-manager
 ---

@@ -1,7 +1,7 @@
 ---
-allowed-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite
-argument-hint: [project-directory] [--orchestration-ready] [--validate-only] [--generate-templates]
-description: Setup or improve CLAUDE.md with links to standards and specs directory protocols, including orchestration readiness validation
+allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash, Grep, Glob, Task
+argument-hint: "[project-directory] [--orchestration-ready] [--validate-only] [--generate-templates]"
+description: "Setup or improve CLAUDE.md with links to standards and specs directory protocols, including orchestration readiness validation"
 command-type: primary
 dependent-commands: validate-setup, workflow-template, coordination-hub
 ---

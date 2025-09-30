@@ -1,5 +1,5 @@
 ---
-allowed-tools: Read, Write, Bash
+allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash
 argument-hint: <monitoring-type> [workflow-id] [options]
 description: Performance monitoring and analytics for workflow optimization
 command-type: utility

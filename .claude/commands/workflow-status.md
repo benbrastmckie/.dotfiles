@@ -1,5 +1,5 @@
 ---
-allowed-tools: Read, Bash, TodoWrite
+allowed-tools: SlashCommand, Read, Write, TodoWrite
 argument-hint: "[workflow-id] [--detailed] [--json]"
 description: "Real-time workflow monitoring and progress tracking"
 command-type: dependent

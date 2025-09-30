@@ -1,9 +1,9 @@
 ---
-allowed-tools: Bash, Glob, Read
-argument-hint: [search-pattern] [--json] [--orchestration-ready] [--workflow-context=<workflow-id>]
-description: List all existing research reports in the codebase
+allowed-tools: SlashCommand, Read, Write, TodoWrite
+argument-hint: "[search-pattern] [--json] [--orchestration-ready] [--workflow-context=<workflow-id>]"
+description: "List all existing research reports in the codebase"
 command-type: dependent
-parent-commands: plan, report
+dependent-commands: plan, report
 ---
 
 # List Research Reports
