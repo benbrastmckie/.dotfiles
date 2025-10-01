@@ -43,6 +43,7 @@
     lectic
     stylua       # Lua formatter for Neovim
     wezterm      # GPU-accelerated terminal emulator
+    espeak-ng    # Text-to-speech for notifications
     
     # OAuth2 token refresh script
     (pkgs.writeShellScriptBin "refresh-gmail-oauth2" ''
