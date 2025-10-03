@@ -300,15 +300,15 @@ home-manager build --flake .#benjamin --dry-run
 
 ---
 
-### Phase 4: Configure LD_LIBRARY_PATH
+### Phase 4: Configure LD_LIBRARY_PATH [COMPLETED]
 **Objective**: Set library path for CVC5 C++ dependencies
 **Complexity**: Low
 **Files**: `home.nix`
 
 Tasks:
-- [ ] Locate `home.sessionVariables` block (line 410)
-- [ ] Add or update `LD_LIBRARY_PATH` variable
-- [ ] Ensure path includes `${pkgs.stdenv.cc.cc.lib}/lib`
+- [x] Locate `home.sessionVariables` block (line 410)
+- [x] Add or update `LD_LIBRARY_PATH` variable
+- [x] Ensure path includes `${pkgs.stdenv.cc.cc.lib}/lib`
 
 **Session Variables Configuration** (`home.nix:410`):
 
