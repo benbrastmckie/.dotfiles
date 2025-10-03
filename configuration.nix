@@ -132,11 +132,35 @@ services.timesyncd.enable = true;
   };
 
   # Additional GNOME services that are useful for both environments
-  services.dbus.packages = [ pkgs.dconf ];
+  # Nautilus required for GNOME portal FileChooser implementation
+  services.dbus.packages = [ pkgs.dconf pkgs.nautilus ];
   programs.dconf.enable = true;
 
   # Enable GNOME Virtual File System
   services.gvfs.enable = true;
+
+  # XDG Desktop Portal Configuration for niri
+  # Enables screen sharing, file chooser, and GNOME Settings integration
+  # See: specs/reports/012_niri_with_gnome_integration.md
+  xdg.portal = {
+    enable = true;
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-gnome
+      xdg-desktop-portal-gtk
+    ];
+    config = {
+      common = {
+        default = ["gnome" "gtk"];
+      };
+      niri = {
+        default = ["gnome" "gtk"];
+        "org.freedesktop.impl.portal.FileChooser" = ["gnome"];
+        "org.freedesktop.impl.portal.Screenshot" = ["gnome"];
+        "org.freedesktop.impl.portal.Screencast" = ["gnome"];
+        "org.freedesktop.impl.portal.Settings" = ["gnome"];
+      };
+    };
+  };
 
 # Configure keymap in X11
 services.xserver = {
@@ -184,8 +208,12 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.input-fonts.acceptLicense = true;
   
-  environment.systemPackages = 
+  environment.systemPackages =
     (with pkgs; [
+      # GNOME Tools for niri integration
+      gnome-control-center  # GNOME Settings GUI
+      nautilus              # File manager (required by portal)
+
       # Wayland and Niri essentials
       wl-clipboard         # Clipboard utility for Wayland compositors
       xdg-utils            # Standard desktop integration utilities
