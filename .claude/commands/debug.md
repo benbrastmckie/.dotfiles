@@ -1,9 +1,9 @@
 ---
-allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash, Grep, Glob, Task
-argument-hint: "<issue-description> [report-path1] [report-path2] ..."
-description: "Investigate issues and create diagnostic report without code changes"
 command-type: primary
 dependent-commands: list-reports, report
+description: Investigate issues and create diagnostic report without code changes
+argument-hint: <issue-description> [report-path1] [report-path2] ...
+allowed-tools: Read, Bash, Grep, Glob, WebSearch, WebFetch, TodoWrite, Task
 ---
 
 # /debug Command
@@ -201,9 +201,60 @@ Where NNN is the next sequential number.
 - Workflow disruptions
 - Feature failures
 
+## Agent Usage
+
+This command delegates investigation work to the `debug-specialist` agent:
+
+### debug-specialist Agent
+- **Purpose**: Root cause analysis and diagnostic reporting
+- **Tools**: Read, Bash, Grep, Glob, WebSearch
+- **Invocation**: Single agent for each debug request
+- **Read-Only**: Never modifies code, only investigates and reports
+
+### Invocation Pattern
+```yaml
+Task {
+  subagent_type: "debug-specialist"
+  description: "Investigate [issue description]"
+  prompt: "
+    Debug Task: Investigate [issue]
+
+    Context:
+    - Issue: [user's description]
+    - Related Reports: [paths if provided]
+    - Project Standards: CLAUDE.md
+
+    Investigation:
+    1. Gather evidence (logs, code, configs)
+    2. Identify root cause
+    3. Analyze contributing factors
+    4. Propose multiple solutions with tradeoffs
+
+    Output:
+    - Debug report at specs/reports/NNN_debug_[issue].md
+    - Summary with root cause and recommended fix
+  "
+}
+```
+
+### Agent Benefits
+- **Specialized Investigation**: Focused on evidence gathering and analysis
+- **Structured Reporting**: Consistent debug report format
+- **Multiple Solutions**: Always proposes alternatives with tradeoffs
+- **Non-Invasive**: Read-only access ensures no unintended modifications
+- **Reusable Diagnostics**: Reports serve as documentation for future issues
+
+### Workflow Integration
+1. User invokes `/debug` with issue description
+2. Command delegates to `debug-specialist` agent
+3. Agent investigates systematically and creates report
+4. Command returns report path and summary
+5. User can use report with `/plan` to create fix implementation
+
 ## Notes
 
 - Debug reports are permanent documentation of issues and investigations
 - Reports help prevent similar issues in the future
 - Clear documentation speeds up resolution when issues recur
 - Investigation without implementation allows for careful planning
+- The `debug-specialist` agent ensures thorough, structured investigations

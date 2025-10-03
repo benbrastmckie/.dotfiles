@@ -1,9 +1,9 @@
 ---
-allowed-tools: SlashCommand, Read, Write, TodoWrite
-argument-hint: "<plan-path> [reason-for-update]"
-description: "Update an existing implementation plan with new requirements or adjustments"
+allowed-tools: Read, Edit, MultiEdit, Bash, Grep
+argument-hint: <plan-path> [reason-for-update]
+description: Update an existing implementation plan with new requirements or adjustments
 command-type: dependent
-dependent-commands: plan, implement
+parent-commands: plan, implement
 ---
 
 # Update Implementation Plan

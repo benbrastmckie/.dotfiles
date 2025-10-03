@@ -1,9 +1,9 @@
 ---
-allowed-tools: SlashCommand, TodoWrite, Read, Write, Bash, Grep, Glob, Task
-argument-hint: "<revision-details> [report-path1] [report-path2] ..."
-description: "Revise the most recently discussed plan with user-provided changes (no implementation)"
 command-type: primary
 dependent-commands: list-plans, list-reports
+description: Revise the most recently discussed plan with user-provided changes (no implementation)
+argument-hint: <revision-details> [report-path1] [report-path2] ...
+allowed-tools: Read, Write, Edit, Glob, Grep, Task, MultiEdit, TodoWrite
 ---
 
 # /revise Command

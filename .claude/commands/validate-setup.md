@@ -1,9 +1,9 @@
 ---
-allowed-tools: SlashCommand, Read, Write, TodoWrite
-argument-hint: "[project-directory]"
-description: "Validate CLAUDE.md setup and check all linked standards files"
+allowed-tools: Read, Bash, Grep, Glob
+argument-hint: [project-directory]
+description: Validate CLAUDE.md setup and check all linked standards files
 command-type: dependent
-dependent-commands: setup
+parent-commands: setup
 ---
 
 # Validate Project Setup

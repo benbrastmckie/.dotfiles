@@ -1,39 +1,77 @@
 {
   "permissions": {
     "allow": [
-      "Bash(nix flake check:*)",
-      "Bash(nix flake check:*)",
-      "WebFetch(domain:raw.githubusercontent.com)",
-      "WebFetch(domain:github.com)",
-      "Bash(find:*)",
-      "Bash(ls:*)",
-      "Bash(mbsync:*)",
-      "Bash(grep:*)",
-      "Bash(rg:*)",
-      "Bash(home-manager switch:*)",
-      "Bash(source:*)",
-      "Bash(timeout:*)",
-      "Bash(gnome-extensions list:*)",
-      "Bash(nix search:*)",
-      "WebSearch",
-      "WebFetch(domain:mynixos.com)",
-      "Bash(wezterm:*)",
-      "WebFetch(domain:wezterm.org)",
-      "Read(//home/benjamin/**)",
-      "Bash(gsettings get:*)",
-      "Bash(stylua:*)",
-      "Bash(nix-env:*)",
+      "Bash(cat:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(NIXPKGS_ALLOW_UNFREE=1 nix-build -E \"with import <nixpkgs> {}; callPackage ./packages/claude-code.nix {}\")",
-      "Read(//nix/store/sw432s1hc8vkx8lzicq5v19vrbs6c791-claude/bin/**)",
-      "Bash(test:*)",
-      "Bash(python3:*)",
-      "Read(//nix/store/**)",
-      "WebFetch(domain:fishshell.com)",
-      "SlashCommand(/report:*)"
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: add settings.local.json to Load All Artifacts sync\n\nExtended Load All Artifacts to include settings.local.json, ensuring\nhook registrations and other settings are copied to new projects.\n\nChanges:\n- Added settings.local.json to scan_directory_for_sync calls\n- Updated confirmation dialog to show settings sync count\n- Updated preview to display settings operations\n- Updated success notification to include settings count\n- Settings file synced to .claude/ root (no subdirectory)\n\nThis ensures that when users run Load All Artifacts in a new repo,\nthey get the complete setup including hook registrations for TTS,\nmetrics, and other functionality.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "WebSearch"
     ],
-    "deny": []
+    "deny": [],
+    "ask": []
   },
-  "enableAllProjectMcpServers": false
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-command-metrics.sh"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/tts-dispatcher.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start-restore.sh"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/tts-dispatcher.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/tts-dispatcher.sh"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/tts-dispatcher.sh"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/tts-dispatcher.sh"
+          }
+        ]
+      }
+    ]
+  }
 }
