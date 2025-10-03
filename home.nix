@@ -164,6 +164,11 @@
       jupytext
       ipython
     ]))
+
+    # Clipboard history manager (for niri session)
+    wl-clipboard
+    cliphist
+
     (nerdfonts.override { fonts = [ "RobotoMono" ]; })
   ];
 
@@ -238,9 +243,8 @@
 
   home.file = {
     ".config/neofetch/config.conf".source = ./config/neofetch.conf;
-    # Niri config - DISABLED (using GNOME + PaperWM instead)
-    # Uncomment to re-enable niri configuration
-    # ".config/niri/config.kdl".source = ./config/config.kdl;
+    # Niri config - ENABLED (dual-session with GNOME)
+    ".config/niri/config.kdl".source = ./config/config.kdl;
     # WezTerm config is now managed by programs.wezterm above
     # ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
     ".config/himalaya/config.toml".text = ''
@@ -410,6 +414,97 @@
     #   org.gradle.console=verbose
     #   org.gradle.daemon.idletimeout=3600000
     # '';
+  };
+
+  # Niri session services - only active when using niri session
+  programs.waybar = {
+    enable = true;
+    settings = {
+      mainBar = {
+        layer = "top";
+        position = "top";
+        height = 32;
+        modules-left = ["niri/workspaces" "niri/window"];
+        modules-center = ["clock"];
+        modules-right = ["tray" "pulseaudio" "network" "battery"];
+
+        "niri/workspaces" = {
+          format = "{name}";
+        };
+
+        "niri/window" = {
+          max-length = 50;
+        };
+
+        clock = {
+          format = "{:%H:%M}";
+          format-alt = "{:%Y-%m-%d}";
+        };
+
+        battery = {
+          format = "{icon} {capacity}%";
+          format-icons = ["" "" "" "" ""];
+          states = {
+            warning = 30;
+            critical = 15;
+          };
+        };
+
+        network = {
+          format-wifi = " {essid} ({signalStrength}%)";
+          format-ethernet = " {ifname}";
+          format-disconnected = "⚠ Disconnected";
+          on-click = "gnome-control-center wifi";
+        };
+
+        pulseaudio = {
+          format = "{icon} {volume}%";
+          format-muted = " Muted";
+          format-icons = {
+            default = ["" "" ""];
+          };
+          on-click = "gnome-control-center sound";
+        };
+
+        tray = {
+          spacing = 10;
+        };
+      };
+    };
+  };
+
+  services.mako = {
+    enable = true;
+    defaultTimeout = 5000;
+    backgroundColor = "#2e3440";
+    textColor = "#eceff4";
+    borderColor = "#5e81ac";
+    borderSize = 2;
+    icons = true;
+    maxIconSize = 64;
+  };
+
+  programs.swaylock = {
+    enable = true;
+    settings = {
+      color = "2e3440";
+      font-size = 24;
+      indicator-idle-visible = false;
+      indicator-radius = 100;
+      line-color = "5e81ac";
+    };
+  };
+
+  services.swayidle = {
+    enable = true;
+    events = [
+      { event = "before-sleep"; command = "${pkgs.swaylock}/bin/swaylock -f"; }
+      { event = "lock"; command = "${pkgs.swaylock}/bin/swaylock -f"; }
+    ];
+    timeouts = [
+      { timeout = 300; command = "${pkgs.swaylock}/bin/swaylock -f"; }
+      { timeout = 600; command = "${pkgs.systemd}/bin/systemctl suspend"; }
+    ];
   };
 
   home.sessionVariables = {
