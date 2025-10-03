@@ -141,10 +141,11 @@
     # MCP-Hub is now managed by the home module
     nodejs    # Required runtime dependency
     (python312.withPackages(p: with p; [
-      z3 
-      setuptools 
+      z3
+      setuptools
       pyinstrument
       build
+      cvc5
       twine
       pytest
       pytest-cov
