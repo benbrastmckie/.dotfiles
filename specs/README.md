@@ -47,10 +47,16 @@ See [`CLAUDE.md`](../CLAUDE.md#specs-directory-protocol) for detailed templates 
 ## Current Documents
 
 ### Plans
-(None yet)
+- [`009_cvc5_python_bindings_overlay.md`](plans/009_cvc5_python_bindings_overlay.md) - Implementation plan for CVC5 Python bindings via custom Nix overlay
 
 ### Reports
 - [`001_claude_squad_research.md`](reports/001_claude_squad_research.md) - Research on Claude Squad implementation
+- [`011_cvc5_nixos_installation_strategy.md`](reports/011_cvc5_nixos_installation_strategy.md) - Analysis of CVC5 Python bindings installation approaches
 
 ### Summaries
-(None yet)
+- [`001_subagents_implementation_summary.md`](summaries/001_subagents_implementation_summary.md) - Subagents framework implementation
+- [`002_orchestrate_implementation_summary.md`](summaries/002_orchestrate_implementation_summary.md) - Orchestration command implementation
+- [`004_orchestration_ecosystem_refactoring_summary.md`](summaries/004_orchestration_ecosystem_refactoring_summary.md) - Orchestration ecosystem refactoring
+- [`006_claude_code_npx_wrapper_summary.md`](summaries/006_claude_code_npx_wrapper_summary.md) - Claude Code NPX wrapper implementation
+- [`006_kitty_tab_bar_git_branch.md`](summaries/006_kitty_tab_bar_git_branch.md) - Kitty tab bar git branch integration
+- [`007_kitty_right_side_status.md`](summaries/007_kitty_right_side_status.md) - Kitty right side status implementation

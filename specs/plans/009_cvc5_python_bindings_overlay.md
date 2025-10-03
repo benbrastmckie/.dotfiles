@@ -29,14 +29,15 @@ Implement Option 1 from the CVC5 installation strategy report: create a custom P
 - ✅ ModelChecker project works without `shell.nix`
 
 ## Success Criteria
-- [ ] `python3 -c "import cvc5; print(cvc5.__version__)"` outputs `1.3.1`
-- [ ] Package definition in `packages/python-cvc5.nix`
-- [ ] Overlay added to `home.nix`
-- [ ] `cvc5` added to Python packages list in `home.nix:132`
-- [ ] `LD_LIBRARY_PATH` set in `home.sessionVariables`
-- [ ] Home Manager rebuild succeeds
-- [ ] ModelChecker test runs without `shell.nix`
-- [ ] Changes committed to git
+- [x] `python3 -c "import cvc5; print(cvc5.__version__)"` outputs `1.3.1`
+- [x] Package definition in `packages/python-cvc5.nix`
+- [x] Overlay added to `flake.nix` (pythonPackagesOverlay)
+- [x] `cvc5` added to Python packages list in `home.nix:132`
+- [x] `LD_LIBRARY_PATH` set in `home.sessionVariables`
+- [x] Home Manager rebuild succeeds
+- [x] ModelChecker test runs without `shell.nix`
+- [x] Changes committed to git
+- [x] Documentation updated (packages/README.md, docs/packages.md, docs/configuration.md)
 
 ## Technical Design
 

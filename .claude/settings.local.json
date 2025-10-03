@@ -4,7 +4,8 @@
       "Bash(cat:*)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nfeat: add settings.local.json to Load All Artifacts sync\n\nExtended Load All Artifacts to include settings.local.json, ensuring\nhook registrations and other settings are copied to new projects.\n\nChanges:\n- Added settings.local.json to scan_directory_for_sync calls\n- Updated confirmation dialog to show settings sync count\n- Updated preview to display settings operations\n- Updated success notification to include settings count\n- Settings file synced to .claude/ root (no subdirectory)\n\nThis ensures that when users run Load All Artifacts in a new repo,\nthey get the complete setup including hook registrations for TTS,\nmetrics, and other functionality.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "WebSearch"
+      "WebSearch",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

@@ -28,10 +28,35 @@ Comprehensive Neovim configuration:
 - Custom build with specific features
 - Integration with system clipboard and external tools
 
+#### Python Packages (packages/python-cvc5.nix)
+
+Custom Python packages are integrated via overlays defined in `flake.nix`:
+
+**CVC5 SMT Solver Bindings (v1.3.1)**:
+- Custom package for CVC5 Python bindings (not available in nixpkgs)
+- Built from PyPI wheel with autoPatchelfHook for native libraries
+- Integrated via `pythonPackagesOverlay` in `flake.nix`
+- Available in `python312.withPackages` alongside standard packages
+- Requires `LD_LIBRARY_PATH` configuration for C++ dependencies
+
+See [`packages/README.md`](../packages/README.md) for detailed documentation on custom packages.
+
+**Related Documentation**:
+- Implementation plan: [`specs/plans/009_cvc5_python_bindings_overlay.md`](../specs/plans/009_cvc5_python_bindings_overlay.md)
+- Research report: [`specs/reports/011_cvc5_nixos_installation_strategy.md`](../specs/reports/011_cvc5_nixos_installation_strategy.md)
+
+#### Claude Code (packages/claude-code.nix)
+
+NPX wrapper for Claude Code that automatically uses the latest version:
+- Zero-maintenance approach (no version pinning)
+- Simple shell script wrapper around `npx @anthropic-ai/claude-code@latest`
+- Offline support via NPX caching
+
 #### Package Structure
 
 - Package derivations and build instructions
 - Custom wrappers for applications
+- Python package overlays for missing nixpkgs packages
 - Build scripts and testing utilities
 
 ## Adding Packages
