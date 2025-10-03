@@ -87,9 +87,18 @@
       # Add other packages that benefit from using unstable below
       # Format: package-name = pkgs-unstable.package-name; # Reason for using unstable
     };
-    
+
+    # Create an overlay for custom Python packages
+    pythonPackagesOverlay = final: prev: {
+      python312 = prev.python312.override {
+        packageOverrides = pySelf: pySuper: {
+          cvc5 = pySelf.callPackage ./packages/python-cvc5.nix { };
+        };
+      };
+    };
+
     # Note: MCPHub is now handled via official flake input instead of custom overlay
-    
+
     # Common nixpkgs configuration
     nixpkgsConfig = {
       inherit system;
@@ -99,6 +108,7 @@
       overlays = [
         claudeSquadOverlay
         unstablePackagesOverlay
+        pythonPackagesOverlay
       ];
     };
     
@@ -203,9 +213,10 @@
           # Apply our unstable packages overlay when using standalone home-manager
           {
             nixpkgs = {
-              overlays = [ 
+              overlays = [
                 claudeSquadOverlay
-                        unstablePackagesOverlay 
+                unstablePackagesOverlay
+                pythonPackagesOverlay
               ];
               config = { allowUnfree = true; };
             };
