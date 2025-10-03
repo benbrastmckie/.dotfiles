@@ -103,18 +103,12 @@ services.timesyncd.enable = true;
     };
   };
 
-  # Niri Wayland compositor - DISABLED (using GNOME + PaperWM instead)
-  # To re-enable niri:
-  # 1. Uncomment this block
-  # 2. Uncomment services.displayManager.sessionPackages below
-  # 3. Uncomment niri portal config in xdg.portal.config.niri section
-  # 4. Uncomment niri in flake.nix inputs and outputs
-  # 5. Uncomment niri in home.nix config file symlink
-  # 6. Run: sudo nixos-rebuild switch --flake .#$(hostname)
-  # programs.niri = {
-  #   enable = true;
-  #   package = pkgs.niri;
-  # };
+  # Niri Wayland compositor - ENABLED (dual-session with GNOME)
+  # Both GNOME and niri sessions available at GDM login
+  programs.niri = {
+    enable = true;
+    package = pkgs.niri;
+  };
 
   # Configure Wayland properly
   hardware.graphics = {
@@ -125,7 +119,7 @@ services.timesyncd.enable = true;
   security.polkit.enable = true;
 
   # Ensure proper Wayland and GNOME integration
-  # services.displayManager.sessionPackages = [ pkgs.niri ];  # DISABLED: using GNOME instead
+  services.displayManager.sessionPackages = [ pkgs.niri ];  # Enables niri session in GDM
   programs.xwayland.enable = true;
 
   # Enable GNOME services
@@ -158,16 +152,16 @@ services.timesyncd.enable = true;
       common = {
         default = ["gnome" "gtk"];
       };
-      # Niri-specific portal configuration - DISABLED (using GNOME instead)
-      # Uncomment this section if re-enabling niri
+      # Niri-specific portal configuration - uses GNOME portals
+      # This ensures screen sharing, file picker work in niri session
       # See: specs/reports/012_niri_with_gnome_integration.md
-      # niri = {
-      #   default = ["gnome" "gtk"];
-      #   "org.freedesktop.impl.portal.FileChooser" = ["gnome"];
-      #   "org.freedesktop.impl.portal.Screenshot" = ["gnome"];
-      #   "org.freedesktop.impl.portal.Screencast" = ["gnome"];
-      #   "org.freedesktop.impl.portal.Settings" = ["gnome"];
-      # };
+      niri = {
+        default = ["gnome" "gtk"];
+        "org.freedesktop.impl.portal.FileChooser" = ["gnome"];
+        "org.freedesktop.impl.portal.Screenshot" = ["gnome"];
+        "org.freedesktop.impl.portal.Screencast" = ["gnome"];
+        "org.freedesktop.impl.portal.Settings" = ["gnome"];
+      };
     };
   };
 

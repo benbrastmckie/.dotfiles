@@ -112,7 +112,10 @@ binds {
     Mod+Shift+s { spawn "grimshot save area" }  // Screenshot area
     Print { spawn "grimshot save screen" }      // Screenshot full
     Mod+Shift+x { spawn "swaylock -f" }        // Lock screen
-    
+
+    // Clipboard history
+    Mod+y { spawn "sh" "-c" "cliphist list | fuzzel --dmenu | cliphist decode | wl-copy" }
+
     // Audio controls
     XF86AudioRaiseVolume { spawn "wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+" }
     XF86AudioLowerVolume { spawn "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-" }
@@ -185,6 +188,10 @@ spawn-at-startup "/run/current-system/sw/bin/swaybg -i ~/.wallpapers/current -m 
 
 // Auto-start kitty terminal
 spawn-at-startup "kitty"
+
+// Clipboard history manager (cliphist)
+spawn-at-startup "wl-paste --type text --watch cliphist store"
+spawn-at-startup "wl-paste --type image --watch cliphist store"
 
 // // NOTE: for Niri without Gnome
 // // Autostart programs

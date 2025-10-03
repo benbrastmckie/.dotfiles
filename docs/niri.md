@@ -2,33 +2,45 @@
 
 ## Configuration Status & Roadmap
 
-### Current Setup: GNOME + PaperWM ✅
+### Dual-Session Setup: GNOME + PaperWM AND GNOME + Niri ✅
 
-**Active Configuration** (as of now):
+**Both sessions are now configured and available!**
+
+You can choose at GDM login:
+- **"GNOME" session** → GNOME Shell + PaperWM extension
+- **"niri" session** → Niri compositor + GNOME services
+
+---
+
+### Session 1: GNOME + PaperWM (Recommended for now)
+
+**Configuration**:
 - **Desktop Environment**: GNOME Shell (full installation)
 - **Window Management**: PaperWM extension for scrollable tiling
 - **System Services**: All GNOME utilities (WiFi, Bluetooth, sound, power menus)
-- **Session**: "GNOME" or "GNOME (Wayland)" selected at GDM login
+- **Status Bar**: GNOME Shell top bar
 
-**Why This Setup:**
+**Benefits**:
 - ✅ Zero configuration maintenance
 - ✅ Scrollable tiling workflow via PaperWM
 - ✅ Full access to GNOME top-bar menus and quick settings
 - ✅ Screen sharing in Zoom/Teams/Meet works perfectly
 - ✅ All GNOME utilities accessible via GUI
 
+**Best for**: Daily work, important meetings, when you need guaranteed reliability
+
 **PaperWM Installation**: See [GNOME + PaperWM section](#gnome--paperwm-alternative-currently-active) below
 
 ---
 
-### Future Setup: GNOME + Niri (Hybrid) 🎯
+### Session 2: GNOME + Niri (Hybrid) - Ready to Test
 
-**Planned Configuration**:
+**Configuration**:
 - **Window Manager**: Niri Wayland compositor (scrollable tiling)
 - **Backend Services**: GNOME services (gnome-settings-daemon, gnome-keyring, etc.)
-- **Status Bar**: Waybar (shows workspaces, system info, tray)
+- **Status Bar**: Waybar (shows workspaces, system info, tray, clickable to open GNOME Settings)
 - **System Integration**: GNOME portals for screen sharing, file picker, settings
-- **Session**: "niri" selected at GDM login
+- **Clipboard**: cliphist (Mod+v for clipboard history)
 
 **Architecture**:
 ```
@@ -48,54 +60,56 @@
 └──────────────────────────────────────────┘
 ```
 
-**Benefits Over Current Setup**:
+**Benefits Over GNOME + PaperWM**:
 - ✅ Niri's native scrollable tiling (more refined than PaperWM)
 - ✅ Lighter resource usage (~400MB vs ~800MB)
 - ✅ Still uses GNOME services (screen sharing, settings work)
-- ✅ Minimal configuration (just waybar, mako, swaylock)
-- ✅ Can open `gnome-control-center` for settings
+- ✅ Clipboard history (Mod+v)
+- ✅ Can open `gnome-control-center` for WiFi/Bluetooth/Sound settings
 
-**Configuration Required**:
-- Uncomment niri in `configuration.nix`, `home.nix`, `flake.nix`
-- Enable waybar, mako, swaylock in Home Manager (~20 lines)
-- Configure waybar modules (~30 lines)
+**Configuration Status**: ✅ Fully configured and ready to use!
+
+**Services Included**:
+- Waybar (status bar with system tray, battery, network, audio)
+- Mako (notification daemon)
+- Swaylock + Swayidle (screen locking, auto-lock after 5 min)
+- cliphist (clipboard history manager)
+
+**Best for**: Testing niri workflow, when you want better performance, casual work
 
 ---
 
-### Transition Strategy: Dual Sessions 🔄
-
-**You can run BOTH setups simultaneously** and switch at login:
+### How to Switch Between Sessions 🔄
 
 **At GDM Login Screen**:
 1. Click your username
-2. Click gear icon (⚙️) bottom-right
+2. Click gear icon (⚙️) at bottom-right
 3. Choose session:
-   - **"GNOME"** → Current setup (GNOME Shell + PaperWM)
-   - **"niri"** → Future setup (Niri + GNOME services)
+   - **"GNOME"** or **"GNOME (Wayland)"** → GNOME Shell + PaperWM
+   - **"niri"** → Niri compositor + GNOME services
 
-**Transition Phases**:
+**Your choice persists** until you change it again.
 
-**Phase 1: Current (Today)**
-- Using: GNOME + PaperWM
-- Status: Niri configuration exists but commented out
+---
 
-**Phase 2: Testing (When Ready)**
-- Uncomment niri configuration
-- Install waybar/mako/swaylock
-- Rebuild system
-- Test niri session (can switch back to GNOME anytime)
+### Recommended Usage Strategy
 
-**Phase 3: Migration (Gradual)**
-- Use niri for casual work
-- Use GNOME + PaperWM for important meetings (guaranteed screen sharing)
-- Compare workflows, adjust niri configuration
+**Phase 1: Current - Testing** (You are here!)
+- **Primary**: Use GNOME + PaperWM for daily work
+- **Testing**: Log into niri session to test and learn
+- **Safety**: Always have GNOME as reliable fallback
 
-**Phase 4: Primary (When Comfortable)**
-- Make niri default session
-- Keep GNOME available as fallback
-- Both sessions coexist indefinitely
+**Phase 2: Gradual Migration** (When comfortable with niri)
+- **Casual work**: Use niri session
+- **Important meetings**: Use GNOME (guaranteed screen sharing)
+- **Adjustment**: Tweak niri config as needed
 
-**Safety Net**: Your GNOME + PaperWM setup remains untouched. You can always log back into GNOME if niri has issues.
+**Phase 3: Primary Niri** (When fully comfortable)
+- **Default**: Use niri as primary session
+- **Fallback**: Keep GNOME for emergencies or preference
+- **Flexibility**: Both sessions remain available
+
+**Safety Net**: Both sessions coexist permanently. You can always switch back to GNOME at any time.
 
 ---
 
@@ -188,6 +202,7 @@ Niri is a scrollable-tiling Wayland compositor inspired by PaperWM. It provides 
 | **Mod+Shift+s** | Screenshot area | Select area to capture |
 | **Print** | Screenshot full screen | Entire screen capture |
 | **Mod+Shift+x** | Lock screen | Activate swaylock |
+| **Mod+y** | Clipboard history | Shows clipboard history via fuzzel |
 
 ### Audio/Media Controls (Hardware Keys)
 

@@ -5,12 +5,11 @@
     nixpkgs.url = "nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     lean4.url = "github:leanprover/lean4";
-    # Niri input - DISABLED (using GNOME + PaperWM instead)
-    # Uncomment to re-enable niri
-    # niri = {
-    #   url = "github:YaLTeR/niri";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
+    # Niri input - ENABLED (dual-session with GNOME)
+    niri = {
+      url = "github:YaLTeR/niri";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     lectic = {
       url = "github:gleachkr/lectic";
     };
@@ -27,8 +26,7 @@
     # };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, lectic, nix-ai-tools, utils, ... }@inputs:
-  # Note: niri removed from outputs (using GNOME + PaperWM instead)
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, lectic, nix-ai-tools, utils, ... }@inputs:
 
   let
     lib = nixpkgs.lib;
@@ -81,8 +79,8 @@
 
     # Create an overlay for unstable packages
     unstablePackagesOverlay = final: prev: {
-      # Window Manager - DISABLED (using GNOME + PaperWM instead)
-      # niri = pkgs-unstable.niri; # Active development with frequent improvements
+      # Window Manager - ENABLED (dual-session with GNOME)
+      niri = pkgs-unstable.niri; # Active development with frequent improvements
 
       # Applications
       claude-code = final.callPackage ./packages/claude-code.nix {}; # Latest AI capabilities (custom build)
@@ -203,7 +201,7 @@
           inherit username;
           inherit name;
           inherit pkgs-unstable;
-          # inherit niri;  # DISABLED: using GNOME + PaperWM instead
+          inherit niri;  # Enabled for dual-session with GNOME
           lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
         };
       };
