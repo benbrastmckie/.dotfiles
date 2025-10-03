@@ -109,7 +109,7 @@ Niri is a scrollable-tiling Wayland compositor inspired by PaperWM. It provides 
 keyboard {
     xkb {
         layout "us"
-        options "caps:escape,compose:ralt"
+        options "caps:swapescape,ctrl:swap_lalt_lctl"
     }
     repeat-delay 300
     repeat-rate 50
@@ -118,8 +118,8 @@ keyboard {
 
 **Features:**
 - **Layout**: US keyboard
-- **Caps Lock**: Remapped to Escape
-- **Compose Key**: Right Alt for special characters
+- **Escape ↔ Caps Lock**: Keys are swapped (bidirectional)
+- **Left Ctrl ↔ Left Alt**: Left modifier keys are swapped
 - **Fast Repeat**: 300ms delay, 50 repeats/second
 
 ### Touchpad Settings
