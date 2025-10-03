@@ -7,10 +7,10 @@
 final: prev: {
   # Development tools
   neovim-unwrapped = pkgs-unstable.neovim-unwrapped; # Get latest Neovim features and bug fixes
-  
-  # Window Manager
-  niri = pkgs-unstable.niri; # Active development with frequent improvements
-  
+
+  # Window Manager - DISABLED (using GNOME + PaperWM instead)
+  # niri = pkgs-unstable.niri; # Active development with frequent improvements
+
   # Applications
   # claude-code = pkgs-unstable.claude-code; # Temporarily disabled - using custom version
   
