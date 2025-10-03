@@ -6,11 +6,13 @@
 - **Installation Guide**: [`docs/installation.md`](docs/installation.md)
 - **Configuration Details**: [`docs/configuration.md`](docs/configuration.md)
 - **Testing Procedures**: [`docs/testing.md`](docs/testing.md)
-- **Development Notes**: [`docs/development.md`](docs/development.md)
-- **Application Configs**: [`docs/applications.md`](docs/applications.md)
 - **Package Management**: [`docs/packages.md`](docs/packages.md)
 - **Unstable Packages**: [`docs/unstable-packages.md`](docs/unstable-packages.md)
+- **Application Configs**: [`docs/applications.md`](docs/applications.md)
+- **Himalaya Email**: [`docs/himalaya.md`](docs/himalaya.md)
 - **Niri Window Manager**: [`docs/niri.md`](docs/niri.md)
+- **Terminal Emulators**: [`docs/terminal.md`](docs/terminal.md)
+- **Development Notes**: [`docs/development.md`](docs/development.md)
 
 ### Common Commands
 ```bash
