@@ -10,6 +10,7 @@
 - **Application Configs**: [`docs/applications.md`](docs/applications.md)
 - **Package Management**: [`docs/packages.md`](docs/packages.md)
 - **Unstable Packages**: [`docs/unstable-packages.md`](docs/unstable-packages.md)
+- **Niri Window Manager**: [`docs/niri.md`](docs/niri.md)
 
 ### Common Commands
 ```bash
