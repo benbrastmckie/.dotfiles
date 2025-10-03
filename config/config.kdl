@@ -193,6 +193,10 @@ spawn-at-startup "kitty"
 spawn-at-startup "wl-paste --type text --watch cliphist store"
 spawn-at-startup "wl-paste --type image --watch cliphist store"
 
+// Idle management and auto-lock/suspend
+// Lock after 5 min idle, suspend after 10 min, lock before sleep
+spawn-at-startup "swayidle -w timeout 300 'swaylock -f' timeout 600 'systemctl suspend' before-sleep 'swaylock -f' lock 'swaylock -f'"
+
 // // NOTE: for Niri without Gnome
 // // Autostart programs
 // spawn-at-startup "waybar -c ~/.config/waybar/config"  // Status bar
