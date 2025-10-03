@@ -6,6 +6,17 @@
     # ./home-modules/mcp-hub.nix  # Disabled - using lazy.nvim approach
   ];
 
+  # Add overlay for custom Python packages
+  nixpkgs.overlays = [
+    (self: super: {
+      python312 = super.python312.override {
+        packageOverrides = pySelf: pySuper: {
+          cvc5 = pySelf.callPackage ./packages/python-cvc5.nix { };
+        };
+      };
+    })
+  ];
+
   # manage.
   home.username = "benjamin";
   home.homeDirectory = "/home/benjamin";
