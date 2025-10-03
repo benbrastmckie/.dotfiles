@@ -4,7 +4,10 @@ input {
         xkb {
             layout "us"
             // Enable common keyboard options
-            options "caps:escape,compose:ralt"
+            // caps:escape - Caps Lock acts as Escape
+            // compose:ralt - Right Alt as compose key
+            // ctrl:swap_lalt_lctl - Swap left Ctrl and left Alt
+            options "caps:escape,compose:ralt,ctrl:swap_lalt_lctl"
         }
         // Faster key repeat for better responsiveness
         repeat-delay 300
