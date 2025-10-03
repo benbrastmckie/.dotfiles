@@ -429,6 +429,8 @@
     # Cursor settings for WezTerm and other applications
     XCURSOR_THEME = "Adwaita";
     XCURSOR_SIZE = "24";
+    # Library path for CVC5 C++ dependencies
+    LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
   };
 
   # programs.pylint.enable = true;
