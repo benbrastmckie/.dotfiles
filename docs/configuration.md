@@ -27,6 +27,28 @@ The Nix flake that orchestrates the entire configuration:
 - Manages flake inputs and versions
 - Configures both NixOS and Home Manager
 
+### Package Overlays
+
+The flake configuration uses overlays to extend and customize nixpkgs:
+
+**Claude Squad Overlay** (`claudeSquadOverlay`):
+- Builds Claude Squad from source (GitHub)
+- Provides terminal app for managing multiple AI agents
+- Creates `cs` alias for `claude-squad` command
+
+**Unstable Packages Overlay** (`unstablePackagesOverlay`):
+- Provides access to nixpkgs-unstable packages
+- Used for rapidly-updating development tools
+- Currently includes: niri (window manager), claude-code (custom NPX wrapper)
+
+**Python Packages Overlay** (`pythonPackagesOverlay`):
+- Extends Python 3.12 with custom packages
+- Currently provides CVC5 SMT solver bindings (v1.3.1)
+- Packages not available in standard nixpkgs
+- Enables declarative Python package management via overlays
+
+All overlays are applied via the `nixpkgsConfig` in the flake, making customized packages available throughout the system.
+
 ## home.nix
 
 User-specific configuration managed by Home Manager:
