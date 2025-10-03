@@ -210,17 +210,7 @@
         inherit pkgs;
         modules = [
           ./home.nix
-          # Apply our unstable packages overlay when using standalone home-manager
-          {
-            nixpkgs = {
-              overlays = [
-                claudeSquadOverlay
-                unstablePackagesOverlay
-                pythonPackagesOverlay
-              ];
-              config = { allowUnfree = true; };
-            };
-          }
+          # Note: overlays are already applied to pkgs (defined in nixpkgsConfig)
         ];
         extraSpecialArgs = {
           inherit username;
