@@ -13,9 +13,11 @@ This directory contains comprehensive documentation for the NixOS configuration 
 - **[packages.md](packages.md)** - Package management and custom packages
 - **[unstable-packages.md](unstable-packages.md)** - Managing unstable channel packages
 
-### Applications
+### Applications & Desktop
 - **[applications.md](applications.md)** - Application-specific configurations
 - **[himalaya.md](himalaya.md)** - Himalaya email client setup and configuration
+- **[niri.md](niri.md)** - Niri window manager keybindings and configuration
+- **[terminal.md](terminal.md)** - WezTerm and Kitty terminal configuration
 
 ### Development
 - **[development.md](development.md)** - Development notes and ISO building
