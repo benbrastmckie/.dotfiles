@@ -174,12 +174,12 @@ binds {
 
 //// AUTOSTART PROGRAMS ////
 
-// Start essential services first
-spawn-at-startup "dbus-daemon --session --address=unix:path=$XDG_RUNTIME_DIR/bus"
-// Start GNOME Session (this will handle most system services)
-spawn-at-startup "gnome-session --session=gnome"
-// Visual Elements
-spawn-at-startup "/run/current-system/sw/bin/swaybg -i ~/.wallpapers/current -m fill"  // Wallpaper
+// Note: systemd handles service activation via D-Bus (no manual spawns needed)
+// GNOME services start on-demand through niri-session integration
+// See: specs/plans/010_niri_gnome_portal_integration.md
+
+// Wallpaper (systemd handles all other services via D-Bus activation)
+spawn-at-startup "/run/current-system/sw/bin/swaybg -i ~/.wallpapers/current -m fill"
 
 // // NOTE: for Niri without Gnome
 // // Autostart programs
