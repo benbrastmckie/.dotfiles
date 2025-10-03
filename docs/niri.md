@@ -1,18 +1,103 @@
-# Niri Window Manager
+# Niri Window Manager Documentation
 
-> **⚠️ NOTE: Niri is currently DISABLED**
->
-> This configuration is using **GNOME + PaperWM extension** instead of niri to maintain full access to GNOME utilities (WiFi, sound, power, Bluetooth menus, etc.) while still getting scrollable tiling functionality.
->
-> **To re-enable niri:**
-> 1. Uncomment all niri-related configuration in `configuration.nix`, `home.nix`, `flake.nix`, and `unstable-packages.nix`
-> 2. Run: `sudo nixos-rebuild switch --flake .#$(hostname)`
-> 3. Log out and select "niri" session from GDM
->
-> **Current Alternative: GNOME + PaperWM**
-> - See section below for PaperWM setup and usage
-> - Provides similar scrollable tiling with full GNOME integration
-> - All niri configuration is preserved for future testing
+## Configuration Status & Roadmap
+
+### Current Setup: GNOME + PaperWM ✅
+
+**Active Configuration** (as of now):
+- **Desktop Environment**: GNOME Shell (full installation)
+- **Window Management**: PaperWM extension for scrollable tiling
+- **System Services**: All GNOME utilities (WiFi, Bluetooth, sound, power menus)
+- **Session**: "GNOME" or "GNOME (Wayland)" selected at GDM login
+
+**Why This Setup:**
+- ✅ Zero configuration maintenance
+- ✅ Scrollable tiling workflow via PaperWM
+- ✅ Full access to GNOME top-bar menus and quick settings
+- ✅ Screen sharing in Zoom/Teams/Meet works perfectly
+- ✅ All GNOME utilities accessible via GUI
+
+**PaperWM Installation**: See [GNOME + PaperWM section](#gnome--paperwm-alternative-currently-active) below
+
+---
+
+### Future Setup: GNOME + Niri (Hybrid) 🎯
+
+**Planned Configuration**:
+- **Window Manager**: Niri Wayland compositor (scrollable tiling)
+- **Backend Services**: GNOME services (gnome-settings-daemon, gnome-keyring, etc.)
+- **Status Bar**: Waybar (shows workspaces, system info, tray)
+- **System Integration**: GNOME portals for screen sharing, file picker, settings
+- **Session**: "niri" selected at GDM login
+
+**Architecture**:
+```
+┌──────────────────────────────────────────┐
+│  Niri Window Manager (visible UI)       │
+│  • Scrollable tiling layout              │
+│  • Custom keybindings (config.kdl)       │
+│  • Waybar status bar                     │
+└──────────────────────────────────────────┘
+                    ↓
+┌──────────────────────────────────────────┐
+│  GNOME Services (background)             │
+│  • gnome-settings-daemon (dark mode)     │
+│  • gnome-keyring (passwords)             │
+│  • XDG portals (screen sharing)          │
+│  • NetworkManager/Bluetooth backends     │
+└──────────────────────────────────────────┘
+```
+
+**Benefits Over Current Setup**:
+- ✅ Niri's native scrollable tiling (more refined than PaperWM)
+- ✅ Lighter resource usage (~400MB vs ~800MB)
+- ✅ Still uses GNOME services (screen sharing, settings work)
+- ✅ Minimal configuration (just waybar, mako, swaylock)
+- ✅ Can open `gnome-control-center` for settings
+
+**Configuration Required**:
+- Uncomment niri in `configuration.nix`, `home.nix`, `flake.nix`
+- Enable waybar, mako, swaylock in Home Manager (~20 lines)
+- Configure waybar modules (~30 lines)
+
+---
+
+### Transition Strategy: Dual Sessions 🔄
+
+**You can run BOTH setups simultaneously** and switch at login:
+
+**At GDM Login Screen**:
+1. Click your username
+2. Click gear icon (⚙️) bottom-right
+3. Choose session:
+   - **"GNOME"** → Current setup (GNOME Shell + PaperWM)
+   - **"niri"** → Future setup (Niri + GNOME services)
+
+**Transition Phases**:
+
+**Phase 1: Current (Today)**
+- Using: GNOME + PaperWM
+- Status: Niri configuration exists but commented out
+
+**Phase 2: Testing (When Ready)**
+- Uncomment niri configuration
+- Install waybar/mako/swaylock
+- Rebuild system
+- Test niri session (can switch back to GNOME anytime)
+
+**Phase 3: Migration (Gradual)**
+- Use niri for casual work
+- Use GNOME + PaperWM for important meetings (guaranteed screen sharing)
+- Compare workflows, adjust niri configuration
+
+**Phase 4: Primary (When Comfortable)**
+- Make niri default session
+- Keep GNOME available as fallback
+- Both sessions coexist indefinitely
+
+**Safety Net**: Your GNOME + PaperWM setup remains untouched. You can always log back into GNOME if niri has issues.
+
+---
 
 ## Overview
 
@@ -682,34 +767,143 @@ With GNOME + PaperWM, you have full access to all system utilities:
 gnome-control-center
 ```
 
-### Comparing Niri vs GNOME + PaperWM
+### Comparing Setup Options
 
-| Feature | Niri | GNOME + PaperWM |
-|---------|------|-----------------|
-| **Scrollable Tiling** | ✅ Native | ✅ Via extension |
-| **Resource Usage** | ⚡ Lightweight (~100MB) | 💻 Moderate (~800MB) |
-| **GNOME Utilities** | ⚠️ Via separate tools | ✅ Fully integrated |
-| **Customization** | ✅ Extensive (KDL config) | ⚠️ Extension settings only |
-| **Stability** | ⚡ Compositor-level | ⚠️ Extension may break on updates |
-| **System Integration** | ⚠️ Manual portal setup | ✅ Seamless GNOME integration |
-| **Learning Curve** | 📚 Steeper (new compositor) | 📖 Easier (familiar GNOME) |
+| Feature | GNOME + PaperWM (Current) | GNOME + Niri (Future) | Standalone Niri |
+|---------|---------------------------|----------------------|-----------------|
+| **Scrollable Tiling** | ✅ Via extension | ✅ Native compositor | ✅ Native compositor |
+| **Resource Usage** | ~800MB RAM | ~400MB RAM | ~200MB RAM |
+| **Top Bar Menus** | ✅ Full GNOME Shell | ❌ No (use waybar) | ❌ No (use waybar) |
+| **Screen Sharing** | ✅ Perfect (GNOME) | ✅ Perfect (GNOME portal) | ⚠️ Needs debugging |
+| **WiFi/Bluetooth** | ✅ Top bar menus | ✅ GNOME backends + waybar | ⚠️ Manual applets |
+| **Settings GUI** | ✅ GNOME Settings | ✅ GNOME Settings works | ⚠️ Individual tools |
+| **Configuration** | 🖱️ GUI only | 📝 Minimal (3-5 files) | 📝 Extensive (10+ files) |
+| **Maintenance** | ⭐ Auto-updates | ⭐⭐ Low | ⭐⭐⭐⭐⭐ High |
+| **Stability** | ✅ Very stable | ✅ Stable (GNOME backend) | ⚠️ Can break |
+| **Learning Curve** | ⭐ Easy | ⭐⭐ Moderate | ⭐⭐⭐⭐ Steep |
+| **Elegance** | ⭐⭐⭐ Good | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐ Complex |
 
-### Switching Between GNOME and Niri
+**Recommendation**: Start with **GNOME + PaperWM** (current), transition to **GNOME + Niri** when ready. Avoid **Standalone Niri** unless you enjoy system administration.
 
-You can keep both configurations and switch between them:
+### Setup Implementation Guide
 
-**To use GNOME + PaperWM:**
-1. Current configuration (niri commented out)
-2. Log out, select "GNOME" or "GNOME (Wayland)" from GDM
-3. Install PaperWM extension
-4. Enjoy scrollable tiling with full GNOME integration
+#### Current: GNOME + PaperWM (Active Now)
 
-**To test niri:**
-1. Uncomment niri configuration (see note at top of this document)
-2. Run: `sudo nixos-rebuild switch --flake .#$(hostname)`
-3. Log out, select "niri" from GDM
-4. Test niri workflow
-5. Log out and back to GNOME when done (configuration persists)
+**Already configured!** Just install PaperWM extension:
+
+**Method 1: NixOS Configuration** (Recommended)
+```nix
+# Add to configuration.nix:
+environment.systemPackages = with pkgs; [
+  gnomeExtensions.paperwm
+];
+
+# Then rebuild and enable:
+sudo nixos-rebuild switch --flake .#$(hostname)
+gnome-extensions enable paperwm@paperwm.github.com
+```
+
+**Method 2: Via Browser**
+1. Visit: https://extensions.gnome.org/extension/6099/paperwm/
+2. Click "Install"
+3. Restart GNOME Shell (Alt+F2, type `r`, Enter)
+
+**That's it!** You now have scrollable tiling in GNOME.
+
+---
+
+#### Future: GNOME + Niri Hybrid (When Ready)
+
+**Step 1: Uncomment Niri Configuration**
+
+Files to uncomment (all marked with `# DISABLED: using GNOME + PaperWM`):
+- `configuration.nix`: Lines 114-117, 128, 164-170
+- `flake.nix`: Lines 10-13, 30, 85, 206
+- `home.nix`: Line 243
+- `unstable-packages.nix`: Line 12
+
+**Step 2: Add Minimal Services to Home Manager**
+
+Add to `home.nix`:
+```nix
+# Waybar status bar
+programs.waybar = {
+  enable = true;
+  settings = {
+    mainBar = {
+      layer = "top";
+      position = "top";
+      height = 32;
+      modules-left = ["niri/workspaces" "niri/window"];
+      modules-center = ["clock"];
+      modules-right = ["tray" "battery" "network" "wireplumber"];
+
+      # Click to open GNOME Settings
+      network.on-click = "gnome-control-center wifi";
+      wireplumber.on-click = "gnome-control-center sound";
+      battery.on-click = "gnome-control-center power";
+    };
+  };
+};
+
+# Notification daemon
+services.mako = {
+  enable = true;
+  defaultTimeout = 5000;
+};
+
+# Screen lock
+programs.swaylock.enable = true;
+services.swayidle = {
+  enable = true;
+  timeouts = [
+    { timeout = 300; command = "${pkgs.swaylock}/bin/swaylock -f"; }
+  ];
+};
+```
+
+**Step 3: Rebuild System**
+```bash
+sudo nixos-rebuild switch --flake .#$(hostname)
+```
+
+**Step 4: Test Niri Session**
+1. Log out
+2. At GDM, click gear icon
+3. Select "niri"
+4. Log in and test
+
+**Step 5: Switch Back Anytime**
+1. Log out
+2. Select "GNOME" from GDM
+3. Back to GNOME + PaperWM!
+
+**Both sessions coexist** - you can switch freely at login.
+
+---
+
+### Switching Between Sessions at GDM
+
+**At GDM Login Screen**:
+1. Click your username
+2. Click gear icon (⚙️) at bottom-right
+3. Select session:
+   - **"GNOME"** or **"GNOME (Wayland)"** → GNOME Shell + PaperWM
+   - **"niri"** → Niri window manager + GNOME services
+
+**Your choice persists** until you change it.
+
+**Session Differences**:
+
+| Aspect | GNOME Session | Niri Session |
+|--------|---------------|--------------|
+| **Window Management** | GNOME Shell + PaperWM | Niri compositor |
+| **Top Bar** | GNOME Shell panel | Waybar |
+| **Notifications** | GNOME Shell | Mako |
+| **Settings Access** | Top bar menus | `gnome-control-center` command |
+| **Backend Services** | GNOME services | Same GNOME services |
+| **Screen Sharing** | GNOME portal | Same GNOME portal |
+| **Auto-start Apps** | GNOME Startup Apps | `config.kdl` |
 
 ### Troubleshooting PaperWM
 
@@ -743,8 +937,39 @@ journalctl -f -o cat /usr/bin/gnome-shell
 - **PaperWM Documentation**: https://github.com/paperwm/PaperWM/blob/develop/README.md
 - **GNOME Shell Extensions Guide**: https://wiki.gnome.org/Projects/GnomeShell/Extensions
 
-### Recommendation
+### Final Recommendations
 
-For daily use with full GNOME functionality, **GNOME + PaperWM is recommended**. Keep niri configuration available for occasional testing or if you want the absolute lightest compositor experience.
+#### For Immediate Use (Today)
+**Use GNOME + PaperWM** (current setup):
+- ✅ Zero configuration needed
+- ✅ Screen sharing guaranteed to work
+- ✅ All GNOME utilities accessible
+- ✅ Scrollable tiling via PaperWM extension
+- ⚠️ Higher RAM usage (~800MB)
 
-The niri configuration in this repository remains fully functional and ready to re-enable whenever needed.
+**Action**: Install PaperWM extension (see guide above), done!
+
+#### For Future Exploration (When Ready)
+**Transition to GNOME + Niri Hybrid**:
+- ✅ Better performance (~400MB RAM vs ~800MB)
+- ✅ Native scrollable tiling (more polished than PaperWM)
+- ✅ Still uses GNOME services (screen sharing, settings work)
+- ✅ Minimal configuration burden (3-5 files)
+- ✅ Can switch back to GNOME + PaperWM at any time
+- ⚠️ Requires ~1 hour initial setup
+
+**Action**: Follow "Future: GNOME + Niri Hybrid" guide above when comfortable
+
+#### Avoid This Option
+**Standalone Niri** (without GNOME services):
+- ❌ High configuration complexity (10-15 services)
+- ❌ Screen sharing may need debugging
+- ❌ Constant maintenance burden
+- ❌ Each service breaks independently
+- ✅ Lowest RAM usage (~200MB) - only benefit
+
+**Action**: Don't do this unless you enjoy being a sysadmin
+
+---
+
+**Summary**: Start with GNOME + PaperWM. The niri hybrid configuration is ready when you want better performance and native scrollable tiling, with GNOME + PaperWM always available as a fallback at login.
