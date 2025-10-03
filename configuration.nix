@@ -243,6 +243,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       lua-language-server  # Language server for Lua development
       stylua               # Opinionated Lua code formatter
       tree                 # Display directory structure in a tree-like format
+      cvc5                 # Modern SMT solver
       # u-root-cmds           
 
       # Lean
