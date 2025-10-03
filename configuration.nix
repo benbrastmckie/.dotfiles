@@ -103,11 +103,18 @@ services.timesyncd.enable = true;
     };
   };
 
-  # Enable niri Wayland compositor
-  programs.niri = {
-    enable = true;
-    package = pkgs.niri;
-  };
+  # Niri Wayland compositor - DISABLED (using GNOME + PaperWM instead)
+  # To re-enable niri:
+  # 1. Uncomment this block
+  # 2. Uncomment services.displayManager.sessionPackages below
+  # 3. Uncomment niri portal config in xdg.portal.config.niri section
+  # 4. Uncomment niri in flake.nix inputs and outputs
+  # 5. Uncomment niri in home.nix config file symlink
+  # 6. Run: sudo nixos-rebuild switch --flake .#$(hostname)
+  # programs.niri = {
+  #   enable = true;
+  #   package = pkgs.niri;
+  # };
 
   # Configure Wayland properly
   hardware.graphics = {
@@ -118,7 +125,7 @@ services.timesyncd.enable = true;
   security.polkit.enable = true;
 
   # Ensure proper Wayland and GNOME integration
-  services.displayManager.sessionPackages = [ pkgs.niri ];
+  # services.displayManager.sessionPackages = [ pkgs.niri ];  # DISABLED: using GNOME instead
   programs.xwayland.enable = true;
 
   # Enable GNOME services
@@ -139,9 +146,8 @@ services.timesyncd.enable = true;
   # Enable GNOME Virtual File System
   services.gvfs.enable = true;
 
-  # XDG Desktop Portal Configuration for niri
+  # XDG Desktop Portal Configuration
   # Enables screen sharing, file chooser, and GNOME Settings integration
-  # See: specs/reports/012_niri_with_gnome_integration.md
   xdg.portal = {
     enable = true;
     extraPortals = with pkgs; [
@@ -152,13 +158,16 @@ services.timesyncd.enable = true;
       common = {
         default = ["gnome" "gtk"];
       };
-      niri = {
-        default = ["gnome" "gtk"];
-        "org.freedesktop.impl.portal.FileChooser" = ["gnome"];
-        "org.freedesktop.impl.portal.Screenshot" = ["gnome"];
-        "org.freedesktop.impl.portal.Screencast" = ["gnome"];
-        "org.freedesktop.impl.portal.Settings" = ["gnome"];
-      };
+      # Niri-specific portal configuration - DISABLED (using GNOME instead)
+      # Uncomment this section if re-enabling niri
+      # See: specs/reports/012_niri_with_gnome_integration.md
+      # niri = {
+      #   default = ["gnome" "gtk"];
+      #   "org.freedesktop.impl.portal.FileChooser" = ["gnome"];
+      #   "org.freedesktop.impl.portal.Screenshot" = ["gnome"];
+      #   "org.freedesktop.impl.portal.Screencast" = ["gnome"];
+      #   "org.freedesktop.impl.portal.Settings" = ["gnome"];
+      # };
     };
   };
 
@@ -210,11 +219,11 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
   
   environment.systemPackages =
     (with pkgs; [
-      # GNOME Tools for niri integration
+      # GNOME Tools (useful for both GNOME and niri if re-enabled)
       gnome-control-center  # GNOME Settings GUI
       nautilus              # File manager (required by portal)
 
-      # Wayland and Niri essentials
+      # Wayland essentials (kept for future niri testing)
       wl-clipboard         # Clipboard utility for Wayland compositors
       xdg-utils            # Standard desktop integration utilities
       qt6.qtwayland        # Wayland support for Qt6 applications

@@ -1,5 +1,19 @@
 # Niri Window Manager
 
+> **⚠️ NOTE: Niri is currently DISABLED**
+>
+> This configuration is using **GNOME + PaperWM extension** instead of niri to maintain full access to GNOME utilities (WiFi, sound, power, Bluetooth menus, etc.) while still getting scrollable tiling functionality.
+>
+> **To re-enable niri:**
+> 1. Uncomment all niri-related configuration in `configuration.nix`, `home.nix`, `flake.nix`, and `unstable-packages.nix`
+> 2. Run: `sudo nixos-rebuild switch --flake .#$(hostname)`
+> 3. Log out and select "niri" session from GDM
+>
+> **Current Alternative: GNOME + PaperWM**
+> - See section below for PaperWM setup and usage
+> - Provides similar scrollable tiling with full GNOME integration
+> - All niri configuration is preserved for future testing
+
 ## Overview
 
 Niri is a scrollable-tiling Wayland compositor inspired by PaperWM. It provides a unique window management experience where windows are arranged in columns on an infinite horizontal strip.
@@ -535,3 +549,202 @@ Save this reference or access anytime:
 ```bash
 cat ~/.dotfiles/docs/niri.md | less
 ```
+
+---
+
+## GNOME + PaperWM Alternative (Currently Active)
+
+### Overview
+
+**PaperWM** is a GNOME Shell extension that provides scrollable tiling window management similar to niri, but runs within GNOME Shell itself. This gives you the best of both worlds:
+
+**✅ Advantages:**
+- Full GNOME Shell integration (top bar, system menus, utilities)
+- WiFi, sound, power, Bluetooth controls readily accessible
+- All GNOME features and conveniences (Settings, Extensions, etc.)
+- Scrollable tiling workflow like niri
+- Seamless integration with existing GNOME apps
+
+**❌ Trade-offs:**
+- Slightly heavier resource usage than standalone niri
+- Extension updates may lag behind GNOME releases
+- Less customizable than niri's KDL configuration
+
+### Installation
+
+Install PaperWM from GNOME Extensions:
+
+**Method 1: Via GNOME Extensions Website**
+```bash
+# Open the GNOME Extensions website
+xdg-open https://extensions.gnome.org/extension/6099/paperwm/
+
+# Click "Install" and follow prompts
+# May require browser extension first: https://extensions.gnome.org/
+```
+
+**Method 2: Via Command Line**
+```bash
+# Install GNOME Extensions app
+sudo nix-env -iA nixos.gnome-extensions-app
+
+# Or add to configuration.nix:
+# environment.systemPackages = [ pkgs.gnome-extensions-app ];
+
+# Then search and install PaperWM through the app
+gnome-extensions-app
+```
+
+**Method 3: Via NixOS Configuration** (Recommended)
+```nix
+# Add to configuration.nix:
+environment.systemPackages = with pkgs; [
+  gnomeExtensions.paperwm
+];
+
+# Then enable via GNOME Extensions app or:
+gnome-extensions enable paperwm@paperwm.github.com
+```
+
+### Configuration
+
+PaperWM settings can be accessed via:
+
+```bash
+# Open PaperWM settings
+gnome-extensions prefs paperwm@paperwm.github.com
+
+# Or through GNOME Extensions app
+gnome-extensions-app
+```
+
+**Key Settings to Configure:**
+- **Keybindings**: Customize to match your workflow (can use vim-style if desired)
+- **Window Gaps**: Adjust spacing between windows
+- **Animations**: Enable/disable or adjust speed
+- **Workspaces**: Configure workspace behavior
+
+### Default Keybindings
+
+PaperWM uses **Super (Mod)** key by default:
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| **Super+Enter** | New window | Opens new terminal/app |
+| **Super+Left/Right** | Navigate columns | Move between windows |
+| **Super+Up/Down** | Navigate stacked windows | Within same column |
+| **Super+Shift+Left/Right** | Move window | Reorder columns |
+| **Super+Shift+Up/Down** | Move window in stack | Within column |
+| **Super+R** | Resize mode | Then use arrow keys |
+| **Super+F** | Fullscreen | Toggle fullscreen |
+| **Super+Tab** | Switch windows | Standard Alt+Tab replacement |
+
+**Workspace Navigation:**
+- **Super+Page Up/Down**: Switch workspaces
+- **Super+Shift+Page Up/Down**: Move window to workspace
+
+### Customizing to Match Niri Workflow
+
+To make PaperWM feel more like the niri configuration:
+
+**1. Enable vim-style navigation:**
+- Open PaperWM settings
+- Go to "Keybindings"
+- Remap navigation to h/j/k/l if desired
+
+**2. Adjust window gaps:**
+- Settings → Window → Gap size: 8 (to match niri config)
+
+**3. Configure workspaces:**
+- Settings → Workspaces → Create named workspaces (1:web, 2:code, etc.)
+
+**4. Set up auto-start apps:**
+- Use GNOME Startup Applications (already available in GNOME)
+- Or configure in GNOME Settings → Apps → Startup Applications
+
+### Accessing GNOME Utilities
+
+With GNOME + PaperWM, you have full access to all system utilities:
+
+**Via Top Bar (Always Available):**
+- Click WiFi icon → Manage networks
+- Click sound icon → Volume, output device
+- Click power icon → Battery, brightness, power settings
+- Click Bluetooth icon → Manage Bluetooth devices
+
+**Via Quick Settings (Super+V or click top-right):**
+- Quick toggles for WiFi, Bluetooth, Night Light, etc.
+- Volume slider
+- Brightness control
+
+**Via GNOME Settings:**
+```bash
+gnome-control-center
+```
+
+### Comparing Niri vs GNOME + PaperWM
+
+| Feature | Niri | GNOME + PaperWM |
+|---------|------|-----------------|
+| **Scrollable Tiling** | ✅ Native | ✅ Via extension |
+| **Resource Usage** | ⚡ Lightweight (~100MB) | 💻 Moderate (~800MB) |
+| **GNOME Utilities** | ⚠️ Via separate tools | ✅ Fully integrated |
+| **Customization** | ✅ Extensive (KDL config) | ⚠️ Extension settings only |
+| **Stability** | ⚡ Compositor-level | ⚠️ Extension may break on updates |
+| **System Integration** | ⚠️ Manual portal setup | ✅ Seamless GNOME integration |
+| **Learning Curve** | 📚 Steeper (new compositor) | 📖 Easier (familiar GNOME) |
+
+### Switching Between GNOME and Niri
+
+You can keep both configurations and switch between them:
+
+**To use GNOME + PaperWM:**
+1. Current configuration (niri commented out)
+2. Log out, select "GNOME" or "GNOME (Wayland)" from GDM
+3. Install PaperWM extension
+4. Enjoy scrollable tiling with full GNOME integration
+
+**To test niri:**
+1. Uncomment niri configuration (see note at top of this document)
+2. Run: `sudo nixos-rebuild switch --flake .#$(hostname)`
+3. Log out, select "niri" from GDM
+4. Test niri workflow
+5. Log out and back to GNOME when done (configuration persists)
+
+### Troubleshooting PaperWM
+
+**Extension not working after GNOME update:**
+```bash
+# Check PaperWM compatibility
+gnome-extensions info paperwm@paperwm.github.com
+
+# Disable and re-enable
+gnome-extensions disable paperwm@paperwm.github.com
+gnome-extensions enable paperwm@paperwm.github.com
+
+# Check logs
+journalctl -f -o cat /usr/bin/gnome-shell
+```
+
+**Keybindings conflict:**
+- Open Settings → Keyboard → View and Customize Shortcuts
+- Disable conflicting GNOME shortcuts
+- Configure PaperWM shortcuts to avoid conflicts
+
+**Performance issues:**
+- Disable unnecessary GNOME extensions
+- Adjust animation settings in PaperWM
+- Check for conflicting extensions
+
+### Resources
+
+- **PaperWM GitHub**: https://github.com/paperwm/PaperWM
+- **GNOME Extensions**: https://extensions.gnome.org/extension/6099/paperwm/
+- **PaperWM Documentation**: https://github.com/paperwm/PaperWM/blob/develop/README.md
+- **GNOME Shell Extensions Guide**: https://wiki.gnome.org/Projects/GnomeShell/Extensions
+
+### Recommendation
+
+For daily use with full GNOME functionality, **GNOME + PaperWM is recommended**. Keep niri configuration available for occasional testing or if you want the absolute lightest compositor experience.
+
+The niri configuration in this repository remains fully functional and ready to re-enable whenever needed.

@@ -238,7 +238,9 @@
 
   home.file = {
     ".config/neofetch/config.conf".source = ./config/neofetch.conf;
-    ".config/niri/config.kdl".source = ./config/config.kdl;
+    # Niri config - DISABLED (using GNOME + PaperWM instead)
+    # Uncomment to re-enable niri configuration
+    # ".config/niri/config.kdl".source = ./config/config.kdl;
     # WezTerm config is now managed by programs.wezterm above
     # ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
     ".config/himalaya/config.toml".text = ''
