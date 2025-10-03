@@ -181,6 +181,9 @@ binds {
 // Wallpaper (systemd handles all other services via D-Bus activation)
 spawn-at-startup "/run/current-system/sw/bin/swaybg -i ~/.wallpapers/current -m fill"
 
+// Auto-start kitty terminal
+spawn-at-startup "kitty"
+
 // // NOTE: for Niri without Gnome
 // // Autostart programs
 // spawn-at-startup "waybar -c ~/.config/waybar/config"  // Status bar
