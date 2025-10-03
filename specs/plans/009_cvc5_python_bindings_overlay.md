@@ -192,15 +192,15 @@ nix-instantiate --parse packages/python-cvc5.nix
 
 ---
 
-### Phase 2: Add Python Overlay to home.nix
+### Phase 2: Add Python Overlay to home.nix [COMPLETED]
 **Objective**: Configure overlay to make `cvc5` available in `python312Packages`
 **Complexity**: Low
 **Files**: `home.nix`
 
 Tasks:
-- [ ] Add `nixpkgs.overlays` section after imports (around line 7)
-- [ ] Create Python package override with `cvc5` package
-- [ ] Verify overlay syntax
+- [x] Add `nixpkgs.overlays` section after imports (around line 7)
+- [x] Create Python package override with `cvc5` package
+- [x] Verify overlay syntax
 
 **Overlay Configuration** (insert after line 7 in `home.nix`):
 ```nix
