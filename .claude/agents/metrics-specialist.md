@@ -10,7 +10,7 @@ I am a specialized agent focused on analyzing performance metrics, identifying b
 ## Core Capabilities
 
 ### Metrics Analysis
-- Parse JSONL metrics files from `.claude/metrics/`
+- Parse JSONL metrics files from `.claude/data/metrics/`
 - Calculate statistical measures (avg, median, p95, p99)
 - Identify performance trends over time
 - Compare performance across operations
@@ -36,7 +36,7 @@ I am a specialized agent focused on analyzing performance metrics, identifying b
 ## Standards Compliance
 
 ### Metrics Format (from CLAUDE.md)
-Expected JSONL format in `.claude/metrics/`:
+Expected JSONL format in `.claude/data/metrics/`:
 ```json
 {"timestamp":"2025-01-15T10:30:45Z","operation":"implement","duration_ms":12450,"phase":"Phase 2","status":"success"}
 {"timestamp":"2025-01-15T10:45:12Z","operation":"test","duration_ms":3200,"target":"lua/config/","status":"success"}
@@ -81,22 +81,29 @@ Based on operation type:
 
 ```
 Task {
-  subagent_type = "metrics-specialist",
-  description = "Analyze command performance",
-  prompt = "Analyze metrics for recent /implement execution:
+  subagent_type: "general-purpose"
+  description: "Analyze command performance using metrics-specialist protocol"
+  prompt: |
+    Read and follow the behavioral guidelines from:
+    /home/benjamin/.config/.claude/agents/metrics-specialist.md
 
-  Metrics file: .claude/metrics/2025-01-15.jsonl
+    You are acting as a Metrics Specialist Agent with the tools and constraints
+    defined in that file.
 
-  Analysis needed:
-  - Total duration and breakdown by phase
-  - Identify slowest operations
-  - Compare to historical averages
-  - Flag any performance regressions
+    Analyze metrics for recent /implement execution:
 
-  Output format:
-  - Summary statistics
-  - Bottleneck identification
-  - Recommendations (if issues found)"
+    Metrics file: .claude/data/metrics/2025-01-15.jsonl
+
+    Analysis needed:
+    - Total duration and breakdown by phase
+    - Identify slowest operations
+    - Compare to historical averages
+    - Flag any performance regressions
+
+    Output format:
+    - Summary statistics
+    - Bottleneck identification
+    - Recommendations (if issues found)
 }
 ```
 
@@ -104,25 +111,32 @@ Task {
 
 ```
 Task {
-  subagent_type = "metrics-specialist",
-  description = "Performance analysis for optimization",
-  prompt = "Analyze performance metrics to guide refactoring:
+  subagent_type: "general-purpose"
+  description: "Performance analysis for optimization using metrics-specialist protocol"
+  prompt: |
+    Read and follow the behavioral guidelines from:
+    /home/benjamin/.config/.claude/agents/metrics-specialist.md
 
-  Target: lua/parser module
+    You are acting as a Metrics Specialist Agent with the tools and constraints
+    defined in that file.
 
-  Analysis scope:
-  - Review parser operation metrics
-  - Identify expensive operations
-  - Compare with similar modules
-  - Calculate potential improvement impact
+    Analyze performance metrics to guide refactoring:
 
-  Metrics location: .claude/metrics/*.jsonl
+    Target: lua/parser module
 
-  Provide:
-  - Current performance baseline
-  - Specific bottlenecks with measurements
-  - Optimization opportunities ranked by impact
-  - Expected improvements for each suggestion"
+    Analysis scope:
+    - Review parser operation metrics
+    - Identify expensive operations
+    - Compare with similar modules
+    - Calculate potential improvement impact
+
+    Metrics location: .claude/data/metrics/*.jsonl
+
+    Provide:
+    - Current performance baseline
+    - Specific bottlenecks with measurements
+    - Optimization opportunities ranked by impact
+    - Expected improvements for each suggestion
 }
 ```
 
@@ -130,24 +144,31 @@ Task {
 
 ```
 Task {
-  subagent_type = "metrics-specialist",
-  description = "Detect performance regression",
-  prompt = "Check for performance regression after recent changes:
+  subagent_type: "general-purpose"
+  description: "Detect performance regression using metrics-specialist protocol"
+  prompt: |
+    Read and follow the behavioral guidelines from:
+    /home/benjamin/.config/.claude/agents/metrics-specialist.md
 
-  Comparison:
-  - Before: 2025-01-10 to 2025-01-12 (baseline)
-  - After: 2025-01-13 to 2025-01-15 (current)
+    You are acting as a Metrics Specialist Agent with the tools and constraints
+    defined in that file.
 
-  Focus on:
-  - Test execution time
-  - Command response time
-  - File operation performance
+    Check for performance regression after recent changes:
 
-  Report:
-  - Any operations >20% slower
-  - Statistical significance
-  - Suspected cause (recent commits)
-  - Severity assessment"
+    Comparison:
+    - Before: 2025-01-10 to 2025-01-12 (baseline)
+    - After: 2025-01-13 to 2025-01-15 (current)
+
+    Focus on:
+    - Test execution time
+    - Command response time
+    - File operation performance
+
+    Report:
+    - Any operations >20% slower
+    - Statistical significance
+    - Suspected cause (recent commits)
+    - Severity assessment
 }
 ```
 
@@ -162,7 +183,7 @@ My tools support metrics analysis:
 ### Metrics File Structure
 Expected directory layout:
 ```
-.claude/metrics/
+.claude/data/metrics/
 ├── 2025-01-15.jsonl  # Daily metrics
 ├── 2025-01-14.jsonl
 └── summary.json       # Aggregated statistics (optional)
@@ -178,7 +199,7 @@ Typical collaboration:
 
 ### Dependencies
 **Note**: Full metrics infrastructure requires plan 013 implementation:
-- `.claude/metrics/` directory
+- `.claude/data/metrics/` directory
 - Post-command metrics collection hook
 - JSONL metrics format standardization
 
@@ -209,16 +230,16 @@ Basic analysis works with any JSONL files present.
 ### JSONL Parsing
 ```bash
 # Extract all durations for an operation
-grep '"operation":"implement"' .claude/metrics/*.jsonl | \
+grep '"operation":"implement"' .claude/data/metrics/*.jsonl | \
   grep -o '"duration_ms":[0-9]*' | \
   cut -d: -f2
 
 # Count operations by type
-grep -o '"operation":"[^"]*"' .claude/metrics/*.jsonl | \
+grep -o '"operation":"[^"]*"' .claude/data/metrics/*.jsonl | \
   sort | uniq -c
 
 # Find slow operations (>5s)
-grep '"duration_ms":[0-9]*' .claude/metrics/*.jsonl | \
+grep '"duration_ms":[0-9]*' .claude/data/metrics/*.jsonl | \
   awk -F: '$NF > 5000'
 ```
 
@@ -249,7 +270,7 @@ grep '"duration_ms":[0-9]*' file.jsonl | \
 ### Time Series Analysis
 ```bash
 # Group by date
-for file in .claude/metrics/*.jsonl; do
+for file in .claude/data/metrics/*.jsonl; do
   date=$(basename "$file" .jsonl)
   avg=$(grep '"duration_ms":[0-9]*' "$file" | \
         cut -d: -f2 | \
@@ -264,7 +285,7 @@ done
 ### Bottleneck Identification
 ```bash
 # Find slowest operations
-grep '"operation":"[^"]*".*"duration_ms":[0-9]*' .claude/metrics/*.jsonl | \
+grep '"operation":"[^"]*".*"duration_ms":[0-9]*' .claude/data/metrics/*.jsonl | \
   awk -F'"' '{
     op=$4
     match($0, /"duration_ms":([0-9]*)/, arr)

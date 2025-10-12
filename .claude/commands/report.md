@@ -3,7 +3,7 @@ allowed-tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch, Task
 argument-hint: <topic or question>
 description: Research a topic and create a comprehensive report in the appropriate specs/reports/ directory
 command-type: primary
-dependent-commands: update-report, list-reports
+dependent-commands: update, list
 ---
 
 # Generate Research Report
@@ -21,11 +21,26 @@ First, I'll analyze the topic to determine:
 - Relevant files and directories in the codebase
 - Most appropriate location for the specs/reports/ directory
 
-### 2. Location Determination
-I'll find the deepest directory that encompasses all relevant files by:
-- Searching for files related to the topic
-- Identifying common parent directories
-- Selecting the most specific directory that includes all relevant content
+### 2. Location Determination and Registration
+I'll determine the specs directory location using this process:
+
+**Step 1: Detect Project Directory**
+- Analyze the topic and search for relevant files
+- Identify the deepest directory that encompasses all relevant content
+- This becomes the "project directory" for this report
+
+**Step 2: Check SPECS.md Registry**
+- Read `.claude/SPECS.md` to see if this project is already registered
+- Look for a section matching the project directory path
+
+**Step 3: Use Registered or Auto-Detect**
+- If found in SPECS.md: Use the registered specs directory
+- If not found: Auto-detect best location (project-dir/specs/) and register it
+
+**Step 4: Register in SPECS.md**
+- If new project: Create new section in SPECS.md with project path and specs directory
+- Update "Last Updated" date and increment "Reports" count
+- Use Edit tool to update SPECS.md
 
 ### 3. Report Numbering
 I'll determine the report number by:
@@ -72,6 +87,8 @@ I'll create the report as a markdown file with automatic numbering:
 
 ### 7. Report Metadata
 Each report will include:
+- **Specs Directory**: Path to the specs/ directory (for consistency with related plans/summaries)
+- **Report Number**: Three-digit number within this specs directory
 - Creation date and time
 - Research scope and boundaries
 - Files analyzed
@@ -87,6 +104,8 @@ The report will be formatted as:
 
 ## Metadata
 - **Date**: [YYYY-MM-DD]
+- **Specs Directory**: [path/to/specs/]
+- **Report Number**: [NNN]
 - **Scope**: [Description of research scope]
 - **Primary Directory**: [Location of report]
 - **Files Analyzed**: [Count and key files]
@@ -99,6 +118,14 @@ The report will be formatted as:
 
 ## Recommendations
 [Actionable insights and suggestions]
+
+## Implementation Status
+- **Status**: Research Complete
+- **Plan**: None yet
+- **Implementation**: Not started
+- **Date**: [YYYY-MM-DD]
+
+*This section will be updated if/when recommendations are implemented.*
 
 ## References
 [Links to relevant files and resources]
@@ -121,32 +148,37 @@ The `/report` command typically executes research directly for optimal context m
 For complex, multi-faceted topics:
 ```yaml
 Task {
-  subagent_type: "research-specialist"
-  description: "Research [specific aspect] of [topic]"
-  prompt: "
-    Research Task: [Aspect] investigation
+  subagent_type: "general-purpose"
+  description: "Research [specific aspect] of [topic] using research-specialist protocol"
+  prompt: "Read and follow the behavioral guidelines from:
+          /home/benjamin/.config/.claude/agents/research-specialist.md
 
-    Context:
-    - Topic: [User's topic]
-    - Focus Area: [Specific aspect to research]
-    - Project Standards: CLAUDE.md
+          You are acting as a Research Specialist with the tools and constraints
+          defined in that file.
 
-    Investigation:
-    1. Codebase Analysis
-       - Search for existing implementations
-       - Identify patterns and conventions
-       - Note relevant file locations
+          Research Task: [Aspect] investigation
 
-    2. Best Practices Research
-       - Industry standards (2025)
-       - Framework-specific recommendations
-       - Trade-offs and considerations
+          Context:
+          - Topic: [User's topic]
+          - Focus Area: [Specific aspect to research]
+          - Project Standards: CLAUDE.md
 
-    Output: Max 150-word summary with:
-    - Key findings
-    - Existing patterns
-    - Recommendations
-    - File references
+          Investigation:
+          1. Codebase Analysis
+             - Search for existing implementations
+             - Identify patterns and conventions
+             - Note relevant file locations
+
+          2. Best Practices Research
+             - Industry standards (2025)
+             - Framework-specific recommendations
+             - Trade-offs and considerations
+
+          Output: Max 150-word summary with:
+          - Key findings
+          - Existing patterns
+          - Recommendations
+          - File references
   "
 }
 ```

@@ -290,6 +290,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
 
       # PDF and Document Tools
       zotero               # Reference management software
+      typst                # Typesetting language for generating PDFs
       texlive.combined.scheme-full  # Complete TeX Live distribution for document preparation
       texlab               # Language server for LaTeX
       libsForQt5.okular    # Universal document viewer

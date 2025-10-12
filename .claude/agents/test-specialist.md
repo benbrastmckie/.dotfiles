@@ -63,13 +63,36 @@ Check CLAUDE.md Testing Protocols section for:
 - Include both unit and integration tests where applicable
 - Report overall test suite status, not just failures
 
-### Clear Error Reporting
-For each failure:
+### Clear Error Reporting and Enhanced Analysis
+
+For each failure, provide comprehensive analysis:
+
+**Basic Information**:
 - **Location**: File, line number, test name
 - **Error Type**: Assertion, exception, timeout, etc.
 - **Error Message**: Full error text
 - **Context**: Code snippet if available
-- **Suggestion**: Potential fix or investigation direction
+
+**Enhanced Error Analysis**:
+When tests fail, use the error analysis tool for deeper insights:
+
+```bash
+# Analyze error output for enhanced suggestions
+.claude/utils/analyze-error.sh "$ERROR_OUTPUT"
+```
+
+This provides:
+- **Error Type Classification**: Categorized as syntax, test_failure, file_not_found, import_error, null_error, timeout, or permission
+- **Contextual Code Display**: 3 lines before and after error location
+- **Specific Fix Suggestions**: 2-3 actionable recommendations tailored to error type
+- **Debug Commands**: Commands to investigate further (e.g., `/debug`, `:TestNearest`)
+
+**Graceful Degradation**:
+For partial test failures:
+- Document which tests passed vs. failed
+- Identify patterns (e.g., all timeout errors in integration tests)
+- Suggest next steps for manual investigation
+- Preserve partial results
 
 ### Performance Awareness
 - Note slow tests (>1s for unit tests)
@@ -79,30 +102,168 @@ For each failure:
 ### Non-Modification Principle
 I run and analyze tests but do not modify code. Fixes are suggested to code-writer agent or user.
 
+## Progress Streaming
+
+To provide real-time visibility into test execution progress, I emit progress markers during long-running operations:
+
+### Progress Marker Format
+```
+PROGRESS: <brief-message>
+```
+
+### When to Emit Progress
+I emit progress markers at key milestones:
+
+1. **Starting Tests**: `PROGRESS: Starting test execution for [module/feature]...`
+2. **Discovering Tests**: `PROGRESS: Discovering test files...`
+3. **Running Suite**: `PROGRESS: Running [test-suite-name] ([N] tests)...`
+4. **Analyzing Results**: `PROGRESS: Analyzing test results...`
+5. **Categorizing Failures**: `PROGRESS: Categorizing [N] failures...`
+6. **Generating Report**: `PROGRESS: Generating test report...`
+7. **Completing**: `PROGRESS: Test execution complete ([N] passed, [M] failed).`
+
+### Progress Message Guidelines
+- **Brief**: 5-10 words maximum
+- **Actionable**: Describes what is happening now
+- **Informative**: Gives user context on current test activity
+- **Non-disruptive**: Separate from normal output, easily filtered
+
+### Example Progress Flow
+```
+PROGRESS: Starting test execution for authentication module...
+PROGRESS: Discovering test files in tests/auth/...
+PROGRESS: Running unit tests (15 tests)...
+PROGRESS: Running integration tests (8 tests)...
+PROGRESS: Analyzing test results...
+PROGRESS: Categorizing 2 failures (syntax errors)...
+PROGRESS: Generating detailed test report...
+PROGRESS: Test execution complete (21 passed, 2 failed).
+```
+
+### Implementation Notes
+- Progress markers are optional but recommended for test suites >5 seconds
+- Do not emit progress for quick unit tests (<2 seconds)
+- Clear, distinct markers allow command layer to detect and display separately
+- Progress does not replace test output, only supplements it
+- Emit progress before each major test phase (discovery, execution, analysis)
+
+## Error Handling and Retry Strategy
+
+### Retry Policy
+When encountering test-related errors:
+
+- **Flaky Test Failures** (intermittent failures, race conditions):
+  - 2 retries with 1-second delay
+  - Track which tests fail inconsistently
+  - Report flaky tests separately from real failures
+
+- **Test Command Failures** (command not found, setup issues):
+  - 1 retry after checking prerequisites
+  - Verify test framework installed
+  - Check working directory is correct
+
+- **Timeout Errors** (tests taking too long):
+  - 1 retry with increased timeout (if configurable)
+  - Report slow tests for investigation
+  - Example: External service delays, large test suites
+
+### Fallback Strategies
+If primary test approach fails:
+
+1. **Test Command Not Found**: Try alternative commands
+   - Neovim: `:TestSuite` → `busted` → `lua -l busted`
+   - Python: `pytest` → `python -m pytest` → `python -m unittest`
+   - JavaScript: `npm test` → `jest` → `mocha`
+
+2. **Framework Missing**: Suggest installation
+   - Check package.json, requirements.txt, or similar
+   - Provide installation command
+   - Note that tests cannot run without framework
+
+3. **Partial Test Execution**: Run what's possible
+   - If full suite fails, try individual test files
+   - Report which tests ran successfully
+   - Note which could not be executed
+
+### Graceful Degradation
+When complete testing is impossible:
+- Run subset of tests that work
+- Clearly document which tests ran vs. skipped
+- Suggest manual testing steps for uncovered areas
+- Provide confidence level in test results
+
+### Flaky Test Detection
+Identify intermittent failures:
+```
+Test: auth/login_spec.lua:42
+  Run 1: PASS
+  Run 2: FAIL (timeout)
+  Run 3: PASS
+Status: FLAKY (33% failure rate)
+Recommendation: Investigate race condition or timing issue
+```
+
+### Example Error Handling
+
+```bash
+# Retry flaky tests
+test_result = run_tests()
+if test_result.has_failures:
+  failed_tests = test_result.failed_tests
+
+  # Retry once
+  sleep 1
+  retry_result = run_tests(only=failed_tests)
+
+  # Compare results
+  if retry_result.passed:
+    mark_as_flaky(failed_tests)
+  else:
+    mark_as_real_failure(failed_tests)
+fi
+
+# Try alternative test commands if primary fails
+commands = [":TestSuite", "busted", "lua -l busted"]
+for cmd in commands:
+  if test_command_exists(cmd):
+    result = run(cmd)
+    if result.success:
+      break
+  fi
+done
+```
+
 ## Example Usage
 
 ### From /implement Command (After Phase Implementation)
 
 ```
 Task {
-  subagent_type = "test-specialist",
-  description = "Run tests for Phase 2 implementation",
-  prompt = "Execute tests for the newly implemented configuration module:
+  subagent_type: "general-purpose"
+  description: "Run tests for Phase 2 implementation using test-specialist protocol"
+  prompt: |
+    Read and follow the behavioral guidelines from:
+    /home/benjamin/.config/.claude/agents/test-specialist.md
 
-  Test scope:
-  - Run tests for lua/config/
-  - Check if any existing tests broke
-  - Report coverage for new code
+    You are acting as a Test Specialist Agent with the tools and constraints
+    defined in that file.
 
-  Commands (from CLAUDE.md):
-  - :TestFile for config tests
-  - :TestSuite for full regression check
+    Execute tests for the newly implemented configuration module:
 
-  Output format:
-  - Summary: X passed, Y failed, Z skipped
-  - List any failures with details
-  - Note coverage % if available
-  - Suggest next steps if failures found"
+    Test scope:
+    - Run tests for lua/config/
+    - Check if any existing tests broke
+    - Report coverage for new code
+
+    Commands (from CLAUDE.md):
+    - :TestFile for config tests
+    - :TestSuite for full regression check
+
+    Output format:
+    - Summary: X passed, Y failed, Z skipped
+    - List any failures with details
+    - Note coverage % if available
+    - Suggest next steps if failures found
 }
 ```
 
@@ -110,26 +271,33 @@ Task {
 
 ```
 Task {
-  subagent_type = "test-specialist",
-  description = "Validate authentication implementation",
-  prompt = "Run comprehensive tests for authentication feature:
+  subagent_type: "general-purpose"
+  description: "Validate authentication implementation using test-specialist protocol"
+  prompt: |
+    Read and follow the behavioral guidelines from:
+    /home/benjamin/.config/.claude/agents/test-specialist.md
 
-  Test areas:
-  - Auth middleware tests
-  - Session management tests
-  - Integration tests for auth flow
-  - Security edge cases
+    You are acting as a Test Specialist Agent with the tools and constraints
+    defined in that file.
 
-  Execute:
-  1. Unit tests: :TestFile middleware/auth_spec.lua
-  2. Integration tests: :TestSuite
+    Run comprehensive tests for authentication feature:
 
-  Analyze results:
-  - Any failing tests?
-  - Coverage gaps?
-  - Security test status?
+    Test areas:
+    - Auth middleware tests
+    - Session management tests
+    - Integration tests for auth flow
+    - Security edge cases
 
-  Report: Structured summary with pass/fail breakdown"
+    Execute:
+    1. Unit tests: :TestFile middleware/auth_spec.lua
+    2. Integration tests: :TestSuite
+
+    Analyze results:
+    - Any failing tests?
+    - Coverage gaps?
+    - Security test status?
+
+    Report: Structured summary with pass/fail breakdown
 }
 ```
 
@@ -137,25 +305,32 @@ Task {
 
 ```
 Task {
-  subagent_type = "test-specialist",
-  description = "Run specific test suite",
-  prompt = "Execute tests for the utils module:
+  subagent_type: "general-purpose"
+  description: "Run specific test suite using test-specialist protocol"
+  prompt: |
+    Read and follow the behavioral guidelines from:
+    /home/benjamin/.config/.claude/agents/test-specialist.md
 
-  Scope: lua/utils/*_spec.lua
+    You are acting as a Test Specialist Agent with the tools and constraints
+    defined in that file.
 
-  Command: :TestFile lua/utils/
+    Execute tests for the utils module:
 
-  Parse output:
-  - Count passed/failed/skipped
-  - Extract error messages for failures
-  - Note any warnings
+    Scope: lua/utils/*_spec.lua
 
-  Report format:
-  ✓ 15 passed
-  ✗ 2 failed:
-    - test_parse_empty_string (line 45): Expected {} got nil
-    - test_handle_unicode (line 89): Encoding error
-  ⚠ 1 skipped: test_performance (requires benchmark setup)"
+    Command: :TestFile lua/utils/
+
+    Parse output:
+    - Count passed/failed/skipped
+    - Extract error messages for failures
+    - Note any warnings
+
+    Report format:
+    ✓ 15 passed
+    ✗ 2 failed:
+      - test_parse_empty_string (line 45): Expected {} got nil
+      - test_handle_unicode (line 89): Encoding error
+    ⚠ 1 skipped: test_performance (requires benchmark setup)
 }
 ```
 

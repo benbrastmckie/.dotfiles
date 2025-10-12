@@ -14,6 +14,15 @@ I'll coordinate multiple specialized subagents through a complete development wo
 
 Let me first analyze your workflow description to identify the natural phases and requirements.
 
+## Shared Utilities Integration
+
+This command uses shared utility libraries for consistent workflow management:
+- **Checkpoint Management**: Uses `.claude/lib/checkpoint-utils.sh` for saving/restoring workflow state
+- **Artifact Registry**: Uses `.claude/lib/artifact-utils.sh` for tracking generated artifacts (reports, plans, summaries)
+- **Error Handling**: Uses `.claude/lib/error-utils.sh` for agent error recovery and fallback strategies
+
+These utilities ensure workflow state is preserved across interruptions and agent failures are handled gracefully.
+
 ### Step 1: Parse Workflow Description
 
 I'll extract:
@@ -48,6 +57,7 @@ workflow_state:
   workflow_type: "feature|refactor|debug|investigation"
   current_phase: "research|planning|implementation|debugging|documentation"
   completed_phases: []
+  project_name: ""  # Auto-generated from workflow description
 
 checkpoints:
   research_complete: null
@@ -57,12 +67,19 @@ checkpoints:
   workflow_complete: null
 
 context_preservation:
-  research_summary: ""  # Max 200 words
+  research_summary: ""  # Max 200 words (deprecated in favor of artifact_registry)
   plan_path: ""
   implementation_status:
     tests_passing: false
     files_modified: []
   documentation_paths: []
+
+artifact_registry:
+  # Maps artifact IDs to file paths
+  # Example:
+  # research_001: "specs/artifacts/auth_system/existing_patterns.md"
+  # research_002: "specs/artifacts/auth_system/best_practices.md"
+  # research_003: "specs/artifacts/auth_system/alternatives.md"
 
 error_history: []
 performance_metrics:
@@ -89,17 +106,53 @@ I'll analyze the workflow description to extract 2-4 focused research topics:
 Simple Workflows (skip research):
   - Keywords: "fix", "update", "small change"
   - Action: Skip directly to planning phase
+  - Thinking Mode: None (standard processing)
 
 Medium Workflows (focused research):
   - Keywords: "add", "improve", "refactor"
   - Topics: 2-3 focused areas
   - Example: existing patterns + best practices
+  - Thinking Mode: "think" (moderate complexity)
 
 Complex Workflows (comprehensive research):
   - Keywords: "implement", "redesign", "architecture"
   - Topics: 3-4 comprehensive areas
   - Example: patterns + practices + alternatives + constraints
+  - Thinking Mode: "think hard" (high complexity)
+
+Critical Workflows (system-wide impact):
+  - Keywords: "security", "breaking change", "core refactor"
+  - Topics: 4+ comprehensive areas
+  - Thinking Mode: "think harder" (critical decisions)
 ```
+
+#### Step 1.5: Determine Thinking Mode
+
+Analyze workflow complexity to set appropriate thinking mode for agents:
+
+**Complexity Indicators**:
+- **Simple** (score 0-3): Direct implementation, well-known patterns, single file changes
+- **Medium** (score 4-6): Multiple components, some design decisions, moderate scope
+- **Complex** (score 7-9): Architecture changes, novel solutions, large scope
+- **Critical** (score 10+): System-wide impact, security concerns, breaking changes
+
+**Scoring Algorithm**:
+```
+score = 0
+score += count_keywords(["implement", "architecture", "redesign"]) * 3
+score += count_keywords(["add", "improve", "refactor"]) * 2
+score += count_keywords(["security", "breaking", "core"]) * 4
+score += estimated_file_count / 5
+score += (research_topics_needed - 1) * 2
+```
+
+**Thinking Mode Assignment**:
+- score 0-3: No special thinking mode
+- score 4-6: "think"
+- score 7-9: "think hard"
+- score 10+: "think harder"
+
+This thinking mode will be applied to all agent prompts in this workflow.
 
 #### Step 2: Launch Parallel Research Agents
 
@@ -107,23 +160,41 @@ For each identified research topic, I'll create a focused research task and invo
 
 **Parallel Execution Pattern**:
 ```markdown
-Use Task tool to invoke multiple research-specialist subagents simultaneously:
+Use Task tool to invoke multiple general-purpose agents with research-specialist behavior simultaneously:
 
 Agent 1 - Codebase Patterns:
-  subagent_type: research-specialist
-  Prompt: "Search the codebase for existing implementations of [feature/concept].
+  subagent_type: general-purpose
+  Prompt: "Read and follow the behavioral guidelines from:
+          /home/benjamin/.config/.claude/agents/research-specialist.md
+
+          You are acting as a Research Specialist with the tools and constraints
+          defined in that file.
+
+          Search the codebase for existing implementations of [feature/concept].
           Analyze patterns, architectures, and conventions currently in use.
           Summarize findings in max 150 words."
 
 Agent 2 - Best Practices Research:
-  subagent_type: research-specialist
-  Prompt: "Research industry best practices for [technology/approach].
+  subagent_type: general-purpose
+  Prompt: "Read and follow the behavioral guidelines from:
+          /home/benjamin/.config/.claude/agents/research-specialist.md
+
+          You are acting as a Research Specialist with the tools and constraints
+          defined in that file.
+
+          Research industry best practices for [technology/approach].
           Use web search to find current standards (2025).
           Summarize key recommendations in max 150 words."
 
 Agent 3 - Alternative Approaches:
-  subagent_type: research-specialist
-  Prompt: "Investigate alternative approaches to [problem/feature].
+  subagent_type: general-purpose
+  Prompt: "Read and follow the behavioral guidelines from:
+          /home/benjamin/.config/.claude/agents/research-specialist.md
+
+          You are acting as a Research Specialist with the tools and constraints
+          defined in that file.
+
+          Investigate alternative approaches to [problem/feature].
           Compare trade-offs, complexity, and fit with project.
           Summarize options in max 150 words."
 ```
@@ -138,12 +209,15 @@ Agent 3 - Alternative Approaches:
 #### Step 3: Research Agent Prompt Template
 
 ```markdown
+**Thinking Mode**: [think|think hard|think harder] (based on workflow complexity)
+
 # Research Task: [Specific Topic]
 
 ## Context
 - **Workflow**: [User's original request - brief 1 line summary]
 - **Research Focus**: [This agent's specific investigation area]
 - **Project Standards**: Reference CLAUDE.md at /home/benjamin/.config/CLAUDE.md
+- **Complexity Level**: [Simple|Medium|Complex|Critical]
 
 ## Objective
 Investigate [specific topic] to inform the planning and implementation phases of this workflow.
@@ -160,8 +234,16 @@ Investigate [specific topic] to inform the planning and implementation phases of
 - **Documentation Review**: Read relevant files and docs
 - **Web Research**: Use WebSearch for industry standards (if applicable)
 - **Analysis**: Evaluate findings for relevance and applicability
+- **Specs Location**: Check `.claude/SPECS.md` for registered specs directories, auto-detect if needed
 
 ## Expected Output
+
+**Note**: When creating research reports, follow the SPECS.md registration process:
+1. Detect relevant project directory
+2. Check `.claude/SPECS.md` for registered specs directory
+3. Use registered location or auto-detect (project-dir/specs/)
+4. Register in SPECS.md if new
+5. Include "Specs Directory" in report metadata
 
 Provide a concise summary (max 150 words) structured as:
 
@@ -183,46 +265,112 @@ Provide a concise summary (max 150 words) structured as:
 - If topic is unclear: Make reasonable assumptions and document them
 ```
 
-#### Step 4: Aggregate and Synthesize Research (Minimal Context)
+#### Step 3.5: Generate Project Name for Artifacts
+
+Before launching research agents, generate a project name for artifact organization:
+
+**Project Name Generation**:
+```
+1. Extract key terms from workflow description
+2. Remove common words (the, a, implement, add, etc.)
+3. Join remaining words with underscores
+4. Convert to lowercase
+5. Limit to 3-4 words max
+
+Examples:
+- "Implement user authentication system" → "user_authentication"
+- "Add payment processing flow" → "payment_processing"
+- "Refactor session management" → "session_management"
+```
+
+Store in workflow_state.project_name for artifact path generation.
+
+**Research Agent Monitoring**:
+- **Progress Streaming**: Research agents emit `PROGRESS: <message>` markers during execution
+  - Examples: `PROGRESS: Searching codebase for auth patterns...`, `PROGRESS: Found 15 files, analyzing...`
+  - Display progress updates to user in real-time
+- Monitor parallel agent execution
+- Collect artifact IDs as agents complete
+
+#### Step 4: Store Research as Artifacts and Create References
+
+After each research agent completes:
+
+**Artifact Storage Process**:
+1. **Generate Artifact Path**:
+   ```
+   artifact_path = f"specs/artifacts/{project_name}/{artifact_name}.md"
+   # Example: "specs/artifacts/user_auth/existing_patterns.md"
+   ```
+
+2. **Save Research Output**:
+   - Create project directory if needed: `specs/artifacts/{project_name}/`
+   - Write research findings to artifact file
+   - Include metadata header (date, agent, workflow, focus)
+
+3. **Register Artifact**:
+   - Add to artifact_registry with descriptive ID
+   - Map ID to file path
+   - Example: `research_001: "specs/artifacts/user_auth/existing_patterns.md"`
+
+4. **Return Artifact Reference**:
+   - Instead of full 150-word summary
+   - Return: "Artifact ID: research_001, Path: {path}, Topic: {topic}"
+
+**Artifact File Format**:
+```markdown
+# {Research Topic}
+
+## Metadata
+- **Created**: 2025-10-03
+- **Workflow**: {workflow_description}
+- **Agent**: research-specialist
+- **Focus**: {specific_research_topic}
+
+## Findings
+{Research findings - full 150 words}
+
+## Recommendations
+{Key recommendations}
+```
+
+#### Step 5: Aggregate Artifact References (Lightweight Context)
 
 After all parallel research agents complete:
 
 **Aggregation Process**:
-1. **Collect Results**: Gather summaries from all research agents (each ≤150 words)
-2. **Synthesize Findings**: Create unified summary combining key insights
-3. **Minimize Context**: Reduce to max 200 words total
-4. **Extract Actionables**: Identify specific recommendations for planning
+1. **Collect Artifact References**: Gather artifact IDs and paths (not full content)
+2. **Build Reference List**: Create list of available artifacts for next phase
+3. **Minimal Context**: ~50 words of artifact metadata vs 200+ words of full summaries
+4. **Extract Actionables**: Note which artifacts contain key recommendations
 
-**Synthesis Template**:
+**Artifact Reference Template** (replaces full summary):
 ```markdown
-Research Summary (max 200 words):
+Research Artifacts Available:
 
-Existing Patterns:
-- [Key pattern 1 from codebase research]
-- [Key pattern 2 from codebase research]
+1. **research_001** - Existing Patterns
+   - Path: specs/artifacts/{project_name}/existing_patterns.md
+   - Focus: Codebase analysis of current implementations
+   - Key Finding: [One-sentence summary]
 
-Best Practices:
-- [Key recommendation 1 from best practices research]
-- [Key recommendation 2 from best practices research]
+2. **research_002** - Best Practices
+   - Path: specs/artifacts/{project_name}/best_practices.md
+   - Focus: Industry standards and recommendations (2025)
+   - Key Finding: [One-sentence summary]
 
-Recommended Approach:
-- [Synthesized recommendation based on all research]
-- [Alternative if primary approach has constraints]
+3. **research_003** - Alternative Approaches
+   - Path: specs/artifacts/{project_name}/alternatives.md
+   - Focus: Trade-offs and implementation options
+   - Key Finding: [One-sentence summary]
 
-Key Constraints:
-- [Important limitation 1]
-- [Important limitation 2]
-
-Actionable Insights:
-- [Specific insight 1 for planning]
-- [Specific insight 2 for planning]
+Total Context: ~50 words (vs 200+ for full summaries)
 ```
 
-**Context Minimization Strategy**:
-- Store ONLY the synthesized summary, not individual research outputs
-- Focus on actionable insights, not exhaustive details
-- Reference specific files/patterns by path, not content
-- Keep orchestrator context <30% of normal usage
+**Context Reduction Achieved**:
+- **Before**: 200+ words of full research summaries passed to plan-architect
+- **After**: ~50 words of artifact references + selective reading by agent
+- **Reduction**: 60-80% context savings
+- **Benefits**: Full research preserved in artifacts, agent reads only what's needed
 
 #### Step 5: Save Research Checkpoint
 
@@ -247,18 +395,18 @@ checkpoint_research_complete:
 - Mark research phase as completed
 - Enable recovery if workflow interrupts before planning
 
-#### Step 6: Context Preservation Validation
+#### Step 6: Artifact Registry Validation
 
 Before proceeding to planning:
 
 **Validation Checks**:
-- [ ] Research summary ≤200 words
-- [ ] No full research outputs stored in orchestrator context
-- [ ] Only file paths referenced, not file contents
-- [ ] Actionable insights clearly identified
+- [ ] All research artifacts saved to `specs/artifacts/{project_name}/`
+- [ ] Artifact registry contains all artifact IDs and paths
+- [ ] Artifact reference list ≤60 words (not full content)
+- [ ] Each artifact has metadata header
 - [ ] Checkpoint saved successfully
 
-**If validation fails**: Compress summary further or escalate to user
+**If validation fails**: Retry artifact save or escalate to user
 
 #### Research Phase Execution Example
 
@@ -304,9 +452,11 @@ Extract necessary context from previous phases:
 **From Research Phase** (if completed):
 ```yaml
 research_context:
-  summary: "[200 word research summary]"
-  key_insights: "[3-5 actionable insights]"
-  recommended_approach: "[Synthesized recommendation]"
+  artifacts:
+    research_001: "specs/artifacts/{project_name}/existing_patterns.md"
+    research_002: "specs/artifacts/{project_name}/best_practices.md"
+    research_003: "specs/artifacts/{project_name}/alternatives.md"
+  artifact_summary: "[50-word reference list with key findings]"
 ```
 
 **From User Request**:
@@ -318,9 +468,10 @@ user_context:
 ```
 
 **Context Injection Strategy**:
-- Provide research summary if available
+- Provide artifact reference list (not full summaries)
 - Include user's original request for context
 - Reference CLAUDE.md for project standards
+- Agent uses Read tool to selectively access artifacts
 - NO orchestration details or phase routing logic
 
 #### Step 2: Generate Planning Agent Prompt
@@ -333,9 +484,28 @@ user_context:
 ### User Request
 [Original workflow description]
 
-### Research Findings
-[If research phase completed, include 200-word summary]
-[If no research, state: "Direct implementation - no prior research"]
+### Research Artifacts
+[If research phase completed, provide artifact references:]
+
+Available Research Artifacts:
+1. **research_001** - Existing Patterns
+   - Path: specs/artifacts/{project_name}/existing_patterns.md
+   - Focus: Current implementation analysis
+   - Use Read tool to access full findings
+
+2. **research_002** - Best Practices
+   - Path: specs/artifacts/{project_name}/best_practices.md
+   - Focus: Industry standards (2025)
+   - Use Read tool to access recommendations
+
+3. **research_003** - Alternative Approaches
+   - Path: specs/artifacts/{project_name}/alternatives.md
+   - Focus: Implementation options and trade-offs
+   - Use Read tool to access detailed comparisons
+
+**Instructions**: Read relevant artifacts selectively based on planning needs. Not all artifacts may be needed for the plan.
+
+[If no research: "Direct implementation - no prior research artifacts"]
 
 ### Project Standards
 Reference standards at: /home/benjamin/.config/CLAUDE.md
@@ -386,6 +556,10 @@ Recommended approach: [From research synthesis]
 **Primary Output**: Path to generated implementation plan
 - Format: `specs/plans/NNN_feature_name.md`
 - Location: Most appropriate directory in project structure
+- **Note**: The /plan command will automatically:
+  - Read specs directory from research reports (if provided)
+  - Check/register in `.claude/SPECS.md`
+  - Include "Specs Directory" in plan metadata
 
 **Secondary Output**: Brief summary of plan
 - Number of phases
@@ -409,9 +583,15 @@ Recommended approach: [From research synthesis]
 
 **Task Tool Invocation**:
 ```yaml
-subagent_type: plan-architect
-description: "Create implementation plan for [feature]"
-prompt: "[Generated planning prompt from Step 2]"
+subagent_type: general-purpose
+description: "Create implementation plan for [feature] using plan-architect protocol"
+prompt: "Read and follow the behavioral guidelines from:
+         /home/benjamin/.config/.claude/agents/plan-architect.md
+
+         You are acting as a Plan Architect with the tools and constraints
+         defined in that file.
+
+         [Generated planning prompt from Step 2]"
 ```
 
 **Execution Details**:
@@ -419,6 +599,13 @@ prompt: "[Generated planning prompt from Step 2]"
 - Full access to project files for analysis
 - Can invoke /plan slash command
 - Returns plan file path and summary
+
+**Monitoring**:
+- **Progress Streaming**: Watch for `PROGRESS: <message>` markers in agent output
+  - Examples: `PROGRESS: Analyzing requirements...`, `PROGRESS: Designing 4 phases...`
+  - Display progress updates to user in real-time
+- Track planning progress
+- Watch for plan file creation
 
 #### Step 4: Extract Plan Path and Validation
 
@@ -602,13 +789,22 @@ For each phase:
 
 **Task Tool Invocation**:
 ```yaml
-subagent_type: code-writer
-description: "Execute implementation plan [plan_number]"
-prompt: "[Generated implementation prompt from Step 2]"
+subagent_type: general-purpose
+description: "Execute implementation plan [plan_number] using code-writer protocol"
+prompt: "Read and follow the behavioral guidelines from:
+         /home/benjamin/.config/.claude/agents/code-writer.md
+
+         You are acting as a Code Writer with the tools and constraints
+         defined in that file.
+
+         [Generated implementation prompt from Step 2]"
 timeout: 600000  # 10 minutes for complex implementations
 ```
 
 **Monitoring**:
+- **Progress Streaming**: Watch for `PROGRESS: <message>` markers in agent output
+  - Display progress updates to user in real-time
+  - Examples: `PROGRESS: Implementing login function...`, `PROGRESS: Running tests...`
 - Track implementation progress via agent updates
 - Watch for test failure signals
 - Monitor for error patterns
@@ -830,12 +1026,21 @@ Use the /debug command to perform root cause analysis:
 
 **Task Tool Invocation**:
 ```yaml
-subagent_type: debug-specialist
-description: "Debug test failures from Phase [N]"
-prompt: "[Generated debug prompt from Step 2]"
+subagent_type: general-purpose
+description: "Debug test failures from Phase [N] using debug-specialist protocol"
+prompt: "Read and follow the behavioral guidelines from:
+         /home/benjamin/.config/.claude/agents/debug-specialist.md
+
+         You are acting as a Debug Specialist with the tools and constraints
+         defined in that file.
+
+         [Generated debug prompt from Step 2]"
 ```
 
 **Monitoring**:
+- **Progress Streaming**: Watch for `PROGRESS: <message>` markers in agent output
+  - Display progress updates to user in real-time
+  - Examples: `PROGRESS: Analyzing error logs...`, `PROGRESS: Identifying root cause...`
 - Track debug progress
 - Watch for root cause identification
 - Monitor for escalation signals
@@ -929,9 +1134,15 @@ After applying ALL fixes:
 
 **Task Tool Invocation**:
 ```yaml
-subagent_type: code-writer
-description: "Apply fixes for test failures"
-prompt: "[Generated fix prompt]"
+subagent_type: general-purpose
+description: "Apply fixes for test failures using code-writer protocol"
+prompt: "Read and follow the behavioral guidelines from:
+         /home/benjamin/.config/.claude/agents/code-writer.md
+
+         You are acting as a Code Writer with the tools and constraints
+         defined in that file.
+
+         [Generated fix prompt]"
 ```
 
 #### Step 6: Evaluate Fix Results
@@ -1151,6 +1362,12 @@ and generate a comprehensive workflow summary.
 
 ## Requirements
 
+### Specs Directory Location
+- Read the implementation plan at [plan_path]
+- Extract "Specs Directory" from plan metadata
+- Create workflow summary in: [specs-dir]/summaries/NNN_workflow_summary.md
+- Update `.claude/SPECS.md` registry: increment Summaries count
+
 ### Documentation Updates
 Use the /document command to update affected documentation:
 
@@ -1164,12 +1381,45 @@ The documentation agent will:
 - Ensure consistency across all documentation
 - Follow project documentation standards
 
-### Cross-Referencing
-Ensure proper cross-references between:
-- Research reports → Implementation plan
-- Implementation plan → Workflow summary
-- Modified code → Documentation updates
-- All specs documents (reports, plans, summaries)
+### Cross-Referencing and Bidirectional Linking
+Ensure proper bidirectional cross-references between all workflow artifacts:
+
+**Step 1: After Creating Workflow Summary**
+- Summary already links to plan and reports (forward references)
+- Now add backward references from plan and reports to summary
+
+**Step 2: Update Implementation Plan**
+- Use Edit tool to append "## Implementation Summary" section to plan file:
+  ```markdown
+  ## Implementation Summary
+  - **Status**: Complete
+  - **Date**: [YYYY-MM-DD]
+  - **Summary**: [link to specs/summaries/NNN_workflow_summary.md]
+  ```
+- Place at end of plan file
+
+**Step 3: Update Research Reports (if any)**
+- For each research report referenced in the plan:
+- Use Edit tool to append "## Implementation Status" section:
+  ```markdown
+  ## Implementation Status
+  - **Status**: Implemented
+  - **Date**: [YYYY-MM-DD]
+  - **Plan**: [link to specs/plans/NNN.md]
+  - **Summary**: [link to specs/summaries/NNN_workflow_summary.md]
+  ```
+- Place at end of report file
+
+**Step 4: Verify Bidirectional Links**
+- Use Read tool to verify each file was updated
+- Check that plan has "Implementation Summary" section
+- Check that each report has "Implementation Status" section
+- If verification fails: Log warning but continue
+
+**Edge Cases:**
+- If plan/report file not writable: Log warning, continue
+- If file already has implementation section: Update existing section using Edit tool, don't duplicate
+- If multiple summaries reference same plan: Append to list in plan file
 
 ### Documentation Standards
 - Follow CommonMark markdown specification
@@ -1201,12 +1451,21 @@ Ensure proper cross-references between:
 
 **Task Tool Invocation**:
 ```yaml
-subagent_type: doc-writer
-description: "Update documentation for workflow"
-prompt: "[Generated documentation prompt from Step 2]"
+subagent_type: general-purpose
+description: "Update documentation for workflow using doc-writer protocol"
+prompt: "Read and follow the behavioral guidelines from:
+         /home/benjamin/.config/.claude/agents/doc-writer.md
+
+         You are acting as a Doc Writer with the tools and constraints
+         defined in that file.
+
+         [Generated documentation prompt from Step 2]"
 ```
 
 **Monitoring**:
+- **Progress Streaming**: Watch for `PROGRESS: <message>` markers in agent output
+  - Display progress updates to user in real-time
+  - Examples: `PROGRESS: Updating README.md...`, `PROGRESS: Adding cross-references...`
 - Track documentation updates
 - Verify cross-referencing
 - Watch for completion signal
@@ -1247,6 +1506,8 @@ summary_location:
 
 ## Metadata
 - **Date Completed**: [YYYY-MM-DD]
+- **Specs Directory**: [path/to/specs/] (from plan metadata)
+- **Summary Number**: [NNN] (matches plan number)
 - **Workflow Type**: [feature|refactor|debug|investigation]
 - **Original Request**: [User's workflow description]
 - **Total Duration**: [HH:MM:SS]
@@ -2045,5 +2306,76 @@ This command uses specialized agents for each workflow phase:
 - **Parallel Execution**: Research-specialist agents run concurrently
 - **Context Isolation**: Agents receive only relevant context for their phase
 - **Clear Responsibilities**: No ambiguity about which agent handles what
+
+## Checkpoint Detection and Resume
+
+Before starting the workflow, I'll check for existing checkpoints that might indicate an interrupted workflow.
+
+### Step 1: Check for Existing Checkpoint
+
+```bash
+# Load most recent orchestrate checkpoint
+CHECKPOINT=$(.claude/lib/load-checkpoint.sh orchestrate 2>/dev/null || echo "")
+```
+
+### Step 2: Interactive Resume Prompt (if checkpoint found)
+
+If a checkpoint exists, I'll present interactive options:
+
+```
+Found existing checkpoint for orchestrate workflow
+Project: [project_name]
+Created: [created_at] ([age] ago)
+Progress: Phase [current_phase] of [total_phases] completed
+Status: [status]
+
+Options:
+  (r)esume - Continue from Phase [current_phase + 1]
+  (s)tart fresh - Delete checkpoint and restart workflow
+  (v)iew details - Show checkpoint contents
+  (d)elete - Remove checkpoint without starting
+
+Choice [r/s/v/d]:
+```
+
+### Step 3: Resume Workflow State (if user chooses resume)
+
+If user selects resume:
+1. Load `workflow_state` from checkpoint
+2. Restore `project_name`, `artifact_registry`, `completed_phases`
+3. Skip to next incomplete phase
+4. Continue workflow from that point
+
+### Step 4: Save Checkpoints at Key Milestones
+
+Throughout workflow execution, save checkpoints after each major phase:
+
+```bash
+# After research phase
+.claude/lib/save-checkpoint.sh orchestrate "$PROJECT_NAME" "$WORKFLOW_STATE_JSON"
+
+# After planning phase
+.claude/lib/save-checkpoint.sh orchestrate "$PROJECT_NAME" "$UPDATED_STATE_JSON"
+
+# After implementation phase
+.claude/lib/save-checkpoint.sh orchestrate "$PROJECT_NAME" "$UPDATED_STATE_JSON"
+
+# After debugging (if needed)
+.claude/lib/save-checkpoint.sh orchestrate "$PROJECT_NAME" "$UPDATED_STATE_JSON"
+```
+
+### Step 5: Cleanup on Completion
+
+On successful workflow completion:
+```bash
+# Delete checkpoint file
+rm .claude/data/checkpoints/orchestrate_${PROJECT_NAME}_*.json
+```
+
+On workflow failure:
+```bash
+# Archive checkpoint to failed/ directory
+mv .claude/data/checkpoints/orchestrate_${PROJECT_NAME}_*.json .claude/data/checkpoints/failed/
+```
 
 Let me begin orchestrating your workflow based on the description provided.

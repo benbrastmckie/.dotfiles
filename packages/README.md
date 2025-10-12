@@ -15,6 +15,32 @@ NPX wrapper for Claude Code that automatically uses the latest version from NPM 
 - 86% reduction in code complexity compared to traditional Nix packaging
 - Offline support via NPX caching
 
+### marker-pdf.nix
+UV wrapper for marker-pdf that automatically uses the latest version from PyPI. This zero-maintenance approach eliminates the need for manual version updates while providing PDF to markdown conversion capabilities.
+
+**Implementation**: Uses `writeShellScriptBin` with `uv run` to execute marker-pdf in an isolated environment
+
+**Benefits**:
+- Automatic updates to latest version via PyPI
+- Zero maintenance required
+- Isolated environment prevents dependency conflicts
+- Handles complex dependencies (PyTorch, etc.) automatically
+
+**Usage**: Available as `marker_pdf` command after home-manager rebuild.
+
+### markitdown.nix
+UV wrapper for markitdown that automatically uses the latest version from PyPI. This zero-maintenance approach eliminates the need for manual version updates while providing document to markdown conversion capabilities.
+
+**Implementation**: Uses `writeShellScriptBin` with `uv run` to execute markitdown in an isolated environment
+
+**Benefits**:
+- Automatic updates to latest version via PyPI
+- Zero maintenance required
+- Isolated environment prevents dependency conflicts
+- Handles PDF, DOCX, PPTX, and other document formats
+
+**Usage**: Available as `markitdown` command after home-manager rebuild.
+
 ### python-cvc5.nix
 Custom Python package for CVC5 v1.3.1 SMT solver bindings. Nixpkgs does not provide `python312Packages.cvc5`, so this package builds from the PyPI wheel.
 

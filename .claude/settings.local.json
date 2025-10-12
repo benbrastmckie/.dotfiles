@@ -3,9 +3,47 @@
     "allow": [
       "Bash(cat:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: add settings.local.json to Load All Artifacts sync\n\nExtended Load All Artifacts to include settings.local.json, ensuring\nhook registrations and other settings are copied to new projects.\n\nChanges:\n- Added settings.local.json to scan_directory_for_sync calls\n- Updated confirmation dialog to show settings sync count\n- Updated preview to display settings operations\n- Updated success notification to include settings count\n- Settings file synced to .claude/ root (no subdirectory)\n\nThis ensures that when users run Load All Artifacts in a new repo,\nthey get the complete setup including hook registrations for TTS,\nmetrics, and other functionality.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)",
+      "Bash(for:*)",
+      "Bash(do:*)",
+      "Bash(if:*)",
+      "Bash(then:*)",
+      "Bash(echo:*)",
+      "Bash(wc:*)",
+      "Bash(fi:*)",
+      "Bash(done:*)",
+      "Bash(test:*)",
+      "Bash(pytest:*)",
+      "Bash(PYTHONPATH=:*)",
+      "Read(//home/benjamin/Documents/Philosophy/Projects/Z3/nice_connectives/.claude/**)",
+      "WebFetch(domain:github.com)",
       "WebSearch",
-      "Bash(python3:*)"
+      "WebFetch(domain:neovim.io)",
+      "Bash(git reset:*)",
+      "SlashCommand(/plan:*)",
+      "SlashCommand(/implement nvim/specs/plans/028_project_specific_tts_toggle.md)",
+      "SlashCommand(/implement nvim/specs/plans/029_strengthen_buffer_persistence_autocmd.md)",
+      "SlashCommand(/document Enhanced buffer persistence for .claude/ directory files)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git log:*)",
+      "SlashCommand(/document Fixed buffer persistence root cause via claudecode pattern fix, bufferline timing fix, and simplified defensive autocmd)",
+      "WebFetch(domain:www.markdownguide.org)",
+      "Bash(git check-ignore:*)",
+      "SlashCommand(/implement nvim/specs/plans/031_filetype_aware_surround_configuration.md)",
+      "SlashCommand(/document Implemented filetype-aware nvim-surround: removed global LaTeX surrounds from surround.lua, added markdown-specific surrounds (bold **, italic *, code `, code blocks, links, strikethrough) to markdown.lua ftplugin. LaTeX surrounds now only in tex.lua via buffer_setup.)",
+      "SlashCommand(/report Comprehensive nvim configuration improvement opportunities: plugin quality, keybindings, performance, and code organization analysis)",
+      "SlashCommand(/implement .claude/specs/plans/023_advanced_capabilities.md)",
+      "Bash(/home/benjamin/.config/.claude/utils/parse-adaptive-plan.sh:*)",
+      "Bash(chmod:*)",
+      "Bash(bash:*)",
+      "Bash(grep:*)",
+      "Bash(export CLAUDE_PROJECT_DIR=\"/home/benjamin/.config\")",
+      "Bash(source:*)",
+      "Bash(get_plan_metadata \"specs/plans/027_system_optimization_refactor.md\")",
+      "SlashCommand(/expand-phase .claude/specs/plans/028_complete_system_optimization.md)",
+      "Bash(mkdir:*)",
+      "Bash(load_checkpoint \"test_consolidation\")",
+      "SlashCommand(/report Comprehensive cost-benefit analysis for incomplete .claude/ systems: template system, learning system, session restoration, plan wizard, and directory consolidation. For each system provide: completion cost (hours), removal cost (hours), integration complexity, ongoing maintenance burden, user value (actual vs potential), technical debt impact, and clear recommendation to complete, remove, or defer. Include implementation priorities and dependencies.)"
     ],
     "deny": [],
     "ask": []
@@ -26,22 +64,7 @@
         ]
       }
     ],
-    "SessionStart": [
-      {
-        "matcher": "startup|resume",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start-restore.sh"
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/tts-dispatcher.sh"
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
+    "Notification": [
       {
         "matcher": ".*",
         "hooks": [
@@ -58,18 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/tts-dispatcher.sh"
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/tts-dispatcher.sh"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-subagent-metrics.sh"
           }
         ]
       }

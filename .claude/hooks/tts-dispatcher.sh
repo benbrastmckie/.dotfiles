@@ -30,6 +30,33 @@
 set -eo pipefail
 
 # ============================================================================
+# Hook Input Parsing
+# ============================================================================
+
+# Read JSON input from stdin (Claude Code passes hook data as JSON)
+HOOK_INPUT=$(cat)
+
+# Parse hook event name and other fields from JSON
+# Uses jq if available, otherwise falls back to grep/sed
+if command -v jq &>/dev/null; then
+  HOOK_EVENT=$(echo "$HOOK_INPUT" | jq -r '.hook_event_name // "unknown"')
+  CLAUDE_COMMAND=$(echo "$HOOK_INPUT" | jq -r '.command // ""')
+  CLAUDE_STATUS=$(echo "$HOOK_INPUT" | jq -r '.status // "success"')
+  CLAUDE_PROJECT_DIR=$(echo "$HOOK_INPUT" | jq -r '.cwd // ""')
+  NOTIFICATION_MESSAGE=$(echo "$HOOK_INPUT" | jq -r '.message // ""')
+else
+  # Fallback parsing without jq
+  HOOK_EVENT=$(echo "$HOOK_INPUT" | grep -o '"hook_event_name"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*:.*"\([^"]*\)".*/\1/' || echo "unknown")
+  CLAUDE_COMMAND=$(echo "$HOOK_INPUT" | grep -o '"command"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*:.*"\([^"]*\)".*/\1/' || echo "")
+  CLAUDE_STATUS=$(echo "$HOOK_INPUT" | grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*:.*"\([^"]*\)".*/\1/' || echo "success")
+  CLAUDE_PROJECT_DIR=$(echo "$HOOK_INPUT" | grep -o '"cwd"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*:.*"\([^"]*\)".*/\1/' || echo "")
+  NOTIFICATION_MESSAGE=$(echo "$HOOK_INPUT" | grep -o '"message"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*:.*"\([^"]*\)".*/\1/' || echo "")
+fi
+
+# Export for use by message generation functions
+export HOOK_EVENT CLAUDE_COMMAND CLAUDE_STATUS CLAUDE_PROJECT_DIR NOTIFICATION_MESSAGE
+
+# ============================================================================
 # Configuration and Setup
 # ============================================================================
 
@@ -49,9 +76,18 @@ fi
 # Source configuration
 source "$CONFIG_FILE"
 
-# Debug: Log that hook was called
-mkdir -p "$CLAUDE_DIR/logs"
-echo "[$(date -Iseconds)] Hook called: HOOK_EVENT=${HOOK_EVENT:-unset} CLAUDE_COMMAND=${CLAUDE_COMMAND:-unset}" >> "$CLAUDE_DIR/logs/hook-debug.log"
+# Setup logging with fallback to temp directory
+LOG_DIR="$CLAUDE_DIR/data/logs"
+if [[ ! -d "$LOG_DIR" ]]; then
+  mkdir -p "$LOG_DIR" 2>/dev/null || {
+    # Fallback to temp if .claude/logs fails
+    LOG_DIR="/tmp/claude-tts-logs-$$"
+    mkdir -p "$LOG_DIR"
+  }
+fi
+
+# Always log to verify hooks are firing
+echo "[$(date -Iseconds)] Hook: EVENT=${HOOK_EVENT} CMD=${CLAUDE_COMMAND} STATUS=${CLAUDE_STATUS} DIR=${CLAUDE_PROJECT_DIR}" >> "$LOG_DIR/hook-debug.log" 2>&1
 
 # Check if TTS globally enabled
 if [[ "${TTS_ENABLED:-false}" != "true" ]]; then
@@ -69,58 +105,23 @@ source "$MESSAGES_LIB"
 # Event Type Detection
 # ============================================================================
 
-# Determine notification category from hook event and context
-# Returns: category name (completion, permission, progress, error, etc.)
+# Determine notification category from hook event
+# Returns: category name (completion, permission) or exits with error for unsupported events
 detect_category() {
   local event="${HOOK_EVENT:-unknown}"
-  local status="${CLAUDE_STATUS:-success}"
-
-  # If HOOK_EVENT not set, try to infer from script name or other context
-  if [[ "$event" == "unknown" ]]; then
-    # Check if we're being called from a specific hook by looking at caller
-    local script_name
-    script_name=$(basename "${BASH_SOURCE[1]:-}" 2>/dev/null || echo "")
-
-    # Default to completion for Stop-like behavior
-    event="Stop"
-  fi
 
   case "$event" in
     Stop)
-      # Completion or error based on status
-      if [[ "$status" == "error" ]] || [[ "$status" == "failed" ]]; then
-        echo "error"
-      else
-        echo "completion"
-      fi
-      ;;
-    SessionStart | SessionEnd)
-      echo "session"
-      ;;
-    SubagentStop)
-      echo "progress"
+      # All Stop events are completion
+      echo "completion"
       ;;
     Notification)
-      # Permission request or idle reminder
-      local notification_type="${NOTIFICATION_TYPE:-permission}"
-      if [[ "$notification_type" == "idle" ]]; then
-        echo "idle"
-      else
-        echo "permission"
-      fi
-      ;;
-    PreToolUse | PostToolUse)
-      echo "tool"
-      ;;
-    UserPromptSubmit)
-      echo "prompt_ack"
-      ;;
-    PreCompact)
-      echo "compact"
+      # All Notification events are permission
+      echo "permission"
       ;;
     *)
-      # Default to completion
-      echo "completion"
+      # Unsupported event type
+      return 1
       ;;
   esac
 }
@@ -134,48 +135,18 @@ detect_category() {
 # Returns: 0 if enabled, 1 if disabled
 is_category_enabled() {
   local category="$1"
-  local var_name
 
   case "$category" in
     completion)
-      var_name="TTS_COMPLETION_ENABLED"
+      [[ "${TTS_COMPLETION_ENABLED:-false}" == "true" ]]
       ;;
     permission)
-      var_name="TTS_PERMISSION_ENABLED"
-      ;;
-    progress)
-      var_name="TTS_PROGRESS_ENABLED"
-      ;;
-    error)
-      var_name="TTS_ERROR_ENABLED"
-      ;;
-    idle)
-      var_name="TTS_IDLE_ENABLED"
-      ;;
-    session)
-      var_name="TTS_SESSION_ENABLED"
-      ;;
-    tool)
-      var_name="TTS_TOOL_ENABLED"
-      ;;
-    prompt_ack)
-      var_name="TTS_PROMPT_ACK_ENABLED"
-      ;;
-    compact)
-      var_name="TTS_COMPACT_ENABLED"
+      [[ "${TTS_PERMISSION_ENABLED:-false}" == "true" ]]
       ;;
     *)
-      return 1  # Unknown category disabled by default
+      return 1  # Unknown categories disabled
       ;;
   esac
-
-  # Check if variable is set to true
-  local enabled="${!var_name:-false}"
-  if [[ "$enabled" == "true" ]]; then
-    return 0
-  else
-    return 1
-  fi
 }
 
 # ============================================================================
@@ -183,47 +154,9 @@ is_category_enabled() {
 # ============================================================================
 
 # Get voice parameters for category
-# Args: $1 - category name
-# Returns: "pitch:speed" string
+# Returns: "pitch:speed" string (unified for all categories)
 get_voice_params() {
-  local category="$1"
-  local var_name
-
-  case "$category" in
-    completion)
-      var_name="TTS_COMPLETION_VOICE"
-      ;;
-    permission)
-      var_name="TTS_PERMISSION_VOICE"
-      ;;
-    progress)
-      var_name="TTS_PROGRESS_VOICE"
-      ;;
-    error)
-      var_name="TTS_ERROR_VOICE"
-      ;;
-    idle)
-      var_name="TTS_IDLE_VOICE"
-      ;;
-    session)
-      var_name="TTS_SESSION_VOICE"
-      ;;
-    tool)
-      var_name="TTS_TOOL_VOICE"
-      ;;
-    prompt_ack)
-      var_name="TTS_PROMPT_ACK_VOICE"
-      ;;
-    compact)
-      var_name="TTS_COMPACT_VOICE"
-      ;;
-    *)
-      echo "50:160"  # Default voice params
-      return
-      ;;
-  esac
-
-  echo "${!var_name:-50:160}"
+  echo "${TTS_VOICE_PARAMS:-50:160}"
 }
 
 # Parse pitch and speed from voice params string
@@ -260,10 +193,8 @@ speak_message() {
   fi
 
   # Debug logging if enabled
-  if [[ "${TTS_DEBUG:-false}" == "true" ]]; then
-    local log_dir="$CLAUDE_DIR/logs"
-    mkdir -p "$log_dir"
-    echo "[$(date -Iseconds)] [$HOOK_EVENT] $message (pitch:$pitch speed:$speed)" >> "$log_dir/tts.log"
+  if [[ "${TTS_DEBUG:-false}" == "true" ]] && [[ -d "$LOG_DIR" ]]; then
+    echo "[$(date -Iseconds)] [$HOOK_EVENT] $message (pitch:$pitch speed:$speed)" >> "$LOG_DIR/tts.log" 2>&1
   fi
 
   # Speak asynchronously, redirect errors to avoid blocking
@@ -311,7 +242,7 @@ is_silent_command() {
 main() {
   # Detect notification category
   local category
-  category=$(detect_category)
+  category=$(detect_category) || exit 0  # Exit if unsupported event
 
   # For completion category, check if command should be silent
   if [[ "$category" == "completion" ]] && is_silent_command; then
