@@ -46,6 +46,7 @@
     stylua       # Lua formatter for Neovim
     wezterm      # GPU-accelerated terminal emulator
     espeak-ng    # Text-to-speech for notifications
+    markitdown   # Document to markdown converter (supports PDF, DOCX, PPTX, etc)
     
     # OAuth2 token refresh script
     (pkgs.writeShellScriptBin "refresh-gmail-oauth2" ''
@@ -141,7 +142,7 @@
       pytest
       pytest-cov
       pytest-timeout
-      # model-checker  # don't install when in development 
+      # model-checker  # don't install when in development
       tqdm
       pip
       pylatexenc
@@ -156,9 +157,11 @@
       networkx
       pynvim
       numpy
-      # pylint 
-      # black  
-      # isort  
+      pandas
+      torch  # PyTorch for machine learning and AI
+      # pylint
+      # black
+      # isort
 
       # Jupyter Notebooks
       jupytext
