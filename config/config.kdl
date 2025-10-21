@@ -113,6 +113,9 @@ binds {
     Print { spawn "grimshot save screen" }      // Screenshot full
     Mod+Shift+x { spawn "swaylock -f" }        // Lock screen
 
+    // Dictation (toggle on/off)
+    Mod+d { spawn "whisper-dictate" }
+
     // Clipboard history
     Mod+y { spawn "sh" "-c" "cliphist list | fuzzel --dmenu | cliphist decode | wl-copy" }
 

@@ -84,6 +84,7 @@
 
       # Applications
       claude-code = final.callPackage ./packages/claude-code.nix {}; # Latest AI capabilities (custom build)
+      opencode = pkgs-unstable.opencode; # AI coding agent built for the terminal (sst/opencode)
       markitdown = final.callPackage ./packages/markitdown.nix {}; # Document to markdown converter (custom build)
 
       # Add other packages that benefit from using unstable below

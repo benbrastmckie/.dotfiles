@@ -275,6 +275,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       stylua               # Opinionated Lua code formatter
       tree                 # Display directory structure in a tree-like format
       cvc5                 # Modern SMT solver
+      opencode             # AI coding agent for terminal
       # u-root-cmds           
 
       # Lean
