@@ -516,6 +516,7 @@
     ".config/alacritty/alacritty.toml".source = ./config/alacritty.toml;
     ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
     ".tmux.conf".source = ./config/.tmux.conf;
+    ".latexmkrc".source = ./config/latexmkrc;
 
     # Config-files directory (actual file copies for version control)
     ".config/config-files/config.fish".text = builtins.readFile ./config/config.fish;
@@ -524,6 +525,7 @@
     ".config/config-files/alacritty.toml".text = builtins.readFile ./config/alacritty.toml;
     ".config/config-files/wezterm.lua".text = builtins.readFile ./config/wezterm.lua;
     ".config/config-files/.tmux.conf".text = builtins.readFile ./config/.tmux.conf;
+    ".config/config-files/latexmkrc".text = builtins.readFile ./config/latexmkrc;
     # # Building this configuration will create a copy of 'dotfiles/screenrc' in
     # # the Nix store. Activating the configuration will then make '~/.screenrc' a
     # # symlink to the Nix store copy. All files must at least be staged in git.
