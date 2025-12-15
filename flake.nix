@@ -85,6 +85,8 @@
       # Applications
       claude-code = final.callPackage ./packages/claude-code.nix {}; # Latest AI capabilities (custom build)
       opencode = pkgs-unstable.opencode; # AI coding agent built for the terminal (sst/opencode)
+      gemini-cli = pkgs-unstable.gemini-cli; # Google Gemini AI CLI tool
+      goose-cli = pkgs-unstable.goose-cli; # Block's open source AI coding agent
       markitdown = final.callPackage ./packages/markitdown.nix {}; # Document to markdown converter (custom build)
 
       # Add other packages that benefit from using unstable below
@@ -96,6 +98,7 @@
       python312 = prev.python312.override {
         packageOverrides = pySelf: pySuper: {
           cvc5 = pySelf.callPackage ./packages/python-cvc5.nix { };
+          pymupdf4llm = pySelf.callPackage ./packages/pymupdf4llm.nix { };
         };
       };
     };
@@ -204,6 +207,118 @@
           inherit name;
           inherit pkgs-unstable;
           inherit niri;  # Enabled for dual-session with GNOME
+          lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
+        };
+      };
+      # USB Installer configuration
+      usb-installer = lib.nixosSystem {
+        inherit system;
+        modules = [ 
+          ./configuration.nix
+          ./hosts/usb-installer/hardware-configuration.nix
+          "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+          
+          # Apply our unstable packages overlay globally
+          { nixpkgs = nixpkgsConfig; }
+          
+          home-manager.nixosModules.home-manager {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.${username} = import ./home.nix;
+            home-manager.extraSpecialArgs = {
+              inherit pkgs-unstable;
+              inherit lectic;
+              inherit nix-ai-tools;
+            };
+          }
+          ({ pkgs, lib, lectic, ... }: {
+            # USB-specific configurations
+            isoImage.edition = lib.mkForce "nandi-usb";
+            isoImage.compressImage = true;
+            isoImage.squashfsCompression = "zstd -Xcompression-level 19";
+            
+            # Generic hostname for USB
+            networking.hostName = "nandi-usb";
+            
+            # Enable copy-on-write for the ISO
+            isoImage.makeEfiBootable = true;
+            isoImage.makeUsbBootable = true;
+            
+            # Configure networking for installer with NetworkManager
+            networking = {
+              networkmanager = {
+                enable = true;
+                wifi.backend = "iwd";
+              };
+              wireless.enable = false;
+              # Enable DHCP for automatic network configuration
+              useDHCP = lib.mkDefault true;
+            };
+            
+            # Include essential system utilities for installation
+            environment.systemPackages = with pkgs; [
+              vim
+              git
+              wget
+              curl
+              gnumake
+              parted
+              dosfstools
+              e2fsprogs
+              # Networking tools
+              iw
+              wirelesstools
+              networkmanager
+              # Hardware tools
+              lshw
+              pciutils
+              usbutils
+              # Filesystem tools
+              ntfs3g
+              exfat
+              # Your custom tools
+              kitty
+              tmux
+              fish
+            ];
+            
+            # Enable SSH for remote installation (optional)
+            services.openssh = {
+              enable = true;
+              settings = {
+                PermitRootLogin = "yes";
+                PasswordAuthentication = true;
+              };
+            };
+            
+            # Auto-login to GNOME for easier setup
+            services.displayManager.autoLogin = {
+              enable = true;
+              user = "benjamin";
+            };
+            
+            # Ensure proper permissions for auto-login
+            users.users.benjamin = {
+              isNormalUser = true;
+              description = "Benjamin";
+              extraGroups = [ "networkmanager" "wheel" "audio" "video" "input" ];
+              initialPassword = "nixos";  # Change after first boot
+            };
+            
+            # Include dotfiles in the ISO
+            system.copyToRoot = {
+              "/home/benjamin/.dotfiles" = {
+                source = ./.;
+                recursive = true;
+              };
+            };
+          })
+        ];
+        specialArgs = {
+          inherit username;
+          inherit name;
+          inherit pkgs-unstable;
+          inherit niri;
           lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
         };
       };
