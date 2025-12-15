@@ -248,17 +248,24 @@ Edit `~/.dotfiles/hosts/usb-installer/hardware-configuration.nix`:
     [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
   # Generic boot configuration for USB installer
-  # Includes common USB, SATA, and storage controller drivers
+  # Includes comprehensive hardware support for modern systems (AMD Ryzen AI 300 Series compatible)
   boot.initrd.availableKernelModules = [ 
-    "xhci_pci"    # USB 3.0/3.1 controllers
-    "ahci"         # SATA controllers
-    "ohci_pci"     # USB 1.1 controllers
-    "ehci_pci"     # USB 2.0 controllers
-    "sd_mod"       # Generic SCSI disk driver
-    "sdhci_pci"    # SD card readers (common in laptops)
+    "xhci_pci"      # USB 3.0/3.1 controllers
+    "ahci"           # SATA controllers
+    "ohci_pci"       # USB 1.1 controllers
+    "ehci_pci"       # USB 2.0 controllers
+    "sd_mod"         # Generic SCSI disk driver
+    "sdhci_pci"      # SD card readers (common in laptops)
+    "nvme"           # NVMe SSD support (essential for modern systems)
+    "usb_storage"     # USB mass storage support
+    "usbhid"         # USB human interface devices (keyboards, mice)
+    "thunderbolt"     # Thunderbolt support (common on modern laptops)
   ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-intel" "kvm-amd" ];  # Virtualization support
+  boot.kernelModules = [ 
+    "kvm-amd"        # AMD virtualization support (for Ryzen AI processors)
+    "kvm-intel"       # Intel virtualization support (for compatibility)
+  ];
   boot.extraModulePackages = [ ];
 
   # No filesystems defined - will be set during installation
@@ -281,8 +288,24 @@ Edit `~/.dotfiles/hosts/usb-installer/hardware-configuration.nix`:
 - **`not-detected.nix`**: Provides fallback hardware detection for installer
 - **Boot modules**: Essential drivers for USB boot and storage access
 - **No filesystems**: Allows installer to detect and configure target storage
-- **Generic networking**: DHCP works on most networks out of the box
+- **Generic networking**: DHCP works on most networks out of box
 - **Redistributable firmware**: Includes common firmware for broader hardware support
+
+#### Modern Hardware Compatibility
+This configuration is specifically optimized for modern systems including:
+- **AMD Ryzen AI 300 Series**: Full support with AMD virtualization and NVMe
+- **Intel 12th Gen+**: Compatible with Intel virtualization and modern storage
+- **Modern Laptops**: Thunderbolt, USB-C, NVMe SSD support
+- **Gaming Systems**: High-performance storage and GPU compatibility
+
+#### AMD Ryzen AI 300 Series Support
+The configuration includes specific support for your Ryzen AI 9 HX 370:
+- **`kvm-amd`**: Proper AMD virtualization support
+- **`nvme`**: Essential for NVMe SSDs common in Ryzen laptops
+- **`thunderbolt`**: Modern connectivity support
+- **AMD microcode**: CPU optimization and security updates
+
+For detailed Ryzen AI 300 Series compatibility information, see: [`docs/ryzen-ai-300-compatibility.md`](ryzen-ai-300-compatibility.md)
 
 ## Step 3: Build the USB Installer
 
