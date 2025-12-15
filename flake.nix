@@ -257,7 +257,7 @@
             
             # Include essential system utilities for installation
             environment.systemPackages = with pkgs; [
-              vim
+              # System utilities for installation
               git
               wget
               curl
@@ -276,10 +276,49 @@
               # Filesystem tools
               ntfs3g
               exfat
-              # Your custom tools
-              kitty
-              tmux
-              fish
+              
+              # Essential development tools (from your configuration.nix)
+              neovim               # Your primary editor
+              opencode             # AI coding agent for terminal
+              lazygit              # Terminal UI for git commands
+              tmux                 # Terminal multiplexer
+              fish                 # Your preferred shell
+              kitty                # Your preferred terminal
+              ghostty              # Modern terminal emulator
+              zoxide               # Smarter cd command
+              fd                   # Fast find alternative
+              ripgrep              # Fast search tool
+              fzf                  # Command-line fuzzy finder
+              tree                 # Directory structure display
+              lsof                 # List open files
+              
+              # Basic development tools
+              python3              # Python programming language
+              go                   # Go programming language
+              gcc                  # GNU Compiler Collection
+              nodejs_20            # JavaScript runtime
+              uv                   # Fast Python package installer
+              bun                  # Fast JavaScript runtime
+              unzip                # Extract ZIP archives
+              
+              # Wayland essentials
+              wl-clipboard         # Clipboard utility for Wayland
+              xdg-utils            # Desktop integration utilities
+              qt6.qtwayland        # Wayland support for Qt6
+              libsForQt5.qt5.qtwayland  # Wayland support for Qt5
+              swaybg               # Wallpaper utility for Wayland
+              
+              # GNOME tools (useful for both GNOME and niri)
+              gnome-control-center  # GNOME Settings GUI
+              nautilus              # File manager (required by portal)
+              
+              # Appearance tools
+              neofetch             # System information tool
+              disfetch             # Minimal system information display
+              
+              # NixOS tools
+              home-manager         # User configuration management
+              nix-index            # Index Nix store files
             ];
             
             # Enable SSH for remote installation (optional)

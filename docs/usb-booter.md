@@ -30,10 +30,13 @@ Your current configuration includes:
 ### Key Features
 - **Audio EMI fix** for Realtek ALC256 codec
 - **OAuth2 email setup** with Himalaya
-- **AI development tools**: Claude Code, Gemini CLI, Goose CLI
-- **Development environment**: Python, Go, Node.js, Neovim
+- **AI development tools**: Claude Code, Gemini CLI, Goose CLI, OpenCode
+- **Complete development environment**: Python, Go, Node.js, Neovim, LazyGit
+- **Modern terminal setup**: Kitty, Ghostty, Fish shell, Tmux
+- **Productivity tools**: fd, ripgrep, fzf, zoxide, tree
 - **Dictation system**: Whisper with ydotool integration
-- **Custom shell**: Fish with oh-my-fish
+- **Wayland support**: Full Wayland compositor compatibility
+- **Dual session**: GNOME + Niri Wayland compositor
 
 ## Step 1: Prepare the Environment
 
@@ -139,10 +142,48 @@ usb-installer = lib.nixosSystem {
         # Filesystem tools
         ntfs3g
         exfat
-        # Your custom tools
-        kitty
-        tmux
-        fish
+        # Essential development tools (from your configuration.nix)
+        neovim               # Primary editor
+        opencode             # AI coding agent for terminal
+        lazygit              # Terminal UI for git commands
+        tmux                 # Terminal multiplexer
+        fish                 # Preferred shell
+        kitty                # Preferred terminal
+        ghostty              # Modern terminal emulator
+        zoxide               # Smarter cd command
+        fd                   # Fast find alternative
+        ripgrep              # Fast search tool
+        fzf                  # Command-line fuzzy finder
+        tree                 # Directory structure display
+        lsof                 # List open files
+        
+        # Basic development tools
+        python3              # Python programming language
+        go                   # Go programming language
+        gcc                  # GNU Compiler Collection
+        nodejs_20            # JavaScript runtime
+        uv                   # Fast Python package installer
+        bun                  # Fast JavaScript runtime
+        unzip                # Extract ZIP archives
+        
+        # Wayland essentials
+        wl-clipboard         # Clipboard utility for Wayland
+        xdg-utils            # Desktop integration utilities
+        qt6.qtwayland        # Wayland support for Qt6
+        libsForQt5.qt5.qtwayland  # Wayland support for Qt5
+        swaybg               # Wallpaper utility for Wayland
+        
+        # GNOME tools (useful for both GNOME and niri)
+        gnome-control-center  # GNOME Settings GUI
+        nautilus              # File manager (required by portal)
+        
+        # Appearance tools
+        neofetch             # System information tool
+        disfetch             # Minimal system information display
+        
+        # NixOS tools
+        home-manager         # User configuration management
+        nix-index            # Index Nix store files
       ];
       
       # Enable SSH for remote installation (optional)
@@ -280,6 +321,8 @@ The system will boot into:
 - **Auto-logged GNOME session** as user `benjamin`
 - **Password**: `nixos` (change immediately)
 - **Terminal**: Access your dotfiles at `/home/benjamin/.dotfiles/`
+- **Development tools**: Neovim, OpenCode, LazyGit, and all your preferred utilities
+- **Full environment**: Your complete shell configuration with Fish, Tmux, and productivity tools
 
 ## Step 6: Install NixOS on Target Machine
 
@@ -444,13 +487,21 @@ sudo nixos-rebuild switch --rollback
 Edit the USB installer configuration in `flake.nix`:
 ```nix
 environment.systemPackages = with pkgs; [
-  # Add your preferred tools
+  # Add your preferred tools beyond the essentials
   htop
   btop
-  neofetch
   # ... more packages
 ];
 ```
+
+Note: The USB installer already includes your essential development tools:
+- **Editors**: Neovim, OpenCode
+- **Version Control**: Git, LazyGit
+- **Shell**: Fish, Tmux, Zoxide
+- **Terminals**: Kitty, Ghostty
+- **Search**: fd, ripgrep, fzf
+- **Development**: Python, Go, Node.js, GCC, UV, Bun
+- **Wayland**: Full Wayland support with clipboard utilities
 
 #### Enable SSH Access
 ```nix
