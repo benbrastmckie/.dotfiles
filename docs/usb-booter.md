@@ -229,6 +229,15 @@ usb-installer = lib.nixosSystem {
 ```
 
 ### 2.2 Create Generic Hardware Configuration
+
+The USB installer needs a generic hardware configuration that can boot on most systems without being tied to specific hardware. Unlike your host-specific configurations (like `nandi`), the USB installer uses a minimal, hardware-agnostic setup that will be replaced during installation with the target machine's actual hardware configuration.
+
+**Why this approach:**
+- **Portability**: Works on any x86_64 machine with common hardware
+- **Flexibility**: No specific disk or filesystem requirements
+- **Safety**: Avoids conflicts with target machine hardware
+- **Replacement**: Gets replaced by target-specific config during installation
+
 Edit `~/.dotfiles/hosts/usb-installer/hardware-configuration.nix`:
 
 ```nix
@@ -239,12 +248,21 @@ Edit `~/.dotfiles/hosts/usb-installer/hardware-configuration.nix`:
     [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
   # Generic boot configuration for USB installer
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "ohci_pci" "ehci_pci" "sd_mod" "sdhci_pci" ];
+  # Includes common USB, SATA, and storage controller drivers
+  boot.initrd.availableKernelModules = [ 
+    "xhci_pci"    # USB 3.0/3.1 controllers
+    "ahci"         # SATA controllers
+    "ohci_pci"     # USB 1.1 controllers
+    "ehci_pci"     # USB 2.0 controllers
+    "sd_mod"       # Generic SCSI disk driver
+    "sdhci_pci"    # SD card readers (common in laptops)
+  ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-intel" "kvm-amd" ];
+  boot.kernelModules = [ "kvm-intel" "kvm-amd" ];  # Virtualization support
   boot.extraModulePackages = [ ];
 
   # No filesystems defined - will be set during installation
+  # This allows the installer to detect and configure target storage
   fileSystems = { };
 
   swapDevices = [ ];
@@ -252,10 +270,19 @@ Edit `~/.dotfiles/hosts/usb-installer/hardware-configuration.nix`:
   # Generic networking configuration
   networking.useDHCP = lib.mkDefault true;
 
+  # Platform and firmware settings
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.enableRedistributableFirmware = lib.mkDefault true;
 }
 ```
+
+**Key Components Explained:**
+
+- **`not-detected.nix`**: Provides fallback hardware detection for installer
+- **Boot modules**: Essential drivers for USB boot and storage access
+- **No filesystems**: Allows installer to detect and configure target storage
+- **Generic networking**: DHCP works on most networks out of the box
+- **Redistributable firmware**: Includes common firmware for broader hardware support
 
 ## Step 3: Build the USB Installer
 
@@ -354,20 +381,57 @@ sudo mount /dev/sda1 /mnt/boot
 sudo nixos-generate-config --root /mnt
 
 # Copy to your dotfiles structure
-sudo cp /mnt/etc/nixos/hardware-configuration.nix /home/benjamin/.dotfiles/hosts/[new-hostname]/
+# Replace "new-hostname" with your desired machine name (e.g., "laptop-work", "desktop-home")
+sudo cp /mnt/etc/nixos/hardware-configuration.nix /home/benjamin/.dotfiles/hosts/new-hostname/
 ```
 
 ### 6.3 Update Configuration for New Host
-1. Edit `~/.dotfiles/flake.nix` to add the new host
-2. Update `networking.hostName` in the new host configuration
-3. Adjust any hardware-specific settings
+
+1. **Add host to flake.nix**: Edit `~/.dotfiles/flake.nix` to add the new host configuration:
+
+```nix
+# Add to nixosConfigurations section
+new-hostname = lib.nixosSystem {
+  inherit system;
+  modules = [ 
+    ./configuration.nix
+    ./hosts/new-hostname/hardware-configuration.nix
+    
+    # Apply our unstable packages overlay globally
+    { nixpkgs = nixpkgsConfig; }
+    
+    home-manager.nixosModules.home-manager {
+      home-manager.useGlobalPkgs = true;
+      home-manager.useUserPackages = true;
+      home-manager.users.${username} = import ./home.nix;
+      home-manager.extraSpecialArgs = {
+        inherit pkgs-unstable;
+        inherit lectic;
+        inherit nix-ai-tools;
+      };
+    }
+  ];
+  specialArgs = {
+    inherit username;
+    inherit name;
+    inherit pkgs-unstable;
+    inherit niri;
+    lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
+  };
+};
+```
+
+2. **Update hostname**: Edit the new `hardware-configuration.nix` to set the correct hostname (optional, can be set in flake.nix)
+
+3. **Hardware-specific adjustments**: Review and adjust any hardware-specific settings in the new configuration
 
 ### 6.4 Install System
 ```bash
 cd /home/benjamin/.dotfiles
 
 # Install NixOS with your configuration
-sudo nixos-install --flake .#[new-hostname]
+# Replace "new-hostname" with the hostname you added to flake.nix
+sudo nixos-install --flake .#new-hostname
 
 # Set root password
 sudo passwd
@@ -417,11 +481,12 @@ git pull origin main
 cd ~/.dotfiles
 
 # Add new host configuration
-git add hosts/[new-hostname]/
+# Replace "new-hostname" with your actual hostname
+git add hosts/new-hostname/
 git add flake.nix
 
 # Commit changes
-git commit -m "feat: add [new-hostname] host configuration"
+git commit -m "feat: add new-hostname host configuration"
 
 # Push to repository
 git push origin main
@@ -430,9 +495,9 @@ git push origin main
 ### 8.2 Update Documentation
 ```bash
 # Update hosts/README.md with new host information
-echo "[new-hostname]: [Description of machine]" >> hosts/README.md
+echo "new-hostname: Description of machine" >> hosts/README.md
 git add hosts/README.md
-git commit -m "docs: update hosts README with [new-hostname]"
+git commit -m "docs: update hosts README with new-hostname"
 git push origin main
 ```
 
