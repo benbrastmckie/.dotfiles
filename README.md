@@ -39,6 +39,7 @@ These dotfiles provide a complete NixOS setup with:
 - [`docs/unstable-packages.md`](docs/unstable-packages.md): Managing unstable channel packages
 - [`docs/testing.md`](docs/testing.md): Testing and validation procedures
 - [`docs/development.md`](docs/development.md): Development notes and ISO building
+- [`docs/usb-booter.md`](docs/usb-booter.md): Complete USB installer creation guide
 
 ## Quick Start
 
@@ -49,6 +50,20 @@ For detailed installation instructions, see [`docs/installation.md`](docs/instal
 1. Clone repository: `git clone <repo-url> ~/.dotfiles`
 2. Build system: `sudo nixos-rebuild switch --flake .#hostname`
 3. Apply user config: `home-manager switch --flake .#benjamin`
+
+### USB Installer
+
+Create a bootable USB installer with your complete configuration:
+
+```bash
+# Build USB installer
+./build-usb-installer.sh
+
+# Write to USB drive (replace /dev/sdX)
+sudo dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M conv=fsync status=progress
+```
+
+See [`docs/usb-booter.md`](docs/usb-booter.md) for detailed instructions.
 
 ### Customization
 
