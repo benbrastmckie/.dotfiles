@@ -1,62 +1,37 @@
 # Development and Setup Notes
 
-This document contains development notes, ISO building instructions, and initial setup procedures.
+This document contains development notes, workflows, and initial setup procedures.
 
 ## API Configuration
 
 LLM API keys are kept in private shell configuration files (e.g., `private.fish`) and are not tracked in git for security.
 
-## Building Custom ISO
+## USB Installer
 
-### Build Process
+For creating bootable USB installers with your complete configuration, see the dedicated guide:
 
-1. **Navigate to dotfiles directory:**
-   ```bash
-   cd ~/.dotfiles
-   ```
+**[USB Installer Guide](usb-installer.md)** - Complete instructions for building and using USB installers
 
-2. **Build regular system first:**
-   ```bash
-   nixos-rebuild switch --flake .#nandi
-   ```
+Quick reference:
+```bash
+# Build USB installer ISO
+nix build .#nixosConfigurations.usb-installer.config.system.build.isoImage
 
-3. **Build the ISO:**
-   ```bash
-   nix build .#nixosConfigurations.iso.config.system.build.isoImage
-   ```
+# Decompress and write to USB
+zstd -d result/iso/nixos-*.iso.zst -o /tmp/nixos-installer.iso
+sudo dd if=/tmp/nixos-installer.iso of=/dev/sdX bs=4M conv=fsync status=progress
+```
 
-4. **Locate the built ISO:**
-   ```bash
-   ./result/iso/nixos.iso
-   ```
+## Development Workflow
 
-### ISO Preparation
+### Clean up build results
 
-1. **Decompress the zst file:**
-   ```bash
-   zstd -d ./result/iso/nixos-24.11.20250123.035f8c0-x86_64-linux.iso.zst -o ~/Downloads/nixos.iso
-   ```
-
-2. **Check available drives before burning:**
-   ```bash
-   lsblk
-   ```
-   This lists all block devices and mount points. Identify the correct USB drive.
-
-3. **Burn to USB drive:**
-   ```bash
-   sudo dd if=/home/benjamin/Downloads/nixos.iso of=/dev/sdX bs=4M status=progress conv=fsync
-   ```
-   ⚠️ **Warning:** Replace `sdX` with your USB drive device. Double-check the correct device to avoid data loss!
-
-### Cleanup
-
-1. **Remove ISO symlink:**
+1. **Remove build symlinks:**
    ```bash
    rm -f ./result
    ```
 
-2. **Clean up build results:**
+2. **Clean up old generations:**
    ```bash
    # Full garbage collection
    nix-store --gc
