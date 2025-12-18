@@ -13,7 +13,11 @@
 
 - Build your regular system with:
     ```
-    nixos-rebuild switch --flake .#nandi
+    sudo nixos-rebuild switch --flake .#$(hostname)
+    ```
+  Or use the update script:
+    ```
+    ./update.sh
     ```
 
 - Build the ISO with:
@@ -74,13 +78,15 @@
     ```
     cp /etc/nixos/hardware-configuration.nix ~/.dotfiles/hosts/HOST_NAME/hardware-configuration.nix
     ```  
- first build should mention system name as in:
+ **⚠️ First build must explicitly specify the hostname** (not `$(hostname)`):
 
-    sudo nixos-rebuild switch --flake ~/.dotfiles#nandi
+    sudo nixos-rebuild switch --flake ~/.dotfiles#your-hostname
 
-- we can then run the following on subsequent rebuilds:
+  After this, `$(hostname)` will return the correct value for subsequent builds.
 
-    sudo nixos-rebuild switch --flake ~/.dotfiles/
+- subsequent rebuilds can use the update script:
+
+    ./update.sh
 
 - run `home-manager switch --flake ~/.dotfiles/`
 - run `fish_vi_key_bindings`

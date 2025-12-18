@@ -58,14 +58,17 @@ The custom ISO includes:
    cp /etc/nixos/hardware-configuration.nix ~/.dotfiles/hosts/HOST_NAME/hardware-configuration.nix
    ```
 
-2. **First system build (specify hostname):**
+2. **First system build (specify hostname explicitly):**
+
+   > **⚠️ IMPORTANT**: On first build, explicitly specify your hostname rather than using `$(hostname)`. The hostname is set by NixOS, so `$(hostname)` will be wrong until the correct config is applied.
+
    ```bash
-   sudo nixos-rebuild switch --flake ~/.dotfiles#nandi
+   sudo nixos-rebuild switch --flake ~/.dotfiles#your-hostname
    ```
 
-3. **Subsequent rebuilds can use:**
+3. **Subsequent rebuilds can use the update script:**
    ```bash
-   sudo nixos-rebuild switch --flake ~/.dotfiles/
+   ~/.dotfiles/update.sh
    ```
 
 4. **Apply home-manager configuration:**

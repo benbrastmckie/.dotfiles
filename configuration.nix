@@ -33,7 +33,7 @@
     options snd_hda_intel power_save=0 power_save_controller=N
   '';
 
-  networking.hostName = "nandi"; # Define your hostname.
+  # NOTE: networking.hostName is set per-host in flake.nix
   
 # Networking configuration
 networking = {

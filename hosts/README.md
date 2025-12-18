@@ -7,8 +7,11 @@ This directory contains host-specific configurations for different machines in t
 ### [garuda/](garuda/)
 Hardware configuration for the Garuda host system.
 
-### [nandi/](nandi/)  
-Hardware configuration for the Nandi host system.
+### [nandi/](nandi/)
+Hardware configuration for the Nandi host system (Intel laptop).
+
+### [hamsa/](hamsa/)
+Hardware configuration for the Hamsa host system (AMD laptop).
 
 ### [usb-installer/](usb-installer/)
 Generic hardware configuration for the USB installer. This configuration is used to create a bootable USB drive that contains the complete dotfiles setup for reproducing the NixOS environment on any machine.
@@ -36,9 +39,13 @@ nixosConfigurations = {
 ## Building for a Host
 
 ```bash
-sudo nixos-rebuild switch --flake .#hostname
+# Using current hostname
+sudo nixos-rebuild switch --flake .#$(hostname)
+
+# Or use the update script (auto-detects hostname)
+./update.sh
 ```
 
-Where `hostname` is one of: `garuda`, `nandi`, `usb-installer`
+Available hosts: `garuda`, `nandi`, `hamsa`, `usb-installer`
 
 [← Back to main README](../README.md)
