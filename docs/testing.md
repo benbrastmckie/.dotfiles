@@ -17,7 +17,7 @@ Due to complexities with Nix's evaluation, you might encounter errors when runni
 2. **Apply configuration directly:**
    ```bash
    # System-wide rebuild (requires sudo)
-   sudo nixos-rebuild switch --flake .#nandi --option allow-import-from-derivation false
+   sudo nixos-rebuild switch --flake .#$(hostname) --option allow-import-from-derivation false
 
    # User-specific home-manager configuration
    home-manager switch --flake .#benjamin --option allow-import-from-derivation false

@@ -127,9 +127,10 @@
     nixosConfigurations = {
       nandi = lib.nixosSystem {
         inherit system;
-        modules = [ 
+        modules = [
           ./configuration.nix
           ./hosts/nandi/hardware-configuration.nix
+          { networking.hostName = "nandi"; }
           
           # Apply our unstable packages overlay globally
           { nixpkgs = nixpkgsConfig; }
@@ -155,9 +156,10 @@
       
       hamsa = lib.nixosSystem {
         inherit system;
-        modules = [ 
+        modules = [
           ./configuration.nix
           ./hosts/hamsa/hardware-configuration.nix
+          { networking.hostName = "hamsa"; }
           
           # Apply our unstable packages overlay globally
           { nixpkgs = nixpkgsConfig; }
@@ -184,9 +186,10 @@
       # ISO configuration
       iso = lib.nixosSystem {
         inherit system;
-        modules = [ 
+        modules = [
           ./configuration.nix
           "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+          { networking.hostName = "nixos-iso"; }
           
           # Apply our unstable packages overlay globally
           { nixpkgs = nixpkgsConfig; }

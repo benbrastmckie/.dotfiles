@@ -449,6 +449,9 @@ framework = lib.nixosSystem {
 Save and exit (`:wq` in vim).
 
 **6. Install with your dotfiles configuration:**
+
+> **⚠️ IMPORTANT**: You **must** explicitly specify your hostname (e.g., `.#framework`) rather than using `$(hostname)`. The hostname is set by NixOS configuration, so until the correct config is applied, `$(hostname)` will return the wrong value (e.g., the USB installer's hostname). After installation and reboot, `$(hostname)` and `./update.sh` will work correctly.
+
 ```bash
 cd ~/.dotfiles
 

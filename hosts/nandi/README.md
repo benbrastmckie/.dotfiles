@@ -17,7 +17,11 @@ Hardware configuration for the Nandi system.
 
 Build the Nandi configuration:
 ```bash
-sudo nixos-rebuild switch --flake .#nandi
+# When on this machine
+sudo nixos-rebuild switch --flake .#$(hostname)
+
+# Or use the update script
+./update.sh
 ```
 
 ## Notes
