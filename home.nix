@@ -51,9 +51,9 @@
     markitdown   # Document to markdown converter (supports PDF, DOCX, PPTX, etc)
 
     # Dictation tools
-    openai-whisper-cpp  # Fast offline speech-to-text
-    ydotool             # Universal input tool (works with GNOME/Wayland)
-    libnotify           # Desktop notifications
+    whisper-cpp  # Fast offline speech-to-text (renamed from openai-whisper-cpp)
+    ydotool      # Universal input tool (works with GNOME/Wayland)
+    libnotify    # Desktop notifications
     
     # OAuth2 token refresh script
     (pkgs.writeShellScriptBin "refresh-gmail-oauth2" ''
@@ -140,7 +140,7 @@
     # MCP-Hub is now managed by the home module
     nodejs    # Required runtime dependency
     (python312.withPackages(p: with p; [
-      z3
+      z3-solver  # Renamed from z3 in nixos-unstable
       setuptools
       pyinstrument
       build
@@ -182,7 +182,7 @@
     wl-clipboard
     cliphist
 
-    (nerdfonts.override { fonts = [ "RobotoMono" ]; })
+    nerd-fonts.roboto-mono  # Nerd Fonts with Roboto Mono (nixos-unstable uses new nerd-fonts structure)
 
     # Whisper dictation script for Wayland
     (pkgs.writeShellScriptBin "whisper-dictate" ''
@@ -211,7 +211,7 @@
 
         # Transcribe with whisper.cpp
         if [ -f "$AUDIO_FILE" ]; then
-          ${pkgs.openai-whisper-cpp}/bin/whisper-cpp \
+          ${pkgs.whisper-cpp}/bin/whisper-cpp \
             -m ~/.local/share/whisper/ggml-''${MODEL_SIZE}.bin \
             -f "$AUDIO_FILE" \
             -otxt -of "$TEMP_DIR/transcription" \

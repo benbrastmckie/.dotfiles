@@ -313,7 +313,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
 
       # Lean
       # lean4              # Theorem prover and programming language
-      mathlibtools         # Tools for working with mathlib (Lean math library)
+      # mathlibtools       # Removed - archived upstream in 2023
       elan                 # Version manager for Lean
 
       # Editors
@@ -327,7 +327,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       typst                # Typesetting language for generating PDFs
       texlive.combined.scheme-full  # Complete TeX Live distribution for document preparation
       texlab               # Language server for LaTeX
-      libsForQt5.okular    # Universal document viewer
+      kdePackages.okular   # Universal document viewer (moved from libsForQt5 in nixos-unstable)
       pdftk                # PDF toolkit for manipulating PDF documents
       pdfannots            # Extract annotations from PDF files
       xsel                 # Command-line tool for getting/setting X selection
@@ -352,7 +352,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
 
       # File Transfer and Torrent
       wget                 # Tool for retrieving files using HTTP, HTTPS, and FTP
-      torrential           # GTK4 BitTorrent client
+      # torrential         # Removed from nixos-unstable
 
       # Input Tools
       qmk                  # Quantum Mechanical Keyboard firmware utilities
@@ -402,7 +402,7 @@ fonts = {
   packages = with pkgs; [
     noto-fonts
     noto-fonts-cjk-sans
-    noto-fonts-emoji
+    noto-fonts-color-emoji  # Renamed from noto-fonts-emoji in nixos-unstable
     liberation_ttf
     fira-code
     fira-code-symbols
