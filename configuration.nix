@@ -104,24 +104,20 @@ services.timesyncd.enable = true;
   };
 
   # Enable the X11 windowing system and display manager
-  services.xserver = {
+  services.xserver.enable = true;
+
+  services.displayManager.gdm = {
     enable = true;
-    
-    displayManager = {
-      gdm = {
-        enable = true;
-        wayland = true;
-      };
-    };
-    
-    # Enable full GNOME desktop environment
-    desktopManager.gnome = {
-      enable = true;
-      extraGSettingsOverrides = ''
-        [org.gnome.desktop.interface]
-        enable-hot-corners=false
-      '';
-    };
+    wayland = true;
+  };
+
+  # Enable full GNOME desktop environment
+  services.desktopManager.gnome = {
+    enable = true;
+    extraGSettingsOverrides = ''
+      [org.gnome.desktop.interface]
+      enable-hot-corners=false
+    '';
   };
 
   # Niri Wayland compositor - ENABLED (dual-session with GNOME)
@@ -212,9 +208,9 @@ hardware.bluetooth = {
   enable = true;
   powerOnBoot = true;  # Automatically power on Bluetooth adapter at boot
 };
-services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnome.enable) true;
+services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable) true;
 
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
