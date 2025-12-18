@@ -2,7 +2,7 @@
   description = "system config";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     lean4.url = "github:leanprover/lean4";
     # Niri input - ENABLED (dual-session with GNOME)
@@ -18,7 +18,7 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     utils.url = "github:numtide/flake-utils";
-    home-manager.url = "github:nix-community/home-manager/release-24.11";
+    home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     # Note: MCPHub is loaded via lazy.nvim, not as a flake input
     # home-manager = {
@@ -152,6 +152,35 @@
           lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
         };
       };
+      
+      hamsa = lib.nixosSystem {
+        inherit system;
+        modules = [ 
+          ./configuration.nix
+          ./hosts/hamsa/hardware-configuration.nix
+          
+          # Apply our unstable packages overlay globally
+          { nixpkgs = nixpkgsConfig; }
+          
+          home-manager.nixosModules.home-manager {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.${username} = import ./home.nix;
+            home-manager.extraSpecialArgs = {
+              inherit pkgs-unstable;
+              inherit lectic;
+              inherit nix-ai-tools;
+            };
+          }
+        ];
+        specialArgs = {
+          inherit username;
+          inherit name;
+          inherit pkgs-unstable;
+          lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
+        };
+      };
+      
       # ISO configuration
       iso = lib.nixosSystem {
         inherit system;
@@ -257,6 +286,9 @@
             
             # Include essential system utilities for installation
             environment.systemPackages = with pkgs; [
+              # Graphical installer
+              calamares-nixos      # NixOS graphical installer
+              
               # System utilities for installation
               git
               wget
@@ -343,6 +375,35 @@
               extraGroups = [ "networkmanager" "wheel" "audio" "video" "input" ];
               initialPassword = "nixos";  # Change after first boot
             };
+            
+            # Auto-launch Calamares installer on boot
+            environment.etc."xdg/autostart/calamares.desktop".text = ''
+              [Desktop Entry]
+              Type=Application
+              Name=Install NixOS
+              Comment=Graphical installer for NixOS
+              Exec=sudo -E calamares
+              Icon=system-software-install
+              Terminal=false
+              Categories=System;
+              X-GNOME-Autostart-enabled=true
+              AutostartCondition=unless-exists ~/.config/calamares-launched
+            '';
+            
+            # Create a script to mark Calamares as launched (prevents re-launch on subsequent logins)
+            system.activationScripts.calamaresAutostart = ''
+              mkdir -p /home/benjamin/.config
+              # Don't create the marker file - let Calamares create it after first launch
+            '';
+            
+            # Allow passwordless sudo for calamares during installation
+            security.sudo.extraRules = [{
+              users = [ "benjamin" ];
+              commands = [{
+                command = "${pkgs.calamares-nixos}/bin/calamares";
+                options = [ "NOPASSWD" ];
+              }];
+            }];
           })
         ];
         specialArgs = {
