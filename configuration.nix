@@ -12,6 +12,27 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # ==========================================================================
+  # Audio Static/EMI Fix for Realtek ALC256 Codec
+  # ==========================================================================
+  # Problem: Internal speakers emit static/hiss even when muted or using Bluetooth.
+  # Root cause: The speaker amplifier (EAPD) stays powered and picks up EMI from
+  # CPU/GPU/other components. This is a hardware design issue common in laptops
+  # with Realtek ALC256 codecs (MALIBAL Aon S1 / Clevo chassis).
+  #
+  # Solution has two parts:
+  # 1. Kernel module options (below) - prevents audio pops during playback by
+  #    disabling codec power saving. Does NOT fix idle static.
+  # 2. Systemd service (further below) - disables speaker amplifier (EAPD) at boot.
+  #    This DOES fix idle static but disables internal speakers entirely.
+  #    Re-enable speakers with: sudo hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 2
+  # ==========================================================================
+
+  # Part 1: Disable codec power saving (prevents pops during playback)
+  boot.extraModprobeConfig = ''
+    options snd_hda_intel power_save=0 power_save_controller=N
+  '';
+
   networking.hostName = "nandi"; # Define your hostname.
   
 # Networking configuration
@@ -173,7 +194,18 @@ services.xserver = {
 };
 
   # Enable CUPS to print documents.
-  services.printing.enable = true;
+  # Using IPP Everywhere (driverless) - HPLIP removed as it conflicts with IPP
+  services.printing = {
+    enable = true;
+    # drivers = with pkgs; [ hplip ];  # Removed - causes blank pages with IPP
+  };
+
+  # Enable network printer discovery
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+  };
 
 # Enable Bluetooth
 hardware.bluetooth = {
@@ -276,6 +308,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       tree                 # Display directory structure in a tree-like format
       cvc5                 # Modern SMT solver
       opencode             # AI coding agent for terminal
+      lsof                 # Tool to list open files
       # u-root-cmds           
 
       # Lean
@@ -310,6 +343,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       kooha
 
       # Multimedia
+      alsa-tools           # HDA codec tools (hda-verb) for audio hardware control
       vlc                  # Cross-platform multimedia player
       zoom-us              # Video conferencing tool
       spotify              # Music streaming service client
@@ -392,6 +426,30 @@ nix = {
     automatic = true;
     dates = "weekly";
     options = "--delete-older-than 30d";
+  };
+};
+
+# Part 2 of Audio Static Fix: Disable speaker amplifier (EAPD) at boot
+# This systemd service runs hda-verb to disable the speaker amplifier on the
+# Realtek ALC256 codec. This eliminates idle static/hiss from internal speakers
+# but means internal speakers will NOT work until re-enabled.
+#
+# To re-enable internal speakers temporarily:
+#   sudo hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 2
+#
+# To disable again (stop static):
+#   sudo hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 0
+#
+# Node 0x14 = Speaker pin on ALC256
+# EAPD bit 1 (value 2) = amplifier enabled, bit 0 (value 0) = disabled
+systemd.services.disable-speaker-amp = {
+  description = "Disable internal speaker amplifier to prevent EMI static";
+  wantedBy = [ "multi-user.target" "post-resume.target" ];
+  after = [ "sound.target" ];
+  serviceConfig = {
+    Type = "oneshot";
+    RemainAfterExit = true;
+    ExecStart = "${pkgs.alsa-tools}/bin/hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 0";
   };
 };
 

@@ -41,6 +41,8 @@
   home.packages = with pkgs; [
     claude-code  # Using overlaid unstable package
     claude-squad # Terminal app for managing multiple AI agents
+    gemini-cli   # Google Gemini AI CLI tool
+    goose-cli    # Block's open source AI coding agent
     gh           # GitHub CLI (required by claude-squad)
     lectic
     stylua       # Lua formatter for Neovim
@@ -171,6 +173,9 @@
       # Jupyter Notebooks
       jupytext
       ipython
+      google-generativeai  # Google Gemini API client (pip: google-genai)
+      # pymupdf4llm          # LLM-optimized PDF extraction (custom package) - TEMPORARILY DISABLED: requires PyMuPDF 1.26.6, nixpkgs has 1.24.10
+      pdf2docx             # Convert PDF to DOCX
     ]))
 
     # Clipboard history manager (for niri session)

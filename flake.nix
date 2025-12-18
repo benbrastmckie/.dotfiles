@@ -238,7 +238,7 @@
             isoImage.squashfsCompression = "zstd -Xcompression-level 19";
             
             # Generic hostname for USB
-            networking.hostName = "nandi-usb";
+            networking.hostName = lib.mkForce "nandi-usb";
             
             # Enable copy-on-write for the ISO
             isoImage.makeEfiBootable = true;
@@ -342,14 +342,6 @@
               description = "Benjamin";
               extraGroups = [ "networkmanager" "wheel" "audio" "video" "input" ];
               initialPassword = "nixos";  # Change after first boot
-            };
-            
-            # Include dotfiles in the ISO
-            system.copyToRoot = {
-              "/home/benjamin/.dotfiles" = {
-                source = ./.;
-                recursive = true;
-              };
             };
           })
         ];

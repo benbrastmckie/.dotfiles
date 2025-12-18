@@ -72,6 +72,34 @@ home.packages = with pkgs; [
 - Report: `specs/reports/011_cvc5_nixos_installation_strategy.md`
 - Plan: `specs/plans/009_cvc5_python_bindings_overlay.md`
 
+### pymupdf4llm.nix
+Custom Python package for PyMuPDF4LLM v0.2.2, a specialized extension of PyMuPDF for LLM-optimized PDF extraction. Converts PDFs to structured Markdown with preserved hierarchy.
+
+**Implementation**: Uses `buildPythonPackage` with `fetchPypi` to download the pure Python wheel (`py3-none-any`).
+
+**Dependencies**:
+- `pymupdf`: Python bindings for MuPDF (from nixpkgs)
+- `tabulate`: Pretty-print tabular data (from nixpkgs)
+
+**Usage**: Available in `python312.withPackages` via the `pythonPackagesOverlay` defined in `flake.nix`:
+
+```nix
+home.packages = with pkgs; [
+  (python312.withPackages(p: with p; [
+    pymupdf4llm
+    # ... other packages
+  ]))
+];
+```
+
+**Update Process**:
+1. Check new version on [PyPI](https://pypi.org/project/pymupdf4llm/)
+2. Get hash: `nix-prefetch-url https://files.pythonhosted.org/packages/py3/p/pymupdf4llm/pymupdf4llm-VERSION-py3-none-any.whl`
+3. Convert hash: `nix hash to-sri --type sha256 HASH`
+4. Update `version` and `hash` in `pymupdf4llm.nix`
+5. Rebuild: `home-manager switch --flake .#benjamin`
+6. Test: `python3 -c "import pymupdf4llm; print(pymupdf4llm.__version__)"`
+
 ### neovim.nix
 A wrapper around Neovim unstable that fixes missing maintainers metadata to prevent build errors.
 

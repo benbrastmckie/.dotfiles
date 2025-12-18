@@ -31,15 +31,14 @@ These dotfiles provide a complete NixOS setup with:
 
 ### Documentation Files
 
-- [`docs/configuration.md`](docs/configuration.md): Core configuration details
 - [`docs/installation.md`](docs/installation.md): Setup and installation guide
+- [`docs/usb-installer.md`](docs/usb-installer.md): Create bootable USB installer with your complete configuration
+- [`docs/configuration.md`](docs/configuration.md): Core configuration details
 - [`docs/applications.md`](docs/applications.md): Application-specific configurations
-- [`docs/himalaya.md`](docs/himalaya.md): Himalaya email client setup and configuration
 - [`docs/packages.md`](docs/packages.md): Package management and custom packages
-- [`docs/unstable-packages.md`](docs/unstable-packages.md): Managing unstable channel packages
 - [`docs/testing.md`](docs/testing.md): Testing and validation procedures
-- [`docs/development.md`](docs/development.md): Development notes and ISO building
-- [`docs/usb-booter.md`](docs/usb-booter.md): Complete USB installer creation guide
+
+See [`docs/README.md`](docs/README.md) for complete documentation index.
 
 ## Quick Start
 
@@ -56,14 +55,16 @@ For detailed installation instructions, see [`docs/installation.md`](docs/instal
 Create a bootable USB installer with your complete configuration:
 
 ```bash
-# Build USB installer
-./build-usb-installer.sh
+# Build ISO (~30-60 minutes)
+cd ~/.dotfiles
+nix build .#nixosConfigurations.usb-installer.config.system.build.isoImage
 
-# Write to USB drive (replace /dev/sdX)
-sudo dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M conv=fsync status=progress
+# Decompress and write to USB
+zstd -d result/iso/nixos-*.iso.zst -o /tmp/nixos-installer.iso
+sudo dd if=/tmp/nixos-installer.iso of=/dev/sdX bs=4M conv=fsync status=progress
 ```
 
-See [`docs/usb-booter.md`](docs/usb-booter.md) for detailed instructions.
+See [`docs/usb-installer.md`](docs/usb-installer.md) for complete guide.
 
 ### Customization
 

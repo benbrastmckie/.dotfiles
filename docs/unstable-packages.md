@@ -24,6 +24,8 @@ The following packages are currently pulled from the unstable channel:
 |------------------|---------------------------|
 | neovim-unwrapped | Get latest editor features and bug fixes |
 | niri             | Window manager under active development |
+| gemini-cli       | Google Gemini AI CLI tool |
+| goose-cli        | Block's open source AI coding agent |
 
 **Note**: `claude-code` was previously managed via unstable packages but has been migrated to a custom NPX wrapper approach for zero-maintenance automatic updates. See `packages/claude-code.nix` and the NPX Wrapper Pattern section in `CLAUDE.md` for details.
 
