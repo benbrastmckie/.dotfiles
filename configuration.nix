@@ -12,11 +12,28 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Kernel: Use 6.6 LTS to avoid 6.12.x input regressions with QMK keyboards
-  # Ryzen AI 300 requires kernel 6.5+, so 6.6 LTS is compatible
-  boot.kernelPackages = pkgs.linuxPackages_6_6;
+  # ==========================================================================
+  # Audio Static/EMI Fix for Realtek ALC256 Codec
+  # ==========================================================================
+  # Problem: Internal speakers emit static/hiss even when muted or using Bluetooth.
+  # Root cause: The speaker amplifier (EAPD) stays powered and picks up EMI from
+  # CPU/GPU/other components. This is a hardware design issue common in laptops
+  # with Realtek ALC256 codecs (MALIBAL Aon S1 / Clevo chassis).
+  #
+  # Solution has two parts:
+  # 1. Kernel module options (below) - prevents audio pops during playback by
+  #    disabling codec power saving. Does NOT fix idle static.
+  # 2. Systemd service (further below) - disables speaker amplifier (EAPD) at boot.
+  #    This DOES fix idle static but disables internal speakers entirely.
+  #    Re-enable speakers with: sudo hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 2
+  # ==========================================================================
 
-  # NOTE: networking.hostName is set per-host in flake.nix
+  # Part 1: Disable codec power saving (prevents pops during playback)
+  boot.extraModprobeConfig = ''
+    options snd_hda_intel power_save=0 power_save_controller=N
+  '';
+
+  networking.hostName = "nandi"; # Define your hostname.
   
 # Networking configuration
 networking = {
@@ -86,10 +103,9 @@ services.timesyncd.enable = true;
     WLR_NO_HARDWARE_CURSORS = "1";  # Helps with cursor issues
   };
 
-  # Enable the X11 windowing system
+  # Enable the X11 windowing system and display manager
   services.xserver.enable = true;
 
-  # Display manager configuration
   services.displayManager.gdm = {
     enable = true;
     wayland = true;
@@ -174,14 +190,25 @@ services.xserver = {
 };
 
   # Enable CUPS to print documents.
-  services.printing.enable = true;
+  # Using IPP Everywhere (driverless) - HPLIP removed as it conflicts with IPP
+  services.printing = {
+    enable = true;
+    # drivers = with pkgs; [ hplip ];  # Removed - causes blank pages with IPP
+  };
+
+  # Enable network printer discovery
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+  };
 
 # Enable Bluetooth
 hardware.bluetooth = {
   enable = true;
   powerOnBoot = true;  # Automatically power on Bluetooth adapter at boot
 };
-services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnome.enable) true;
+services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable) true;
 
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
@@ -277,11 +304,12 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       tree                 # Display directory structure in a tree-like format
       cvc5                 # Modern SMT solver
       opencode             # AI coding agent for terminal
+      lsof                 # Tool to list open files
       # u-root-cmds           
 
       # Lean
       # lean4              # Theorem prover and programming language
-      # mathlibtools  # Removed - archived upstream in 2023         # Tools for working with mathlib (Lean math library)
+      # mathlibtools       # Removed - archived upstream in 2023
       elan                 # Version manager for Lean
 
       # Editors
@@ -295,7 +323,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       typst                # Typesetting language for generating PDFs
       texlive.combined.scheme-full  # Complete TeX Live distribution for document preparation
       texlab               # Language server for LaTeX
-      kdePackages.okular   # Universal document viewer (moved to kdePackages)
+      kdePackages.okular   # Universal document viewer (moved from libsForQt5 in nixos-unstable)
       pdftk                # PDF toolkit for manipulating PDF documents
       pdfannots            # Extract annotations from PDF files
       xsel                 # Command-line tool for getting/setting X selection
@@ -311,6 +339,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       kooha
 
       # Multimedia
+      alsa-tools           # HDA codec tools (hda-verb) for audio hardware control
       vlc                  # Cross-platform multimedia player
       zoom-us              # Video conferencing tool
       spotify              # Music streaming service client
@@ -319,7 +348,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
 
       # File Transfer and Torrent
       wget                 # Tool for retrieving files using HTTP, HTTPS, and FTP
-      # pkgs.torrential    # GTK4 BitTorrent client - package not available in nixpkgs
+      # torrential         # Removed from nixos-unstable
 
       # Input Tools
       qmk                  # Quantum Mechanical Keyboard firmware utilities
@@ -369,7 +398,7 @@ fonts = {
   packages = with pkgs; [
     noto-fonts
     noto-fonts-cjk-sans
-    noto-fonts-color-emoji  # Renamed from noto-fonts-emoji
+    noto-fonts-color-emoji  # Renamed from noto-fonts-emoji in nixos-unstable
     liberation_ttf
     fira-code
     fira-code-symbols
@@ -393,6 +422,30 @@ nix = {
     automatic = true;
     dates = "weekly";
     options = "--delete-older-than 30d";
+  };
+};
+
+# Part 2 of Audio Static Fix: Disable speaker amplifier (EAPD) at boot
+# This systemd service runs hda-verb to disable the speaker amplifier on the
+# Realtek ALC256 codec. This eliminates idle static/hiss from internal speakers
+# but means internal speakers will NOT work until re-enabled.
+#
+# To re-enable internal speakers temporarily:
+#   sudo hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 2
+#
+# To disable again (stop static):
+#   sudo hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 0
+#
+# Node 0x14 = Speaker pin on ALC256
+# EAPD bit 1 (value 2) = amplifier enabled, bit 0 (value 0) = disabled
+systemd.services.disable-speaker-amp = {
+  description = "Disable internal speaker amplifier to prevent EMI static";
+  wantedBy = [ "multi-user.target" "post-resume.target" ];
+  after = [ "sound.target" ];
+  serviceConfig = {
+    Type = "oneshot";
+    RemainAfterExit = true;
+    ExecStart = "${pkgs.alsa-tools}/bin/hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 0";
   };
 };
 
