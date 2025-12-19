@@ -1,5 +1,7 @@
 if status is-interactive
     # Commands to run in interactive sessions can go here
+    # Disable fish greeting
+    set fish_greeting
 end
 
 # removes the mapping <C-t> which is being used to close the terminal in NeoVim

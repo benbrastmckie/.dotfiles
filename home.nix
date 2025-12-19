@@ -31,8 +31,8 @@
     # Note: MCP-Hub is managed via lazy.nvim in NeoVim config
   };
 
-  # Don't manage fish config - preserve oh-my-fish setup
-  # Instead, manually source Home Manager session variables in fish
+  # Fish shell configuration is managed through home.file below
+  # OMF has been removed - fish greeting disabled in config.fish
 
   # GNOME settings via dconf
   dconf.settings = {
