@@ -12,6 +12,10 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # Kernel: Use 6.6 LTS to avoid 6.12.x input regressions with QMK keyboards
+  # Ryzen AI 300 requires kernel 6.5+, so 6.6 LTS is compatible
+  boot.kernelPackages = pkgs.linuxPackages_6_6;
+
   # NOTE: networking.hostName is set per-host in flake.nix
   
 # Networking configuration
