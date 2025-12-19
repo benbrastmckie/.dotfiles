@@ -12,7 +12,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "nandi"; # Define your hostname.
+  # NOTE: networking.hostName is set per-host in flake.nix
   
 # Networking configuration
 networking = {
