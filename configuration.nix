@@ -280,7 +280,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
 
       # Lean
       # lean4              # Theorem prover and programming language
-      mathlibtools         # Tools for working with mathlib (Lean math library)
+      # mathlibtools  # Removed - archived upstream in 2023         # Tools for working with mathlib (Lean math library)
       elan                 # Version manager for Lean
 
       # Editors
