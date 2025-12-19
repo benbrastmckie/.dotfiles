@@ -138,7 +138,7 @@
     # MCP-Hub is now managed by the home module
     nodejs    # Required runtime dependency
     (python312.withPackages(p: with p; [
-      z3
+      z3-solver  # Renamed from z3
       setuptools
       pyinstrument
       build
