@@ -1,26 +1,40 @@
-# OpenCode Agent System Project Context
+# Project Context
+
+**Project Type:** NixOS Dotfiles Configuration Repository
+
+**For detailed NixOS-specific information, see:** `project/nixos-dotfiles.md`
+
+This repository contains:
+- NixOS system configuration (flakes-based)
+- Home Manager user environment
+- Custom package definitions
+- Application configurations
+- OpenCode agent system integration
 
 ## Technology Stack
 
-**Primary Language:** TypeScript
-**Runtime:** Node.js/Bun
-**Package Manager:** npm/pnpm/yarn
-**Build Tools:** TypeScript Compiler (tsc)
-**Testing:** Jest/Vitest (if configured)
-**Linting:** ESLint (if configured)
+**OS:** NixOS 24.11
+**Config Management:** Nix Flakes + Home Manager
+**Primary Language:** Nix (declarative config)
+**Scripting:** Bash, Fish shell
+**Agent System:** OpenCode (TypeScript-based)
 
 ## Project Structure
 
 ```
-.opencode/
-├── agent/           # AI agents for specific tasks
-│   ├── subagents/   # Specialized subagents
-│   └── *.md         # Primary agents
-├── command/         # Slash commands
-├── context/         # Knowledge base for agents
-└── plugin/          # Extensions and integrations
-
-tasks/               # Task management files
+.
+├── configuration.nix       # NixOS system config
+├── home.nix               # Home Manager config
+├── flake.nix              # Flake definition
+├── packages/              # Custom packages
+├── config/                # App configs
+├── docs/                  # Documentation
+├── specs/                 # Plans/reports/summaries
+└── .opencode/             # Agent system
+    ├── agent/             # AI agents
+    ├── command/           # Slash commands
+    ├── context/           # Knowledge base
+    └── plugin/            # Extensions
 ```
 
 ## Core Patterns

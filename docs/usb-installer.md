@@ -620,6 +620,43 @@ Make sure you selected the EFI partition (usually the small 512MB FAT32 partitio
 3. Only select the NixOS partition during installation
 4. Leave your data partition unselected
 
+### Post-Installation Issues
+
+**Wrong hostname after installation from USB:**
+
+If you installed from a USB created on another machine (e.g., `nandi`), the new system may inherit that hostname instead of using the correct one from your flake configuration.
+
+**Symptoms:**
+- `hostname` returns wrong name (e.g., `nandi` instead of `hamsa`)
+- `/etc/hostname` shows wrong name
+- `./update.sh` rebuilds wrong configuration
+- `/boot` partition won't mount (wrong UUID in fstab)
+- Boot fails with "efiSysMountPoint = '/boot' is not a mounted partition"
+
+**Fix:**
+```bash
+# 1. Mount the boot partition manually (use correct UUID for your machine)
+sudo mount /dev/disk/by-uuid/YOUR-BOOT-UUID /boot
+
+# 2. Rebuild with correct hostname (replace 'hamsa' with your actual hostname)
+cd ~/.dotfiles
+sudo nixos-rebuild switch --flake .#hamsa --option allow-import-from-derivation false
+
+# 3. Reboot to apply hostname change and verify auto-mount works
+sudo reboot
+
+# 4. After reboot, verify everything is correct
+hostname  # Should show correct hostname
+mount | grep boot  # Should show /boot mounted
+cat /etc/fstab | grep boot  # Should show correct UUID
+```
+
+**Prevention:**
+Always specify the correct hostname explicitly when installing: `sudo nixos-install --flake .#your-hostname`
+
+**Why this happens:**
+The USB installer has its own hostname (e.g., `nandi-usb`). If you don't specify the hostname during installation, the system may use the wrong hardware configuration with incorrect partition UUIDs.
+
 ### Build Issues (nixos-unstable)
 
 **Package not found errors:**

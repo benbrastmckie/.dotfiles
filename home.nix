@@ -1,4 +1,4 @@
-{ config, pkgs, pkgs-unstable, lectic, nix-ai-tools, ... }:
+{ config, lib, pkgs, pkgs-unstable, lectic, nix-ai-tools, ... }:
 
 {
   # Import our custom modules
@@ -31,9 +31,179 @@
     # Note: MCP-Hub is managed via lazy.nvim in NeoVim config
   };
 
-  # Don't manage fish config - preserve oh-my-fish setup
-  # Instead, manually source Home Manager session variables in fish
+  # Fish shell configuration
+  programs.fish = {
+    enable = true;
 
+    interactiveShellInit = ''
+      # Disable greeting message
+      set fish_greeting
+
+      # Remove Ctrl+T binding (used for NeoVim terminal)
+      bind --erase --all \ct
+
+      # Set prompt theme
+      fish_config prompt choose scales
+
+      # Run neofetch on start
+      if type -q neofetch
+        neofetch
+      end
+    '';
+
+    shellInit = ''
+      set -x EDITOR nvim
+    '';
+  };
+
+  # Zoxide (smart cd replacement)
+  programs.zoxide = {
+    enable = true;
+    enableFishIntegration = true;
+    options = [ "--cmd" "cd" ];  # Replace cd command
+  };
+
+  # GNOME settings via dconf
+  dconf.settings = {
+    # Input sources and keyboard options
+    "org/gnome/desktop/input-sources" = {
+      sources = [ (lib.hm.gvariant.mkTuple [ "xkb" "us" ]) ];
+      xkb-options = [ "lv3:ralt_switch" "caps:swapescape" "ctrl:swap_lalt_lctl" ];
+    };
+
+    # Interface preferences
+    "org/gnome/desktop/interface" = {
+      color-scheme = "prefer-dark";
+      toolkit-accessibility = false;
+    };
+
+    # Mouse and touchpad
+    "org/gnome/desktop/peripherals/mouse" = {
+      speed = 0.34188034188034178;
+    };
+    "org/gnome/desktop/peripherals/touchpad" = {
+      speed = 0.48717948717948723;
+      two-finger-scrolling-enabled = true;
+    };
+
+    # Window manager preferences
+    "org/gnome/desktop/wm/preferences" = {
+      focus-mode = "sloppy";
+    };
+
+    # Window manager keybindings (vim-style)
+    "org/gnome/desktop/wm/keybindings" = {
+      activate-window-menu = [];
+      begin-move = [];
+      begin-resize = [];
+      close = [ "<Super>q" ];
+      cycle-group = [];
+      cycle-group-backward = [];
+      cycle-panels = [];
+      cycle-panels-backward = [];
+      cycle-windows = [ "<Super>space" ];
+      cycle-windows-backward = [ "<Shift><Super>space" ];
+      maximize = [ "<Shift><Control>k" ];
+      maximize-horizontally = [];
+      minimize = [];
+      move-to-monitor-down = [ "<Shift><Super>j" ];
+      move-to-monitor-left = [ "<Shift><Super>h" ];
+      move-to-monitor-right = [ "<Shift><Super>l" ];
+      move-to-monitor-up = [ "<Shift><Super>k" ];
+      move-to-workspace-1 = [];
+      move-to-workspace-last = [];
+      move-to-workspace-left = [ "<Shift><Alt>h" ];
+      move-to-workspace-right = [ "<Shift><Alt>l" ];
+      panel-run-dialog = [];
+      switch-group = [];
+      switch-group-backward = [];
+      switch-input-source = [];
+      switch-input-source-backward = [];
+      switch-panels = [];
+      switch-panels-backward = [];
+      switch-to-workspace-1 = [];
+      switch-to-workspace-last = [];
+      switch-windows = [];
+      switch-windows-backward = [];
+      toggle-fullscreen = [];
+      toggle-maximized = [];
+      unmaximize = [ "<Shift><Control>j" ];
+    };
+
+    # Mutter settings
+    "org/gnome/mutter" = {
+      overlay-key = "Super";
+    };
+    "org/gnome/mutter/keybindings" = {
+      toggle-tiled-left = [ "<Shift><Control>h" ];
+      toggle-tiled-right = [ "<Shift><Control>l" ];
+    };
+    "org/gnome/mutter/wayland/keybindings" = {
+      restore-shortcuts = [];
+    };
+
+    # Media keys
+    "org/gnome/settings-daemon/plugins/media-keys" = {
+      control-center = [ "<Super>backslash" ];
+      custom-keybindings = [
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
+      ];
+      home = [ "<Super>f" ];
+      logout = [ "PowerOff" ];
+      magnifier = [];
+      magnifier-zoom-in = [];
+      magnifier-zoom-out = [];
+      screenreader = [];
+      screensaver = [ "<Super>grave" ];
+      www = [ "<Super>b" ];
+    };
+
+    # Custom keybindings
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
+      binding = "<Super>t";
+      command = "wezterm";
+      name = "Terminal";
+    };
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
+      binding = "<Super>z";
+      command = "zotero";
+      name = "Zotero";
+    };
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
+      binding = "<Super>d";
+      command = "whisper-dictate";
+      name = "Dictation";
+    };
+
+    # Shell settings
+    "org/gnome/shell" = {
+      enabled-extensions = [ "unite@hardpixel.eu" ];
+    };
+    "org/gnome/shell/keybindings" = {
+      focus-active-notification = [];
+      toggle-application-view = [];
+      toggle-message-tray = [ "<Super>n" ];
+      toggle-quick-settings = [];
+    };
+
+    # Unite extension settings
+    "org/gnome/shell/extensions/unite" = {
+      desktop-name-text = "Hamsa";
+      extend-left-box = true;
+      hide-window-titlebars = "always";
+      reduce-panel-spacing = true;
+      show-window-buttons = "never";
+      show-window-title = "never";
+      window-buttons-theme = "auto";
+    };
+
+    # Night light
+    "org/gnome/settings-daemon/plugins/color" = {
+      night-light-schedule-automatic = false;
+    };
+  };
 
   home.stateVersion = "24.11"; # Please read the comment before changing.
   # home.stateVersion = "24.05"; # Please read the comment before changing.
@@ -516,8 +686,7 @@
       GMAIL_CLIENT_ID=$GMAIL_CLIENT_ID
     '';
     
-    # Active configuration files
-    ".config/fish/config.fish".source = ./config/config.fish;
+    # Active configuration files (fish is managed by programs.fish)
     ".config/kitty/kitty.conf".source = ./config/kitty.conf;
     ".config/zathura/zathurarc".source = ./config/zathurarc;
     ".config/alacritty/alacritty.toml".source = ./config/alacritty.toml;
@@ -526,7 +695,7 @@
     ".latexmkrc".source = ./config/latexmkrc;
 
     # Config-files directory (actual file copies for version control)
-    ".config/config-files/config.fish".text = builtins.readFile ./config/config.fish;
+    # Note: fish config is now managed by programs.fish in home.nix
     ".config/config-files/kitty.conf".text = builtins.readFile ./config/kitty.conf;
     ".config/config-files/zathurarc".text = builtins.readFile ./config/zathurarc;
     ".config/config-files/alacritty.toml".text = builtins.readFile ./config/alacritty.toml;

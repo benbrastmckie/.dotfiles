@@ -34,11 +34,22 @@ Reference this when:
 - What constraints exist?
 
 ### 2. Gather Information
+
+**Local Documentation First** (NixOS auto-syncs man pages with installed packages):
+- `man program` - Comprehensive Unix documentation (always version-matched)
+- `program --help` - Quick reference for commands and options
+- `info program` - Detailed GNU program documentation
+- `man -k keyword` - Search man pages by keyword
+- `man 5 program` - Configuration file documentation
+
+**Then Code/Project Resources**:
 - Read relevant code / data points
-- Check documentation
+- Check project documentation
 - Search for patterns
 - Review related issues
 - Examine dependencies
+
+**Note**: In NixOS, man pages are automatically installed and removed with packages, ensuring documentation always matches installed versions. Prefer local docs over web searches for accuracy.
 
 ### 3. Identify Patterns
 - What's consistent across the codebase?

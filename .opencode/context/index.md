@@ -29,3 +29,4 @@ sessions    → workflows/sessions.md   [medium]   session management, cleanup
 **Standards** - Code quality, testing, documentation standards (critical priority)
 **Workflows** - Process templates for delegation, review, task breakdown (high priority)
 **System** - Documentation and guides (medium priority)
+**Project** - Project-specific context (NixOS dotfiles, OpenCode system)

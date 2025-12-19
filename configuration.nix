@@ -228,12 +228,15 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
   # Enable touchpad support (enabled default in most desktopManager).
   services.libinput.enable = true;
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.benjamin = {
     isNormalUser = true;
     description = "Benjamin";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "input" "uinput" ];
   };
+
+  # Enable uinput for ydotool (dictation feature)
+  hardware.uinput.enable = true;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
