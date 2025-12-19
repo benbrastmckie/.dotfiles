@@ -13,34 +13,6 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   # ==========================================================================
-  # Suspend/Resume Fix for Ryzen AI 300 Series
-  # ==========================================================================
-  # Problem: System fails to suspend due to MediaTek WiFi (mt7925e) timeout
-  # and AMD GPU VPE (Video Processing Engine) reset failure.
-  #
-  # Solution:
-  # 1. Use default kernel from nixpkgs (custom kernels cause QMK keyboard issues)
-  # 2. Add AMD-specific kernel parameters for better power management
-  # 3. Disable problematic WiFi power management during suspend
-  # 4. Work around AMD GPU VPE suspend issues
-  # ==========================================================================
-
-  # NOTE: boot.kernelPackages is NOT set - using default kernel from nixpkgs
-  # Reason: linuxPackages_latest (6.12.x) and linuxPackages (now 6.12.x in unstable)
-  # both have keyboard input regressions with QMK keyboards. The default kernel
-  # from nixpkgs works correctly with QMK firmware and XKB key remapping.
-  # If suspend issues occur, try adding specific kernel parameters below rather
-  # than changing the kernel version.
-
-  # Kernel parameters for Ryzen AI 300 suspend/resume
-  # These parameters work with any kernel version
-  boot.kernelParams = [
-    "amd_pstate=active"           # Enable AMD P-state driver for better power management
-    "amdgpu.dcdebugmask=0x10"     # Disable problematic GPU features during suspend
-    "rtc_cmos.use_acpi_alarm=1"   # Better ACPI wake support
-  ];
-
-  # ==========================================================================
   # Audio Static/EMI Fix for Realtek ALC256 Codec
   # ==========================================================================
   # Problem: Internal speakers emit static/hiss even when muted or using Bluetooth.
@@ -57,10 +29,8 @@
   # ==========================================================================
 
   # Part 1: Disable codec power saving (prevents pops during playback)
-  # Also disable MediaTek WiFi power management to fix suspend issues
   boot.extraModprobeConfig = ''
     options snd_hda_intel power_save=0 power_save_controller=N
-    options mt7921e disable_aspm=1
   '';
 
   # NOTE: networking.hostName is set per-host in flake.nix
@@ -212,10 +182,11 @@ services.timesyncd.enable = true;
     };
   };
 
-# Configure keymap (applies to both X11 and Wayland)
+# Configure keymap in X11
 services.xserver = {
   xkb.layout = "us";
-  xkb.options = "lv3:ralt_switch,caps:swapescape,ctrl:swap_lalt_lctl";
+  # Uncomment to set key repeat settings
+  # xkb.options = "caps:escape";  # Optional: remap caps lock to escape
 };
 
   # Enable CUPS to print documents.
@@ -256,12 +227,6 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
 
   # Enable touchpad support (enabled default in most desktopManager).
   services.libinput.enable = true;
-
-  # Power management configuration for Ryzen AI 300
-  powerManagement = {
-    enable = true;
-    cpuFreqGovernor = "ondemand";  # Balance performance and power saving
-  };
 
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.benjamin = {

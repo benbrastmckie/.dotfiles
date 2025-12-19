@@ -37,7 +37,7 @@
 
     interactiveShellInit = ''
       # Disable greeting message
-      set -g fish_greeting ""
+      set fish_greeting
 
       # Remove Ctrl+T binding (used for NeoVim terminal)
       bind --erase --all \ct
@@ -536,17 +536,6 @@
   #   enable = true;
   #   extraConfig = builtins.readFile ./config/wezterm.lua;
   # };
-
-  # XDG autostart configuration
-  xdg.configFile."autostart/wezterm.desktop".text = ''
-    [Desktop Entry]
-    Type=Application
-    Name=WezTerm
-    Comment=Start WezTerm maximized on login
-    Exec=wezterm start --maximized
-    Terminal=false
-    X-GNOME-Autostart-enabled=true
-  '';
 
   home.file = {
     ".config/neofetch/config.conf".source = ./config/neofetch.conf;
