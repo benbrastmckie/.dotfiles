@@ -115,18 +115,11 @@ config.enable_scroll_bar = false
 -- MOUSE SUPPORT
 config.hide_mouse_cursor_when_typing = false  -- Disabled to prevent cursor disappearing bug on Wayland
 -- Let NixOS handle cursor theme through environment variables
+
+-- Slow down scroll speed (default is 3, setting to 1 for half speed)
+config.alternate_buffer_wheel_scroll_speed = 1
+
 config.mouse_bindings = {
-  -- Scroll wheel with reduced sensitivity
-  {
-    event = { Down = { streak = 1, button = { WheelUp = 1 } } },
-    mods = 'NONE',
-    action = wezterm.action.ScrollByLine(-1),
-  },
-  {
-    event = { Down = { streak = 1, button = { WheelDown = 1 } } },
-    mods = 'NONE',
-    action = wezterm.action.ScrollByLine(1),
-  },
   -- Right click to paste
   {
     event = { Down = { streak = 1, button = 'Right' } },

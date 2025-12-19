@@ -13,6 +13,29 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   # ==========================================================================
+  # Suspend/Resume Fix for Ryzen AI 300 Series
+  # ==========================================================================
+  # Problem: System fails to suspend due to MediaTek WiFi (mt7925e) timeout
+  # and AMD GPU VPE (Video Processing Engine) reset failure.
+  #
+  # Solution:
+  # 1. Use latest kernel for best Ryzen AI 300 hardware support
+  # 2. Add AMD-specific kernel parameters for better power management
+  # 3. Disable problematic WiFi power management during suspend
+  # 4. Work around AMD GPU VPE suspend issues
+  # ==========================================================================
+
+  # Use latest kernel for best Ryzen AI 300 series support
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  # Kernel parameters for Ryzen AI 300 suspend/resume
+  boot.kernelParams = [
+    "amd_pstate=active"           # Enable AMD P-state driver for better power management
+    "amdgpu.dcdebugmask=0x10"     # Disable problematic GPU features during suspend
+    "rtc_cmos.use_acpi_alarm=1"   # Better ACPI wake support
+  ];
+
+  # ==========================================================================
   # Audio Static/EMI Fix for Realtek ALC256 Codec
   # ==========================================================================
   # Problem: Internal speakers emit static/hiss even when muted or using Bluetooth.
@@ -29,8 +52,10 @@
   # ==========================================================================
 
   # Part 1: Disable codec power saving (prevents pops during playback)
+  # Also disable MediaTek WiFi power management to fix suspend issues
   boot.extraModprobeConfig = ''
     options snd_hda_intel power_save=0 power_save_controller=N
+    options mt7921e disable_aspm=1
   '';
 
   # NOTE: networking.hostName is set per-host in flake.nix
@@ -227,6 +252,12 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
 
   # Enable touchpad support (enabled default in most desktopManager).
   services.libinput.enable = true;
+
+  # Power management configuration for Ryzen AI 300
+  powerManagement = {
+    enable = true;
+    cpuFreqGovernor = "ondemand";  # Balance performance and power saving
+  };
 
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.benjamin = {
