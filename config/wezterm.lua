@@ -116,6 +116,17 @@ config.enable_scroll_bar = false
 config.hide_mouse_cursor_when_typing = false  -- Disabled to prevent cursor disappearing bug on Wayland
 -- Let NixOS handle cursor theme through environment variables
 config.mouse_bindings = {
+  -- Scroll wheel with reduced sensitivity
+  {
+    event = { Down = { streak = 1, button = { WheelUp = 1 } } },
+    mods = 'NONE',
+    action = wezterm.action.ScrollByLine(-1),
+  },
+  {
+    event = { Down = { streak = 1, button = { WheelDown = 1 } } },
+    mods = 'NONE',
+    action = wezterm.action.ScrollByLine(1),
+  },
   -- Right click to paste
   {
     event = { Down = { streak = 1, button = 'Right' } },
