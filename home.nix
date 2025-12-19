@@ -43,6 +43,8 @@
   home.packages = with pkgs; [
     claude-code  # Using overlaid unstable package
     claude-squad # Terminal app for managing multiple AI agents
+    gemini-cli   # Google Gemini AI CLI tool
+    goose-cli    # Block's open source AI coding agent
     gh           # GitHub CLI (required by claude-squad)
     lectic
     stylua       # Lua formatter for Neovim
@@ -52,8 +54,8 @@
 
     # Dictation tools
     whisper-cpp  # Fast offline speech-to-text (renamed from openai-whisper-cpp)
-    ydotool             # Universal input tool (works with GNOME/Wayland)
-    libnotify           # Desktop notifications
+    ydotool      # Universal input tool (works with GNOME/Wayland)
+    libnotify    # Desktop notifications
     
     # OAuth2 token refresh script
     (pkgs.writeShellScriptBin "refresh-gmail-oauth2" ''
@@ -140,7 +142,7 @@
     # MCP-Hub is now managed by the home module
     nodejs    # Required runtime dependency
     (python312.withPackages(p: with p; [
-      z3-solver  # Renamed from z3
+      z3-solver  # Renamed from z3 in nixos-unstable
       setuptools
       pyinstrument
       build
@@ -173,13 +175,16 @@
       # Jupyter Notebooks
       jupytext
       ipython
+      google-generativeai  # Google Gemini API client (pip: google-genai)
+      # pymupdf4llm          # LLM-optimized PDF extraction (custom package) - TEMPORARILY DISABLED: requires PyMuPDF 1.26.6, nixpkgs has 1.24.10
+      pdf2docx             # Convert PDF to DOCX
     ]))
 
     # Clipboard history manager (for niri session)
     wl-clipboard
     cliphist
 
-    (pkgs.nerd-fonts.roboto-mono)
+    nerd-fonts.roboto-mono  # Nerd Fonts with Roboto Mono (nixos-unstable uses new nerd-fonts structure)
 
     # Whisper dictation script for Wayland
     (pkgs.writeShellScriptBin "whisper-dictate" ''
@@ -518,6 +523,7 @@
     ".config/alacritty/alacritty.toml".source = ./config/alacritty.toml;
     ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
     ".tmux.conf".source = ./config/.tmux.conf;
+    ".latexmkrc".source = ./config/latexmkrc;
 
     # Config-files directory (actual file copies for version control)
     ".config/config-files/config.fish".text = builtins.readFile ./config/config.fish;
@@ -526,6 +532,7 @@
     ".config/config-files/alacritty.toml".text = builtins.readFile ./config/alacritty.toml;
     ".config/config-files/wezterm.lua".text = builtins.readFile ./config/wezterm.lua;
     ".config/config-files/.tmux.conf".text = builtins.readFile ./config/.tmux.conf;
+    ".config/config-files/latexmkrc".text = builtins.readFile ./config/latexmkrc;
     # # Building this configuration will create a copy of 'dotfiles/screenrc' in
     # # the Nix store. Activating the configuration will then make '~/.screenrc' a
     # # symlink to the Nix store copy. All files must at least be staged in git.
