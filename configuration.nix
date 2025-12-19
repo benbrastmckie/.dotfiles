@@ -19,18 +19,21 @@
   # and AMD GPU VPE (Video Processing Engine) reset failure.
   #
   # Solution:
-  # 1. Use latest kernel for best Ryzen AI 300 hardware support
+  # 1. Use default kernel from nixpkgs (custom kernels cause QMK keyboard issues)
   # 2. Add AMD-specific kernel parameters for better power management
   # 3. Disable problematic WiFi power management during suspend
   # 4. Work around AMD GPU VPE suspend issues
   # ==========================================================================
 
-  # Use LTS kernel for stable input handling (6.6.x)
-  # Note: linuxPackages_latest (6.12.x) has keyboard input regressions with QMK keyboards
-  # The AMD suspend/resume fixes below work fine on 6.6 LTS kernel
-  boot.kernelPackages = pkgs.linuxPackages;
+  # NOTE: boot.kernelPackages is NOT set - using default kernel from nixpkgs
+  # Reason: linuxPackages_latest (6.12.x) and linuxPackages (now 6.12.x in unstable)
+  # both have keyboard input regressions with QMK keyboards. The default kernel
+  # from nixpkgs works correctly with QMK firmware and XKB key remapping.
+  # If suspend issues occur, try adding specific kernel parameters below rather
+  # than changing the kernel version.
 
   # Kernel parameters for Ryzen AI 300 suspend/resume
+  # These parameters work with any kernel version
   boot.kernelParams = [
     "amd_pstate=active"           # Enable AMD P-state driver for better power management
     "amdgpu.dcdebugmask=0x10"     # Disable problematic GPU features during suspend
