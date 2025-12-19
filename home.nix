@@ -68,6 +68,8 @@
       move-to-monitor-up = [ "<Shift><Super>k" ];
       move-to-workspace-left = [ "<Shift><Alt>h" ];
       move-to-workspace-right = [ "<Shift><Alt>l" ];
+      switch-to-workspace-left = [ "<Super>h" ];
+      switch-to-workspace-right = [ "<Super>l" ];
       unmaximize = [ "<Shift><Control>j" ];
     };
 
@@ -82,6 +84,8 @@
       control-center = [ "<Super>backslash" ];
       custom-keybindings = [
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
       ];
       home = [ "<Super>f" ];
       screensaver = [ "<Super>grave" ];
@@ -93,6 +97,20 @@
       binding = "<Super>t";
       command = "wezterm";
       name = "Terminal";
+    };
+
+    # Custom keybindings - Zotero
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
+      binding = "<Super>z";
+      command = "zotero";
+      name = "Zotero";
+    };
+
+    # Custom keybindings - Whisper dictation
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
+      binding = "<Super>d";
+      command = "whisper-dictate";
+      name = "Dictation";
     };
   };
 

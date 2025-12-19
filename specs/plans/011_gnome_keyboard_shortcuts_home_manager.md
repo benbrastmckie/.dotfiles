@@ -1,7 +1,8 @@
 # Plan 011: GNOME Keyboard Shortcuts in Home Manager
 
-**Status**: Planned  
+**Status**: Implemented  
 **Created**: 2025-12-19  
+**Completed**: 2025-12-19  
 **Priority**: Medium
 
 ## Problem Statement
@@ -304,9 +305,77 @@ gsettings reset org.gnome.desktop.wm.keybindings switch-to-workspace-right
 - Unite extension may need configuration to avoid intercepting these shortcuts
 - Consider adding Super+j/k for vertical workspace switching if using a grid layout
 
+## Implementation Summary
+
+**Date**: 2025-12-19
+
+### Changes Made
+
+1. **Added workspace switching keybindings** to `home.nix` line 71-72:
+   ```nix
+   switch-to-workspace-left = [ "<Super>h" ];
+   switch-to-workspace-right = [ "<Super>l" ];
+   ```
+
+2. **Updated custom keybindings list** at line 83-87 to include all three custom shortcuts:
+   ```nix
+   custom-keybindings = [
+     "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+     "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
+     "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
+   ];
+   ```
+
+3. **Added custom1 (Zotero) and custom2 (dictation)** at lines 98-110:
+   ```nix
+   "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
+     binding = "<Super>z";
+     command = "zotero";
+     name = "Zotero";
+   };
+
+   "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
+     binding = "<Super>d";
+     command = "whisper-dictate";
+     name = "Dictation";
+   };
+   ```
+
+### Verification Results
+
+✅ **Workspace switching keybindings verified**:
+- `switch-to-workspace-left`: `['<Super>h']`
+- `switch-to-workspace-right`: `['<Super>l']`
+
+✅ **Custom keybindings verified**:
+- custom0: `Super+t` → wezterm
+- custom1: `Super+z` → zotero
+- custom2: `Super+d` → whisper-dictate
+
+✅ **Monitor movement keybindings verified**:
+- `move-to-monitor-left`: `['<Shift><Super>h']`
+- `move-to-monitor-right`: `['<Shift><Super>l']`
+- No conflicts found with other keybindings
+- Unite extension is not interfering
+
+### Shift+Super+h/j/k/l Investigation Results
+
+**Finding**: The keybindings are correctly configured in home.nix and properly applied to GNOME. No conflicts were detected.
+
+**Likely cause**: These shortcuts only work when multiple monitors are connected. With a single monitor, GNOME has no other monitor to move windows to, so the shortcuts appear to do nothing.
+
+**Recommendation**: Test with multiple monitors connected. The keybindings should work as expected in a multi-monitor setup.
+
+### Status
+
+- ✅ All keybindings are now declaratively managed in home.nix
+- ✅ Configuration survives `home-manager switch` rebuilds
+- ✅ No manual GNOME settings required
+- ✅ Fully reproducible across system installations
+
 ## References
 
 - [Home Manager dconf module](https://nix-community.github.io/home-manager/options.html#opt-dconf.settings)
 - [GNOME Keybindings Schema](https://gitlab.gnome.org/GNOME/gsettings-desktop-schemas/-/blob/master/schemas/org.gnome.desktop.wm.keybindings.gschema.xml.in)
-- Current configuration: `~/.dotfiles/home.nix` lines 38-97
+- Current configuration: `~/.dotfiles/home.nix` lines 38-110
 - Documentation: `~/.dotfiles/docs/gnome-settings.md`
