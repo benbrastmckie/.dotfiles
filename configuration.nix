@@ -12,28 +12,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # ==========================================================================
-  # Audio Static/EMI Fix for Realtek ALC256 Codec
-  # ==========================================================================
-  # Problem: Internal speakers emit static/hiss even when muted or using Bluetooth.
-  # Root cause: The speaker amplifier (EAPD) stays powered and picks up EMI from
-  # CPU/GPU/other components. This is a hardware design issue common in laptops
-  # with Realtek ALC256 codecs (MALIBAL Aon S1 / Clevo chassis).
-  #
-  # Solution has two parts:
-  # 1. Kernel module options (below) - prevents audio pops during playback by
-  #    disabling codec power saving. Does NOT fix idle static.
-  # 2. Systemd service (further below) - disables speaker amplifier (EAPD) at boot.
-  #    This DOES fix idle static but disables internal speakers entirely.
-  #    Re-enable speakers with: sudo hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 2
-  # ==========================================================================
-
-  # Part 1: Disable codec power saving (prevents pops during playback)
-  boot.extraModprobeConfig = ''
-    options snd_hda_intel power_save=0 power_save_controller=N
-  '';
-
-  networking.hostName = "nandi"; # Define your hostname.
+  # NOTE: networking.hostName is set per-host in flake.nix
   
 # Networking configuration
 networking = {
