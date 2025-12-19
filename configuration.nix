@@ -315,7 +315,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
 
       # File Transfer and Torrent
       wget                 # Tool for retrieving files using HTTP, HTTPS, and FTP
-      torrential           # GTK4 BitTorrent client
+      pkgs.torrential      # GTK4 BitTorrent client
 
       # Input Tools
       qmk                  # Quantum Mechanical Keyboard firmware utilities
