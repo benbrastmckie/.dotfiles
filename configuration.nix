@@ -12,6 +12,35 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # ==========================================================================
+  # Suspend/Resume Fix for Ryzen AI 300 Series
+  # ==========================================================================
+  # Problem: System fails to suspend due to MediaTek WiFi (mt7925e) timeout
+  # and AMD GPU VPE (Video Processing Engine) reset failure.
+  #
+  # Solution:
+  # 1. Use latest kernel for best Ryzen AI 300 hardware support
+  # 2. Add AMD-specific kernel parameters for better power management
+  # 3. Disable problematic WiFi power management during suspend
+  # 4. Work around AMD GPU VPE suspend issues
+  # ==========================================================================
+
+  # Use latest kernel for best Ryzen AI 300 series support
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  # Kernel parameters for Ryzen AI 300 suspend/resume
+  boot.kernelParams = [
+    "amd_pstate=active"           # Enable AMD P-state driver for better power management
+    "amdgpu.dcdebugmask=0x10"     # Disable problematic GPU features during suspend
+    "rtc_cmos.use_acpi_alarm=1"   # Better ACPI wake support
+  ];
+
+  # Disable problematic power management for audio and WiFi
+  boot.extraModprobeConfig = ''
+    options snd_hda_intel power_save=0 power_save_controller=N
+    options mt7921e disable_aspm=1
+  '';
+
   # NOTE: networking.hostName is set per-host in flake.nix
   
 # Networking configuration
@@ -164,8 +193,7 @@ services.timesyncd.enable = true;
 # Configure keymap in X11
 services.xserver = {
   xkb.layout = "us";
-  # Uncomment to set key repeat settings
-  # xkb.options = "caps:escape";  # Optional: remap caps lock to escape
+  xkb.options = "caps:swapescape,ctrl:swap_lalt_lctl";
 };
 
   # Enable CUPS to print documents.
@@ -207,12 +235,21 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
   # Enable touchpad support (enabled default in most desktopManager).
   services.libinput.enable = true;
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # Power management configuration for Ryzen AI 300
+  powerManagement = {
+    enable = true;
+    cpuFreqGovernor = "ondemand";  # Balance performance and power saving
+  };
+
+  # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.benjamin = {
     isNormalUser = true;
     description = "Benjamin";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "input" "uinput" ];
   };
+
+  # Enable uinput for ydotool (dictation feature)
+  hardware.uinput.enable = true;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;

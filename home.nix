@@ -34,6 +34,67 @@
   # Don't manage fish config - preserve oh-my-fish setup
   # Instead, manually source Home Manager session variables in fish
 
+  # GNOME settings via dconf
+  dconf.settings = {
+    # Interface preferences
+    "org/gnome/desktop/interface" = {
+      color-scheme = "prefer-dark";
+      toolkit-accessibility = false;
+    };
+
+    # Mouse and touchpad
+    "org/gnome/desktop/peripherals/mouse" = {
+      speed = 0.34188034188034178;
+    };
+    "org/gnome/desktop/peripherals/touchpad" = {
+      speed = 0.48717948717948723;
+      two-finger-scrolling-enabled = true;
+    };
+
+    # Window manager preferences
+    "org/gnome/desktop/wm/preferences" = {
+      focus-mode = "sloppy";
+    };
+
+    # Window manager keybindings (vim-style)
+    "org/gnome/desktop/wm/keybindings" = {
+      close = [ "<Super>q" ];
+      cycle-windows = [ "<Super>space" ];
+      cycle-windows-backward = [ "<Shift><Super>space" ];
+      maximize = [ "<Shift><Control>k" ];
+      move-to-monitor-down = [ "<Shift><Super>j" ];
+      move-to-monitor-left = [ "<Shift><Super>h" ];
+      move-to-monitor-right = [ "<Shift><Super>l" ];
+      move-to-monitor-up = [ "<Shift><Super>k" ];
+      move-to-workspace-left = [ "<Shift><Alt>h" ];
+      move-to-workspace-right = [ "<Shift><Alt>l" ];
+      unmaximize = [ "<Shift><Control>j" ];
+    };
+
+    # Mutter settings
+    "org/gnome/mutter/keybindings" = {
+      toggle-tiled-left = [ "<Shift><Control>h" ];
+      toggle-tiled-right = [ "<Shift><Control>l" ];
+    };
+
+    # Media keys
+    "org/gnome/settings-daemon/plugins/media-keys" = {
+      control-center = [ "<Super>backslash" ];
+      custom-keybindings = [
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+      ];
+      home = [ "<Super>f" ];
+      screensaver = [ "<Super>grave" ];
+      www = [ "<Super>b" ];
+    };
+
+    # Custom keybindings - WezTerm terminal
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
+      binding = "<Super>t";
+      command = "wezterm";
+      name = "Terminal";
+    };
+  };
 
   home.stateVersion = "24.11"; # Please read the comment before changing.
   # home.stateVersion = "24.05"; # Please read the comment before changing.
