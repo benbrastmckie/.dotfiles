@@ -1,4 +1,4 @@
-{ config, lib, pkgs, pkgs-unstable, lectic, nix-ai-tools, ... }:
+{ config, pkgs, pkgs-unstable, lectic, nix-ai-tools, ... }:
 
 {
   # Import our custom modules
@@ -14,10 +14,8 @@
 
   programs.git = {
     enable = true;
-    settings.user = {
-      name = "benbrastmckie";
-      email = "benbrastmckie@gmail.com";
-    };
+    userName = "benbrastmckie";
+    userEmail = "benbrastmckie@gmail.com";
   };
 
   programs.neovim = {
@@ -31,179 +29,9 @@
     # Note: MCP-Hub is managed via lazy.nvim in NeoVim config
   };
 
-  # Fish shell configuration
-  programs.fish = {
-    enable = true;
+  # Don't manage fish config - preserve oh-my-fish setup
+  # Instead, manually source Home Manager session variables in fish
 
-    interactiveShellInit = ''
-      # Disable greeting message
-      set fish_greeting
-
-      # Remove Ctrl+T binding (used for NeoVim terminal)
-      bind --erase --all \ct
-
-      # Set prompt theme
-      fish_config prompt choose scales
-
-      # Run neofetch on start
-      if type -q neofetch
-        neofetch
-      end
-    '';
-
-    shellInit = ''
-      set -x EDITOR nvim
-    '';
-  };
-
-  # Zoxide (smart cd replacement)
-  programs.zoxide = {
-    enable = true;
-    enableFishIntegration = true;
-    options = [ "--cmd" "cd" ];  # Replace cd command
-  };
-
-  # GNOME settings via dconf
-  dconf.settings = {
-    # Input sources and keyboard options
-    "org/gnome/desktop/input-sources" = {
-      sources = [ (lib.hm.gvariant.mkTuple [ "xkb" "us" ]) ];
-      xkb-options = [ "lv3:ralt_switch" "caps:swapescape" "ctrl:swap_lalt_lctl" ];
-    };
-
-    # Interface preferences
-    "org/gnome/desktop/interface" = {
-      color-scheme = "prefer-dark";
-      toolkit-accessibility = false;
-    };
-
-    # Mouse and touchpad
-    "org/gnome/desktop/peripherals/mouse" = {
-      speed = 0.34188034188034178;
-    };
-    "org/gnome/desktop/peripherals/touchpad" = {
-      speed = 0.48717948717948723;
-      two-finger-scrolling-enabled = true;
-    };
-
-    # Window manager preferences
-    "org/gnome/desktop/wm/preferences" = {
-      focus-mode = "sloppy";
-    };
-
-    # Window manager keybindings (vim-style)
-    "org/gnome/desktop/wm/keybindings" = {
-      activate-window-menu = [];
-      begin-move = [];
-      begin-resize = [];
-      close = [ "<Super>q" ];
-      cycle-group = [];
-      cycle-group-backward = [];
-      cycle-panels = [];
-      cycle-panels-backward = [];
-      cycle-windows = [ "<Super>space" ];
-      cycle-windows-backward = [ "<Shift><Super>space" ];
-      maximize = [ "<Shift><Control>k" ];
-      maximize-horizontally = [];
-      minimize = [];
-      move-to-monitor-down = [ "<Shift><Super>j" ];
-      move-to-monitor-left = [ "<Shift><Super>h" ];
-      move-to-monitor-right = [ "<Shift><Super>l" ];
-      move-to-monitor-up = [ "<Shift><Super>k" ];
-      move-to-workspace-1 = [];
-      move-to-workspace-last = [];
-      move-to-workspace-left = [ "<Shift><Alt>h" ];
-      move-to-workspace-right = [ "<Shift><Alt>l" ];
-      panel-run-dialog = [];
-      switch-group = [];
-      switch-group-backward = [];
-      switch-input-source = [];
-      switch-input-source-backward = [];
-      switch-panels = [];
-      switch-panels-backward = [];
-      switch-to-workspace-1 = [];
-      switch-to-workspace-last = [];
-      switch-windows = [];
-      switch-windows-backward = [];
-      toggle-fullscreen = [];
-      toggle-maximized = [];
-      unmaximize = [ "<Shift><Control>j" ];
-    };
-
-    # Mutter settings
-    "org/gnome/mutter" = {
-      overlay-key = "Super";
-    };
-    "org/gnome/mutter/keybindings" = {
-      toggle-tiled-left = [ "<Shift><Control>h" ];
-      toggle-tiled-right = [ "<Shift><Control>l" ];
-    };
-    "org/gnome/mutter/wayland/keybindings" = {
-      restore-shortcuts = [];
-    };
-
-    # Media keys
-    "org/gnome/settings-daemon/plugins/media-keys" = {
-      control-center = [ "<Super>backslash" ];
-      custom-keybindings = [
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
-      ];
-      home = [ "<Super>f" ];
-      logout = [ "PowerOff" ];
-      magnifier = [];
-      magnifier-zoom-in = [];
-      magnifier-zoom-out = [];
-      screenreader = [];
-      screensaver = [ "<Super>grave" ];
-      www = [ "<Super>b" ];
-    };
-
-    # Custom keybindings
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-      binding = "<Super>t";
-      command = "wezterm";
-      name = "Terminal";
-    };
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
-      binding = "<Super>z";
-      command = "zotero";
-      name = "Zotero";
-    };
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
-      binding = "<Super>d";
-      command = "whisper-dictate";
-      name = "Dictation";
-    };
-
-    # Shell settings
-    "org/gnome/shell" = {
-      enabled-extensions = [ "unite@hardpixel.eu" ];
-    };
-    "org/gnome/shell/keybindings" = {
-      focus-active-notification = [];
-      toggle-application-view = [];
-      toggle-message-tray = [ "<Super>n" ];
-      toggle-quick-settings = [];
-    };
-
-    # Unite extension settings
-    "org/gnome/shell/extensions/unite" = {
-      desktop-name-text = "Hamsa";
-      extend-left-box = true;
-      hide-window-titlebars = "always";
-      reduce-panel-spacing = true;
-      show-window-buttons = "never";
-      show-window-title = "never";
-      window-buttons-theme = "auto";
-    };
-
-    # Night light
-    "org/gnome/settings-daemon/plugins/color" = {
-      night-light-schedule-automatic = false;
-    };
-  };
 
   home.stateVersion = "24.11"; # Please read the comment before changing.
   # home.stateVersion = "24.05"; # Please read the comment before changing.
@@ -213,8 +41,6 @@
   home.packages = with pkgs; [
     claude-code  # Using overlaid unstable package
     claude-squad # Terminal app for managing multiple AI agents
-    gemini-cli   # Google Gemini AI CLI tool
-    goose-cli    # Block's open source AI coding agent
     gh           # GitHub CLI (required by claude-squad)
     lectic
     stylua       # Lua formatter for Neovim
@@ -223,9 +49,9 @@
     markitdown   # Document to markdown converter (supports PDF, DOCX, PPTX, etc)
 
     # Dictation tools
-    whisper-cpp  # Fast offline speech-to-text (renamed from openai-whisper-cpp)
-    ydotool      # Universal input tool (works with GNOME/Wayland)
-    libnotify    # Desktop notifications
+    openai-whisper-cpp  # Fast offline speech-to-text
+    ydotool             # Universal input tool (works with GNOME/Wayland)
+    libnotify           # Desktop notifications
     
     # OAuth2 token refresh script
     (pkgs.writeShellScriptBin "refresh-gmail-oauth2" ''
@@ -312,7 +138,7 @@
     # MCP-Hub is now managed by the home module
     nodejs    # Required runtime dependency
     (python312.withPackages(p: with p; [
-      z3-solver  # Renamed from z3 in nixos-unstable
+      z3
       setuptools
       pyinstrument
       build
@@ -345,16 +171,13 @@
       # Jupyter Notebooks
       jupytext
       ipython
-      google-generativeai  # Google Gemini API client (pip: google-genai)
-      # pymupdf4llm          # LLM-optimized PDF extraction (custom package) - TEMPORARILY DISABLED: requires PyMuPDF 1.26.6, nixpkgs has 1.24.10
-      pdf2docx             # Convert PDF to DOCX
     ]))
 
     # Clipboard history manager (for niri session)
     wl-clipboard
     cliphist
 
-    nerd-fonts.roboto-mono  # Nerd Fonts with Roboto Mono (nixos-unstable uses new nerd-fonts structure)
+    (nerdfonts.override { fonts = [ "RobotoMono" ]; })
 
     # Whisper dictation script for Wayland
     (pkgs.writeShellScriptBin "whisper-dictate" ''
@@ -383,7 +206,7 @@
 
         # Transcribe with whisper.cpp
         if [ -f "$AUDIO_FILE" ]; then
-          ${pkgs.whisper-cpp}/bin/whisper-cpp \
+          ${pkgs.openai-whisper-cpp}/bin/whisper-cpp \
             -m ~/.local/share/whisper/ggml-''${MODEL_SIZE}.bin \
             -f "$AUDIO_FILE" \
             -otxt -of "$TEMP_DIR/transcription" \
@@ -686,22 +509,21 @@
       GMAIL_CLIENT_ID=$GMAIL_CLIENT_ID
     '';
     
-    # Active configuration files (fish is managed by programs.fish)
+    # Active configuration files
+    ".config/fish/config.fish".source = ./config/config.fish;
     ".config/kitty/kitty.conf".source = ./config/kitty.conf;
     ".config/zathura/zathurarc".source = ./config/zathurarc;
     ".config/alacritty/alacritty.toml".source = ./config/alacritty.toml;
     ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
     ".tmux.conf".source = ./config/.tmux.conf;
-    ".latexmkrc".source = ./config/latexmkrc;
 
     # Config-files directory (actual file copies for version control)
-    # Note: fish config is now managed by programs.fish in home.nix
+    ".config/config-files/config.fish".text = builtins.readFile ./config/config.fish;
     ".config/config-files/kitty.conf".text = builtins.readFile ./config/kitty.conf;
     ".config/config-files/zathurarc".text = builtins.readFile ./config/zathurarc;
     ".config/config-files/alacritty.toml".text = builtins.readFile ./config/alacritty.toml;
     ".config/config-files/wezterm.lua".text = builtins.readFile ./config/wezterm.lua;
     ".config/config-files/.tmux.conf".text = builtins.readFile ./config/.tmux.conf;
-    ".config/config-files/latexmkrc".text = builtins.readFile ./config/latexmkrc;
     # # Building this configuration will create a copy of 'dotfiles/screenrc' in
     # # the Nix store. Activating the configuration will then make '~/.screenrc' a
     # # symlink to the Nix store copy. All files must at least be staged in git.
@@ -772,15 +594,13 @@
 
   services.mako = {
     enable = true;
-    settings = {
-      default-timeout = 5000;
-      background-color = "#2e3440";
-      text-color = "#eceff4";
-      border-color = "#5e81ac";
-      border-size = 2;
-      icons = true;
-      max-icon-size = 64;
-    };
+    defaultTimeout = 5000;
+    backgroundColor = "#2e3440";
+    textColor = "#eceff4";
+    borderColor = "#5e81ac";
+    borderSize = 2;
+    icons = true;
+    maxIconSize = 64;
   };
 
   programs.swaylock = {

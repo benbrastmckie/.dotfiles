@@ -2,68 +2,64 @@
 
 **Date**: December 19, 2025  
 **Issue**: Tab key, Ctrl+Enter, and keyboard remapping not working  
-**Root Cause**: Changes introduced in commit c764360 "breaking changes"  
-**Solution**: Revert configuration files to commit a8a2224 "updated project context"
+**Root Cause**: Changes introduced in commit c764360 "breaking changes" AND commit a8a2224 "updated project context"  
+**Solution**: Revert configuration files to commit 487129c "opencode works"
 
 ---
 
-## Summary
+## Summary - UPDATED (Second Revert)
 
-Reverted `configuration.nix` and `home.nix` to their state at commit **a8a2224** (before the "breaking changes" commit) to restore working keyboard functionality.
+**First revert (e2156ec)** to a8a2224 did NOT fix the issue.
 
----
+**Second revert** to commit **487129c "opencode works"** - the last known working state.
 
-## What Was Reverted
-
-### 1. **configuration.nix** - Removed ALL suspend/resume changes
-
-#### Removed Sections:
-- **Suspend/Resume Fix block** (lines 15-38)
-  - Removed `boot.kernelPackages` setting (was causing kernel issues)
-  - Removed `boot.kernelParams` for AMD Ryzen AI 300
-  - Removed WiFi power management fix (`options mt7921e disable_aspm=1`)
-
-- **System-level XKB options** (line 217)
-  - Removed: `xkb.options = "lv3:ralt_switch,caps:swapescape,ctrl:swap_lalt_lctl";`
-  - This was conflicting with home-manager dconf settings
-
-- **Power management block** (lines 260-264)
-  - Removed `powerManagement.enable = true`
-  - Removed `powerManagement.cpuFreqGovernor = "ondemand"`
-
-#### What Remains in configuration.nix:
-- Audio static/EMI fix (unchanged)
-- All other system configuration (unchanged)
-- XKB layout set to "us" only (no options)
-
-### 2. **home.nix** - Removed autostart changes
-
-#### Removed Sections:
-- **WezTerm autostart** (lines 540-548)
-  - Removed `xdg.configFile."autostart/wezterm.desktop"`
-  - WezTerm will no longer auto-start on login
-
-#### Minor Changes:
-- Fish greeting: Changed from `set -g fish_greeting ""` back to `set fish_greeting`
-
-#### What Remains in home.nix:
-- **dconf keyboard settings** (KEPT - this is what was working!)
-  - `xkb-options = [ "lv3:ralt_switch" "caps:swapescape" "ctrl:swap_lalt_lctl" ]`
-  - These settings in dconf work correctly when NOT overridden by system-level config
+### Key Discovery:
+The dconf keyboard settings were ADDED in commit a8a2224, which means they were NOT part of the working configuration! At commit 487129c, keyboard remapping was done **manually via GNOME Tweaks**, not via home-manager dconf settings.
 
 ---
 
-## Why This Fixes The Issue
+## What Was Reverted (Second Revert to 487129c)
 
-### The Problem:
-1. **System-level XKB options** in `configuration.nix` were **overriding** the home-manager dconf settings
-2. **Kernel changes** introduced input handling regressions with QMK keyboards
-3. The combination broke keyboard input completely
+### 1. **configuration.nix** - Same as first revert
+- All suspend/resume changes removed
+- No system-level XKB options
+- No power management settings
 
-### The Solution:
-1. **Remove system-level XKB config** - let home-manager dconf handle it
-2. **Remove kernel changes** - use default kernel from nixpkgs
-3. **Keep dconf settings** - these work correctly on their own
+### 2. **home.nix** - MAJOR CHANGES from a8a2224
+
+#### Removed Sections (that were added in a8a2224):
+- **ALL dconf.settings** block (180+ lines!)
+  - Removed keyboard XKB options from dconf
+  - Removed GNOME keybindings
+  - Removed mouse/touchpad settings
+  - Removed window manager preferences
+  - Removed all GNOME customizations
+
+- **programs.fish** configuration
+  - Removed fish shell declarative config
+  - Fish config now managed manually via config files
+
+- **programs.zoxide** configuration
+  - Removed zoxide declarative config
+
+#### What This Means:
+At commit 487129c, keyboard remapping was done **manually via GNOME Tweaks UI**, NOT via home-manager dconf. The dconf settings added in a8a2224 may have been causing conflicts.
+
+---
+
+## Why This Should Fix The Issue
+
+### The Problem (Updated Understanding):
+1. **dconf keyboard settings** added in a8a2224 may be conflicting with GNOME's internal keyboard handling
+2. **System-level XKB options** in `configuration.nix` were also added and conflicting
+3. **Kernel changes** may have introduced regressions
+4. The combination of declarative dconf + system XKB + kernel changes broke everything
+
+### The Solution (Second Attempt):
+1. **Remove ALL dconf keyboard settings** - go back to manual GNOME Tweaks
+2. **Remove system-level XKB config** - no declarative keyboard config at all
+3. **Remove kernel changes** - use default kernel
+4. **Use GNOME Tweaks manually** to set keyboard remapping (as it was at 487129c)
 
 ---
 
@@ -93,17 +89,23 @@ Reverted `configuration.nix` and `home.nix` to their state at commit **a8a2224**
 - `95429b2` - update
 - `1ca22de` - reverted to old lock file
 
-### Restored To:
-- `a8a2224` - updated project context (WORKING STATE)
+### First Revert (e2156ec) - FAILED:
+- Reverted to `a8a2224` - updated project context
+- **Result**: Keyboard still broken
+
+### Second Revert (this commit) - Restored To:
+- `487129c` - opencode works (ACTUAL WORKING STATE)
+- This removes ALL dconf keyboard settings
+- Keyboard remapping must be done manually via GNOME Tweaks
 
 ---
 
-## Next Steps
+## Next Steps (Second Revert)
 
 1. **Commit this revert**:
    ```bash
    git add -A
-   git commit -m "revert: restore working keyboard configuration from a8a2224"
+   git commit -m "revert: restore to 487129c - remove ALL dconf keyboard settings"
    ```
 
 2. **Rebuild NixOS**:
@@ -113,7 +115,13 @@ Reverted `configuration.nix` and `home.nix` to their state at commit **a8a2224**
 
 3. **Reboot** to load the correct kernel and configuration
 
-4. **Test keyboard**:
+4. **Manually configure keyboard via GNOME Tweaks**:
+   - Open GNOME Tweaks
+   - Go to Keyboard & Mouse → Additional Layout Options
+   - Set: Caps Lock → Esc
+   - Set: Ctrl position → Swap Left Alt with Left Ctrl
+
+5. **Test keyboard**:
    - Tab key in Neovim
    - Ctrl+Enter in Neovim
    - Left-Ctrl/Left-Alt swap
@@ -153,5 +161,15 @@ After rebuild and reboot, verify:
 ---
 
 **Report Generated**: December 19, 2025  
-**Revert Commit**: To be created  
-**Working State Restored From**: a8a2224 "updated project context"
+**First Revert Commit**: e2156ec (to a8a2224) - FAILED  
+**Second Revert Commit**: To be created (to 487129c) - IN PROGRESS  
+**Working State Restored From**: 487129c "opencode works"
+
+---
+
+## Important Note
+
+After this revert, keyboard remapping will NOT be managed declaratively. You must:
+1. Use GNOME Tweaks UI to set keyboard options manually
+2. These settings will be stored in dconf by GNOME itself (not home-manager)
+3. Do NOT try to manage keyboard settings via home-manager dconf - it causes conflicts
