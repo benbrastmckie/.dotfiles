@@ -49,7 +49,7 @@
     markitdown   # Document to markdown converter (supports PDF, DOCX, PPTX, etc)
 
     # Dictation tools
-    openai-whisper-cpp  # Fast offline speech-to-text
+    whisper-cpp  # Fast offline speech-to-text (renamed from openai-whisper-cpp)
     ydotool             # Universal input tool (works with GNOME/Wayland)
     libnotify           # Desktop notifications
     
@@ -206,7 +206,7 @@
 
         # Transcribe with whisper.cpp
         if [ -f "$AUDIO_FILE" ]; then
-          ${pkgs.openai-whisper-cpp}/bin/whisper-cpp \
+          ${pkgs.whisper-cpp}/bin/whisper-cpp \
             -m ~/.local/share/whisper/ggml-''${MODEL_SIZE}.bin \
             -f "$AUDIO_FILE" \
             -otxt -of "$TEMP_DIR/transcription" \
