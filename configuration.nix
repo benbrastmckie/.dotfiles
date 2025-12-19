@@ -25,8 +25,10 @@
   # 4. Work around AMD GPU VPE suspend issues
   # ==========================================================================
 
-  # Use latest kernel for best Ryzen AI 300 series support
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # Use LTS kernel for stable input handling (6.6.x)
+  # Note: linuxPackages_latest (6.12.x) has keyboard input regressions with QMK keyboards
+  # The AMD suspend/resume fixes below work fine on 6.6 LTS kernel
+  boot.kernelPackages = pkgs.linuxPackages;
 
   # Kernel parameters for Ryzen AI 300 suspend/resume
   boot.kernelParams = [
@@ -207,11 +209,10 @@ services.timesyncd.enable = true;
     };
   };
 
-# Configure keymap in X11
+# Configure keymap (applies to both X11 and Wayland)
 services.xserver = {
   xkb.layout = "us";
-  # Uncomment to set key repeat settings
-  # xkb.options = "caps:escape";  # Optional: remap caps lock to escape
+  xkb.options = "lv3:ralt_switch,caps:swapescape,ctrl:swap_lalt_lctl";
 };
 
   # Enable CUPS to print documents.
