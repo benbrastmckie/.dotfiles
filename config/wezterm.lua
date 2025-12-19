@@ -1,6 +1,7 @@
 local wezterm = require 'wezterm'
 local config = wezterm.config_builder()
 local mux = wezterm.mux
+local act = wezterm.action
 
 -- Start maximized (removed duplicate - only one gui-startup handler should exist)
 -- Commented out to prevent double window issue
@@ -116,7 +117,7 @@ config.enable_scroll_bar = false
 config.hide_mouse_cursor_when_typing = false  -- Disabled to prevent cursor disappearing bug on Wayland
 -- Let NixOS handle cursor theme through environment variables
 
--- Slow down scroll speed (default is 3, setting to 1 for half speed)
+-- Slow down scroll speed in alternate buffer (vim, less, etc.)
 config.alternate_buffer_wheel_scroll_speed = 1
 
 config.mouse_bindings = {
@@ -124,25 +125,25 @@ config.mouse_bindings = {
   {
     event = { Down = { streak = 1, button = 'Right' } },
     mods = 'NONE',
-    action = wezterm.action.PasteFrom 'Clipboard',
+    action = act.PasteFrom 'Clipboard',
   },
   -- Change selection to copy to clipboard
   {
     event = { Up = { streak = 1, button = 'Left' } },
     mods = 'NONE',
-    action = wezterm.action.CompleteSelectionOrOpenLinkAtMouseCursor 'ClipboardAndPrimarySelection',
+    action = act.CompleteSelectionOrOpenLinkAtMouseCursor 'ClipboardAndPrimarySelection',
   },
   -- Middle click to paste from primary selection
   {
     event = { Down = { streak = 1, button = 'Middle' } },
     mods = 'NONE',
-    action = wezterm.action.PasteFrom 'PrimarySelection',
+    action = act.PasteFrom 'PrimarySelection',
   },
   -- Ctrl+Click to open URLs
   {
     event = { Up = { streak = 1, button = 'Left' } },
     mods = 'CTRL',
-    action = wezterm.action.OpenLinkAtMouseCursor,
+    action = act.OpenLinkAtMouseCursor,
   },
 }
 
@@ -237,58 +238,58 @@ config.keys = {
   {
     key = 'Enter',
     mods = 'ALT',
-    action = wezterm.action.ToggleFullScreen,
+    action = act.ToggleFullScreen,
   },
   
   -- Tab management with Ctrl+Space leader
   {
     key = 'c',
     mods = 'LEADER',
-    action = wezterm.action.SpawnTab 'CurrentPaneDomain',
+    action = act.SpawnTab 'CurrentPaneDomain',
   },
   {
     key = 'k',
     mods = 'LEADER',
-    action = wezterm.action.CloseCurrentTab { confirm = true },
+    action = act.CloseCurrentTab { confirm = true },
   },
   {
     key = 'n',
     mods = 'LEADER',
-    action = wezterm.action.ActivateTabRelative(1),
+    action = act.ActivateTabRelative(1),
   },
   {
     key = 'p',
     mods = 'LEADER',
-    action = wezterm.action.ActivateTabRelative(-1),
+    action = act.ActivateTabRelative(-1),
   },
 
   -- Font size adjustment matching Kitty
   {
     key = '=',
     mods = 'CTRL|SHIFT',
-    action = wezterm.action.IncreaseFontSize,
+    action = act.IncreaseFontSize,
   },
   {
     key = '+',
     mods = 'CTRL|SHIFT',
-    action = wezterm.action.IncreaseFontSize,
+    action = act.IncreaseFontSize,
   },
   {
     key = '-',
     mods = 'CTRL|SHIFT',
-    action = wezterm.action.DecreaseFontSize,
+    action = act.DecreaseFontSize,
   },
   
   -- Copy/Paste with Ctrl+Shift (leaves Ctrl+C unbound for terminal use)
   {
     key = 'c',
     mods = 'CTRL|SHIFT',
-    action = wezterm.action.CopyTo 'Clipboard',
+    action = act.CopyTo 'Clipboard',
   },
   {
     key = 'v',
     mods = 'CTRL|SHIFT',
-    action = wezterm.action.PasteFrom 'Clipboard',
+    action = act.PasteFrom 'Clipboard',
   },
   
   
@@ -296,21 +297,21 @@ config.keys = {
   {
     key = '/',
     mods = 'LEADER',
-    action = wezterm.action.Search { CaseSensitiveString = '' },
+    action = act.Search { CaseSensitiveString = '' },
   },
   
   -- Copy mode (vim-like scrolling)
   {
     key = '[',
     mods = 'LEADER',
-    action = wezterm.action.ActivateCopyMode,
+    action = act.ActivateCopyMode,
   },
   
   -- Command palette (useful for discovering commands)
   {
     key = 'P',
     mods = 'CTRL|SHIFT',
-    action = wezterm.action.ActivateCommandPalette,
+    action = act.ActivateCommandPalette,
   },
 }
 
