@@ -119,6 +119,13 @@ services.timesyncd.enable = true;
     wayland = true;
   };
 
+  # Hide root user from GDM login screen and GNOME user settings
+  # This prevents "System administrator" from appearing in the user list
+  environment.etc."accountsservice/users/root".text = ''
+    [User]
+    SystemAccount=true
+  '';
+
   # Enable full GNOME desktop environment
   services.desktopManager.gnome = {
     enable = true;
