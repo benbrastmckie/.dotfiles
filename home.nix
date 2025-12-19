@@ -14,8 +14,10 @@
 
   programs.git = {
     enable = true;
-    userName = "benbrastmckie";
-    userEmail = "benbrastmckie@gmail.com";
+    settings.user = {
+      name = "benbrastmckie";
+      email = "benbrastmckie@gmail.com";
+    };
   };
 
   programs.neovim = {
@@ -594,13 +596,15 @@
 
   services.mako = {
     enable = true;
-    defaultTimeout = 5000;
-    backgroundColor = "#2e3440";
-    textColor = "#eceff4";
-    borderColor = "#5e81ac";
-    borderSize = 2;
-    icons = true;
-    maxIconSize = 64;
+    settings = {
+      default-timeout = 5000;
+      background-color = "#2e3440";
+      text-color = "#eceff4";
+      border-color = "#5e81ac";
+      border-size = 2;
+      icons = true;
+      max-icon-size = 64;
+    };
   };
 
   programs.swaylock = {
