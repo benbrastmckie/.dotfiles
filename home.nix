@@ -177,7 +177,7 @@
     wl-clipboard
     cliphist
 
-    (pkgs.nerdfonts.override { fonts = [ "RobotoMono" ]; })
+    (pkgs.nerd-fonts.roboto-mono)
 
     # Whisper dictation script for Wayland
     (pkgs.writeShellScriptBin "whisper-dictate" ''
