@@ -82,25 +82,22 @@ services.timesyncd.enable = true;
     WLR_NO_HARDWARE_CURSORS = "1";  # Helps with cursor issues
   };
 
-  # Enable the X11 windowing system and display manager
-  services.xserver = {
+  # Enable the X11 windowing system
+  services.xserver.enable = true;
+
+  # Display manager configuration
+  services.displayManager.gdm = {
     enable = true;
-    
-    displayManager = {
-      gdm = {
-        enable = true;
-        wayland = true;
-      };
-    };
-    
-    # Enable full GNOME desktop environment
-    desktopManager.gnome = {
-      enable = true;
-      extraGSettingsOverrides = ''
-        [org.gnome.desktop.interface]
-        enable-hot-corners=false
-      '';
-    };
+    wayland = true;
+  };
+
+  # Enable full GNOME desktop environment
+  services.desktopManager.gnome = {
+    enable = true;
+    extraGSettingsOverrides = ''
+      [org.gnome.desktop.interface]
+      enable-hot-corners=false
+    '';
   };
 
   # Niri Wayland compositor - ENABLED (dual-session with GNOME)
@@ -182,7 +179,7 @@ hardware.bluetooth = {
 };
 services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnome.enable) true;
 
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -294,7 +291,7 @@ services.blueman.enable = lib.mkIf (!config.services.xserver.desktopManager.gnom
       typst                # Typesetting language for generating PDFs
       texlive.combined.scheme-full  # Complete TeX Live distribution for document preparation
       texlab               # Language server for LaTeX
-      libsForQt5.okular    # Universal document viewer
+      kdePackages.okular   # Universal document viewer (moved to kdePackages)
       pdftk                # PDF toolkit for manipulating PDF documents
       pdfannots            # Extract annotations from PDF files
       xsel                 # Command-line tool for getting/setting X selection
