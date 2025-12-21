@@ -17,6 +17,14 @@ The following settings are managed by Home Manager:
 - **Color scheme**: `prefer-dark`
 - **Focus mode**: `sloppy` (focus follows mouse)
 
+### Power Management
+- **Idle delay**: 300 seconds (5 minutes) - screen dims/blanks
+- **Sleep timeout (AC)**: 900 seconds (15 minutes)
+- **Sleep timeout (Battery)**: 900 seconds (15 minutes)
+- **Idle dim**: Enabled
+
+**Note**: When using the Neovim sleep inhibitor (`<leader>rz`), the screen will still blank after 5 minutes of inactivity, but the system will not sleep. This allows the screen to save power while keeping long-running tasks active.
+
 ### Mouse & Touchpad
 - Custom speed settings
 - Two-finger scrolling enabled

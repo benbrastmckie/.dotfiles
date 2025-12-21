@@ -1,0 +1,15 @@
+⚠️  ACTION REQUIRED ⚠️
+
+Please save the riverside image from the chat to:
+
+    /home/benjamin/.dotfiles/wallpapers/riverside.jpg
+
+Steps:
+1. Right-click the riverside image in the chat
+2. Save as "riverside.jpg"
+3. Move/copy it to this directory
+
+Once saved, you can delete this file and proceed with:
+    sudo nixos-rebuild switch --flake ~/.dotfiles
+
+The configuration files have been updated and are ready to use once the image is in place.

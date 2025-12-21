@@ -42,6 +42,30 @@
       toolkit-accessibility = false;
     };
 
+    # Power management and sleep settings
+    "org/gnome/desktop/session" = {
+      idle-delay = 300;  # 5 minutes - when screen dims/blanks
+    };
+
+    "org/gnome/settings-daemon/plugins/power" = {
+      sleep-inactive-ac-timeout = 900;      # 15 minutes on AC power
+      sleep-inactive-battery-timeout = 900; # 15 minutes on battery
+      idle-dim = true;                      # Dim screen before blanking
+    };
+
+    # Desktop background
+    "org/gnome/desktop/background" = {
+      picture-uri = "file:///run/current-system/sw/share/backgrounds/custom/riverside.jpg";
+      picture-uri-dark = "file:///run/current-system/sw/share/backgrounds/custom/riverside.jpg";
+      picture-options = "zoom";
+    };
+
+    # Lock screen background
+    "org/gnome/desktop/screensaver" = {
+      picture-uri = "file:///run/current-system/sw/share/backgrounds/custom/riverside.jpg";
+      picture-options = "zoom";
+    };
+
     # Mouse and touchpad
     "org/gnome/desktop/peripherals/mouse" = {
       speed = 0.34188034188034178;
