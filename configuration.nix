@@ -126,6 +126,16 @@ services.timesyncd.enable = true;
     SystemAccount=true
   '';
 
+  # Set GDM login screen background
+  environment.etc."gdm/greeter.dconf-defaults".text = ''
+    [org/gnome/desktop/background]
+    picture-uri='file:///run/current-system/sw/share/backgrounds/custom/riverside.jpg'
+    picture-options='zoom'
+    
+    [org/gnome/desktop/screensaver]
+    picture-uri='file:///run/current-system/sw/share/backgrounds/custom/riverside.jpg'
+  '';
+
   # Enable full GNOME desktop environment
   services.desktopManager.gnome = {
     enable = true;
@@ -371,6 +381,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
 
       # File Transfer and Torrent
       wget                 # Tool for retrieving files using HTTP, HTTPS, and FTP
+      transmission_4-gtk   # BitTorrent client with GTK interface (v4)
       # torrential         # Removed from nixos-unstable
 
       # Input Tools
@@ -384,6 +395,12 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       # NixOS
       home-manager         # Tool for managing user configuration
       nix-index            # Utility for indexing Nix store files
+
+      # Custom wallpaper package
+      (pkgs.runCommand "custom-wallpaper" {} ''
+        mkdir -p $out/share/backgrounds/custom
+        cp ${./wallpapers/riverside.jpg} $out/share/backgrounds/custom/riverside.jpg
+      '')
 
       # Custom zathura (force X11 for consistency)
       # Note: Zathura uses GTK with server-side decorations, so Unite extension
