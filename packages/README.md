@@ -41,6 +41,42 @@ UV wrapper for markitdown that automatically uses the latest version from PyPI. 
 
 **Usage**: Available as `markitdown` command after home-manager rebuild.
 
+### loogle.nix
+Wrapper script for the Lean 4 Mathlib search tool that provides lazy installation and caching.
+
+**Implementation**: Uses `writeShellScriptBin` to create a wrapper that:
+1. Clones loogle repository to `~/.cache/loogle/` on first run
+2. Builds loogle using `nix develop` with the Lean toolchain
+3. Runs loogle CLI with all arguments passed through
+
+**First Run Setup**:
+- Downloads Lean 4 toolchain (~484 MB)
+- Clones loogle repository (~331 KB)
+- Downloads and caches Mathlib (~7729 files)
+- Builds loogle (~1-2 minutes)
+
+**Subsequent Runs**: Instant execution using cached build
+
+**Benefits**:
+- Zero maintenance - always uses latest Lean/Mathlib
+- Lazy installation - only downloads when first used
+- Isolated environment via Nix development shell
+- Reproducible builds
+
+**Usage**: 
+```bash
+loogle 'List.map'              # Search by name
+loogle '(List ?a -> ?a)'       # Search by type signature
+loogle --interactive           # Interactive mode
+loogle --help                  # Show all options
+```
+
+**Cache Location**: `~/.cache/loogle/` and `~/.elan/`
+
+**Reset/Update**: `rm -rf ~/.cache/loogle && loogle` to rebuild
+
+See [Development Guide](../docs/development.md#lean-4-development) for detailed usage examples.
+
 ### python-cvc5.nix
 Custom Python package for CVC5 v1.3.1 SMT solver bindings. Nixpkgs does not provide `python312Packages.cvc5`, so this package builds from the PyPI wheel.
 

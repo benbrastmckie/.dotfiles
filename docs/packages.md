@@ -52,6 +52,20 @@ NPX wrapper for Claude Code that automatically uses the latest version:
 - Simple shell script wrapper around `npx @anthropic-ai/claude-code@latest`
 - Offline support via NPX caching
 
+#### Loogle (packages/loogle.nix)
+
+Wrapper script for the Lean 4 Mathlib search tool:
+- Lazy installation: clones and builds on first run
+- Caches everything in `~/.cache/loogle/` for fast subsequent runs
+- Uses Nix development shell for reproducible builds
+- Automatically manages Lean toolchain via elan
+- First run downloads ~484 MB and takes 1-2 minutes
+- Subsequent runs are instant
+
+Usage: `loogle 'List.map'` or `loogle --help`
+
+See [Development Guide](development.md#lean-4-development) for detailed usage.
+
 #### Package Structure
 
 - Package derivations and build instructions
