@@ -13,42 +13,50 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   # ==========================================================================
-  # Suspend/Resume Fix for Ryzen AI 300 Series
+  # Suspend/Resume and NetworkManager Deadlock Fixes for Ryzen AI 300 Series
   # ==========================================================================
   # Problem: System fails to suspend due to MediaTek WiFi (mt7925e) timeout
   # and AMD GPU VPE (Video Processing Engine) reset failure.
+  # Also: NetworkManager deadlocks caused by WiFi driver kernel worker threads.
   #
   # Solution:
   # 1. Use latest kernel for best Ryzen AI 300 hardware support
   # 2. Add AMD-specific kernel parameters for better power management
-  # 3. Disable problematic WiFi power management during suspend
+  # 3. Disable problematic WiFi power management during suspend AND runtime
   # 4. Work around AMD GPU VPE suspend issues
+  # 5. Reduce hung task timeout for earlier deadlock detection
+  #
+  # See: specs/reports/019_system_freeze_shutdown_analysis.md
   # ==========================================================================
 
   # Use latest kernel for best Ryzen AI 300 series support
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  # Kernel parameters for Ryzen AI 300 suspend/resume
+  # Kernel parameters for Ryzen AI 300 suspend/resume and deadlock detection
   boot.kernelParams = [
     "amd_pstate=active"           # Enable AMD P-state driver for better power management
     "amdgpu.dcdebugmask=0x10"     # Disable problematic GPU features during suspend
     "rtc_cmos.use_acpi_alarm=1"   # Better ACPI wake support
+    "hung_task_timeout_secs=60"   # Detect deadlocks faster (default: 120s)
   ];
 
   # Disable problematic power management for audio and WiFi
+  # CRITICAL FIX: Use mt7925e (not mt7921e) for correct WiFi driver
   boot.extraModprobeConfig = ''
     options snd_hda_intel power_save=0 power_save_controller=N
-    options mt7921e disable_aspm=1
+    # Fixed: Correct driver name mt7925e (was mt7921e)
+    options mt7925e disable_aspm=1 power_save=0
   '';
 
   # NOTE: networking.hostName is set per-host in flake.nix
   
 # Networking configuration
+# Fix: Switch to iwd backend to prevent NetworkManager deadlocks
+# See: specs/reports/019_system_freeze_shutdown_analysis.md
 networking = {
   networkmanager = {
     enable = true;  # Use NetworkManager for all networking
-    # Uncomment for better WiFi performance
-    # wifi.backend = "iwd";
+    wifi.backend = "iwd";  # Use iwd instead of wpa_supplicant for better mt7925e compatibility
   };
   # Explicitly disable wpa_supplicant when using NetworkManager
   wireless.enable = false;
@@ -66,6 +74,9 @@ networking = {
   };
 
 # Time and location configuration
+# Fix: Disable automatic timezone to prevent geoclue restart loop
+# that exacerbates NetworkManager deadlocks
+# See: specs/reports/019_system_freeze_shutdown_analysis.md
 services.geoclue2 = {
   enable = true;
   appConfig = {
@@ -73,23 +84,24 @@ services.geoclue2 = {
       isAllowed = true;
       isSystem = true;
     };
-    automatic-timezone = {
-      isAllowed = true;
-      isSystem = true;
-    };
+    # Disabled automatic-timezone to prevent restart loop
+    # automatic-timezone = {
+    #   isAllowed = true;
+    #   isSystem = true;
+    # };
   };
 };
 
-# Enable location services
+# Enable location services (for GNOME Weather, etc.)
 location.provider = "geoclue2";
 
-# Choose ONE of the following approaches:
-# Option 1: Use automatic timezone detection (recommended with GNOME)
-services.automatic-timezoned.enable = true;
-# services.localtimed.enable = true;  # Don't enable both services
+# Use static timezone instead of automatic detection
+# This prevents geoclue from restarting every 60 seconds
+time.timeZone = "America/Los_Angeles";  # San Francisco timezone
 
-# Option 2: Or set a static timezone (uncomment if you prefer this)
-# time.timeZone = "America/New_York";
+# Disable automatic timezone services to prevent geoclue restart loop
+# services.automatic-timezoned.enable = false;
+# services.localtimed.enable = false;
 
 # Configure time synchronization (independent of timezone setting)
 services.timesyncd.enable = true;
@@ -129,12 +141,14 @@ services.timesyncd.enable = true;
   # Set GDM login screen background
   environment.etc."gdm/greeter.dconf-defaults".text = ''
     [org/gnome/desktop/background]
-    picture-uri='file:///run/current-system/sw/share/backgrounds/custom/riverside.jpg'
+    picture-uri='file:///etc/wallpapers/riverside.jpg'
     picture-options='zoom'
     
     [org/gnome/desktop/screensaver]
-    picture-uri='file:///run/current-system/sw/share/backgrounds/custom/riverside.jpg'
+    picture-uri='file:///etc/wallpapers/riverside.jpg'
   '';
+
+  environment.etc."wallpapers/riverside.jpg".source = ./wallpapers/riverside.jpg;
 
   # Enable full GNOME desktop environment
   services.desktopManager.gnome = {
@@ -396,11 +410,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       home-manager         # Tool for managing user configuration
       nix-index            # Utility for indexing Nix store files
 
-      # Custom wallpaper package
-      (pkgs.runCommand "custom-wallpaper" {} ''
-        mkdir -p $out/share/backgrounds/custom
-        cp ${./wallpapers/riverside.jpg} $out/share/backgrounds/custom/riverside.jpg
-      '')
+
 
       # Custom zathura (force X11 for consistency)
       # Note: Zathura uses GTK with server-side decorations, so Unite extension
@@ -465,27 +475,60 @@ nix = {
   };
 };
 
-# Part 2 of Audio Static Fix: Disable speaker amplifier (EAPD) at boot
-# This systemd service runs hda-verb to disable the speaker amplifier on the
-# Realtek ALC256 codec. This eliminates idle static/hiss from internal speakers
-# but means internal speakers will NOT work until re-enabled.
-#
-# To re-enable internal speakers temporarily:
-#   sudo hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 2
-#
-# To disable again (stop static):
-#   sudo hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 0
-#
-# Node 0x14 = Speaker pin on ALC256
-# EAPD bit 1 (value 2) = amplifier enabled, bit 0 (value 0) = disabled
-systemd.services.disable-speaker-amp = {
-  description = "Disable internal speaker amplifier to prevent EMI static";
-  wantedBy = [ "multi-user.target" "post-resume.target" ];
-  after = [ "sound.target" ];
-  serviceConfig = {
-    Type = "oneshot";
-    RemainAfterExit = true;
-    ExecStart = "${pkgs.alsa-tools}/bin/hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 0";
+# ==========================================================================
+# Service Timeout and Reliability Configuration
+# ==========================================================================
+# Reduce shutdown timeout cascade during NetworkManager deadlocks
+# See: specs/reports/019_system_freeze_shutdown_analysis.md
+# ==========================================================================
+systemd.services = {
+  # Audio Static Fix: Disable speaker amplifier (EAPD) at boot
+  # This systemd service runs hda-verb to disable the speaker amplifier on the
+  # Realtek ALC256 codec. This eliminates idle static/hiss from internal speakers
+  # but means internal speakers will NOT work until re-enabled.
+  #
+  # To re-enable internal speakers temporarily:
+  #   sudo hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 2
+  #
+  # To disable again (stop static):
+  #   sudo hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 0
+  #
+  # Node 0x14 = Speaker pin on ALC256
+  # EAPD bit 1 (value 2) = amplifier enabled, bit 0 (value 0) = disabled
+  disable-speaker-amp = {
+    description = "Disable internal speaker amplifier to prevent EMI static";
+    wantedBy = [ "multi-user.target" "post-resume.target" ];
+    after = [ "sound.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.alsa-tools}/bin/hda-verb /dev/snd/hwC0D0 0x14 SET_EAPD_BTLENABLE 0";
+    };
+  };
+
+  # NetworkManager deadlock mitigation
+  NetworkManager = {
+    serviceConfig = {
+      TimeoutStopSec = "30s";  # Reduce from 2min to force faster kill on deadlock
+      WatchdogSec = "3min";    # Detect hangs after 3 minutes
+      Restart = "on-failure";  # Auto-restart on failure (including watchdog)
+    };
+  };
+
+  # Reduce timeout for services that wait on NetworkManager
+  avahi-daemon = {
+    serviceConfig = {
+      TimeoutStopSec = "20s";  # Reduce from 90s
+    };
+  };
+
+  geoclue = {
+    serviceConfig = {
+      TimeoutStopSec = "15s";  # Reduce from 90s
+      # Prevent restart loop during normal operation
+      Restart = "on-failure";
+      RestartSec = "60s";
+    };
   };
 };
 

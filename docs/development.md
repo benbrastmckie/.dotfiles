@@ -112,6 +112,79 @@ For adding new hosts:
 3. Update `flake.nix` to include the new host
 4. Reference host-specific settings in `configuration.nix`
 
+## Lean 4 Development
+
+### Loogle CLI
+
+Loogle is a search tool for Lean 4's Mathlib library, allowing you to search for theorems and definitions by name or type signature.
+
+#### Installation
+
+Loogle is available via the custom package wrapper in `packages/loogle.nix`. It's installed in your home environment.
+
+#### First Run
+
+The first time you run `loogle`, it will:
+1. Clone the loogle repository to `~/.cache/loogle` (~331 KB)
+2. Download the Lean 4 toolchain (~484 MB)
+3. Download and cache Mathlib (~7729 files)
+4. Build loogle (~1-2 minutes)
+
+Subsequent runs will be instant since everything is cached.
+
+#### Usage Examples
+
+```bash
+# Search by function name
+loogle List.map
+
+# Search by type signature
+loogle '(List.replicate (_ + _) _ = _)'
+
+# Interactive mode
+loogle --interactive
+
+# Get help
+loogle --help
+
+# Output JSON format
+loogle --json 'Nat.add'
+```
+
+#### Search Syntax
+
+- `?a` - Match any single term
+- `_ + _` - Match any addition operation
+- `List ?a -> ?a` - Match functions from List to element type
+- `name:substring` - Search by name containing substring
+- Use quotes for complex queries: `'(List.replicate (_ + _) _ = _)'`
+
+#### Cache Location
+
+All Lean/Loogle data is stored in:
+- `~/.cache/loogle/` - Repository and builds
+- `~/.elan/` - Lean toolchain
+
+To reset/update:
+```bash
+rm -rf ~/.cache/loogle
+loogle  # Will rebuild on next run
+```
+
+#### Advanced Options
+
+```bash
+# Use custom module instead of Mathlib
+loogle --module MyModule 'theorem_name'
+
+# Save search index for faster subsequent searches
+loogle --write-index /tmp/loogle.idx
+loogle --read-index /tmp/loogle.idx 'query'
+
+# Search specific path
+loogle --path /path/to/lean/files 'query'
+```
+
 ## Related Documentation
 
 - [Installation Guide](installation.md) - Detailed setup instructions

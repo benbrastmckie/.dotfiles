@@ -88,6 +88,7 @@
       gemini-cli = pkgs-unstable.gemini-cli; # Google Gemini AI CLI tool
       goose-cli = pkgs-unstable.goose-cli; # Block's open source AI coding agent
       markitdown = final.callPackage ./packages/markitdown.nix {}; # Document to markdown converter (custom build)
+      loogle = final.callPackage ./packages/loogle.nix {}; # Lean 4 Mathlib search tool (wrapper)
 
       # Add other packages that benefit from using unstable below
       # Format: package-name = pkgs-unstable.package-name; # Reason for using unstable

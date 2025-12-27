@@ -89,6 +89,15 @@ Custom Zathura and Sioyek configurations with title bar removal. Implementation 
 ### Development Environment
 Comprehensive Neovim setup with language servers and tools. Package details in [`packages/`](packages/).
 
+### Loogle - Lean 4 Search
+CLI search tool for Lean 4's Mathlib library. Search theorems by name or type signature:
+```bash
+loogle 'List.map'              # Search by name
+loogle '(List ?a -> ?a)'       # Search by type
+loogle --interactive           # Interactive mode
+```
+First run downloads ~484 MB and builds cache. Subsequent runs are instant. See [`docs/development.md`](docs/development.md#lean-4-development) for usage guide.
+
 For complete application configurations and setup instructions, see [`docs/applications.md`](docs/applications.md).
 
 ## Maintenance

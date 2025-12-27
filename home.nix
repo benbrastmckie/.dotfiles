@@ -149,7 +149,8 @@
     gemini-cli   # Google Gemini AI CLI tool
     goose-cli    # Block's open source AI coding agent
     gh           # GitHub CLI (required by claude-squad)
-    lectic
+    lectic       # Formal logic and proof tool
+    loogle       # Lean 4 Mathlib search tool (wrapper script)
     stylua       # Lua formatter for Neovim
     wezterm      # GPU-accelerated terminal emulator
     espeak-ng    # Text-to-speech for notifications
