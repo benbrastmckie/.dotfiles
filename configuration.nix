@@ -51,15 +51,21 @@
   # NOTE: networking.hostName is set per-host in flake.nix
   
 # Networking configuration
-# Fix: Switch to iwd backend to prevent NetworkManager deadlocks
-# See: specs/reports/019_system_freeze_shutdown_analysis.md
+# WARNING: Do NOT switch from iwd to wpa_supplicant! The mt7925e is a WiFi 6E/7
+# chip and wpa_supplicant has known issues with 6 GHz networks. iwd handles
+# WiFi 6E scanning and regulatory domain properly. Switching to wpa_supplicant
+# will break WiFi connectivity.
 networking = {
   networkmanager = {
     enable = true;  # Use NetworkManager for all networking
-    wifi.backend = "iwd";  # Use iwd instead of wpa_supplicant for better mt7925e compatibility
+    wifi = {
+      backend = "iwd";  # REQUIRED for mt7925e WiFi 6E/7 - do not remove!
+      powersave = false;  # Disable WiFi power saving for stability
+      scanRandMacAddress = false;  # Disable MAC randomization during scans
+    };
   };
   # Explicitly disable wpa_supplicant when using NetworkManager
-  wireless.enable = false;
+  wireless.enable = lib.mkForce false;
 };
 
   # Security hardening
@@ -138,15 +144,20 @@ services.timesyncd.enable = true;
     SystemAccount=true
   '';
 
-  # Set GDM login screen background
-  environment.etc."gdm/greeter.dconf-defaults".text = ''
-    [org/gnome/desktop/background]
-    picture-uri='file:///etc/wallpapers/riverside.jpg'
-    picture-options='zoom'
-    
-    [org/gnome/desktop/screensaver]
-    picture-uri='file:///etc/wallpapers/riverside.jpg'
-  '';
+  # Set GDM login screen background using proper NixOS dconf profiles
+  # This ensures the dconf database is properly compiled for GDM
+  programs.dconf.profiles.gdm.databases = [{
+    settings = {
+      "org/gnome/desktop/background" = {
+        picture-uri = "file:///etc/wallpapers/riverside.jpg";
+        picture-uri-dark = "file:///etc/wallpapers/riverside.jpg";  # Required for dark mode
+        picture-options = "zoom";
+      };
+      "org/gnome/desktop/screensaver" = {
+        picture-uri = "file:///etc/wallpapers/riverside.jpg";
+      };
+    };
+  }];
 
   environment.etc."wallpapers/riverside.jpg".source = ./wallpapers/riverside.jpg;
 
@@ -475,6 +486,16 @@ nix = {
   };
 };
 
+# Enable nix-ld for running unpatched dynamic binaries (required for elan/Lean toolchains)
+programs.nix-ld = {
+  enable = true;
+  libraries = with pkgs; [
+    stdenv.cc.cc.lib
+    zlib
+    gmp
+  ];
+};
+
 # ==========================================================================
 # Service Timeout and Reliability Configuration
 # ==========================================================================
@@ -506,12 +527,12 @@ systemd.services = {
     };
   };
 
-  # NetworkManager deadlock mitigation
+  # NetworkManager timeout configuration
   NetworkManager = {
     serviceConfig = {
       TimeoutStopSec = "30s";  # Reduce from 2min to force faster kill on deadlock
-      WatchdogSec = "3min";    # Detect hangs after 3 minutes
-      Restart = "on-failure";  # Auto-restart on failure (including watchdog)
+      # Watchdog removed - was causing crashes when NM became temporarily unresponsive
+      # Restart = "on-failure";  # Disabled - let systemd handle failures normally
     };
   };
 
