@@ -55,14 +55,14 @@
 
     # Desktop background
     "org/gnome/desktop/background" = {
-      picture-uri = "file:///run/current-system/sw/share/backgrounds/custom/riverside.jpg";
-      picture-uri-dark = "file:///run/current-system/sw/share/backgrounds/custom/riverside.jpg";
+      picture-uri = "file:///etc/wallpapers/riverside.jpg";
+      picture-uri-dark = "file:///etc/wallpapers/riverside.jpg";
       picture-options = "zoom";
     };
 
     # Lock screen background
     "org/gnome/desktop/screensaver" = {
-      picture-uri = "file:///run/current-system/sw/share/backgrounds/custom/riverside.jpg";
+      picture-uri = "file:///etc/wallpapers/riverside.jpg";
       picture-options = "zoom";
     };
 
@@ -250,7 +250,7 @@
       setuptools
       pyinstrument
       build
-      cvc5
+      # cvc5  # Temporarily disabled - PyPI wheel unavailable (404)
       twine
       pytest
       pytest-cov
