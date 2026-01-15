@@ -89,6 +89,7 @@
       goose-cli = pkgs-unstable.goose-cli; # Block's open source AI coding agent
       markitdown = final.callPackage ./packages/markitdown.nix {}; # Document to markdown converter (custom build)
       loogle = final.callPackage ./packages/loogle.nix {}; # Lean 4 Mathlib search tool (wrapper)
+      aristotle = final.callPackage ./packages/aristotle.nix {}; # AI theorem prover with Lean
 
       # Add other packages that benefit from using unstable below
       # Format: package-name = pkgs-unstable.package-name; # Reason for using unstable
