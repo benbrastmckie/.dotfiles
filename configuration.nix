@@ -362,6 +362,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       tree                 # Display directory structure in a tree-like format
       cvc5                 # Modern SMT solver
       opencode             # AI coding agent for terminal
+      aristotle            # AI theorem prover with Lean
       lsof                 # Tool to list open files
       # u-root-cmds           
 
@@ -408,6 +409,10 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       wget                 # Tool for retrieving files using HTTP, HTTPS, and FTP
       transmission_4-gtk   # BitTorrent client with GTK interface (v4)
       # torrential         # Removed from nixos-unstable
+
+      # Email tools
+      vdirsyncer
+      khard
 
       # Input Tools
       qmk                  # Quantum Mechanical Keyboard firmware utilities
