@@ -4,6 +4,29 @@ This directory contains custom package definitions and configurations for the Ni
 
 ## Files
 
+### aristotle.nix
+UVX wrapper for Aristotle AI theorem prover that automatically uses the latest version from PyPI. This zero-maintenance approach eliminates the need for manual version updates while providing access to Aristotle's automated theorem proving capabilities with Lean.
+
+**Implementation**: Uses `writeShellScriptBin` to create a simple wrapper that executes `uvx --from aristotlelib@latest aristotle`
+
+**Benefits**:
+- Automatic updates to latest version via PyPI
+- Zero maintenance required
+- Uses existing uv installation
+- Integrated with Lean theorem prover
+- Provides system-wide `aristotle` command
+
+**Usage**:
+```bash
+aristotle --help
+aristotle prove-from-file your_lean_file.lean
+aristotle --api-key YOUR_API_KEY prove-from-file theorem.lean
+```
+
+**API Key**: Can be set via `ARISTOTLE_API_KEY` environment variable or `--api-key` flag
+
+**Documentation**: Visit https://aristotle.harmonic.fun for more information
+
 ### claude-code.nix
 NPX wrapper for Claude Code that automatically uses the latest version from NPM registry. This zero-maintenance approach eliminates the need for manual version updates and hash calculations while providing access to all Claude Code 2.0+ features.
 
@@ -14,6 +37,19 @@ NPX wrapper for Claude Code that automatically uses the latest version from NPM 
 - Zero maintenance required
 - 86% reduction in code complexity compared to traditional Nix packaging
 - Offline support via NPX caching
+
+### markitdown.nix
+UV wrapper for markitdown that automatically uses the latest version from PyPI. This zero-maintenance approach eliminates the need for manual version updates while providing document to markdown conversion capabilities.
+
+**Implementation**: Uses `writeShellScriptBin` with `uv run` to execute markitdown in an isolated environment
+
+**Benefits**:
+- Automatic updates to latest version via PyPI
+- Zero maintenance required
+- Isolated environment prevents dependency conflicts
+- Handles PDF, DOCX, PPTX, and other document formats
+
+**Usage**: Available as `markitdown` command after home-manager rebuild.
 
 ### marker-pdf.nix
 UV wrapper for marker-pdf that automatically uses the latest version from PyPI. This zero-maintenance approach eliminates the need for manual version updates while providing PDF to markdown conversion capabilities.
@@ -107,6 +143,31 @@ home.packages = with pkgs; [
 **Related**:
 - Report: `specs/reports/011_cvc5_nixos_installation_strategy.md`
 - Plan: `specs/plans/009_cvc5_python_bindings_overlay.md`
+
+## UVX/UV Wrapper Pattern
+
+Several packages in this directory follow the same zero-maintenance pattern using UV for package management:
+
+- **aristotle.nix**: `uvx --from aristotlelib@latest aristotle`
+- **markitdown.nix**: `uv run markitdown`
+- **marker-pdf.nix**: `uv run marker-pdf`
+
+**Benefits of UVX Pattern**:
+- Automatic updates to latest version from PyPI
+- Zero maintenance required
+- Uses existing uv installation
+- Isolated environment prevents dependency conflicts
+- Simple, lightweight wrapper implementation
+- Consistent with modern Python packaging best practices
+
+**Implementation Template**:
+```nix
+{ writeShellScriptBin, uv }:
+
+writeShellScriptBin "package-name" ''
+  exec ${uv}/bin/uvx --from package@latest command "$@"
+''
+```
 
 ### pymupdf4llm.nix
 Custom Python package for PyMuPDF4LLM v0.2.2, a specialized extension of PyMuPDF for LLM-optimized PDF extraction. Converts PDFs to structured Markdown with preserved hierarchy.
