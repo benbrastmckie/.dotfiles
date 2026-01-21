@@ -19,7 +19,7 @@ writeShellScriptBin "markitdown" ''
     # Disable any pip config that might force --user
     unset PIP_USER
     "$VENV_DIR/bin/pip" install --no-user --upgrade pip setuptools wheel
-    "$VENV_DIR/bin/pip" install --no-user markitdown
+    "$VENV_DIR/bin/pip" install --no-user 'markitdown[pdf]'
   fi
 
   # Provide system libraries for numpy/onnxruntime
