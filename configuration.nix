@@ -40,36 +40,21 @@
     "hung_task_timeout_secs=60"   # Detect deadlocks faster (default: 120s)
   ];
 
-  # Disable problematic power management for audio and WiFi
-  # CRITICAL FIX: Use mt7925e (not mt7921e) for correct WiFi driver
-  # See docs/wifi.md for complete WiFi configuration documentation
+  # Disable power management for audio and WiFi stability
   boot.extraModprobeConfig = ''
     options snd_hda_intel power_save=0 power_save_controller=N
-    # Fixed: Correct driver name mt7925e (was mt7921e)
-    # disable_aspm=1: Disable PCIe power management for stability
-    # power_save=0: Disable module-level power saving
-    options mt7925e disable_aspm=1 power_save=0
+    options mt7925e disable_aspm=1 power_save=0  # WiFi 6E/7 stability
   '';
 
   # NOTE: networking.hostName is set per-host in flake.nix
-  
-# Networking configuration
-# WARNING: Do NOT switch from iwd to wpa_supplicant! The mt7925e is a WiFi 6E/7
-# chip and wpa_supplicant has known issues with 6 GHz networks. iwd handles
-# WiFi 6E scanning and regulatory domain properly. Switching to wpa_supplicant
-# will break WiFi connectivity.
-# DOCUMENTATION: See docs/wifi.md for complete WiFi configuration details and troubleshooting
+
+# WiFi Configuration (see docs/wifi.md for details)
+# - Uses NetworkManager with default wpa_supplicant backend (mt7925e WiFi 6E/7)
+# - Do NOT enable "wifi.backend = iwd" (doesn't work with this hardware)
+# - Do NOT set "wireless.enable" manually (NetworkManager manages it automatically)
 networking = {
-  networkmanager = {
-    enable = true;  # Use NetworkManager for all networking
-    wifi = {
-      backend = "iwd";  # REQUIRED for mt7925e WiFi 6E/7 - do not remove!
-      powersave = false;  # Disable WiFi power saving for stability
-      scanRandMacAddress = false;  # Disable MAC randomization during scans
-    };
-  };
-  # Explicitly disable wpa_supplicant when using NetworkManager
-  wireless.enable = lib.mkForce false;
+  networkmanager.enable = true;
+  # networkmanager.wifi.backend = "iwd";  # DO NOT UNCOMMENT - breaks WiFi
 };
 
   # Security hardening
