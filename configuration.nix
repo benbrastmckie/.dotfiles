@@ -42,9 +42,12 @@
 
   # Disable problematic power management for audio and WiFi
   # CRITICAL FIX: Use mt7925e (not mt7921e) for correct WiFi driver
+  # See docs/wifi.md for complete WiFi configuration documentation
   boot.extraModprobeConfig = ''
     options snd_hda_intel power_save=0 power_save_controller=N
     # Fixed: Correct driver name mt7925e (was mt7921e)
+    # disable_aspm=1: Disable PCIe power management for stability
+    # power_save=0: Disable module-level power saving
     options mt7925e disable_aspm=1 power_save=0
   '';
 
@@ -55,6 +58,7 @@
 # chip and wpa_supplicant has known issues with 6 GHz networks. iwd handles
 # WiFi 6E scanning and regulatory domain properly. Switching to wpa_supplicant
 # will break WiFi connectivity.
+# DOCUMENTATION: See docs/wifi.md for complete WiFi configuration details and troubleshooting
 networking = {
   networkmanager = {
     enable = true;  # Use NetworkManager for all networking
@@ -80,9 +84,6 @@ networking = {
   };
 
 # Time and location configuration
-# Fix: Disable automatic timezone to prevent geoclue restart loop
-# that exacerbates NetworkManager deadlocks
-# See: specs/reports/019_system_freeze_shutdown_analysis.md
 services.geoclue2 = {
   enable = true;
   appConfig = {
@@ -90,27 +91,23 @@ services.geoclue2 = {
       isAllowed = true;
       isSystem = true;
     };
-    # Disabled automatic-timezone to prevent restart loop
-    # automatic-timezone = {
-    #   isAllowed = true;
-    #   isSystem = true;
-    # };
+    automatic-timezone = {
+      isAllowed = true;
+      isSystem = true;
+    };
   };
 };
 
-# Enable location services (for GNOME Weather, etc.)
+# Enable location services
 location.provider = "geoclue2";
 
-# Use static timezone instead of automatic detection
-# This prevents geoclue from restarting every 60 seconds
-time.timeZone = "America/Los_Angeles";  # San Francisco timezone
+# Choose ONE of the following approaches:
+# Option 1: Use automatic timezone detection (recommended with GNOME)
+services.automatic-timezoned.enable = true;
+# services.localtimed.enable = true;  # Don't enable both services
 
-# Disable automatic timezone services to prevent geoclue restart loop
-# services.automatic-timezoned.enable = false;
-# services.localtimed.enable = false;
-
-# Configure time synchronization (independent of timezone setting)
-services.timesyncd.enable = true;
+# Option 2: Or set a static timezone (uncomment if you prefer this)
+# time.timeZone = "America/New_York";
 
   # makes the split mechanical keyboard recognized
   services.udev = {

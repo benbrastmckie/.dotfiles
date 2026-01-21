@@ -23,6 +23,7 @@ This directory contains comprehensive documentation for the NixOS configuration 
 
 ### Development & Hardware
 - **[development.md](development.md)** - Development notes and workflows
+- **[wifi.md](wifi.md)** - **CRITICAL:** WiFi configuration requirements and troubleshooting
 - **[ryzen-ai-300-compatibility.md](ryzen-ai-300-compatibility.md)** - AMD Ryzen AI 300 series hardware support
 - **[ryzen-ai-300-support-summary.md](ryzen-ai-300-support-summary.md)** - Ryzen AI 300 support summary
 

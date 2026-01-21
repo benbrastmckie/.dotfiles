@@ -26,6 +26,10 @@
 
   swapDevices = [ ];
 
+  # Enable firmware with redistribution licenses (includes MediaTek WiFi firmware)
+  # CRITICAL: Required for mt7925e WiFi 6E/7 chip - see docs/wifi.md
+  hardware.enableRedistributableFirmware = true;
+
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }
