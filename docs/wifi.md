@@ -1,92 +1,38 @@
-# WiFi Configuration (CRITICAL)
+# WiFi Configuration Guide
 
-## Overview
+## Current Status: ✅ WORKING
 
-This system uses a **MediaTek MT7925E WiFi 6E/7 chip**, which requires specific configuration to work properly. This documentation exists because the WiFi configuration is fragile and has broken multiple times due to configuration changes.
+The mt7925e WiFi 6E/7 chip works correctly with NetworkManager's default wpa_supplicant backend.
 
-**⚠️ WARNING**: Do not modify the WiFi configuration without reading this document first.
+## Hardware Information
 
-## Critical Configuration Requirements
+- **WiFi Chip**: MediaTek MT7925E
+- **Standards**: WiFi 6E (802.11ax) / WiFi 7 (802.11be)
+- **Frequency Bands**: 2.4 GHz, 5 GHz, 6 GHz
+- **Kernel Driver**: `mt7925e` module
+- **System**: Ryzen AI 300 series laptop
 
-The WiFi configuration in `configuration.nix` MUST include these settings:
+## Working Configuration
+
+### NetworkManager Setup (configuration.nix)
 
 ```nix
 networking = {
   networkmanager = {
     enable = true;
-    wifi = {
-      backend = "iwd";           # REQUIRED - do not change to wpa_supplicant!
-      powersave = false;         # REQUIRED - prevents instability
-      scanRandMacAddress = false; # REQUIRED - prevents connection issues
-    };
+    # wifi.backend = "iwd";  # DO NOT UNCOMMENT - breaks WiFi
   };
-  wireless.enable = lib.mkForce false;  # Disable standalone wpa_supplicant
+  # Note: wireless.enable is automatically managed by NetworkManager
+  # Do NOT set it manually or use lib.mkForce - let NetworkManager control wpa_supplicant
 };
 ```
 
-### Why These Settings Are Required
+**Key points:**
+- Use NetworkManager with default wpa_supplicant backend
+- Do NOT set `networking.wireless.enable` manually
+- Do NOT use `wifi.backend = "iwd"` (doesn't work with this hardware)
 
-1. **`backend = "iwd"`** (MOST CRITICAL)
-   - The mt7925e is a WiFi 6E/7 chip that supports 6 GHz networks
-   - `wpa_supplicant` has known issues with WiFi 6E/7 and 6 GHz networks
-   - `iwd` (iNet wireless daemon) handles WiFi 6E scanning and regulatory domain properly
-   - **Removing this setting will break WiFi completely**
-
-2. **`powersave = false`**
-   - Disables WiFi power saving mode
-   - The mt7925e chip has stability issues with power saving enabled
-   - Prevents random disconnections and performance issues
-
-3. **`scanRandMacAddress = false`**
-   - Disables MAC address randomization during WiFi scans
-   - Some networks have issues with randomized MAC addresses
-   - Improves connection reliability
-
-4. **`wireless.enable = lib.mkForce false`**
-   - Prevents standalone `wpa_supplicant` from starting
-   - NetworkManager manages WiFi when this is disabled
-   - The `lib.mkForce` is necessary to override any default settings
-
-## What Breaks WiFi
-
-### Immediate Breakage (WiFi stops working completely)
-
-1. **Removing `backend = "iwd"`**
-   - NetworkManager defaults to `wpa_supplicant`
-   - `wpa_supplicant` cannot properly handle WiFi 6E/7
-   - Result: No WiFi networks visible, cannot connect
-
-2. **Setting `backend = "wpa_supplicant"`**
-   - Same as removing the backend setting
-   - Explicitly uses the incompatible backend
-
-3. **Enabling `networking.wireless.enable = true`**
-   - Runs standalone `wpa_supplicant` alongside NetworkManager
-   - Creates conflicts between network managers
-   - Result: Unpredictable WiFi behavior
-
-### Degraded Performance
-
-1. **Enabling `powersave = true`**
-   - WiFi becomes unstable
-   - Random disconnections
-   - Slow or intermittent connectivity
-
-2. **Enabling `scanRandMacAddress = true`**
-   - Some networks may refuse connections
-   - Intermittent connection issues
-
-## Hardware Information
-
-- **Chip Model**: MediaTek MT7925E
-- **Standards**: WiFi 6E (802.11ax) / WiFi 7 (802.11be)
-- **Frequency Bands**: 2.4 GHz, 5 GHz, 6 GHz
-- **Kernel Driver**: `mt7925e` module
-- **Firmware Package**: Included in `hardware.enableRedistributableFirmware = true`
-
-### Kernel Module Configuration
-
-The kernel module is configured in `configuration.nix` with specific options:
+### Kernel Module Configuration (configuration.nix)
 
 ```nix
 boot.extraModprobeConfig = ''
@@ -94,154 +40,113 @@ boot.extraModprobeConfig = ''
 '';
 ```
 
-- `disable_aspm=1`: Disables PCIe Active State Power Management for stability
-- `power_save=0`: Disables module-level power saving
+**Purpose:** Disables PCIe Active State Power Management and power saving for stability.
+
+### Firmware (hosts/hamsa/hardware-configuration.nix)
+
+```nix
+hardware.enableRedistributableFirmware = true;
+```
+
+**Required** for mt7925e firmware support.
+
+## Common Mistakes to Avoid
+
+### ❌ DO NOT: Use lib.mkForce on wireless.enable
+
+```nix
+networking.wireless.enable = lib.mkForce false;  # BREAKS WiFi!
+```
+
+**Why it breaks:** NetworkManager's NixOS module needs to set `wireless.enable = true` to configure wpa_supplicant with D-Bus control. Using `lib.mkForce` prevents this, leaving NetworkManager without a WiFi backend.
+
+### ❌ DO NOT: Manually set wireless.enable
+
+```nix
+networking.wireless.enable = false;  # NetworkManager can't override this
+```
+
+**Why it breaks:** NetworkManager can't override this setting to enable wpa_supplicant.
+
+### ❌ DO NOT: Enable iwd backend
+
+```nix
+networking.networkmanager.wifi.backend = "iwd";  # Doesn't work with mt7925e
+```
+
+**Why it breaks:** The iwd backend doesn't work with this specific hardware configuration (reason unknown).
 
 ## Troubleshooting
 
-### WiFi Not Working After Rebuild
+### If WiFi Stops Working
 
-1. **Check the backend setting**:
-   ```bash
-   grep -A 10 "networking =" configuration.nix | grep backend
-   ```
-   Should show: `backend = "iwd";`
+**Symptoms:**
+- Build succeeds
+- WiFi stops working after reboot
+- No WiFi networks visible in `nmcli device wifi list`
 
-2. **Verify iwd is running**:
-   ```bash
-   systemctl status iwd
-   ```
-   Should be active and running.
+**Check these in configuration.nix:**
 
-3. **Check NetworkManager WiFi backend**:
-   ```bash
-   nmcli general status
-   ```
-   Should show: `wifi.backend: iwd`
-
-4. **Verify wireless.enable is false**:
-   ```bash
-   grep "wireless.enable" configuration.nix
-   ```
-   Should show: `wireless.enable = lib.mkForce false;`
-
-### Rollback to Working Generation
-
-If WiFi breaks after a rebuild:
-
-1. **List recent generations**:
-   ```bash
-   nixos-rebuild list-generations | head -20
+1. **Remove any manual wireless.enable settings:**
+   ```nix
+   # Remove this line if present:
+   networking.wireless.enable = ...;  # Remove entirely
    ```
 
-2. **Boot into a working generation**:
-   - Reboot and select the generation from the bootloader
-   - Or: `sudo nixos-rebuild switch --rollback`
-
-3. **Check what changed**:
-   ```bash
-   git diff HEAD~1 configuration.nix | grep -A 20 "networking"
+2. **Ensure iwd is commented out:**
+   ```nix
+   networking.networkmanager.wifi.backend = "iwd";  # Comment this out
    ```
 
-### Finding a Working Configuration
-
-If you need to identify which generation has working WiFi:
-
-1. **Test generations systematically**:
+3. **Rebuild and reboot:**
    ```bash
-   sudo nixos-rebuild switch --switch-generation <number>
-   sudo systemctl restart NetworkManager
-   nmcli device wifi list
+   sudo nixos-rebuild switch --flake .#hamsa
+   sudo reboot
    ```
 
-2. **Compare configurations**:
-   ```bash
-   # Show configuration changes in git history
-   git log --oneline -- configuration.nix hosts/*/hardware-configuration.nix
-   ```
+### Verification Commands
 
-## History of WiFi Issues
-
-### 2026-01-20: WiFi Broken - Missing iwd Backend
-
-**Symptom**: WiFi stopped working after rebuild. No networks visible.
-
-**Cause**: The `backend = "iwd"` setting was removed from `configuration.nix`, causing NetworkManager to fall back to `wpa_supplicant`.
-
-**Fix**: Restored the complete WiFi configuration from commit `f894603` which includes:
-- `backend = "iwd"`
-- `powersave = false`
-- `scanRandMacAddress = false`
-
-**Lesson**: The backend setting is CRITICAL and must never be removed.
-
-### Earlier Issue (commit f894603): WiFi Fixed
-
-The commit message "fixed wifi" (f894603ba52c28c51e7818887251af3a43b2d592) documents the original fix that established the current working configuration. This commit added comprehensive documentation about why these settings are required.
-
-## Testing WiFi Configuration
-
-After any configuration changes that might affect networking:
-
-1. **Before rebuilding**, verify the WiFi settings:
-   ```bash
-   grep -A 10 "networking =" configuration.nix | grep -E "(backend|powersave|scanRandMacAddress)"
-   ```
-
-2. **After rebuilding**, test WiFi:
-   ```bash
-   nmcli device wifi list
-   nmcli device wifi connect "SSID" password "password"
-   ```
-
-3. **Verify backend is iwd**:
-   ```bash
-   nmcli -f WIFI-PROPERTIES general
-   ```
-
-## References
-
-- Configuration file: `configuration.nix` (lines 53-68)
-- Hardware configuration: `hosts/hamsa/hardware-configuration.nix`
-- Working commit: `f894603ba52c28c51e7818887251af3a43b2d592`
-- Kernel module: `mt7925e`
-- NetworkManager documentation: https://networkmanager.dev/
-- iwd documentation: https://iwd.wiki.kernel.org/
-
-## Quick Reference Commands
+After a successful build and reboot:
 
 ```bash
-# Check WiFi status
-nmcli device wifi list
-iwctl station wlan0 show
+# Check that wpa_supplicant is running (should show active)
+systemctl status wpa_supplicant
 
-# Restart networking (if needed)
-sudo systemctl restart NetworkManager
-sudo systemctl restart iwd
-
-# View WiFi backend
-nmcli -f WIFI-PROPERTIES general
-
-# Check iwd status
+# Check that iwd is not running (should show "could not be found")
 systemctl status iwd
 
-# View kernel module parameters
-systool -v -m mt7925e
+# List available WiFi networks
+nmcli device wifi list
+
+# Check WiFi connection status
+nmcli device status
 ```
+
+## How NetworkManager WiFi Works
+
+NetworkManager automatically manages `networking.wireless.enable` based on the backend:
+
+```nix
+# From NixOS networkmanager.nix module:
+(mkIf (!delegateWireless && !enableIwd) {
+  wireless.enable = true;            # Auto-enabled for wpa_supplicant
+  wireless.autoDetectInterfaces = false;
+  wireless.dbusControlled = true;    # NetworkManager controls via D-Bus
+})
+```
+
+**Important:** Let NetworkManager handle this automatically. Manual intervention breaks the configuration.
 
 ## Summary
 
-**DO NOT**:
-- Remove `backend = "iwd"`
-- Change backend to `wpa_supplicant`
-- Enable `networking.wireless.enable`
-- Enable WiFi power saving
-- Remove any of the critical WiFi settings
+**✅ DO:**
+- Use NetworkManager with default settings
+- Let NetworkManager manage `wireless.enable` automatically
+- Keep `wifi.backend = "iwd"` commented out
+- Reboot after configuration changes to test WiFi
 
-**DO**:
-- Keep all three WiFi settings (`backend`, `powersave`, `scanRandMacAddress`)
-- Test WiFi after any networking-related configuration changes
-- Refer to this documentation before modifying WiFi configuration
-- Keep the warning comments in `configuration.nix`
-
-**When in doubt**: Check commit `f894603` for the known-working configuration.
+**❌ DON'T:**
+- Set `networking.wireless.enable` manually
+- Use `lib.mkForce` on `wireless.enable`
+- Enable `wifi.backend = "iwd"`
+- Add unnecessary powersave or scanRandMacAddress settings
