@@ -199,6 +199,7 @@ config.colors.tab_bar = {
 }
 
 -- Custom tab title formatting with cleaner look
+-- Shows project directory name and optionally task number from Claude Code
 -- Also handles Claude Code notification coloring via CLAUDE_STATUS user variable
 wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_width)
   local edge_background = '#1a1a1a'
@@ -216,10 +217,39 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_wid
     end
   end
 
-  -- Build tab title: tab_index + process/title
-  local title = tostring(tab.tab_index + 1) .. ' '
-  if tab.active_pane and tab.active_pane.title then
-    title = title .. tab.active_pane.title
+  -- Extract project name from current working directory
+  local project_name = nil
+  local active_pane = tab.active_pane
+  if active_pane then
+    local cwd_url = active_pane.current_working_dir
+    if cwd_url then
+      -- current_working_dir is a Url object; file_path gives the path string
+      local cwd_path = cwd_url.file_path
+      if cwd_path then
+        -- Extract the last path component as project name
+        project_name = cwd_path:match("([^/]+)/?$")
+      end
+    end
+  end
+
+  -- Fallback to pane title if cwd unavailable
+  if not project_name or project_name == '' then
+    if active_pane and active_pane.title then
+      project_name = active_pane.title
+    else
+      project_name = 'shell'
+    end
+  end
+
+  -- Build tab title: tab_index + project_name
+  local title = tostring(tab.tab_index + 1) .. ' ' .. project_name
+
+  -- Append task number if set via TASK_NUMBER user variable
+  if active_pane and active_pane.user_vars and active_pane.user_vars.TASK_NUMBER then
+    local task_num = active_pane.user_vars.TASK_NUMBER
+    if task_num and task_num ~= '' then
+      title = title .. ' #' .. task_num
+    end
   end
 
   -- Truncate if too long
