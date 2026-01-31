@@ -326,7 +326,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
 
       # Development Tools
       git                  # Distributed version control system
-      python3              # Python programming language
+      # python3 is provided via python3.withPackages below (includes vosk)
       go                   # Go programming language
       gcc                  # GNU Compiler Collection for C/C++
       unzip                # Extract files from ZIP archives
@@ -373,11 +373,12 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       zathura              # Light-weight PDF/document viewer
       libreoffice          # RTF word processor with signature support
       evince               # GNOME document viewer (handles PDF, PS, DVI, etc.)
+      tinymist             # Typst language server with bundled formatter
 
       # GNOME Extensions and Tools
       gnome-tweaks         # Tool to customize advanced GNOME settings
       gnomeExtensions.unite # GNOME extension to remove title bars and merge elements
-      kooha
+      kooha                # Screen recorder (custom override with MP4 support via overlay)
 
       # Multimedia
       alsa-tools           # HDA codec tools (hda-verb) for audio hardware control
@@ -385,7 +386,12 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       zoom-us              # Video conferencing tool
       spotify              # Music streaming service client
       signal-desktop       # Signal message app
-      # festival             # Voice support for AI assistants
+
+      # Text-to-Speech and Speech-to-Text
+      piper-tts            # Fast, local neural text-to-speech with natural voice quality
+      espeak-ng            # Text-to-speech synthesizer (dependency for piper-tts)
+      pulseaudio           # PulseAudio client tools (parecord for audio recording)
+      # vosk is installed via home-manager Python environment
 
       # File Transfer and Torrent
       wget                 # Tool for retrieving files using HTTP, HTTPS, and FTP

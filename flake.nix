@@ -90,20 +90,32 @@
       markitdown = final.callPackage ./packages/markitdown.nix {}; # Document to markdown converter (custom build)
       loogle = final.callPackage ./packages/loogle.nix {}; # Lean 4 Mathlib search tool (wrapper)
       aristotle = final.callPackage ./packages/aristotle.nix {}; # AI theorem prover with Lean
+      kooha = import ./packages/kooha.nix prev.kooha final.gst_all_1; # Screen recorder with full GStreamer plugin support
+
+      # TTS/STT Models
+      piper-voice-en-us-lessac-medium = final.callPackage ./packages/piper-voices.nix {}; # Piper TTS voice model
+      vosk-model-small-en-us = final.callPackage ./packages/vosk-models.nix {}; # Vosk STT language model
 
       # Add other packages that benefit from using unstable below
       # Format: package-name = pkgs-unstable.package-name; # Reason for using unstable
     };
 
     # Create an overlay for custom Python packages
-    pythonPackagesOverlay = final: prev: {
-      python312 = prev.python312.override {
-        packageOverrides = pySelf: pySuper: {
+    pythonPackagesOverlay = final: prev:
+      let
+        customPythonPackages = pySelf: pySuper: {
           cvc5 = pySelf.callPackage ./packages/python-cvc5.nix { };
           pymupdf4llm = pySelf.callPackage ./packages/pymupdf4llm.nix { };
+          vosk = pySelf.callPackage ./packages/python-vosk.nix { };
+        };
+      in {
+        python3 = prev.python3.override {
+          packageOverrides = customPythonPackages;
+        };
+        python312 = prev.python312.override {
+          packageOverrides = customPythonPackages;
         };
       };
-    };
 
     # Note: MCPHub is now handled via official flake input instead of custom overlay
 

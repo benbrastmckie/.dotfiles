@@ -98,6 +98,14 @@ loogle --interactive           # Interactive mode
 ```
 First run downloads ~484 MB and builds cache. Subsequent runs are instant. See [`docs/development.md`](docs/development.md#lean-4-development) for usage guide.
 
+### Text-to-Speech & Speech-to-Text
+Offline TTS and STT tools for AI assistant integration with declaratively managed models:
+- **Piper TTS**: Natural neural text-to-speech (models auto-installed via Nix)
+- **Vosk STT**: Lightweight offline speech recognition (models auto-installed via Nix)
+- **Use cases**: Claude Code notifications, Neovim voice input, WezTerm integration
+
+Models are reproducibly installed to `~/.local/share/` after `home-manager switch`. See [`docs/applications.md`](docs/applications.md#text-to-speech--speech-to-text) for usage.
+
 For complete application configurations and setup instructions, see [`docs/applications.md`](docs/applications.md).
 
 ## Maintenance

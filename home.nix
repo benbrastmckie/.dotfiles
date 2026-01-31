@@ -282,6 +282,7 @@
       google-generativeai  # Google Gemini API client (pip: google-genai)
       # pymupdf4llm          # LLM-optimized PDF extraction (custom package) - TEMPORARILY DISABLED: requires PyMuPDF 1.26.6, nixpkgs has 1.24.10
       pdf2docx             # Convert PDF to DOCX
+      vosk                 # Offline speech recognition (custom package)
     ]))
 
     # Clipboard history manager (for niri session)
@@ -637,6 +638,11 @@
     ".config/config-files/wezterm.lua".text = builtins.readFile ./config/wezterm.lua;
     ".config/config-files/.tmux.conf".text = builtins.readFile ./config/.tmux.conf;
     ".config/config-files/latexmkrc".text = builtins.readFile ./config/latexmkrc;
+
+    # TTS/STT Models - declaratively managed
+    ".local/share/piper".source = pkgs.piper-voice-en-us-lessac-medium;
+    ".local/share/vosk/vosk-model-small-en-us-0.15".source = pkgs.vosk-model-small-en-us;
+
     # # Building this configuration will create a copy of 'dotfiles/screenrc' in
     # # the Nix store. Activating the configuration will then make '~/.screenrc' a
     # # symlink to the Nix store copy. All files must at least be staged in git.
