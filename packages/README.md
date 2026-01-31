@@ -197,6 +197,79 @@ home.packages = with pkgs; [
 5. Rebuild: `home-manager switch --flake .#benjamin`
 6. Test: `python3 -c "import pymupdf4llm; print(pymupdf4llm.__version__)"`
 
+### python-vosk.nix
+Custom Python package for Vosk v0.3.45 - offline open source speech recognition API for STT (speech-to-text). Vosk is not available in nixpkgs.
+
+**Implementation**: Uses `buildPythonPackage` with `fetchPypi` to download the pre-built manylinux wheel for x86_64 Linux. Uses `autoPatchelfHook` to fix shared library paths for the bundled native C++ library (`libvosk.so`).
+
+**Dependencies**:
+- `autoPatchelfHook`: Automatically fixes shared library paths for native libraries
+- `stdenv.cc.cc.lib`: Provides `libstdc++.so.6` for C++ extensions
+- `cffi`: C Foreign Function Interface
+- `requests`: HTTP library
+- `tqdm`: Progress bars
+- `srt`: SubRip subtitle parser
+- `websockets`: WebSocket support
+
+**Usage**: Available in `python3.withPackages` via the `pythonPackagesOverlay` defined in `flake.nix`:
+
+```nix
+home.packages = with pkgs; [
+  (python3.withPackages(p: with p; [
+    vosk
+    # ... other packages
+  ]))
+];
+```
+
+**Model Management**: Language models are declaratively managed via Nix (see `vosk-models.nix`). Models are automatically symlinked to `~/.local/share/vosk/vosk-model-small-en-us-0.15` after `home-manager switch`.
+
+**Test**:
+```python
+import vosk
+import os
+model = vosk.Model(os.path.expanduser("~/.local/share/vosk/vosk-model-small-en-us-0.15"))
+```
+
+**Update Process**:
+1. Check new version on [PyPI](https://pypi.org/project/vosk/)
+2. Get hash: `nix-prefetch-url https://files.pythonhosted.org/packages/...`
+3. Convert hash: `nix hash to-sri --type sha256 HASH`
+4. Update `version` and `hash` in `python-vosk.nix`
+5. Rebuild: `nixos-rebuild switch --flake .#HOSTNAME`
+6. Test: `python3 -c "import vosk; print(vosk.__version__)"`
+
+**Models**: https://alphacephei.com/vosk/models
+
+**Related**:
+- Research: `/home/benjamin/Projects/ProofChecker/specs/761_tts_stt_integration_for_claude_code_and_neovim/reports/research-001.md`
+
+### piper-voices.nix
+Declarative Piper TTS voice model package for reproducible installations. Downloads the en_US-lessac-medium voice model (medium quality, ~45MB) and JSON config from HuggingFace.
+
+**Implementation**: Uses `fetchurl` to download both the ONNX model and JSON config, then installs them to the Nix store. Home-manager symlinks to `~/.local/share/piper/`.
+
+**Adding more voices**: Create additional derivations or modify this file to download other voices from https://huggingface.co/rhasspy/piper-voices.
+
+**Update Process**:
+1. Check for new voice models on HuggingFace
+2. Update URL and rebuild to get new hash
+3. Update hash in the file
+4. Rebuild: `home-manager switch --flake .#benjamin`
+
+### vosk-models.nix
+Declarative Vosk STT language model package for reproducible installations. Downloads the small English US model (~50MB) from alphacephei.com.
+
+**Implementation**: Uses `fetchzip` to download and extract the model archive, then installs to the Nix store with `stripRoot = false` to preserve directory structure. Home-manager symlinks to `~/.local/share/vosk/vosk-model-small-en-us-0.15/`.
+
+**Adding more languages**: Create additional derivations for other language models from https://alphacephei.com/vosk/models.
+
+**Update Process**:
+1. Check for new models on https://alphacephei.com/vosk/models
+2. Update URL and version
+3. Rebuild to get new hash, update hash in the file
+4. Rebuild: `home-manager switch --flake .#benjamin`
+
 ### neovim.nix
 A wrapper around Neovim unstable that fixes missing maintainers metadata to prevent build errors.
 
@@ -224,5 +297,38 @@ The script checks:
 - MCPHub binary accessibility
 - Configuration directory and files
 - Server functionality (optional)
+
+## Text-to-Speech and Speech-to-Text Setup
+
+The system includes TTS and STT tools for Claude Code and Neovim integration.
+
+### TTS: Piper (System Package)
+Fast, local neural text-to-speech with natural voice quality. Available in nixpkgs as `piper-tts`.
+
+**Model Management**: Voice models are declaratively managed via Nix (see `piper-voices.nix`). The US English (Lessac, medium quality) voice is automatically symlinked to `~/.local/share/piper/` after `home-manager switch`.
+
+**Test**:
+```bash
+echo "Hello, this is a test." | piper --model ~/.local/share/piper/en_US-lessac-medium.onnx --output_file test.wav
+aplay test.wav
+```
+
+**Available voices**: https://huggingface.co/rhasspy/piper-voices/tree/main
+
+### STT: Vosk (Custom Package)
+See `python-vosk.nix` section above for installation and setup.
+
+### Audio Recording
+The system includes PulseAudio client tools (`parecord`) for audio recording:
+
+```bash
+# Record 10 seconds at 16kHz (optimal for STT)
+timeout 10s parecord --channels=1 --rate=16000 --file-format=wav recording.wav
+```
+
+### Integration Examples
+- **Claude Code TTS notifications**: See research report for Stop hook implementation
+- **Neovim STT**: See research report for Lua integration with `vim.fn.jobstart()`
+- **Research**: `/home/benjamin/Projects/ProofChecker/specs/761_tts_stt_integration_for_claude_code_and_neovim/reports/research-001.md`
 
 [← Back to main README](../README.md)

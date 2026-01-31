@@ -199,16 +199,37 @@ config.colors.tab_bar = {
 }
 
 -- Custom tab title formatting with cleaner look
+-- Also handles Claude Code notification coloring via CLAUDE_STATUS user variable
 wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_width)
   local edge_background = '#1a1a1a'
   local background = tab.is_active and '#3a3a3a' or '#202020'
   local foreground = tab.is_active and '#d0d0d0' or '#808080'
-  
-  local title = tostring(tab.tab_index + 1)
-  
+
+  -- Check for Claude Code notification status on inactive tabs
+  -- The CLAUDE_STATUS user variable is set by .claude/hooks/wezterm-notify.sh
+  if not tab.is_active then
+    local active_pane = tab.active_pane
+    if active_pane and active_pane.user_vars and active_pane.user_vars.CLAUDE_STATUS == 'needs_input' then
+      -- Amber background with black foreground for notification
+      background = '#e5b566'  -- amber (matches terminal yellow)
+      foreground = '#151515'  -- black
+    end
+  end
+
+  -- Build tab title: tab_index + process/title
+  local title = tostring(tab.tab_index + 1) .. ' '
+  if tab.active_pane and tab.active_pane.title then
+    title = title .. tab.active_pane.title
+  end
+
+  -- Truncate if too long
+  if #title > max_width - 2 then
+    title = wezterm.truncate_right(title, max_width - 2)
+  end
+
   -- Add separator between tabs
   local separator = tab.tab_index < #tabs - 1 and '│' or ''
-  
+
   return {
     { Background = { Color = background } },
     { Foreground = { Color = foreground } },
@@ -217,6 +238,37 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_wid
     { Foreground = { Color = '#404040' } },
     { Text = separator },
   }
+end)
+
+-- Clear Claude notification when tab becomes active
+-- Uses update-status event to track tab switches and clear CLAUDE_STATUS user variable
+-- This ensures the amber notification color resets when the user views the notified tab
+config.status_update_interval = 500  -- 500ms for responsive clearing
+
+wezterm.on('update-status', function(window, pane)
+  local window_id = window:window_id()
+  local active_tab = window:active_tab()
+  local tab_id = active_tab:tab_id()
+
+  -- Get or initialize tracking table
+  -- wezterm.GLOBAL persists across config reloads within the same WezTerm instance
+  local tracking = wezterm.GLOBAL.tab_tracking or {}
+  local last_active = tracking[window_id]
+
+  if last_active ~= tab_id then
+    -- Tab changed! Check if new tab has CLAUDE_STATUS and clear it
+    for _, tab_pane in ipairs(active_tab:panes()) do
+      local user_vars = tab_pane:get_user_vars()
+      if user_vars.CLAUDE_STATUS == 'needs_input' then
+        -- Clear the user variable via OSC escape sequence
+        -- This removes the amber coloring since CLAUDE_STATUS is no longer set
+        tab_pane:inject_output('\027]1337;SetUserVar=CLAUDE_STATUS=\007')
+      end
+    end
+    -- Update tracking
+    tracking[window_id] = tab_id
+    wezterm.GLOBAL.tab_tracking = tracking
+  end
 end)
 
 -- LEADER KEY - Ctrl+Space just like Kitty
