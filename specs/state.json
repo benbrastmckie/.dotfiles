@@ -1,5 +1,5 @@
 {
-  "next_project_number": 3,
+  "next_project_number": 4,
   "active_projects": [
     {
       "project_number": 1,
@@ -14,6 +14,13 @@
       "status": "not_started",
       "language": "meta",
       "description": "Update README.md (Claude system architecture doc) to reflect NixOS dotfiles context"
+    },
+    {
+      "project_number": 3,
+      "project_name": "fix_meta_directory_creation_spec",
+      "status": "not_started",
+      "language": "meta",
+      "description": "Fix conflicting specification in meta.md about directory creation - remove line 29 that contradicts lazy directory creation rule in state-management.md"
     }
   ],
   "repository_health": {

@@ -2,6 +2,31 @@
 
 ## Active Tasks
 
+### 3. Fix meta.md directory creation specification conflict
+- **Status**: [NOT STARTED]
+- **Priority**: high
+- **Language**: meta
+- **Description**: Remove or fix conflicting specification in `.claude/commands/meta.md` line 29 that says "Create task directories for each task" which contradicts the lazy directory creation rule in `.claude/rules/state-management.md`.
+
+**Root Cause Analysis**:
+The `/meta` command specification at line 29 states:
+> "Create task directories for each task"
+
+But `state-management.md` (lines 226-257) explicitly states:
+> "DO NOT create directories at task creation time. The `/task` command only:
+> 1. Updates `specs/state.json`
+> 2. Updates `specs/TODO.md`"
+>
+> "WHO creates directories: Artifact-writing agents (researcher, planner, implementer) create directories with `mkdir -p` when writing their first artifact"
+
+**Fix Required**:
+1. Edit `.claude/commands/meta.md` line 29
+2. Change "Create task directories for each task" to something like:
+   - "Task directories created lazily when artifacts are written (see state-management.md)"
+   - Or simply remove the line
+
+---
+
 ### 1. Update CLAUDE.md for dotfiles repository
 - **Status**: [NOT STARTED]
 - **Priority**: high
