@@ -1,4 +1,4 @@
-local wezterm = require 'wezterm'
+local wezterm = require("wezterm")
 local config = wezterm.config_builder()
 local mux = wezterm.mux
 local act = wezterm.action
@@ -19,14 +19,14 @@ local act = wezterm.action
 
 -- FONT
 config.font_size = 12.0
-config.font = wezterm.font('RobotoMono Nerd Font Mono')
+config.font = wezterm.font("RobotoMono Nerd Font Mono")
 
 -- PERFORMANCE
 -- PERFORMANCE & WAYLAND SETTINGS
-config.enable_wayland = true  -- Keep Wayland enabled
-config.front_end = "OpenGL"  -- OpenGL is more stable than WebGpu on NixOS
+config.enable_wayland = true -- Keep Wayland enabled
+config.front_end = "OpenGL" -- OpenGL is more stable than WebGpu on NixOS
 -- Window decorations - try NONE to let compositor handle decorations
-config.window_decorations = "NONE"  -- Let Wayland compositor handle decorations
+config.window_decorations = "NONE" -- Let Wayland compositor handle decorations
 -- DPI handling - let system manage this
 -- config.dpi = 96  -- Commenting out to let system handle DPI
 -- config.dpi_by_screen = {}
@@ -34,8 +34,8 @@ config.webgpu_power_preference = "HighPerformance"
 config.max_fps = 120
 config.animation_fps = 60
 config.cursor_blink_rate = 500
-config.cursor_blink_ease_in = 'Constant'
-config.cursor_blink_ease_out = 'Constant'
+config.cursor_blink_ease_in = "Constant"
+config.cursor_blink_ease_out = "Constant"
 
 -- LAYOUT
 config.initial_cols = 80
@@ -57,9 +57,9 @@ config.hide_tab_bar_if_only_one_tab = false
 -- end)
 
 -- Single gui-startup handler to maximize window
-wezterm.on('gui-startup', function(cmd)
-    local tab, pane, window = mux.spawn_window(cmd or {})
-    window:gui_window():maximize()
+wezterm.on("gui-startup", function(cmd)
+  local tab, pane, window = mux.spawn_window(cmd or {})
+  window:gui_window():maximize()
 end)
 
 -- -- Option 3: Using perform_action (often more reliable)
@@ -76,37 +76,37 @@ config.adjust_window_size_when_changing_font_size = false
 
 -- Color scheme matching Kitty
 config.colors = {
-  foreground = '#d0d0d0',
-  background = '#202020',
-  cursor_bg = '#d0d0d0',
-  cursor_fg = '#202020',
-  selection_fg = '#202020',
-  selection_bg = '#303030',
-  
+  foreground = "#d0d0d0",
+  background = "#202020",
+  cursor_bg = "#d0d0d0",
+  cursor_fg = "#202020",
+  selection_fg = "#202020",
+  selection_bg = "#303030",
+
   ansi = {
-    '#151515', -- black
-    '#ac4142', -- red
-    '#7e8d50', -- green
-    '#e5b566', -- yellow
-    '#6c99ba', -- blue
-    '#9e4e85', -- magenta
-    '#7dd5cf', -- cyan
-    '#d0d0d0', -- white
+    "#151515", -- black
+    "#ac4142", -- red
+    "#7e8d50", -- green
+    "#e5b566", -- yellow
+    "#6c99ba", -- blue
+    "#9e4e85", -- magenta
+    "#7dd5cf", -- cyan
+    "#d0d0d0", -- white
   },
   brights = {
-    '#505050', -- bright black
-    '#ac4142', -- bright red
-    '#7e8d50', -- bright green
-    '#e5b566', -- bright yellow
-    '#6c99ba', -- bright blue
-    '#9e4e85', -- bright magenta
-    '#7dd5cf', -- bright cyan
-    '#f5f5f5', -- bright white
+    "#505050", -- bright black
+    "#ac4142", -- bright red
+    "#7e8d50", -- bright green
+    "#e5b566", -- bright yellow
+    "#6c99ba", -- bright blue
+    "#9e4e85", -- bright magenta
+    "#7dd5cf", -- bright cyan
+    "#f5f5f5", -- bright white
   },
 }
 
 -- GENERAL
-config.default_prog = { 'fish' }
+config.default_prog = { "fish" }
 config.selection_word_boundary = " \t\n{}[]()\"'`"
 
 -- SCROLLBACK
@@ -114,7 +114,7 @@ config.scrollback_lines = 10000
 config.enable_scroll_bar = false
 
 -- MOUSE SUPPORT
-config.hide_mouse_cursor_when_typing = false  -- Disabled to prevent cursor disappearing bug on Wayland
+config.hide_mouse_cursor_when_typing = false -- Disabled to prevent cursor disappearing bug on Wayland
 -- Let NixOS handle cursor theme through environment variables
 
 -- Slow down scroll speed in alternate buffer (vim, less, etc.)
@@ -123,26 +123,26 @@ config.alternate_buffer_wheel_scroll_speed = 1
 config.mouse_bindings = {
   -- Right click to paste
   {
-    event = { Down = { streak = 1, button = 'Right' } },
-    mods = 'NONE',
-    action = act.PasteFrom 'Clipboard',
+    event = { Down = { streak = 1, button = "Right" } },
+    mods = "NONE",
+    action = act.PasteFrom("Clipboard"),
   },
   -- Change selection to copy to clipboard
   {
-    event = { Up = { streak = 1, button = 'Left' } },
-    mods = 'NONE',
-    action = act.CompleteSelectionOrOpenLinkAtMouseCursor 'ClipboardAndPrimarySelection',
+    event = { Up = { streak = 1, button = "Left" } },
+    mods = "NONE",
+    action = act.CompleteSelectionOrOpenLinkAtMouseCursor("ClipboardAndPrimarySelection"),
   },
   -- Middle click to paste from primary selection
   {
-    event = { Down = { streak = 1, button = 'Middle' } },
-    mods = 'NONE',
-    action = act.PasteFrom 'PrimarySelection',
+    event = { Down = { streak = 1, button = "Middle" } },
+    mods = "NONE",
+    action = act.PasteFrom("PrimarySelection"),
   },
   -- Ctrl+Click to open URLs
   {
-    event = { Up = { streak = 1, button = 'Left' } },
-    mods = 'CTRL',
+    event = { Up = { streak = 1, button = "Left" } },
+    mods = "CTRL",
     action = act.OpenLinkAtMouseCursor,
   },
 }
@@ -156,64 +156,64 @@ config.tab_max_width = 25
 
 -- Smaller, sleeker tab bar styling
 config.window_frame = {
-  font = wezterm.font({ family = 'RobotoMono Nerd Font Mono', weight = 'Bold' }),
+  font = wezterm.font({ family = "RobotoMono Nerd Font Mono", weight = "Bold" }),
   font_size = 9.0,
-  active_titlebar_bg = '#202020',
-  inactive_titlebar_bg = '#202020',
+  active_titlebar_bg = "#202020",
+  inactive_titlebar_bg = "#202020",
 }
 
 -- Tab bar colors
 config.colors.tab_bar = {
-  background = '#1a1a1a',
-  
+  background = "#1a1a1a",
+
   active_tab = {
-    bg_color = '#3a3a3a',
-    fg_color = '#d0d0d0',
-    intensity = 'Bold',
-    underline = 'None',
+    bg_color = "#e5b566",
+    fg_color = "#151515",
+    intensity = "Bold",
+    underline = "None",
     italic = false,
     strikethrough = false,
   },
-  
+
   inactive_tab = {
-    bg_color = '#202020',
-    fg_color = '#808080',
-    intensity = 'Normal',
+    bg_color = "#202020",
+    fg_color = "#808080",
+    intensity = "Normal",
   },
-  
+
   inactive_tab_hover = {
-    bg_color = '#2a2a2a',
-    fg_color = '#a0a0a0',
+    bg_color = "#2a2a2a",
+    fg_color = "#a0a0a0",
     italic = false,
   },
-  
+
   new_tab = {
-    bg_color = '#1a1a1a',
-    fg_color = '#808080',
+    bg_color = "#1a1a1a",
+    fg_color = "#808080",
   },
-  
+
   new_tab_hover = {
-    bg_color = '#2a2a2a',
-    fg_color = '#a0a0a0',
+    bg_color = "#2a2a2a",
+    fg_color = "#a0a0a0",
   },
 }
 
 -- Custom tab title formatting with cleaner look
 -- Shows project directory name and optionally task number from Claude Code
 -- Also handles Claude Code notification coloring via CLAUDE_STATUS user variable
-wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_width)
-  local edge_background = '#1a1a1a'
-  local background = tab.is_active and '#3a3a3a' or '#202020'
-  local foreground = tab.is_active and '#d0d0d0' or '#808080'
+wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
+  local edge_background = "#1a1a1a"
+  local background = tab.is_active and "#e5b566" or "#202020"
+  local foreground = tab.is_active and "#151515" or "#808080"
 
   -- Check for Claude Code notification status on inactive tabs
   -- The CLAUDE_STATUS user variable is set by .claude/hooks/wezterm-notify.sh
   if not tab.is_active then
     local active_pane = tab.active_pane
-    if active_pane and active_pane.user_vars and active_pane.user_vars.CLAUDE_STATUS == 'needs_input' then
-      -- Amber background with black foreground for notification
-      background = '#e5b566'  -- amber (matches terminal yellow)
-      foreground = '#151515'  -- black
+    if active_pane and active_pane.user_vars and active_pane.user_vars.CLAUDE_STATUS == "needs_input" then
+      -- Gray background with light foreground for notification
+      background = "#3a3a3a" -- gray (swapped with active tab)
+      foreground = "#d0d0d0" -- light gray
     end
   end
 
@@ -233,22 +233,22 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_wid
   end
 
   -- Fallback to pane title if cwd unavailable
-  if not project_name or project_name == '' then
+  if not project_name or project_name == "" then
     if active_pane and active_pane.title then
       project_name = active_pane.title
     else
-      project_name = 'shell'
+      project_name = "shell"
     end
   end
 
   -- Build tab title: tab_index + project_name
-  local title = tostring(tab.tab_index + 1) .. ' ' .. project_name
+  local title = tostring(tab.tab_index + 1) .. " " .. project_name
 
   -- Append task number if set via TASK_NUMBER user variable
   if active_pane and active_pane.user_vars and active_pane.user_vars.TASK_NUMBER then
     local task_num = active_pane.user_vars.TASK_NUMBER
-    if task_num and task_num ~= '' then
-      title = title .. ' #' .. task_num
+    if task_num and task_num ~= "" then
+      title = title .. " #" .. task_num
     end
   end
 
@@ -258,14 +258,14 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, config, hover, max_wid
   end
 
   -- Add separator between tabs
-  local separator = tab.tab_index < #tabs - 1 and '│' or ''
+  local separator = tab.tab_index < #tabs - 1 and "│" or ""
 
   return {
     { Background = { Color = background } },
     { Foreground = { Color = foreground } },
-    { Text = ' ' .. title .. ' ' },
+    { Text = " " .. title .. " " },
     { Background = { Color = edge_background } },
-    { Foreground = { Color = '#404040' } },
+    { Foreground = { Color = "#404040" } },
     { Text = separator },
   }
 end)
@@ -273,9 +273,9 @@ end)
 -- Clear Claude notification when tab becomes active
 -- Uses update-status event to track tab switches and clear CLAUDE_STATUS user variable
 -- This ensures the amber notification color resets when the user views the notified tab
-config.status_update_interval = 500  -- 500ms for responsive clearing
+config.status_update_interval = 500 -- 500ms for responsive clearing
 
-wezterm.on('update-status', function(window, pane)
+wezterm.on("update-status", function(window, pane)
   local window_id = window:window_id()
   local active_tab = window:active_tab()
   local tab_id = active_tab:tab_id()
@@ -289,10 +289,10 @@ wezterm.on('update-status', function(window, pane)
     -- Tab changed! Check if new tab has CLAUDE_STATUS and clear it
     for _, tab_pane in ipairs(active_tab:panes()) do
       local user_vars = tab_pane:get_user_vars()
-      if user_vars.CLAUDE_STATUS == 'needs_input' then
+      if user_vars.CLAUDE_STATUS == "needs_input" then
         -- Clear the user variable via OSC escape sequence
         -- This removes the amber coloring since CLAUDE_STATUS is no longer set
-        tab_pane:inject_output('\027]1337;SetUserVar=CLAUDE_STATUS=\007')
+        tab_pane:inject_output("\027]1337;SetUserVar=CLAUDE_STATUS=\007")
       end
     end
     -- Update tracking
@@ -302,97 +302,96 @@ wezterm.on('update-status', function(window, pane)
 end)
 
 -- LEADER KEY - Ctrl+Space just like Kitty
-config.leader = { key = 'Space', mods = 'CTRL', timeout_milliseconds = 1000 }
+config.leader = { key = "Space", mods = "CTRL", timeout_milliseconds = 1000 }
 
 -- Visual bell instead of audio
-config.audible_bell = 'Disabled'
+config.audible_bell = "Disabled"
 config.visual_bell = {
-  fade_in_function = 'EaseIn',
+  fade_in_function = "EaseIn",
   fade_in_duration_ms = 75,
-  fade_out_function = 'EaseOut',
+  fade_out_function = "EaseOut",
   fade_out_duration_ms = 75,
-  target = 'CursorColor',
+  target = "CursorColor",
 }
 
 -- KEYBINDINGS
 config.keys = {
   -- Fullscreen toggle (Alt+Enter is the WezTerm default)
   {
-    key = 'Enter',
-    mods = 'ALT',
+    key = "Enter",
+    mods = "ALT",
     action = act.ToggleFullScreen,
   },
-  
+
   -- Tab management with Ctrl+Space leader
   {
-    key = 'c',
-    mods = 'LEADER',
-    action = act.SpawnTab 'CurrentPaneDomain',
+    key = "c",
+    mods = "LEADER",
+    action = act.SpawnTab("CurrentPaneDomain"),
   },
   {
-    key = 'k',
-    mods = 'LEADER',
-    action = act.CloseCurrentTab { confirm = true },
+    key = "k",
+    mods = "LEADER",
+    action = act.CloseCurrentTab({ confirm = true }),
   },
   {
-    key = 'n',
-    mods = 'LEADER',
+    key = "n",
+    mods = "LEADER",
     action = act.ActivateTabRelative(1),
   },
   {
-    key = 'p',
-    mods = 'LEADER',
+    key = "p",
+    mods = "LEADER",
     action = act.ActivateTabRelative(-1),
   },
 
   -- Font size adjustment matching Kitty
   {
-    key = '=',
-    mods = 'CTRL|SHIFT',
+    key = "=",
+    mods = "CTRL|SHIFT",
     action = act.IncreaseFontSize,
   },
   {
-    key = '+',
-    mods = 'CTRL|SHIFT',
+    key = "+",
+    mods = "CTRL|SHIFT",
     action = act.IncreaseFontSize,
   },
   {
-    key = '-',
-    mods = 'CTRL|SHIFT',
+    key = "-",
+    mods = "CTRL|SHIFT",
     action = act.DecreaseFontSize,
   },
-  
+
   -- Copy/Paste with Ctrl+Shift (leaves Ctrl+C unbound for terminal use)
   {
-    key = 'c',
-    mods = 'CTRL|SHIFT',
-    action = act.CopyTo 'Clipboard',
+    key = "c",
+    mods = "CTRL|SHIFT",
+    action = act.CopyTo("Clipboard"),
   },
   {
-    key = 'v',
-    mods = 'CTRL|SHIFT',
-    action = act.PasteFrom 'Clipboard',
+    key = "v",
+    mods = "CTRL|SHIFT",
+    action = act.PasteFrom("Clipboard"),
   },
-  
-  
+
   -- Search mode
   {
-    key = '/',
-    mods = 'LEADER',
-    action = act.Search { CaseSensitiveString = '' },
+    key = "/",
+    mods = "LEADER",
+    action = act.Search({ CaseSensitiveString = "" }),
   },
-  
+
   -- Copy mode (vim-like scrolling)
   {
-    key = '[',
-    mods = 'LEADER',
+    key = "[",
+    mods = "LEADER",
     action = act.ActivateCopyMode,
   },
-  
+
   -- Command palette (useful for discovering commands)
   {
-    key = 'P',
-    mods = 'CTRL|SHIFT',
+    key = "P",
+    mods = "CTRL|SHIFT",
     action = act.ActivateCommandPalette,
   },
 }
@@ -403,15 +402,15 @@ config.selection_word_boundary = " \t\n{}[]()\"'`"
 -- Smart selection patterns for double-click
 config.quick_select_patterns = {
   -- URLs
-  'https?://[\\w\\.-]+\\S*',
+  "https?://[\\w\\.-]+\\S*",
   -- File paths
-  '(?:[\\w\\-\\.]+)?(?:/[\\w\\-\\.]+)+',
+  "(?:[\\w\\-\\.]+)?(?:/[\\w\\-\\.]+)+",
   -- Email addresses
-  '[\\w\\.-]+@[\\w\\.-]+\\.[\\w]+',
+  "[\\w\\.-]+@[\\w\\.-]+\\.[\\w]+",
   -- IP addresses
-  '\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b',
+  "\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b",
   -- Hex colors
-  '#[0-9a-fA-F]{3,8}',
+  "#[0-9a-fA-F]{3,8}",
 }
 
 return config
