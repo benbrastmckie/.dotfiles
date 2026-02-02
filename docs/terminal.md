@@ -134,6 +134,60 @@ wezterm cli list-clients
 wezterm shell-completion --shell bash
 ```
 
+## WezTerm Claude Code Integration
+
+The WezTerm configuration includes integration with Claude Code and Neovim for enhanced tab management and visual notifications.
+
+### Tab Title Display
+
+Tab titles display contextual information from the current working directory and Claude Code sessions:
+
+- **Directory Name**: Extracted from OSC 7 escape sequences (sent by shells and Neovim)
+- **Task Number**: Displayed as `#N` when working on a numbered task (e.g., `1 ProofChecker #792`)
+
+The `format-tab-title` handler in `wezterm.lua` reads these values to compose the tab title.
+
+### User Variables
+
+WezTerm user variables communicate state between Claude Code, Neovim, and WezTerm:
+
+| Variable | Purpose | Set By |
+|----------|---------|--------|
+| `TASK_NUMBER` | Current task number (e.g., "792") | Claude Code hooks, Neovim |
+| `CLAUDE_STATUS` | Notification state ("needs_input") | Claude Code Stop hook |
+
+These variables are set via OSC 1337 escape sequences and read by the `format-tab-title` handler.
+
+### Notification Behavior
+
+Inactive tabs with pending Claude Code output display amber highlighting:
+
+1. Claude Code stops and awaits input (triggers `Stop` hook)
+2. `wezterm-notify.sh` sets `CLAUDE_STATUS=needs_input`
+3. Tab background changes to amber (#e5b566) with black text
+4. When the tab becomes active, `update-status` handler clears the notification
+5. Alternatively, submitting a prompt triggers `wezterm-clear-status.sh` to clear it
+
+### Configuration
+
+Disable WezTerm notifications via environment variable:
+
+```bash
+export WEZTERM_NOTIFY_ENABLED=0
+```
+
+### OSC Escape Sequences
+
+| Sequence | Purpose | Example |
+|----------|---------|---------|
+| OSC 7 | Directory update | `ESC ] 7 ; file://hostname/path BEL` |
+| OSC 1337 | User variable | `ESC ] 1337 ; SetUserVar=NAME=base64value BEL` |
+
+### Related Documentation
+
+- **Neovim OSC 7 integration**: `~/.config/nvim/lua/neotex/config/README.md`
+- **Claude Code hooks**: Project-specific `.claude/hooks/` directory
+
 ## Kitty Configuration
 
 Kitty is a fast, GPU-accelerated terminal emulator with extensive customization options.
