@@ -1,0 +1,23 @@
+{
+  "next_project_number": 3,
+  "active_projects": [
+    {
+      "project_number": 1,
+      "project_name": "update_claudemd_for_dotfiles",
+      "status": "not_started",
+      "language": "meta",
+      "description": "Update CLAUDE.md to accurately describe this NixOS dotfiles repository instead of Neovim-only configuration"
+    },
+    {
+      "project_number": 2,
+      "project_name": "update_readme_for_dotfiles",
+      "status": "not_started",
+      "language": "meta",
+      "description": "Update README.md (Claude system architecture doc) to reflect NixOS dotfiles context"
+    }
+  ],
+  "repository_health": {
+    "last_assessed": "2026-02-02T17:31:00Z",
+    "status": "healthy"
+  }
+}
