@@ -3,9 +3,11 @@
 ## Active Tasks
 
 ### 3. Fix meta.md directory creation specification conflict
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Priority**: high
 - **Language**: meta
+- **Researched**: 2026-02-02
+- **Research**: [research-001.md](specs/3_fix_meta_directory_creation_spec/reports/research-001.md)
 - **Description**: Remove or fix conflicting specification in `.claude/commands/meta.md` line 29 that says "Create task directories for each task" which contradicts the lazy directory creation rule in `.claude/rules/state-management.md`.
 
 **Root Cause Analysis**:
