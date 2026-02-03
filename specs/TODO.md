@@ -35,10 +35,11 @@
 ---
 
 ### 9. Create skill-nix-research
-- **Status**: [RESEARCHING]
+- **Status**: [RESEARCHED]
 - **Priority**: high
 - **Language**: meta
 - **Depends on**: Task 7
+- **Research**: [research-001.md](specs/9_create_skill_nix_research/reports/research-001.md)
 
 **Description**: Create skill-nix-research thin wrapper skill that delegates to nix-research-agent following the established skill pattern (preflight, delegate, postflight).
 
