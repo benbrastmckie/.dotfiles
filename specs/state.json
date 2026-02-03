@@ -162,16 +162,16 @@
     {
       "project_number": 8,
       "project_name": "create_nix_implementation_agent",
-      "status": "researched",
+      "status": "planned",
       "language": "meta",
       "description": "Create nix-implementation-agent mirroring neovim-implementation-agent pattern with Nix-specific verification (nix flake check, nixos-rebuild build, home-manager build) and phase-based execution",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T22:27:43Z",
+      "last_updated": "2026-02-03T22:34:57Z",
       "depends_on": [
         5,
         6
       ],
-      "session_id": "sess_1770157353_4ad465",
+      "session_id": "sess_1770157952_0cf342",
       "researched": "2026-02-03T22:27:43Z",
       "artifacts": [
         {
@@ -183,8 +183,14 @@
           "path": "specs/8_create_nix_implementation_agent/reports/research-002.md",
           "type": "research",
           "summary": "Supplementary research on MCP servers for Nix (MCP-NixOS), AI best practices, search tools, and documentation resources"
+        },
+        {
+          "path": "specs/8_create_nix_implementation_agent/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "5-phase implementation plan for nix-implementation-agent mirroring neovim-implementation-agent pattern"
         }
-      ]
+      ],
+      "planned": "2026-02-03T22:34:57Z"
     },
     {
       "project_number": 9,
