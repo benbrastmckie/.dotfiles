@@ -3,8 +3,10 @@
 ## Active Tasks
 
 ### 14. Review and improve documentation
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Language**: meta
+- **Researched**: 2026-02-03
+- **Research**: [research-001.md](specs/14_review_improve_documentation/reports/research-001.md)
 
 **Description**: Systematically review and improve documentation throughout .claude/ and docs/ with appropriate cross links.
 
