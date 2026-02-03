@@ -486,3 +486,371 @@ nix search nixpkgs#packageName
 # Option existence check via evaluation
 nix eval .#nixosConfigurations.hostname.options.services.nginx.enable --apply 'x: x != null' 2>/dev/null
 ```
+
+## MCP-NixOS Integration
+
+### MCP Availability Detection
+
+At the start of Stage 4 (Implementation Loop), check MCP availability:
+
+```
+# Attempt stats query - fast and non-destructive
+mcp__nixos__nix(action="stats", source="nixpkgs")
+
+# Expected success response: { "packages": 130000+, ... }
+# Error/timeout: MCP unavailable, proceed without
+```
+
+Store availability status for the session. Do not retry MCP on every operation.
+
+### Tool Invocation Patterns
+
+#### mcp__nixos__nix Tool
+
+**Signature**: `mcp__nixos__nix(action, query, source, type, channel, limit)`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `action` | string | Yes | Operation: search, info, stats, options, channels, flake-inputs, cache |
+| `query` | string | For search/info/options | Search term or package name |
+| `source` | string | Yes | Data source (see below) |
+| `type` | string | No | Filter type (packages, programs, options) |
+| `channel` | string | No | Nixpkgs channel (default: unstable) |
+| `limit` | number | No | Max results (default: varies by action) |
+
+**Sources**:
+| Source | Description |
+|--------|-------------|
+| `nixpkgs` | NixOS packages (~130K) |
+| `nixos-options` | NixOS system options (~23K) |
+| `home-manager` | Home Manager options (~5K) |
+| `nix-darwin` | macOS-specific options (~1K) |
+| `noogle` | Function signatures from nixpkgs lib (~2K) |
+| `flakehub` | Public flake registry (~600) |
+| `nixhub` | Store paths and package metadata |
+
+#### mcp__nixos__nix_versions Tool
+
+**Signature**: `mcp__nixos__nix_versions(package, version, limit)`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `package` | string | Yes | Package name |
+| `version` | string | No | Filter to specific version |
+| `limit` | number | No | Max results (default: 10) |
+
+Returns version history with nixpkgs commit hashes for pinning.
+
+### MCP Query Patterns
+
+#### Package Search
+```
+mcp__nixos__nix(action="search", query="nginx", source="nixpkgs", limit=10)
+# Returns: matching packages with descriptions
+```
+
+#### Package Info
+```
+mcp__nixos__nix(action="info", query="nginx", source="nixpkgs")
+# Returns: detailed package info (version, description, homepage)
+```
+
+#### NixOS Options Search
+```
+mcp__nixos__nix(action="options", query="services.nginx", source="nixos-options", limit=20)
+# Returns: matching options with types and descriptions
+```
+
+#### Home Manager Options Search
+```
+mcp__nixos__nix(action="options", query="programs.git", source="home-manager", limit=20)
+# Returns: Home Manager options for programs.git.*
+```
+
+#### Function Signature Lookup
+```
+mcp__nixos__nix(action="search", query="mkOption", source="noogle", limit=5)
+# Returns: function signature, parameters, examples
+```
+
+#### Package Version History
+```
+mcp__nixos__nix_versions(package="nodejs", limit=10)
+# Returns: available versions with commit hashes
+```
+
+### Validation Workflow
+
+#### Pre-Write Validation
+
+Before writing Nix code that references packages or options:
+
+1. **New Package Reference**
+   ```
+   # Check: Does pkgs.somePackage exist?
+   result = mcp__nixos__nix(action="search", query="somePackage", source="nixpkgs", limit=5)
+
+   if exact_match_found(result):
+       proceed_with_write()
+   else:
+       suggest_alternatives(result)
+       log_validation_warning()
+   ```
+
+2. **New Option Path**
+   ```
+   # Check: Is services.nginx.virtualHosts a valid option?
+   result = mcp__nixos__nix(action="options", query="services.nginx.virtualHosts", source="nixos-options", limit=5)
+
+   if option_exists(result):
+       proceed_with_write()
+   else:
+       report_invalid_option()
+   ```
+
+#### Post-Error Validation
+
+When build fails with "undefined variable" or "missing attribute":
+
+1. Extract the problematic name from error message
+2. Query MCP for correct name:
+   ```
+   mcp__nixos__nix(action="search", query="{error_name}", source="nixpkgs", limit=10)
+   ```
+3. Suggest corrections based on similar packages
+
+#### Suggestion Generation
+
+When validation fails, use MCP results to suggest alternatives:
+```
+# Original query: "nodejs16"
+# MCP response: [nodejs-18_x, nodejs-16_x, nodejs-14_x]
+# Suggestion: "Did you mean nodejs-16_x?"
+```
+
+### Graceful Degradation
+
+#### MCP Unavailable
+
+When MCP tools are not available:
+1. **Log informational message** (not error): "MCP-NixOS unavailable, proceeding with local validation"
+2. **Skip MCP validation steps** - do not block implementation
+3. **Fall back to nix commands** where applicable:
+   ```bash
+   nix search nixpkgs#packageName
+   nix eval .#nixosConfigurations.hostname.options.path
+   ```
+4. **Rely on nix flake check** for primary validation
+
+#### MCP Timeout
+
+When MCP query times out (>5 seconds):
+1. Log warning: "MCP query timed out, continuing without validation"
+2. Do not retry in current session
+3. Continue with implementation
+
+#### MCP Error Response
+
+When MCP returns an error:
+1. Log the error details
+2. Fall back to CLI validation:
+   ```bash
+   nix search nixpkgs#packageName 2>/dev/null || echo "Package search failed"
+   ```
+3. Continue with implementation
+
+#### Session-Level MCP State
+
+Track MCP availability per session:
+```
+mcp_available = false  # Default assumption
+
+# At Stage 4 start:
+try:
+    mcp__nixos__nix(action="stats", source="nixpkgs")
+    mcp_available = true
+except:
+    log("MCP-NixOS unavailable, proceeding without package validation")
+
+# Throughout session:
+if mcp_available:
+    validate_via_mcp()
+else:
+    skip_mcp_validation()
+```
+
+## Error Handling
+
+### Nix Syntax Error
+
+When syntax errors are detected:
+```
+error: syntax error, unexpected '}'
+       at /path/to/file.nix:42:1
+```
+
+**Recovery**:
+1. Parse error location from message
+2. Read the file around that line
+3. Fix the syntax issue (missing comma, unbalanced braces, etc.)
+4. Re-verify with `nix flake check`
+
+### Undefined Variable Error
+
+When variable reference fails:
+```
+error: undefined variable 'cfg'
+       at /path/to/file.nix:15:3
+```
+
+**Recovery**:
+1. Check if variable is defined in `let` binding
+2. Verify imports include necessary modules
+3. Add missing let binding or import
+4. Re-verify
+
+### Type Mismatch Error
+
+When types don't match:
+```
+error: value is a string while a set was expected
+       at /path/to/file.nix:25:5
+```
+
+**Recovery**:
+1. Check option type definition
+2. Verify value matches expected type
+3. Use appropriate conversion (e.g., `lib.mkForce`, type coercion)
+4. Re-verify
+
+### Missing Attribute Error
+
+When attribute doesn't exist:
+```
+error: attribute 'enable' missing
+       at /path/to/file.nix:30:7
+```
+
+**Recovery**:
+1. Check if attribute name is correct
+2. Verify option path exists (use MCP or nix eval)
+3. Fix attribute name or add required option
+4. Re-verify
+
+### Infinite Recursion Error
+
+When circular dependencies occur:
+```
+error: infinite recursion encountered
+       at /path/to/file.nix:10:1
+```
+
+**Recovery**:
+1. Identify circular dependency chain
+2. Use `lib.mkMerge` or `lib.mkIf` to break cycle
+3. Refactor module structure if needed
+4. Re-verify
+
+### Build Failure
+
+When build command fails:
+```
+error: builder for '/nix/store/...' failed with exit code 1
+```
+
+**Recovery**:
+1. Run with `--show-trace` for full error
+2. Check build logs for specific failure
+3. Fix underlying issue (missing dependency, patch failure, etc.)
+4. Re-verify
+
+### MCP-Related Error Handling
+
+#### Package Not Found (Hallucinated Name)
+
+When MCP validation fails to find a package:
+1. Query MCP for similar packages:
+   ```
+   mcp__nixos__nix(action="search", query="partial_name", source="nixpkgs", limit=10)
+   ```
+2. Suggest alternatives from results
+3. Do not proceed with non-existent package
+
+#### Option Path Invalid
+
+When MCP validation fails to find an option:
+1. Query MCP for parent path:
+   ```
+   mcp__nixos__nix(action="options", query="services.nginx", source="nixos-options", limit=20)
+   ```
+2. List available sub-options
+3. Suggest correct path
+
+#### Version Not Available
+
+When requested package version doesn't exist:
+1. Query available versions:
+   ```
+   mcp__nixos__nix_versions(package="nodejs", limit=10)
+   ```
+2. Suggest closest available version
+3. Provide commit hash for pinning if needed
+
+#### MCP Server Unavailable
+
+When MCP tools fail consistently:
+1. Log informational message (not error)
+2. Proceed without MCP validation
+3. Rely on `nix flake check` for validation
+4. Note in summary that MCP was unavailable
+
+## Phase Checkpoint Protocol
+
+For each phase in the implementation plan:
+
+1. **Read plan file**, identify current phase
+2. **Update phase status** to `[IN PROGRESS]` in plan file
+3. **Execute phase steps** as documented
+4. **Update phase status** to `[COMPLETED]` or `[BLOCKED]` or `[PARTIAL]`
+5. **Git commit** with message: `task {N} phase {P}: {phase_name}`
+   ```bash
+   git add -A && git commit -m "task {N} phase {P}: {phase_name}
+
+   Session: {session_id}
+
+   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
+   ```
+6. **Proceed to next phase** or return if blocked
+
+**This ensures**:
+- Resume point is always discoverable from plan file
+- Git history reflects phase-level progress
+- Failed phases can be retried from beginning
+
+## Critical Requirements
+
+**MUST DO**:
+1. **Create early metadata at Stage 0** before any substantive work
+2. Always write final metadata to `specs/{N}_{SLUG}/.return-meta.json`
+3. Always return brief text summary (3-6 bullets), NOT JSON
+4. Always include session_id from delegation context in metadata
+5. Always run `nix flake check` after file changes
+6. Always verify builds complete before marking phase done
+7. Follow nix-style-guide.md conventions
+8. Use 2-space indentation in Nix files
+9. Validate new package names via MCP when available
+10. Update partial_progress after each phase completion
+
+**MUST NOT**:
+1. Return JSON to the console
+2. Leave syntax errors in Nix files
+3. Create circular module dependencies
+4. Ignore verification failures
+5. Use status value "completed"
+6. Skip verification steps
+7. Skip MCP validation silently when MCP is available (log if skipping)
+8. Use `rec { }` in Nix code (risk of infinite recursion)
+9. Use top-level `with pkgs;` (static analysis failure)
+10. Use deprecated overlay variables `self`/`super` (use `final`/`prev`)
+11. Log MCP unavailability as error (it's informational)
+12. Block implementation when MCP is unavailable

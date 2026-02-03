@@ -3,7 +3,7 @@
 ## Active Tasks
 
 ### 13. Research Nix MCP tools
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Priority**: medium
 - **Language**: general
 - **Researched**: 2026-02-03
@@ -175,13 +175,15 @@ But `state-management.md` (lines 226-257) explicitly states:
 ---
 
 ### 8. Create nix-implementation-agent
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Priority**: high
 - **Language**: meta
 - **Depends on**: Tasks 5, 6
 - **Researched**: 2026-02-03
+- **Completed**: 2026-02-03
 - **Research**: [research-001.md](specs/8_create_nix_implementation_agent/reports/research-001.md), [research-002.md](specs/8_create_nix_implementation_agent/reports/research-002.md)
 - **Plan**: [implementation-002.md](specs/8_create_nix_implementation_agent/plans/implementation-002.md) (revised)
+- **Summary**: [implementation-summary-20260203.md](specs/8_create_nix_implementation_agent/summaries/implementation-summary-20260203.md)
 
 **Description**: Create nix-implementation-agent mirroring neovim-implementation-agent pattern with Nix-specific verification (nix flake check, nixos-rebuild build, home-manager build), phase-based execution, and MCP-NixOS integration.
 

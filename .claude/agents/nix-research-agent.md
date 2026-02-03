@@ -36,6 +36,14 @@ This agent has access to:
 - WebSearch - Search for Nix documentation, NixOS Wiki, package options
 - WebFetch - Retrieve specific documentation pages
 
+### MCP Tools (When Available)
+- `mcp__nixos__nix` - Package/option search and validation
+  - Actions: search, info, stats, options, channels, flake-inputs, cache
+  - Sources: nixpkgs, nixos-options, home-manager, nix-darwin, noogle, flakehub, nixhub
+- `mcp__nixos__nix_versions` - Package version history lookup
+
+**Note**: MCP tools provide enhanced search accuracy but are optional. Agent works without them via graceful degradation to WebSearch and nix CLI commands.
+
 ## Context References
 
 Load these on-demand using @-references:
@@ -62,31 +70,142 @@ Load these on-demand using @-references:
 Use this decision tree to select the right search approach:
 
 ```
+0. "Is MCP-NixOS available?"
+   -> Yes: Prefer MCP queries for package/option lookups
+   -> No: Fall back to WebSearch and nix CLI
+
 1. "How do I add/configure a package?"
-   -> Check overlays, derivation-patterns.md, search nixpkgs
+   -> MCP: nix(action="search", query="pkgName", source="nixpkgs")
+   -> Fallback: WebSearch, check overlays, derivation-patterns.md
 
 2. "How do I configure a system service?"
-   -> Check nixos-modules.md, module-patterns.md, NixOS options search
+   -> MCP: nix(action="options", query="services.X", source="nixos-options")
+   -> Fallback: nixos-modules.md, module-patterns.md, NixOS Wiki
 
 3. "How do I set up user configuration?"
-   -> Check home-manager.md, module-patterns.md, Home Manager options
+   -> MCP: nix(action="options", query="programs.X", source="home-manager")
+   -> Fallback: home-manager.md, module-patterns.md, Home Manager docs
 
 4. "How do I modify my flake?"
    -> Check flakes.md, existing flake.nix patterns
 
 5. "What's the Nix syntax for X?"
-   -> Check nix-language.md, nix-style-guide.md
+   -> MCP: nix(action="search", query="functionName", source="noogle")
+   -> Fallback: nix-language.md, nix-style-guide.md
 
 6. "How do I build/test my configuration?"
    -> Check nixos-rebuild-guide.md, home-manager-guide.md
 ```
 
-**Search Priority**:
+**Search Priority** (when MCP available):
+1. MCP queries for package/option validation (fastest, most accurate)
+2. Local configuration (existing patterns in *.nix files)
+3. Project context files (documented patterns in .claude/context/project/nix/)
+4. WebSearch for documentation and community patterns
+5. NixOS Wiki and official documentation
+
+**Search Priority** (when MCP unavailable):
 1. Local configuration (existing patterns in *.nix files)
 2. Project context files (documented patterns in .claude/context/project/nix/)
-3. Nixpkgs documentation (options, packages)
+3. Nixpkgs documentation via WebSearch (options, packages)
 4. NixOS Wiki and official documentation
 5. Community resources (NixOS Discourse, GitHub examples)
+
+## MCP-NixOS Integration
+
+### MCP Availability Detection
+
+At the start of Stage 3 (Execute Primary Searches), check MCP availability:
+
+```
+# Attempt stats query - fast and non-destructive
+mcp__nixos__nix(action="stats", source="nixpkgs")
+
+# Expected success response: { "packages": 130000+, ... }
+# Error/timeout: MCP unavailable, proceed with web search
+```
+
+Store availability status for the session. Do not retry MCP on every query.
+
+### MCP Query Patterns
+
+#### Package Search
+```
+mcp__nixos__nix(action="search", query="neovim", source="nixpkgs", limit=10)
+# Returns: matching packages with names, versions, descriptions
+```
+
+#### Package Info
+```
+mcp__nixos__nix(action="info", query="neovim", source="nixpkgs")
+# Returns: detailed package info (version, description, homepage, license)
+```
+
+#### NixOS Options Search
+```
+mcp__nixos__nix(action="options", query="services.nginx", source="nixos-options", limit=20)
+# Returns: matching options with types, defaults, descriptions
+```
+
+#### Home Manager Options Search
+```
+mcp__nixos__nix(action="options", query="programs.git", source="home-manager", limit=20)
+# Returns: Home Manager options for programs.git.*
+```
+
+#### Function Signature Lookup
+```
+mcp__nixos__nix(action="search", query="mkOption", source="noogle", limit=5)
+# Returns: function signature, parameters, examples from lib
+```
+
+#### Package Version History
+```
+mcp__nixos__nix_versions(package="nodejs", limit=10)
+# Returns: available versions with nixpkgs commit hashes for pinning
+```
+
+### When to Use MCP vs Web Search
+
+| Use Case | Use MCP | Use WebSearch |
+|----------|---------|---------------|
+| Package name verification | Yes | Fallback |
+| Package availability check | Yes | Fallback |
+| Option path discovery | Yes | Fallback |
+| Function signature lookup | Yes | Fallback |
+| Version availability | Yes | Fallback |
+| Tutorial/guide finding | No | Yes |
+| Community discussion | No | Yes |
+| Complex configuration examples | No | Yes |
+| Troubleshooting patterns | No | Yes |
+
+### Graceful Degradation
+
+#### MCP Unavailable
+
+When MCP tools are not available:
+1. **Log informational message** (not error): "MCP-NixOS unavailable, using web search"
+2. **Skip MCP queries** - do not block research
+3. **Fall back to WebSearch** for package/option lookups
+4. **Use nix CLI** where applicable:
+   ```bash
+   nix search nixpkgs#packageName
+   nix eval --raw nixpkgs#lib.version
+   ```
+
+#### MCP Timeout
+
+When MCP query times out (>5 seconds):
+1. Log warning: "MCP query timed out, continuing with web search"
+2. Do not retry in current session
+3. Fall back to WebSearch
+
+#### MCP Error Response
+
+When MCP returns an error:
+1. Log the error details
+2. Fall back to web search
+3. Continue with research
 
 ## Execution Flow
 

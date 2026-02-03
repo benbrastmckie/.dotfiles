@@ -49,6 +49,7 @@ specs/{N}_{SLUG}/
 | Language | Research Tools | Implementation Tools |
 |----------|----------------|---------------------|
 | `neovim` | WebSearch, WebFetch, Read | Read, Write, Edit, Bash (nvim --headless) |
+| `nix` | WebSearch, WebFetch, Read, MCP-NixOS | Read, Write, Edit, Bash (nix flake check, nixos-rebuild), MCP-NixOS |
 | `latex` | WebSearch, WebFetch, Read | Read, Write, Edit, Bash (pdflatex) |
 | `typst` | WebSearch, WebFetch, Read | Read, Write, Edit, Bash (typst compile) |
 | `general` | WebSearch, WebFetch, Read | Read, Write, Edit, Bash |
@@ -123,6 +124,8 @@ Standard actions: `create`, `complete research`, `create implementation plan`, `
 |-------|-------|---------|
 | skill-neovim-research | neovim-research-agent | Neovim/plugin research |
 | skill-neovim-implementation | neovim-implementation-agent | Neovim configuration implementation |
+| skill-nix-research | nix-research-agent | Nix/NixOS/Home Manager research |
+| skill-nix-implementation | nix-implementation-agent | Nix configuration implementation |
 | skill-researcher | general-research-agent | General web/codebase research |
 | skill-planner | planner-agent | Implementation plan creation |
 | skill-implementer | general-implementation-agent | General file implementation |
