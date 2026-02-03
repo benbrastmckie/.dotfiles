@@ -2,12 +2,154 @@
 
 ## Active Tasks
 
+### 5. Create nix-research-agent
+- **Status**: [NOT STARTED]
+- **Priority**: high
+- **Language**: meta
+
+**Description**: Create nix-research-agent mirroring neovim-research-agent pattern with Nix domain knowledge: Nix language, flakes, NixOS modules, home-manager, overlays, derivations.
+
+**Implementation Notes**:
+- Mirror `.claude/agents/neovim-research-agent.md` structure
+- Tools: WebSearch, WebFetch, Read, Write, Edit, Bash, Glob, Grep
+- Domain: Nix language syntax, flake.nix patterns, NixOS module system, home-manager modules
+- Output: Writes metadata file + research report artifact
+- Include early metadata creation (Stage 0 resilience pattern)
+
+---
+
+### 6. Create nix-implementation-agent
+- **Status**: [NOT STARTED]
+- **Priority**: high
+- **Language**: meta
+
+**Description**: Create nix-implementation-agent mirroring neovim-implementation-agent pattern with Nix-specific verification (nix flake check, nixos-rebuild build, home-manager build) and phase-based execution.
+
+**Implementation Notes**:
+- Mirror `.claude/agents/neovim-implementation-agent.md` structure
+- Verification commands: `nix flake check`, `nix build`, `nixos-rebuild build --flake .`, `home-manager build --flake .`
+- Phase-based execution with Nix-specific validation
+- Handle flake lock updates appropriately
+
+---
+
+### 7. Create skill-nix-research
+- **Status**: [NOT STARTED]
+- **Priority**: high
+- **Language**: meta
+
+**Description**: Create skill-nix-research thin wrapper skill that delegates to nix-research-agent following the established skill pattern (preflight, delegate, postflight).
+
+**Implementation Notes**:
+- Mirror `.claude/skills/skill-neovim-research/SKILL.md` structure
+- Preflight: Update task status to RESEARCHING
+- Delegate: Invoke nix-research-agent via Task tool
+- Postflight: Parse metadata, link artifacts, update status to RESEARCHED, git commit
+
+---
+
+### 8. Create skill-nix-implementation
+- **Status**: [NOT STARTED]
+- **Priority**: high
+- **Language**: meta
+
+**Description**: Create skill-nix-implementation thin wrapper skill that delegates to nix-implementation-agent following the established skill pattern (preflight, delegate, postflight).
+
+**Implementation Notes**:
+- Mirror `.claude/skills/skill-neovim-implementation/SKILL.md` structure
+- Preflight: Update task status to IMPLEMENTING
+- Delegate: Invoke nix-implementation-agent via Task tool
+- Postflight: Parse metadata, link artifacts, update status to COMPLETED, git commit
+
+---
+
+### 9. Create Nix context directory structure
+- **Status**: [NOT STARTED]
+- **Priority**: medium
+- **Language**: meta
+
+**Description**: Create context/project/nix/ directory structure with domain knowledge (Nix language, flakes, modules), patterns (module patterns, overlays), standards (style guide), and tools (home-manager, nixos-rebuild guides).
+
+**Structure**:
+```
+.claude/context/project/nix/
+├── README.md                    # Nix context overview
+├── domain/                      # Domain knowledge
+│   ├── nix-language.md         # Nix expression syntax
+│   ├── flakes.md               # Flake structure and inputs
+│   ├── nixos-modules.md        # NixOS module system
+│   └── home-manager.md         # Home Manager modules
+├── patterns/                    # Implementation patterns
+│   ├── module-patterns.md      # Module definition patterns
+│   ├── overlay-patterns.md     # Overlay patterns
+│   └── derivation-patterns.md  # Package derivation patterns
+├── standards/                   # Coding standards
+│   └── nix-style-guide.md      # Formatting, naming conventions
+└── tools/                       # Tool-specific guides
+    ├── nixos-rebuild-guide.md  # System rebuild workflows
+    └── home-manager-guide.md   # Home Manager workflows
+```
+
+---
+
+### 10. Create Nix rules file
+- **Status**: [NOT STARTED]
+- **Priority**: medium
+- **Language**: meta
+
+**Description**: Create .claude/rules/nix.md with Nix-specific development rules auto-applied to *.nix files, covering formatting, module structure, and flake patterns.
+
+**Applies to**: `*.nix`, `flake.nix`, `configuration.nix`, `home.nix`
+
+**Should cover**:
+- Indentation (2 spaces)
+- Module structure patterns
+- Flake input/output conventions
+- Naming conventions (kebab-case for packages, camelCase for options)
+- Common anti-patterns to avoid
+
+---
+
+### 11. Update orchestrator for nix language routing
+- **Status**: [NOT STARTED]
+- **Priority**: medium
+- **Language**: meta
+
+**Description**: Update skill-orchestrator to add language='nix' routing that delegates to nix-specific agents for research and implementation.
+
+**Changes Required**:
+1. Add `nix` to language routing table
+2. Route `language: "nix"` research to `skill-nix-research`
+3. Route `language: "nix"` implementation to `skill-nix-implementation`
+4. Update CLAUDE.md Language-Based Routing table
+
+---
+
+### 12. Update settings.json for Nix commands
+- **Status**: [NOT STARTED]
+- **Priority**: low
+- **Language**: meta
+
+**Description**: Update settings.json to add allowed Bash commands for Nix tooling: nix, nixos-rebuild, home-manager, nix-shell, nix-env.
+
+**Commands to add**:
+- `nix` - General Nix CLI
+- `nix flake *` - Flake operations
+- `nix build *` - Build derivations
+- `nix develop *` - Development shells
+- `nixos-rebuild *` - System rebuild
+- `home-manager *` - Home Manager operations
+- `nix-shell *` - Legacy shell
+- `nix-env *` - Legacy package management
+
+---
+
 ### 4. Manage Claude settings.json with home-manager
 - **Status**: [NOT STARTED]
 - **Priority**: medium
 - **Language**: general
 
-**Description**: Maintain ~/.claude/settings.json via home-manager similar to other config files like wezterm.lua in the dotfiles repository.
+**Description**: Maintain ~/.claude.json and ~/.claude/settings.json via home-manager similar to other config files like wezterm.lua in the dotfiles repository.
 
 ---
 
