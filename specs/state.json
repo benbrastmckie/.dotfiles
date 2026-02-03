@@ -1,6 +1,15 @@
 {
-  "next_project_number": 14,
+  "next_project_number": 15,
   "active_projects": [
+    {
+      "project_number": 14,
+      "project_name": "review_improve_documentation",
+      "status": "not_started",
+      "language": "meta",
+      "description": "Systematically review and improve documentation throughout .claude/ and docs/ with appropriate cross links",
+      "created": "2026-02-03T23:34:53Z",
+      "last_updated": "2026-02-03T23:34:53Z"
+    },
     {
       "project_number": 11,
       "project_name": "update_orchestrator_nix_routing",
