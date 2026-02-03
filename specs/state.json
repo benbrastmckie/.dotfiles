@@ -4,10 +4,10 @@
     {
       "project_number": 2,
       "project_name": "update_readme_for_dotfiles",
-      "status": "planning",
+      "status": "planned",
       "language": "meta",
       "description": "Update README.md (Claude system architecture doc) to reflect NixOS dotfiles context",
-      "last_updated": "2026-02-03T23:03:15Z",
+      "last_updated": "2026-02-03T23:22:46Z",
       "session_id": "sess_1770159780_648e35",
       "researched": "2026-02-03T23:15:00Z",
       "artifacts": [
@@ -15,17 +15,23 @@
           "type": "research",
           "path": "specs/2_update_readme_for_dotfiles/reports/research-001.md",
           "summary": "Research report identifying 7 sections needing updates, 2 new sections to add, and 10 sections to preserve unchanged"
+        },
+        {
+          "type": "plan",
+          "path": "specs/2_update_readme_for_dotfiles/plans/implementation-001.md",
+          "summary": "6-phase implementation plan to update README.md for NixOS dotfiles context"
         }
-      ]
+      ],
+      "planned": "2026-02-03T23:22:46Z"
     },
     {
       "project_number": 4,
       "project_name": "manage_claude_settings_with_home_manager",
-      "status": "implementing",
+      "status": "completed",
       "language": "general",
       "description": "Maintain ~/.claude/settings.json via home-manager similar to other config files like wezterm.lua",
       "created": "2026-02-03T20:34:39Z",
-      "last_updated": "2026-02-03T23:19:07Z",
+      "last_updated": "2026-02-03T23:22:30Z",
       "session_id": "sess_1770160728_52656f",
       "planned": "2026-02-03T23:17:46Z",
       "artifacts": [
@@ -33,9 +39,16 @@
           "path": "specs/4_manage_claude_settings_with_home_manager/plans/implementation-001.md",
           "type": "plan",
           "summary": "Implementation plan with 3 phases: create source config, configure home.file entry, test deployment"
+        },
+        {
+          "path": "specs/4_manage_claude_settings_with_home_manager/summaries/implementation-summary-20260203.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification results"
         }
       ],
-      "started": "2026-02-03T23:19:07Z"
+      "started": "2026-02-03T23:19:07Z",
+      "completed": "2026-02-03T23:22:30Z",
+      "completion_summary": "Implemented Home Manager management of ~/.claude/settings.json. Created config/claude-settings.json with declarative settings (permissions, model, statusLine) and added home.file entry to home.nix. Build and flake check pass successfully."
     },
     {
       "project_number": 9,
