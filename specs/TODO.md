@@ -3,7 +3,7 @@
 ## Active Tasks
 
 ### 13. Research Nix MCP tools
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHING]
 - **Priority**: medium
 - **Language**: general
 
@@ -177,7 +177,7 @@ But `state-management.md` (lines 226-257) explicitly states:
 - **Language**: meta
 - **Depends on**: Tasks 5, 6
 - **Researched**: 2026-02-03
-- **Research**: [research-001.md](specs/8_create_nix_implementation_agent/reports/research-001.md)
+- **Research**: [research-001.md](specs/8_create_nix_implementation_agent/reports/research-001.md), [research-002.md](specs/8_create_nix_implementation_agent/reports/research-002.md)
 
 **Description**: Create nix-implementation-agent mirroring neovim-implementation-agent pattern with Nix-specific verification (nix flake check, nixos-rebuild build, home-manager build) and phase-based execution.
 
