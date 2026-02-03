@@ -15,9 +15,11 @@
 ---
 
 ### 1. Update CLAUDE.md for dotfiles repository
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Priority**: high
 - **Language**: meta
+- **Researched**: 2026-02-03
+- **Research**: [research-001.md](specs/1_update_claudemd_for_dotfiles/reports/research-001.md)
 - **Description**: Rewrite CLAUDE.md to accurately reflect this NixOS dotfiles repository instead of describing a Neovim-only configuration system.
 
 **Changes Required**:

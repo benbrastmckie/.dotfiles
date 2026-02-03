@@ -29,9 +29,19 @@
     {
       "project_number": 1,
       "project_name": "update_claudemd_for_dotfiles",
-      "status": "not_started",
+      "status": "researched",
       "language": "meta",
-      "description": "Update CLAUDE.md to accurately describe this NixOS dotfiles repository instead of Neovim-only configuration"
+      "description": "Update CLAUDE.md to accurately describe this NixOS dotfiles repository instead of Neovim-only configuration",
+      "last_updated": "2026-02-03T22:52:13Z",
+      "session_id": "sess_1738627200_2e4f48",
+      "researched": "2026-02-03T22:52:13Z",
+      "artifacts": [
+        {
+          "path": "specs/1_update_claudemd_for_dotfiles/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report identifying CLAUDE.md inaccuracies: title, description, and project structure are all incorrect (describes Neovim config but this is a NixOS dotfiles repo with no nvim/ directory)"
+        }
+      ]
     },
     {
       "project_number": 2,
