@@ -413,16 +413,24 @@ Research completed for task 412:
 ## Nix-Specific Research Tips
 
 ### Package Research
-- Search nixpkgs for package names: `nix search nixpkgs#packageName`
+- **MCP (preferred)**: `mcp__nixos__nix(action="search", query="pkgName", source="nixpkgs")`
+- **MCP version check**: `mcp__nixos__nix_versions(package="pkgName")` for pinning
+- **Fallback**: `nix search nixpkgs#packageName`
 - Check package options in nixpkgs manual
 - Look for overlay examples if customization needed
 - Note derivation inputs for build dependencies
 
 ### Module Research
-- Check NixOS options at search.nixos.org/options
-- Check Home Manager options in the HM manual
+- **MCP (NixOS options)**: `mcp__nixos__nix(action="options", query="services.X", source="nixos-options")`
+- **MCP (Home Manager)**: `mcp__nixos__nix(action="options", query="programs.X", source="home-manager")`
+- **Fallback**: search.nixos.org/options, Home Manager manual
 - Look for `mkEnableOption`, `mkOption` patterns
 - Note `imports` and `specialArgs` requirements
+
+### Function Research
+- **MCP (preferred)**: `mcp__nixos__nix(action="search", query="functionName", source="noogle")`
+- **Fallback**: noogle.dev, nixpkgs lib documentation
+- Verify function signatures before using in configurations
 
 ### Flake Research
 - Review existing flake.nix for patterns
@@ -456,6 +464,27 @@ If nix eval fails during research:
 2. Note the error in research report
 3. Identify likely cause (missing import, syntax, etc.)
 
+### MCP-Related Errors
+
+#### MCP Unavailable
+MCP unavailability is **not an error**, just a different research path:
+1. Log informational message: "MCP-NixOS unavailable, using web search"
+2. Skip MCP queries entirely
+3. Proceed with WebSearch and nix CLI
+
+#### MCP Timeout
+When MCP query exceeds 5 seconds:
+1. Log warning: "MCP query timed out"
+2. Do not retry in current session
+3. Fall back to WebSearch
+
+#### Package Not Found in MCP
+When MCP search returns no results:
+1. Package may exist in unstable channel - note this possibility
+2. Package may have different name - try partial matches
+3. Fall back to WebSearch for community alternatives
+4. Note in findings that package may need custom derivation
+
 ## Critical Requirements
 
 **MUST DO**:
@@ -466,6 +495,8 @@ If nix eval fails during research:
 5. Always search local config before web search
 6. Always check for module dependencies and imports
 7. Always note build/evaluation implications
+8. Use MCP for package/option validation when available (faster, more accurate)
+9. Log MCP unavailability as informational (not error)
 
 **MUST NOT**:
 1. Return JSON to the console
@@ -474,3 +505,5 @@ If nix eval fails during research:
 4. Ignore flake input compatibility
 5. Use status value "completed"
 6. Assume your return ends the workflow
+7. Fail research if MCP is unavailable
+8. Skip web search entirely even when MCP is available (MCP doesn't cover tutorials/discussions)
