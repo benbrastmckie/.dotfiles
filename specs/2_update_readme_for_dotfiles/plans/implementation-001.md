@@ -1,7 +1,7 @@
 # Implementation Plan: Task #2
 
 - **Task**: 2 - update_readme_for_dotfiles
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 2.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/2_update_readme_for_dotfiles/reports/research-001.md

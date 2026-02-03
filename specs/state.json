@@ -4,11 +4,11 @@
     {
       "project_number": 2,
       "project_name": "update_readme_for_dotfiles",
-      "status": "planned",
+      "status": "implementing",
       "language": "meta",
       "description": "Update README.md (Claude system architecture doc) to reflect NixOS dotfiles context",
-      "last_updated": "2026-02-03T23:22:46Z",
-      "session_id": "sess_1770159780_648e35",
+      "last_updated": "2026-02-03T23:25:31Z",
+      "session_id": "sess_1770160900_b7c8d9",
       "researched": "2026-02-03T23:15:00Z",
       "artifacts": [
         {
@@ -22,7 +22,8 @@
           "summary": "6-phase implementation plan to update README.md for NixOS dotfiles context"
         }
       ],
-      "planned": "2026-02-03T23:22:46Z"
+      "planned": "2026-02-03T23:22:46Z",
+      "started": "2026-02-03T23:25:31Z"
     },
     {
       "project_number": 4,
@@ -125,24 +126,34 @@
     {
       "project_number": 11,
       "project_name": "update_orchestrator_nix_routing",
-      "status": "not_started",
+      "status": "researched",
       "language": "meta",
       "description": "Update skill-orchestrator to add language='nix' routing that delegates to nix-specific agents for research and implementation",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T23:25:32Z",
       "depends_on": [
         9,
         10
+      ],
+      "session_id": "sess_1770160990_fd4a3b",
+      "researched": "2026-02-03T23:25:32Z",
+      "artifacts": [
+        {
+          "path": "specs/11_update_orchestrator_nix_routing/reports/research-001.md",
+          "type": "research",
+          "summary": "Identified single-file change needed: add nix row to skill-orchestrator routing table"
+        }
       ]
     },
     {
       "project_number": 12,
       "project_name": "update_settings_for_nix_commands",
-      "status": "not_started",
+      "status": "researching",
       "language": "meta",
       "description": "Update settings.json to add allowed Bash commands for Nix tooling: nix, nixos-rebuild, home-manager, nix-shell, nix-env",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:00:00Z"
+      "last_updated": "2026-02-03T23:23:42Z",
+      "session_id": "sess_1770161008_360a22"
     }
   ],
   "repository_health": {

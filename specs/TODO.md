@@ -3,7 +3,7 @@
 ## Active Tasks
 
 ### 2. Update README.md for dotfiles context
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Priority**: high
 - **Language**: meta
 - **Researched**: 2026-02-03
@@ -82,10 +82,12 @@
 ---
 
 ### 11. Update orchestrator for nix language routing
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Priority**: medium
 - **Language**: meta
 - **Depends on**: Tasks 9, 10
+- **Researched**: 2026-02-03
+- **Research**: [research-001.md](specs/11_update_orchestrator_nix_routing/reports/research-001.md)
 
 **Description**: Update skill-orchestrator to add language='nix' routing that delegates to nix-specific agents for research and implementation.
 
@@ -98,7 +100,7 @@
 ---
 
 ### 12. Update settings.json for Nix commands
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHING]
 - **Priority**: low
 - **Language**: meta
 
