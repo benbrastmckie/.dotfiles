@@ -1,7 +1,7 @@
 # Implementation Plan: Task #9
 
 - **Task**: 9 - Create skill-nix-research
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 1.5 hours
 - **Dependencies**: nix-research-agent.md (already exists)
 - **Research Inputs**: specs/9_create_skill_nix_research/reports/research-001.md
@@ -117,7 +117,7 @@ Key findings from research-001.md:
 
 ---
 
-### Phase 3: Documentation Confirmation [IN PROGRESS]
+### Phase 3: Documentation Confirmation [COMPLETED]
 
 **Goal**: Confirm skill is properly documented in CLAUDE.md skill-to-agent mapping
 
