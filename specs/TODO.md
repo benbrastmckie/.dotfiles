@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 14. Review and improve documentation
+- **Status**: [NOT STARTED]
+- **Language**: meta
+
+**Description**: Systematically review and improve documentation throughout .claude/ and docs/ with appropriate cross links.
+
+---
+
 ### 11. Update orchestrator for nix language routing
 - **Status**: [COMPLETED]
 - **Priority**: medium
