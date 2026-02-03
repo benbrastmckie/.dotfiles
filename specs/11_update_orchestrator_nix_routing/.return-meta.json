@@ -1,0 +1,30 @@
+{
+  "status": "implemented",
+  "summary": "Added nix routing row to skill-orchestrator Language-Based Routing table, positioned after neovim. Routes nix tasks to skill-nix-research and skill-nix-implementation.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": ".claude/skills/skill-orchestrator/SKILL.md",
+      "summary": "Added nix row to Language-Based Routing table"
+    },
+    {
+      "type": "summary",
+      "path": "specs/11_update_orchestrator_nix_routing/summaries/implementation-summary-20260203.md",
+      "summary": "Implementation summary documenting nix routing addition"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Added nix language routing to skill-orchestrator by inserting a table row that routes nix tasks to skill-nix-research and skill-nix-implementation, completing the nix agent integration.",
+    "claudemd_suggestions": "Updated skill-orchestrator/SKILL.md Language-Based Routing table with nix row"
+  },
+  "metadata": {
+    "session_id": "sess_1770161438_d4e947",
+    "duration_seconds": 120,
+    "agent_type": "general-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
+    "phases_completed": 1,
+    "phases_total": 1
+  },
+  "next_steps": "Review implementation and run verification"
+}

@@ -3,14 +3,16 @@
 ## Active Tasks
 
 ### 11. Update orchestrator for nix language routing
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Priority**: medium
 - **Language**: meta
 - **Depends on**: Tasks 9, 10
 - **Researched**: 2026-02-03
 - **Planned**: 2026-02-03
+- **Completed**: 2026-02-03
 - **Research**: [research-001.md](specs/11_update_orchestrator_nix_routing/reports/research-001.md)
 - **Plan**: [implementation-001.md](specs/11_update_orchestrator_nix_routing/plans/implementation-001.md)
+- **Summary**: [implementation-summary-20260203.md](specs/11_update_orchestrator_nix_routing/summaries/implementation-summary-20260203.md)
 
 **Description**: Update skill-orchestrator to add language='nix' routing that delegates to nix-specific agents for research and implementation.
 
@@ -23,13 +25,15 @@
 ---
 
 ### 12. Update settings.json for Nix commands
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Priority**: low
 - **Language**: meta
 - **Researched**: 2026-02-03
 - **Planned**: 2026-02-03
+- **Completed**: 2026-02-03
 - **Research**: [research-001.md](specs/12_update_settings_for_nix_commands/reports/research-001.md)
 - **Plan**: [implementation-001.md](specs/12_update_settings_for_nix_commands/plans/implementation-001.md)
+- **Summary**: [implementation-summary-20260203.md](specs/12_update_settings_for_nix_commands/summaries/implementation-summary-20260203.md)
 
 **Description**: Update settings.json to add allowed Bash commands for Nix tooling: nix, nixos-rebuild, home-manager, nix-shell, nix-env.
 
