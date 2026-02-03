@@ -51,10 +51,12 @@
 ---
 
 ### 10. Create skill-nix-implementation
-- **Status**: [RESEARCHING]
+- **Status**: [RESEARCHED]
 - **Priority**: high
 - **Language**: meta
 - **Depends on**: Task 8
+- **Researched**: 2026-02-03
+- **Research**: [research-001.md](specs/10_create_skill_nix_implementation/reports/research-001.md)
 
 **Description**: Create skill-nix-implementation thin wrapper skill that delegates to nix-implementation-agent following the established skill pattern (preflight, delegate, postflight).
 
