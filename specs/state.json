@@ -39,7 +39,14 @@
         7
       ],
       "session_id": "sess_1770160202_ef5bfb",
-      "researched": "2026-02-03T23:13:05Z"
+      "researched": "2026-02-03T23:13:05Z",
+      "artifacts": [
+        {
+          "path": "specs/9_create_skill_nix_research/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report analyzing skill wrapper patterns for creating skill-nix-research"
+        }
+      ]
     },
     {
       "project_number": 10,
