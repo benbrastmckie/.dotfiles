@@ -68,11 +68,19 @@
     {
       "project_number": 2,
       "project_name": "update_readme_for_dotfiles",
-      "status": "researching",
+      "status": "researched",
       "language": "meta",
       "description": "Update README.md (Claude system architecture doc) to reflect NixOS dotfiles context",
-      "last_updated": "2026-02-03T22:58:48Z",
-      "session_id": "sess_1770159513_033726"
+      "last_updated": "2026-02-03T23:15:00Z",
+      "session_id": "sess_1770159513_033726",
+      "researched": "2026-02-03T23:15:00Z",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/2_update_readme_for_dotfiles/reports/research-001.md",
+          "summary": "Research report identifying 7 sections needing updates, 2 new sections to add, and 10 sections to preserve unchanged"
+        }
+      ]
     },
     {
       "project_number": 3,
