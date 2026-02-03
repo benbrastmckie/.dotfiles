@@ -627,6 +627,7 @@
     ".config/zathura/zathurarc".source = ./config/zathurarc;
     ".config/alacritty/alacritty.toml".source = ./config/alacritty.toml;
     ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
+    ".claude/settings.json".source = ./config/claude-settings.json;
     ".tmux.conf".source = ./config/.tmux.conf;
     ".latexmkrc".source = ./config/latexmkrc;
 

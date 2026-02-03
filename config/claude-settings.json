@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(lake *)",
+      "Bash(pdflatex *)",
+      "Bash(latexmk *)",
+      "Bash(bibtex *)",
+      "Bash(biber *)",
+      "Bash(cd *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(chmod +x *)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch",
+      "Task",
+      "TodoWrite",
+      "mcp__lean-lsp__*",
+      "Bash(echo:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(sudo *)",
+      "Bash(chmod 777 *)"
+    ],
+    "defaultMode": "default"
+  },
+  "model": "sonnet",
+  "statusLine": {
+    "type": "command",
+    "command": "/home/benjamin/.claude/hooks/statusline-push.sh",
+    "padding": 0
+  }
+}
