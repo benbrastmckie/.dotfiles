@@ -3,9 +3,11 @@
 ## Active Tasks
 
 ### 13. Research Nix MCP tools
-- **Status**: [RESEARCHING]
+- **Status**: [RESEARCHED]
 - **Priority**: medium
 - **Language**: general
+- **Researched**: 2026-02-03
+- **Research**: [research-001.md](specs/13_research_nix_mcp_tools/reports/research-001.md)
 
 **Description**: Identify MCP servers or other tools that could enhance Nix search or otherwise assist the nix-research-agent implemented in task 7.
 

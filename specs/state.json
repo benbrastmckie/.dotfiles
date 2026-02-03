@@ -4,12 +4,20 @@
     {
       "project_number": 13,
       "project_name": "research_nix_mcp_tools",
-      "status": "researching",
+      "status": "researched",
       "language": "general",
       "description": "Identify MCP servers or other tools that could enhance Nix search or otherwise assist the nix-research-agent implemented in task 7",
       "created": "2026-02-03T22:20:24Z",
-      "last_updated": "2026-02-03T22:23:08Z",
-      "session_id": "sess_1770157370_9e7e45"
+      "last_updated": "2026-02-03T22:28:02Z",
+      "session_id": "sess_1770157370_9e7e45",
+      "researched": "2026-02-03T22:28:02Z",
+      "artifacts": [
+        {
+          "path": "specs/13_research_nix_mcp_tools/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report identifying MCP-NixOS as primary tool recommendation, with analysis of 15+ Nix ecosystem tools"
+        }
+      ]
     },
     {
       "project_number": 1,
