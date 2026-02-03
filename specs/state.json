@@ -107,14 +107,23 @@
     {
       "project_number": 7,
       "project_name": "create_nix_research_agent",
-      "status": "not_started",
+      "status": "researched",
       "language": "meta",
       "description": "Create nix-research-agent mirroring neovim-research-agent pattern with Nix domain knowledge: Nix language, flakes, NixOS modules, home-manager, overlays, derivations",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T22:06:17Z",
       "depends_on": [
         5,
         6
+      ],
+      "session_id": "sess_1770156202_9a0eb5",
+      "researched": "2026-02-03T22:06:17Z",
+      "artifacts": [
+        {
+          "path": "specs/7_create_nix_research_agent/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report analyzing neovim-research-agent patterns for adaptation to nix-research-agent"
+        }
       ]
     },
     {

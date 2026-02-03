@@ -139,10 +139,12 @@ But `state-management.md` (lines 226-257) explicitly states:
 ---
 
 ### 7. Create nix-research-agent
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Priority**: high
 - **Language**: meta
 - **Depends on**: Tasks 5, 6
+- **Researched**: 2026-02-03
+- **Research**: [research-001.md](specs/7_create_nix_research_agent/reports/research-001.md)
 
 **Description**: Create nix-research-agent mirroring neovim-research-agent pattern with Nix domain knowledge: Nix language, flakes, NixOS modules, home-manager, overlays, derivations.
 
