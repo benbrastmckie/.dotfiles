@@ -2,87 +2,6 @@
   "next_project_number": 13,
   "active_projects": [
     {
-      "project_number": 12,
-      "project_name": "update_settings_for_nix_commands",
-      "status": "not_started",
-      "language": "meta",
-      "description": "Update settings.json to add allowed Bash commands for Nix tooling: nix, nixos-rebuild, home-manager, nix-shell, nix-env",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:00:00Z"
-    },
-    {
-      "project_number": 11,
-      "project_name": "update_orchestrator_nix_routing",
-      "status": "not_started",
-      "language": "meta",
-      "description": "Update skill-orchestrator to add language='nix' routing that delegates to nix-specific agents for research and implementation",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:00:00Z"
-    },
-    {
-      "project_number": 10,
-      "project_name": "create_nix_rules_file",
-      "status": "not_started",
-      "language": "meta",
-      "description": "Create .claude/rules/nix.md with Nix-specific development rules auto-applied to *.nix files, covering formatting, module structure, and flake patterns",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:00:00Z"
-    },
-    {
-      "project_number": 9,
-      "project_name": "create_nix_context_directory",
-      "status": "not_started",
-      "language": "meta",
-      "description": "Create context/project/nix/ directory structure with domain knowledge (Nix language, flakes, modules), patterns (module patterns, overlays), standards (style guide), and tools (home-manager, nixos-rebuild guides)",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:00:00Z"
-    },
-    {
-      "project_number": 8,
-      "project_name": "create_skill_nix_implementation",
-      "status": "not_started",
-      "language": "meta",
-      "description": "Create skill-nix-implementation thin wrapper skill that delegates to nix-implementation-agent following the established skill pattern (preflight, delegate, postflight)",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:00:00Z"
-    },
-    {
-      "project_number": 7,
-      "project_name": "create_skill_nix_research",
-      "status": "not_started",
-      "language": "meta",
-      "description": "Create skill-nix-research thin wrapper skill that delegates to nix-research-agent following the established skill pattern (preflight, delegate, postflight)",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:00:00Z"
-    },
-    {
-      "project_number": 6,
-      "project_name": "create_nix_implementation_agent",
-      "status": "not_started",
-      "language": "meta",
-      "description": "Create nix-implementation-agent mirroring neovim-implementation-agent pattern with Nix-specific verification (nix flake check, nixos-rebuild build, home-manager build) and phase-based execution",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:00:00Z"
-    },
-    {
-      "project_number": 5,
-      "project_name": "create_nix_research_agent",
-      "status": "not_started",
-      "language": "meta",
-      "description": "Create nix-research-agent mirroring neovim-research-agent pattern with Nix domain knowledge: Nix language, flakes, NixOS modules, home-manager, overlays, derivations",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:00:00Z"
-    },
-    {
-      "project_number": 4,
-      "project_name": "manage_claude_settings_with_home_manager",
-      "status": "not_started",
-      "language": "general",
-      "description": "Maintain ~/.claude/settings.json via home-manager similar to other config files like wezterm.lua",
-      "created": "2026-02-03T20:34:39Z",
-      "last_updated": "2026-02-03T20:34:39Z"
-    },
-    {
       "project_number": 1,
       "project_name": "update_claudemd_for_dotfiles",
       "status": "not_started",
@@ -109,6 +28,92 @@
           "summary": "Comparative analysis confirming specification conflict exists in both repos; no plan creation is by design"
         }
       ]
+    },
+    {
+      "project_number": 4,
+      "project_name": "manage_claude_settings_with_home_manager",
+      "status": "not_started",
+      "language": "general",
+      "description": "Maintain ~/.claude/settings.json via home-manager similar to other config files like wezterm.lua",
+      "created": "2026-02-03T20:34:39Z",
+      "last_updated": "2026-02-03T20:34:39Z"
+    },
+    {
+      "project_number": 5,
+      "project_name": "create_nix_context_directory",
+      "status": "not_started",
+      "language": "meta",
+      "description": "Create context/project/nix/ directory structure with domain knowledge (Nix language, flakes, modules), patterns (module patterns, overlays), standards (style guide), and tools (home-manager, nixos-rebuild guides)",
+      "created": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T21:00:00Z"
+    },
+    {
+      "project_number": 6,
+      "project_name": "create_nix_rules_file",
+      "status": "not_started",
+      "language": "meta",
+      "description": "Create .claude/rules/nix.md with Nix-specific development rules auto-applied to *.nix files, covering formatting, module structure, and flake patterns",
+      "created": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T21:00:00Z"
+    },
+    {
+      "project_number": 7,
+      "project_name": "create_nix_research_agent",
+      "status": "not_started",
+      "language": "meta",
+      "description": "Create nix-research-agent mirroring neovim-research-agent pattern with Nix domain knowledge: Nix language, flakes, NixOS modules, home-manager, overlays, derivations",
+      "created": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T21:00:00Z",
+      "depends_on": [5, 6]
+    },
+    {
+      "project_number": 8,
+      "project_name": "create_nix_implementation_agent",
+      "status": "not_started",
+      "language": "meta",
+      "description": "Create nix-implementation-agent mirroring neovim-implementation-agent pattern with Nix-specific verification (nix flake check, nixos-rebuild build, home-manager build) and phase-based execution",
+      "created": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T21:00:00Z",
+      "depends_on": [5, 6]
+    },
+    {
+      "project_number": 9,
+      "project_name": "create_skill_nix_research",
+      "status": "not_started",
+      "language": "meta",
+      "description": "Create skill-nix-research thin wrapper skill that delegates to nix-research-agent following the established skill pattern (preflight, delegate, postflight)",
+      "created": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T21:00:00Z",
+      "depends_on": [7]
+    },
+    {
+      "project_number": 10,
+      "project_name": "create_skill_nix_implementation",
+      "status": "not_started",
+      "language": "meta",
+      "description": "Create skill-nix-implementation thin wrapper skill that delegates to nix-implementation-agent following the established skill pattern (preflight, delegate, postflight)",
+      "created": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T21:00:00Z",
+      "depends_on": [8]
+    },
+    {
+      "project_number": 11,
+      "project_name": "update_orchestrator_nix_routing",
+      "status": "not_started",
+      "language": "meta",
+      "description": "Update skill-orchestrator to add language='nix' routing that delegates to nix-specific agents for research and implementation",
+      "created": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T21:00:00Z",
+      "depends_on": [9, 10]
+    },
+    {
+      "project_number": 12,
+      "project_name": "update_settings_for_nix_commands",
+      "status": "not_started",
+      "language": "meta",
+      "description": "Update settings.json to add allowed Bash commands for Nix tooling: nix, nixos-rebuild, home-manager, nix-shell, nix-env",
+      "created": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T21:00:00Z"
     }
   ],
   "repository_health": {
