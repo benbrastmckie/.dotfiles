@@ -30,28 +30,37 @@
     {
       "project_number": 9,
       "project_name": "create_skill_nix_research",
-      "status": "researching",
+      "status": "researched",
       "language": "meta",
       "description": "Create skill-nix-research thin wrapper skill that delegates to nix-research-agent following the established skill pattern (preflight, delegate, postflight)",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:10:23Z",
+      "last_updated": "2026-02-03T23:13:05Z",
       "depends_on": [
         7
       ],
-      "session_id": "sess_1770160202_ef5bfb"
+      "session_id": "sess_1770160202_ef5bfb",
+      "researched": "2026-02-03T23:13:05Z"
     },
     {
       "project_number": 10,
       "project_name": "create_skill_nix_implementation",
-      "status": "researching",
+      "status": "researched",
       "language": "meta",
       "description": "Create skill-nix-implementation thin wrapper skill that delegates to nix-implementation-agent following the established skill pattern (preflight, delegate, postflight)",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:10:45Z",
+      "last_updated": "2026-02-03T23:12:54Z",
       "depends_on": [
         8
       ],
-      "session_id": "sess_1770160230_5441b2"
+      "session_id": "sess_1770160230_5441b2",
+      "researched": "2026-02-03T23:12:54Z",
+      "artifacts": [
+        {
+          "path": "specs/10_create_skill_nix_implementation/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report documenting the thin wrapper skill pattern for nix-implementation-agent delegation"
+        }
+      ]
     },
     {
       "project_number": 11,
