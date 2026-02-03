@@ -3,11 +3,12 @@
 ## Active Tasks
 
 ### 13. Research Nix MCP tools
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Priority**: medium
 - **Language**: general
 - **Researched**: 2026-02-03
 - **Research**: [research-001.md](specs/13_research_nix_mcp_tools/reports/research-001.md)
+- **Plan**: [implementation-001.md](specs/13_research_nix_mcp_tools/plans/implementation-001.md)
 
 **Description**: Identify MCP servers or other tools that could enhance Nix search or otherwise assist the nix-research-agent implemented in task 7.
 
@@ -174,7 +175,7 @@ But `state-management.md` (lines 226-257) explicitly states:
 ---
 
 ### 8. Create nix-implementation-agent
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Priority**: high
 - **Language**: meta
 - **Depends on**: Tasks 5, 6

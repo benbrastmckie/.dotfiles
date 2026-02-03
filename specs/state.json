@@ -4,20 +4,26 @@
     {
       "project_number": 13,
       "project_name": "research_nix_mcp_tools",
-      "status": "researched",
+      "status": "planned",
       "language": "general",
       "description": "Identify MCP servers or other tools that could enhance Nix search or otherwise assist the nix-research-agent implemented in task 7",
       "created": "2026-02-03T22:20:24Z",
-      "last_updated": "2026-02-03T22:28:02Z",
-      "session_id": "sess_1770157370_9e7e45",
+      "last_updated": "2026-02-03T22:44:57Z",
+      "session_id": "sess_1770158555_830314",
       "researched": "2026-02-03T22:28:02Z",
       "artifacts": [
         {
           "path": "specs/13_research_nix_mcp_tools/reports/research-001.md",
           "type": "research",
           "summary": "Research report identifying MCP-NixOS as primary tool recommendation, with analysis of 15+ Nix ecosystem tools"
+        },
+        {
+          "path": "specs/13_research_nix_mcp_tools/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "4-phase implementation plan to upgrade nix-research-agent with MCP-NixOS integration"
         }
-      ]
+      ],
+      "planned": "2026-02-03T22:44:57Z"
     },
     {
       "project_number": 1,
@@ -162,16 +168,16 @@
     {
       "project_number": 8,
       "project_name": "create_nix_implementation_agent",
-      "status": "planned",
+      "status": "implementing",
       "language": "meta",
       "description": "Create nix-implementation-agent mirroring neovim-implementation-agent pattern with Nix-specific verification (nix flake check, nixos-rebuild build, home-manager build) and phase-based execution",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T22:39:20Z",
+      "last_updated": "2026-02-03T22:42:31Z",
       "depends_on": [
         5,
         6
       ],
-      "session_id": "sess_1770157952_0cf342",
+      "session_id": "sess_1770158530_6535a9",
       "researched": "2026-02-03T22:27:43Z",
       "artifacts": [
         {
@@ -190,7 +196,8 @@
           "summary": "6-phase implementation plan with MCP-NixOS integration for nix-implementation-agent"
         }
       ],
-      "planned": "2026-02-03T22:39:20Z"
+      "planned": "2026-02-03T22:39:20Z",
+      "started": "2026-02-03T22:42:31Z"
     },
     {
       "project_number": 9,
