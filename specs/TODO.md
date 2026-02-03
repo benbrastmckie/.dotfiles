@@ -3,23 +3,26 @@
 ## Active Tasks
 
 ### 13. Research Nix MCP tools
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Priority**: medium
 - **Language**: general
 - **Researched**: 2026-02-03
+- **Completed**: 2026-02-03
 - **Research**: [research-001.md](specs/13_research_nix_mcp_tools/reports/research-001.md)
 - **Plan**: [implementation-001.md](specs/13_research_nix_mcp_tools/plans/implementation-001.md)
+- **Summary**: [implementation-summary-20260203.md](specs/13_research_nix_mcp_tools/summaries/implementation-summary-20260203.md)
 
 **Description**: Identify MCP servers or other tools that could enhance Nix search or otherwise assist the nix-research-agent implemented in task 7.
 
 ---
 
 ### 1. Update CLAUDE.md for dotfiles repository
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Priority**: high
 - **Language**: meta
 - **Researched**: 2026-02-03
 - **Research**: [research-001.md](specs/1_update_claudemd_for_dotfiles/reports/research-001.md)
+- **Plan**: [implementation-001.md](specs/1_update_claudemd_for_dotfiles/plans/implementation-001.md)
 - **Description**: Rewrite CLAUDE.md to accurately reflect this NixOS dotfiles repository instead of describing a Neovim-only configuration system.
 
 **Changes Required**:
