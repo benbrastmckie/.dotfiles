@@ -139,6 +139,7 @@ Core rules (auto-applied by file path):
 - @.claude/rules/state-management.md - Task state patterns (specs/**)
 - @.claude/rules/git-workflow.md - Commit conventions
 - @.claude/rules/neovim-lua.md - Neovim Lua development (nvim/**/*.lua)
+- @.claude/rules/nix.md - Nix development (**/*.nix)
 - @.claude/rules/error-handling.md - Error recovery (.claude/**)
 - @.claude/rules/artifact-formats.md - Report/plan formats (specs/**)
 - @.claude/rules/workflows.md - Command lifecycle (.claude/**)
