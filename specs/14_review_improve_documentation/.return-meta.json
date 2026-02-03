@@ -1,19 +1,20 @@
 {
-  "status": "researched",
+  "status": "planned",
   "artifacts": [
     {
-      "path": "specs/14_review_improve_documentation/reports/research-001.md",
-      "type": "research",
-      "summary": "Documentation review identifying stale references, redundancies, and Nix context gaps with prioritized recommendations"
+      "path": "specs/14_review_improve_documentation/plans/implementation-001.md",
+      "type": "plan",
+      "summary": "5-phase implementation plan for documentation improvements across .claude/ and docs/ directories"
     }
   ],
-  "next_steps": "Run /plan 14 to create implementation plan",
+  "next_steps": "Run /implement 14 to execute the plan",
   "metadata": {
-    "session_id": "sess_1770161901_db5c22",
-    "agent_type": "general-research-agent",
-    "duration_seconds": 2700,
+    "session_id": "sess_1770162409_9830b1",
+    "agent_type": "planner-agent",
+    "duration_seconds": 180,
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "general-research-agent"],
-    "findings_count": 8
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 5,
+    "estimated_hours": 4
   }
 }
