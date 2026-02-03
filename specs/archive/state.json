@@ -180,6 +180,97 @@
         }
       ],
       "completion_summary": "Upgraded nix-research-agent with MCP-NixOS integration including query patterns, graceful degradation, and updated decision tree. Agent now prioritizes MCP for package/option lookups while maintaining full standalone functionality."
+    },
+    {
+      "project_number": 2,
+      "project_name": "update_readme_for_dotfiles",
+      "status": "completed",
+      "language": "meta",
+      "description": "Update README.md (Claude system architecture doc) to reflect NixOS dotfiles context",
+      "completed": "2026-02-03T23:30:01Z",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/2_update_readme_for_dotfiles/reports/research-001.md"
+        },
+        {
+          "type": "plan",
+          "path": "specs/2_update_readme_for_dotfiles/plans/implementation-001.md"
+        },
+        {
+          "type": "summary",
+          "path": "specs/2_update_readme_for_dotfiles/summaries/implementation-summary-20260203.md"
+        }
+      ],
+      "completion_summary": "Updated .claude/README.md to reflect NixOS dotfiles context, adding NixOS-Specific Workflows section, nix language routing, and aligning documentation with actual repository structure and CLAUDE.md.",
+      "claudemd_suggestions": "Updated .claude/README.md: version bump to 2.3, new NixOS-Specific Workflows section, updated language routing table, skill-to-agent mapping, and reorganized Related Documentation"
+    },
+    {
+      "project_number": 4,
+      "project_name": "manage_claude_settings_with_home_manager",
+      "status": "completed",
+      "language": "general",
+      "description": "Maintain ~/.claude/settings.json via home-manager similar to other config files like wezterm.lua",
+      "completed": "2026-02-03T23:22:30Z",
+      "artifacts": [
+        {
+          "type": "plan",
+          "path": "specs/4_manage_claude_settings_with_home_manager/plans/implementation-001.md"
+        },
+        {
+          "type": "summary",
+          "path": "specs/4_manage_claude_settings_with_home_manager/summaries/implementation-summary-20260203.md"
+        }
+      ],
+      "completion_summary": "Implemented Home Manager management of ~/.claude/settings.json. Created config/claude-settings.json with declarative settings (permissions, model, statusLine) and added home.file entry to home.nix."
+    },
+    {
+      "project_number": 9,
+      "project_name": "create_skill_nix_research",
+      "status": "completed",
+      "language": "meta",
+      "description": "Create skill-nix-research thin wrapper skill that delegates to nix-research-agent",
+      "completed": "2026-02-03T23:21:53Z",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/9_create_skill_nix_research/reports/research-001.md"
+        },
+        {
+          "type": "plan",
+          "path": "specs/9_create_skill_nix_research/plans/implementation-001.md"
+        },
+        {
+          "type": "summary",
+          "path": "specs/9_create_skill_nix_research/summaries/implementation-summary-20260203.md"
+        }
+      ],
+      "completion_summary": "Created skill-nix-research thin wrapper skill following 11-stage pattern, delegates to nix-research-agent with MCP-NixOS support.",
+      "claudemd_suggestions": "Added skill-nix-research/SKILL.md with complete execution flow (11 stages), YAML frontmatter, and error handling patterns."
+    },
+    {
+      "project_number": 10,
+      "project_name": "create_skill_nix_implementation",
+      "status": "completed",
+      "language": "meta",
+      "description": "Create skill-nix-implementation thin wrapper skill that delegates to nix-implementation-agent",
+      "completed": "2026-02-03T23:20:16Z",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/10_create_skill_nix_implementation/reports/research-001.md"
+        },
+        {
+          "type": "plan",
+          "path": "specs/10_create_skill_nix_implementation/plans/implementation-001.md"
+        },
+        {
+          "type": "summary",
+          "path": "specs/10_create_skill_nix_implementation/summaries/implementation-summary-20260203.md"
+        }
+      ],
+      "completion_summary": "Created skill-nix-implementation/SKILL.md following the established skill pattern with 11-stage execution flow, delegating to nix-implementation-agent for Nix configuration tasks.",
+      "claudemd_suggestions": "Added .claude/skills/skill-nix-implementation/SKILL.md (new skill directory and file)"
     }
   ]
 }

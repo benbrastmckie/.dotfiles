@@ -2,148 +2,18 @@
   "next_project_number": 14,
   "active_projects": [
     {
-      "project_number": 2,
-      "project_name": "update_readme_for_dotfiles",
-      "status": "completed",
-      "language": "meta",
-      "description": "Update README.md (Claude system architecture doc) to reflect NixOS dotfiles context",
-      "last_updated": "2026-02-03T23:30:01Z",
-      "session_id": "sess_1770160900_b7c8d9",
-      "researched": "2026-02-03T23:15:00Z",
-      "artifacts": [
-        {
-          "type": "research",
-          "path": "specs/2_update_readme_for_dotfiles/reports/research-001.md",
-          "summary": "Research report identifying 7 sections needing updates, 2 new sections to add, and 10 sections to preserve unchanged"
-        },
-        {
-          "type": "plan",
-          "path": "specs/2_update_readme_for_dotfiles/plans/implementation-001.md",
-          "summary": "6-phase implementation plan to update README.md for NixOS dotfiles context"
-        },
-        {
-          "path": "specs/2_update_readme_for_dotfiles/summaries/implementation-summary-20260203.md",
-          "type": "summary",
-          "summary": "Implementation summary documenting all README.md changes for NixOS dotfiles context"
-        }
-      ],
-      "planned": "2026-02-03T23:22:46Z",
-      "started": "2026-02-03T23:25:31Z",
-      "completed": "2026-02-03T23:30:01Z",
-      "completion_summary": "Updated .claude/README.md to reflect NixOS dotfiles context, adding NixOS-Specific Workflows section, nix language routing, and aligning documentation with actual repository structure and CLAUDE.md.",
-      "claudemd_suggestions": "Updated .claude/README.md: version bump to 2.3, new NixOS-Specific Workflows section, updated language routing table, skill-to-agent mapping, and reorganized Related Documentation"
-    },
-    {
-      "project_number": 4,
-      "project_name": "manage_claude_settings_with_home_manager",
-      "status": "completed",
-      "language": "general",
-      "description": "Maintain ~/.claude/settings.json via home-manager similar to other config files like wezterm.lua",
-      "created": "2026-02-03T20:34:39Z",
-      "last_updated": "2026-02-03T23:22:30Z",
-      "session_id": "sess_1770160728_52656f",
-      "planned": "2026-02-03T23:17:46Z",
-      "artifacts": [
-        {
-          "path": "specs/4_manage_claude_settings_with_home_manager/plans/implementation-001.md",
-          "type": "plan",
-          "summary": "Implementation plan with 3 phases: create source config, configure home.file entry, test deployment"
-        },
-        {
-          "path": "specs/4_manage_claude_settings_with_home_manager/summaries/implementation-summary-20260203.md",
-          "type": "summary",
-          "summary": "Implementation summary with verification results"
-        }
-      ],
-      "started": "2026-02-03T23:19:07Z",
-      "completed": "2026-02-03T23:22:30Z",
-      "completion_summary": "Implemented Home Manager management of ~/.claude/settings.json. Created config/claude-settings.json with declarative settings (permissions, model, statusLine) and added home.file entry to home.nix. Build and flake check pass successfully."
-    },
-    {
-      "project_number": 9,
-      "project_name": "create_skill_nix_research",
-      "status": "completed",
-      "language": "meta",
-      "description": "Create skill-nix-research thin wrapper skill that delegates to nix-research-agent following the established skill pattern (preflight, delegate, postflight)",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:21:53Z",
-      "depends_on": [
-        7
-      ],
-      "session_id": "sess_1770160718_0c6a7f",
-      "researched": "2026-02-03T23:13:05Z",
-      "artifacts": [
-        {
-          "path": "specs/9_create_skill_nix_research/reports/research-001.md",
-          "type": "research",
-          "summary": "Research report analyzing skill wrapper patterns for creating skill-nix-research"
-        },
-        {
-          "path": "specs/9_create_skill_nix_research/plans/implementation-001.md",
-          "type": "plan",
-          "summary": "3-phase implementation plan for skill-nix-research thin wrapper"
-        },
-        {
-          "path": "specs/9_create_skill_nix_research/summaries/implementation-summary-20260203.md",
-          "type": "summary",
-          "summary": "Implementation summary with verification results"
-        }
-      ],
-      "planned": "2026-02-03T23:16:59Z",
-      "started": "2026-02-03T23:18:52Z",
-      "completed": "2026-02-03T23:21:53Z",
-      "completion_summary": "Created skill-nix-research thin wrapper skill following 11-stage pattern, delegates to nix-research-agent with MCP-NixOS support.",
-      "claudemd_suggestions": "Added skill-nix-research/SKILL.md with complete execution flow (11 stages), YAML frontmatter, and error handling patterns."
-    },
-    {
-      "project_number": 10,
-      "project_name": "create_skill_nix_implementation",
-      "status": "completed",
-      "language": "meta",
-      "description": "Create skill-nix-implementation thin wrapper skill that delegates to nix-implementation-agent following the established skill pattern (preflight, delegate, postflight)",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:20:16Z",
-      "depends_on": [
-        8
-      ],
-      "session_id": "sess_1770160584_6d29fe",
-      "researched": "2026-02-03T23:12:54Z",
-      "artifacts": [
-        {
-          "path": "specs/10_create_skill_nix_implementation/reports/research-001.md",
-          "type": "research",
-          "summary": "Research report documenting the thin wrapper skill pattern for nix-implementation-agent delegation"
-        },
-        {
-          "path": "specs/10_create_skill_nix_implementation/plans/implementation-001.md",
-          "type": "plan",
-          "summary": "2-phase implementation plan for skill-nix-implementation thin wrapper"
-        },
-        {
-          "path": "specs/10_create_skill_nix_implementation/summaries/implementation-summary-20260203.md",
-          "type": "summary",
-          "summary": "Implementation summary with verification results"
-        }
-      ],
-      "planned": "2026-02-03T23:15:40Z",
-      "started": "2026-02-03T23:16:41Z",
-      "completed": "2026-02-03T23:20:16Z",
-      "completion_summary": "Created skill-nix-implementation/SKILL.md following the established skill pattern with 11-stage execution flow, delegating to nix-implementation-agent for Nix configuration tasks.",
-      "claudemd_suggestions": "Added .claude/skills/skill-nix-implementation/SKILL.md (new skill directory and file)"
-    },
-    {
       "project_number": 11,
       "project_name": "update_orchestrator_nix_routing",
-      "status": "planned",
+      "status": "implementing",
       "language": "meta",
       "description": "Update skill-orchestrator to add language='nix' routing that delegates to nix-specific agents for research and implementation",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:28:24Z",
+      "last_updated": "2026-02-03T23:30:59Z",
       "depends_on": [
         9,
         10
       ],
-      "session_id": "sess_1770161179_6026f4",
+      "session_id": "sess_1770161438_d4e947",
       "researched": "2026-02-03T23:25:32Z",
       "artifacts": [
         {
@@ -157,17 +27,18 @@
           "summary": "1-phase implementation plan to add nix routing row to skill-orchestrator"
         }
       ],
-      "planned": "2026-02-03T23:28:24Z"
+      "planned": "2026-02-03T23:28:24Z",
+      "started": "2026-02-03T23:30:59Z"
     },
     {
       "project_number": 12,
       "project_name": "update_settings_for_nix_commands",
-      "status": "planned",
+      "status": "implementing",
       "language": "meta",
       "description": "Update settings.json to add allowed Bash commands for Nix tooling: nix, nixos-rebuild, home-manager, nix-shell, nix-env",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:28:32Z",
-      "session_id": "sess_1770161209_965937",
+      "last_updated": "2026-02-03T23:30:47Z",
+      "session_id": "sess_1770161432_7eca32",
       "researched": "2026-02-03T23:26:10Z",
       "artifacts": [
         {
@@ -181,7 +52,8 @@
           "summary": "1-phase implementation plan for adding Nix commands to settings.json permissions"
         }
       ],
-      "planned": "2026-02-03T23:28:32Z"
+      "planned": "2026-02-03T23:28:32Z",
+      "started": "2026-02-03T23:30:47Z"
     }
   ],
   "repository_health": {
