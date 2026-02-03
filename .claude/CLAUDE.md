@@ -146,9 +146,23 @@ Core rules (auto-applied by file path):
 ## Context Imports
 
 Domain knowledge (load as needed):
+
+**Neovim**:
 - @.claude/context/project/neovim/domain/neovim-api.md
 - @.claude/context/project/neovim/patterns/plugin-spec.md
 - @.claude/context/project/neovim/tools/lazy-nvim-guide.md
+
+**Nix**:
+- @.claude/context/project/nix/domain/nix-language.md
+- @.claude/context/project/nix/domain/flakes.md
+- @.claude/context/project/nix/domain/nixos-modules.md
+- @.claude/context/project/nix/domain/home-manager.md
+- @.claude/context/project/nix/patterns/overlay-patterns.md
+- @.claude/context/project/nix/patterns/derivation-patterns.md
+- @.claude/context/project/nix/tools/nixos-rebuild-guide.md
+- @.claude/context/project/nix/tools/home-manager-guide.md
+
+**Repository**:
 - @.claude/context/project/repo/project-overview.md
 
 ## Error Handling
