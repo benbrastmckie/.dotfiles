@@ -82,12 +82,14 @@
 ---
 
 ### 11. Update orchestrator for nix language routing
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Priority**: medium
 - **Language**: meta
 - **Depends on**: Tasks 9, 10
 - **Researched**: 2026-02-03
+- **Planned**: 2026-02-03
 - **Research**: [research-001.md](specs/11_update_orchestrator_nix_routing/reports/research-001.md)
+- **Plan**: [implementation-001.md](specs/11_update_orchestrator_nix_routing/plans/implementation-001.md)
 
 **Description**: Update skill-orchestrator to add language='nix' routing that delegates to nix-specific agents for research and implementation.
 
@@ -100,11 +102,13 @@
 ---
 
 ### 12. Update settings.json for Nix commands
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Priority**: low
 - **Language**: meta
 - **Researched**: 2026-02-03
+- **Planned**: 2026-02-03
 - **Research**: [research-001.md](specs/12_update_settings_for_nix_commands/reports/research-001.md)
+- **Plan**: [implementation-001.md](specs/12_update_settings_for_nix_commands/plans/implementation-001.md)
 
 **Description**: Update settings.json to add allowed Bash commands for Nix tooling: nix, nixos-rebuild, home-manager, nix-shell, nix-env.
 
@@ -117,18 +121,3 @@
 - `home-manager *` - Home Manager operations
 - `nix-shell *` - Legacy shell
 - `nix-env *` - Legacy package management
-
----
-
-## Completed Tasks
-
-(archived - see specs/archive/)
-
-## Archived Tasks
-
-- #1: Update CLAUDE.md for dotfiles repository (completed 2026-02-03)
-- #5: Create Nix context directory structure (completed 2026-02-03)
-- #6: Create Nix rules file (completed 2026-02-03)
-- #7: Create nix-research-agent (completed 2026-02-03)
-- #8: Create nix-implementation-agent (completed 2026-02-03)
-- #13: Research Nix MCP tools (completed 2026-02-03)

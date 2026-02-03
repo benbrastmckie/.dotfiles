@@ -126,34 +126,40 @@
     {
       "project_number": 11,
       "project_name": "update_orchestrator_nix_routing",
-      "status": "researched",
+      "status": "planned",
       "language": "meta",
       "description": "Update skill-orchestrator to add language='nix' routing that delegates to nix-specific agents for research and implementation",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:25:32Z",
+      "last_updated": "2026-02-03T23:28:24Z",
       "depends_on": [
         9,
         10
       ],
-      "session_id": "sess_1770160990_fd4a3b",
+      "session_id": "sess_1770161179_6026f4",
       "researched": "2026-02-03T23:25:32Z",
       "artifacts": [
         {
           "path": "specs/11_update_orchestrator_nix_routing/reports/research-001.md",
           "type": "research",
           "summary": "Identified single-file change needed: add nix row to skill-orchestrator routing table"
+        },
+        {
+          "path": "specs/11_update_orchestrator_nix_routing/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "1-phase implementation plan to add nix routing row to skill-orchestrator"
         }
-      ]
+      ],
+      "planned": "2026-02-03T23:28:24Z"
     },
     {
       "project_number": 12,
       "project_name": "update_settings_for_nix_commands",
-      "status": "researched",
+      "status": "planned",
       "language": "meta",
       "description": "Update settings.json to add allowed Bash commands for Nix tooling: nix, nixos-rebuild, home-manager, nix-shell, nix-env",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:26:10Z",
-      "session_id": "sess_1770161008_360a22",
+      "last_updated": "2026-02-03T23:28:32Z",
+      "session_id": "sess_1770161209_965937",
       "researched": "2026-02-03T23:26:10Z",
       "artifacts": [
         {
@@ -161,7 +167,8 @@
           "type": "research",
           "summary": "Research report documenting settings file locations, permission patterns, and Nix commands to add"
         }
-      ]
+      ],
+      "planned": "2026-02-03T23:28:32Z"
     }
   ],
   "repository_health": {

@@ -29,14 +29,16 @@ This document provides detailed explanations of the system architecture for user
 
 ## System Overview
 
-The .claude system is a task management and automation framework designed for software development projects, with specialized support for Neovim configuration development. This document describes the architecture of the version 2.0 system, which represents a complete clean-break refactor from the previous version.
+The .claude system is a task management and automation framework designed for NixOS dotfiles maintenance and configuration management. It provides multi-domain support for Neovim configuration, Nix/NixOS system configuration, LaTeX/Typst document compilation, and general development tasks. This document describes the architecture of the version 2.0 system, which represents a complete clean-break refactor from the previous version.
 
 ### Purpose and Goals
 
 - Provide structured task management with research, planning, and implementation workflows
 - Prevent delegation hangs and infinite loops through explicit return handling
 - Enable atomic state synchronization across multiple tracking files
-- Support language-specific routing (Neovim vs general development)
+- Support language-specific routing (nix, neovim, latex, typst, general)
+- Manage NixOS system configuration and Home Manager user environments
+- Enable flake-based reproducible system builds across multiple hosts
 - Track and analyze errors for continuous improvement
 - Automate git commits with clear, scoped changes
 
@@ -112,11 +114,14 @@ Status changes are synchronized atomically across multiple files using the statu
 
 Tasks are routed to appropriate agents based on the Language field:
 
+- `Language: nix` → nix-implementation-agent, nix-research-agent (MCP-NixOS integration)
 - `Language: neovim` → neovim-implementation-agent, neovim-research-agent
-- `Language: markdown` → general agents (researcher, implementer)
-- `Language: python` → general agents (future: python-specific agents)
+- `Language: latex` → latex-implementation-agent, general-research-agent
+- `Language: typst` → typst-implementation-agent, general-research-agent
+- `Language: meta` → general-implementation-agent (system building)
+- `Language: general` → general agents (researcher, implementer)
 
-This enables specialized tooling integration for Neovim configuration tasks.
+This enables specialized tooling integration for NixOS system configuration, Neovim development, and document compilation tasks.
 
 ### 5. Error Tracking and Recovery
 
@@ -152,15 +157,19 @@ Context files are organized into `core/` (reusable) and `project/` (domain-speci
 - `workflows/` - Delegation patterns, status transitions, error handling
 - `system/` - Routing rules, orchestrator guide, validation strategy
 - `templates/` - Command and agent templates
+- `patterns/` - Common implementation patterns (jq workarounds, etc.)
+- `formats/` - File format specifications
+- `orchestration/` - Delegation and routing patterns
 
 **project/**:
+- `nix/` - NixOS/Home Manager configuration (modules, flakes, derivations)
 - `neovim/` - Neovim configuration (plugins, keymaps, patterns)
-- `repo/` - Repository-specific knowledge
+- `repo/` - Repository-specific knowledge (project overview, implementation details)
 
 This enables:
 - **Three-Tier Loading**: Orchestrator (minimal), Commands (targeted), Agents (domain-specific)
 - **Context Budget Enforcement**: Each tier has defined size limits
-- **Clear Separation**: Core context is reusable, project context is Neovim configuration-specific
+- **Clear Separation**: Core context is reusable, project context is domain-specific (Nix, Neovim, etc.)
 
 See `.claude/context/core/system/context-loading-strategy.md` for details.
 
@@ -257,6 +266,14 @@ All commands that invoke subagents follow this workflow:
 **Neovim-Specific Subagents**:
 - `neovim-implementation-agent`: Neovim configuration implementation
 - `neovim-research-agent`: Plugin and configuration research
+
+**Nix-Specific Subagents**:
+- `nix-implementation-agent`: NixOS/Home Manager configuration implementation
+- `nix-research-agent`: Nix package and module research (uses MCP-NixOS)
+
+**Document Compilation Subagents**:
+- `latex-implementation-agent`: LaTeX document compilation and editing
+- `typst-implementation-agent`: Typst document compilation and editing
 
 **Support Subagents**:
 - `error-diagnostics-agent`: Error pattern analysis and fix recommendations
@@ -503,17 +520,49 @@ Commands check the `Language` field in TODO.md to determine routing:
 
 ```python
 def route_to_agent(task_language, operation):
-    if task_language == "neovim":
+    if task_language == "nix":
+        if operation == "research":
+            return "nix-research-agent"
+        elif operation == "implement":
+            return "nix-implementation-agent"
+    elif task_language == "neovim":
         if operation == "research":
             return "neovim-research-agent"
         elif operation == "implement":
             return "neovim-implementation-agent"
-    else:
+    elif task_language == "latex":
         if operation == "research":
-            return "researcher"
+            return "general-research-agent"
         elif operation == "implement":
-            return "implementer"
+            return "latex-implementation-agent"
+    elif task_language == "typst":
+        if operation == "research":
+            return "general-research-agent"
+        elif operation == "implement":
+            return "typst-implementation-agent"
+    else:  # general, meta, markdown
+        if operation == "research":
+            return "general-research-agent"
+        elif operation == "implement":
+            return "general-implementation-agent"
 ```
+
+### Nix-Specific Integration
+
+Nix tasks use specialized agents with MCP-NixOS tool integration:
+
+**nix-implementation-agent**:
+- Modifies Nix files (flake.nix, configuration.nix, home.nix)
+- Uses `nix flake check` for validation
+- Uses `nixos-rebuild test` for safe pre-apply testing
+- Supports multi-host configurations
+- Logs errors to errors.json
+
+**nix-research-agent**:
+- Uses MCP-NixOS for package/option search
+- Researches NixOS modules and Home Manager options
+- Analyzes flake inputs and dependencies
+- Loads context from .claude/context/project/nix/
 
 ### Neovim-Specific Integration
 
@@ -537,6 +586,102 @@ The architecture supports adding language-specific agents for:
 - JavaScript/TypeScript
 - Rust
 - etc.
+
+---
+
+## NixOS-Specific Workflows
+
+This repository manages NixOS system configurations using flakes. The following workflows are specific to NixOS dotfiles management.
+
+### Multi-Host Configuration
+
+The repository supports multiple host configurations in the `hosts/` directory:
+
+| Host | Description | Hardware |
+|------|-------------|----------|
+| nandi | Intel laptop | Primary development machine |
+| hamsa | AMD laptop | Ryzen AI 300 series |
+| garuda | Desktop/server | Additional host |
+| usb-installer | Bootable installer | Generic USB installation media |
+
+Each host has its own `default.nix` in `hosts/{hostname}/` with hardware-specific configuration.
+
+### System Rebuild Workflow
+
+Test changes before applying:
+```bash
+# Check flake syntax and evaluation
+nix flake check
+
+# Test build without activating (safe)
+nixos-rebuild test --flake .#hostname
+
+# Apply changes to running system
+sudo nixos-rebuild switch --flake .#hostname
+
+# Build but activate on next boot
+sudo nixos-rebuild boot --flake .#hostname
+```
+
+### Home Manager Workflow
+
+User environment is managed separately via Home Manager:
+```bash
+# Apply Home Manager configuration
+home-manager switch --flake .#benjamin
+
+# Preview changes without applying
+home-manager build --flake .#benjamin
+```
+
+### Flake Updates
+
+Update inputs (nixpkgs, home-manager, etc.):
+```bash
+# Update all inputs
+nix flake update
+
+# Update specific input
+nix flake lock --update-input nixpkgs
+
+# Show current input versions
+nix flake metadata
+```
+
+### Package Development
+
+Custom packages are defined in `packages/`:
+```bash
+# Build a local package
+nix build .#packageName
+
+# Enter development shell
+nix develop
+
+# Run package without installing
+nix run .#packageName
+```
+
+### Verification Commands
+
+Commands used by nix-implementation-agent for validation:
+
+| Command | Purpose |
+|---------|---------|
+| `nix flake check` | Validate flake syntax and evaluate outputs |
+| `nixos-rebuild test --flake .#host` | Build and test without activating |
+| `nix eval .#nixosConfigurations.host.config.system.build.toplevel` | Evaluate configuration |
+| `home-manager build --flake .#user` | Build Home Manager configuration |
+
+### Related Context Files
+
+Domain-specific documentation is available in `.claude/context/project/nix/`:
+- `domain/nix-language.md` - Nix expression language
+- `domain/flakes.md` - Flake structure and inputs
+- `domain/nixos-modules.md` - NixOS module system
+- `domain/home-manager.md` - Home Manager configuration
+- `patterns/module-patterns.md` - Module design patterns
+- `tools/nixos-rebuild-guide.md` - Rebuild command reference
 
 ---
 
@@ -629,9 +774,19 @@ Test safety mechanisms:
 ### Language Routing Testing
 
 Test language-specific routing:
+- Nix tasks → nix agents (with MCP-NixOS integration)
 - Neovim tasks → neovim agents
+- LaTeX/Typst tasks → document agents
 - Markdown tasks → general agents
 - Mixed-language projects
+
+### NixOS-Specific Testing
+
+Test NixOS configuration workflows:
+- `nix flake check` - Validate flake syntax
+- `nixos-rebuild test --flake .#host` - Test build without activating
+- `home-manager build --flake .#user` - Test Home Manager configuration
+- Multi-host builds - Verify all host configurations evaluate
 
 ### Error Recovery Testing
 
@@ -838,13 +993,13 @@ Build a completely separate .claude system for a different project or domain.
 **Build New System**:
 Create a fresh .claude architecture from scratch for a new project.
 
-### Integration with Neovim Configuration
+### Integration with NixOS Dotfiles
 
 The meta system builder is fully integrated into the .claude system:
 - Respects existing delegation safety patterns
 - Follows standardized return format
 - Uses atomic state synchronization
-- Supports language-based routing
+- Supports language-based routing (nix, neovim, latex, typst, general)
 - Integrates with error tracking
 - Creates automatic git commits
 
@@ -904,12 +1059,19 @@ agent: {subagent-name}        # Target subagent to spawn
 
 | Skill | Agent | Domain |
 |-------|-------|--------|
+| skill-nix-research | nix-research-agent | Nix/NixOS/Home Manager research |
+| skill-nix-implementation | nix-implementation-agent | NixOS configuration implementation |
 | skill-neovim-research | neovim-research-agent | Neovim/plugin research |
+| skill-neovim-implementation | neovim-implementation-agent | Neovim configuration implementation |
 | skill-researcher | general-research-agent | General web/codebase research |
 | skill-planner | planner-agent | Implementation planning |
 | skill-implementer | general-implementation-agent | General implementation |
-| skill-neovim-implementation | neovim-implementation-agent | Neovim configuration implementation |
 | skill-latex-implementation | latex-implementation-agent | LaTeX document implementation |
+| skill-typst-implementation | typst-implementation-agent | Typst document implementation |
+| skill-meta | meta-builder-agent | System building and task creation |
+| skill-document-converter | document-converter-agent | Document format conversion |
+| skill-status-sync | (direct execution) | Atomic status updates |
+| skill-refresh | (direct execution) | Process and file cleanup |
 
 ### Thin Wrapper Execution Flow
 
