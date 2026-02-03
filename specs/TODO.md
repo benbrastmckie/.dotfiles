@@ -117,10 +117,11 @@ But `state-management.md` (lines 226-257) explicitly states:
 ---
 
 ### 6. Create Nix rules file
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Priority**: high
 - **Language**: meta
 - **Research**: [research-001.md](specs/6_create_nix_rules_file/reports/research-001.md)
+- **Plan**: [implementation-001.md](specs/6_create_nix_rules_file/plans/implementation-001.md)
 
 **Description**: Create .claude/rules/nix.md with Nix-specific development rules auto-applied to *.nix files, covering formatting, module structure, and flake patterns.
 
