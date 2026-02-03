@@ -2,70 +2,6 @@
   "next_project_number": 14,
   "active_projects": [
     {
-      "project_number": 13,
-      "project_name": "research_nix_mcp_tools",
-      "status": "completed",
-      "language": "general",
-      "description": "Identify MCP servers or other tools that could enhance Nix search or otherwise assist the nix-research-agent implemented in task 7",
-      "created": "2026-02-03T22:20:24Z",
-      "last_updated": "2026-02-03T22:54:47Z",
-      "session_id": "sess_1770158762_1e7e61",
-      "researched": "2026-02-03T22:28:02Z",
-      "artifacts": [
-        {
-          "path": "specs/13_research_nix_mcp_tools/reports/research-001.md",
-          "type": "research",
-          "summary": "Research report identifying MCP-NixOS as primary tool recommendation, with analysis of 15+ Nix ecosystem tools"
-        },
-        {
-          "path": "specs/13_research_nix_mcp_tools/plans/implementation-001.md",
-          "type": "plan",
-          "summary": "4-phase implementation plan to upgrade nix-research-agent with MCP-NixOS integration"
-        },
-        {
-          "path": "specs/13_research_nix_mcp_tools/summaries/implementation-summary-20260203.md",
-          "type": "summary",
-          "summary": "Implementation summary documenting all changes and verification"
-        }
-      ],
-      "planned": "2026-02-03T22:44:57Z",
-      "started": "2026-02-03T22:46:20Z",
-      "completed": "2026-02-03T22:54:47Z",
-      "completion_summary": "Upgraded nix-research-agent with MCP-NixOS integration including query patterns, graceful degradation, and updated decision tree. Agent now prioritizes MCP for package/option lookups while maintaining full standalone functionality."
-    },
-    {
-      "project_number": 1,
-      "project_name": "update_claudemd_for_dotfiles",
-      "status": "completed",
-      "language": "meta",
-      "description": "Update CLAUDE.md to accurately describe this NixOS dotfiles repository instead of Neovim-only configuration",
-      "last_updated": "2026-02-03T22:59:58Z",
-      "session_id": "sess_1738628107_2c3149",
-      "researched": "2026-02-03T22:52:13Z",
-      "artifacts": [
-        {
-          "path": "specs/1_update_claudemd_for_dotfiles/reports/research-001.md",
-          "type": "research",
-          "summary": "Research report identifying CLAUDE.md inaccuracies: title, description, and project structure are all incorrect (describes Neovim config but this is a NixOS dotfiles repo with no nvim/ directory)"
-        },
-        {
-          "path": "specs/1_update_claudemd_for_dotfiles/plans/implementation-001.md",
-          "type": "plan",
-          "summary": "2-phase implementation plan to update CLAUDE.md and project-overview.md for NixOS dotfiles accuracy"
-        },
-        {
-          "path": "specs/1_update_claudemd_for_dotfiles/summaries/implementation-summary-20260203.md",
-          "type": "summary",
-          "summary": "Implementation summary with verification results"
-        }
-      ],
-      "planned": "2026-02-03T22:55:04Z",
-      "started": "2026-02-03T22:57:07Z",
-      "completed": "2026-02-03T22:59:58Z",
-      "completion_summary": "Updated CLAUDE.md and project-overview.md to accurately describe NixOS dotfiles repository instead of fictional Neovim configuration. Changed title, project structure, technology stack, and development workflows to reflect actual flake-based NixOS/Home Manager configuration.",
-      "claudemd_suggestions": "Updated CLAUDE.md title/description/structure, rewrote project-overview.md for NixOS dotfiles"
-    },
-    {
       "project_number": 2,
       "project_name": "update_readme_for_dotfiles",
       "status": "planning",
@@ -92,173 +28,30 @@
       "last_updated": "2026-02-03T20:34:39Z"
     },
     {
-      "project_number": 5,
-      "project_name": "create_nix_context_directory",
-      "status": "completed",
-      "language": "meta",
-      "description": "Create context/project/nix/ directory structure with domain knowledge (Nix language, flakes, modules), patterns (module patterns, overlays), standards (style guide), and tools (home-manager, nixos-rebuild guides)",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:19:57Z",
-      "session_id": "sess_1770153137_eed865",
-      "researched": "2026-02-03T21:05:05Z",
-      "artifacts": [
-        {
-          "path": "specs/5_create_nix_context_directory/reports/research-001.md",
-          "type": "research",
-          "summary": "Comprehensive research report covering Nix language fundamentals, flakes, NixOS modules, home-manager, overlays, derivations, style guide, and tool workflows with recommended content structure for 11 context files"
-        },
-        {
-          "path": "specs/5_create_nix_context_directory/plans/implementation-001.md",
-          "type": "plan",
-          "summary": "4-phase implementation plan for Nix context directory with 11 markdown files"
-        },
-        {
-          "path": "specs/5_create_nix_context_directory/summaries/implementation-summary-20260203.md",
-          "type": "summary",
-          "summary": "Implementation summary with verification results"
-        }
-      ],
-      "planned": "2026-02-03T21:10:02Z",
-      "started": "2026-02-03T21:12:37Z",
-      "completed": "2026-02-03T21:19:57Z",
-      "completion_summary": "Created comprehensive Nix context directory with 11 markdown files covering domain knowledge, patterns, standards, and tools. Updated CLAUDE.md Context Imports section with new Nix references.",
-      "claudemd_suggestions": "Added 8 Nix context @-references to CLAUDE.md Context Imports section, created .claude/context/project/nix/ directory with 11 files"
-    },
-    {
-      "project_number": 6,
-      "project_name": "create_nix_rules_file",
-      "status": "completed",
-      "language": "meta",
-      "description": "Create .claude/rules/nix.md with Nix-specific development rules auto-applied to *.nix files, covering formatting, module structure, and flake patterns",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:56:40Z",
-      "session_id": "sess_1770155565_95526f",
-      "researched": "2026-02-03T21:30:02Z",
-      "artifacts": [
-        {
-          "path": "specs/6_create_nix_rules_file/reports/research-001.md",
-          "type": "research",
-          "summary": "Research report covering existing rules patterns, RFC 166 formatting standards, NixOS module best practices, flake conventions, naming conventions, and anti-patterns for Nix development"
-        },
-        {
-          "path": "specs/6_create_nix_rules_file/plans/implementation-001.md",
-          "type": "plan",
-          "summary": "2-phase implementation plan for creating .claude/rules/nix.md with Nix development rules"
-        },
-        {
-          "path": "specs/6_create_nix_rules_file/summaries/implementation-summary-20260203.md",
-          "type": "summary",
-          "summary": "Implementation summary with verification results"
-        }
-      ],
-      "planned": "2026-02-03T21:44:35Z",
-      "started": "2026-02-03T21:53:01Z",
-      "completed": "2026-02-03T21:56:40Z",
-      "completion_summary": "Created .claude/rules/nix.md with 9 sections covering Nix formatting, module patterns, flake conventions, and anti-patterns. Updated CLAUDE.md to reference the new rules file.",
-      "claudemd_suggestions": "Added .claude/rules/nix.md to Rules References section in CLAUDE.md"
-    },
-    {
-      "project_number": 7,
-      "project_name": "create_nix_research_agent",
-      "status": "completed",
-      "language": "meta",
-      "description": "Create nix-research-agent mirroring neovim-research-agent pattern with Nix domain knowledge: Nix language, flakes, NixOS modules, home-manager, overlays, derivations",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T22:18:29Z",
-      "depends_on": [
-        5,
-        6
-      ],
-      "session_id": "sess_1770156895_62f5cd",
-      "researched": "2026-02-03T22:06:17Z",
-      "artifacts": [
-        {
-          "path": "specs/7_create_nix_research_agent/reports/research-001.md",
-          "type": "research",
-          "summary": "Research report analyzing neovim-research-agent patterns for adaptation to nix-research-agent"
-        },
-        {
-          "path": "specs/7_create_nix_research_agent/plans/implementation-001.md",
-          "type": "plan",
-          "summary": "4-phase implementation plan for creating nix-research-agent mirroring neovim-research-agent pattern"
-        },
-        {
-          "path": "specs/7_create_nix_research_agent/summaries/implementation-summary-20260203.md",
-          "type": "summary",
-          "summary": "Implementation summary with verification results"
-        }
-      ],
-      "planned": "2026-02-03T22:14:14Z",
-      "started": "2026-02-03T22:15:13Z",
-      "completed": "2026-02-03T22:18:29Z",
-      "completion_summary": "Created nix-research-agent.md with full agent specification including 7-stage execution flow, Nix-specific research strategy decision tree, context loading patterns, and domain-specific tips for package, module, flake, and build research.",
-      "claudemd_suggestions": "Added .claude/agents/nix-research-agent.md - new Nix domain research agent"
-    },
-    {
-      "project_number": 8,
-      "project_name": "create_nix_implementation_agent",
-      "status": "completed",
-      "language": "meta",
-      "description": "Create nix-implementation-agent mirroring neovim-implementation-agent pattern with Nix-specific verification (nix flake check, nixos-rebuild build, home-manager build) and phase-based execution",
-      "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T22:47:53Z",
-      "depends_on": [
-        5,
-        6
-      ],
-      "session_id": "sess_1770158530_6535a9",
-      "researched": "2026-02-03T22:27:43Z",
-      "artifacts": [
-        {
-          "path": "specs/8_create_nix_implementation_agent/reports/research-001.md",
-          "type": "research",
-          "summary": "Research report with neovim-implementation-agent analysis, Nix verification commands, and implementation recommendations"
-        },
-        {
-          "path": "specs/8_create_nix_implementation_agent/reports/research-002.md",
-          "type": "research",
-          "summary": "Supplementary research on MCP servers for Nix (MCP-NixOS), AI best practices, search tools, and documentation resources"
-        },
-        {
-          "path": "specs/8_create_nix_implementation_agent/plans/implementation-002.md",
-          "type": "plan",
-          "summary": "6-phase implementation plan with MCP-NixOS integration for nix-implementation-agent"
-        },
-        {
-          "path": "specs/8_create_nix_implementation_agent/summaries/implementation-summary-20260203.md",
-          "type": "summary",
-          "summary": "Implementation summary with verification results"
-        }
-      ],
-      "planned": "2026-02-03T22:39:20Z",
-      "started": "2026-02-03T22:42:31Z",
-      "completed": "2026-02-03T22:47:53Z",
-      "completion_summary": "Created nix-implementation-agent.md with full 8-stage execution flow, MCP-NixOS integration for package/option validation, Nix-specific verification commands, and comprehensive error handling. Updated CLAUDE.md with nix language routing and skill-to-agent mappings.",
-      "claudemd_suggestions": "Added nix language to Language-Based Routing table, added skill-nix-research and skill-nix-implementation to Skill-to-Agent Mapping table in CLAUDE.md"
-    },
-    {
       "project_number": 9,
       "project_name": "create_skill_nix_research",
-      "status": "not_started",
+      "status": "researching",
       "language": "meta",
       "description": "Create skill-nix-research thin wrapper skill that delegates to nix-research-agent following the established skill pattern (preflight, delegate, postflight)",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T23:10:23Z",
       "depends_on": [
         7
-      ]
+      ],
+      "session_id": "sess_1770160202_ef5bfb"
     },
     {
       "project_number": 10,
       "project_name": "create_skill_nix_implementation",
-      "status": "not_started",
+      "status": "researching",
       "language": "meta",
       "description": "Create skill-nix-implementation thin wrapper skill that delegates to nix-implementation-agent following the established skill pattern (preflight, delegate, postflight)",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T23:10:45Z",
       "depends_on": [
         8
-      ]
+      ],
+      "session_id": "sess_1770160230_5441b2"
     },
     {
       "project_number": 11,
@@ -284,7 +77,7 @@
     }
   ],
   "repository_health": {
-    "last_assessed": "2026-02-02T17:31:00Z",
+    "last_assessed": "2026-02-03T23:15:00Z",
     "status": "healthy"
   }
 }
