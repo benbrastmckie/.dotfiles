@@ -58,6 +58,11 @@
           "path": "specs/12_update_settings_for_nix_commands/plans/implementation-001.md",
           "type": "plan",
           "summary": "1-phase implementation plan for adding Nix commands to settings.json permissions"
+        },
+        {
+          "path": "specs/12_update_settings_for_nix_commands/summaries/implementation-summary-20260203.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification results"
         }
       ],
       "planned": "2026-02-03T23:28:32Z",
