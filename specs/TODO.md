@@ -2,6 +2,15 @@
 
 ## Active Tasks
 
+### 13. Research Nix MCP tools
+- **Status**: [NOT STARTED]
+- **Priority**: medium
+- **Language**: general
+
+**Description**: Identify MCP servers or other tools that could enhance Nix search or otherwise assist the nix-research-agent implemented in task 7.
+
+---
+
 ### 1. Update CLAUDE.md for dotfiles repository
 - **Status**: [NOT STARTED]
 - **Priority**: high
