@@ -26,9 +26,10 @@
 ---
 
 ### 4. Manage Claude settings.json with home-manager
-- **Status**: [PLANNING]
+- **Status**: [PLANNED]
 - **Priority**: medium
 - **Language**: general
+- **Plan**: [implementation-001.md](specs/4_manage_claude_settings_with_home_manager/plans/implementation-001.md)
 
 **Description**: Maintain ~/.claude.json and ~/.claude/settings.json via home-manager similar to other config files like wezterm.lua in the dotfiles repository.
 
