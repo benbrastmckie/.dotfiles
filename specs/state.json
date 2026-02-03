@@ -1,6 +1,15 @@
 {
-  "next_project_number": 13,
+  "next_project_number": 14,
   "active_projects": [
+    {
+      "project_number": 13,
+      "project_name": "research_nix_mcp_tools",
+      "status": "not_started",
+      "language": "general",
+      "description": "Identify MCP servers or other tools that could enhance Nix search or otherwise assist the nix-research-agent implemented in task 7",
+      "created": "2026-02-03T22:20:24Z",
+      "last_updated": "2026-02-03T22:20:24Z"
+    },
     {
       "project_number": 1,
       "project_name": "update_claudemd_for_dotfiles",
@@ -144,16 +153,24 @@
     {
       "project_number": 8,
       "project_name": "create_nix_implementation_agent",
-      "status": "researching",
+      "status": "researched",
       "language": "meta",
       "description": "Create nix-implementation-agent mirroring neovim-implementation-agent pattern with Nix-specific verification (nix flake check, nixos-rebuild build, home-manager build) and phase-based execution",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T22:17:30Z",
+      "last_updated": "2026-02-03T22:20:12Z",
       "depends_on": [
         5,
         6
       ],
-      "session_id": "sess_1770157030_5b8f8e"
+      "session_id": "sess_1770157030_5b8f8e",
+      "researched": "2026-02-03T22:20:12Z",
+      "artifacts": [
+        {
+          "path": "specs/8_create_nix_implementation_agent/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report with neovim-implementation-agent analysis, Nix verification commands, and implementation recommendations"
+        }
+      ]
     },
     {
       "project_number": 9,
