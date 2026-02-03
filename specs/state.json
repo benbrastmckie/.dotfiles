@@ -21,12 +21,20 @@
     {
       "project_number": 4,
       "project_name": "manage_claude_settings_with_home_manager",
-      "status": "planning",
+      "status": "planned",
       "language": "general",
       "description": "Maintain ~/.claude/settings.json via home-manager similar to other config files like wezterm.lua",
       "created": "2026-02-03T20:34:39Z",
-      "last_updated": "2026-02-03T23:15:49Z",
-      "session_id": "sess_1770160530_13ebc0"
+      "last_updated": "2026-02-03T23:17:46Z",
+      "session_id": "sess_1770160530_13ebc0",
+      "planned": "2026-02-03T23:17:46Z",
+      "artifacts": [
+        {
+          "path": "specs/4_manage_claude_settings_with_home_manager/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "Implementation plan with 3 phases: create source config, configure home.file entry, test deployment"
+        }
+      ]
     },
     {
       "project_number": 9,
