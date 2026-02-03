@@ -3,11 +3,13 @@
 ## Active Tasks
 
 ### 2. Update README.md for dotfiles context
-- **Status**: [PLANNING]
+- **Status**: [PLANNED]
 - **Priority**: high
 - **Language**: meta
 - **Researched**: 2026-02-03
+- **Planned**: 2026-02-03
 - **Research**: [research-001.md](specs/2_update_readme_for_dotfiles/reports/research-001.md)
+- **Plan**: [implementation-001.md](specs/2_update_readme_for_dotfiles/plans/implementation-001.md)
 - **Description**: Update the Claude system architecture README.md to reflect the NixOS dotfiles repository context rather than Neovim-only focus.
 
 **Changes Required**:
