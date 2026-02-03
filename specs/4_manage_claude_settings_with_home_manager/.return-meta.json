@@ -1,0 +1,19 @@
+{
+  "status": "planned",
+  "summary": "3-phase plan to manage ~/.claude/settings.json via Home Manager using existing patterns from wezterm.lua and himalaya config",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/4_manage_claude_settings_with_home_manager/plans/implementation-001.md",
+      "summary": "Implementation plan with 3 phases: create source config, configure home.file entry, test deployment"
+    }
+  ],
+  "metadata": {
+    "session_id": "sess_1770160530_13ebc0",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 3,
+    "estimated_hours": 1.5
+  }
+}
