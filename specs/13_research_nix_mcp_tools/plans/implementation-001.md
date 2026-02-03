@@ -1,7 +1,7 @@
 # Implementation Plan: Task #13
 
 - **Task**: 13 - research_nix_mcp_tools
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 2 hours
 - **Dependencies**: Task 7 (nix-research-agent - implemented)
 - **Research Inputs**: specs/13_research_nix_mcp_tools/reports/research-001.md
@@ -49,7 +49,7 @@ From research-001.md:
 
 ## Implementation Phases
 
-### Phase 1: Update Allowed Tools Section [NOT STARTED]
+### Phase 1: Update Allowed Tools Section [COMPLETED]
 
 **Goal**: Add MCP-NixOS tools to the agent's allowed tools list.
 
@@ -72,7 +72,7 @@ From research-001.md:
 
 ---
 
-### Phase 2: Update Research Strategy Decision Tree [NOT STARTED]
+### Phase 2: Update Research Strategy Decision Tree [COMPLETED]
 
 **Goal**: Integrate MCP queries into the research strategy, prioritizing MCP for package/option lookups.
 
@@ -94,7 +94,7 @@ From research-001.md:
 
 ---
 
-### Phase 3: Add MCP-NixOS Integration Section [NOT STARTED]
+### Phase 3: Add MCP-NixOS Integration Section [IN PROGRESS]
 
 **Goal**: Document comprehensive MCP-NixOS integration patterns with graceful degradation.
 
