@@ -1,15 +1,21 @@
 {
-  "status": "in_progress",
+  "status": "researched",
   "started_at": "2026-02-03T12:00:00Z",
-  "artifacts": [],
-  "partial_progress": {
-    "stage": "synthesizing",
-    "details": "Analysis complete, creating research report"
-  },
+  "completed_at": "2026-02-03T12:15:00Z",
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/2_update_readme_for_dotfiles/reports/research-001.md",
+      "summary": "Research report identifying 7 sections needing updates, 2 new sections to add, and 10 sections to preserve unchanged"
+    }
+  ],
+  "next_steps": "Run /plan 2 to create implementation plan",
   "metadata": {
     "session_id": "sess_1770159513_033726",
     "agent_type": "general-research-agent",
+    "duration_seconds": 900,
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "general-research-agent"]
+    "delegation_path": ["orchestrator", "research", "general-research-agent"],
+    "findings_count": 12
   }
 }
