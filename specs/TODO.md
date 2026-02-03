@@ -46,7 +46,7 @@
 ---
 
 ### 2. Update README.md for dotfiles context
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNING]
 - **Priority**: high
 - **Language**: meta
 - **Researched**: 2026-02-03
@@ -65,33 +65,6 @@
    - Host management (multi-system configs)
 6. Update Related Documentation paths to match actual repo structure
 7. Keep core architecture documentation (delegation, state management, etc.) since it's still valid
-
----
-
-### 3. Fix meta.md directory creation specification conflict
-- **Status**: [RESEARCHED]
-- **Priority**: high
-- **Language**: meta
-- **Researched**: 2026-02-02
-- **Research**: [research-001.md](specs/3_fix_meta_directory_creation_spec/reports/research-001.md)
-- **Description**: Remove or fix conflicting specification in `.claude/commands/meta.md` line 29 that says "Create task directories for each task" which contradicts the lazy directory creation rule in `.claude/rules/state-management.md`.
-
-**Root Cause Analysis**:
-The `/meta` command specification at line 29 states:
-> "Create task directories for each task"
-
-But `state-management.md` (lines 226-257) explicitly states:
-> "DO NOT create directories at task creation time. The `/task` command only:
-> 1. Updates `specs/state.json`
-> 2. Updates `specs/TODO.md`"
->
-> "WHO creates directories: Artifact-writing agents (researcher, planner, implementer) create directories with `mkdir -p` when writing their first artifact"
-
-**Fix Required**:
-1. Edit `.claude/commands/meta.md` line 29
-2. Change "Create task directories for each task" to something like:
-   - "Task directories created lazily when artifacts are written (see state-management.md)"
-   - Or simply remove the line
 
 ---
 

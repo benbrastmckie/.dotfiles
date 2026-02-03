@@ -1,0 +1,19 @@
+{
+  "completed_projects": [
+    {
+      "project_number": 3,
+      "project_name": "fix_meta_directory_creation_spec",
+      "status": "abandoned",
+      "language": "meta",
+      "description": "Fix conflicting specification in meta.md about directory creation - remove line 29 that contradicts lazy directory creation rule in state-management.md",
+      "abandoned": "2026-02-03T23:04:11Z",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/3_fix_meta_directory_creation_spec/reports/research-001.md",
+          "summary": "Comparative analysis confirming specification conflict exists in both repos; no plan creation is by design"
+        }
+      ]
+    }
+  ]
+}

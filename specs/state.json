@@ -68,31 +68,17 @@
     {
       "project_number": 2,
       "project_name": "update_readme_for_dotfiles",
-      "status": "researched",
+      "status": "planning",
       "language": "meta",
       "description": "Update README.md (Claude system architecture doc) to reflect NixOS dotfiles context",
-      "last_updated": "2026-02-03T23:15:00Z",
-      "session_id": "sess_1770159513_033726",
+      "last_updated": "2026-02-03T23:03:15Z",
+      "session_id": "sess_1770159780_648e35",
       "researched": "2026-02-03T23:15:00Z",
       "artifacts": [
         {
           "type": "research",
           "path": "specs/2_update_readme_for_dotfiles/reports/research-001.md",
           "summary": "Research report identifying 7 sections needing updates, 2 new sections to add, and 10 sections to preserve unchanged"
-        }
-      ]
-    },
-    {
-      "project_number": 3,
-      "project_name": "fix_meta_directory_creation_spec",
-      "status": "researched",
-      "language": "meta",
-      "description": "Fix conflicting specification in meta.md about directory creation - remove line 29 that contradicts lazy directory creation rule in state-management.md",
-      "artifacts": [
-        {
-          "type": "research",
-          "path": "specs/3_fix_meta_directory_creation_spec/reports/research-001.md",
-          "summary": "Comparative analysis confirming specification conflict exists in both repos; no plan creation is by design"
         }
       ]
     },
