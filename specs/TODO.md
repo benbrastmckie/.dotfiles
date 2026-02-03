@@ -139,13 +139,15 @@ But `state-management.md` (lines 226-257) explicitly states:
 ---
 
 ### 7. Create nix-research-agent
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Priority**: high
 - **Language**: meta
 - **Depends on**: Tasks 5, 6
 - **Researched**: 2026-02-03
+- **Completed**: 2026-02-03
 - **Research**: [research-001.md](specs/7_create_nix_research_agent/reports/research-001.md)
 - **Plan**: [implementation-001.md](specs/7_create_nix_research_agent/plans/implementation-001.md)
+- **Summary**: [implementation-summary-20260203.md](specs/7_create_nix_research_agent/summaries/implementation-summary-20260203.md)
 
 **Description**: Create nix-research-agent mirroring neovim-research-agent pattern with Nix domain knowledge: Nix language, flakes, NixOS modules, home-manager, overlays, derivations.
 
@@ -161,7 +163,7 @@ But `state-management.md` (lines 226-257) explicitly states:
 ---
 
 ### 8. Create nix-implementation-agent
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHING]
 - **Priority**: high
 - **Language**: meta
 - **Depends on**: Tasks 5, 6
