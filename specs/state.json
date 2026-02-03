@@ -31,11 +31,11 @@
     {
       "project_number": 9,
       "project_name": "create_skill_nix_research",
-      "status": "planning",
+      "status": "planned",
       "language": "meta",
       "description": "Create skill-nix-research thin wrapper skill that delegates to nix-research-agent following the established skill pattern (preflight, delegate, postflight)",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:15:01Z",
+      "last_updated": "2026-02-03T23:16:59Z",
       "depends_on": [
         7
       ],
@@ -46,21 +46,27 @@
           "path": "specs/9_create_skill_nix_research/reports/research-001.md",
           "type": "research",
           "summary": "Research report analyzing skill wrapper patterns for creating skill-nix-research"
+        },
+        {
+          "path": "specs/9_create_skill_nix_research/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "3-phase implementation plan for skill-nix-research thin wrapper"
         }
-      ]
+      ],
+      "planned": "2026-02-03T23:16:59Z"
     },
     {
       "project_number": 10,
       "project_name": "create_skill_nix_implementation",
-      "status": "planned",
+      "status": "implementing",
       "language": "meta",
       "description": "Create skill-nix-implementation thin wrapper skill that delegates to nix-implementation-agent following the established skill pattern (preflight, delegate, postflight)",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:15:40Z",
+      "last_updated": "2026-02-03T23:16:41Z",
       "depends_on": [
         8
       ],
-      "session_id": "sess_1770160411_94db19",
+      "session_id": "sess_1770160584_6d29fe",
       "researched": "2026-02-03T23:12:54Z",
       "artifacts": [
         {
@@ -74,7 +80,8 @@
           "summary": "2-phase implementation plan for skill-nix-implementation thin wrapper"
         }
       ],
-      "planned": "2026-02-03T23:15:40Z"
+      "planned": "2026-02-03T23:15:40Z",
+      "started": "2026-02-03T23:16:41Z"
     },
     {
       "project_number": 11,
