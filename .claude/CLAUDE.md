@@ -166,8 +166,10 @@ Domain knowledge (load as needed):
 - @.claude/context/project/nix/domain/flakes.md
 - @.claude/context/project/nix/domain/nixos-modules.md
 - @.claude/context/project/nix/domain/home-manager.md
+- @.claude/context/project/nix/patterns/module-patterns.md
 - @.claude/context/project/nix/patterns/overlay-patterns.md
 - @.claude/context/project/nix/patterns/derivation-patterns.md
+- @.claude/context/project/nix/standards/nix-style-guide.md
 - @.claude/context/project/nix/tools/nixos-rebuild-guide.md
 - @.claude/context/project/nix/tools/home-manager-guide.md
 

@@ -1,6 +1,6 @@
 # Architecture Principles for Meta-Generated Systems
 
-**Purpose**: Core principles for designing .opencode system architectures
+**Purpose**: Core principles for designing .claude agent system architectures
 **Last Updated**: 2025-12-29
 
 ---
@@ -267,4 +267,4 @@ Build validation into every stage of the workflow.
 
 ---
 
-**Maintained By**: ProofChecker Development Team
+**Maintained By**: Development Team

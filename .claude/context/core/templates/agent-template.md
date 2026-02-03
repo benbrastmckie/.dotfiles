@@ -331,4 +331,4 @@ All templates follow the 8-stage workflow pattern:
 
 ---
 
-**Maintained By**: ProofChecker Development Team
+**Maintained By**: Development Team

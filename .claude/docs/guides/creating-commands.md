@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide provides a streamlined walkthrough for creating new task-based commands in the Neovim Configuration .opencode system.
+This guide provides a streamlined walkthrough for creating new task-based commands in the .claude agent system.
 
 ## Prerequisites
 

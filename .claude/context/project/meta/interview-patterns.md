@@ -221,4 +221,4 @@ Build shared context incrementally throughout the interview.
 
 ---
 
-**Maintained By**: ProofChecker Development Team
+**Maintained By**: Development Team

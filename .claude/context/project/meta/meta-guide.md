@@ -1,6 +1,6 @@
 # Meta-System Builder Guide
 
-Complete guide for using the `/meta` command to create and modify agents and commands in the ProofChecker system.
+Complete guide for using the `/meta` command to create and modify agents and commands in the Claude agent system.
 
 ## Overview
 
@@ -23,7 +23,7 @@ This launches an interactive interview that guides you through:
 
 ## What You Get
 
-### Complete .opencode Structure
+### Complete .claude Structure
 ```
 .claude/
 ├── agent/

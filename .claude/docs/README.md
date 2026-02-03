@@ -1,8 +1,8 @@
 # Claude Agent System Documentation
 
-[Back to ProofChecker](../../README.md) | [Architecture](../README.md) | [CLAUDE.md](../CLAUDE.md)
+[Back to Project](../../README.md) | [Architecture](../README.md) | [CLAUDE.md](../CLAUDE.md)
 
-This directory contains the documentation for the `.claude/` agent system. The system provides structured task management, research workflows, and implementation automation for ProofChecker development. For comprehensive system details, see [architecture/system-overview.md](architecture/system-overview.md).
+This directory contains the documentation for the `.claude/` agent system. The system provides structured task management, research workflows, and implementation automation. For comprehensive system details, see [architecture/system-overview.md](architecture/system-overview.md).
 
 ---
 
@@ -44,7 +44,7 @@ The `.claude/` directory implements a three-layer architecture: Commands, Skills
 ## Guides
 
 ### Getting Started
-- [User Installation Guide](guides/user-installation.md) - Install Claude Code, set up ProofChecker, and learn the basics
+- [User Installation Guide](guides/user-installation.md) - Install Claude Code, set up the project, and learn the basics
 - [Command Workflows User Guide](guides/user-guide.md) - Comprehensive guide to all commands with examples and troubleshooting
 - [Copy .claude/ Directory](guides/copy-claude-directory.md) - Install the agent system in another project
 - [Neovim Integration](guides/neovim-integration.md) - Hook-based readiness signaling, TTS notifications, and STT voice input
@@ -80,10 +80,10 @@ Reusable templates for creating new system components are available in [template
 - [CLAUDE.md](../CLAUDE.md) - Quick reference entry point with command syntax and workflow summaries
 - [README.md](../README.md) - Detailed system architecture and component specifications
 
-### ProofChecker Project
-- [ProofChecker README](../../README.md) - Main project documentation
-- [ProofChecker docs/](../../docs/) - Project-specific documentation
+### Project
+- [Project README](../../README.md) - Main project documentation
+- [Project docs/](../../docs/) - Project-specific documentation
 
 ---
 
-[Back to ProofChecker](../../README.md) | [Architecture](../README.md) | [CLAUDE.md](../CLAUDE.md)
+[Back to Project](../../README.md) | [Architecture](../README.md) | [CLAUDE.md](../CLAUDE.md)

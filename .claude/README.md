@@ -1,9 +1,5 @@
 # Claude Code System Architecture
 
-**Version**: 2.3
-**Status**: Active
-**Created**: 2025-12-26
-**Updated**: 2026-02-03
 **Purpose**: Comprehensive user documentation for the .claude skill and task management system for NixOS dotfiles
 
 This document provides detailed explanations of the system architecture for users who want to understand how the agent system works. For minimal agent context loaded every session, see `.claude/CLAUDE.md`.
@@ -34,7 +30,7 @@ This document provides detailed explanations of the system architecture for user
 
 ## System Overview
 
-The .claude system is a task management and automation framework designed for NixOS dotfiles maintenance and configuration management. It provides multi-domain support for Neovim configuration, Nix/NixOS system configuration, LaTeX/Typst document compilation, and general development tasks. This document describes the architecture of the version 2.0 system, which represents a complete clean-break refactor from the previous version.
+The .claude system is a task management and automation framework designed for NixOS dotfiles maintenance and configuration management. It provides multi-domain support for Neovim configuration, Nix/NixOS system configuration, LaTeX/Typst document compilation, and general development tasks.
 
 ### Purpose and Goals
 
@@ -46,19 +42,6 @@ The .claude system is a task management and automation framework designed for Ni
 - Enable flake-based reproducible system builds across multiple hosts
 - Track and analyze errors for continuous improvement
 - Automate git commits with clear, scoped changes
-
-### Clean Break Rationale
-
-Version 2.0 was built from scratch to address critical issues identified in Task 191:
-
-1. **Delegation Hangs**: Commands would invoke subagents but never receive results, causing indefinite hangs
-2. **Missing Return Handling**: No explicit stages for receiving and validating subagent returns
-3. **Infinite Loops**: No cycle detection or delegation depth limits
-4. **Timeout Failures**: No timeout enforcement, leading to indefinite waits
-5. **Status Sync Failures**: Race conditions when updating TODO.md and state.json
-6. **Missing Git Commits**: No automatic commit creation after task completion
-
-The clean break approach ensures all components follow consistent patterns and standards from the start.
 
 ---
 
@@ -74,7 +57,7 @@ All delegation follows strict safety patterns to prevent hangs and loops:
 - **Timeout Enforcement**: All delegations have timeouts (default 3600s)
 - **Return Validation**: All subagent returns validated against standard format
 
-See `.claude/context/core/workflows/subagent-delegation-guide.md` for detailed patterns.
+See `.claude/context/core/orchestration/orchestration-core.md` for detailed patterns.
 
 ### 2. Standardized Returns
 
@@ -104,7 +87,7 @@ This enables:
 - Error propagation
 - Session tracking
 
-See `.claude/context/core/standards/subagent-return-format.md` for full specification.
+See `.claude/context/core/formats/subagent-return.md` for full specification.
 
 ### 3. Atomic State Updates
 
@@ -839,26 +822,12 @@ Two-phase commit ensures:
 
 ---
 
-## Future Enhancements
-
-### Planned Features
-
-1. **Parallel Phase Execution**: Execute independent phases in parallel
-2. **Dependency Analysis**: Automatic dependency detection between tasks
-3. **Progress Tracking**: Real-time progress updates during long operations
-4. **Batch Task Execution**: Execute multiple tasks in sequence or parallel
-5. **Advanced Error Analysis**: Machine learning for error pattern detection
-6. **Tool Integration**: Additional tool integrations for development workflows
-7. **Language Support**: Python, JavaScript, Rust-specific agents
-8. **Performance Profiling**: Track and optimize slow operations
-
-### Extensibility
+## Extensibility
 
 The architecture supports extension through:
-- New commands (add to .claude/command/)
+- New commands (add to .claude/commands/)
 - New subagents (add to .claude/agents/)
-- New specialists (add to .claude/agents/specialists/)
-- New language routing (update orchestrator routing logic)
+- New language routing (update command routing logic)
 - New error types (add to errors.json schema)
 
 ---
@@ -1222,6 +1191,3 @@ After any MCP configuration changes, restart Claude Code for changes to take eff
 - Nix Context: `.claude/context/project/nix/README.md` - NixOS/Home Manager domain knowledge
 - Neovim Context: `.claude/context/project/neovim/` - Neovim configuration domain
 - Repository Overview: `.claude/context/project/repo/project-overview.md`
-
-### Historical Reference
-- Task 191 established the v2.0 clean-break architecture (delegation safety, state management)

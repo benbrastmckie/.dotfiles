@@ -1,6 +1,6 @@
 # Development Templates
 
-This directory contains templates for creating new commands and agents in the ProofChecker OpenCode system.
+This directory contains templates for creating new commands and agents in the Claude agent system.
 
 ---
 
@@ -350,4 +350,4 @@ For questions or issues with templates:
 
 **Document Version**: 1.0  
 **Last Updated**: 2025-12-29  
-**Maintained By**: ProofChecker Development Team
+**Maintained By**: Development Team

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Standards for creating, formatting, and managing tasks within the .opencode system. These standards ensure consistency across specs/TODO.md, IMPLEMENTATION_STATUS.md, and state tracking.
+Standards for creating, formatting, and managing tasks within the .claude agent system. These standards ensure consistency across specs/TODO.md, IMPLEMENTATION_STATUS.md, and state tracking.
 
 ## Core Principles
 

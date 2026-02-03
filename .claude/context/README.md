@@ -71,6 +71,22 @@
 │   │   ├── templates/              # Template files
 │   │   └── tools/                  # Tool documentation (lazy.nvim, etc.)
 │   │
+│   ├── nix/                        # Nix/NixOS/Home Manager knowledge
+│   │   ├── domain/                 # Language and ecosystem concepts
+│   │   │   ├── nix-language.md     # Nix language fundamentals
+│   │   │   ├── flakes.md           # Flake system and inputs
+│   │   │   ├── nixos-modules.md    # NixOS module system
+│   │   │   └── home-manager.md     # Home Manager configuration
+│   │   ├── patterns/               # Configuration patterns
+│   │   │   ├── module-patterns.md  # Module structure patterns
+│   │   │   ├── overlay-patterns.md # Overlay and overrides
+│   │   │   └── derivation-patterns.md # Package derivations
+│   │   ├── standards/              # Coding standards
+│   │   │   └── nix-style-guide.md  # Nix formatting conventions
+│   │   └── tools/                  # Tool documentation
+│   │       ├── nixos-rebuild-guide.md # NixOS rebuild commands
+│   │       └── home-manager-guide.md  # Home Manager usage
+│   │
 │   ├── latex/                      # LaTeX document knowledge
 │   │   ├── patterns/               # Document patterns
 │   │   ├── standards/              # Style standards
@@ -123,6 +139,7 @@
 **Contents**:
 - **meta/** - Meta-builder context (domain patterns, architecture principles)
 - **neovim/** - Neovim configuration knowledge (API, patterns, plugins)
+- **nix/** - Nix/NixOS/Home Manager knowledge (language, modules, flakes)
 - **latex/** - LaTeX document authoring knowledge
 - **typst/** - Typst document authoring knowledge
 - **hooks/** - Git hooks context

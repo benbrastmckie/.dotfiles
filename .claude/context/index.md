@@ -1,7 +1,5 @@
 # Context Index - Lazy-Loading Quick Map
 
-**Created**: 2025-12-23
-**Updated**: 2026-01-28 (Task 702 - Added Typst context section)
 **Purpose**: Quick reference map for on-demand context loading following checkpoint-based execution
 
 ---
@@ -114,14 +112,6 @@
 
 - **postflight-pattern.md** (~340 lines) - Post-completion process
   - **LOAD when implementing postflight**
-
-**Deprecated files** (still available for reference):
-- orchestrator.md -> orchestration-core.md, orchestration-reference.md
-- delegation.md -> orchestration-core.md, orchestration-validation.md
-- routing.md -> orchestration-core.md
-- validation.md -> orchestration-validation.md
-- subagent-validation.md -> orchestration-validation.md
-- sessions.md -> orchestration-core.md
 
 ---
 
@@ -348,6 +338,40 @@ Load for: Neovim implementation tasks (Language: neovim)
 - Load keymap-patterns.md when defining keybindings
 - Load autocommand-patterns.md when working with autocmds
 
+### Nix Context (project/nix/)
+
+Load for: Nix implementation tasks (Language: nix)
+
+**Overview**:
+- **README.md** (~80 lines) - Directory overview and loading strategy
+
+**Domain**:
+- **nix-language.md** - Nix language fundamentals (expressions, let, with, inherit)
+- **flakes.md** - Flake system, inputs, outputs, follows pattern
+- **nixos-modules.md** - NixOS module system (mkOption, mkIf, lib.types)
+- **home-manager.md** - Home Manager configuration and modules
+
+**Patterns**:
+- **module-patterns.md** - Module structure and option definition patterns
+- **overlay-patterns.md** - Overlay and package override patterns
+- **derivation-patterns.md** - Package derivation patterns
+
+**Standards**:
+- **nix-style-guide.md** - Nix formatting conventions (2-space indent, naming)
+
+**Tools**:
+- **nixos-rebuild-guide.md** - NixOS rebuild commands and workflow
+- **home-manager-guide.md** - Home Manager usage and commands
+
+**When to Load**:
+- Load README.md for overview on any Nix task
+- Load nix-language.md for language fundamentals
+- Load flakes.md when working with flake.nix
+- Load nixos-modules.md when creating NixOS modules
+- Load home-manager.md when configuring Home Manager
+- Load module-patterns.md for module structure reference
+- Load nix-style-guide.md for formatting conventions
+
 ### Typst Context (project/typst/)
 
 Load for: Typst implementation tasks (Language: typst)
@@ -491,41 +515,6 @@ Quick reference:
 - Interactive/Prompt modes: component-selection.md + on-demand component guides
 - Analyze mode: CLAUDE.md + index.md (read-only analysis)
 - All modes: subagent-return.md (always)
-
----
-
-## Context Budget Targets (Task 246 Goals)
-
-- **Routing**: <10% context window (Stages 1-3, no context loading)
-- **Execution**: 90% context window available (Stage 4+, selective loading)
-- **Total context system**: 2,000-2,500 lines (Phase 3 consolidation target)
-
----
-
-## Consolidation Summary (Task 246 Phase 3)
-
-**Completed**:
-- ✓ Delegation files merged: 1,003 → 510 lines (50% reduction)
-- ✓ State management files merged: 1,574 → 535 lines (66% reduction)
-- ✓ command-lifecycle.md deprecated: 1,138 lines pending removal
-- ✓ Total reduction: 3,715 → 1,045 lines (72% reduction, 2,670 lines saved)
-
-**Deprecated Files** (deprecation period ended 2025-01-29, now removed):
-- subagent-return-format.md → core/standards/delegation.md#return-format (removed)
-- subagent-delegation-guide.md → core/standards/delegation.md#delegation-patterns (removed)
-- state-schema.md → core/system/state-management.md#state-schemas (removed)
-- command-lifecycle.md → see agent files for execution patterns (pending removal)
-
-**Note**: status-markers.md has been moved from core/system/ to core/standards/ (2026-01-08) as it defines standards/conventions rather than system implementation.
-
----
-
-## Migration Notes (Task 240 + Task 246)
-
-**Phase 1 (Complete)**: Index pattern established, /research migrated to frontmatter
-**Phase 2 (Complete)**: All commands migrate to frontmatter, orchestrator simplified
-**Phase 3 (Complete)**: Context consolidation, 72% size reduction achieved
-**Phase 4 (Planned)**: Testing and documentation
 
 ---
 

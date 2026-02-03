@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Documentation standards for the .opencode AI system and ProofChecker repository.
+Documentation standards for the .claude AI agent system.
 These standards ensure documentation is clear, concise, accurate, and optimized for
 AI agent consumption.
 
@@ -13,6 +13,28 @@ AI agent consumption.
 3. **Accurate**: Document current state only, not past versions or future plans
 4. **Consistent**: Follow established patterns and conventions
 5. **AI-Optimized**: Structure for efficient AI agent parsing and understanding
+
+## File Naming Conventions
+
+### General Rule
+
+All documentation files in `.claude/` use **lowercase kebab-case** with `.md` extension.
+
+**Correct**:
+- `documentation-standards.md`
+- `error-handling.md`
+- `task-management.md`
+
+**Incorrect**:
+- `DOCUMENTATION_STANDARDS.md` (all caps)
+- `documentation_standards.md` (underscores)
+- `DocumentationStandards.md` (PascalCase)
+
+### README.md Exception
+
+`README.md` files use ALL_CAPS naming. This is the **only** exception to kebab-case.
+
+---
 
 ## General Standards
 
@@ -77,7 +99,7 @@ AI agent consumption.
 
 **Enforcement**: See `.claude/AGENTS.md` for centralized rule (automatically loaded by OpenCode).
 
-**Prohibition**: No emojis are permitted anywhere in .opencode system files.
+**Prohibition**: No emojis are permitted anywhere in .claude system files.
 
 **Rationale**:
 - Emojis are ambiguous and culture-dependent
@@ -104,7 +126,7 @@ If emojis found, replace with text alternatives from table above.
 
 ### NO VERSION HISTORY Policy
 
-**Prohibition**: Version history sections are FORBIDDEN in all .opencode documentation.
+**Prohibition**: Version history sections are FORBIDDEN in all .claude documentation.
 
 **Rationale**:
 - Version history is useless cruft that clutters documentation
@@ -137,6 +159,36 @@ grep -E "v[0-9]+\.[0-9]+\.[0-9]+" file.md
 ```
 
 If version history found, remove it entirely.
+
+### Prohibited Content: Quick Start Sections
+
+Do not include "Quick Start" sections in documentation.
+
+**Problem**: Quick Start sections encourage users to skip context and understanding.
+Users jump to the quick start, copy commands without understanding them, then encounter
+problems they cannot debug because they lack foundational knowledge.
+
+**Alternative approaches**:
+- Structured introduction that builds understanding progressively
+- Clear prerequisites section followed by step-by-step instructions
+- Example-first documentation where examples are explained in detail
+- Reference tables that users can scan quickly while still providing context
+
+### Prohibited Content: Quick Reference Documents
+
+Do not create standalone quick reference documents or reference card sections.
+
+**Problem**: Quick reference documents become maintenance burdens. They duplicate
+information from authoritative sources, drift out of sync, and provide incomplete
+information that leads to incorrect usage.
+
+**Alternative approaches**:
+- Summary tables within authoritative documents
+- Decision trees that guide users to the right information
+- Well-organized indexes with links to full documentation
+
+**Exception**: Tables that summarize information defined in the same document are
+acceptable. The prohibition applies to separate "cheat sheet" or "quick ref" files.
 
 ### Cross-References
 
@@ -179,17 +231,37 @@ All Unicode formal symbols must be wrapped in backticks:
 
 ## Directory README Standards
 
-### When README Required
-- Top-level source directories
-- Test directories with 3+ subdirectories
-- Example/archive directories
-- Multi-subdirectory documentation roots
+### docs/ Subdirectories
 
-### When README Not Required
-- Single-module directories with excellent `.lean` module documentation
-- Subdirectories when parent README provides sufficient navigation
-- Build/output directories
-- Directories with <3 files that are self-explanatory
+Every subdirectory of `.claude/docs/` **must** contain a `README.md` file.
+
+**Purpose**: Navigation guide and organizational documentation
+
+**Content requirements**:
+- Directory title as H1
+- 1-2 sentence purpose description
+- File listing with brief descriptions
+- Subdirectory listing with brief descriptions
+- Related documentation links
+
+**Style guidance**:
+- Lightweight and navigation-focused
+- Do not duplicate content from files in the directory
+- Keep under 100 lines where possible
+
+### context/ Subdirectories
+
+README.md files are **optional** in `.claude/context/` subdirectories.
+
+**When to include**:
+- Directories with 3+ files
+- Complex organizational structures
+- Directories where file purposes are not self-evident from names
+
+**When to omit**:
+- Single-purpose directories with clear naming
+- Directories where file names are self-explanatory
+- Deeply nested directories where parent README provides sufficient context
 
 ### README Structure
 1. **Title**: Directory name as H1
@@ -200,28 +272,64 @@ All Unicode formal symbols must be wrapped in backticks:
 6. **Related Documentation**: Links to relevant docs
 
 ### README Anti-Patterns
-- Duplicating `.lean` docstrings
 - Describing files/structure that no longer exists
 - Creating READMEs for simple directories
 - Including implementation details better suited for code comments
 
-## .opencode System Documentation
+## Directory Purposes
 
-### Context Files
-Context files in `.claude/context/` provide knowledge for AI agents:
+### docs/ Directory
+
+User-facing guides and documentation.
+
+**Audience**: Human users, developers, contributors
+
+**Content types**:
+- Installation and setup guides
+- How-to guides with step-by-step instructions
+- Tutorials and walkthroughs
+- Troubleshooting guides
+- Architecture overviews (user-facing)
+- Contributing guidelines
+
+**Style characteristics**:
+- User-friendly language
+- Step-by-step instructions
+- Explanatory prose
+
+### context/ Directory
+
+AI agent knowledge and operational standards.
+
+**Audience**: AI agents (Claude Code), developers maintaining the system
+
+**Content types**:
+- Standards and conventions
+- Schema definitions
+- Pattern libraries
+- Domain knowledge
+- Tool usage guides
+- Workflow specifications
+
+**Style characteristics**:
+- Technical precision
+- Machine-parseable structure
+- Concrete examples with verification
+- Cross-references to related context
 
 **Structure**:
-- `core/`: Core system standards, workflows, repo, templates
-- `lean4/`: LEAN 4 specific knowledge (domain, patterns, processes, tools)
-- `logic/`: Logic domain knowledge (proof theory, semantics, metalogic)
-- `math/`: Mathematical domain knowledge
+- `core/`: Core system standards, workflows, templates
+- `project/`: Project-specific context (neovim, nix, latex, typst)
 
-**Guidelines**:
-- Keep files focused on single topics
-- Use hierarchical organization
-- Provide concrete examples
-- Include verification procedures where applicable
-- Cross-reference related context files
+### Key Differences
+
+| Aspect | docs/ | context/ |
+|--------|-------|----------|
+| Primary audience | Humans | AI agents |
+| Writing style | Explanatory | Prescriptive |
+| Examples | Tutorials | Specifications |
+| Navigation | README required | README optional |
+| Updates | User-driven | System-driven |
 
 ### Artifact Documentation
 Artifacts in `specs/` are organized by project:
@@ -285,15 +393,7 @@ Use this checklist when creating or updating documentation:
 
 ## Related Standards
 
-### ProofChecker Project
-- [DIRECTORY_README_STANDARD.md](../../../docs/development/DIRECTORY_README_STANDARD.md)
-  - Directory-level README conventions for LEAN 4 projects
-- [DOC_QUALITY_CHECKLIST.md](../../../docs/development/DOC_QUALITY_CHECKLIST.md)
-  - Systematic verification procedures for documentation quality
-- [LEAN_STYLE_GUIDE.md](../../../docs/development/LEAN_STYLE_GUIDE.md)
-  - Code-level documentation conventions
-
-### .opencode System
+### .claude System
 - [Artifact Management](../system/artifact-management.md) - Artifact organization
 - [State Schema](state-schema.md) - State file schemas
 - [Core Standards](../standards/) - System-wide standards
@@ -307,9 +407,3 @@ When updating these standards:
 3. Notify affected agents/workflows
 4. Test with existing documentation
 
----
-
-## See Also
-
-- [documentation-standards.md](documentation-standards.md) - File naming conventions, README
-  requirements, prohibited content, and directory purpose standards

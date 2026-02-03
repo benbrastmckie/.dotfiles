@@ -13,7 +13,7 @@ XML-structured prompts improve LLM performance through:
 - **Better parsing** by LLMs (clear semantic boundaries)
 - **Improved maintainability** (structured, predictable format)
 
-This guide defines the standard XML patterns for ProofChecker agents.
+This guide defines the standard XML patterns for Claude agents.
 
 ---
 
