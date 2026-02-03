@@ -180,14 +180,15 @@ But `state-management.md` (lines 226-257) explicitly states:
 - **Depends on**: Tasks 5, 6
 - **Researched**: 2026-02-03
 - **Research**: [research-001.md](specs/8_create_nix_implementation_agent/reports/research-001.md), [research-002.md](specs/8_create_nix_implementation_agent/reports/research-002.md)
-- **Plan**: [implementation-001.md](specs/8_create_nix_implementation_agent/plans/implementation-001.md)
+- **Plan**: [implementation-002.md](specs/8_create_nix_implementation_agent/plans/implementation-002.md) (revised)
 
-**Description**: Create nix-implementation-agent mirroring neovim-implementation-agent pattern with Nix-specific verification (nix flake check, nixos-rebuild build, home-manager build) and phase-based execution.
+**Description**: Create nix-implementation-agent mirroring neovim-implementation-agent pattern with Nix-specific verification (nix flake check, nixos-rebuild build, home-manager build), phase-based execution, and MCP-NixOS integration.
 
 **Implementation Notes**:
 - Mirror `.claude/agents/neovim-implementation-agent.md` structure
 - Verification commands: `nix flake check`, `nix build`, `nixos-rebuild build --flake .`, `home-manager build --flake .`
 - Phase-based execution with Nix-specific validation
+- **MCP-NixOS integration for package/option validation with graceful degradation**
 - Handle flake lock updates appropriately
 - Load context from `.claude/context/project/nix/` (created in Task 5)
 - Apply rules from `.claude/rules/nix.md` (created in Task 6)
