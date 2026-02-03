@@ -21,24 +21,25 @@
     {
       "project_number": 4,
       "project_name": "manage_claude_settings_with_home_manager",
-      "status": "not_started",
+      "status": "planning",
       "language": "general",
       "description": "Maintain ~/.claude/settings.json via home-manager similar to other config files like wezterm.lua",
       "created": "2026-02-03T20:34:39Z",
-      "last_updated": "2026-02-03T20:34:39Z"
+      "last_updated": "2026-02-03T23:15:49Z",
+      "session_id": "sess_1770160530_13ebc0"
     },
     {
       "project_number": 9,
       "project_name": "create_skill_nix_research",
-      "status": "researched",
+      "status": "planning",
       "language": "meta",
       "description": "Create skill-nix-research thin wrapper skill that delegates to nix-research-agent following the established skill pattern (preflight, delegate, postflight)",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:13:05Z",
+      "last_updated": "2026-02-03T23:15:01Z",
       "depends_on": [
         7
       ],
-      "session_id": "sess_1770160202_ef5bfb",
+      "session_id": "sess_1770160473_c6dc90",
       "researched": "2026-02-03T23:13:05Z",
       "artifacts": [
         {
@@ -51,23 +52,29 @@
     {
       "project_number": 10,
       "project_name": "create_skill_nix_implementation",
-      "status": "researched",
+      "status": "planned",
       "language": "meta",
       "description": "Create skill-nix-implementation thin wrapper skill that delegates to nix-implementation-agent following the established skill pattern (preflight, delegate, postflight)",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:12:54Z",
+      "last_updated": "2026-02-03T23:15:40Z",
       "depends_on": [
         8
       ],
-      "session_id": "sess_1770160230_5441b2",
+      "session_id": "sess_1770160411_94db19",
       "researched": "2026-02-03T23:12:54Z",
       "artifacts": [
         {
           "path": "specs/10_create_skill_nix_implementation/reports/research-001.md",
           "type": "research",
           "summary": "Research report documenting the thin wrapper skill pattern for nix-implementation-agent delegation"
+        },
+        {
+          "path": "specs/10_create_skill_nix_implementation/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "2-phase implementation plan for skill-nix-implementation thin wrapper"
         }
-      ]
+      ],
+      "planned": "2026-02-03T23:15:40Z"
     },
     {
       "project_number": 11,

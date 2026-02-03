@@ -26,7 +26,7 @@
 ---
 
 ### 4. Manage Claude settings.json with home-manager
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNING]
 - **Priority**: medium
 - **Language**: general
 
@@ -35,7 +35,7 @@
 ---
 
 ### 9. Create skill-nix-research
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNING]
 - **Priority**: high
 - **Language**: meta
 - **Depends on**: Task 7
@@ -52,12 +52,13 @@
 ---
 
 ### 10. Create skill-nix-implementation
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Priority**: high
 - **Language**: meta
 - **Depends on**: Task 8
 - **Researched**: 2026-02-03
 - **Research**: [research-001.md](specs/10_create_skill_nix_implementation/reports/research-001.md)
+- **Plan**: [implementation-001.md](specs/10_create_skill_nix_implementation/plans/implementation-001.md)
 
 **Description**: Create skill-nix-implementation thin wrapper skill that delegates to nix-implementation-agent following the established skill pattern (preflight, delegate, postflight).
 
