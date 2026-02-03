@@ -1,6 +1,15 @@
 {
-  "next_project_number": 4,
+  "next_project_number": 5,
   "active_projects": [
+    {
+      "project_number": 4,
+      "project_name": "manage_claude_settings_with_home_manager",
+      "status": "not_started",
+      "language": "general",
+      "description": "Maintain ~/.claude/settings.json via home-manager similar to other config files like wezterm.lua",
+      "created": "2026-02-03T20:34:39Z",
+      "last_updated": "2026-02-03T20:34:39Z"
+    },
     {
       "project_number": 1,
       "project_name": "update_claudemd_for_dotfiles",

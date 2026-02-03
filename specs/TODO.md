@@ -2,6 +2,15 @@
 
 ## Active Tasks
 
+### 4. Manage Claude settings.json with home-manager
+- **Status**: [NOT STARTED]
+- **Priority**: medium
+- **Language**: general
+
+**Description**: Maintain ~/.claude/settings.json via home-manager similar to other config files like wezterm.lua in the dotfiles repository.
+
+---
+
 ### 3. Fix meta.md directory creation specification conflict
 - **Status**: [RESEARCHED]
 - **Priority**: high
