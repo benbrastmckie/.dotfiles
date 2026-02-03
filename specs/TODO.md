@@ -36,12 +36,15 @@
 ---
 
 ### 9. Create skill-nix-research
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Priority**: high
 - **Language**: meta
 - **Depends on**: Task 7
+- **Researched**: 2026-02-03
+- **Completed**: 2026-02-03
 - **Research**: [research-001.md](specs/9_create_skill_nix_research/reports/research-001.md)
 - **Plan**: [implementation-001.md](specs/9_create_skill_nix_research/plans/implementation-001.md)
+- **Summary**: [implementation-summary-20260203.md](specs/9_create_skill_nix_research/summaries/implementation-summary-20260203.md)
 
 **Description**: Create skill-nix-research thin wrapper skill that delegates to nix-research-agent following the established skill pattern (preflight, delegate, postflight).
 
