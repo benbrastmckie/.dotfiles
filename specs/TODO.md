@@ -84,9 +84,10 @@ But `state-management.md` (lines 226-257) explicitly states:
 ---
 
 ### 5. Create Nix context directory structure
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Priority**: high
 - **Language**: meta
+- **Research**: [research-001.md](specs/5_create_nix_context_directory/reports/research-001.md)
 
 **Description**: Create context/project/nix/ directory structure with domain knowledge (Nix language, flakes, modules), patterns (module patterns, overlays), standards (style guide), and tools (home-manager, nixos-rebuild guides).
 
