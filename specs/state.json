@@ -148,12 +148,20 @@
     {
       "project_number": 12,
       "project_name": "update_settings_for_nix_commands",
-      "status": "researching",
+      "status": "researched",
       "language": "meta",
       "description": "Update settings.json to add allowed Bash commands for Nix tooling: nix, nixos-rebuild, home-manager, nix-shell, nix-env",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:23:42Z",
-      "session_id": "sess_1770161008_360a22"
+      "last_updated": "2026-02-03T23:26:10Z",
+      "session_id": "sess_1770161008_360a22",
+      "researched": "2026-02-03T23:26:10Z",
+      "artifacts": [
+        {
+          "path": "specs/12_update_settings_for_nix_commands/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report documenting settings file locations, permission patterns, and Nix commands to add"
+        }
+      ]
     }
   ],
   "repository_health": {

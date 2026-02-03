@@ -100,9 +100,11 @@
 ---
 
 ### 12. Update settings.json for Nix commands
-- **Status**: [RESEARCHING]
+- **Status**: [RESEARCHED]
 - **Priority**: low
 - **Language**: meta
+- **Researched**: 2026-02-03
+- **Research**: [research-001.md](specs/12_update_settings_for_nix_commands/reports/research-001.md)
 
 **Description**: Update settings.json to add allowed Bash commands for Nix tooling: nix, nixos-rebuild, home-manager, nix-shell, nix-env.
 
