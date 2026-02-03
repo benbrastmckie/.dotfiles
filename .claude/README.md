@@ -1,10 +1,10 @@
 # Claude Code System Architecture
 
-**Version**: 2.2
+**Version**: 2.3
 **Status**: Active
 **Created**: 2025-12-26
-**Updated**: 2026-01-28
-**Purpose**: Comprehensive user documentation for the .claude skill and task management system
+**Updated**: 2026-02-03
+**Purpose**: Comprehensive user documentation for the .claude skill and task management system for NixOS dotfiles
 
 This document provides detailed explanations of the system architecture for users who want to understand how the agent system works. For minimal agent context loaded every session, see `.claude/CLAUDE.md`.
 
@@ -19,11 +19,16 @@ This document provides detailed explanations of the system architecture for user
 5. [State Management](#state-management)
 6. [Git Workflow](#git-workflow)
 7. [Language Routing](#language-routing)
-8. [Error Handling and Recovery](#error-handling-and-recovery)
-9. [Meta System Builder](#meta-system-builder)
-10. [Forked Subagent Pattern](#forked-subagent-pattern)
-11. [Session Maintenance](#session-maintenance)
-12. [MCP Server Configuration](#mcp-server-configuration)
+8. [NixOS-Specific Workflows](#nixos-specific-workflows)
+9. [Error Handling and Recovery](#error-handling-and-recovery)
+10. [Testing and Validation](#testing-and-validation)
+11. [Performance Considerations](#performance-considerations)
+12. [Future Enhancements](#future-enhancements)
+13. [Meta System Builder](#meta-system-builder)
+14. [Forked Subagent Pattern](#forked-subagent-pattern)
+15. [Session Maintenance](#session-maintenance)
+16. [MCP Server Configuration](#mcp-server-configuration)
+17. [Related Documentation](#related-documentation)
 
 ---
 
@@ -1205,11 +1210,18 @@ After any MCP configuration changes, restart Claude Code for changes to take eff
 
 ## Related Documentation
 
-- Quick Start Guide: `.claude/QUICK-START.md`
-- Testing Guide: `.claude/TESTING.md`
-- Agent Context: `.claude/CLAUDE.md`
-- Documentation Hub: `.claude/docs/README.md`
+### System Documentation
+- Agent Context: `.claude/CLAUDE.md` - Minimal agent context loaded every session
+- Documentation Hub: `.claude/docs/README.md` - Documentation index
+
+### Core Architecture
 - Orchestration Core: `.claude/context/core/orchestration/orchestration-core.md`
 - Return Format Standard: `.claude/context/core/formats/subagent-return.md`
-- Task 191 Research: `specs/191_fix_subagent_delegation_hang/reports/research-001.md`
-- Task 191 Plan: `specs/191_fix_subagent_delegation_hang/plans/implementation-001.md`
+
+### Domain Context
+- Nix Context: `.claude/context/project/nix/README.md` - NixOS/Home Manager domain knowledge
+- Neovim Context: `.claude/context/project/neovim/` - Neovim configuration domain
+- Repository Overview: `.claude/context/project/repo/project-overview.md`
+
+### Historical Reference
+- Task 191 established the v2.0 clean-break architecture (delegation safety, state management)

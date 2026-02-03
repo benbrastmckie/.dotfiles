@@ -1,7 +1,7 @@
 # Implementation Plan: Task #2
 
 - **Task**: 2 - update_readme_for_dotfiles
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 2.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/2_update_readme_for_dotfiles/reports/research-001.md
@@ -160,7 +160,7 @@ Key findings from research-001.md:
 
 ---
 
-### Phase 6: Update Related Documentation and Skill Mapping [IN PROGRESS]
+### Phase 6: Update Related Documentation and Skill Mapping [COMPLETED]
 
 **Goal**: Update references and skill-to-agent mapping to match actual structure
 
