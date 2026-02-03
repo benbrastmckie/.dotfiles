@@ -47,6 +47,11 @@
           "path": "specs/1_update_claudemd_for_dotfiles/reports/research-001.md",
           "type": "research",
           "summary": "Research report identifying CLAUDE.md inaccuracies: title, description, and project structure are all incorrect (describes Neovim config but this is a NixOS dotfiles repo with no nvim/ directory)"
+        },
+        {
+          "path": "specs/1_update_claudemd_for_dotfiles/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "2-phase implementation plan to update CLAUDE.md and project-overview.md for NixOS dotfiles accuracy"
         }
       ],
       "planned": "2026-02-03T22:55:04Z"
