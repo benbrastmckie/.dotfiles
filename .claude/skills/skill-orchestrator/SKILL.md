@@ -42,6 +42,7 @@ Route to appropriate skill based on task language:
 | Language | Research Skill | Implementation Skill |
 |----------|---------------|---------------------|
 | neovim | skill-neovim-research | skill-neovim-implementation |
+| nix | skill-nix-research | skill-nix-implementation |
 | latex | skill-researcher | skill-latex-implementation |
 | typst | skill-researcher | skill-typst-implementation |
 | general | skill-researcher | skill-implementer |

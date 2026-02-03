@@ -4,11 +4,11 @@
     {
       "project_number": 11,
       "project_name": "update_orchestrator_nix_routing",
-      "status": "implementing",
+      "status": "completed",
       "language": "meta",
       "description": "Update skill-orchestrator to add language='nix' routing that delegates to nix-specific agents for research and implementation",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:30:59Z",
+      "last_updated": "2026-02-03T23:32:31Z",
       "depends_on": [
         9,
         10
@@ -25,19 +25,27 @@
           "path": "specs/11_update_orchestrator_nix_routing/plans/implementation-001.md",
           "type": "plan",
           "summary": "1-phase implementation plan to add nix routing row to skill-orchestrator"
+        },
+        {
+          "path": "specs/11_update_orchestrator_nix_routing/summaries/implementation-summary-20260203.md",
+          "type": "summary",
+          "summary": "Implementation summary documenting nix routing addition"
         }
       ],
       "planned": "2026-02-03T23:28:24Z",
-      "started": "2026-02-03T23:30:59Z"
+      "started": "2026-02-03T23:30:59Z",
+      "completed": "2026-02-03T23:32:31Z",
+      "completion_summary": "Added nix language routing to skill-orchestrator by inserting a table row that routes nix tasks to skill-nix-research and skill-nix-implementation, completing the nix agent integration.",
+      "claudemd_suggestions": "Updated skill-orchestrator/SKILL.md Language-Based Routing table with nix row"
     },
     {
       "project_number": 12,
       "project_name": "update_settings_for_nix_commands",
-      "status": "implementing",
+      "status": "completed",
       "language": "meta",
       "description": "Update settings.json to add allowed Bash commands for Nix tooling: nix, nixos-rebuild, home-manager, nix-shell, nix-env",
       "created": "2026-02-03T21:00:00Z",
-      "last_updated": "2026-02-03T23:30:47Z",
+      "last_updated": "2026-02-03T23:32:35Z",
       "session_id": "sess_1770161432_7eca32",
       "researched": "2026-02-03T23:26:10Z",
       "artifacts": [
@@ -53,7 +61,10 @@
         }
       ],
       "planned": "2026-02-03T23:28:32Z",
-      "started": "2026-02-03T23:30:47Z"
+      "started": "2026-02-03T23:30:47Z",
+      "completed": "2026-02-03T23:32:35Z",
+      "completion_summary": "Added Nix tooling commands (nix, nixos-rebuild, home-manager, nix-shell, nix-env) to Claude settings.json permission allow list, enabling Claude to run Nix build and check commands.",
+      "claudemd_suggestions": "none"
     }
   ],
   "repository_health": {
