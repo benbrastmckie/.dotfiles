@@ -1,0 +1,20 @@
+{
+  "status": "researched",
+  "summary": "Root cause: /etc/localtime missing because automatic-timezoned sets time.timeZone=null and geoclue fails before setting timezone via timedatectl. Most elegant fix: use lib.mkForce for time.timeZone to ensure /etc/localtime always exists.",
+  "artifacts": [
+    {
+      "type": "research",
+      "path": "specs/17_fix_leanls_localtime_watchdog_error/reports/research-001.md",
+      "summary": "Complete analysis of why /etc/localtime is missing and why lib.mkForce is the most elegant solution"
+    }
+  ],
+  "next_steps": "Run /plan 17 to create implementation plan",
+  "metadata": {
+    "session_id": "sess_1770227313_eff7d8",
+    "agent_type": "nix-research-agent",
+    "duration_seconds": 720,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
+    "findings_count": 5
+  }
+}

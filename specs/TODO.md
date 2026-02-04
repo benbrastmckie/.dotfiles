@@ -3,8 +3,10 @@
 ## Active Tasks
 
 ### 17. Fix leanls LSP watchdog error for missing /etc/localtime
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Language**: nix
+- **Researched**: 2026-02-04
+- **Research**: [research-001.md](specs/17_fix_leanls_localtime_watchdog_error/reports/research-001.md)
 
 **Description**: Troubleshoot leanls (Lean LSP) failing in Neovim with exit code 1. Error messages include "Watchdog error: no such file or directory (error code: 2) file: /etc/localtime". Find the most elegant solution to resolve the missing /etc/localtime issue affecting the Lean language server.
 
