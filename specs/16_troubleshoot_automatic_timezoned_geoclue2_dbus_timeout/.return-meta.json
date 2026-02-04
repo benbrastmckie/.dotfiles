@@ -1,20 +1,30 @@
 {
-  "status": "planned",
+  "status": "implemented",
+  "summary": "Fixed automatic-timezoned D-Bus timeout by adding systemd restart configuration (Restart=on-failure, 30s delay, rate limited) for both automatic-timezoned and its geoclue agent. Enabled geoclue2 static location fallback with San Francisco coordinates for timezone detection when network geolocation fails.",
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout/plans/implementation-001.md",
-      "summary": "4-phase implementation plan for fixing automatic-timezoned D-Bus timeout via systemd restart configuration"
+      "type": "implementation",
+      "path": "configuration.nix",
+      "summary": "Added automatic-timezoned and geoclue agent restart configuration, enabled static location fallback"
+    },
+    {
+      "type": "summary",
+      "path": "specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout/summaries/implementation-summary-20260204.md",
+      "summary": "Implementation summary with verification steps and user actions"
     }
   ],
-  "next_steps": "Run /implement 16 to execute the plan",
+  "completion_data": {
+    "completion_summary": "Configured automatic-timezoned with systemd restart-on-failure and enabled geoclue2 static location fallback to resolve D-Bus timeout crashes when geoclue shuts down after its 60-second idle timeout."
+  },
   "metadata": {
-    "session_id": "sess_1770194905_0976c2",
-    "agent_type": "planner-agent",
-    "duration_seconds": 180,
+    "session_id": "sess_1770195204_d6d10c",
+    "duration_seconds": 1500,
+    "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
-    "phase_count": 4,
-    "estimated_hours": 2
-  }
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 4,
+    "phases_total": 4,
+    "mcp_available": false
+  },
+  "next_steps": "Run 'sudo nixos-rebuild switch --flake .' to apply changes, then verify with 'systemctl status automatic-timezoned'"
 }

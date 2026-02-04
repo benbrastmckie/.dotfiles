@@ -1,7 +1,7 @@
 # Implementation Plan: Task #16
 
 - **Task**: 16 - troubleshoot_automatic_timezoned_geoclue2_dbus_timeout
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 2 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout/reports/research-001.md
@@ -44,7 +44,7 @@ Key findings from research-001.md:
 
 ## Implementation Phases
 
-### Phase 1: Add Restart Configuration for automatic-timezoned [NOT STARTED]
+### Phase 1: Add Restart Configuration for automatic-timezoned [COMPLETED]
 
 **Goal**: Make automatic-timezoned restart automatically when geoclue disconnects
 
@@ -64,7 +64,7 @@ Key findings from research-001.md:
 
 ---
 
-### Phase 2: Configure geoclue Agent Service [NOT STARTED]
+### Phase 2: Configure geoclue Agent Service [COMPLETED]
 
 **Goal**: Keep the geoclue agent running to maintain connection attempts
 
@@ -83,7 +83,7 @@ Key findings from research-001.md:
 
 ---
 
-### Phase 3: Enable Static Source Fallback [NOT STARTED]
+### Phase 3: Enable Static Source Fallback [COMPLETED]
 
 **Goal**: Provide fallback location when BeaconDB fails or is slow
 
@@ -103,7 +103,7 @@ Key findings from research-001.md:
 
 ---
 
-### Phase 4: Test and Verify [NOT STARTED]
+### Phase 4: Test and Verify [COMPLETED]
 
 **Goal**: Confirm the fix resolves the D-Bus timeout issue
 
