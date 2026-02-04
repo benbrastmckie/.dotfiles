@@ -77,6 +77,7 @@ services.geoclue2 = {
   enableStatic = true;
   staticLatitude = 37.77;   # San Francisco area
   staticLongitude = -122.42;
+  staticAltitude = 50;      # 50 meters (approximate elevation for San Francisco Bay Area)
   staticAccuracy = 100000;  # 100km accuracy (sufficient for timezone detection)
   appConfig = {
     "org.gnome.Shell.LocationServices" = {
