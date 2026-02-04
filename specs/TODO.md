@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 15. Configure timezone based on location
+- **Status**: [NOT STARTED]
+- **Language**: nix
+
+**Description**: Configure NixOS timezone to be set based on location with California as default. Research best practices for automatic timezone detection and configuration.
+
+---
+
 ### 14. Review and improve documentation
 - **Status**: [COMPLETED]
 - **Language**: meta
