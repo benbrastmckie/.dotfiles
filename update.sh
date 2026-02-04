@@ -4,6 +4,18 @@ set -e
 
 echo "===> Updating dotfiles..."
 
+# Create git checkpoint if there are uncommitted changes
+if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+  echo "===> Creating git checkpoint before update..."
+  git add -A
+  git commit -m "checkpoint: auto-commit before update
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
+  echo "===> Checkpoint created"
+else
+  echo "===> No uncommitted changes, skipping checkpoint"
+fi
+
 # Update flake inputs
 echo "===> Updating flake inputs..."
 nix flake update
