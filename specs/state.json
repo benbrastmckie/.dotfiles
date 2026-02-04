@@ -1,6 +1,14 @@
 {
-  "next_project_number": 16,
+  "next_project_number": 17,
   "active_projects": [
+    {
+      "project_number": 16,
+      "project_name": "troubleshoot_automatic_timezoned_geoclue2_dbus_timeout",
+      "status": "not_started",
+      "language": "nix",
+      "created": "2026-02-04T08:33:01Z",
+      "last_updated": "2026-02-04T08:33:01Z"
+    },
     {
       "project_number": 15,
       "project_name": "configure_timezone_location_based",
