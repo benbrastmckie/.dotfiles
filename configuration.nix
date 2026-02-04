@@ -577,7 +577,7 @@ systemd.services = {
   # Keep the agent running to maintain location update attempts
   automatic-timezoned-geoclue-agent = {
     serviceConfig = {
-      Restart = "always";
+      Restart = lib.mkForce "always";
       RestartSec = "10s";
     };
     # Prevent restart loop: max 10 restarts per 5 minutes
