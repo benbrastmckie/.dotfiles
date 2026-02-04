@@ -71,6 +71,13 @@ networking = {
 # Time and location configuration
 services.geoclue2 = {
   enable = true;
+  # Enable static source as fallback when network geolocation fails
+  # Coordinates for California (approximate location for timezone detection)
+  # This provides a backup location when BeaconDB or WiFi geolocation is unavailable
+  enableStatic = true;
+  staticLatitude = 37.77;   # San Francisco area
+  staticLongitude = -122.42;
+  staticAccuracy = 100000;  # 100km accuracy (sufficient for timezone detection)
   appConfig = {
     "org.gnome.Shell.LocationServices" = {
       isAllowed = true;
@@ -542,6 +549,39 @@ systemd.services = {
       Restart = "on-failure";
       RestartSec = "60s";
     };
+  };
+
+  # ==========================================================================
+  # automatic-timezoned Service Restart Configuration
+  # ==========================================================================
+  # Problem: automatic-timezoned crashes when geoclue2 shuts down after its
+  # 60-second idle timeout, causing a D-Bus disconnection error.
+  #
+  # Solution: Configure automatic-timezoned to restart on failure with rate
+  # limiting to prevent restart loops.
+  #
+  # See: specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout
+  # ==========================================================================
+  automatic-timezoned = {
+    serviceConfig = {
+      Restart = "on-failure";
+      RestartSec = "30s";
+    };
+    # Prevent restart loop: max 10 restarts per 5 minutes
+    startLimitBurst = 10;
+    startLimitIntervalSec = 300;
+  };
+
+  # Geoclue agent for automatic-timezoned
+  # Keep the agent running to maintain location update attempts
+  automatic-timezoned-geoclue-agent = {
+    serviceConfig = {
+      Restart = "always";
+      RestartSec = "10s";
+    };
+    # Prevent restart loop: max 10 restarts per 5 minutes
+    startLimitBurst = 10;
+    startLimitIntervalSec = 300;
   };
 };
 

@@ -4,11 +4,11 @@
     {
       "project_number": 16,
       "project_name": "troubleshoot_automatic_timezoned_geoclue2_dbus_timeout",
-      "status": "planned",
+      "status": "completed",
       "language": "nix",
       "created": "2026-02-04T08:33:01Z",
-      "last_updated": "2026-02-04T08:50:26Z",
-      "session_id": "sess_1770194905_0976c2",
+      "last_updated": "2026-02-04T08:57:49Z",
+      "session_id": "sess_1770195204_d6d10c",
       "artifacts": [
         {
           "type": "research",
@@ -19,9 +19,17 @@
           "path": "specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout/plans/implementation-001.md",
           "type": "plan",
           "summary": "4-phase implementation plan for fixing automatic-timezoned D-Bus timeout via systemd restart configuration"
+        },
+        {
+          "path": "specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout/summaries/implementation-summary-20260204.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification steps"
         }
       ],
-      "planned": "2026-02-04T08:50:26Z"
+      "planned": "2026-02-04T08:50:26Z",
+      "started": "2026-02-04T08:53:43Z",
+      "completed": "2026-02-04T08:57:49Z",
+      "completion_summary": "Configured automatic-timezoned with systemd restart-on-failure and enabled geoclue2 static location fallback to resolve D-Bus timeout crashes when geoclue shuts down after its 60-second idle timeout."
     },
     {
       "project_number": 15,
