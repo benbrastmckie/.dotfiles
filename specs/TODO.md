@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 18. Investigate and fix gmail-oauth2-refresh.service failure
+- **Status**: [NOT STARTED]
+- **Language**: nix
+
+**Description**: Investigate and fix the gmail-oauth2-refresh.service systemd user service failure. The service is managed by Home Manager and is showing as failed/degraded after system rebuild.
+
+---
+
 ### 17. Fix leanls LSP watchdog error for missing /etc/localtime
 - **Status**: [COMPLETED]
 - **Language**: nix
