@@ -1,23 +1,20 @@
 {
-  "status": "researched",
-  "started_at": "2026-02-04T12:00:00Z",
-  "completed_at": "2026-02-04T12:30:00Z",
+  "status": "planned",
   "artifacts": [
     {
-      "type": "report",
-      "path": "specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout/reports/research-001.md",
-      "summary": "Research report analyzing geoclue2 60-second idle timeout causing automatic-timezoned D-Bus disconnection failure, with workaround recommendations"
+      "type": "plan",
+      "path": "specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout/plans/implementation-001.md",
+      "summary": "4-phase implementation plan for fixing automatic-timezoned D-Bus timeout via systemd restart configuration"
     }
   ],
-  "next_steps": "Run /plan 16 to create implementation plan",
+  "next_steps": "Run /implement 16 to execute the plan",
   "metadata": {
-    "session_id": "sess_1770194223_45a995",
-    "agent_type": "nix-research-agent",
-    "duration_seconds": 1800,
+    "session_id": "sess_1770194905_0976c2",
+    "agent_type": "planner-agent",
+    "duration_seconds": 180,
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
-    "findings_count": 6,
-    "root_cause": "geoclue2 hardcoded 60-second idle timeout causes shutdown before automatic-timezoned receives location data",
-    "primary_fix": "Add Restart=on-failure to automatic-timezoned systemd service configuration"
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 4,
+    "estimated_hours": 2
   }
 }
