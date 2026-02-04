@@ -6,7 +6,7 @@
 - **Status**: [RESEARCHED]
 - **Language**: nix
 - **Researched**: 2026-02-04
-- **Research**: [research-001.md](specs/18_fix_gmail_oauth2_refresh_service_failure/reports/research-001.md)
+- **Research**: [research-001.md](specs/18_fix_gmail_oauth2_refresh_service_failure/reports/research-001.md), [research-002.md](specs/18_fix_gmail_oauth2_refresh_service_failure/reports/research-002.md)
 
 **Description**: Investigate and fix the gmail-oauth2-refresh.service systemd user service failure. The service is managed by Home Manager and is showing as failed/degraded after system rebuild.
 
