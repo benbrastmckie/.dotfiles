@@ -96,9 +96,13 @@ services.geoclue2 = {
 # Enable location services
 location.provider = "geoclue2";
 
-# California default with automatic detection override
-# The lib.mkDefault allows automatic-timezoned to override when geolocation works
-time.timeZone = lib.mkDefault "America/Los_Angeles";
+# California default with forced priority to ensure /etc/localtime always exists
+# Problem: automatic-timezoned sets time.timeZone = null (priority ~1000), which
+# overrides lib.mkDefault (~1500) and causes NixOS to not create /etc/localtime.
+# Applications like leanls fail with "no such file or directory: /etc/localtime".
+# Solution: lib.mkForce (~50) ensures the symlink always exists at boot, while
+# automatic-timezoned can still update the timezone via timedatectl when geolocation works.
+time.timeZone = lib.mkForce "America/Los_Angeles";
 
 # Enable automatic timezone detection (will override the default above)
 services.automatic-timezoned.enable = true;
