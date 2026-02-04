@@ -1,6 +1,14 @@
 {
-  "next_project_number": 17,
+  "next_project_number": 18,
   "active_projects": [
+    {
+      "project_number": 17,
+      "project_name": "fix_leanls_localtime_watchdog_error",
+      "status": "not_started",
+      "language": "nix",
+      "created": "2026-02-04T17:47:03Z",
+      "last_updated": "2026-02-04T17:47:03Z"
+    },
     {
       "project_number": 16,
       "project_name": "troubleshoot_automatic_timezoned_geoclue2_dbus_timeout",
