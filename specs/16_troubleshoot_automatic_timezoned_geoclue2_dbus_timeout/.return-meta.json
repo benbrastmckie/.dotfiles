@@ -1,0 +1,23 @@
+{
+  "status": "researched",
+  "started_at": "2026-02-04T12:00:00Z",
+  "completed_at": "2026-02-04T12:30:00Z",
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout/reports/research-001.md",
+      "summary": "Research report analyzing geoclue2 60-second idle timeout causing automatic-timezoned D-Bus disconnection failure, with workaround recommendations"
+    }
+  ],
+  "next_steps": "Run /plan 16 to create implementation plan",
+  "metadata": {
+    "session_id": "sess_1770194223_45a995",
+    "agent_type": "nix-research-agent",
+    "duration_seconds": 1800,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
+    "findings_count": 6,
+    "root_cause": "geoclue2 hardcoded 60-second idle timeout causes shutdown before automatic-timezoned receives location data",
+    "primary_fix": "Add Restart=on-failure to automatic-timezoned systemd service configuration"
+  }
+}

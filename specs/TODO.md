@@ -3,8 +3,10 @@
 ## Active Tasks
 
 ### 16. Troubleshoot automatic-timezoned service failure
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Language**: nix
+- **Researched**: 2026-02-04
+- **Research**: [research-001.md](specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout/reports/research-001.md)
 
 **Description**: Investigate and fix automatic-timezoned service failing with D-Bus communication timeout. Service crashes after 60 seconds when geoclue2 shuts down due to idle timeout, preventing WiFi-based timezone detection from working despite proper configuration and WiFi connectivity.
 

@@ -4,10 +4,18 @@
     {
       "project_number": 16,
       "project_name": "troubleshoot_automatic_timezoned_geoclue2_dbus_timeout",
-      "status": "not_started",
+      "status": "researched",
       "language": "nix",
       "created": "2026-02-04T08:33:01Z",
-      "last_updated": "2026-02-04T08:33:01Z"
+      "last_updated": "2026-02-04T08:43:40Z",
+      "session_id": "sess_1770194223_45a995",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout/reports/research-001.md",
+          "summary": "Research report analyzing geoclue2 60-second idle timeout causing automatic-timezoned D-Bus disconnection failure, with workaround recommendations"
+        }
+      ]
     },
     {
       "project_number": 15,
