@@ -4,18 +4,24 @@
     {
       "project_number": 17,
       "project_name": "fix_leanls_localtime_watchdog_error",
-      "status": "researched",
+      "status": "planned",
       "language": "nix",
       "created": "2026-02-04T17:47:03Z",
-      "last_updated": "2026-02-04T17:53:34Z",
-      "session_id": "sess_1770227313_eff7d8",
+      "last_updated": "2026-02-04T18:51:37Z",
+      "session_id": "sess_1770230989_e6eab7",
       "artifacts": [
         {
           "type": "research",
           "path": "specs/17_fix_leanls_localtime_watchdog_error/reports/research-001.md",
           "summary": "Complete analysis of why /etc/localtime is missing and why lib.mkForce is the most elegant solution"
+        },
+        {
+          "path": "specs/17_fix_leanls_localtime_watchdog_error/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "3-phase plan: apply config change, rebuild system, verify Lean LSP"
         }
-      ]
+      ],
+      "planned": "2026-02-04T18:51:37Z"
     },
     {
       "project_number": 16,
