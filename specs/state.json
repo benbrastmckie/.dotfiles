@@ -4,11 +4,11 @@
     {
       "project_number": 18,
       "project_name": "fix_gmail_oauth2_refresh_service_failure",
-      "status": "researched",
+      "status": "planned",
       "language": "nix",
       "created": "2026-02-04T19:19:49Z",
-      "last_updated": "2026-02-04T22:13:10Z",
-      "session_id": "sess_1770242780_b3eb9f",
+      "last_updated": "2026-02-04T22:16:57Z",
+      "session_id": "sess_1770243276_d674b1",
       "artifacts": [
         {
           "type": "research",
@@ -19,8 +19,14 @@
           "type": "research",
           "path": "specs/18_fix_gmail_oauth2_refresh_service_failure/reports/research-002.md",
           "summary": "Follow-up research identifying client ID mismatch, empty client secret, and verified fix with correct OAuth2 credentials"
+        },
+        {
+          "path": "specs/18_fix_gmail_oauth2_refresh_service_failure/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "3-phase implementation plan to fix Gmail OAuth2 refresh service by updating client ID, storing client secret, and rebuilding"
         }
-      ]
+      ],
+      "planned": "2026-02-04T22:16:57Z"
     },
     {
       "project_number": 17,
