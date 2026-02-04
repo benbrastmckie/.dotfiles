@@ -448,7 +448,7 @@
 
   # Add systemd user session variables for broader availability
   systemd.user.sessionVariables = {
-    GMAIL_CLIENT_ID = "810486121108-i3d8dloc9hc0rg7g6ee9cj1tl8l1m0i8.apps.googleusercontent.com";
+    GMAIL_CLIENT_ID = "REDACTED_CLIENT_ID";
     SASL_PATH = "${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2";
   };
 
@@ -758,7 +758,7 @@
     # Prefer Wayland over X11
     NIXOS_OZONE_WL = "1";
     # MCP_HUB_PATH is now managed by the MCP-Hub module
-    GMAIL_CLIENT_ID = "810486121108-i3d8dloc9hc0rg7g6ee9cj1tl8l1m0i8.apps.googleusercontent.com";
+    GMAIL_CLIENT_ID = "REDACTED_CLIENT_ID";
     SASL_PATH = "/nix/store/ja75va5vkxrmm0y95gdzk04kxa0pmw1s-cyrus-sasl-xoauth2-0.2/lib/sasl2:/nix/store/f4spmcr74xb2zwin34n8973jj7ppn4bv-cyrus-sasl-2.1.28-bin/lib/sasl2";
     # Cursor settings for WezTerm and other applications
     XCURSOR_THEME = "Adwaita";

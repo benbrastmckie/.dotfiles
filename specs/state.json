@@ -4,11 +4,11 @@
     {
       "project_number": 18,
       "project_name": "fix_gmail_oauth2_refresh_service_failure",
-      "status": "planned",
+      "status": "completed",
       "language": "nix",
       "created": "2026-02-04T19:19:49Z",
-      "last_updated": "2026-02-04T22:16:57Z",
-      "session_id": "sess_1770243276_d674b1",
+      "last_updated": "2026-02-04T22:45:00Z",
+      "session_id": "sess_1770244035_7f4e8a",
       "artifacts": [
         {
           "type": "research",
@@ -24,9 +24,17 @@
           "path": "specs/18_fix_gmail_oauth2_refresh_service_failure/plans/implementation-001.md",
           "type": "plan",
           "summary": "3-phase implementation plan to fix Gmail OAuth2 refresh service by updating client ID, storing client secret, and rebuilding"
+        },
+        {
+          "type": "summary",
+          "path": "specs/18_fix_gmail_oauth2_refresh_service_failure/summaries/implementation-summary-20260204.md",
+          "summary": "Implementation summary for Gmail OAuth2 client ID fix with user action instructions for keyring and switch"
         }
       ],
-      "planned": "2026-02-04T22:16:57Z"
+      "planned": "2026-02-04T22:16:57Z",
+      "started": "2026-02-04T22:27:30Z",
+      "completed": "2026-02-04T22:45:00Z",
+      "completion_summary": "Fixed gmail-oauth2-refresh service by updating GMAIL_CLIENT_ID in home.nix to match the client ID bound to existing keyring tokens. Both nix flake check and home-manager build pass. User must store client secret in keyring and run home-manager switch to activate."
     },
     {
       "project_number": 17,
