@@ -1,7 +1,7 @@
 # Implementation Plan: Task #17
 
 - **Task**: 17 - fix_leanls_localtime_watchdog_error
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 0.5 hours
 - **Dependencies**: Task #16 research (understanding of automatic-timezoned behavior)
 - **Research Inputs**: specs/17_fix_leanls_localtime_watchdog_error/reports/research-001.md
@@ -46,7 +46,7 @@ Key findings from research-001.md:
 
 ## Implementation Phases
 
-### Phase 1: Apply Configuration Change [NOT STARTED]
+### Phase 1: Apply Configuration Change [COMPLETED]
 
 **Goal**: Change `lib.mkDefault` to `lib.mkForce` for time.timeZone in configuration.nix
 
@@ -66,7 +66,8 @@ Key findings from research-001.md:
 
 ---
 
-### Phase 2: Build and Apply System Configuration [NOT STARTED]
+### Phase 2: Build and Apply System Configuration [PARTIAL]
+**Note**: Configuration change ready. User must run: `sudo nixos-rebuild switch --flake .`
 
 **Goal**: Rebuild NixOS with the new configuration and verify /etc/localtime exists
 
@@ -87,6 +88,7 @@ Key findings from research-001.md:
 ---
 
 ### Phase 3: Verify Lean LSP Functionality [NOT STARTED]
+**Note**: Requires Phase 2 completion and user interaction (opening Neovim with Lean file)
 
 **Goal**: Confirm the Lean LSP no longer produces watchdog errors
 
