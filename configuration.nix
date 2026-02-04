@@ -86,13 +86,12 @@ services.geoclue2 = {
 # Enable location services
 location.provider = "geoclue2";
 
-# Choose ONE of the following approaches:
-# Option 1: Use automatic timezone detection (recommended with GNOME)
-services.automatic-timezoned.enable = true;
-# services.localtimed.enable = true;  # Don't enable both services
+# California default with automatic detection override
+# The lib.mkDefault allows automatic-timezoned to override when geolocation works
+time.timeZone = lib.mkDefault "America/Los_Angeles";
 
-# Option 2: Or set a static timezone (uncomment if you prefer this)
-# time.timeZone = "America/New_York";
+# Enable automatic timezone detection (will override the default above)
+services.automatic-timezoned.enable = true;
 
   # makes the split mechanical keyboard recognized
   services.udev = {
