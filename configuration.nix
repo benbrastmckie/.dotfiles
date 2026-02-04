@@ -573,17 +573,9 @@ systemd.services = {
     startLimitIntervalSec = 300;
   };
 
-  # Geoclue agent for automatic-timezoned
-  # Keep the agent running to maintain location update attempts
-  automatic-timezoned-geoclue-agent = {
-    serviceConfig = {
-      Restart = lib.mkForce "always";
-      RestartSec = "10s";
-    };
-    # Prevent restart loop: max 10 restarts per 5 minutes
-    startLimitBurst = 10;
-    startLimitIntervalSec = 300;
-  };
+  # Note: automatic-timezoned-geoclue-agent already has Restart = "on-failure"
+  # defined by the NixOS module, which is sufficient for handling D-Bus
+  # disconnections when geoclue2 shuts down. No override needed.
 };
 
 # Do not change this value after initial installation
