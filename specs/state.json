@@ -7,13 +7,18 @@
       "status": "researched",
       "language": "nix",
       "created": "2026-02-04T19:19:49Z",
-      "last_updated": "2026-02-04T19:28:32Z",
-      "session_id": "sess_1770233076_edd193",
+      "last_updated": "2026-02-04T22:10:00Z",
+      "session_id": "sess_1770242780_b3eb9f",
       "artifacts": [
         {
           "type": "research",
           "path": "specs/18_fix_gmail_oauth2_refresh_service_failure/reports/research-001.md",
           "summary": "Research report identifying root cause as missing OAuth2 tokens and solution to run himalaya account configure wizard"
+        },
+        {
+          "type": "research",
+          "path": "specs/18_fix_gmail_oauth2_refresh_service_failure/reports/research-002.md",
+          "summary": "Follow-up research identifying client ID mismatch, empty client secret in keyring, and verified fix with correct OAuth2 credentials"
         }
       ]
     },
