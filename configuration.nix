@@ -72,7 +72,7 @@ networking = {
 services.geoclue2 = {
   enable = true;
   # Enable WiFi-based location detection (uses BeaconDB)
-  enableWifi = true;
+  enableWifi = lib.mkForce true;
   # Enable static source as fallback when network geolocation fails
   # Coordinates for California (approximate location for timezone detection)
   # This provides a backup location when BeaconDB or WiFi geolocation is unavailable
