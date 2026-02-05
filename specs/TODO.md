@@ -3,8 +3,10 @@
 ## Active Tasks
 
 ### 19. Install and set up MCP servers for web development
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Language**: general
+- **Researched**: 2026-02-05
+- **Research**: [research-001.md](specs/19_install_setup_mcp_servers_web_development/reports/research-001.md)
 
 **Description**: Install and set up three MCP servers for use doing web development in /home/benjamin/Projects/Logos/LogosWebsite/ and other similar projects. Draw on the guide at /home/benjamin/Projects/Logos/LogosWebsite/.claude/docs/guides/mcp-server-setup.md for reference.
 
