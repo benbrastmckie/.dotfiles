@@ -4,10 +4,19 @@
     {
       "project_number": 19,
       "project_name": "install_setup_mcp_servers_web_development",
-      "status": "not_started",
+      "status": "researched",
       "language": "general",
       "created": "2026-02-05T20:39:19Z",
-      "last_updated": "2026-02-05T20:39:19Z"
+      "last_updated": "2026-02-05T20:43:00Z",
+      "session_id": "sess_1770323993_694cae",
+      "researched": "2026-02-05T20:43:00Z",
+      "artifacts": [
+        {
+          "path": "specs/19_install_setup_mcp_servers_web_development/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report covering all three MCP servers (Astro Docs, Context7, Playwright) with installation requirements, configuration details, and NixOS-specific considerations"
+        }
+      ]
     },
     {
       "project_number": 18,
