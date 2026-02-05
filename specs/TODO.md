@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 19. Install and set up MCP servers for web development
+- **Status**: [NOT STARTED]
+- **Language**: general
+
+**Description**: Install and set up three MCP servers for use doing web development in /home/benjamin/Projects/Logos/LogosWebsite/ and other similar projects. Draw on the guide at /home/benjamin/Projects/Logos/LogosWebsite/.claude/docs/guides/mcp-server-setup.md for reference.
+
+---
+
 ### 18. Investigate and fix gmail-oauth2-refresh.service failure
 - **Status**: [COMPLETED]
 - **Language**: nix
