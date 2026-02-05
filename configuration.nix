@@ -347,6 +347,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       nodejs_20            # JavaScript runtime environment
       uv                   # Fast Python package installer and resolver
       bun                  # Fast all-in-one JavaScript runtime
+      pnpm_9               # Fast, disk space efficient package manager
       fd                   # Simple, fast alternative to 'find'
       ripgrep              # Fast line-oriented search tool (alternative to grep)
       fzf                  # Command-line fuzzy finder
