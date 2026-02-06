@@ -474,6 +474,7 @@
 
   home.file = {
     ".config/neofetch/config.conf".source = ./config/neofetch.conf;
+    ".config/opencode/opencode.json".source = ./config/opencode.json;
     # Niri config - ENABLED (dual-session with GNOME)
     ".config/niri/config.kdl".source = ./config/config.kdl;
     # WezTerm config is now managed by programs.wezterm above
