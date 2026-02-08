@@ -424,6 +424,17 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       xdotool              # Command-line X11 automation tool
       xwayland             # X server for running X11 applications on Wayland
 
+      # DNS & Network Tools
+      bind                 # DNS tools (dig, nslookup, host)
+      dnsutils             # Additional DNS utilities
+      whois                # Domain registration lookup
+      traceroute           # Network path diagnosis
+      mtr                  # Better traceroute (combines ping + traceroute)
+
+      # SSL/TLS Tools
+      # openssl is already available system-wide
+      mkcert               # Local SSL certificates for development
+
       # NixOS
       home-manager         # Tool for managing user configuration
       nix-index            # Utility for indexing Nix store files
