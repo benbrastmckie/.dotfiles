@@ -156,6 +156,33 @@
     espeak-ng    # Text-to-speech for notifications
     markitdown   # Document to markdown converter (supports PDF, DOCX, PPTX, etc)
 
+    # Web Development & API Tools
+    httpie       # User-friendly HTTP client (better than curl for APIs)
+    fx           # Interactive JSON viewer
+
+    # Git Enhancement Tools
+    glab         # GitLab CLI
+    delta        # Better git diff viewer
+
+    # System Monitoring
+    btop         # Modern, beautiful system monitor
+    htop         # Interactive process viewer
+    bandwhich    # Network bandwidth monitor
+
+    # Documentation Tools
+    vale         # Prose linting for documentation
+    marksman     # Markdown language server (LSP)
+    mdl          # Markdown linter
+
+    # Image Optimization
+    imagemagick  # Image manipulation
+    optipng      # PNG optimizer
+    jpegoptim    # JPEG optimizer
+
+    # Email Testing Tools
+    swaks        # Swiss Army Knife for SMTP testing
+    mailutils    # Email utilities
+
     # Dictation tools
     whisper-cpp  # Fast offline speech-to-text (renamed from openai-whisper-cpp)
     ydotool      # Universal input tool (works with GNOME/Wayland)
