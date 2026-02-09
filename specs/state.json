@@ -4,11 +4,11 @@
     {
       "project_number": 22,
       "project_name": "update_himalaya_documentation_smtp_fix",
-      "status": "planned",
+      "status": "completed",
       "language": "general",
       "created": "2026-02-09T21:19:40Z",
-      "last_updated": "2026-02-09T21:37:52Z",
-      "session_id": "sess_1770672949_7ae9e9",
+      "last_updated": "2026-02-09T21:45:11Z",
+      "session_id": "sess_1770673369_4438e9",
       "researched": "2026-02-09T21:26:10Z",
       "artifacts": [
         {
@@ -20,9 +20,17 @@
           "path": "specs/22_update_himalaya_documentation_smtp_fix/plans/implementation-001.md",
           "type": "plan",
           "summary": "2-phase implementation plan to update Himalaya SMTP documentation with correct auth.cmd syntax"
+        },
+        {
+          "path": "specs/22_update_himalaya_documentation_smtp_fix/summaries/implementation-summary-20260209.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification results"
         }
       ],
-      "planned": "2026-02-09T21:37:52Z"
+      "planned": "2026-02-09T21:37:52Z",
+      "started": "2026-02-09T21:43:08Z",
+      "completed": "2026-02-09T21:45:11Z",
+      "completion_summary": "Updated Himalaya documentation to reflect working SMTP configuration for Protonmail logos account. Changed encryption.type and auth.cmd fields to match the verified working configuration from home.nix."
     },
     {
       "project_number": 21,
