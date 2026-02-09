@@ -10,7 +10,6 @@
 - **Type**: neovim
 - **Lean Intent**: false
 
-
 ## Overview
 
 This task implements dual-account email support (Gmail + Protonmail) in the NixOS dotfiles by updating home.nix based on the manual setup guide. The existing Gmail-only configuration in himalaya config.toml, mbsyncrc, and the mail directory activation script will be extended to include the Logos Labs Protonmail account accessed via Protonmail Bridge.
