@@ -3,9 +3,11 @@
 ## Active Tasks
 
 ### 22. Update Himalaya documentation for SMTP fix
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Researched**: 2026-02-09
+- **Planned**: 2026-02-09
 - **Research**: [research-001.md](specs/22_update_himalaya_documentation_smtp_fix/reports/research-001.md)
+- **Plan**: [implementation-001.md](specs/22_update_himalaya_documentation_smtp_fix/plans/implementation-001.md)
 - **Language**: general
 
 **Description**: Update docs/himalaya.md to remove the note that SMTP sending doesn't work for the logos account, and update the configuration examples to show the working SMTP backend configuration. The SMTP sending functionality is now fully working after task 21 fixed the configuration syntax. Remove any "Not Working Yet" or "Workaround" sections related to SMTP sending for Protonmail. Update the configuration examples to show the correct auth.cmd format instead of the incorrect auth.keyring format that was causing parsing errors.
