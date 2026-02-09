@@ -3,10 +3,12 @@
 ## Active Tasks
 
 ### 20. Update Himalaya setup from manual guide
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Language**: neovim
 - **Researched**: 2026-02-09
+- **Planned**: 2026-02-09
 - **Research**: [research-001.md](specs/20_update_himalaya_setup/reports/research-001.md)
+- **Plan**: [implementation-001.md](specs/20_update_himalaya_setup/plans/implementation-001.md)
 
 **Description**: Draw on /home/benjamin/.config/nvim/docs/himalaya-manual-setup-guide.md to make any necessary changes to the existing Himalaya setup.
 
