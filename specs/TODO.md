@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 20. Update Himalaya setup from manual guide
+- **Status**: [NOT STARTED]
+- **Language**: neovim
+
+**Description**: Draw on /home/benjamin/.config/nvim/docs/himalaya-manual-setup-guide.md to make any necessary changes to the existing Himalaya setup.
+
+---
+
 ### 19. Install and set up MCP servers for web development
 - **Status**: [RESEARCHED]
 - **Language**: general
