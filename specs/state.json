@@ -4,19 +4,25 @@
     {
       "project_number": 21,
       "project_name": "fix_himalaya_smtp_logos_account",
-      "status": "researched",
+      "status": "planned",
       "language": "neovim",
       "created": "2026-02-09T20:40:46Z",
-      "last_updated": "2026-02-09T21:01:51Z",
-      "session_id": "sess_1770670081_0e0718",
+      "last_updated": "2026-02-09T21:13:40Z",
+      "session_id": "sess_1770671514_1bdf8f",
       "researched": "2026-02-09T21:01:51Z",
       "artifacts": [
         {
           "type": "research",
           "path": "specs/21_fix_himalaya_smtp_logos_account/reports/research-001.md",
           "summary": "Research report identifying incorrect TOML syntax and providing verified correct configuration format"
+        },
+        {
+          "path": "specs/21_fix_himalaya_smtp_logos_account/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "2-phase implementation plan to add SMTP backend configuration to logos account"
         }
-      ]
+      ],
+      "planned": "2026-02-09T21:13:40Z"
     },
     {
       "project_number": 20,

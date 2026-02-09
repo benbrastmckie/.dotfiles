@@ -1,19 +1,18 @@
 {
-  "status": "researched",
+  "status": "planned",
   "artifacts": [
     {
-      "type": "report",
-      "path": "specs/21_fix_himalaya_smtp_logos_account/reports/research-001.md",
-      "summary": "Research report identifying incorrect TOML syntax and providing verified correct configuration format"
+      "type": "plan",
+      "path": "specs/21_fix_himalaya_smtp_logos_account/plans/implementation-001.md",
+      "summary": "2-phase implementation plan to add SMTP backend configuration to logos account"
     }
   ],
-  "next_steps": "Run /plan 21 to create implementation plan",
+  "next_steps": "Run /implement 21 to execute the plan",
   "metadata": {
-    "session_id": "sess_1770670081_0e0718",
-    "agent_type": "neovim-research-agent",
-    "duration_seconds": 600,
+    "session_id": "sess_1770671514_1bdf8f",
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "neovim-research-agent"],
-    "findings_count": 4
+    "phase_count": 2,
+    "estimated_hours": 0.5
   }
 }
