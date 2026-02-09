@@ -227,9 +227,9 @@ message.send.backend.type = "smtp"
 message.send.backend.host = "127.0.0.1"
 message.send.backend.port = 1025
 message.send.backend.login = "benjamin@logos-labs.ai"
-message.send.backend.encryption = "none"
+message.send.backend.encryption.type = "none"
 message.send.backend.auth.type = "password"
-message.send.backend.auth.password.keyring = "protonmail-bridge benjamin@logos-labs.ai"
+message.send.backend.auth.cmd = "secret-tool lookup service protonmail-bridge username benjamin@logos-labs.ai"
 ```
 
 ### mbsync Configuration
