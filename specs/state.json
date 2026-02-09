@@ -4,11 +4,11 @@
     {
       "project_number": 20,
       "project_name": "update_himalaya_setup",
-      "status": "planned",
+      "status": "completed",
       "language": "neovim",
       "created": "2026-02-09T18:18:53Z",
-      "last_updated": "2026-02-09T18:33:12Z",
-      "session_id": "sess_1770661801_98ae0c",
+      "last_updated": "2026-02-09T19:13:50Z",
+      "session_id": "sess_1770663746_a52de0",
       "researched": "2026-02-09T18:27:54Z",
       "artifacts": [
         {
@@ -20,9 +20,17 @@
           "path": "specs/20_update_himalaya_setup/plans/implementation-001.md",
           "type": "plan",
           "summary": "5-phase implementation plan for adding Protonmail account to Himalaya email setup via home.nix updates"
+        },
+        {
+          "path": "specs/20_update_himalaya_setup/summaries/implementation-summary-20260209.md",
+          "type": "summary",
+          "summary": "Implementation summary with configuration details and manual post-switch steps"
         }
       ],
-      "planned": "2026-02-09T18:33:12Z"
+      "planned": "2026-02-09T18:33:12Z",
+      "started": "2026-02-09T19:03:44Z",
+      "completed": "2026-02-09T19:13:50Z",
+      "completion_summary": "Extended NixOS home.nix with Protonmail Bridge package, logos account configuration for himalaya CLI email client, mbsync channels for IMAP sync via Bridge, and maildir directory creation. Build verified with home-manager build."
     },
     {
       "project_number": 19,

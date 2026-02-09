@@ -1,7 +1,7 @@
 # Implementation Plan: Task #20
 
 - **Task**: 20 - Update Himalaya Setup from Manual Guide
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 1.5 hours
 - **Dependencies**: Protonmail Bridge installation and login (manual step)
 - **Research Inputs**: specs/20_update_himalaya_setup/reports/research-001.md
@@ -48,7 +48,7 @@ Research report research-001.md identified:
 
 ## Implementation Phases
 
-### Phase 1: Add Protonmail Bridge Package [NOT STARTED]
+### Phase 1: Add Protonmail Bridge Package [COMPLETED]
 
 **Goal**: Install protonmail-bridge via home.packages
 
@@ -65,7 +65,7 @@ Research report research-001.md identified:
 
 ---
 
-### Phase 2: Add Logos Account to Himalaya Config [NOT STARTED]
+### Phase 2: Add Logos Account to Himalaya Config [COMPLETED]
 
 **Goal**: Configure himalaya CLI with the logos (Protonmail) account
 
@@ -85,7 +85,7 @@ Research report research-001.md identified:
 
 ---
 
-### Phase 3: Add Logos Channels to mbsync Config [NOT STARTED]
+### Phase 3: Add Logos Channels to mbsync Config [COMPLETED]
 
 **Goal**: Configure mbsync to sync Protonmail via Bridge
 
@@ -107,7 +107,7 @@ Research report research-001.md identified:
 
 ---
 
-### Phase 4: Add Logos Maildir to Activation Script [NOT STARTED]
+### Phase 4: Add Logos Maildir to Activation Script [COMPLETED]
 
 **Goal**: Ensure Mail/Logos directory structure is created on activation
 
@@ -124,7 +124,7 @@ Research report research-001.md identified:
 
 ---
 
-### Phase 5: Build and Verify Configuration [NOT STARTED]
+### Phase 5: Build and Verify Configuration [COMPLETED]
 
 **Goal**: Ensure configuration builds successfully and produces correct output files
 
