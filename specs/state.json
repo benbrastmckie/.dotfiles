@@ -4,19 +4,25 @@
     {
       "project_number": 20,
       "project_name": "update_himalaya_setup",
-      "status": "researched",
+      "status": "planned",
       "language": "neovim",
       "created": "2026-02-09T18:18:53Z",
-      "last_updated": "2026-02-09T18:27:54Z",
-      "session_id": "sess_1770661406_7ab8a0",
+      "last_updated": "2026-02-09T18:33:12Z",
+      "session_id": "sess_1770661801_98ae0c",
       "researched": "2026-02-09T18:27:54Z",
       "artifacts": [
         {
           "type": "research",
           "path": "specs/20_update_himalaya_setup/reports/research-001.md",
           "summary": "Research report comparing manual setup guide to current configuration, with specific Nix configuration blocks needed for implementation"
+        },
+        {
+          "path": "specs/20_update_himalaya_setup/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "5-phase implementation plan for adding Protonmail account to Himalaya email setup via home.nix updates"
         }
-      ]
+      ],
+      "planned": "2026-02-09T18:33:12Z"
     },
     {
       "project_number": 19,
