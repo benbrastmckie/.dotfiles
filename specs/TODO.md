@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 21. Fix Himalaya SMTP sending for logos account
+- **Status**: [NOT STARTED]
+- **Language**: neovim
+
+**Description**: Fix the Himalaya SMTP backend configuration for the logos (Protonmail) account to enable sending emails. Currently, Himalaya v1.1.0 throws a TOML parsing error when trying to configure SMTP with password authentication for Protonmail Bridge. The error occurs at the message.send.backend configuration and reports "invalid value: map, expected map with a single key". Reading emails via maildir works perfectly. Investigation needed: (1) Determine correct TOML structure for SMTP password auth in Himalaya v1.1.0, (2) Test if keyring format "protonmail-bridge benjamin@logos-labs.ai" is correct or needs to be restructured, (3) Consider alternative auth methods if password auth has changed, (4) Verify against Himalaya documentation or examples for v1.1.0 SMTP configuration. Bridge is running on localhost:1025 with no encryption. The gmail account uses OAuth2 and works fine, so the issue is specific to password auth structure.
+
+---
+
 ### 20. Update Himalaya setup from manual guide
 - **Status**: [COMPLETED]
 - **Language**: neovim

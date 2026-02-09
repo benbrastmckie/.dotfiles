@@ -1,6 +1,14 @@
 {
-  "next_project_number": 21,
+  "next_project_number": 22,
   "active_projects": [
+    {
+      "project_number": 21,
+      "project_name": "fix_himalaya_smtp_logos_account",
+      "status": "not_started",
+      "language": "neovim",
+      "created": "2026-02-09T20:40:46Z",
+      "last_updated": "2026-02-09T20:40:46Z"
+    },
     {
       "project_number": 20,
       "project_name": "update_himalaya_setup",
