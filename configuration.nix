@@ -348,6 +348,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       uv                   # Fast Python package installer and resolver
       bun                  # Fast all-in-one JavaScript runtime
       pnpm_9               # Fast, disk space efficient package manager
+      wrangler             # Cloudflare Workers CLI for serverless deployment
       fd                   # Simple, fast alternative to 'find'
       ripgrep              # Fast line-oriented search tool (alternative to grep)
       fzf                  # Command-line fuzzy finder

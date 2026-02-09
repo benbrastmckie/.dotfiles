@@ -97,6 +97,136 @@ home.packages = with pkgs; [
 
 Add to `unstable-packages.nix` and reference in configurations.
 
+## Web Development & Network Tools
+
+The following tools are installed to support web development, DNS diagnostics, and website management:
+
+### DNS & Network Diagnostics (configuration.nix)
+
+**Essential for troubleshooting domain, DNS, and network issues:**
+- `bind` - DNS tools (dig, nslookup, host) for DNS record queries
+- `dnsutils` - Additional DNS diagnostic utilities
+- `whois` - Domain registration lookup and nameserver information
+- `traceroute` - Network path diagnosis
+- `mtr` - Advanced network diagnostics (combines ping and traceroute)
+
+**Example usage:**
+```bash
+# Check DNS records
+dig logos-labs.ai MX +short
+dig logos-labs.ai TXT +short
+
+# Check domain registration
+whois logos-labs.ai
+
+# Diagnose network path
+mtr logos-labs.ai
+```
+
+### SSL/TLS Tools (configuration.nix)
+
+- `mkcert` - Create locally-trusted development certificates
+
+**Note:** OpenSSL is available system-wide for SSL certificate inspection and testing.
+
+### Cloudflare Development (configuration.nix)
+
+- `wrangler` - CLI for building and deploying Cloudflare Workers, Pages, and D1 databases
+
+**Example usage:**
+```bash
+# Initialize a new Workers project
+wrangler init my-worker
+
+# Deploy to Cloudflare Workers
+wrangler deploy
+
+# Tail logs from deployed worker
+wrangler tail
+```
+
+### HTTP & API Testing (home.nix)
+
+- `httpie` - User-friendly HTTP client with syntax highlighting and JSON formatting
+- `curl` - Classic HTTP tool (already installed)
+- `fx` - Interactive JSON viewer and processor
+
+**Example usage:**
+```bash
+# Test API with httpie
+http GET https://api.example.com/data
+
+# View JSON interactively
+curl -s https://api.example.com/data | fx
+```
+
+### Git Enhancement Tools (home.nix)
+
+- `gh` - GitHub CLI (already installed)
+- `glab` - GitLab CLI for managing GitLab repositories
+- `lazygit` - Terminal UI for git (already installed)
+- `delta` - Syntax-highlighting pager for git diffs
+
+**Configure delta for better git diffs:**
+```bash
+git config --global core.pager "delta"
+git config --global interactive.diffFilter "delta --color-only"
+git config --global delta.navigate true
+git config --global delta.side-by-side true
+```
+
+### System Monitoring (home.nix)
+
+- `btop` - Modern, beautiful system monitor with mouse support
+- `htop` - Interactive process viewer
+- `bandwhich` - Real-time network bandwidth monitor by process
+
+### Documentation & Writing Tools (home.nix)
+
+- `vale` - Prose linter for enforcing writing style guides
+- `marksman` - Markdown language server for LSP integration
+- `mdl` - Markdown linter for checking formatting
+
+**Example usage:**
+```bash
+# Lint documentation
+vale docs/*.md
+
+# Check markdown files
+mdl README.md
+```
+
+### Image Optimization (home.nix)
+
+**Tools for optimizing web assets:**
+- `imagemagick` - Comprehensive image manipulation toolkit
+- `optipng` - PNG optimizer
+- `jpegoptim` - JPEG optimizer
+
+**Example usage:**
+```bash
+# Optimize for web
+optipng -o7 src/assets/logo.png
+jpegoptim --strip-all --all-progressive src/assets/hero.jpg
+
+# Resize image
+convert input.jpg -resize 800x600 output.jpg
+```
+
+### Email Testing (home.nix)
+
+- `swaks` - Swiss Army Knife for SMTP - comprehensive email testing tool
+- `mailutils` - Collection of email utilities (mail, mailx, etc.)
+
+**Example usage:**
+```bash
+# Test SMTP connection
+swaks --to user@example.com \
+      --from test@example.com \
+      --server smtp.gmail.com \
+      --tls
+```
+
 ## Package Testing
 
 Use `packages/test-mcphub.sh` as template for testing custom packages:
