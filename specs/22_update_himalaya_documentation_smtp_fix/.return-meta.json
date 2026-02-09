@@ -1,0 +1,21 @@
+{
+  "status": "researched",
+  "started_at": "2026-02-09T00:00:00Z",
+  "completed_at": "2026-02-09T00:15:00Z",
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/22_update_himalaya_documentation_smtp_fix/reports/research-001.md",
+      "summary": "Research report documenting incorrect SMTP configuration in docs/himalaya.md and the correct working syntax from task 21"
+    }
+  ],
+  "next_steps": "Run /plan 22 to create implementation plan",
+  "metadata": {
+    "session_id": "sess_1770672164_4c14b9",
+    "agent_type": "general-research-agent",
+    "duration_seconds": 300,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "skill-researcher", "general-research-agent"],
+    "findings_count": 3
+  }
+}
