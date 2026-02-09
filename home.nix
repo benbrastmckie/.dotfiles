@@ -182,6 +182,7 @@
     # Email Testing Tools
     swaks        # Swiss Army Knife for SMTP testing
     mailutils    # Email utilities
+    protonmail-bridge  # Protonmail Bridge for local IMAP/SMTP access
 
     # Dictation tools
     whisper-cpp  # Fast offline speech-to-text (renamed from openai-whisper-cpp)
@@ -423,6 +424,12 @@
     mkdir -p "/home/benjamin/Mail/Gmail/EuroTrip"/{cur,new,tmp}
     mkdir -p "/home/benjamin/Mail/Gmail/CrazyTown"/{cur,new,tmp}
     mkdir -p "/home/benjamin/Mail/Gmail/Letters"/{cur,new,tmp}
+    # Logos Labs maildir structure
+    mkdir -p /home/benjamin/Mail/Logos/INBOX/{cur,new,tmp}
+    mkdir -p "/home/benjamin/Mail/Logos/Sent"/{cur,new,tmp}
+    mkdir -p "/home/benjamin/Mail/Logos/Drafts"/{cur,new,tmp}
+    mkdir -p "/home/benjamin/Mail/Logos/Trash"/{cur,new,tmp}
+    mkdir -p "/home/benjamin/Mail/Logos/Archive"/{cur,new,tmp}
   '';
 
   # Systemd user services for ydotool daemon (required for dictation)
@@ -548,6 +555,36 @@
       # Configure sent message handling
       message.send.save-copy = true
       folder.sent.name = "[Gmail].Sent Mail"
+
+      # Logos Labs account (via Protonmail Bridge)
+      [accounts.logos]
+      default = false
+      email = "benjamin@logos-labs.ai"
+      display-name = "Benjamin Brast-McKie"
+      downloads-dir = "/home/benjamin/Downloads"
+
+      backend.type = "maildir"
+      backend.root-dir = "/home/benjamin/Mail/Logos"
+      backend.maildirpp = true
+
+      message.send.backend.type = "smtp"
+      message.send.backend.host = "127.0.0.1"
+      message.send.backend.port = 1025
+      message.send.backend.encryption = "none"
+      message.send.backend.auth.type = "password"
+      message.send.backend.auth.login = "benjamin@logos-labs.ai"
+      message.send.backend.auth.password.keyring = "protonmail-bridge benjamin@logos-labs.ai"
+
+      # Folder configuration for Protonmail
+      folder.alias.inbox = "INBOX"
+      folder.alias.sent = "Sent"
+      folder.alias.drafts = "Drafts"
+      folder.alias.trash = "Trash"
+      folder.alias.archive = "Archive"
+
+      # Configure sent message handling
+      message.send.save-copy = true
+      folder.sent.name = "Sent"
     '';
     
     
@@ -642,6 +679,64 @@
       Channel gmail-all
       Channel gmail-spam
       Channel gmail-folders
+
+      # Logos Labs IMAP account (via Protonmail Bridge)
+      IMAPAccount logos
+      Host 127.0.0.1
+      Port 1143
+      User benjamin@logos-labs.ai
+      PassCmd "secret-tool lookup service protonmail-bridge username benjamin@logos-labs.ai"
+      SSLType None
+      AuthMechs LOGIN
+
+      IMAPStore logos-remote
+      Account logos
+
+      MaildirStore logos-local
+      Inbox ~/Mail/Logos/
+      SubFolders Maildir++
+
+      Channel logos-inbox
+      Far :logos-remote:INBOX
+      Near :logos-local:
+      Create Both
+      Expunge Both
+      SyncState *
+
+      Channel logos-sent
+      Far :logos-remote:Sent
+      Near :logos-local:Sent
+      Create Both
+      Expunge Both
+      SyncState *
+
+      Channel logos-drafts
+      Far :logos-remote:Drafts
+      Near :logos-local:Drafts
+      Create Both
+      Expunge Both
+      SyncState *
+
+      Channel logos-trash
+      Far :logos-remote:Trash
+      Near :logos-local:Trash
+      Create Both
+      Expunge Both
+      SyncState *
+
+      Channel logos-archive
+      Far :logos-remote:Archive
+      Near :logos-local:Archive
+      Create Both
+      Expunge Both
+      SyncState *
+
+      Group logos
+      Channel logos-inbox
+      Channel logos-sent
+      Channel logos-drafts
+      Channel logos-trash
+      Channel logos-archive
     '';
 
     # Gmail OAuth2 environment file for systemd service
