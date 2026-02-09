@@ -1,28 +1,42 @@
 # Himalaya Email Client Configuration
 
-This document describes the Himalaya email client setup with Gmail OAuth2 authentication and mbsync synchronization.
+This document describes the Himalaya email client setup with dual-account support (Gmail + Protonmail), OAuth2 authentication, and mbsync synchronization.
 
 ## Overview
 
-Himalaya is configured as the primary email client with the following components:
+Himalaya is configured as the primary email client with dual-account support:
 
-- **Himalaya CLI**: Email client with OAuth2 support and keyring integration
-- **mbsync (isync)**: IMAP synchronization with XOAUTH2 support
-- **msmtp**: SMTP sending
-- **OAuth2 Token Management**: Automatic token refresh via systemd
+### Accounts
+- **Gmail** (benbrastmckie@gmail.com) - Default account with OAuth2 authentication
+- **Protonmail** (benjamin@logos-labs.ai) - Secondary account via Protonmail Bridge
+
+### Components
+- **Himalaya CLI**: Email client with OAuth2 and keyring integration
+- **mbsync (isync)**: IMAP synchronization with XOAUTH2 (Gmail) and LOGIN auth (Protonmail Bridge)
+- **Protonmail Bridge**: Local IMAP/SMTP proxy for Protonmail access
+- **OAuth2 Token Management**: Automatic Gmail token refresh via systemd
 
 ## Architecture
 
 ### Email Flow
-1. **Incoming Mail**: Gmail IMAP → mbsync → Local Maildir → Himalaya
-2. **Outgoing Mail**: Himalaya → msmtp → Gmail SMTP
+
+**Gmail Account**:
+1. **Incoming**: Gmail IMAP (OAuth2) → mbsync → ~/Mail/Gmail/ → Himalaya
+2. **Outgoing**: Himalaya → Gmail SMTP (OAuth2)
 3. **Authentication**: OAuth2 tokens stored in system keyring via libsecret
 
+**Protonmail Account**:
+1. **Incoming**: Protonmail → Bridge (localhost:1143) → mbsync → ~/Mail/Logos/ → Himalaya
+2. **Outgoing**: Himalaya → Bridge (localhost:1025) → Protonmail
+3. **Authentication**: Bridge password stored in system keyring via libsecret
+
 ### Directory Structure (Maildir++)
+
+**Gmail**:
 ```
 ~/Mail/Gmail/
   cur/           # Inbox current messages
-  new/           # Inbox new messages  
+  new/           # Inbox new messages
   tmp/           # Temporary files
   .Sent/         # Sent messages
   .Drafts/       # Draft messages
@@ -32,6 +46,19 @@ Himalaya is configured as the primary email client with the following components
   EuroTrip/      # Custom folder
   CrazyTown/     # Custom folder
   Letters/       # Custom folder
+```
+
+**Protonmail (Logos)**:
+```
+~/Mail/Logos/
+  INBOX/         # Inbox folder
+    cur/         # Current messages
+    new/         # New messages
+    tmp/         # Temporary files
+  .Sent/         # Sent messages
+  .Drafts/       # Draft messages
+  .Trash/        # Deleted messages
+  .Archive/      # Archived messages
 ```
 
 ## NixOS Configuration
@@ -58,6 +85,9 @@ home.packages = with pkgs; [
       cyrus_sasl = cyrus-sasl-with-xoauth2;
     };
   in mbsync-with-xoauth2)
+
+  # Protonmail Bridge for local IMAP/SMTP proxy
+  protonmail-bridge
 
   # Supporting packages
   pkgs.cyrus-sasl-xoauth2
@@ -137,6 +167,7 @@ systemd.user.timers.gmail-oauth2-refresh = {
 ### Himalaya Configuration
 **Location**: `~/.config/himalaya/config.toml`
 
+#### Gmail Account
 ```toml
 [accounts.gmail]
 default = true
@@ -180,9 +211,31 @@ message.send.save-copy = true
 folder.sent.name = "[Gmail].Sent Mail"
 ```
 
+#### Protonmail Account (via Bridge)
+```toml
+[accounts.logos]
+default = false
+email = "benjamin@logos-labs.ai"
+display-name = "Benjamin Brast-McKie"
+downloads-dir = "/home/benjamin/Downloads"
+
+backend.type = "maildir"
+backend.root-dir = "/home/benjamin/Mail/Logos"
+backend.maildirpp = true
+
+message.send.backend.type = "smtp"
+message.send.backend.host = "127.0.0.1"
+message.send.backend.port = 1025
+message.send.backend.login = "benjamin@logos-labs.ai"
+message.send.backend.encryption = "none"
+message.send.backend.auth.type = "password"
+message.send.backend.auth.password.keyring = "protonmail-bridge benjamin@logos-labs.ai"
+```
+
 ### mbsync Configuration
 **Location**: `~/.mbsyncrc`
 
+#### Gmail Account
 ```ini
 # Gmail IMAP account with XOAUTH2 support
 IMAPAccount gmail
@@ -265,10 +318,72 @@ Channel gmail-spam
 Channel gmail-folders
 ```
 
+#### Protonmail Account (via Bridge)
+```ini
+# Logos Labs IMAP account (via Protonmail Bridge)
+IMAPAccount logos
+Host 127.0.0.1
+Port 1143
+User benjamin@logos-labs.ai
+PassCmd "secret-tool lookup service protonmail-bridge username benjamin@logos-labs.ai"
+SSLType None
+AuthMechs LOGIN
+
+IMAPStore logos-remote
+Account logos
+
+MaildirStore logos-local
+Inbox ~/Mail/Logos/
+SubFolders Maildir++
+
+Channel logos-inbox
+Far :logos-remote:INBOX
+Near :logos-local:
+Create Both
+Expunge Both
+SyncState *
+
+Channel logos-sent
+Far :logos-remote:Sent
+Near :logos-local:Sent
+Create Both
+Expunge Both
+SyncState *
+
+Channel logos-drafts
+Far :logos-remote:Drafts
+Near :logos-local:Drafts
+Create Both
+Expunge Both
+SyncState *
+
+Channel logos-trash
+Far :logos-remote:Trash
+Near :logos-local:Trash
+Create Both
+Expunge Both
+SyncState *
+
+Channel logos-archive
+Far :logos-remote:Archive
+Near :logos-local:Archive
+Create Both
+Expunge Both
+SyncState *
+
+Group logos
+Channel logos-inbox
+Channel logos-sent
+Channel logos-drafts
+Channel logos-trash
+Channel logos-archive
+```
+
 ## Usage
 
 ### Initial Setup
 
+#### Gmail Account
 1. **Configure OAuth2 credentials**:
    ```bash
    himalaya account configure gmail
@@ -286,30 +401,62 @@ Channel gmail-folders
    mbsync gmail
    ```
 
+#### Protonmail Account
+1. **Start Protonmail Bridge**:
+   ```bash
+   protonmail-bridge
+   ```
+
+2. **Login to Protonmail** in the Bridge GUI with your credentials
+
+3. **Store Bridge password** in keyring:
+   ```bash
+   secret-tool store --label="Protonmail Bridge - Logos Labs" \
+     service protonmail-bridge \
+     username benjamin@logos-labs.ai
+   ```
+   When prompted, paste the bridge password from Bridge GUI → Account Settings → Mailbox password
+
+4. **Initial sync**:
+   ```bash
+   mbsync logos-inbox
+   mbsync logos
+   ```
+
 ### Daily Operations
 
 #### Sync Email
 ```bash
-# Sync specific folder
-mbsync gmail-inbox
+# Sync specific account
+mbsync gmail          # Gmail full sync
+mbsync logos          # Protonmail full sync
 
-# Full sync
-mbsync gmail
+# Sync all accounts
+mbsync -a
+
+# Sync specific folders
+mbsync gmail-inbox
+mbsync logos-inbox
 ```
 
 #### Himalaya Commands
 ```bash
-# List folders
+# List accounts
+himalaya account list
+
+# Work with default account (Gmail)
 himalaya folder list
-
-# List messages
 himalaya message list
-
-# Read message
 himalaya message read <id>
 
+# Work with specific account
+himalaya folder list -a logos
+himalaya message list -a logos
+himalaya message read <id> -a logos
+
 # Send email
-himalaya message send
+himalaya message send                # From default account
+himalaya message send -a logos       # From Protonmail account
 ```
 
 ### Neovim Integration
@@ -368,12 +515,57 @@ refresh-gmail-oauth2
 systemctl --user restart gmail-oauth2-refresh.timer
 ```
 
+### Protonmail Bridge Issues
+
+#### Check Bridge Status
+```bash
+# Check if Bridge is running
+ps aux | grep protonmail-bridge
+
+# Check if Bridge ports are listening
+ss -tlnp | grep -E '1143|1025'
+```
+
+#### Bridge Authentication Errors
+```bash
+# Verify password is stored correctly
+secret-tool lookup service protonmail-bridge username benjamin@logos-labs.ai
+
+# Re-store password if needed
+secret-tool store --label="Protonmail Bridge - Logos Labs" \
+  service protonmail-bridge \
+  username benjamin@logos-labs.ai
+```
+
+#### Restart Bridge
+```bash
+# Kill existing Bridge process
+killall protonmail-bridge
+
+# Start Bridge
+protonmail-bridge
+```
+
+#### Bridge Logs
+```bash
+# Check Bridge logs for errors
+ls -la ~/.cache/protonmail/bridge/logs/
+tail -f ~/.cache/protonmail/bridge/logs/bridge.log
+```
+
 ## Security Notes
 
+### Gmail Account
 - **OAuth2 Client ID**: Semi-public identifier, safe to include in version control
 - **Client Secret**: Stored securely in system keyring via libsecret
 - **Access/Refresh Tokens**: Stored securely in system keyring
 - **No passwords**: Uses OAuth2 tokens exclusively, no Gmail password required
+
+### Protonmail Account
+- **Bridge Password**: Auto-generated by Bridge, stored securely in system keyring
+- **Local Communication**: Bridge runs on localhost (127.0.0.1), no encryption needed
+- **Authentication**: Uses LOGIN mechanism with Bridge password
+- **Account Security**: Protected by Protonmail account password + 2FA (if enabled)
 
 ## Technical Details
 
