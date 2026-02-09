@@ -567,6 +567,15 @@
       backend.root-dir = "/home/benjamin/Mail/Logos"
       backend.maildirpp = true
 
+      # SMTP send backend (via Protonmail Bridge)
+      message.send.backend.type = "smtp"
+      message.send.backend.host = "127.0.0.1"
+      message.send.backend.port = 1025
+      message.send.backend.login = "benjamin@logos-labs.ai"
+      message.send.backend.encryption.type = "none"
+      message.send.backend.auth.type = "password"
+      message.send.backend.auth.cmd = "secret-tool lookup service protonmail-bridge username benjamin@logos-labs.ai"
+
       # Folder configuration for Protonmail
       folder.alias.inbox = "INBOX"
       folder.alias.sent = "Sent"

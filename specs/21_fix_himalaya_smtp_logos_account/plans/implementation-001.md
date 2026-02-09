@@ -11,10 +11,10 @@ Add correct SMTP backend configuration to the logos account in home.nix. The res
 
 ## Phases
 
-### Phase 1: Add SMTP Backend Configuration [NOT STARTED]
+### Phase 1: Add SMTP Backend Configuration [COMPLETED]
 
 **Estimated effort**: 15 minutes
-**Status**: [NOT STARTED]
+**Status**: [COMPLETED]
 
 **Objectives**:
 1. Add SMTP backend configuration to logos account section in home.nix
@@ -42,10 +42,10 @@ Add correct SMTP backend configuration to the logos account in home.nix. The res
 
 ---
 
-### Phase 2: Rebuild and Verify [NOT STARTED]
+### Phase 2: Rebuild and Verify [COMPLETED]
 
 **Estimated effort**: 10 minutes
-**Status**: [NOT STARTED]
+**Status**: [COMPLETED]
 
 **Objectives**:
 1. Rebuild home-manager configuration
