@@ -4,10 +4,19 @@
     {
       "project_number": 22,
       "project_name": "update_himalaya_documentation_smtp_fix",
-      "status": "not_started",
+      "status": "researched",
       "language": "general",
       "created": "2026-02-09T21:19:40Z",
-      "last_updated": "2026-02-09T21:19:40Z"
+      "last_updated": "2026-02-09T21:26:10Z",
+      "session_id": "sess_1770672164_4c14b9",
+      "researched": "2026-02-09T21:26:10Z",
+      "artifacts": [
+        {
+          "path": "specs/22_update_himalaya_documentation_smtp_fix/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report documenting incorrect SMTP configuration in docs/himalaya.md and the correct working syntax from task 21"
+        }
+      ]
     },
     {
       "project_number": 21,
