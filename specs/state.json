@@ -4,10 +4,19 @@
     {
       "project_number": 21,
       "project_name": "fix_himalaya_smtp_logos_account",
-      "status": "not_started",
+      "status": "researched",
       "language": "neovim",
       "created": "2026-02-09T20:40:46Z",
-      "last_updated": "2026-02-09T20:40:46Z"
+      "last_updated": "2026-02-09T21:01:51Z",
+      "session_id": "sess_1770670081_0e0718",
+      "researched": "2026-02-09T21:01:51Z",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/21_fix_himalaya_smtp_logos_account/reports/research-001.md",
+          "summary": "Research report identifying incorrect TOML syntax and providing verified correct configuration format"
+        }
+      ]
     },
     {
       "project_number": 20,
