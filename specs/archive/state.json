@@ -271,6 +271,296 @@
       ],
       "completion_summary": "Created skill-nix-implementation/SKILL.md following the established skill pattern with 11-stage execution flow, delegating to nix-implementation-agent for Nix configuration tasks.",
       "claudemd_suggestions": "Added .claude/skills/skill-nix-implementation/SKILL.md (new skill directory and file)"
+    },
+    {
+      "project_number": 22,
+      "project_name": "update_himalaya_documentation_smtp_fix",
+      "status": "completed",
+      "language": "general",
+      "created": "2026-02-09T21:19:40Z",
+      "last_updated": "2026-02-09T21:45:11Z",
+      "session_id": "sess_1770673369_4438e9",
+      "researched": "2026-02-09T21:26:10Z",
+      "artifacts": [
+        {
+          "path": "specs/22_update_himalaya_documentation_smtp_fix/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report documenting incorrect SMTP configuration in docs/himalaya.md and the correct working syntax from task 21"
+        },
+        {
+          "path": "specs/22_update_himalaya_documentation_smtp_fix/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "2-phase implementation plan to update Himalaya SMTP documentation with correct auth.cmd syntax"
+        },
+        {
+          "path": "specs/22_update_himalaya_documentation_smtp_fix/summaries/implementation-summary-20260209.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification results"
+        }
+      ],
+      "planned": "2026-02-09T21:37:52Z",
+      "started": "2026-02-09T21:43:08Z",
+      "completed": "2026-02-09T21:45:11Z",
+      "completion_summary": "Updated Himalaya documentation to reflect working SMTP configuration for Protonmail logos account. Changed encryption.type and auth.cmd fields to match the verified working configuration from home.nix."
+    },
+    {
+      "project_number": 21,
+      "project_name": "fix_himalaya_smtp_logos_account",
+      "status": "completed",
+      "language": "neovim",
+      "created": "2026-02-09T20:40:46Z",
+      "last_updated": "2026-02-09T21:16:54Z",
+      "session_id": "sess_1770671514_1bdf8f",
+      "researched": "2026-02-09T21:01:51Z",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/21_fix_himalaya_smtp_logos_account/reports/research-001.md",
+          "summary": "Research report identifying incorrect TOML syntax and providing verified correct configuration format"
+        },
+        {
+          "path": "specs/21_fix_himalaya_smtp_logos_account/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "2-phase implementation plan to add SMTP backend configuration to logos account"
+        },
+        {
+          "path": "specs/21_fix_himalaya_smtp_logos_account/summaries/implementation-summary-20260209.md",
+          "type": "summary",
+          "summary": "Implementation summary documenting SMTP configuration fix and verification"
+        }
+      ],
+      "planned": "2026-02-09T21:13:40Z",
+      "completed": "2026-02-09T21:16:54Z",
+      "completion_summary": "Added SMTP backend configuration to logos account in home.nix using correct Himalaya v1.1.0 format with auth.cmd for password retrieval. Both accounts now show Maildir and SMTP backends."
+    },
+    {
+      "project_number": 20,
+      "project_name": "update_himalaya_setup",
+      "status": "completed",
+      "language": "neovim",
+      "created": "2026-02-09T18:18:53Z",
+      "last_updated": "2026-02-09T19:13:50Z",
+      "session_id": "sess_1770663746_a52de0",
+      "researched": "2026-02-09T18:27:54Z",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/20_update_himalaya_setup/reports/research-001.md",
+          "summary": "Research report comparing manual setup guide to current configuration, with specific Nix configuration blocks needed for implementation"
+        },
+        {
+          "path": "specs/20_update_himalaya_setup/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "5-phase implementation plan for adding Protonmail account to Himalaya email setup via home.nix updates"
+        },
+        {
+          "path": "specs/20_update_himalaya_setup/summaries/implementation-summary-20260209.md",
+          "type": "summary",
+          "summary": "Implementation summary with configuration details and manual post-switch steps"
+        }
+      ],
+      "planned": "2026-02-09T18:33:12Z",
+      "started": "2026-02-09T19:03:44Z",
+      "completed": "2026-02-09T19:13:50Z",
+      "completion_summary": "Extended NixOS home.nix with Protonmail Bridge package, logos account configuration for himalaya CLI email client, mbsync channels for IMAP sync via Bridge, and maildir directory creation. Build verified with home-manager build."
+    },
+    {
+      "project_number": 18,
+      "project_name": "fix_gmail_oauth2_refresh_service_failure",
+      "status": "completed",
+      "language": "nix",
+      "created": "2026-02-04T19:19:49Z",
+      "last_updated": "2026-02-04T22:45:00Z",
+      "session_id": "sess_1770244035_7f4e8a",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/18_fix_gmail_oauth2_refresh_service_failure/reports/research-001.md",
+          "summary": "Research report identifying root cause as missing OAuth2 tokens and solution to run himalaya account configure wizard"
+        },
+        {
+          "type": "research",
+          "path": "specs/18_fix_gmail_oauth2_refresh_service_failure/reports/research-002.md",
+          "summary": "Follow-up research identifying client ID mismatch, empty client secret, and verified fix with correct OAuth2 credentials"
+        },
+        {
+          "path": "specs/18_fix_gmail_oauth2_refresh_service_failure/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "3-phase implementation plan to fix Gmail OAuth2 refresh service by updating client ID, storing client secret, and rebuilding"
+        },
+        {
+          "type": "summary",
+          "path": "specs/18_fix_gmail_oauth2_refresh_service_failure/summaries/implementation-summary-20260204.md",
+          "summary": "Implementation summary for Gmail OAuth2 client ID fix with user action instructions for keyring and switch"
+        }
+      ],
+      "planned": "2026-02-04T22:16:57Z",
+      "started": "2026-02-04T22:27:30Z",
+      "completed": "2026-02-04T22:45:00Z",
+      "completion_summary": "Fixed gmail-oauth2-refresh service by updating GMAIL_CLIENT_ID in home.nix to match the client ID bound to existing keyring tokens. Both nix flake check and home-manager build pass. User must store client secret in keyring and run home-manager switch to activate."
+    },
+    {
+      "project_number": 17,
+      "project_name": "fix_leanls_localtime_watchdog_error",
+      "status": "completed",
+      "language": "nix",
+      "created": "2026-02-04T17:47:03Z",
+      "last_updated": "2026-02-04T19:09:34Z",
+      "session_id": "sess_1770232007_0df977",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/17_fix_leanls_localtime_watchdog_error/reports/research-001.md",
+          "summary": "Complete analysis of why /etc/localtime is missing and why lib.mkForce is the most elegant solution"
+        },
+        {
+          "path": "specs/17_fix_leanls_localtime_watchdog_error/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "3-phase plan: apply config change, rebuild system, verify Lean LSP"
+        },
+        {
+          "path": "specs/17_fix_leanls_localtime_watchdog_error/summaries/implementation-summary-20260204.md",
+          "type": "summary",
+          "summary": "Implementation summary documenting the fix and verification steps"
+        }
+      ],
+      "planned": "2026-02-04T18:51:37Z",
+      "started": "2026-02-04T19:07:04Z",
+      "completed": "2026-02-04T19:09:34Z",
+      "completion_summary": "Fixed leanls watchdog error by using lib.mkForce for time.timeZone in configuration.nix, ensuring /etc/localtime always exists at boot regardless of automatic-timezoned's null override."
+    },
+    {
+      "project_number": 16,
+      "project_name": "troubleshoot_automatic_timezoned_geoclue2_dbus_timeout",
+      "status": "completed",
+      "language": "nix",
+      "created": "2026-02-04T08:33:01Z",
+      "last_updated": "2026-02-04T08:57:49Z",
+      "session_id": "sess_1770195204_d6d10c",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout/reports/research-001.md",
+          "summary": "Research report analyzing geoclue2 60-second idle timeout causing automatic-timezoned D-Bus disconnection failure, with workaround recommendations"
+        },
+        {
+          "path": "specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "4-phase implementation plan for fixing automatic-timezoned D-Bus timeout via systemd restart configuration"
+        },
+        {
+          "path": "specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout/summaries/implementation-summary-20260204.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification steps"
+        }
+      ],
+      "planned": "2026-02-04T08:50:26Z",
+      "started": "2026-02-04T08:53:43Z",
+      "completed": "2026-02-04T08:57:49Z",
+      "completion_summary": "Configured automatic-timezoned with systemd restart-on-failure and enabled geoclue2 static location fallback to resolve D-Bus timeout crashes when geoclue shuts down after its 60-second idle timeout."
+    },
+    {
+      "project_number": 14,
+      "project_name": "review_improve_documentation",
+      "status": "completed",
+      "language": "meta",
+      "description": "Systematically review and improve documentation throughout .claude/ and docs/ with appropriate cross links",
+      "created": "2026-02-03T23:34:53Z",
+      "last_updated": "2026-02-03T23:58:18Z",
+      "session_id": "sess_1770162595_94f214",
+      "researched": "2026-02-03T23:42:52Z",
+      "artifacts": [
+        {
+          "path": "specs/14_review_improve_documentation/reports/research-001.md",
+          "type": "research",
+          "summary": "Documentation review identifying stale references, redundancies, and Nix context gaps with prioritized recommendations"
+        },
+        {
+          "path": "specs/14_review_improve_documentation/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "5-phase implementation plan for documentation improvements across .claude/ and docs/ directories"
+        },
+        {
+          "path": "specs/14_review_improve_documentation/summaries/implementation-summary-20260203.md",
+          "type": "summary",
+          "summary": "Implementation summary documenting all documentation improvements"
+        }
+      ],
+      "planned": "2026-02-03T23:48:55Z",
+      "started": "2026-02-03T23:50:11Z",
+      "completed": "2026-02-03T23:58:18Z",
+      "completion_summary": "Improved documentation consistency by adding Nix context documentation, replacing 17 stale ProofChecker and 6 .opencode references, consolidating duplicate files, and removing outdated version history content.",
+      "claudemd_suggestions": "Updated context/README.md (added Nix section), context/index.md (added Nix Context, removed deprecation notes), CLAUDE.md (added 2 Nix files), documentation.md (consolidated from documentation-standards.md), documentation-standards.md (now redirect), README.md (removed version history)"
+    },
+    {
+      "project_number": 11,
+      "project_name": "update_orchestrator_nix_routing",
+      "status": "completed",
+      "language": "meta",
+      "description": "Update skill-orchestrator to add language='nix' routing that delegates to nix-specific agents for research and implementation",
+      "created": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T23:32:31Z",
+      "depends_on": [
+        9,
+        10
+      ],
+      "session_id": "sess_1770161438_d4e947",
+      "researched": "2026-02-03T23:25:32Z",
+      "artifacts": [
+        {
+          "path": "specs/11_update_orchestrator_nix_routing/reports/research-001.md",
+          "type": "research",
+          "summary": "Identified single-file change needed: add nix row to skill-orchestrator routing table"
+        },
+        {
+          "path": "specs/11_update_orchestrator_nix_routing/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "1-phase implementation plan to add nix routing row to skill-orchestrator"
+        },
+        {
+          "path": "specs/11_update_orchestrator_nix_routing/summaries/implementation-summary-20260203.md",
+          "type": "summary",
+          "summary": "Implementation summary documenting nix routing addition"
+        }
+      ],
+      "planned": "2026-02-03T23:28:24Z",
+      "started": "2026-02-03T23:30:59Z",
+      "completed": "2026-02-03T23:32:31Z",
+      "completion_summary": "Added nix language routing to skill-orchestrator by inserting a table row that routes nix tasks to skill-nix-research and skill-nix-implementation, completing the nix agent integration.",
+      "claudemd_suggestions": "Updated skill-orchestrator/SKILL.md Language-Based Routing table with nix row"
+    },
+    {
+      "project_number": 12,
+      "project_name": "update_settings_for_nix_commands",
+      "status": "completed",
+      "language": "meta",
+      "description": "Update settings.json to add allowed Bash commands for Nix tooling: nix, nixos-rebuild, home-manager, nix-shell, nix-env",
+      "created": "2026-02-03T21:00:00Z",
+      "last_updated": "2026-02-03T23:32:35Z",
+      "session_id": "sess_1770161432_7eca32",
+      "researched": "2026-02-03T23:26:10Z",
+      "artifacts": [
+        {
+          "path": "specs/12_update_settings_for_nix_commands/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report documenting settings file locations, permission patterns, and Nix commands to add"
+        },
+        {
+          "path": "specs/12_update_settings_for_nix_commands/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "1-phase implementation plan for adding Nix commands to settings.json permissions"
+        },
+        {
+          "path": "specs/12_update_settings_for_nix_commands/summaries/implementation-summary-20260203.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification results"
+        }
+      ],
+      "planned": "2026-02-03T23:28:32Z",
+      "started": "2026-02-03T23:30:47Z",
+      "completed": "2026-02-03T23:32:35Z",
+      "completion_summary": "Added Nix tooling commands (nix, nixos-rebuild, home-manager, nix-shell, nix-env) to Claude settings.json permission allow list, enabling Claude to run Nix build and check commands.",
+      "claudemd_suggestions": "none"
     }
   ]
 }
