@@ -1,6 +1,22 @@
 {
-  "next_project_number": 25,
+  "next_project_number": 27,
   "active_projects": [
+    {
+      "project_number": 25,
+      "project_name": "configure_swap_space_nixos",
+      "status": "not_started",
+      "language": "nix",
+      "created": "2026-02-10T23:16:21Z",
+      "last_updated": "2026-02-10T23:16:21Z"
+    },
+    {
+      "project_number": 26,
+      "project_name": "memory_monitoring_systemd_services_nixos",
+      "status": "not_started",
+      "language": "nix",
+      "created": "2026-02-10T23:16:21Z",
+      "last_updated": "2026-02-10T23:16:21Z"
+    },
     {
       "project_number": 24,
       "project_name": "protonmail_bridge_nixos_config",
