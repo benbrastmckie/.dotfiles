@@ -2,6 +2,22 @@
 
 ## Active Tasks
 
+### 26. Set up memory monitoring systemd services in NixOS
+- **Status**: [NOT STARTED]
+- **Language**: nix
+
+**Description**: Set up memory monitoring systemd services in NixOS configuration. Include continuous memory logging, threshold-based desktop alerts, and Claude process tracking to identify memory leaks and usage patterns.
+
+---
+
+### 25. Configure swap space in NixOS configuration
+- **Status**: [NOT STARTED]
+- **Language**: nix
+
+**Description**: Configure swap space in NixOS configuration. Add 8-16GB swap as a safety net to prevent OOM killer from terminating processes during memory spikes.
+
+---
+
 ### 24. Implement Protonmail Bridge systemd autostart in NixOS config
 - **Status**: [COMPLETED]
 - **Language**: nix
