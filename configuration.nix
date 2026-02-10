@@ -278,6 +278,27 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
     cpuFreqGovernor = "ondemand";  # Balance performance and power saving
   };
 
+  # ==========================================================================
+  # Memory Management - earlyoom for OOM Prevention
+  # ==========================================================================
+  # earlyoom monitors memory usage and kills processes before the system
+  # becomes unresponsive due to memory exhaustion. It operates in userspace
+  # before the kernel OOM killer, providing faster and more controllable
+  # intervention.
+  #
+  # See: specs/26_memory_monitoring_systemd_services_nixos
+  # ==========================================================================
+  services.earlyoom = {
+    enable = true;
+    freeMemThreshold = 10;         # Kill process when free RAM drops below 10%
+    freeSwapThreshold = 10;        # Also consider swap usage
+    enableNotifications = true;    # Send desktop notifications when process is killed
+    extraArgs = [
+      "--avoid" "^(gnome-shell|Xwayland|niri)$"  # Avoid killing desktop essentials
+      "--prefer" "^(claude|node|npm)$"            # Prefer killing memory-heavy dev tools first
+    ];
+  };
+
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.benjamin = {
     isNormalUser = true;
