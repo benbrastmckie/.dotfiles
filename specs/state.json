@@ -1,6 +1,15 @@
 {
-  "next_project_number": 24,
+  "next_project_number": 25,
   "active_projects": [
+    {
+      "project_number": 24,
+      "project_name": "protonmail_bridge_nixos_config",
+      "status": "not_started",
+      "language": "nix",
+      "created": "2026-02-10T20:23:50Z",
+      "last_updated": "2026-02-10T20:23:50Z",
+      "session_id": "sess_1770755025_00294a"
+    },
     {
       "project_number": 23,
       "project_name": "install_simple_webcam_recording_software",

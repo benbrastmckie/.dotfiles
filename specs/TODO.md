@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 24. Implement Protonmail Bridge systemd autostart in NixOS config
+- **Status**: [NOT STARTED]
+- **Language**: nix
+
+**Description**: Improve NixOS configuration based on Protonmail Bridge systemd autostart research at /home/benjamin/.config/nvim/specs/052_protonmail_bridge_systemd_autostart/reports/research-001.md. Excludes neovim-specific tasks which will be implemented elsewhere.
+
+---
+
 ### 23. Research and install simple webcam recording software
 - **Status**: [RESEARCHED]
 - **Language**: nix
