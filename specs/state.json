@@ -4,11 +4,19 @@
     {
       "project_number": 24,
       "project_name": "protonmail_bridge_nixos_config",
-      "status": "not_started",
+      "status": "researched",
       "language": "nix",
       "created": "2026-02-10T20:23:50Z",
-      "last_updated": "2026-02-10T20:23:50Z",
-      "session_id": "sess_1770755025_00294a"
+      "last_updated": "2026-02-10T20:27:32Z",
+      "session_id": "sess_1770755061_fbba64",
+      "researched": "2026-02-10T20:27:32Z",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/24_protonmail_bridge_nixos_config/reports/research-001.md",
+          "summary": "Research report for ProtonMail Bridge NixOS systemd integration with comparison of official module vs manual approach"
+        }
+      ]
     },
     {
       "project_number": 23,

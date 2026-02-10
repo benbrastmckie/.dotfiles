@@ -3,8 +3,10 @@
 ## Active Tasks
 
 ### 24. Implement Protonmail Bridge systemd autostart in NixOS config
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Language**: nix
+- **Researched**: 2026-02-10
+- **Research**: [research-001.md](specs/24_protonmail_bridge_nixos_config/reports/research-001.md)
 
 **Description**: Improve NixOS configuration based on Protonmail Bridge systemd autostart research at /home/benjamin/.config/nvim/specs/052_protonmail_bridge_systemd_autostart/reports/research-001.md. Excludes neovim-specific tasks which will be implemented elsewhere.
 
