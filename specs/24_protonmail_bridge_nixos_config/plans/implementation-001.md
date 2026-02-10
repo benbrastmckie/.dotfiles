@@ -1,7 +1,7 @@
 # Implementation Plan: Task #24
 
 - **Task**: 24 - Implement Protonmail Bridge systemd autostart in NixOS config
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 0.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/24_protonmail_bridge_nixos_config/reports/research-001.md

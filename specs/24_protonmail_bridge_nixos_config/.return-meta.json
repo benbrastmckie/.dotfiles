@@ -1,19 +1,28 @@
 {
-  "status": "planned",
-  "summary": "1-phase implementation plan for ProtonMail Bridge systemd service using official home-manager module",
+  "status": "implemented",
+  "summary": "Configured ProtonMail Bridge as a home-manager systemd service, enabling automatic startup with user session. Removed manual package from home.packages as the service module handles installation.",
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/24_protonmail_bridge_nixos_config/plans/implementation-001.md",
-      "summary": "Implementation plan for ProtonMail Bridge systemd service"
+      "type": "implementation",
+      "path": "home.nix",
+      "summary": "Added services.protonmail-bridge configuration block, removed protonmail-bridge from home.packages"
+    },
+    {
+      "type": "summary",
+      "path": "specs/24_protonmail_bridge_nixos_config/summaries/implementation-summary-20260210.md",
+      "summary": "Implementation summary for ProtonMail Bridge systemd service configuration"
     }
   ],
+  "completion_data": {
+    "completion_summary": "Enabled ProtonMail Bridge systemd user service via home-manager module with info-level logging. The service will auto-start with user session, replacing manual package installation."
+  },
   "metadata": {
-    "session_id": "sess_1770755332_d63475",
-    "agent_type": "planner-agent",
+    "session_id": "sess_1770755498_47fa17",
+    "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
-    "phase_count": 1,
-    "estimated_hours": 0.5
-  }
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 1,
+    "phases_total": 1
+  },
+  "next_steps": "Run 'home-manager switch' to apply changes, then verify service with 'systemctl --user status protonmail-bridge'"
 }

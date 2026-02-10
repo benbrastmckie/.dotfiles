@@ -182,7 +182,7 @@
     # Email Testing Tools
     swaks        # Swiss Army Knife for SMTP testing
     mailutils    # Email utilities
-    protonmail-bridge  # Protonmail Bridge for local IMAP/SMTP access
+    # protonmail-bridge is now managed by services.protonmail-bridge
 
     # Dictation tools
     whisper-cpp  # Fast offline speech-to-text (renamed from openai-whisper-cpp)
@@ -847,6 +847,12 @@
       icons = true;
       max-icon-size = 64;
     };
+  };
+
+  # ProtonMail Bridge systemd service for local IMAP/SMTP
+  services.protonmail-bridge = {
+    enable = true;
+    logLevel = "info";
   };
 
   programs.swaylock = {
