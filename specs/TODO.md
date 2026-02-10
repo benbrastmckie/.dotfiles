@@ -3,10 +3,11 @@
 ## Active Tasks
 
 ### 26. Set up memory monitoring systemd services in NixOS
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Language**: nix
 - **Researched**: 2026-02-10
 - **Research**: [research-001.md](specs/26_memory_monitoring_systemd_services_nixos/reports/research-001.md)
+- **Plan**: [implementation-001.md](specs/26_memory_monitoring_systemd_services_nixos/plans/implementation-001.md)
 
 **Description**: Set up memory monitoring systemd services in NixOS configuration. Include continuous memory logging, threshold-based desktop alerts, and Claude process tracking to identify memory leaks and usage patterns.
 

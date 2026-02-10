@@ -12,19 +12,25 @@
     {
       "project_number": 26,
       "project_name": "memory_monitoring_systemd_services_nixos",
-      "status": "researched",
+      "status": "planned",
       "language": "nix",
       "created": "2026-02-10T23:16:21Z",
-      "last_updated": "2026-02-10T23:22:24Z",
-      "session_id": "sess_1770765522_47bac6",
+      "last_updated": "2026-02-10T23:27:25Z",
+      "session_id": "sess_1770765917_04e90f",
       "researched": "2026-02-10T23:22:24Z",
       "artifacts": [
         {
           "type": "research",
           "path": "specs/26_memory_monitoring_systemd_services_nixos/reports/research-001.md",
           "summary": "Research report covering NixOS memory monitoring options including earlyoom, systemd user services, desktop notifications, and Claude process tracking patterns"
+        },
+        {
+          "path": "specs/26_memory_monitoring_systemd_services_nixos/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "5-phase implementation plan for three-tier memory monitoring: earlyoom, user alerts, and Claude tracking"
         }
-      ]
+      ],
+      "planned": "2026-02-10T23:27:25Z"
     },
     {
       "project_number": 24,
