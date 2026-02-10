@@ -687,7 +687,7 @@
       Port 1143
       User benjamin@logos-labs.ai
       PassCmd "secret-tool lookup service protonmail-bridge username benjamin@logos-labs.ai"
-      SSLType None
+      TLSType None
       AuthMechs LOGIN
 
       IMAPStore logos-remote
