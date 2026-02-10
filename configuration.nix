@@ -410,6 +410,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       libreoffice          # RTF word processor with signature support
       evince               # GNOME document viewer (handles PDF, PS, DVI, etc.)
       tinymist             # Typst language server with bundled formatter
+      svg-text-to-path     # Convert SVG text elements to paths
 
       # GNOME Extensions and Tools
       gnome-tweaks         # Tool to customize advanced GNOME settings
