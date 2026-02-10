@@ -1,0 +1,20 @@
+{
+  "status": "researched",
+  "summary": "Research complete: Official home-manager services.protonmail-bridge module available and recommended; requires adding 2 options and removing duplicate package from home.packages",
+  "artifacts": [
+    {
+      "type": "research",
+      "path": "specs/24_protonmail_bridge_nixos_config/reports/research-001.md",
+      "summary": "Research report for ProtonMail Bridge NixOS systemd integration with comparison of official module vs manual approach"
+    }
+  ],
+  "next_steps": "Run /plan 24 to create implementation plan",
+  "metadata": {
+    "session_id": "sess_1770755061_fbba64",
+    "agent_type": "nix-research-agent",
+    "duration_seconds": 180,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
+    "findings_count": 5
+  }
+}
