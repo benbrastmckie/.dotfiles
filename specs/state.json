@@ -1,6 +1,14 @@
 {
-  "next_project_number": 23,
+  "next_project_number": 24,
   "active_projects": [
+    {
+      "project_number": 23,
+      "project_name": "install_simple_webcam_recording_software",
+      "status": "not_started",
+      "language": "nix",
+      "created": "2026-02-10T00:13:02Z",
+      "last_updated": "2026-02-10T00:13:02Z"
+    },
     {
       "project_number": 19,
       "project_name": "install_setup_mcp_servers_web_development",

@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 23. Research and install simple webcam recording software
+- **Status**: [NOT STARTED]
+- **Language**: nix
+
+**Description**: Research and install the simplest video software that is free and in the nix packages that can be used to record a small video from the web camera.
+
+---
+
 ### 19. Install and set up MCP servers for web development
 - **Status**: [RESEARCHED]
 - **Language**: general
