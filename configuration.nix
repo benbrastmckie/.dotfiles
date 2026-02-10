@@ -399,6 +399,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       alsa-tools           # HDA codec tools (hda-verb) for audio hardware control
       cheese               # GNOME webcam application for recording videos
       guvcview             # GTK+ webcam viewer with better audio/video controls
+      obs-studio           # Professional streaming and recording software
       vlc                  # Cross-platform multimedia player
       zoom-us              # Video conferencing tool
       spotify              # Music streaming service client
