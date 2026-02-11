@@ -4,18 +4,24 @@
     {
       "project_number": 27,
       "project_name": "sioyek_default_pdf_viewer_gnome",
-      "status": "researched",
+      "status": "planned",
       "language": "nix",
       "created": "2026-02-11T00:33:18Z",
-      "last_updated": "2026-02-11T00:44:04Z",
-      "session_id": "sess_1770770111_0899bf",
+      "last_updated": "2026-02-11T00:51:59Z",
+      "session_id": "sess_1770770985_c63c9d",
       "artifacts": [
         {
           "type": "research",
           "path": "specs/27_sioyek_default_pdf_viewer_gnome/reports/research-001.md",
           "summary": "Research report identifying root cause and providing 4 prioritized solutions for GNOME MIME handling"
+        },
+        {
+          "type": "plan",
+          "path": "specs/27_sioyek_default_pdf_viewer_gnome/plans/implementation-001.md",
+          "summary": "2-phase implementation plan using xdg.desktopEntries and xdg.mimeApps in Home Manager"
         }
-      ]
+      ],
+      "planned": "2026-02-11T00:51:59Z"
     },
     {
       "project_number": 25,
