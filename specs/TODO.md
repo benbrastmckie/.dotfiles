@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 28. Configure sioyek night mode toggle with soft grey-blue color scheme
+- **Status**: [NOT STARTED]
+- **Language**: general
+
+**Description**: When pressing 'w' in sioyek, it currently toggles to black text on white background. Instead, configure it to toggle to a night mode with soft grey-blue background and lighter text, or another visually appealing nightmode color scheme.
+
+---
+
 ### 27. Fix sioyek default PDF viewer in GNOME Files
 - **Status**: [COMPLETED]
 - **Language**: nix
