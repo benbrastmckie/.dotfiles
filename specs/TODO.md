@@ -2,6 +2,36 @@
 
 ## Active Tasks
 
+### 27. Fix sioyek default PDF viewer in GNOME Files
+- **Status**: [NOT STARTED]
+- **Language**: nix
+
+**Description**: Sioyek not opening as default PDF viewer in GNOME Files despite correct MIME configuration.
+
+**Problem**: After installing sioyek and configuring it as the default PDF viewer, double-clicking PDF files in GNOME Files (Nautilus) does not open them in sioyek.
+
+**What Has Been Tried**:
+1. Declarative xdg.mimeApps configuration in home.nix - `xdg-mime query` returns sioyek.desktop but GNOME Files doesn't use it
+2. Removed xdg.mimeApps to allow writable mimeapps.list files - still doesn't work
+3. Manually set application/pdf=sioyek.desktop in ~/.config/mimeapps.list - verified correct but GNOME ignores it
+
+**Current State**:
+- sioyek installed and in PATH
+- Desktop file exists at ~/.nix-profile/share/applications/sioyek.desktop
+- `xdg-mime query default application/pdf` returns sioyek.desktop
+- ~/.config/mimeapps.list is writable with correct entry
+- GNOME Files still does not launch sioyek for PDFs
+
+**Possible Next Steps**:
+- Check sioyek.desktop file for correct MIME type associations
+- Test `gtk-launch sioyek.desktop /path/to/file.pdf`
+- Check GNOME-specific dconf settings
+- Investigate other MIME files taking precedence
+- Test if GNOME requires session restart or cache clear
+- Verify sioyek.desktop Exec line is correct
+
+---
+
 ### 26. Set up memory monitoring systemd services in NixOS
 - **Status**: [COMPLETED]
 - **Language**: nix

@@ -1,6 +1,14 @@
 {
-  "next_project_number": 27,
+  "next_project_number": 28,
   "active_projects": [
+    {
+      "project_number": 27,
+      "project_name": "sioyek_default_pdf_viewer_gnome",
+      "status": "not_started",
+      "language": "nix",
+      "created": "2026-02-11T00:33:18Z",
+      "last_updated": "2026-02-11T00:33:18Z"
+    },
     {
       "project_number": 25,
       "project_name": "configure_swap_space_nixos",
