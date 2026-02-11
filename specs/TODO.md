@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 31. Implement sioyek 'w' key toggle between Gruvbox and Nord themes
+- **Status**: [NOT STARTED]
+- **Language**: general
+
+**Description**: Task 30 worked, and now 'w' turns the Nord night mode on. However, once night mode is on, 'w' does not toggle back to Gruvbox from Nord. Research the root cause and design an elegant solution so that 'w' can be used to toggle between the two modes naturally.
+
+---
+
 ### 30. Fix sioyek theme toggle w key not triggering Nord macro
 - **Status**: [COMPLETED]
 - **Language**: general

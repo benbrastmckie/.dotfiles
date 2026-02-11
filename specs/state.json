@@ -1,6 +1,14 @@
 {
-  "next_project_number": 31,
+  "next_project_number": 32,
   "active_projects": [
+    {
+      "project_number": 31,
+      "project_name": "implement_sioyek_w_key_toggle_gruvbox_nord",
+      "status": "not_started",
+      "language": "general",
+      "created": "2026-02-11T16:57:17Z",
+      "last_updated": "2026-02-11T16:57:17Z"
+    },
     {
       "project_number": 30,
       "project_name": "fix_sioyek_theme_toggle_w_key_nord_macro",
