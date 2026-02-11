@@ -1,7 +1,7 @@
 # Implementation Plan: Task #31
 
 - **Task**: 31 - Implement sioyek 'w' key toggle between Gruvbox and Nord themes
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 1.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/31_implement_sioyek_w_key_toggle_gruvbox_nord/reports/research-001.md
@@ -45,7 +45,7 @@ The research report identified that sioyek macros are stateless and cannot imple
 
 ## Implementation Phases
 
-### Phase 1: Create Theme Toggle Script [NOT STARTED]
+### Phase 1: Create Theme Toggle Script [COMPLETED]
 
 **Goal**: Define the toggle script as a Nix derivation in home.nix
 
@@ -98,7 +98,7 @@ The script should be added to `home.packages` using `pkgs.writeShellScriptBin`:
 
 ---
 
-### Phase 2: Update Sioyek Configuration [NOT STARTED]
+### Phase 2: Update Sioyek Configuration [COMPLETED]
 
 **Goal**: Configure sioyek to use the toggle script via new_command
 
@@ -137,7 +137,7 @@ _toggle_theme w
 
 ---
 
-### Phase 3: Test and Verify [NOT STARTED]
+### Phase 3: Test and Verify [COMPLETED]
 
 **Goal**: Verify the toggle works correctly in both directions
 
