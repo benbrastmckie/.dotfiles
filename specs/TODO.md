@@ -2,133 +2,11 @@
 
 ## Active Tasks
 
-### 32. Remove sioyek Ctrl-T new instance mapping
-- **Status**: [COMPLETED]
-- **Language**: general
-- **Completed**: 2026-02-11
-
-**Description**: Remove the Ctrl-T keybinding in sioyek that creates a new sioyek instance, which is not needed.
-
----
-
-### 31. Implement sioyek 'w' key toggle between Gruvbox and Nord themes
-- **Status**: [COMPLETED]
-- **Language**: general
-- **Researched**: 2026-02-11
-- **Research**: [research-001.md](specs/31_implement_sioyek_w_key_toggle_gruvbox_nord/reports/research-001.md)
-- **Plan**: [implementation-001.md](specs/31_implement_sioyek_w_key_toggle_gruvbox_nord/plans/implementation-001.md)
-- **Completed**: 2026-02-11
-- **Summary**: [implementation-summary-20260211.md](specs/31_implement_sioyek_w_key_toggle_gruvbox_nord/summaries/implementation-summary-20260211.md)
-
-**Description**: Task 30 worked, and now 'w' turns the Nord night mode on. However, once night mode is on, 'w' does not toggle back to Gruvbox from Nord. Research the root cause and design an elegant solution so that 'w' can be used to toggle between the two modes naturally.
-
----
-
-### 30. Fix sioyek theme toggle w key not triggering Nord macro
-- **Status**: [COMPLETED]
-- **Language**: general
-- **Researched**: 2026-02-11
-- **Research**: [research-001.md](specs/30_fix_sioyek_theme_toggle_w_key_nord_macro/reports/research-001.md)
-- **Plan**: [implementation-001.md](specs/30_fix_sioyek_theme_toggle_w_key_nord_macro/plans/implementation-001.md)
-- **Completed**: 2026-02-11
-- **Summary**: [implementation-summary-20260211.md](specs/30_fix_sioyek_theme_toggle_w_key_nord_macro/summaries/implementation-summary-20260211.md)
-
-**Description**: Fix sioyek theme toggle: 'w' key should switch from Gruvbox to Nord but currently goes to white instead. Shift+w doesn't work at all. The _gruvbox and _nord macros were created in task 29 but keybindings in sioyek-keys.config are not being applied. Need to debug why macros aren't being triggered and fix so 'w' toggles to Nord from Gruvbox.
-
----
-
-### 29. Fix sioyek color toggle showing white instead of Nord night mode
-- **Status**: [COMPLETED]
-- **Language**: general
-- **Researched**: 2026-02-11
-- **Research**: [research-001.md](specs/29_fix_sioyek_color_toggle_white_instead_nord/reports/research-001.md), [research-002.md](specs/29_fix_sioyek_color_toggle_white_instead_nord/reports/research-002.md)
-- **Plan**: [implementation-001.md](specs/29_fix_sioyek_color_toggle_white_instead_nord/plans/implementation-001.md)
-- **Completed**: 2026-02-11
-- **Summary**: [implementation-summary-20260211.md](specs/29_fix_sioyek_color_toggle_white_instead_nord/summaries/implementation-summary-20260211.md)
-
-**Description**: Fix sioyek color toggle showing white instead of Nord night mode when pressing 'w' key. Current behavior: starts with gruvbox light (correct), but toggling custom colors off shows white PDF background instead of Nord colors. Tested with bright red background to confirm dark_mode_background_color is not being applied. Custom colors work correctly (gruvbox displays), but default/dark mode colors are ignored. Need to investigate sioyek color mode behavior or find alternative toggle approach.
-
----
-
-### 28. Configure sioyek night mode toggle with soft grey-blue color scheme
-- **Status**: [COMPLETED]
-- **Language**: general
-- **Researched**: 2026-02-11
-- **Research**: [research-001.md](specs/28_sioyek_night_mode_toggle_color_scheme/reports/research-001.md)
-- **Plan**: [implementation-001.md](specs/28_sioyek_night_mode_toggle_color_scheme/plans/implementation-001.md)
-- **Completed**: 2026-02-11
-- **Summary**: [implementation-summary-20260211.md](specs/28_sioyek_night_mode_toggle_color_scheme/summaries/implementation-summary-20260211.md)
-
-**Description**: When pressing 'w' in sioyek, it currently toggles to black text on white background. Instead, configure it to toggle to a night mode with soft grey-blue background and lighter text, or another visually appealing nightmode color scheme.
-
----
-
-### 27. Fix sioyek default PDF viewer in GNOME Files
-- **Status**: [COMPLETED]
-- **Language**: nix
-- **Researched**: 2026-02-10
-- **Research**: [research-001.md](specs/27_sioyek_default_pdf_viewer_gnome/reports/research-001.md)
-- **Plan**: [implementation-001.md](specs/27_sioyek_default_pdf_viewer_gnome/plans/implementation-001.md)
-- **Completed**: 2026-02-11
-- **Summary**: [implementation-summary-20260211.md](specs/27_sioyek_default_pdf_viewer_gnome/summaries/implementation-summary-20260211.md)
-
-**Description**: Sioyek not opening as default PDF viewer in GNOME Files despite correct MIME configuration.
-
-**Problem**: After installing sioyek and configuring it as the default PDF viewer, double-clicking PDF files in GNOME Files (Nautilus) does not open them in sioyek.
-
-**What Has Been Tried**:
-1. Declarative xdg.mimeApps configuration in home.nix - `xdg-mime query` returns sioyek.desktop but GNOME Files doesn't use it
-2. Removed xdg.mimeApps to allow writable mimeapps.list files - still doesn't work
-3. Manually set application/pdf=sioyek.desktop in ~/.config/mimeapps.list - verified correct but GNOME ignores it
-
-**Current State**:
-- sioyek installed and in PATH
-- Desktop file exists at ~/.nix-profile/share/applications/sioyek.desktop
-- `xdg-mime query default application/pdf` returns sioyek.desktop
-- ~/.config/mimeapps.list is writable with correct entry
-- GNOME Files still does not launch sioyek for PDFs
-
-**Possible Next Steps**:
-- Check sioyek.desktop file for correct MIME type associations
-- Test `gtk-launch sioyek.desktop /path/to/file.pdf`
-- Check GNOME-specific dconf settings
-- Investigate other MIME files taking precedence
-- Test if GNOME requires session restart or cache clear
-- Verify sioyek.desktop Exec line is correct
-
----
-
-### 26. Set up memory monitoring systemd services in NixOS
-- **Status**: [COMPLETED]
-- **Language**: nix
-- **Researched**: 2026-02-10
-- **Research**: [research-001.md](specs/26_memory_monitoring_systemd_services_nixos/reports/research-001.md)
-- **Plan**: [implementation-001.md](specs/26_memory_monitoring_systemd_services_nixos/plans/implementation-001.md)
-- **Completed**: 2026-02-10
-- **Summary**: [implementation-summary-20260210.md](specs/26_memory_monitoring_systemd_services_nixos/summaries/implementation-summary-20260210.md)
-
-**Description**: Set up memory monitoring systemd services in NixOS configuration. Include continuous memory logging, threshold-based desktop alerts, and Claude process tracking to identify memory leaks and usage patterns.
-
----
-
 ### 25. Configure swap space in NixOS configuration
 - **Status**: [NOT STARTED]
 - **Language**: nix
 
 **Description**: Configure swap space in NixOS configuration. Add 8-16GB swap as a safety net to prevent OOM killer from terminating processes during memory spikes.
-
----
-
-### 24. Implement Protonmail Bridge systemd autostart in NixOS config
-- **Status**: [COMPLETED]
-- **Language**: nix
-- **Researched**: 2026-02-10
-- **Research**: [research-001.md](specs/24_protonmail_bridge_nixos_config/reports/research-001.md)
-- **Plan**: [implementation-001.md](specs/24_protonmail_bridge_nixos_config/plans/implementation-001.md)
-- **Completed**: 2026-02-10
-- **Summary**: [implementation-summary-20260210.md](specs/24_protonmail_bridge_nixos_config/summaries/implementation-summary-20260210.md)
-
-**Description**: Improve NixOS configuration based on Protonmail Bridge systemd autostart research at /home/benjamin/.config/nvim/specs/052_protonmail_bridge_systemd_autostart/reports/research-001.md. Excludes neovim-specific tasks which will be implemented elsewhere.
 
 ---
 
@@ -187,3 +65,11 @@
 - #20: Update Himalaya setup from manual guide (completed 2026-02-09)
 - #21: Fix Himalaya SMTP sending for logos account (completed 2026-02-09)
 - #22: Update Himalaya documentation for SMTP fix (completed 2026-02-09)
+- #24: Implement Protonmail Bridge systemd autostart (completed 2026-02-10)
+- #26: Set up memory monitoring systemd services (completed 2026-02-10)
+- #27: Fix sioyek default PDF viewer in GNOME Files (completed 2026-02-11)
+- #28: Configure sioyek night mode toggle colors (completed 2026-02-11)
+- #29: Fix sioyek color toggle white/Nord issue (completed 2026-02-11)
+- #30: Fix sioyek theme toggle w key Nord macro (completed 2026-02-11)
+- #31: Implement sioyek w key Gruvbox/Nord toggle (completed 2026-02-11)
+- #32: Remove sioyek Ctrl-T new instance mapping (completed 2026-02-11)

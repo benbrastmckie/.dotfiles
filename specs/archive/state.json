@@ -561,6 +561,70 @@
       "completed": "2026-02-03T23:32:35Z",
       "completion_summary": "Added Nix tooling commands (nix, nixos-rebuild, home-manager, nix-shell, nix-env) to Claude settings.json permission allow list, enabling Claude to run Nix build and check commands.",
       "claudemd_suggestions": "none"
+    },
+    {
+      "project_number": 24,
+      "project_name": "protonmail_bridge_nixos_config",
+      "status": "completed",
+      "language": "nix",
+      "completed": "2026-02-10T20:34:35Z",
+      "completion_summary": "Enabled ProtonMail Bridge systemd user service via home-manager module with info-level logging."
+    },
+    {
+      "project_number": 26,
+      "project_name": "memory_monitoring_systemd_services_nixos",
+      "status": "completed",
+      "language": "nix",
+      "completed": "2026-02-10T23:35:48Z",
+      "completion_summary": "Implemented three-tier memory monitoring system: earlyoom for system OOM prevention, memory-monitor service with desktop alerts at 80%/90% thresholds, and claude-memory-tracker for process-specific memory logging to CSV."
+    },
+    {
+      "project_number": 27,
+      "project_name": "sioyek_default_pdf_viewer_gnome",
+      "status": "completed",
+      "language": "nix",
+      "completed": "2026-02-11T01:37:24Z",
+      "completion_summary": "Created declarative sioyek PDF viewer configuration in Home Manager using xdg.dataFile."
+    },
+    {
+      "project_number": 28,
+      "project_name": "sioyek_night_mode_toggle_color_scheme",
+      "status": "completed",
+      "language": "general",
+      "completed": "2026-02-11T02:25:40Z",
+      "completion_summary": "Configured sioyek w key toggle to use Nord-inspired night mode colors."
+    },
+    {
+      "project_number": 29,
+      "project_name": "fix_sioyek_color_toggle_white_instead_nord",
+      "status": "completed",
+      "language": "general",
+      "completed": "2026-02-11T03:19:06Z",
+      "completion_summary": "Implemented two-key sioyek theme switching using runtime setconfig macros."
+    },
+    {
+      "project_number": 30,
+      "project_name": "fix_sioyek_theme_toggle_w_key_nord_macro",
+      "status": "completed",
+      "language": "general",
+      "completed": "2026-02-11T16:52:58Z",
+      "completion_summary": "Fixed sioyek w key to trigger Nord theme by creating correctly-named keys_user.config file."
+    },
+    {
+      "project_number": 31,
+      "project_name": "implement_sioyek_w_key_toggle_gruvbox_nord",
+      "status": "completed",
+      "language": "general",
+      "completed": "2026-02-11T17:37:41Z",
+      "completion_summary": "Implemented true single-key toggle between Gruvbox light and Nord dark themes in sioyek."
+    },
+    {
+      "project_number": 32,
+      "project_name": "remove_sioyek_ctrl_t_new_instance_mapping",
+      "status": "completed",
+      "language": "general",
+      "completed": "2026-02-11T17:42:07Z",
+      "completion_summary": "Disabled Ctrl-T keybinding in sioyek by mapping it to noop in keys_user.config."
     }
   ]
 }
