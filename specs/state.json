@@ -4,19 +4,25 @@
     {
       "project_number": 28,
       "project_name": "sioyek_night_mode_toggle_color_scheme",
-      "status": "researched",
+      "status": "planned",
       "language": "general",
       "created": "2026-02-11T02:05:44Z",
-      "last_updated": "2026-02-11T02:12:36Z",
-      "session_id": "sess_1770775720_d1fef3",
+      "last_updated": "2026-02-11T02:21:05Z",
+      "session_id": "sess_1770776346_3dd607",
       "researched": "2026-02-11T02:12:36Z",
       "artifacts": [
         {
           "path": "specs/28_sioyek_night_mode_toggle_color_scheme/reports/research-001.md",
           "type": "research",
           "summary": "Research on sioyek color configuration: 'w' toggles custom_background_color/custom_text_color. Solution is to set custom colors to Nord-inspired soft grey-blue (0.180 0.204 0.251 background, 0.847 0.871 0.914 text) for eye-comfortable night mode."
+        },
+        {
+          "path": "specs/28_sioyek_night_mode_toggle_color_scheme/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "1-phase implementation plan for updating sioyek night mode toggle colors to Nord-inspired palette"
         }
-      ]
+      ],
+      "planned": "2026-02-11T02:21:05Z"
     },
     {
       "project_number": 27,
