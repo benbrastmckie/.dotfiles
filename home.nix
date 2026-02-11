@@ -155,7 +155,7 @@
     wezterm      # GPU-accelerated terminal emulator
     espeak-ng    # Text-to-speech for notifications
     markitdown   # Document to markdown converter (supports PDF, DOCX, PPTX, etc)
-    sioyek       # PDF viewer optimized for reading research papers
+    # sioyek is installed via configuration.nix (X11 wrapper for Unite extension)
 
     # Web Development & API Tools
     httpie       # User-friendly HTTP client (better than curl for APIs)
@@ -778,6 +778,7 @@
   home.file = {
     ".config/neofetch/config.conf".source = ./config/neofetch.conf;
     ".config/opencode/opencode.json".source = ./config/opencode.json;
+    ".config/sioyek/prefs_user.config".source = ./config/sioyek-prefs.config;
     # Niri config - ENABLED (dual-session with GNOME)
     ".config/niri/config.kdl".source = ./config/config.kdl;
     # WezTerm config is now managed by programs.wezterm above
