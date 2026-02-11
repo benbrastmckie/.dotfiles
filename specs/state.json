@@ -1,6 +1,14 @@
 {
-  "next_project_number": 30,
+  "next_project_number": 31,
   "active_projects": [
+    {
+      "project_number": 30,
+      "project_name": "fix_sioyek_theme_toggle_w_key_nord_macro",
+      "status": "not_started",
+      "language": "general",
+      "created": "2026-02-11T03:22:26Z",
+      "last_updated": "2026-02-11T03:22:26Z"
+    },
     {
       "project_number": 29,
       "project_name": "fix_sioyek_color_toggle_white_instead_nord",
