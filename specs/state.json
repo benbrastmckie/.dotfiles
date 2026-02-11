@@ -4,10 +4,19 @@
     {
       "project_number": 30,
       "project_name": "fix_sioyek_theme_toggle_w_key_nord_macro",
-      "status": "not_started",
+      "status": "researched",
       "language": "general",
       "created": "2026-02-11T03:22:26Z",
-      "last_updated": "2026-02-11T03:22:26Z"
+      "last_updated": "2026-02-11T16:38:28Z",
+      "session_id": "sess_1770827706_b25ffe",
+      "researched": "2026-02-11T16:38:28Z",
+      "artifacts": [
+        {
+          "path": "specs/30_fix_sioyek_theme_toggle_w_key_nord_macro/reports/research-001.md",
+          "type": "research",
+          "summary": "Root cause identified: wrong filename (sioyek-keys.config should be keys_user.config) and missing symlink in home.nix"
+        }
+      ]
     },
     {
       "project_number": 29,
