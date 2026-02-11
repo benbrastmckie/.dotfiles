@@ -12,19 +12,25 @@
     {
       "project_number": 23,
       "project_name": "install_simple_webcam_recording_software",
-      "status": "researched",
+      "status": "planned",
       "language": "nix",
       "created": "2026-02-10T00:13:02Z",
-      "last_updated": "2026-02-10T00:16:56Z",
-      "session_id": "sess_1770682407_0e0b20",
+      "last_updated": "2026-02-11T17:58:57Z",
+      "session_id": "sess_1770832602_36e351",
       "researched": "2026-02-10T00:16:56Z",
       "artifacts": [
         {
           "type": "research",
           "path": "specs/23_install_simple_webcam_recording_software/reports/research-001.md",
           "summary": "Research report comparing webcam recording options in nixpkgs, recommending cheese as the simplest solution"
+        },
+        {
+          "path": "specs/23_install_simple_webcam_recording_software/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "2-phase plan: add cheese to home.packages, then build and verify installation"
         }
-      ]
+      ],
+      "planned": "2026-02-11T17:58:57Z"
     },
     {
       "project_number": 19,
