@@ -4,19 +4,25 @@
     {
       "project_number": 33,
       "project_name": "configure_wezterm_global_tab_navigation",
-      "status": "researched",
+      "status": "planned",
       "language": "general",
       "created": "2026-02-11T20:53:18Z",
-      "last_updated": "2026-02-11T20:57:42Z",
-      "session_id": "sess_1770843232_46c8f3",
+      "last_updated": "2026-02-11T21:00:49Z",
+      "session_id": "sess_1770843531_3600ca",
       "researched": "2026-02-11T20:57:42Z",
       "artifacts": [
         {
           "path": "specs/33_configure_wezterm_global_tab_navigation/reports/research-001.md",
           "type": "research",
           "summary": "Research report documenting WezTerm API for cross-window tab navigation using MuxTab:activate() and wezterm.action_callback"
+        },
+        {
+          "path": "specs/33_configure_wezterm_global_tab_navigation/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "2-phase implementation plan for WezTerm global tab navigation using action_callback and MuxTab:activate()"
         }
-      ]
+      ],
+      "planned": "2026-02-11T21:00:49Z"
     },
     {
       "project_number": 25,
