@@ -1,6 +1,14 @@
 {
-  "next_project_number": 33,
+  "next_project_number": 34,
   "active_projects": [
+    {
+      "project_number": 33,
+      "project_name": "configure_wezterm_global_tab_navigation",
+      "status": "not_started",
+      "language": "general",
+      "created": "2026-02-11T20:53:18Z",
+      "last_updated": "2026-02-11T20:53:18Z"
+    },
     {
       "project_number": 25,
       "project_name": "configure_swap_space_nixos",
