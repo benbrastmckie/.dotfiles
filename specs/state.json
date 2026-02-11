@@ -4,19 +4,25 @@
     {
       "project_number": 31,
       "project_name": "implement_sioyek_w_key_toggle_gruvbox_nord",
-      "status": "researched",
+      "status": "planned",
       "language": "general",
       "created": "2026-02-11T16:57:17Z",
-      "last_updated": "2026-02-11T17:05:19Z",
-      "session_id": "sess_1770829071_6052ae",
+      "last_updated": "2026-02-11T17:28:59Z",
+      "session_id": "sess_1770830808_1f6137",
       "researched": "2026-02-11T17:05:19Z",
       "artifacts": [
         {
           "path": "specs/31_implement_sioyek_w_key_toggle_gruvbox_nord/reports/research-001.md",
           "type": "research",
           "summary": "Research report identifying root cause (stateless macros) and recommending external script toggle solution"
+        },
+        {
+          "path": "specs/31_implement_sioyek_w_key_toggle_gruvbox_nord/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "3-phase implementation plan for sioyek theme toggle using external script with state tracking"
         }
-      ]
+      ],
+      "planned": "2026-02-11T17:28:59Z"
     },
     {
       "project_number": 30,
