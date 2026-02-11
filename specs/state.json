@@ -1,6 +1,14 @@
 {
-  "next_project_number": 28,
+  "next_project_number": 29,
   "active_projects": [
+    {
+      "project_number": 28,
+      "project_name": "sioyek_night_mode_toggle_color_scheme",
+      "status": "not_started",
+      "language": "general",
+      "created": "2026-02-11T02:05:44Z",
+      "last_updated": "2026-02-11T02:05:44Z"
+    },
     {
       "project_number": 27,
       "project_name": "sioyek_default_pdf_viewer_gnome",
