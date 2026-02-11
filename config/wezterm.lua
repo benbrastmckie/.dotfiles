@@ -220,6 +220,46 @@ local function get_global_tab_position(current_tab_id)
   return ok and result or nil
 end
 
+-- Helper function to activate a tab by its global position across all windows
+-- Uses the same sorting algorithm as get_global_tab_position for consistency
+-- Requires WezTerm >= 20230408 for MuxTab:activate()
+local function activate_global_tab(global_position)
+  return wezterm.action_callback(function(window, pane)
+    -- Collect all tabs with their IDs and references
+    local all_tabs = {}
+    for _, mux_window in ipairs(wezterm.mux.all_windows()) do
+      for _, mux_tab in ipairs(mux_window:tabs()) do
+        table.insert(all_tabs, {
+          tab_id = mux_tab:tab_id(),
+          tab = mux_tab,
+          window = mux_window,
+        })
+      end
+    end
+
+    -- Sort by tab_id to get global creation order (matches get_global_tab_position)
+    table.sort(all_tabs, function(a, b)
+      return a.tab_id < b.tab_id
+    end)
+
+    -- Find the target tab at the requested global position
+    local target = all_tabs[global_position]
+    if not target then
+      -- No tab at this position, do nothing
+      return
+    end
+
+    -- Activate the target tab
+    target.tab:activate()
+
+    -- Focus the window containing the target tab
+    local gui_win = target.window:gui_window()
+    if gui_win then
+      gui_win:focus()
+    end
+  end)
+end
+
 -- Custom tab title formatting with cleaner look
 -- Shows project directory name and optionally task number from Claude Code
 -- Also handles Claude Code notification coloring via CLAUDE_STATUS user variable
@@ -369,51 +409,53 @@ config.keys = {
     action = act.ActivateTabRelative(-1),
   },
 
-  -- Direct tab switching with Ctrl+Space + number (1-9)
+  -- Global tab switching with Ctrl+Space + number (1-9)
+  -- Navigates to the tab with that global position across ALL windows,
+  -- not just the nth tab in the current window
   {
     key = "1",
     mods = "LEADER",
-    action = act.ActivateTab(0),
+    action = activate_global_tab(1),
   },
   {
     key = "2",
     mods = "LEADER",
-    action = act.ActivateTab(1),
+    action = activate_global_tab(2),
   },
   {
     key = "3",
     mods = "LEADER",
-    action = act.ActivateTab(2),
+    action = activate_global_tab(3),
   },
   {
     key = "4",
     mods = "LEADER",
-    action = act.ActivateTab(3),
+    action = activate_global_tab(4),
   },
   {
     key = "5",
     mods = "LEADER",
-    action = act.ActivateTab(4),
+    action = activate_global_tab(5),
   },
   {
     key = "6",
     mods = "LEADER",
-    action = act.ActivateTab(5),
+    action = activate_global_tab(6),
   },
   {
     key = "7",
     mods = "LEADER",
-    action = act.ActivateTab(6),
+    action = activate_global_tab(7),
   },
   {
     key = "8",
     mods = "LEADER",
-    action = act.ActivateTab(7),
+    action = activate_global_tab(8),
   },
   {
     key = "9",
     mods = "LEADER",
-    action = act.ActivateTab(8),
+    action = activate_global_tab(9),
   },
 
   -- Font size adjustment matching Kitty

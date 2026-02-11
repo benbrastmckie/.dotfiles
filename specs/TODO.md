@@ -3,11 +3,13 @@
 ## Active Tasks
 
 ### 33. Configure WezTerm to navigate to tabs by global number across all windows
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Language**: general
 - **Researched**: 2026-02-11
+- **Completed**: 2026-02-11
 - **Research**: [research-001.md](specs/33_configure_wezterm_global_tab_navigation/reports/research-001.md)
 - **Plan**: [implementation-001.md](specs/33_configure_wezterm_global_tab_navigation/plans/implementation-001.md)
+- **Summary**: [implementation-summary-20260211.md](specs/33_configure_wezterm_global_tab_navigation/summaries/implementation-summary-20260211.md)
 
 **Description**: Configure WezTerm so that ctrl+space followed by a number navigates to the tab with that global number across all windows, rather than the nth tab within the current window only.
 
