@@ -155,6 +155,7 @@
     wezterm      # GPU-accelerated terminal emulator
     espeak-ng    # Text-to-speech for notifications
     markitdown   # Document to markdown converter (supports PDF, DOCX, PPTX, etc)
+    sioyek       # PDF viewer optimized for reading research papers
 
     # Web Development & API Tools
     httpie       # User-friendly HTTP client (better than curl for APIs)

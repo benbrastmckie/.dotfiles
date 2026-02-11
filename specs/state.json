@@ -4,10 +4,18 @@
     {
       "project_number": 27,
       "project_name": "sioyek_default_pdf_viewer_gnome",
-      "status": "not_started",
+      "status": "researched",
       "language": "nix",
       "created": "2026-02-11T00:33:18Z",
-      "last_updated": "2026-02-11T00:33:18Z"
+      "last_updated": "2026-02-11T00:44:04Z",
+      "session_id": "sess_1770770111_0899bf",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/27_sioyek_default_pdf_viewer_gnome/reports/research-001.md",
+          "summary": "Research report identifying root cause and providing 4 prioritized solutions for GNOME MIME handling"
+        }
+      ]
     },
     {
       "project_number": 25,
