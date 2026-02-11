@@ -1,0 +1,20 @@
+{
+  "status": "researched",
+  "started_at": "2026-02-11T00:28:26Z",
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/30_fix_sioyek_theme_toggle_w_key_nord_macro/reports/research-001.md",
+      "summary": "Root cause identified: wrong filename (sioyek-keys.config should be keys_user.config) and missing symlink in home.nix"
+    }
+  ],
+  "next_steps": "Run /plan 30 to create implementation plan",
+  "metadata": {
+    "session_id": "sess_1770827706_b25ffe",
+    "agent_type": "general-research-agent",
+    "duration_seconds": 142,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "general-research-agent"],
+    "findings_count": 4
+  }
+}

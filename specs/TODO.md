@@ -3,8 +3,10 @@
 ## Active Tasks
 
 ### 30. Fix sioyek theme toggle w key not triggering Nord macro
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Language**: general
+- **Researched**: 2026-02-11
+- **Research**: [research-001.md](specs/30_fix_sioyek_theme_toggle_w_key_nord_macro/reports/research-001.md)
 
 **Description**: Fix sioyek theme toggle: 'w' key should switch from Gruvbox to Nord but currently goes to white instead. Shift+w doesn't work at all. The _gruvbox and _nord macros were created in task 29 but keybindings in sioyek-keys.config are not being applied. Need to debug why macros aren't being triggered and fix so 'w' toggles to Nord from Gruvbox.
 
