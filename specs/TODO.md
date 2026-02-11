@@ -3,10 +3,10 @@
 ## Active Tasks
 
 ### 25. Configure swap space in NixOS configuration
-- **Status**: [PLANNED]
+- **Status**: [RESEARCHED]
 - **Language**: nix
 - **Researched**: 2026-02-11
-- **Research**: [research-001.md](specs/25_configure_swap_space_nixos/reports/research-001.md)
+- **Research**: [research-001.md](specs/25_configure_swap_space_nixos/reports/research-001.md), [research-002.md](specs/25_configure_swap_space_nixos/reports/research-002.md)
 - **Plan**: [implementation-001.md](specs/25_configure_swap_space_nixos/plans/implementation-001.md)
 
 **Description**: Configure swap space in NixOS configuration. Add 8-16GB swap as a safety net to prevent OOM killer from terminating processes during memory spikes.
