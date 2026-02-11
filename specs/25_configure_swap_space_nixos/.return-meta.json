@@ -1,20 +1,20 @@
 {
-  "status": "researched",
-  "summary": "Researched NixOS swap configuration options; recommending 16GB swap file at /var/lib/swapfile with SSD TRIM support, integrating with existing earlyoom memory management",
+  "status": "planned",
+  "summary": "Created 3-phase implementation plan for configuring 16GB swap file in NixOS with SSD TRIM optimization",
   "artifacts": [
     {
-      "type": "research",
-      "path": "specs/25_configure_swap_space_nixos/reports/research-001.md",
-      "summary": "Comprehensive research report covering swapDevices options, zram alternatives, size recommendations, and integration with earlyoom"
+      "type": "plan",
+      "path": "specs/25_configure_swap_space_nixos/plans/implementation-001.md",
+      "summary": "3-phase plan covering swap configuration, build verification, and system activation"
     }
   ],
-  "next_steps": "Run /plan 25 to create implementation plan",
+  "next_steps": "Run /implement 25 to execute the plan",
   "metadata": {
-    "session_id": "sess_1770832985_5cc9de",
-    "agent_type": "nix-research-agent",
+    "session_id": "sess_1770833270_b5707a",
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
-    "findings_count": 5,
-    "mcp_available": false
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 3,
+    "estimated_hours": 1.0
   }
 }

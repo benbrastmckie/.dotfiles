@@ -198,6 +198,28 @@ config.colors.tab_bar = {
   },
 }
 
+-- Helper function to compute global tab position across all windows
+-- Tab IDs are globally unique and assigned in creation order, so sorting them
+-- gives us the global creation order. This matches TTS announcement numbering.
+local function get_global_tab_position(current_tab_id)
+  local ok, result = pcall(function()
+    local all_tab_ids = {}
+    for _, mux_window in ipairs(wezterm.mux.all_windows()) do
+      for _, mux_tab in ipairs(mux_window:tabs()) do
+        table.insert(all_tab_ids, mux_tab:tab_id())
+      end
+    end
+    table.sort(all_tab_ids)
+    for i, tid in ipairs(all_tab_ids) do
+      if tid == current_tab_id then
+        return i
+      end
+    end
+    return nil
+  end)
+  return ok and result or nil
+end
+
 -- Custom tab title formatting with cleaner look
 -- Shows project directory name and optionally task number from Claude Code
 -- Also handles Claude Code notification coloring via CLAUDE_STATUS user variable
@@ -241,8 +263,10 @@ wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_wid
     end
   end
 
-  -- Build tab title: tab_index + project_name
-  local title = tostring(tab.tab_index + 1) .. " " .. project_name
+  -- Build tab title: global_position + project_name
+  -- Use global tab position (matches TTS announcements), fallback to per-window index
+  local tab_number = get_global_tab_position(tab.tab_id) or (tab.tab_index + 1)
+  local title = tostring(tab_number) .. " " .. project_name
 
   -- Append task number if set via TASK_NUMBER user variable
   if active_pane and active_pane.user_vars and active_pane.user_vars.TASK_NUMBER then
