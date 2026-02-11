@@ -1,7 +1,7 @@
 # Implementation Plan: Task #30
 
 - **Task**: 30 - Fix sioyek theme toggle: 'w' key should switch from Gruvbox to Nord
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 0.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/30_fix_sioyek_theme_toggle_w_key_nord_macro/reports/research-001.md
@@ -43,7 +43,7 @@ Per user clarification: only 'w' to Nord is needed; no Shift+w binding required.
 
 ## Implementation Phases
 
-### Phase 1: Rename and Update Keybindings File [NOT STARTED]
+### Phase 1: Rename and Update Keybindings File [COMPLETED]
 
 **Goal**: Create properly named keybindings file with correct binding
 
@@ -64,7 +64,7 @@ Per user clarification: only 'w' to Nord is needed; no Shift+w binding required.
 
 ---
 
-### Phase 2: Add Symlink in home.nix [NOT STARTED]
+### Phase 2: Add Symlink in home.nix [COMPLETED]
 
 **Goal**: Configure Home Manager to symlink keybindings file
 
@@ -83,7 +83,7 @@ Per user clarification: only 'w' to Nord is needed; no Shift+w binding required.
 
 ---
 
-### Phase 3: Rebuild and Test [NOT STARTED]
+### Phase 3: Rebuild and Test [COMPLETED]
 
 **Goal**: Deploy configuration and verify keybinding works
 

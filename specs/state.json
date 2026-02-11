@@ -4,11 +4,11 @@
     {
       "project_number": 30,
       "project_name": "fix_sioyek_theme_toggle_w_key_nord_macro",
-      "status": "planned",
+      "status": "completed",
       "language": "general",
       "created": "2026-02-11T03:22:26Z",
-      "last_updated": "2026-02-11T16:43:13Z",
-      "session_id": "sess_1770828029_b429f0",
+      "last_updated": "2026-02-11T16:52:58Z",
+      "session_id": "sess_1770828527_c5f1c6",
       "researched": "2026-02-11T16:38:28Z",
       "artifacts": [
         {
@@ -20,9 +20,17 @@
           "path": "specs/30_fix_sioyek_theme_toggle_w_key_nord_macro/plans/implementation-001.md",
           "type": "plan",
           "summary": "3-phase implementation plan to fix sioyek theme toggle keybinding"
+        },
+        {
+          "path": "specs/30_fix_sioyek_theme_toggle_w_key_nord_macro/summaries/implementation-summary-20260211.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification results"
         }
       ],
-      "planned": "2026-02-11T16:43:13Z"
+      "planned": "2026-02-11T16:43:13Z",
+      "started": "2026-02-11T16:49:23Z",
+      "completed": "2026-02-11T16:52:58Z",
+      "completion_summary": "Fixed sioyek 'w' key to trigger Nord theme by creating correctly-named keys_user.config file and adding Home Manager symlink. Configuration deployed successfully."
     },
     {
       "project_number": 29,
