@@ -4,10 +4,12 @@
     {
       "project_number": 32,
       "project_name": "remove_sioyek_ctrl_t_new_instance_mapping",
-      "status": "not_started",
+      "status": "completed",
       "language": "general",
       "created": "2026-02-11T17:41:14Z",
-      "last_updated": "2026-02-11T17:41:14Z"
+      "last_updated": "2026-02-11T17:42:07Z",
+      "completed": "2026-02-11T17:42:07Z",
+      "completion_summary": "Disabled Ctrl-T keybinding in sioyek by mapping it to noop in keys_user.config. This prevents unwanted new sioyek instance creation."
     },
     {
       "project_number": 31,
