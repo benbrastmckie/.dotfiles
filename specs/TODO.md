@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 33. Configure WezTerm to navigate to tabs by global number across all windows
+- **Status**: [NOT STARTED]
+- **Language**: general
+
+**Description**: Configure WezTerm so that ctrl+space followed by a number navigates to the tab with that global number across all windows, rather than the nth tab within the current window only.
+
+---
+
 ### 25. Configure swap space in NixOS configuration
 - **Status**: [RESEARCHED]
 - **Language**: nix
