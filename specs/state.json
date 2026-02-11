@@ -4,11 +4,11 @@
     {
       "project_number": 28,
       "project_name": "sioyek_night_mode_toggle_color_scheme",
-      "status": "planned",
+      "status": "completed",
       "language": "general",
       "created": "2026-02-11T02:05:44Z",
-      "last_updated": "2026-02-11T02:21:05Z",
-      "session_id": "sess_1770776346_3dd607",
+      "last_updated": "2026-02-11T02:25:40Z",
+      "session_id": "sess_1770776601_b8f1cf",
       "researched": "2026-02-11T02:12:36Z",
       "artifacts": [
         {
@@ -20,9 +20,17 @@
           "path": "specs/28_sioyek_night_mode_toggle_color_scheme/plans/implementation-001.md",
           "type": "plan",
           "summary": "1-phase implementation plan for updating sioyek night mode toggle colors to Nord-inspired palette"
+        },
+        {
+          "path": "specs/28_sioyek_night_mode_toggle_color_scheme/summaries/implementation-summary-20260211.md",
+          "type": "summary",
+          "summary": "Implementation summary with color change details and verification"
         }
       ],
-      "planned": "2026-02-11T02:21:05Z"
+      "planned": "2026-02-11T02:21:05Z",
+      "started": "2026-02-11T02:23:48Z",
+      "completed": "2026-02-11T02:25:40Z",
+      "completion_summary": "Configured sioyek 'w' key toggle to use Nord-inspired night mode colors (soft grey-blue background with light text) instead of light sepia, providing comfortable reading in low-light conditions."
     },
     {
       "project_number": 27,
