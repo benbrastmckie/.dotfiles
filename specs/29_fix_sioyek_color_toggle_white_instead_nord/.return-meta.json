@@ -1,28 +1,21 @@
 {
   "status": "researched",
   "started_at": "2026-02-10T12:00:00Z",
-  "completed_at": "2026-02-10T12:45:00Z",
+  "completed_at": "2026-02-10T12:30:00Z",
   "artifacts": [
     {
       "type": "research",
-      "path": "specs/29_fix_sioyek_color_toggle_white_instead_nord/reports/research-001.md",
-      "summary": "Root cause analysis: toggle_custom_color only toggles between custom colors and native PDF rendering (white). dark_mode_background_color only affects app chrome. Found 7 invalid config options. Recommend: use Nord as custom colors, native PDF as day mode."
+      "path": "specs/29_fix_sioyek_color_toggle_white_instead_nord/reports/research-002.md",
+      "summary": "Found solution using setconfig macros to toggle between Gruvbox and Nord themes at runtime"
     }
   ],
   "next_steps": "Run /plan 29 to create implementation plan",
   "metadata": {
-    "session_id": "sess_1770778553_4229ac",
+    "session_id": "sess_1770779019_ee231a",
     "agent_type": "general-research-agent",
-    "duration_seconds": 2700,
+    "duration_seconds": 180,
     "delegation_depth": 1,
     "delegation_path": ["orchestrator", "research", "general-research-agent"],
-    "findings_count": 5,
-    "key_findings": [
-      "toggle_custom_color only works with custom_background_color, not dark_mode_background_color",
-      "dark_mode_background_color only affects app chrome, not PDF content",
-      "7 invalid config options are being silently rejected",
-      "setconfig commands were deprecated - no runtime theme switching",
-      "Solution: invert logic - use Nord as custom colors, native PDF as day mode"
-    ]
+    "findings_count": 5
   }
 }
