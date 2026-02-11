@@ -299,6 +299,28 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
     ];
   };
 
+  # ==========================================================================
+  # Swap Configuration - Memory Safety Buffer
+  # ==========================================================================
+  # Three-tier memory management:
+  # 1. Normal operation: Applications use RAM freely
+  # 2. Memory pressure: Kernel moves inactive pages to swap
+  # 3. Critical: earlyoom terminates memory-hungry processes at 10% free
+  #
+  # 16GB swap provides buffer before earlyoom intervention, especially useful
+  # for memory spikes from development tools (Claude, Node.js, browsers).
+  #
+  # Note: For hibernation support, swap must be >= RAM size (32GB+).
+  # Current configuration is for memory safety only, not hibernation.
+  #
+  # See: specs/25_configure_swap_space_nixos
+  # ==========================================================================
+  swapDevices = [{
+    device = "/var/lib/swapfile";
+    size = 16 * 1024;  # 16GB in MiB
+    discardPolicy = "once";  # TRIM on activation for SSD optimization
+  }];
+
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.benjamin = {
     isNormalUser = true;
