@@ -4,10 +4,19 @@
     {
       "project_number": 29,
       "project_name": "fix_sioyek_color_toggle_white_instead_nord",
-      "status": "not_started",
+      "status": "researched",
       "language": "general",
       "created": "2026-02-11T02:53:19Z",
-      "last_updated": "2026-02-11T02:53:19Z"
+      "last_updated": "2026-02-11T03:01:34Z",
+      "session_id": "sess_1770778553_4229ac",
+      "researched": "2026-02-11T03:01:34Z",
+      "artifacts": [
+        {
+          "path": "specs/29_fix_sioyek_color_toggle_white_instead_nord/reports/research-001.md",
+          "type": "research",
+          "summary": "Root cause analysis: toggle_custom_color only toggles between custom colors and native PDF rendering (white). dark_mode_background_color only affects app chrome. Found 7 invalid config options. Recommend: use Nord as custom colors, native PDF as day mode."
+        }
+      ]
     },
     {
       "project_number": 28,
