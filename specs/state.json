@@ -7,7 +7,7 @@
       "status": "planned",
       "language": "nix",
       "created": "2026-02-11T00:33:18Z",
-      "last_updated": "2026-02-11T00:51:59Z",
+      "last_updated": "2026-02-11T01:27:47Z",
       "session_id": "sess_1770770985_c63c9d",
       "artifacts": [
         {
@@ -19,6 +19,11 @@
           "type": "plan",
           "path": "specs/27_sioyek_default_pdf_viewer_gnome/plans/implementation-001.md",
           "summary": "2-phase implementation plan using xdg.desktopEntries and xdg.mimeApps in Home Manager"
+        },
+        {
+          "type": "research",
+          "path": "specs/27_sioyek_default_pdf_viewer_gnome/reports/research-002.md",
+          "summary": "Supplementary research on X11 wrapper rationale and Unite extension compatibility"
         }
       ],
       "planned": "2026-02-11T00:51:59Z"
