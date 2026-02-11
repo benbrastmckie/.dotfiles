@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 29. Fix sioyek color toggle showing white instead of Nord night mode
+- **Status**: [NOT STARTED]
+- **Language**: general
+
+**Description**: Fix sioyek color toggle showing white instead of Nord night mode when pressing 'w' key. Current behavior: starts with gruvbox light (correct), but toggling custom colors off shows white PDF background instead of Nord colors. Tested with bright red background to confirm dark_mode_background_color is not being applied. Custom colors work correctly (gruvbox displays), but default/dark mode colors are ignored. Need to investigate sioyek color mode behavior or find alternative toggle approach.
+
+---
+
 ### 28. Configure sioyek night mode toggle with soft grey-blue color scheme
 - **Status**: [COMPLETED]
 - **Language**: general

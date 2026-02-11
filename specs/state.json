@@ -1,6 +1,14 @@
 {
-  "next_project_number": 29,
+  "next_project_number": 30,
   "active_projects": [
+    {
+      "project_number": 29,
+      "project_name": "fix_sioyek_color_toggle_white_instead_nord",
+      "status": "not_started",
+      "language": "general",
+      "created": "2026-02-11T02:53:19Z",
+      "last_updated": "2026-02-11T02:53:19Z"
+    },
     {
       "project_number": 28,
       "project_name": "sioyek_night_mode_toggle_color_scheme",
