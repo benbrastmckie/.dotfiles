@@ -1,6 +1,14 @@
 {
-  "next_project_number": 32,
+  "next_project_number": 33,
   "active_projects": [
+    {
+      "project_number": 32,
+      "project_name": "remove_sioyek_ctrl_t_new_instance_mapping",
+      "status": "not_started",
+      "language": "general",
+      "created": "2026-02-11T17:41:14Z",
+      "last_updated": "2026-02-11T17:41:14Z"
+    },
     {
       "project_number": 31,
       "project_name": "implement_sioyek_w_key_toggle_gruvbox_nord",

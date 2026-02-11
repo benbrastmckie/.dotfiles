@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 32. Remove sioyek Ctrl-T new instance mapping
+- **Status**: [NOT STARTED]
+- **Language**: general
+
+**Description**: Remove the Ctrl-T keybinding in sioyek that creates a new sioyek instance, which is not needed.
+
+---
+
 ### 31. Implement sioyek 'w' key toggle between Gruvbox and Nord themes
 - **Status**: [COMPLETED]
 - **Language**: general
