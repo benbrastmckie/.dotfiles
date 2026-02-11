@@ -4,10 +4,19 @@
     {
       "project_number": 25,
       "project_name": "configure_swap_space_nixos",
-      "status": "not_started",
+      "status": "researched",
       "language": "nix",
       "created": "2026-02-10T23:16:21Z",
-      "last_updated": "2026-02-10T23:16:21Z"
+      "last_updated": "2026-02-11T18:06:19Z",
+      "session_id": "sess_1770832985_5cc9de",
+      "researched": "2026-02-11T18:06:19Z",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/25_configure_swap_space_nixos/reports/research-001.md",
+          "summary": "Comprehensive research report covering swapDevices options, zram alternatives, size recommendations, and integration with earlyoom"
+        }
+      ]
     },
     {
       "project_number": 23,
