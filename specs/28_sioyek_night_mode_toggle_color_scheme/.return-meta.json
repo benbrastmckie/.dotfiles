@@ -1,0 +1,19 @@
+{
+  "status": "researched",
+  "artifacts": [
+    {
+      "type": "research",
+      "path": "specs/28_sioyek_night_mode_toggle_color_scheme/reports/research-001.md",
+      "summary": "Research on sioyek color configuration: 'w' toggles custom_background_color/custom_text_color. Solution is to set custom colors to Nord-inspired soft grey-blue (0.180 0.204 0.251 background, 0.847 0.871 0.914 text) for eye-comfortable night mode."
+    }
+  ],
+  "next_steps": "Run /plan 28 to create implementation plan",
+  "metadata": {
+    "session_id": "sess_1770775720_d1fef3",
+    "agent_type": "general-research-agent",
+    "duration_seconds": 180,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "general-research-agent"],
+    "findings_count": 6
+  }
+}
