@@ -4,11 +4,11 @@
     {
       "project_number": 29,
       "project_name": "fix_sioyek_color_toggle_white_instead_nord",
-      "status": "researched",
+      "status": "planned",
       "language": "general",
       "created": "2026-02-11T02:53:19Z",
-      "last_updated": "2026-02-11T03:09:08Z",
-      "session_id": "sess_1770779019_ee231a",
+      "last_updated": "2026-02-11T03:14:38Z",
+      "session_id": "sess_1770779517_a27cb5",
       "researched": "2026-02-11T03:09:08Z",
       "artifacts": [
         {
@@ -20,8 +20,14 @@
           "path": "specs/29_fix_sioyek_color_toggle_white_instead_nord/reports/research-002.md",
           "type": "research",
           "summary": "Found solution using setconfig macros to toggle between Gruvbox and Nord themes at runtime"
+        },
+        {
+          "path": "specs/29_fix_sioyek_color_toggle_white_instead_nord/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "4-phase implementation plan for two-key theme switching with sioyek macros"
         }
-      ]
+      ],
+      "planned": "2026-02-11T03:14:38Z"
     },
     {
       "project_number": 28,
