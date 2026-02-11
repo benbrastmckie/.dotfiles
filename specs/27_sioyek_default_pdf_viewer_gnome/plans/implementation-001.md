@@ -1,7 +1,7 @@
 # Implementation Plan: Task #27
 
 - **Task**: 27 - sioyek_default_pdf_viewer_gnome
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 0.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/27_sioyek_default_pdf_viewer_gnome/reports/research-001.md
@@ -44,7 +44,7 @@ Key findings integrated:
 
 ## Implementation Phases
 
-### Phase 1: Configure xdg.desktopEntries and mimeApps [NOT STARTED]
+### Phase 1: Configure xdg.desktopEntries and mimeApps [COMPLETED]
 
 **Goal**: Create sioyek.desktop in ~/.local/share/applications via Home Manager and set MIME defaults
 
@@ -87,7 +87,7 @@ xdg.mimeApps = {
 
 ---
 
-### Phase 2: Verify and Test [NOT STARTED]
+### Phase 2: Verify and Test [COMPLETED]
 
 **Goal**: Confirm the fix works in GNOME Files
 

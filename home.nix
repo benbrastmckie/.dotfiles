@@ -733,6 +733,42 @@
     gtk.enable = true;
   };
 
+  # Enable XDG base directories
+  xdg.enable = true;
+
+  # Sioyek PDF viewer - custom desktop entry in ~/.local/share/applications
+  # This location is fully respected by GNOME Files (unlike ~/.nix-profile/share/applications)
+  # Uses the X11-wrapped binary from configuration.nix for Unite extension compatibility
+  xdg.dataFile."applications/sioyek.desktop".text = ''
+    [Desktop Entry]
+    Type=Application
+    Name=Sioyek
+    GenericName=PDF Viewer
+    Comment=PDF viewer for reading research papers and technical books
+    Exec=/run/current-system/sw/bin/sioyek %f
+    Icon=sioyek-icon-linux
+    Terminal=false
+    Categories=Office;Viewer;
+    MimeType=application/pdf;
+  '';
+
+  # MIME type associations - PDF opens in sioyek by default
+  # Force overwrite existing mimeapps.list (was manually created)
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "application/pdf" = "sioyek.desktop";
+      "text/html" = "brave-browser.desktop";
+      "x-scheme-handler/http" = "brave-browser.desktop";
+      "x-scheme-handler/https" = "brave-browser.desktop";
+      "x-scheme-handler/about" = "brave-browser.desktop";
+      "x-scheme-handler/unknown" = "brave-browser.desktop";
+    };
+  };
+
+  # Force Home Manager to manage mimeapps.list
+  xdg.configFile."mimeapps.list".force = true;
+
   # Configure WezTerm through home-manager
   # programs.wezterm = {
   #   enable = true;

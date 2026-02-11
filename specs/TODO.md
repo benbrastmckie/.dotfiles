@@ -3,11 +3,13 @@
 ## Active Tasks
 
 ### 27. Fix sioyek default PDF viewer in GNOME Files
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Language**: nix
 - **Researched**: 2026-02-10
 - **Research**: [research-001.md](specs/27_sioyek_default_pdf_viewer_gnome/reports/research-001.md)
 - **Plan**: [implementation-001.md](specs/27_sioyek_default_pdf_viewer_gnome/plans/implementation-001.md)
+- **Completed**: 2026-02-11
+- **Summary**: [implementation-summary-20260211.md](specs/27_sioyek_default_pdf_viewer_gnome/summaries/implementation-summary-20260211.md)
 
 **Description**: Sioyek not opening as default PDF viewer in GNOME Files despite correct MIME configuration.
 

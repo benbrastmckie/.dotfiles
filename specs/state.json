@@ -4,11 +4,11 @@
     {
       "project_number": 27,
       "project_name": "sioyek_default_pdf_viewer_gnome",
-      "status": "planned",
+      "status": "completed",
       "language": "nix",
       "created": "2026-02-11T00:33:18Z",
-      "last_updated": "2026-02-11T01:27:47Z",
-      "session_id": "sess_1770770985_c63c9d",
+      "last_updated": "2026-02-11T01:37:24Z",
+      "session_id": "sess_1770773347_203e88",
       "artifacts": [
         {
           "type": "research",
@@ -24,9 +24,17 @@
           "type": "research",
           "path": "specs/27_sioyek_default_pdf_viewer_gnome/reports/research-002.md",
           "summary": "Supplementary research on X11 wrapper rationale and Unite extension compatibility"
+        },
+        {
+          "path": "specs/27_sioyek_default_pdf_viewer_gnome/summaries/implementation-summary-20260211.md",
+          "type": "summary",
+          "summary": "Implementation summary documenting xdg.dataFile approach and verification results"
         }
       ],
-      "planned": "2026-02-11T00:51:59Z"
+      "planned": "2026-02-11T00:51:59Z",
+      "started": "2026-02-11T01:29:23Z",
+      "completed": "2026-02-11T01:37:24Z",
+      "completion_summary": "Created declarative sioyek PDF viewer configuration in Home Manager using xdg.dataFile to place the desktop entry in ~/.local/share/applications/ (which GNOME respects) with xdg.mimeApps for MIME associations."
     },
     {
       "project_number": 25,
