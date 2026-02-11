@@ -3,8 +3,9 @@
 ## Active Tasks
 
 ### 32. Remove sioyek Ctrl-T new instance mapping
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Language**: general
+- **Completed**: 2026-02-11
 
 **Description**: Remove the Ctrl-T keybinding in sioyek that creates a new sioyek instance, which is not needed.
 
