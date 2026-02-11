@@ -11,10 +11,11 @@
 ---
 
 ### 23. Research and install simple webcam recording software
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Language**: nix
 - **Researched**: 2026-02-09
 - **Research**: [research-001.md](specs/23_install_simple_webcam_recording_software/reports/research-001.md)
+- **Plan**: [implementation-001.md](specs/23_install_simple_webcam_recording_software/plans/implementation-001.md)
 
 **Description**: Research and install the simplest video software that is free and in the nix packages that can be used to record a small video from the web camera.
 
