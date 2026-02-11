@@ -3,8 +3,10 @@
 ## Active Tasks
 
 ### 28. Configure sioyek night mode toggle with soft grey-blue color scheme
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Language**: general
+- **Researched**: 2026-02-11
+- **Research**: [research-001.md](specs/28_sioyek_night_mode_toggle_color_scheme/reports/research-001.md)
 
 **Description**: When pressing 'w' in sioyek, it currently toggles to black text on white background. Instead, configure it to toggle to a night mode with soft grey-blue background and lighter text, or another visually appealing nightmode color scheme.
 
