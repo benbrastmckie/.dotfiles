@@ -1,20 +1,19 @@
 {
-  "status": "researched",
-  "started_at": "2026-02-11T00:28:26Z",
+  "status": "planned",
   "artifacts": [
     {
-      "type": "report",
-      "path": "specs/30_fix_sioyek_theme_toggle_w_key_nord_macro/reports/research-001.md",
-      "summary": "Root cause identified: wrong filename (sioyek-keys.config should be keys_user.config) and missing symlink in home.nix"
+      "type": "plan",
+      "path": "specs/30_fix_sioyek_theme_toggle_w_key_nord_macro/plans/implementation-001.md",
+      "summary": "3-phase implementation plan to fix sioyek theme toggle keybinding"
     }
   ],
-  "next_steps": "Run /plan 30 to create implementation plan",
+  "next_steps": "Run /implement 30 to execute the plan",
   "metadata": {
-    "session_id": "sess_1770827706_b25ffe",
-    "agent_type": "general-research-agent",
-    "duration_seconds": 142,
+    "session_id": "sess_1770828029_b429f0",
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "general-research-agent"],
-    "findings_count": 4
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 3,
+    "estimated_hours": 0.5
   }
 }
