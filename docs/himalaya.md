@@ -57,6 +57,10 @@ Himalaya is configured as the primary email client with dual-account support:
   .Drafts/       # Draft messages
   .Trash/        # Deleted messages
   .Archive/      # Archived messages
+  .Labels/       # User-created labels (synced via logos-labels channel)
+    .MyLabel/    # Example label
+  .Folders/      # User-created folders (synced via logos-folders channel)
+    .MyFolder/   # Example folder
 ```
 
 ## NixOS Configuration
@@ -370,12 +374,32 @@ Create Both
 Expunge Both
 SyncState *
 
+Channel logos-labels
+Far :logos-remote:
+Near :logos-local:
+Patterns "Labels/*"
+Create Both
+Expunge Both
+Remove Both
+SyncState *
+
+Channel logos-folders
+Far :logos-remote:
+Near :logos-local:
+Patterns "Folders/*"
+Create Both
+Expunge Both
+Remove Both
+SyncState *
+
 Group logos
 Channel logos-inbox
 Channel logos-sent
 Channel logos-drafts
 Channel logos-trash
 Channel logos-archive
+Channel logos-labels
+Channel logos-folders
 ```
 
 ## Usage
@@ -634,3 +658,66 @@ Remove Both
 3. The `Remove Both` directive ensures the deletion syncs to the other side
 
 **Note**: Folder operations only affect the gmail-folders channel. System folders (Inbox, Sent, Drafts, etc.) are managed by dedicated channels and are not affected by these patterns.
+
+### Protonmail Folder/Label Synchronization
+
+Protonmail uses two types of organizational structures:
+- **Labels** - Can be applied to multiple messages (tagging/categorization)
+- **Folders** - Each message belongs to exactly one folder (organization)
+
+Both are exposed via Protonmail Bridge as IMAP folders under `Labels/*` and `Folders/*` respectively.
+
+#### mbsync Configuration
+
+Two channels handle bidirectional sync:
+
+```ini
+Channel logos-labels
+Far :logos-remote:
+Near :logos-local:
+Patterns "Labels/*"
+Create Both
+Expunge Both
+Remove Both
+SyncState *
+
+Channel logos-folders
+Far :logos-remote:
+Near :logos-local:
+Patterns "Folders/*"
+Create Both
+Expunge Both
+Remove Both
+SyncState *
+```
+
+Both channels are included in the `logos` group for unified sync operations.
+
+**Directives**:
+- `Create Both` - New labels/folders created on either side sync to the other
+- `Expunge Both` - Deleted messages sync in both directions
+- `Remove Both` - Deleted labels/folders sync in both directions
+
+#### Label/Folder Sync Workflows
+
+**Creating a label/folder in Protonmail**:
+1. Create a new label or folder in Protonmail web interface
+2. Run `mbsync logos-labels` or `mbsync logos-folders` (or `mbsync logos` for all)
+3. Folder appears in `himalaya folder list --account logos` as `Labels/YourLabel` or `Folders/YourFolder`
+
+**Creating a label/folder in Himalaya**:
+1. Run `himalaya folder add "Labels/MyLabel" --account logos` for a label
+2. Or run `himalaya folder add "Folders/MyFolder" --account logos` for a folder
+3. Run `mbsync logos-labels` or `mbsync logos-folders` to sync
+4. Label/folder appears in Protonmail web interface
+
+**Deleting a label/folder**:
+1. Delete via Protonmail web interface, or remove from local Maildir
+2. Run `mbsync logos-labels` or `mbsync logos-folders` to propagate deletion
+3. The `Remove Both` directive ensures the deletion syncs to the other side
+
+**Important Notes**:
+- Protonmail Bridge must be running for sync to work
+- Root-level folder creation is not allowed; all user items must be under `Labels/` or `Folders/`
+- System folders (INBOX, Sent, Drafts, Trash, Archive) are managed by dedicated channels
+- The "Password is being sent in the clear" warning is expected (Bridge runs on localhost)
