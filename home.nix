@@ -803,15 +803,14 @@
   home.file = {
     ".config/neofetch/config.conf".source = ./config/neofetch.conf;
     ".config/opencode/opencode.json".source = ./config/opencode.json;
-    ".config/sioyek/prefs_user.config".source = ./config/sioyek-prefs.config;
+    ".config/sioyek/prefs_user.config".source = ./config/sioyek/prefs_user.config;
     ".config/sioyek/keys_user.config".source = ./config/sioyek/keys_user.config;
     # Niri config - ENABLED (dual-session with GNOME)
     ".config/niri/config.kdl".source = ./config/config.kdl;
     # WezTerm config is now managed by programs.wezterm above
     # ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
-    ".config/himalaya/config.toml".source = ./config/himalaya/config.toml;
-    
-    
+
+
     # mbsync configuration for IMAP synchronization with XOAUTH2
     ".mbsyncrc".text = ''
       # Gmail IMAP account with XOAUTH2 support
@@ -974,6 +973,7 @@
     ".config/zathura/zathurarc".source = ./config/zathurarc;
     ".config/alacritty/alacritty.toml".source = ./config/alacritty.toml;
     ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
+    ".config/himalaya/config.toml".source = ./config/himalaya-config.toml;
     ".claude/settings.json".source = ./config/claude-settings.json;
     ".tmux.conf".source = ./config/.tmux.conf;
     ".latexmkrc".source = ./config/latexmkrc;
