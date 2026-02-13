@@ -955,12 +955,32 @@
       Expunge Both
       SyncState *
 
+      Channel logos-labels
+      Far :logos-remote:
+      Near :logos-local:
+      Patterns "Labels/*"
+      Create Both
+      Expunge Both
+      Remove Both
+      SyncState *
+
+      Channel logos-folders
+      Far :logos-remote:
+      Near :logos-local:
+      Patterns "Folders/*"
+      Create Both
+      Expunge Both
+      Remove Both
+      SyncState *
+
       Group logos
       Channel logos-inbox
       Channel logos-sent
       Channel logos-drafts
       Channel logos-trash
       Channel logos-archive
+      Channel logos-labels
+      Channel logos-folders
     '';
 
     # Gmail OAuth2 environment file for systemd service
