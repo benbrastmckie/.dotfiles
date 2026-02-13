@@ -888,9 +888,10 @@
       Channel gmail-folders
       Far :gmail-remote:
       Near :gmail-local:
-      Patterns "EuroTrip" "CrazyTown" "Letters"
+      Patterns * ![Gmail]* !INBOX
       Create Both
       Expunge Both
+      Remove Both
       SyncState *
 
       # Group all channels together
