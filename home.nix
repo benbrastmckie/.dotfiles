@@ -888,7 +888,7 @@
       Channel gmail-folders
       Far :gmail-remote:
       Near :gmail-local:
-      Patterns * ![Gmail]* !INBOX
+      Patterns * ![Gmail]* !INBOX !Sent !Drafts !Trash !All_Mail !Spam
       Create Both
       Expunge Both
       Remove Both
