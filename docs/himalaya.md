@@ -43,9 +43,7 @@ Himalaya is configured as the primary email client with dual-account support:
   .Trash/        # Deleted messages
   .All_Mail/     # All mail archive
   .Spam/         # Spam messages
-  EuroTrip/      # Custom folder
-  CrazyTown/     # Custom folder
-  Letters/       # Custom folder
+  .*/            # Custom folders (synced via gmail-folders channel)
 ```
 
 **Protonmail (Logos)**:
@@ -302,9 +300,10 @@ SyncState *
 Channel gmail-folders
 Far :gmail-remote:
 Near :gmail-local:
-Patterns "EuroTrip" "CrazyTown" "Letters"
+Patterns * ![Gmail]* !INBOX
 Create Both
 Expunge Both
+Remove Both
 SyncState *
 
 # Group all channels together
@@ -595,3 +594,43 @@ Gmail's special folders are mapped to standard names:
 - `[Gmail]/Spam` maps to `Spam`
 
 This maintains compatibility while preserving Gmail's folder structure.
+
+### Gmail Folder/Label Synchronization
+
+Custom Gmail labels synchronize bidirectionally with Himalaya via mbsync. The `gmail-folders` channel uses wildcard patterns with exclusions:
+
+```ini
+Patterns * ![Gmail]* !INBOX
+Create Both
+Expunge Both
+Remove Both
+```
+
+**Pattern Breakdown**:
+- `*` - Sync all folders/labels
+- `![Gmail]*` - Exclude Gmail system folders (Sent, Drafts, etc. - handled by dedicated channels)
+- `!INBOX` - Exclude INBOX (handled by gmail-inbox channel)
+
+**Directives**:
+- `Create Both` - New folders created on either side sync to the other
+- `Expunge Both` - Deleted messages sync in both directions
+- `Remove Both` - Deleted folders sync in both directions
+
+#### Folder Sync Workflows
+
+**Creating a folder in Gmail**:
+1. Create a new label in Gmail web interface
+2. Run `mbsync gmail-folders` to sync
+3. Folder appears in `himalaya folder list --account gmail`
+
+**Creating a folder in Himalaya**:
+1. Run `himalaya folder add MyFolder --account gmail`
+2. Run `mbsync gmail-folders` to sync
+3. Label appears in Gmail web interface
+
+**Deleting a folder**:
+1. Delete the folder/label in either Gmail or Himalaya
+2. Run `mbsync gmail-folders` to propagate deletion
+3. The `Remove Both` directive ensures the deletion syncs to the other side
+
+**Note**: Folder operations only affect the gmail-folders channel. System folders (Inbox, Sent, Drafts, etc.) are managed by dedicated channels and are not affected by these patterns.
