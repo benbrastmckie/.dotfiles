@@ -4,11 +4,18 @@
     {
       "project_number": 36,
       "project_name": "review_niri_nixos_upgrades",
-      "status": "researching",
+      "status": "researched",
       "language": "nix",
       "created": "2026-02-17T22:32:43Z",
-      "last_updated": "2026-02-17T22:39:57Z",
-      "session_id": "sess_1771367948_3fc8ee"
+      "last_updated": "2026-02-17T22:50:04Z",
+      "session_id": "sess_1771367948_3fc8ee",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/36_review_niri_nixos_upgrades/reports/research-001.md",
+          "summary": "Research report covering Niri 2025 features, missing components, configuration enhancements, window rules, and Waybar improvements while maintaining GNOME compatibility"
+        }
+      ]
     },
     {
       "project_number": 35,

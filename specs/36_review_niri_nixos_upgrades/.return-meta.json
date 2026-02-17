@@ -1,15 +1,20 @@
 {
-  "status": "in_progress",
-  "started_at": "2026-02-17T00:00:00Z",
-  "artifacts": [],
-  "partial_progress": {
-    "stage": "initializing",
-    "details": "Agent started, parsing delegation context"
-  },
+  "status": "researched",
+  "summary": "Comprehensive Niri review completed. Current setup is well-configured with GNOME integration. Key upgrades available: xwayland-satellite (X11 compat), floating windows (25.01+), kanshi (monitor management), prefer-no-csd with shadows, enhanced window rules. GNOME compatibility already excellent for dual-session use.",
+  "artifacts": [
+    {
+      "type": "research",
+      "path": "specs/36_review_niri_nixos_upgrades/reports/research-001.md",
+      "summary": "Research report covering Niri 2025 features, missing components (xwayland-satellite, kanshi), configuration enhancements (floating windows, shadows, corner radius), window rules for common apps, and Waybar improvements while maintaining GNOME compatibility"
+    }
+  ],
+  "next_steps": "Run /plan 36 to create implementation plan",
   "metadata": {
     "session_id": "sess_1771367948_3fc8ee",
     "agent_type": "nix-research-agent",
+    "duration_seconds": 180,
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "nix-research-agent"]
+    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
+    "findings_count": 8
   }
 }
