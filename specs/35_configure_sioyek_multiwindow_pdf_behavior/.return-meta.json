@@ -1,21 +1,19 @@
 {
-  "status": "researched",
-  "started_at": "2026-02-16T00:00:00Z",
-  "completed_at": "2026-02-16T00:30:00Z",
+  "status": "planned",
   "artifacts": [
     {
-      "type": "research",
-      "path": "specs/35_configure_sioyek_multiwindow_pdf_behavior/reports/research-001.md",
-      "summary": "Research report covering sioyek window behavior options: should_launch_new_window, close_window keybinding, and analysis of native support vs wrapper script for focus-existing behavior"
+      "type": "plan",
+      "path": "specs/35_configure_sioyek_multiwindow_pdf_behavior/plans/implementation-001.md",
+      "summary": "1-phase implementation plan for sioyek multi-window PDF configuration"
     }
   ],
-  "next_steps": "Run /plan 35 to create implementation plan",
+  "next_steps": "Run /implement 35 to execute the plan",
   "metadata": {
-    "session_id": "sess_1771302964_c0d566",
-    "agent_type": "general-research-agent",
-    "duration_seconds": 1800,
+    "session_id": "sess_1771365628_565c41",
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "general-research-agent"],
-    "findings_count": 6
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 1,
+    "estimated_hours": 0.5
   }
 }
