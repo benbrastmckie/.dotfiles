@@ -1,3 +1,7 @@
+// Request server-side decorations from clients that support them
+// This provides consistent window appearance across applications
+prefer-no-csd
+
 // Visual and Input Configuration
 input {
     keyboard {
@@ -12,20 +16,20 @@ input {
         repeat-delay 300
         repeat-rate 50
     }
-    
+
     touchpad {
-        natural-scroll true
-        tap true
-        dwt false  // Disable while typing
+        natural-scroll
+        tap
+        // dwt  // Disable while typing - off by default
         accel-profile "adaptive"
         accel-speed 0.2
         scroll-factor 1.2
     }
 
     mouse {
-        natural-scroll false
+        // natural-scroll is off by default
         accel-profile "flat"
-        accel-speed 0
+        accel-speed 0.0
     }
 }
 
@@ -34,21 +38,17 @@ layout {
     // Modern focus ring appearance
     focus-ring {
         width 3
-        active.color "rgb(94, 129, 172)"  // Nord blue
-        inactive.color "rgb(67, 76, 94)"   // Nord muted
-        active.gradient.start "rgb(136, 192, 208)"  // Nord light blue
-        active.gradient.end "rgb(129, 161, 193)"    // Nord blue
+        active-color "rgb(94, 129, 172)"  // Nord blue
+        inactive-color "rgb(67, 76, 94)"   // Nord muted
     }
-    
+
     // Window borders
     border {
         width 2
-        active.color "rgb(94, 129, 172)"    // Nord blue
-        inactive.color "rgb(67, 76, 94)"    // Nord muted
-        active.gradient.start "rgb(136, 192, 208)"  // Nord light blue
-        active.gradient.end "rgb(129, 161, 193)"    // Nord blue
+        active-color "rgb(94, 129, 172)"    // Nord blue
+        inactive-color "rgb(67, 76, 94)"    // Nord muted
     }
-    
+
     // Workspace layout settings
     gaps 8
     struts {
@@ -57,127 +57,187 @@ layout {
         top 32  // Reserve space for top bar
         bottom 0
     }
-    
+
     // Default window dimensions
-    default-column-width "50%"
+    default-column-width { proportion 0.5; }
+
+    // Window shadows for visual depth
+    shadow {
+        on
+        softness 30
+        spread 5
+        offset x=0 y=5
+        color "rgba(0, 0, 0, 0.5)"
+    }
 }
 
 // Smooth animations
 animations {
-    enabled true
-    speed 7  // Animation speed (1-10)
-    
+    // Slower animations off for responsiveness; set to on for smooth
+    slowdown 1.0
+
     // Window animations
-    window-open { duration 200 }
-    window-close { duration 200 }
-    window-move { duration 150 }
-    window-resize { duration 150 }
-    
+    window-open {
+        duration-ms 200
+        curve "ease-out-expo"
+    }
+    window-close {
+        duration-ms 200
+        curve "ease-out-quad"
+    }
+    window-movement {
+        duration-ms 150
+        curve "ease-out-cubic"
+    }
+    window-resize {
+        duration-ms 150
+        curve "ease-out-cubic"
+    }
+
     // Workspace animations
-    workspace-switch { duration 200 }
+    horizontal-view-movement {
+        duration-ms 200
+        curve "ease-out-cubic"
+    }
+    workspace-switch {
+        duration-ms 200
+        curve "ease-out-cubic"
+    }
 }
 
-// Window rules
-windows {
-    // Firefox PiP windows should float
-    match {
-        title "^Picture-in-Picture$"
-        float true
-        sticky true
-    }
-    
-    // System dialogs should float
-    match {
-        app-id "^pavucontrol$"
-        float true
-        center true
-    }
+// Window rules (using window-rule syntax)
+// Note: Individual window-rule blocks outside of 'windows' section
+// are the modern approach in Niri 25.01+
+
+// WezTerm: Fix initial window size by using proportional column width
+window-rule {
+    match app-id=r#"^org\.wezfurlong\.wezterm$"#
+    default-column-width { proportion 0.5; }
+}
+
+// Firefox PiP windows should float and stay on top
+window-rule {
+    match title="^Picture-in-Picture$"
+    open-floating true
+}
+
+// System dialogs (pavucontrol) should float
+window-rule {
+    match app-id="^pavucontrol$"
+    open-floating true
+}
+
+// Global window styling - rounded corners for all windows
+window-rule {
+    geometry-corner-radius 8
+    clip-to-geometry true
+}
+
+// Steam notification positioning (bottom-right corner)
+window-rule {
+    match app-id="steam" title=r#"^notificationtoasts_\d+_desktop$"#
+    default-floating-position x=10 y=10 relative-to="bottom-right"
+}
+
+// Zotero quick citation dialog should float
+window-rule {
+    match app-id="^Zotero$" title="^Quick Format Citation$"
+    open-floating true
+}
+
+// GNOME Settings should float
+window-rule {
+    match app-id="^org\\.gnome\\.Settings$"
+    open-floating true
 }
 
 //// KEYBINDINGS ////
 
 binds {
     // Program launching
-    Mod+t { spawn "kitty" }
-    Mod+b { spawn "brave" }
-    Mod+p { spawn "fuzzel" }
-    Mod+z { spawn "zotero" }
-    
+    Mod+T { spawn "kitty"; }
+    Mod+B { spawn "brave"; }
+    Mod+P { spawn "fuzzel"; }
+    Mod+Z { spawn "zotero"; }
+
     // Quick launchers
-    Mod+f { spawn "nautilus" }  // File manager
-    Mod+c { spawn "code" }      // VSCode
-    Mod+m { spawn "spotify" }   // Music
-    
+    Mod+F { spawn "nautilus"; }  // File manager
+    Mod+C { spawn "code"; }      // VSCode
+    Mod+M { spawn "spotify"; }   // Music
+
     // System controls
-    Mod+Shift+s { spawn "grimshot save area" }  // Screenshot area
-    Print { spawn "grimshot save screen" }      // Screenshot full
-    Mod+Shift+x { spawn "swaylock -f" }        // Lock screen
+    Mod+Shift+S { spawn "grimshot" "save" "area"; }  // Screenshot area
+    Print { spawn "grimshot" "save" "screen"; }       // Screenshot full
+    Mod+Shift+A { spawn "sh" "-c" "grim -g \"$(slurp)\" - | satty -f -"; }  // Screenshot with annotation
+    Mod+Shift+X { spawn "swaylock" "-f"; }           // Lock screen
 
     // Dictation (toggle on/off)
-    Mod+d { spawn "whisper-dictate" }
+    Mod+D { spawn "whisper-dictate"; }
 
     // Clipboard history
-    Mod+y { spawn "sh" "-c" "cliphist list | fuzzel --dmenu | cliphist decode | wl-copy" }
+    Mod+Y { spawn "sh" "-c" "cliphist list | fuzzel --dmenu | cliphist decode | wl-copy"; }
 
     // Audio controls
-    XF86AudioRaiseVolume { spawn "wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+" }
-    XF86AudioLowerVolume { spawn "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-" }
-    XF86AudioMute { spawn "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle" }
-    XF86AudioPlay { spawn "playerctl play-pause" }
-    XF86AudioNext { spawn "playerctl next" }
-    XF86AudioPrev { spawn "playerctl previous" }
+    XF86AudioRaiseVolume { spawn "wpctl" "set-volume" "-l" "1.5" "@DEFAULT_AUDIO_SINK@" "5%+"; }
+    XF86AudioLowerVolume { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-"; }
+    XF86AudioMute { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+    XF86AudioPlay { spawn "playerctl" "play-pause"; }
+    XF86AudioNext { spawn "playerctl" "next"; }
+    XF86AudioPrev { spawn "playerctl" "previous"; }
 
     // Window management
-    Mod+q { close-window }
-    // Mod+Shift+k { toggle-fullscreen }
-    // Mod+Shift+j { toggle-floating }
-    
+    Mod+Q { close-window; }
+
+    // Floating window controls (25.01+)
+    Mod+W { toggle-window-floating; }
+    Mod+Shift+V { switch-focus-between-floating-and-tiling; }
+
     // Advanced window management
-    Mod+r { enter-resize-mode }
-    Mod+m { toggle-maximize }
-    Mod+Tab { focus-recent }
-    
+    Mod+R { switch-preset-column-width; }
+    Mod+Shift+M { maximize-column; }
+    Mod+Tab { focus-window-previous; }
+
     // Window focus - vim style
-    Mod+h { focus-column-left }
-    Mod+j { focus-window-down }
-    Mod+k { focus-window-up }
-    Mod+l { focus-column-right }
-    
+    Mod+H { focus-column-left; }
+    Mod+J { focus-window-down; }
+    Mod+K { focus-window-up; }
+    Mod+L { focus-column-right; }
+
     // Window movement - vim style
-    Mod+Shift+h { move-column-left }
-    Mod+Shift+j { move-window-down }
-    Mod+Shift+k { move-window-up }
-    Mod+Shift+l { move-column-right }
+    Mod+Shift+H { move-column-left; }
+    Mod+Shift+J { move-window-down; }
+    Mod+Shift+K { move-window-up; }
+    Mod+Shift+L { move-column-right; }
 
     // Named workspaces
-    Mod+1 { focus-workspace "1:web" }
-    Mod+2 { focus-workspace "2:code" }
-    Mod+3 { focus-workspace "3:term" }
-    Mod+4 { focus-workspace "4:docs" }
-    Mod+5 { focus-workspace "5:media" }
-    Mod+6 { focus-workspace "6:chat" }
-    Mod+7 { focus-workspace "7:misc" }
-    Mod+8 { focus-workspace "8:extra" }
-    Mod+9 { focus-workspace "9:bg" }
+    Mod+1 { focus-workspace "1:web"; }
+    Mod+2 { focus-workspace "2:code"; }
+    Mod+3 { focus-workspace "3:term"; }
+    Mod+4 { focus-workspace "4:docs"; }
+    Mod+5 { focus-workspace "5:media"; }
+    Mod+6 { focus-workspace "6:chat"; }
+    Mod+7 { focus-workspace "7:misc"; }
+    Mod+8 { focus-workspace "8:extra"; }
+    Mod+9 { focus-workspace "9:bg"; }
 
     // Move windows to workspaces
-    Mod+Shift+1 { move-window-to-workspace "1:web" }
-    Mod+Shift+2 { move-window-to-workspace "2:code" }
-    Mod+Shift+3 { move-window-to-workspace "3:term" }
-    Mod+Shift+4 { move-window-to-workspace "4:docs" }
-    Mod+Shift+5 { move-window-to-workspace "5:media" }
-    Mod+Shift+6 { move-window-to-workspace "6:chat" }
-    Mod+Shift+7 { move-window-to-workspace "7:misc" }
-    Mod+Shift+8 { move-window-to-workspace "8:extra" }
-    Mod+Shift+9 { move-window-to-workspace "9:bg" }
+    Mod+Shift+1 { move-window-to-workspace "1:web"; }
+    Mod+Shift+2 { move-window-to-workspace "2:code"; }
+    Mod+Shift+3 { move-window-to-workspace "3:term"; }
+    Mod+Shift+4 { move-window-to-workspace "4:docs"; }
+    Mod+Shift+5 { move-window-to-workspace "5:media"; }
+    Mod+Shift+6 { move-window-to-workspace "6:chat"; }
+    Mod+Shift+7 { move-window-to-workspace "7:misc"; }
+    Mod+Shift+8 { move-window-to-workspace "8:extra"; }
+    Mod+Shift+9 { move-window-to-workspace "9:bg"; }
 
     // Layout management
-    Mod+v { split-column }
-    Mod+s { stacking-column }
-    
+    Mod+V { consume-or-expel-window-left; }
+    Mod+S { consume-or-expel-window-right; }
+
     // Niri actions
-    Mod+Shift+q { quit }
-    Mod+Shift+r { reload-config }
+    Mod+Shift+Q { quit; }
+    Mod+Shift+R { power-off-monitors; }
 }
 
 //// AUTOSTART PROGRAMS ////
@@ -187,27 +247,15 @@ binds {
 // See: specs/plans/010_niri_gnome_portal_integration.md
 
 // Wallpaper (systemd handles all other services via D-Bus activation)
-spawn-at-startup "/run/current-system/sw/bin/swaybg -i ~/.wallpapers/current -m fill"
+spawn-at-startup "/run/current-system/sw/bin/swaybg" "-i" "~/.wallpapers/current" "-m" "fill"
 
 // Auto-start kitty terminal
 spawn-at-startup "kitty"
 
 // Clipboard history manager (cliphist)
-spawn-at-startup "wl-paste --type text --watch cliphist store"
-spawn-at-startup "wl-paste --type image --watch cliphist store"
+spawn-at-startup "wl-paste" "--type" "text" "--watch" "cliphist" "store"
+spawn-at-startup "wl-paste" "--type" "image" "--watch" "cliphist" "store"
 
 // Idle management and auto-lock/suspend
 // Lock after 5 min idle, suspend after 10 min, lock before sleep
-spawn-at-startup "swayidle -w timeout 300 'swaylock -f' timeout 600 'systemctl suspend' before-sleep 'swaylock -f' lock 'swaylock -f'"
-
-// // NOTE: for Niri without Gnome
-// // Autostart programs
-// spawn-at-startup "waybar -c ~/.config/waybar/config"  // Status bar
-// spawn-at-startup "mako"                               // Notifications
-// spawn-at-startup "swayidle -w timeout 300 'swaylock -f' timeout 600 'systemctl suspend'"  // Auto lock/suspend
-// spawn-at-startup "nm-applet --indicator"              // Network manager
-// spawn-at-startup "blueman-applet"                     // Bluetooth manager
-// spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"  // Authentication agent
-// spawn-at-startup "wl-paste -t text --watch clipman store"  // Clipboard manager
-// spawn-at-startup "kanshi"                             // Output management
-// spawn-at-startup "swaybg -i ~/.wallpapers/current -m fill"  // Wallpaper
+spawn-at-startup "swayidle" "-w" "timeout" "300" "swaylock -f" "timeout" "600" "systemctl suspend" "before-sleep" "swaylock -f" "lock" "swaylock -f"

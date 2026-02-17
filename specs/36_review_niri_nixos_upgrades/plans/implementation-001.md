@@ -1,7 +1,7 @@
 # Implementation Plan: Task #36
 
 - **Task**: 36 - review_niri_nixos_upgrades
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 3 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/36_review_niri_nixos_upgrades/reports/research-001.md
@@ -50,7 +50,7 @@ Research report (research-001.md) identified:
 
 ## Implementation Phases
 
-### Phase 1: Essential Upgrades [NOT STARTED]
+### Phase 1: Essential Upgrades [COMPLETED]
 
 **Goal**: Add xwayland-satellite for X11 compatibility and enable floating window keybindings
 
@@ -75,7 +75,7 @@ Research report (research-001.md) identified:
 
 ---
 
-### Phase 2: Visual Polish [NOT STARTED]
+### Phase 2: Visual Polish [COMPLETED]
 
 **Goal**: Add shadows, rounded corners, and visual enhancements to Niri configuration
 
@@ -98,7 +98,7 @@ Research report (research-001.md) identified:
 
 ---
 
-### Phase 3: Waybar and Screenshot Enhancements [NOT STARTED]
+### Phase 3: Waybar and Screenshot Enhancements [COMPLETED]
 
 **Goal**: Enhance Waybar with additional modules and add screenshot annotation tools
 
@@ -123,7 +123,7 @@ Research report (research-001.md) identified:
 
 ---
 
-### Phase 4: Monitor Management [NOT STARTED]
+### Phase 4: Monitor Management [COMPLETED]
 
 **Goal**: Configure kanshi for dynamic monitor profiles and enable power-profiles-daemon
 
@@ -147,7 +147,7 @@ Research report (research-001.md) identified:
 
 ---
 
-### Phase 5: Final Validation [NOT STARTED]
+### Phase 5: Final Validation [COMPLETED]
 
 **Goal**: Comprehensive testing and documentation of all changes
 

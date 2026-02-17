@@ -224,6 +224,11 @@
     whisper-cpp  # Fast offline speech-to-text (renamed from openai-whisper-cpp)
     ydotool      # Universal input tool (works with GNOME/Wayland)
     libnotify    # Desktop notifications
+
+    # Screenshot and annotation tools (for Niri)
+    satty        # Screenshot annotation tool
+    grim         # Wayland screenshot utility
+    slurp        # Region selection tool for Wayland
     
     # OAuth2 token refresh script
     (pkgs.writeShellScriptBin "refresh-gmail-oauth2" ''
@@ -1043,10 +1048,22 @@
         height = 32;
         modules-left = ["niri/workspaces" "niri/window"];
         modules-center = ["clock"];
-        modules-right = ["tray" "pulseaudio" "network" "battery"];
+        modules-right = ["idle_inhibitor" "tray" "bluetooth" "pulseaudio" "network" "battery"];
 
         "niri/workspaces" = {
-          format = "{name}";
+          format = "{icon}";
+          format-icons = {
+            "1:web" = "";
+            "2:code" = "";
+            "3:term" = "";
+            "4:docs" = "";
+            "5:media" = "";
+            "6:chat" = "";
+            "7:misc" = "";
+            "8:extra" = "";
+            "9:bg" = "";
+            default = "";
+          };
         };
 
         "niri/window" = {
@@ -1055,11 +1072,14 @@
 
         clock = {
           format = "{:%H:%M}";
-          format-alt = "{:%Y-%m-%d}";
+          format-alt = "{:%Y-%m-%d %H:%M}";
+          tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
         };
 
         battery = {
           format = "{icon} {capacity}%";
+          format-charging = " {capacity}%";
+          format-plugged = " {capacity}%";
           format-icons = ["" "" "" "" ""];
           states = {
             warning = 30;
@@ -1070,7 +1090,8 @@
         network = {
           format-wifi = " {essid} ({signalStrength}%)";
           format-ethernet = " {ifname}";
-          format-disconnected = "⚠ Disconnected";
+          format-disconnected = " Disconnected";
+          tooltip-format = "{ifname}: {ipaddr}/{cidr}";
           on-click = "gnome-control-center wifi";
         };
 
@@ -1079,8 +1100,28 @@
           format-muted = " Muted";
           format-icons = {
             default = ["" "" ""];
+            headphone = "";
+            headset = "";
           };
           on-click = "gnome-control-center sound";
+        };
+
+        bluetooth = {
+          format = " {status}";
+          format-connected = " {device_alias}";
+          format-disabled = "";
+          tooltip-format = "{controller_alias}\t{controller_address}";
+          on-click = "gnome-control-center bluetooth";
+        };
+
+        idle_inhibitor = {
+          format = "{icon}";
+          format-icons = {
+            activated = "";
+            deactivated = "";
+          };
+          tooltip-format-activated = "Idle inhibitor: ON";
+          tooltip-format-deactivated = "Idle inhibitor: OFF";
         };
 
         tray = {
@@ -1101,6 +1142,35 @@
       icons = true;
       max-icon-size = 64;
     };
+  };
+
+  # Kanshi - dynamic monitor configuration for Niri
+  # Note: Uses niri.service target so it only runs in Niri session
+  services.kanshi = {
+    enable = true;
+    systemdTarget = "niri.service";
+    settings = [
+      {
+        profile.name = "undocked";
+        profile.outputs = [
+          {
+            criteria = "eDP-1";
+            status = "enable";
+            mode = "2560x1600@120Hz";
+            scale = 1.25;
+          }
+        ];
+      }
+      # Add docked profiles when external monitors are available
+      # Example:
+      # {
+      #   profile.name = "docked-home";
+      #   profile.outputs = [
+      #     { criteria = "eDP-1"; status = "disable"; }
+      #     { criteria = "DP-1"; status = "enable"; mode = "3840x2160@60Hz"; scale = 1.5; }
+      #   ];
+      # }
+    ];
   };
 
   # ProtonMail Bridge systemd service for local IMAP/SMTP
