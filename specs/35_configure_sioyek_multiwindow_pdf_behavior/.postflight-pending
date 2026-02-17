@@ -1,9 +1,8 @@
 {
-  "session_id": "sess_1771302964_c0d566",
-  "skill": "skill-researcher",
+  "session_id": "sess_1771365628_565c41",
+  "skill": "skill-planner",
   "task_number": 35,
-  "operation": "research",
+  "operation": "plan",
   "reason": "Postflight pending: status update, artifact linking, git commit",
-  "created": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "stop_hook_active": false
 }
