@@ -43,12 +43,12 @@
     {
       "project_number": 34,
       "project_name": "fix_wezterm_ctrl_space_cross_window_tab_navigation",
-      "status": "researching",
+      "status": "researched",
       "language": "general",
       "created": "2026-02-11T22:33:55Z",
-      "last_updated": "2026-02-17T22:23:04Z",
+      "last_updated": "2026-02-17T22:35:20Z",
       "session_id": "sess_1771366958_674e1e",
-      "researched": "2026-02-11T22:54:53Z",
+      "researched": "2026-02-17T22:35:20Z",
       "artifacts": [
         {
           "path": "specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-001.md",
@@ -59,6 +59,11 @@
           "path": "specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-002.md",
           "type": "research",
           "summary": "Follow-up research on WezTerm cross-window navigation with 4 solution approaches and comprehensive GitHub issue analysis"
+        },
+        {
+          "path": "specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-003.md",
+          "type": "research",
+          "summary": "Compositor-specific solutions for cross-window tab navigation: Niri IPC and GNOME D-Bus extension with implementation sketches"
         }
       ]
     },
