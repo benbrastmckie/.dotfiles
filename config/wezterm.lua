@@ -3,6 +3,26 @@ local config = wezterm.config_builder()
 local mux = wezterm.mux
 local act = wezterm.action
 
+-- Helper function to detect the current compositor
+local function detect_compositor()
+  local xdg_current_desktop = os.getenv("XDG_CURRENT_DESKTOP")
+  if xdg_current_desktop and xdg_current_desktop:find("GNOME") then
+    return "gnome"
+  end
+  return "unknown"
+end
+
+-- Focus WezTerm window via GNOME Shell extension D-Bus interface
+-- Uses activate-window-by-title extension to bypass Wayland focus-stealing prevention
+local function focus_wezterm_window_gnome()
+  local cmd = [[gdbus call --session ]] ..
+    [[--dest org.gnome.Shell ]] ..
+    [[--object-path /de/lucaswerkmeister/ActivateWindowByTitle ]] ..
+    [[--method de.lucaswerkmeister.ActivateWindowByTitle.activateByWmClass ]] ..
+    [['org.wezfurlong.wezterm' 2>/dev/null]]
+  os.execute(cmd)
+end
+
 -- Start maximized (removed duplicate - only one gui-startup handler should exist)
 -- Commented out to prevent double window issue
 -- wezterm.on('gui-startup', function(cmd)
@@ -252,10 +272,26 @@ local function activate_global_tab(global_position)
     -- Activate the target tab
     target.tab:activate()
 
-    -- Focus the window containing the target tab
-    local gui_win = target.window:gui_window()
+    -- Check if we're navigating to a different window
+    local current_window_id = window:mux_window():window_id()
+    local target_window_id = target.window:window_id()
+
+    if current_window_id == target_window_id then
+      -- Same window, no focus change needed
+      return
+    end
+
+    -- Try WezTerm's native focus first (works on X11, may work if xdg-activation implemented)
+    local gui_win = wezterm.gui.gui_window_for_mux_window(target_window_id)
     if gui_win then
       gui_win:focus()
+    end
+
+    -- Fallback to compositor-specific focus for cross-window navigation
+    local compositor = detect_compositor()
+    if compositor == "gnome" then
+      -- Use GNOME Shell extension to focus the window
+      focus_wezterm_window_gnome()
     end
   end)
 end
