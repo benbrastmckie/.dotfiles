@@ -278,6 +278,9 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
     cpuFreqGovernor = "ondemand";  # Balance performance and power saving
   };
 
+  # Power profiles daemon for Waybar integration and system-wide power management
+  services.power-profiles-daemon.enable = true;
+
   # ==========================================================================
   # Memory Management - earlyoom for OOM Prevention
   # ==========================================================================
@@ -348,8 +351,12 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       libsForQt5.qt5.qtwayland  # Wayland support for Qt5 applications
       swaybg               # Simple wallpaper utility for Wayland
 
+      # Niri essential packages (for dual-session with GNOME)
+      xwayland-satellite   # X11 compatibility layer for Niri (auto-detected since 25.08)
+      fuzzel               # Lightweight application launcher for Wayland
+      wdisplays            # GUI monitor configuration tool for wlr-output-management
+
       # # For use with Niri without Gnome utilities
-      # fuzzel               # Lightweight application launcher for Wayland
       # mako                 # Lightweight notification daemon for Wayland
       # grim                 # Screenshot utility for Wayland
       # slurp                # Area selection tool for Wayland screenshots
