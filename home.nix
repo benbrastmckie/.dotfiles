@@ -36,6 +36,13 @@
 
   # GNOME settings via dconf
   dconf.settings = {
+    # GNOME Shell extensions
+    "org/gnome/shell" = {
+      enabled-extensions = [
+        "activate-window-by-title@lucaswerkmeister.de"
+      ];
+    };
+
     # Interface preferences
     "org/gnome/desktop/interface" = {
       color-scheme = "prefer-dark";
@@ -156,6 +163,9 @@
     espeak-ng    # Text-to-speech for notifications
     markitdown   # Document to markdown converter (supports PDF, DOCX, PPTX, etc)
     # sioyek is installed via configuration.nix (X11 wrapper for Unite extension)
+
+    # GNOME Shell Extensions
+    gnomeExtensions.activate-window-by-title  # For cross-window WezTerm tab navigation
 
     # Sioyek theme toggle script - toggles between Gruvbox (light) and Nord (dark)
     (pkgs.writeShellScriptBin "sioyek-theme-toggle" ''

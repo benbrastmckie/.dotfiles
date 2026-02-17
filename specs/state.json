@@ -4,18 +4,24 @@
     {
       "project_number": 36,
       "project_name": "review_niri_nixos_upgrades",
-      "status": "researched",
+      "status": "planned",
       "language": "nix",
       "created": "2026-02-17T22:32:43Z",
-      "last_updated": "2026-02-17T22:50:04Z",
-      "session_id": "sess_1771367948_3fc8ee",
+      "last_updated": "2026-02-17T23:09:19Z",
+      "session_id": "sess_1771369483_a62cde",
       "artifacts": [
         {
           "type": "research",
           "path": "specs/36_review_niri_nixos_upgrades/reports/research-001.md",
           "summary": "Research report covering Niri 2025 features, missing components, configuration enhancements, window rules, and Waybar improvements while maintaining GNOME compatibility"
+        },
+        {
+          "type": "plan",
+          "path": "specs/36_review_niri_nixos_upgrades/plans/implementation-001.md",
+          "summary": "5-phase implementation plan for Niri compositor upgrades with GNOME compatibility"
         }
-      ]
+      ],
+      "planned": "2026-02-17T23:09:19Z"
     },
     {
       "project_number": 35,
@@ -51,11 +57,11 @@
     {
       "project_number": 34,
       "project_name": "fix_wezterm_ctrl_space_cross_window_tab_navigation",
-      "status": "planned",
+      "status": "completed",
       "language": "general",
       "created": "2026-02-11T22:33:55Z",
-      "last_updated": "2026-02-17T22:48:11Z",
-      "session_id": "sess_1771368192_f7b4f3",
+      "last_updated": "2026-02-17T23:08:58Z",
+      "session_id": "sess_1771369411_156b96",
       "researched": "2026-02-17T22:35:20Z",
       "artifacts": [
         {
@@ -77,9 +83,17 @@
           "path": "specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/plans/implementation-001.md",
           "type": "plan",
           "summary": "5-phase implementation plan for GNOME cross-window tab navigation using activate-window-by-title extension"
+        },
+        {
+          "path": "specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/summaries/implementation-summary-20260217.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification results and post-rebuild testing instructions"
         }
       ],
-      "planned": "2026-02-17T22:48:11Z"
+      "planned": "2026-02-17T22:48:11Z",
+      "started": "2026-02-17T23:03:45Z",
+      "completed": "2026-02-17T23:08:58Z",
+      "completion_summary": "Fixed WezTerm cross-window tab navigation on GNOME/Wayland by adding activate-window-by-title GNOME Shell extension and D-Bus fallback in wezterm.lua. Requires nixos-rebuild switch and re-login to activate."
     },
     {
       "project_number": 33,
