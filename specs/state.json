@@ -4,11 +4,11 @@
     {
       "project_number": 35,
       "project_name": "configure_sioyek_multiwindow_pdf_behavior",
-      "status": "planned",
+      "status": "completed",
       "language": "general",
       "created": "2026-02-17T04:33:24Z",
-      "last_updated": "2026-02-17T22:03:32Z",
-      "session_id": "sess_1771365628_565c41",
+      "last_updated": "2026-02-17T22:15:44Z",
+      "session_id": "sess_1771366031_9dc4bb",
       "researched": "2026-02-17T04:41:05Z",
       "artifacts": [
         {
@@ -20,9 +20,17 @@
           "path": "specs/35_configure_sioyek_multiwindow_pdf_behavior/plans/implementation-001.md",
           "type": "plan",
           "summary": "1-phase implementation plan for sioyek multi-window PDF configuration"
+        },
+        {
+          "path": "specs/35_configure_sioyek_multiwindow_pdf_behavior/summaries/implementation-summary-20260217.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification steps"
         }
       ],
-      "planned": "2026-02-17T22:03:32Z"
+      "planned": "2026-02-17T22:03:32Z",
+      "started": "2026-02-17T22:09:14Z",
+      "completed": "2026-02-17T22:15:44Z",
+      "completion_summary": "Configured sioyek PDF viewer for multi-window behavior with should_launch_new_window preference, close_window q keybinding, and --reuse-instance desktop entry flag. Different PDFs now open in separate windows."
     },
     {
       "project_number": 34,

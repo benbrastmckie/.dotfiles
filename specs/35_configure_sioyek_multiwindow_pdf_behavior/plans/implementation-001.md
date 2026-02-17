@@ -1,7 +1,7 @@
 # Implementation Plan: Task #35
 
 - **Task**: 35 - Configure sioyek multi-window PDF behavior
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 0.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/35_configure_sioyek_multiwindow_pdf_behavior/reports/research-001.md
@@ -44,7 +44,7 @@ The research report (research-001.md) identified that:
 
 ## Implementation Phases
 
-### Phase 1: Configure multi-window and keybindings [NOT STARTED]
+### Phase 1: Configure multi-window and keybindings [COMPLETED]
 
 **Goal**: Enable multi-window mode and fix the close behavior
 

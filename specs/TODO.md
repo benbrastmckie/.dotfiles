@@ -3,11 +3,13 @@
 ## Active Tasks
 
 ### 35. Configure sioyek multi-window behavior for PDF files
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Language**: general
 - **Researched**: 2026-02-16
+- **Completed**: 2026-02-17
 - **Research**: [research-001.md](specs/35_configure_sioyek_multiwindow_pdf_behavior/reports/research-001.md)
 - **Plan**: [implementation-001.md](specs/35_configure_sioyek_multiwindow_pdf_behavior/plans/implementation-001.md)
+- **Summary**: [implementation-summary-20260217.md](specs/35_configure_sioyek_multiwindow_pdf_behavior/summaries/implementation-summary-20260217.md)
 
 **Description**: Configure sioyek to open different PDF files in separate windows instead of replacing the current window. Opening an already-open PDF should focus that existing window.
 
