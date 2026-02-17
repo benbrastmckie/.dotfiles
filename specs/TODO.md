@@ -24,10 +24,10 @@
 ---
 
 ### 34. Fix ctrl+space tab navigation not switching to tabs in different WezTerm windows
-- **Status**: [RESEARCHING]
+- **Status**: [RESEARCHED]
 - **Language**: general
-- **Researched**: 2026-02-11
-- **Research**: [research-001.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-001.md), [research-002.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-002.md)
+- **Researched**: 2026-02-17
+- **Research**: [research-001.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-001.md), [research-002.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-002.md), [research-003.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-003.md)
 
 **Description**: Fix ctrl+space followed by a number not switching to tabs in different WezTerm windows. The navigation should switch to the tab with that global number across all windows, but currently it does not switch to the target window and tab as expected.
 
