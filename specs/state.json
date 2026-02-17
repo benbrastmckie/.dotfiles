@@ -1,6 +1,14 @@
 {
-  "next_project_number": 36,
+  "next_project_number": 37,
   "active_projects": [
+    {
+      "project_number": 36,
+      "project_name": "review_niri_nixos_upgrades",
+      "status": "not_started",
+      "language": "nix",
+      "created": "2026-02-17T22:32:43Z",
+      "last_updated": "2026-02-17T22:32:43Z"
+    },
     {
       "project_number": 35,
       "project_name": "configure_sioyek_multiwindow_pdf_behavior",
@@ -35,11 +43,11 @@
     {
       "project_number": 34,
       "project_name": "fix_wezterm_ctrl_space_cross_window_tab_navigation",
-      "status": "researched",
+      "status": "researching",
       "language": "general",
       "created": "2026-02-11T22:33:55Z",
-      "last_updated": "2026-02-11T22:54:53Z",
-      "session_id": "sess_1770850097_4cec17",
+      "last_updated": "2026-02-17T22:23:04Z",
+      "session_id": "sess_1771366958_674e1e",
       "researched": "2026-02-11T22:54:53Z",
       "artifacts": [
         {
