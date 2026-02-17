@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 35. Configure sioyek multi-window behavior for PDF files
+- **Status**: [NOT STARTED]
+- **Language**: general
+
+**Description**: Configure sioyek to open different PDF files in separate windows instead of replacing the current window. Opening an already-open PDF should focus that existing window.
+
+---
+
 ### 34. Fix ctrl+space tab navigation not switching to tabs in different WezTerm windows
 - **Status**: [RESEARCHED]
 - **Language**: general
