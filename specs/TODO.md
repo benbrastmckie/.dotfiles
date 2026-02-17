@@ -3,10 +3,11 @@
 ## Active Tasks
 
 ### 36. Review Niri NixOS setup for upgrades with Gnome compatibility
-- **Status**: [PLANNING]
+- **Status**: [PLANNED]
 - **Language**: nix
 - **Researched**: 2026-02-17
 - **Research**: [research-001.md](specs/36_review_niri_nixos_upgrades/reports/research-001.md)
+- **Plan**: [implementation-001.md](specs/36_review_niri_nixos_upgrades/plans/implementation-001.md)
 
 **Description**: Review my current Niri setup in NixOS in order to research and implement any natural upgrades by carefully considering best practices online. I want to maintain compatibility with Gnome Desktop so that I can use either while I transition from Gnome to Niri. Redundancy of applications is permitted where appropriate until the switch can be completed and I remove Gnome.
 
