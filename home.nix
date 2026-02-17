@@ -770,7 +770,7 @@
     Name=Sioyek
     GenericName=PDF Viewer
     Comment=PDF viewer for reading research papers and technical books
-    Exec=/run/current-system/sw/bin/sioyek %f
+    Exec=/run/current-system/sw/bin/sioyek --reuse-instance %f
     Icon=sioyek-icon-linux
     Terminal=false
     Categories=Office;Viewer;
