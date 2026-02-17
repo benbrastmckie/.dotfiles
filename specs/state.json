@@ -1,6 +1,14 @@
 {
-  "next_project_number": 35,
+  "next_project_number": 36,
   "active_projects": [
+    {
+      "project_number": 35,
+      "project_name": "configure_sioyek_multiwindow_pdf_behavior",
+      "status": "not_started",
+      "language": "general",
+      "created": "2026-02-17T04:33:24Z",
+      "last_updated": "2026-02-17T04:33:24Z"
+    },
     {
       "project_number": 34,
       "project_name": "fix_wezterm_ctrl_space_cross_window_tab_navigation",
