@@ -4,10 +4,19 @@
     {
       "project_number": 35,
       "project_name": "configure_sioyek_multiwindow_pdf_behavior",
-      "status": "not_started",
+      "status": "researched",
       "language": "general",
       "created": "2026-02-17T04:33:24Z",
-      "last_updated": "2026-02-17T04:33:24Z"
+      "last_updated": "2026-02-17T04:41:05Z",
+      "session_id": "sess_1771302964_c0d566",
+      "researched": "2026-02-17T04:41:05Z",
+      "artifacts": [
+        {
+          "path": "specs/35_configure_sioyek_multiwindow_pdf_behavior/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report covering sioyek window behavior options: should_launch_new_window, close_window keybinding, and analysis of native support vs wrapper script for focus-existing behavior"
+        }
+      ]
     },
     {
       "project_number": 34,
