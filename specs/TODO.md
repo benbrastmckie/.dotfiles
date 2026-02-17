@@ -3,7 +3,7 @@
 ## Active Tasks
 
 ### 36. Review Niri NixOS setup for upgrades with Gnome compatibility
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHING]
 - **Language**: nix
 
 **Description**: Review my current Niri setup in NixOS in order to research and implement any natural upgrades by carefully considering best practices online. I want to maintain compatibility with Gnome Desktop so that I can use either while I transition from Gnome to Niri. Redundancy of applications is permitted where appropriate until the switch can be completed and I remove Gnome.
@@ -24,10 +24,11 @@
 ---
 
 ### 34. Fix ctrl+space tab navigation not switching to tabs in different WezTerm windows
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Language**: general
 - **Researched**: 2026-02-17
 - **Research**: [research-001.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-001.md), [research-002.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-002.md), [research-003.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-003.md)
+- **Plan**: [implementation-001.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/plans/implementation-001.md)
 
 **Description**: Fix ctrl+space followed by a number not switching to tabs in different WezTerm windows. The navigation should switch to the tab with that global number across all windows, but currently it does not switch to the target window and tab as expected.
 

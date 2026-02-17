@@ -4,10 +4,11 @@
     {
       "project_number": 36,
       "project_name": "review_niri_nixos_upgrades",
-      "status": "not_started",
+      "status": "researching",
       "language": "nix",
       "created": "2026-02-17T22:32:43Z",
-      "last_updated": "2026-02-17T22:32:43Z"
+      "last_updated": "2026-02-17T22:39:57Z",
+      "session_id": "sess_1771367948_3fc8ee"
     },
     {
       "project_number": 35,
@@ -43,11 +44,11 @@
     {
       "project_number": 34,
       "project_name": "fix_wezterm_ctrl_space_cross_window_tab_navigation",
-      "status": "researched",
+      "status": "planned",
       "language": "general",
       "created": "2026-02-11T22:33:55Z",
-      "last_updated": "2026-02-17T22:35:20Z",
-      "session_id": "sess_1771366958_674e1e",
+      "last_updated": "2026-02-17T22:48:11Z",
+      "session_id": "sess_1771368192_f7b4f3",
       "researched": "2026-02-17T22:35:20Z",
       "artifacts": [
         {
@@ -64,8 +65,14 @@
           "path": "specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-003.md",
           "type": "research",
           "summary": "Compositor-specific solutions for cross-window tab navigation: Niri IPC and GNOME D-Bus extension with implementation sketches"
+        },
+        {
+          "path": "specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "5-phase implementation plan for GNOME cross-window tab navigation using activate-window-by-title extension"
         }
-      ]
+      ],
+      "planned": "2026-02-17T22:48:11Z"
     },
     {
       "project_number": 33,
