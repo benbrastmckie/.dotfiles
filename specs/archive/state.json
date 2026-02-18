@@ -1,6 +1,243 @@
 {
   "completed_projects": [
     {
+      "project_number": 38,
+      "project_name": "update_docs_for_recent_changes",
+      "status": "completed",
+      "language": "general",
+      "created": "2026-02-18T00:48:08Z",
+      "last_updated": "2026-02-18T01:13:45Z",
+      "session_id": "sess_1771377015_8c646f",
+      "researched": "2026-02-18T00:55:07Z",
+      "artifacts": [
+        {
+          "path": "specs/38_update_docs_for_recent_changes/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report identifying 12 documentation discrepancies across 4 files with specific edit instructions"
+        },
+        {
+          "path": "specs/38_update_docs_for_recent_changes/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "4-phase implementation plan to update documentation for tasks 33-37 changes"
+        },
+        {
+          "path": "specs/38_update_docs_for_recent_changes/summaries/implementation-summary-20260218.md",
+          "type": "summary",
+          "summary": "Implementation summary documenting all documentation updates"
+        }
+      ],
+      "planned": "2026-02-18T01:01:00Z",
+      "started": "2026-02-18T01:10:32Z",
+      "completed": "2026-02-18T01:13:45Z",
+      "completion_summary": "Updated 4 documentation files to reflect recent configuration changes: fixed AC sleep timeout in gnome-settings.md, added global tab navigation section to terminal.md, added Wayland/Niri tools section to packages.md, and updated niri.md with current Waybar configuration and active status.",
+      "archived": "2026-02-18T01:28:16Z"
+    },
+    {
+      "project_number": 37,
+      "project_name": "configure_nixos_ac_power_settings",
+      "status": "completed",
+      "language": "nix",
+      "created": "2026-02-18T00:10:33Z",
+      "last_updated": "2026-02-18T00:29:19Z",
+      "session_id": "sess_1771374375_51e5c1",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/37_configure_nixos_ac_power_settings/reports/research-001.md",
+          "summary": "Research report documenting GNOME dconf power settings for screen timeout and AC sleep configuration in NixOS"
+        },
+        {
+          "path": "specs/37_configure_nixos_ac_power_settings/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "2-phase implementation plan to update AC sleep timeout from 15 to 60 minutes in home.nix"
+        },
+        {
+          "path": "specs/37_configure_nixos_ac_power_settings/summaries/implementation-summary-20260217.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification steps"
+        }
+      ],
+      "planned": "2026-02-18T00:25:09Z",
+      "started": "2026-02-18T00:26:37Z",
+      "completed": "2026-02-18T00:29:19Z",
+      "completion_summary": "Changed AC power sleep timeout from 15 minutes to 60 minutes in home.nix dconf settings, allowing processes to continue for up to an hour on AC power while screen still blanks after 5 minutes.",
+      "archived": "2026-02-18T01:28:16Z"
+    },
+    {
+      "project_number": 36,
+      "project_name": "review_niri_nixos_upgrades",
+      "status": "completed",
+      "language": "nix",
+      "created": "2026-02-17T22:32:43Z",
+      "last_updated": "2026-02-17T23:36:58Z",
+      "session_id": "sess_1771370545_b5d167",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/36_review_niri_nixos_upgrades/reports/research-001.md",
+          "summary": "Research report covering Niri 2025 features, missing components, configuration enhancements, window rules, and Waybar improvements while maintaining GNOME compatibility"
+        },
+        {
+          "type": "plan",
+          "path": "specs/36_review_niri_nixos_upgrades/plans/implementation-001.md",
+          "summary": "5-phase implementation plan for Niri compositor upgrades with GNOME compatibility"
+        },
+        {
+          "type": "summary",
+          "path": "specs/36_review_niri_nixos_upgrades/summaries/implementation-summary-20260217.md",
+          "summary": "Implementation summary documenting all Niri upgrades and new features"
+        }
+      ],
+      "planned": "2026-02-17T23:09:19Z",
+      "started": "2026-02-17T23:23:02Z",
+      "completed": "2026-02-17T23:36:58Z",
+      "completion_summary": "Implemented comprehensive Niri compositor upgrades including floating window support (Mod+W), visual enhancements (shadows, rounded corners, prefer-no-csd), enhanced Waybar with workspace icons and bluetooth/idle modules, screenshot annotation pipeline (grim+slurp+satty), and kanshi dynamic monitor management. GNOME Desktop compatibility fully maintained.",
+      "archived": "2026-02-18T01:28:16Z"
+    },
+    {
+      "project_number": 35,
+      "project_name": "configure_sioyek_multiwindow_pdf_behavior",
+      "status": "completed",
+      "language": "general",
+      "created": "2026-02-17T04:33:24Z",
+      "last_updated": "2026-02-17T22:15:44Z",
+      "session_id": "sess_1771366031_9dc4bb",
+      "researched": "2026-02-17T04:41:05Z",
+      "artifacts": [
+        {
+          "path": "specs/35_configure_sioyek_multiwindow_pdf_behavior/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report covering sioyek window behavior options: should_launch_new_window, close_window keybinding, and analysis of native support vs wrapper script for focus-existing behavior"
+        },
+        {
+          "path": "specs/35_configure_sioyek_multiwindow_pdf_behavior/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "1-phase implementation plan for sioyek multi-window PDF configuration"
+        },
+        {
+          "path": "specs/35_configure_sioyek_multiwindow_pdf_behavior/summaries/implementation-summary-20260217.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification steps"
+        }
+      ],
+      "planned": "2026-02-17T22:03:32Z",
+      "started": "2026-02-17T22:09:14Z",
+      "completed": "2026-02-17T22:15:44Z",
+      "completion_summary": "Configured sioyek PDF viewer for multi-window behavior with should_launch_new_window preference, close_window q keybinding, and --reuse-instance desktop entry flag. Different PDFs now open in separate windows.",
+      "archived": "2026-02-18T01:28:16Z"
+    },
+    {
+      "project_number": 34,
+      "project_name": "fix_wezterm_ctrl_space_cross_window_tab_navigation",
+      "status": "completed",
+      "language": "general",
+      "created": "2026-02-11T22:33:55Z",
+      "last_updated": "2026-02-17T23:08:58Z",
+      "session_id": "sess_1771369411_156b96",
+      "researched": "2026-02-17T22:35:20Z",
+      "artifacts": [
+        {
+          "path": "specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report identifying Wayland focus-stealing prevention and MuxWindow:gui_window() API issues as root causes, with fix recommendations"
+        },
+        {
+          "path": "specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-002.md",
+          "type": "research",
+          "summary": "Follow-up research on WezTerm cross-window navigation with 4 solution approaches and comprehensive GitHub issue analysis"
+        },
+        {
+          "path": "specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-003.md",
+          "type": "research",
+          "summary": "Compositor-specific solutions for cross-window tab navigation: Niri IPC and GNOME D-Bus extension with implementation sketches"
+        },
+        {
+          "path": "specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "5-phase implementation plan for GNOME cross-window tab navigation using activate-window-by-title extension"
+        },
+        {
+          "path": "specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/summaries/implementation-summary-20260217.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification results and post-rebuild testing instructions"
+        }
+      ],
+      "planned": "2026-02-17T22:48:11Z",
+      "started": "2026-02-17T23:03:45Z",
+      "completed": "2026-02-17T23:08:58Z",
+      "completion_summary": "Fixed WezTerm cross-window tab navigation on GNOME/Wayland by adding activate-window-by-title GNOME Shell extension and D-Bus fallback in wezterm.lua. Requires nixos-rebuild switch and re-login to activate.",
+      "archived": "2026-02-18T01:28:16Z"
+    },
+    {
+      "project_number": 33,
+      "project_name": "configure_wezterm_global_tab_navigation",
+      "status": "completed",
+      "language": "general",
+      "created": "2026-02-11T20:53:18Z",
+      "last_updated": "2026-02-11T21:05:34Z",
+      "session_id": "sess_1770843757_3878bc",
+      "researched": "2026-02-11T20:57:42Z",
+      "artifacts": [
+        {
+          "path": "specs/33_configure_wezterm_global_tab_navigation/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report documenting WezTerm API for cross-window tab navigation using MuxTab:activate() and wezterm.action_callback"
+        },
+        {
+          "path": "specs/33_configure_wezterm_global_tab_navigation/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "2-phase implementation plan for WezTerm global tab navigation using action_callback and MuxTab:activate()"
+        },
+        {
+          "path": "specs/33_configure_wezterm_global_tab_navigation/summaries/implementation-summary-20260211.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification results for cross-window tab navigation"
+        }
+      ],
+      "planned": "2026-02-11T21:00:49Z",
+      "started": "2026-02-11T21:03:03Z",
+      "completed": "2026-02-11T21:05:34Z",
+      "completion_summary": "Implemented cross-window global tab navigation in WezTerm by adding activate_global_tab() function that uses MuxTab:activate() and GuiWindow:focus() to navigate to tabs by their global position across all windows, matching the existing tab bar numbering.",
+      "archived": "2026-02-18T01:28:16Z"
+    },
+    {
+      "project_number": 25,
+      "project_name": "configure_swap_space_nixos",
+      "status": "completed",
+      "language": "nix",
+      "created": "2026-02-10T23:16:21Z",
+      "last_updated": "2026-02-11T22:03:55Z",
+      "session_id": "sess_1770847221_e753c6",
+      "researched": "2026-02-11T20:49:50Z",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/25_configure_swap_space_nixos/reports/research-001.md",
+          "summary": "Comprehensive research report covering swapDevices options, zram alternatives, size recommendations, and integration with earlyoom"
+        },
+        {
+          "type": "plan",
+          "path": "specs/25_configure_swap_space_nixos/plans/implementation-001.md",
+          "summary": "3-phase plan covering swap configuration, build verification, and system activation"
+        },
+        {
+          "type": "research",
+          "path": "specs/25_configure_swap_space_nixos/reports/research-002.md",
+          "summary": "Additional research analyzing Task 26 implementation to inform swap configuration approach"
+        },
+        {
+          "path": "specs/25_configure_swap_space_nixos/summaries/implementation-summary-20260211.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification results and manual activation steps"
+        }
+      ],
+      "planned": "2026-02-11T18:09:57Z",
+      "started": "2026-02-11T22:00:43Z",
+      "completed": "2026-02-11T22:03:55Z",
+      "completion_summary": "Configured 16GB swap file in NixOS configuration.nix with SSD TRIM optimization, creating a three-tier memory management system with earlyoom. Build verification passed; requires manual sudo nixos-rebuild switch to activate.",
+      "archived": "2026-02-18T01:28:16Z"
+    },
+    {
       "project_number": 3,
       "project_name": "fix_meta_directory_creation_spec",
       "status": "abandoned",
