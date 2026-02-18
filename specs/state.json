@@ -4,18 +4,24 @@
     {
       "project_number": 37,
       "project_name": "configure_nixos_ac_power_settings",
-      "status": "researched",
+      "status": "planned",
       "language": "nix",
       "created": "2026-02-18T00:10:33Z",
-      "last_updated": "2026-02-18T00:18:28Z",
-      "session_id": "sess_1771373723_ca41ed",
+      "last_updated": "2026-02-18T00:25:09Z",
+      "session_id": "sess_1771374196_71a753",
       "artifacts": [
         {
           "type": "research",
           "path": "specs/37_configure_nixos_ac_power_settings/reports/research-001.md",
           "summary": "Research report documenting GNOME dconf power settings for screen timeout and AC sleep configuration in NixOS"
+        },
+        {
+          "path": "specs/37_configure_nixos_ac_power_settings/plans/implementation-001.md",
+          "type": "plan",
+          "summary": "2-phase implementation plan to update AC sleep timeout from 15 to 60 minutes in home.nix"
         }
-      ]
+      ],
+      "planned": "2026-02-18T00:25:09Z"
     },
     {
       "project_number": 36,
