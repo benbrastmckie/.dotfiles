@@ -64,6 +64,22 @@ Your original keybindings remain:
 - **Leader + n**: Next tab
 - **Leader + p**: Previous tab
 
+### Global Cross-Window Tab Navigation
+
+Navigate directly to any tab across ALL WezTerm windows using Ctrl+Space followed by a number:
+
+| Key | Action |
+|-----|--------|
+| **Leader + 1-9** | Jump to global tab 1-9 |
+
+**How it works**:
+- Tab numbers are assigned globally in creation order across all windows
+- If you have 3 tabs in window A and 2 tabs in window B, tabs are numbered 1-5 globally
+- `Leader + 3` will jump to the 3rd oldest tab, regardless of which window it is in
+- On GNOME, this also focuses the target window using the `activate-window-by-title` extension
+
+This feature requires the `gnomeExtensions.activate-window-by-title` extension for cross-window focus on Wayland.
+
 ## Package Management
 
 - **Updates via NixOS**: WezTerm updates are managed through NixOS/home-manager

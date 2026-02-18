@@ -19,7 +19,7 @@ The following settings are managed by Home Manager:
 
 ### Power Management
 - **Idle delay**: 300 seconds (5 minutes) - screen dims/blanks
-- **Sleep timeout (AC)**: 900 seconds (15 minutes)
+- **Sleep timeout (AC)**: 3600 seconds (60 minutes)
 - **Sleep timeout (Battery)**: 900 seconds (15 minutes)
 - **Idle dim**: Enabled
 

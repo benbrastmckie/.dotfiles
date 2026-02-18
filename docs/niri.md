@@ -827,21 +827,12 @@ gnome-extensions enable paperwm@paperwm.github.com
 
 ---
 
-#### Future: GNOME + Niri Hybrid (When Ready)
+#### Current: GNOME + Niri Hybrid (Active)
 
-**Step 1: Uncomment Niri Configuration**
+Niri is now enabled and configured as an alternative session alongside GNOME. The following configuration is active in the current system.
 
-Files to uncomment (all marked with `# DISABLED: using GNOME + PaperWM`):
-- `configuration.nix`: Lines 114-117, 128, 164-170
-- `flake.nix`: Lines 10-13, 30, 85, 206
-- `home.nix`: Line 243
-- `unstable-packages.nix`: Line 12
-
-**Step 2: Add Minimal Services to Home Manager**
-
-Add to `home.nix`:
+**Waybar Configuration** (from `home.nix`):
 ```nix
-# Waybar status bar
 programs.waybar = {
   enable = true;
   settings = {
@@ -851,16 +842,70 @@ programs.waybar = {
       height = 32;
       modules-left = ["niri/workspaces" "niri/window"];
       modules-center = ["clock"];
-      modules-right = ["tray" "battery" "network" "wireplumber"];
+      modules-right = ["idle_inhibitor" "tray" "bluetooth" "pulseaudio" "network" "battery"];
+
+      "niri/workspaces" = {
+        format = "{icon}";
+        format-icons = {
+          "1:web" = "";
+          "2:code" = "";
+          "3:term" = "";
+          "4:docs" = "";
+          "5:media" = "";
+          "6:chat" = "";
+          "7:misc" = "";
+          "8:extra" = "";
+          "9:bg" = "";
+          default = "";
+        };
+      };
+
+      clock = {
+        format = "{:%H:%M}";
+        format-alt = "{:%Y-%m-%d %H:%M}";
+        tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
+      };
+
+      battery = {
+        format = "{icon} {capacity}%";
+        format-charging = " {capacity}%";
+        format-plugged = " {capacity}%";
+        format-icons = ["" "" "" "" ""];
+        states = {
+          warning = 30;
+          critical = 15;
+        };
+      };
+
+      bluetooth = {
+        format = " {status}";
+        format-connected = " {device_alias}";
+        format-disabled = "";
+        tooltip-format = "{controller_alias}\t{controller_address}";
+        on-click = "gnome-control-center bluetooth";
+      };
+
+      idle_inhibitor = {
+        format = "{icon}";
+        format-icons = {
+          activated = "";
+          deactivated = "";
+        };
+        tooltip-format-activated = "Idle inhibitor: ON";
+        tooltip-format-deactivated = "Idle inhibitor: OFF";
+      };
 
       # Click to open GNOME Settings
       network.on-click = "gnome-control-center wifi";
-      wireplumber.on-click = "gnome-control-center sound";
+      pulseaudio.on-click = "gnome-control-center sound";
       battery.on-click = "gnome-control-center power";
     };
   };
 };
+```
 
+**Additional Services** (from `home.nix`):
+```nix
 # Notification daemon
 services.mako = {
   enable = true;
@@ -973,7 +1018,7 @@ journalctl -f -o cat /usr/bin/gnome-shell
 - ✅ Can switch back to GNOME + PaperWM at any time
 - ⚠️ Requires ~1 hour initial setup
 
-**Action**: Follow "Future: GNOME + Niri Hybrid" guide above when comfortable
+**Action**: Niri is already configured and active. See "Current: GNOME + Niri Hybrid" section above for details.
 
 #### Avoid This Option
 **Standalone Niri** (without GNOME services):
