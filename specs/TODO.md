@@ -3,10 +3,11 @@
 ## Active Tasks
 
 ### 38. Update docs for recent configuration changes (tasks 33–37)
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Language**: general
 - **Researched**: 2026-02-18
 - **Research**: [research-001.md](specs/38_update_docs_for_recent_changes/reports/research-001.md)
+- **Plan**: [implementation-001.md](specs/38_update_docs_for_recent_changes/plans/implementation-001.md)
 
 **Description**: Update documentation to reflect changes made over the past week. Specific stale sections identified:
 
