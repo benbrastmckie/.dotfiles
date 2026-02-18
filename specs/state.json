@@ -4,10 +4,19 @@
     {
       "project_number": 38,
       "project_name": "update_docs_for_recent_changes",
-      "status": "not_started",
+      "status": "researched",
       "language": "general",
       "created": "2026-02-18T00:48:08Z",
-      "last_updated": "2026-02-18T00:48:08Z"
+      "last_updated": "2026-02-18T00:55:07Z",
+      "session_id": "sess_1771375773_5b91be",
+      "researched": "2026-02-18T00:55:07Z",
+      "artifacts": [
+        {
+          "path": "specs/38_update_docs_for_recent_changes/reports/research-001.md",
+          "type": "research",
+          "summary": "Research report identifying 12 documentation discrepancies across 4 files with specific edit instructions"
+        }
+      ]
     },
     {
       "project_number": 37,
