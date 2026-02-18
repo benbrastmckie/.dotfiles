@@ -4,11 +4,11 @@
     {
       "project_number": 37,
       "project_name": "configure_nixos_ac_power_settings",
-      "status": "planned",
+      "status": "completed",
       "language": "nix",
       "created": "2026-02-18T00:10:33Z",
-      "last_updated": "2026-02-18T00:25:09Z",
-      "session_id": "sess_1771374196_71a753",
+      "last_updated": "2026-02-18T00:29:19Z",
+      "session_id": "sess_1771374375_51e5c1",
       "artifacts": [
         {
           "type": "research",
@@ -19,9 +19,17 @@
           "path": "specs/37_configure_nixos_ac_power_settings/plans/implementation-001.md",
           "type": "plan",
           "summary": "2-phase implementation plan to update AC sleep timeout from 15 to 60 minutes in home.nix"
+        },
+        {
+          "path": "specs/37_configure_nixos_ac_power_settings/summaries/implementation-summary-20260217.md",
+          "type": "summary",
+          "summary": "Implementation summary with verification steps"
         }
       ],
-      "planned": "2026-02-18T00:25:09Z"
+      "planned": "2026-02-18T00:25:09Z",
+      "started": "2026-02-18T00:26:37Z",
+      "completed": "2026-02-18T00:29:19Z",
+      "completion_summary": "Changed AC power sleep timeout from 15 minutes to 60 minutes in home.nix dconf settings, allowing processes to continue for up to an hour on AC power while screen still blanks after 5 minutes."
     },
     {
       "project_number": 36,

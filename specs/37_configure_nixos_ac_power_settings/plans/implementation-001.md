@@ -1,7 +1,7 @@
 # Implementation Plan: Task #37
 
 - **Task**: 37 - Configure NixOS AC Power Settings
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 0.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/37_configure_nixos_ac_power_settings/reports/research-001.md
@@ -43,7 +43,7 @@ The research report confirmed:
 
 ## Implementation Phases
 
-### Phase 1: Update AC Power Timeout [NOT STARTED]
+### Phase 1: Update AC Power Timeout [COMPLETED]
 
 **Goal**: Change sleep-inactive-ac-timeout from 900 to 3600 in home.nix
 
@@ -65,7 +65,7 @@ The research report confirmed:
 
 ---
 
-### Phase 2: Verify and Document [NOT STARTED]
+### Phase 2: Verify and Document [COMPLETED]
 
 **Goal**: Confirm settings are active and functioning as expected
 
