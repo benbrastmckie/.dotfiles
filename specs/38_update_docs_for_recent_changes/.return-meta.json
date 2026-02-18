@@ -1,19 +1,20 @@
 {
-  "status": "researched",
+  "status": "planned",
   "artifacts": [
     {
-      "type": "report",
-      "path": "specs/38_update_docs_for_recent_changes/reports/research-001.md",
-      "summary": "Research report identifying 12 documentation discrepancies across 4 files with specific edit instructions"
+      "type": "plan",
+      "path": "specs/38_update_docs_for_recent_changes/plans/implementation-001.md",
+      "summary": "4-phase implementation plan to update documentation for tasks 33-37 changes"
     }
   ],
-  "next_steps": "Run /plan 38 to create implementation plan",
+  "next_steps": "Run /implement 38 to execute the plan",
   "metadata": {
-    "session_id": "sess_1771375773_5b91be",
-    "agent_type": "general-research-agent",
-    "duration_seconds": 180,
+    "session_id": "sess_1771376298_71ff31",
+    "agent_type": "planner-agent",
+    "duration_seconds": 120,
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "general-research-agent"],
-    "findings_count": 12
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 4,
+    "estimated_hours": 1.5
   }
 }
