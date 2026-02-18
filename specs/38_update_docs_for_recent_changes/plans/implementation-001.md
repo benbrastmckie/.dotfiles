@@ -1,7 +1,7 @@
 # Implementation Plan: Update Documentation for Recent Changes
 
 - **Task**: 38 - update_docs_for_recent_changes
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 1.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/38_update_docs_for_recent_changes/reports/research-001.md
@@ -41,7 +41,7 @@ Research report research-001.md identified exact line numbers and replacement te
 
 ## Implementation Phases
 
-### Phase 1: Update docs/gnome-settings.md [NOT STARTED]
+### Phase 1: Update docs/gnome-settings.md [COMPLETED]
 
 **Goal**: Fix stale AC sleep timeout value from 900s to 3600s.
 
@@ -58,7 +58,7 @@ Research report research-001.md identified exact line numbers and replacement te
 
 ---
 
-### Phase 2: Update docs/terminal.md [NOT STARTED]
+### Phase 2: Update docs/terminal.md [COMPLETED]
 
 **Goal**: Add documentation for global cross-window tab navigation feature (Ctrl+Space + 1-9).
 
@@ -98,7 +98,7 @@ This feature requires the `gnomeExtensions.activate-window-by-title` extension f
 
 ---
 
-### Phase 3: Update docs/packages.md [NOT STARTED]
+### Phase 3: Update docs/packages.md [COMPLETED]
 
 **Goal**: Add documentation for 7 new Wayland/Niri packages added in task 36.
 
@@ -132,7 +132,7 @@ Tools for the Niri Wayland compositor session:
 
 ---
 
-### Phase 4: Update docs/niri.md [NOT STARTED]
+### Phase 4: Update docs/niri.md [COMPLETED]
 
 **Goal**: Update Waybar configuration documentation and rename "Future" section to reflect current active status.
 

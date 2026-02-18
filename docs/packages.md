@@ -227,6 +227,18 @@ swaks --to user@example.com \
       --tls
 ```
 
+### Wayland/Niri Tools (configuration.nix, home.nix)
+
+Tools for the Niri Wayland compositor session:
+
+- `xwayland-satellite` - X11 compatibility layer for running X11 applications in Niri
+- `fuzzel` - Lightweight application launcher for Wayland (Mod+p in niri)
+- `wdisplays` - GUI tool for configuring monitors on wlr-output-management compositors
+- `satty` - Screenshot annotation tool with drawing and text capabilities
+- `grim` - Minimal Wayland screenshot utility (captures full screen or regions)
+- `slurp` - Region selection tool for Wayland (used with grim for area screenshots)
+- `power-profiles-daemon` - System service for power profile management (integrated with Waybar)
+
 ## Package Testing
 
 Use `packages/test-mcphub.sh` as template for testing custom packages:
