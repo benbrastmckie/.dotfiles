@@ -2,6 +2,19 @@
 
 ## Active Tasks
 
+### 38. Update docs for recent configuration changes (tasks 33–37)
+- **Status**: [NOT STARTED]
+- **Language**: general
+
+**Description**: Update documentation to reflect changes made over the past week. Specific stale sections identified:
+
+1. **`docs/gnome-settings.md`** — Power Management: AC sleep timeout still shows 900s (15 min); needs updating to 3600s (60 min) per task 37.
+2. **`docs/niri.md`** — Waybar section: Doesn't mention the new `bluetooth` and `idle_inhibitor` modules added in task 36; workspace `format-icons` now used instead of plain `format`; clock now includes tooltip; battery now has charging/plugged formats. The "Future: GNOME + Niri Hybrid" setup guide section is now outdated — Niri is the active configuration, not a future one.
+3. **`docs/terminal.md`** — Tab Management: Missing documentation for the global cross-window tab navigation with `Ctrl+Space` + number implemented in tasks 33 and 34.
+4. **New packages not documented**: `satty` (screenshot annotation), `grim` (Wayland screenshots), `slurp` (region selection), `xwayland-satellite` (X11 compat for Niri), `fuzzel` (now system-level, not just niri config), `wdisplays` (monitor config GUI), and `power-profiles-daemon` (Waybar integration) were all added in task 36 but aren't reflected in `docs/packages.md` or `docs/niri.md`.
+
+---
+
 ### 37. Configure NixOS power settings for AC power mode
 - **Status**: [COMPLETED]
 - **Language**: nix

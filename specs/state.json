@@ -1,6 +1,14 @@
 {
-  "next_project_number": 38,
+  "next_project_number": 39,
   "active_projects": [
+    {
+      "project_number": 38,
+      "project_name": "update_docs_for_recent_changes",
+      "status": "not_started",
+      "language": "general",
+      "created": "2026-02-18T00:48:08Z",
+      "last_updated": "2026-02-18T00:48:08Z"
+    },
     {
       "project_number": 37,
       "project_name": "configure_nixos_ac_power_settings",
