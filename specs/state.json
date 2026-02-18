@@ -1,6 +1,14 @@
 {
-  "next_project_number": 37,
+  "next_project_number": 38,
   "active_projects": [
+    {
+      "project_number": 37,
+      "project_name": "configure_nixos_ac_power_settings",
+      "status": "not_started",
+      "language": "nix",
+      "created": "2026-02-18T00:10:33Z",
+      "last_updated": "2026-02-18T00:10:33Z"
+    },
     {
       "project_number": 36,
       "project_name": "review_niri_nixos_upgrades",

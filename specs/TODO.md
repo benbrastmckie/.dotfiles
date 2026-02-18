@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 37. Configure NixOS power settings for AC power mode
+- **Status**: [NOT STARTED]
+- **Language**: nix
+
+**Description**: Configure NixOS power settings for AC power: turn off screen after 5 minutes of inactivity while allowing processes to continue for up to an hour. Configure this in NixOS configuration instead of GNOME system settings.
+
+---
+
 ### 36. Review Niri NixOS setup for upgrades with Gnome compatibility
 - **Status**: [COMPLETED]
 - **Language**: nix
