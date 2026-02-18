@@ -2,102 +2,6 @@
 
 ## Active Tasks
 
-### 38. Update docs for recent configuration changes (tasks 33–37)
-- **Status**: [COMPLETED]
-- **Language**: general
-- **Researched**: 2026-02-18
-- **Completed**: 2026-02-18
-- **Research**: [research-001.md](specs/38_update_docs_for_recent_changes/reports/research-001.md)
-- **Plan**: [implementation-001.md](specs/38_update_docs_for_recent_changes/plans/implementation-001.md)
-- **Summary**: [implementation-summary-20260218.md](specs/38_update_docs_for_recent_changes/summaries/implementation-summary-20260218.md)
-
-**Description**: Update documentation to reflect changes made over the past week. Specific stale sections identified:
-
-1. **`docs/gnome-settings.md`** — Power Management: AC sleep timeout still shows 900s (15 min); needs updating to 3600s (60 min) per task 37.
-2. **`docs/niri.md`** — Waybar section: Doesn't mention the new `bluetooth` and `idle_inhibitor` modules added in task 36; workspace `format-icons` now used instead of plain `format`; clock now includes tooltip; battery now has charging/plugged formats. The "Future: GNOME + Niri Hybrid" setup guide section is now outdated — Niri is the active configuration, not a future one.
-3. **`docs/terminal.md`** — Tab Management: Missing documentation for the global cross-window tab navigation with `Ctrl+Space` + number implemented in tasks 33 and 34.
-4. **New packages not documented**: `satty` (screenshot annotation), `grim` (Wayland screenshots), `slurp` (region selection), `xwayland-satellite` (X11 compat for Niri), `fuzzel` (now system-level, not just niri config), `wdisplays` (monitor config GUI), and `power-profiles-daemon` (Waybar integration) were all added in task 36 but aren't reflected in `docs/packages.md` or `docs/niri.md`.
-
----
-
-### 37. Configure NixOS power settings for AC power mode
-- **Status**: [COMPLETED]
-- **Language**: nix
-- **Researched**: 2026-02-18
-- **Completed**: 2026-02-18
-- **Research**: [research-001.md](specs/37_configure_nixos_ac_power_settings/reports/research-001.md)
-- **Plan**: [implementation-001.md](specs/37_configure_nixos_ac_power_settings/plans/implementation-001.md)
-- **Summary**: [implementation-summary-20260217.md](specs/37_configure_nixos_ac_power_settings/summaries/implementation-summary-20260217.md)
-
-**Description**: Configure NixOS power settings for AC power: turn off screen after 5 minutes of inactivity while allowing processes to continue for up to an hour. Configure this in NixOS configuration instead of GNOME system settings.
-
----
-
-### 36. Review Niri NixOS setup for upgrades with Gnome compatibility
-- **Status**: [COMPLETED]
-- **Language**: nix
-- **Researched**: 2026-02-17
-- **Completed**: 2026-02-17
-- **Research**: [research-001.md](specs/36_review_niri_nixos_upgrades/reports/research-001.md)
-- **Plan**: [implementation-001.md](specs/36_review_niri_nixos_upgrades/plans/implementation-001.md)
-- **Summary**: [implementation-summary-20260217.md](specs/36_review_niri_nixos_upgrades/summaries/implementation-summary-20260217.md)
-
-**Description**: Review my current Niri setup in NixOS in order to research and implement any natural upgrades by carefully considering best practices online. I want to maintain compatibility with Gnome Desktop so that I can use either while I transition from Gnome to Niri. Redundancy of applications is permitted where appropriate until the switch can be completed and I remove Gnome.
-
----
-
-### 35. Configure sioyek multi-window behavior for PDF files
-- **Status**: [COMPLETED]
-- **Language**: general
-- **Researched**: 2026-02-16
-- **Completed**: 2026-02-17
-- **Research**: [research-001.md](specs/35_configure_sioyek_multiwindow_pdf_behavior/reports/research-001.md)
-- **Plan**: [implementation-001.md](specs/35_configure_sioyek_multiwindow_pdf_behavior/plans/implementation-001.md)
-- **Summary**: [implementation-summary-20260217.md](specs/35_configure_sioyek_multiwindow_pdf_behavior/summaries/implementation-summary-20260217.md)
-
-**Description**: Configure sioyek to open different PDF files in separate windows instead of replacing the current window. Opening an already-open PDF should focus that existing window.
-
----
-
-### 34. Fix ctrl+space tab navigation not switching to tabs in different WezTerm windows
-- **Status**: [COMPLETED]
-- **Language**: general
-- **Researched**: 2026-02-17
-- **Completed**: 2026-02-17
-- **Research**: [research-001.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-001.md), [research-002.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-002.md), [research-003.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/reports/research-003.md)
-- **Plan**: [implementation-001.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/plans/implementation-001.md)
-- **Summary**: [implementation-summary-20260217.md](specs/34_fix_wezterm_ctrl_space_cross_window_tab_navigation/summaries/implementation-summary-20260217.md)
-
-**Description**: Fix ctrl+space followed by a number not switching to tabs in different WezTerm windows. The navigation should switch to the tab with that global number across all windows, but currently it does not switch to the target window and tab as expected.
-
----
-
-### 33. Configure WezTerm to navigate to tabs by global number across all windows
-- **Status**: [COMPLETED]
-- **Language**: general
-- **Researched**: 2026-02-11
-- **Completed**: 2026-02-11
-- **Research**: [research-001.md](specs/33_configure_wezterm_global_tab_navigation/reports/research-001.md)
-- **Plan**: [implementation-001.md](specs/33_configure_wezterm_global_tab_navigation/plans/implementation-001.md)
-- **Summary**: [implementation-summary-20260211.md](specs/33_configure_wezterm_global_tab_navigation/summaries/implementation-summary-20260211.md)
-
-**Description**: Configure WezTerm so that ctrl+space followed by a number navigates to the tab with that global number across all windows, rather than the nth tab within the current window only.
-
----
-
-### 25. Configure swap space in NixOS configuration
-- **Status**: [COMPLETED]
-- **Language**: nix
-- **Researched**: 2026-02-11
-- **Completed**: 2026-02-11
-- **Research**: [research-001.md](specs/25_configure_swap_space_nixos/reports/research-001.md), [research-002.md](specs/25_configure_swap_space_nixos/reports/research-002.md)
-- **Plan**: [implementation-001.md](specs/25_configure_swap_space_nixos/plans/implementation-001.md)
-- **Summary**: [implementation-summary-20260211.md](specs/25_configure_swap_space_nixos/summaries/implementation-summary-20260211.md)
-
-**Description**: Configure swap space in NixOS configuration. Add 8-16GB swap as a safety net to prevent OOM killer from terminating processes during memory spikes.
-
----
-
 ### 23. Research and install simple webcam recording software
 - **Status**: [PLANNED]
 - **Language**: nix
@@ -135,6 +39,13 @@
 
 ## Archived Tasks
 
+- #38: Update docs for recent configuration changes (completed 2026-02-18)
+- #37: Configure NixOS power settings for AC power mode (completed 2026-02-18)
+- #36: Review Niri NixOS setup for upgrades with Gnome compatibility (completed 2026-02-17)
+- #35: Configure sioyek multi-window behavior for PDF files (completed 2026-02-17)
+- #34: Fix ctrl+space tab navigation not switching to tabs in different WezTerm windows (completed 2026-02-17)
+- #33: Configure WezTerm to navigate to tabs by global number across all windows (completed 2026-02-11)
+- #25: Configure swap space in NixOS configuration (completed 2026-02-11)
 - #1: Update CLAUDE.md for dotfiles repository (completed 2026-02-03)
 - #2: Update README.md for dotfiles context (completed 2026-02-03)
 - #4: Manage Claude settings.json with home-manager (completed 2026-02-03)
