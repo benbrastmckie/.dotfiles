@@ -55,7 +55,7 @@
     };
 
     "org/gnome/settings-daemon/plugins/power" = {
-      sleep-inactive-ac-timeout = 900;      # 15 minutes on AC power
+      sleep-inactive-ac-timeout = 3600;     # 60 minutes on AC power
       sleep-inactive-battery-timeout = 900; # 15 minutes on battery
       idle-dim = true;                      # Dim screen before blanking
     };
