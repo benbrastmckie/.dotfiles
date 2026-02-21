@@ -504,13 +504,14 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
         exec ${pkgs.zathura}/bin/zathura "$@"
       '')
 
-      # Custom sioyek (force X11 for title bar removal)
-      # Note: Sioyek uses Qt6 with client-side decorations that Unite extension
-      # cannot hide on Wayland. Forcing X11 enables server-side decorations
-      # that Unite can control. Original sioyek package removed to avoid conflicts.
+      # Custom sioyek (disable Qt client-side decorations on Wayland)
+      # Note: GNOME 49 ignores _MOTIF_WM_HINTS for XWayland windows, so forcing
+      # X11 (QT_QPA_PLATFORM=xcb) no longer works. Instead, run as native Wayland
+      # and tell Qt not to render CSD - GNOME doesn't add server-side decorations
+      # to Wayland apps, resulting in a clean decoration-free window.
       (writeShellScriptBin "sioyek" ''
         #!/bin/sh
-        export QT_QPA_PLATFORM=xcb
+        export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
         exec ${pkgs.sioyek}/bin/sioyek "$@"
       '')
     ]);
