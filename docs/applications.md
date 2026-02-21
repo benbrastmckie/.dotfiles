@@ -25,14 +25,14 @@ Use `~/.dotfiles/packages/test-mcphub.sh` to verify installation and troubleshoo
 
 - Uses server-side decorations
 - Compatible with Unite GNOME extension for title bar removal
-- Custom wrapper forces X11 for consistency
+- Custom wrapper forces X11 (`GDK_BACKEND=x11`) for consistency
 
 ### Sioyek (Qt6-based)
 
-- Uses client-side decorations on Wayland
-- Custom wrapper forces X11 (`QT_QPA_PLATFORM=xcb`)
-- Enables server-side decorations for Unite compatibility
-- Original package excluded to prevent conflicts
+- Runs as native Wayland app with Qt CSD disabled (`QT_WAYLAND_DISABLE_WINDOWDECORATION=1`)
+- GNOME does not add server-side decorations to Wayland apps, so no titlebar is shown
+- Previous approach (`QT_QPA_PLATFORM=xcb`) broke in GNOME 49, which ignores `_MOTIF_WM_HINTS` for XWayland windows
+- Original package excluded to prevent conflicts with the wrapper
 
 ## Terminal Configuration
 

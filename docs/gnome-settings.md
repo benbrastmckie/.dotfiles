@@ -56,6 +56,12 @@ The following settings are managed by Home Manager:
 
 ### Shell Extensions
 - **Unite** (`unite@hardpixel.eu`): Hides window titlebars, reduces panel spacing
+  - Enabled declaratively in `home.nix` via `enabled-extensions` (omitting it causes `home-manager switch` to silently disable it)
+  - Extension settings also managed in `home.nix` under `org/gnome/shell/extensions/unite`
+
+### GNOME 49 / XWayland Decoration Note
+
+GNOME 49 ignores `_MOTIF_WM_HINTS` for XWayland windows, so forcing Qt apps to run via X11 (`QT_QPA_PLATFORM=xcb`) no longer suppresses titlebars. Apps that need decoration-free windows should instead run as native Wayland with Qt CSD disabled (`QT_WAYLAND_DISABLE_WINDOWDECORATION=1`). GNOME does not add server-side decorations to native Wayland apps, so no titlebar is shown without any extension involvement.
 
 ## How Declarative dconf Works
 
