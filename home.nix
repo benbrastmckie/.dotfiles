@@ -40,7 +40,19 @@
     "org/gnome/shell" = {
       enabled-extensions = [
         "activate-window-by-title@lucaswerkmeister.de"
+        "unite@hardpixel.eu"
       ];
+    };
+
+    # Unite extension settings
+    "org/gnome/shell/extensions/unite" = {
+      desktop-name-text = "Hamsa";
+      extend-left-box = true;
+      hide-window-titlebars = "always";
+      reduce-panel-spacing = true;
+      show-window-buttons = "never";
+      show-window-title = "never";
+      window-buttons-theme = "auto";
     };
 
     # Interface preferences
@@ -162,7 +174,7 @@
     wezterm      # GPU-accelerated terminal emulator
     espeak-ng    # Text-to-speech for notifications
     markitdown   # Document to markdown converter (supports PDF, DOCX, PPTX, etc)
-    # sioyek is installed via configuration.nix (X11 wrapper for Unite extension)
+    # sioyek is installed via configuration.nix (Wayland wrapper, CSD disabled)
 
     # GNOME Shell Extensions
     gnomeExtensions.activate-window-by-title  # For cross-window WezTerm tab navigation
@@ -778,7 +790,7 @@
 
   # Sioyek PDF viewer - custom desktop entry in ~/.local/share/applications
   # This location is fully respected by GNOME Files (unlike ~/.nix-profile/share/applications)
-  # Uses the X11-wrapped binary from configuration.nix for Unite extension compatibility
+  # Uses the Wayland-wrapped binary from configuration.nix (QT_WAYLAND_DISABLE_WINDOWDECORATION=1)
   xdg.dataFile."applications/sioyek.desktop".text = ''
     [Desktop Entry]
     Type=Application
