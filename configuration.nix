@@ -570,6 +570,17 @@ programs.nix-ld = {
 };
 
 # ==========================================================================
+# Memory Management - Disable systemd-oomd (earlyoom preferred)
+# ==========================================================================
+# systemd-oomd conflicts with earlyoom. earlyoom is more configurable and
+# provides desktop notifications. Disabling systemd-oomd to avoid dual OOM
+# killer confusion.
+#
+# See: specs/39_analyze_memory_logs_optimize_system
+# ==========================================================================
+systemd.oomd.enable = false;
+
+# ==========================================================================
 # Service Timeout and Reliability Configuration
 # ==========================================================================
 # Reduce shutdown timeout cascade during NetworkManager deadlocks
