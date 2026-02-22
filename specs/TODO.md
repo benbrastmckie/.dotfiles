@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 39. Analyze memory logs and optimize system robustness
+- **Status**: [NOT STARTED]
+- **Language**: nix
+
+**Description**: Investigate memory monitor logs to understand memory demands during heavy system usage. Analyze patterns and recommend improvements to make the system more robust and performant, avoiding crashes and slowdowns.
+
+---
+
 ### 23. Research and install simple webcam recording software
 - **Status**: [PLANNED]
 - **Language**: nix
