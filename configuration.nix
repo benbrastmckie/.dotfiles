@@ -324,6 +324,26 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
     discardPolicy = "once";  # TRIM on activation for SSD optimization
   }];
 
+  # ==========================================================================
+  # zram Compressed Swap - Fast In-Memory Swap
+  # ==========================================================================
+  # zram provides compressed swap in RAM, which is faster than disk swap.
+  # Priority 5 ensures zram is used before the swapfile (priority -2).
+  # The zstd algorithm offers best compression/speed ratio.
+  #
+  # Swap hierarchy:
+  # 1. zram (priority 5) - Fast, compressed RAM swap
+  # 2. swapfile (priority -2) - Disk-based fallback
+  #
+  # See: specs/39_analyze_memory_logs_optimize_system
+  # ==========================================================================
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";       # Best compression/speed ratio
+    memoryPercent = 50;       # Use up to 50% of RAM (16GB of 32GB)
+    priority = 5;             # Higher than swapfile (-2)
+  };
+
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.benjamin = {
     isNormalUser = true;
