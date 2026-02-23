@@ -344,6 +344,23 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
     priority = 5;             # Higher than swapfile (-2)
   };
 
+  # ==========================================================================
+  # VM Parameters - Desktop Memory Optimization
+  # ==========================================================================
+  # Tuned for desktop responsiveness with zram swap:
+  # - Lower swappiness: Keep more in RAM, desktop feels snappier
+  # - Watermark tuning: Better memory reclaim behavior
+  # - Disable page-cluster: zram doesn't benefit from readahead
+  #
+  # See: specs/39_analyze_memory_logs_optimize_system
+  # ==========================================================================
+  boot.kernel.sysctl = {
+    "vm.swappiness" = 10;                 # Prefer RAM over swap (default: 60)
+    "vm.watermark_boost_factor" = 0;      # Disable watermark boosting
+    "vm.watermark_scale_factor" = 125;    # Better memory reclaim (default: 10)
+    "vm.page-cluster" = 0;                # Disable readahead for zram (default: 3)
+  };
+
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.benjamin = {
     isNormalUser = true;
