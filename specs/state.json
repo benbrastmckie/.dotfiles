@@ -1,6 +1,14 @@
 {
-  "next_project_number": 40,
+  "next_project_number": 41,
   "active_projects": [
+    {
+      "project_number": 40,
+      "project_name": "investigate_laptop_high_fan_optimize_system",
+      "status": "not_started",
+      "language": "nix",
+      "created": "2026-02-23T21:45:42Z",
+      "last_updated": "2026-02-23T21:45:42Z"
+    },
     {
       "project_number": 39,
       "project_name": "analyze_memory_logs_optimize_system",
