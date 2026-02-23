@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 40. Investigate laptop running hot and optimize system
+- **Status**: [NOT STARTED]
+- **Language**: nix
+
+**Description**: Investigate why laptop is running hot with high fan activity during low usage. Identify processes or services causing unnecessary load and optimize system configuration to reduce resource consumption.
+
+---
+
 ### 39. Analyze memory logs and optimize system robustness
 - **Status**: [COMPLETED]
 - **Language**: nix
