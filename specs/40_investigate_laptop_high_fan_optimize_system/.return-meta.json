@@ -1,22 +1,20 @@
 {
-  "status": "researched",
-  "started_at": "2026-02-23T12:00:00Z",
-  "completed_at": "2026-02-23T12:45:00Z",
-  "summary": "Identified power management conflict between manual cpuFreqGovernor and power-profiles-daemon, plus GNOME tracker as potential CPU load sources. Recommended removing governor conflict, disabling tracker services, and optionally enabling thermald.",
+  "status": "planned",
+  "summary": "6-phase implementation plan for laptop thermal optimization",
   "artifacts": [
     {
-      "type": "research",
-      "path": "specs/40_investigate_laptop_high_fan_optimize_system/reports/research-001.md",
-      "summary": "Research report on laptop thermal optimization for NixOS with AMD Ryzen AI 300"
+      "type": "plan",
+      "path": "specs/40_investigate_laptop_high_fan_optimize_system/plans/implementation-001.md",
+      "summary": "Implementation plan addressing power management conflict, GNOME tracker CPU load, and thermald enablement"
     }
   ],
-  "next_steps": "Run /plan 40 to create implementation plan",
+  "next_steps": "Run /implement 40 to execute the plan",
   "metadata": {
-    "session_id": "sess_1771883437_664894",
-    "agent_type": "nix-research-agent",
-    "duration_seconds": 2700,
+    "session_id": "sess_1771885336_433554",
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "skill-nix-research", "nix-research-agent"],
-    "findings_count": 6
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 6,
+    "estimated_hours": 2
   }
 }
