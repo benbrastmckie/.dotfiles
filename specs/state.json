@@ -4,10 +4,18 @@
     {
       "project_number": 40,
       "project_name": "investigate_laptop_high_fan_optimize_system",
-      "status": "not_started",
+      "status": "researched",
       "language": "nix",
       "created": "2026-02-23T21:45:42Z",
-      "last_updated": "2026-02-23T21:45:42Z"
+      "last_updated": "2026-02-23T21:54:56Z",
+      "session_id": "sess_1771883437_664894",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/40_investigate_laptop_high_fan_optimize_system/reports/research-001.md",
+          "summary": "Research report on laptop thermal optimization for NixOS with AMD Ryzen AI 300"
+        }
+      ]
     },
     {
       "project_number": 39,
