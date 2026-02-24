@@ -358,7 +358,7 @@
       # isort
 
       # Jupyter Notebooks
-      jupytext
+      # jupytext               # DISABLED: 1.18.1 has 2 failing tests (async/sync ContentsManager mismatch). Re-enable once fixed upstream.
       ipython
       google-generativeai  # Google Gemini API client (pip: google-genai)
       # pymupdf4llm          # LLM-optimized PDF extraction (custom package) - TEMPORARILY DISABLED: requires PyMuPDF 1.26.6, nixpkgs has 1.24.10
