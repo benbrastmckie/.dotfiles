@@ -1,9 +1,8 @@
 {
-  "session_id": "sess_1771885336_433554",
-  "skill": "skill-planner",
+  "session_id": "sess_1771957000_ab87dd",
+  "skill": "skill-nix-research",
   "task_number": 40,
-  "operation": "plan",
+  "operation": "research",
   "reason": "Postflight pending: status update, artifact linking, git commit",
-  "created": "2026-02-23T22:22:00Z",
-  "stop_hook_active": false
+  "created": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }
