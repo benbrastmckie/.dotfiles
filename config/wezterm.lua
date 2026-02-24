@@ -427,24 +427,7 @@ config.keys = {
   {
     key = "c",
     mods = "LEADER",
-    action = wezterm.action_callback(function(window, pane)
-      -- Read the foreground process's actual CWD from /proc/PID/cwd
-      -- This bypasses WezTerm's OSC 7 metadata which may be stale
-      -- (e.g., after exiting Neovim, OSC 7 still reports Neovim's directory)
-      local info = pane:get_foreground_process_info()
-      if info and info.cwd and info.cwd ~= "" then
-        window:perform_action(
-          act.SpawnCommandInNewTab {
-            domain = "CurrentPaneDomain",
-            cwd = info.cwd,
-          },
-          pane
-        )
-      else
-        -- Fallback: use default SpawnTab behavior (OSC 7 -> process CWD -> default)
-        window:perform_action(act.SpawnTab("CurrentPaneDomain"), pane)
-      end
-    end),
+    action = act.SpawnTab("CurrentPaneDomain"),
   },
   {
     key = "k",
