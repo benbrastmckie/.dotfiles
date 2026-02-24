@@ -20,6 +20,11 @@ fish_config prompt choose scales
 
 set -x EDITOR nvim
 
+# Lean compilation parallelism (optimal for 12-core Ryzen AI 9 HX 370)
+# Limits lake/lean parallelism to reduce thermal load during builds
+# See: specs/40_investigate_laptop_high_fan_optimize_system
+set -gx LEAN_NUM_THREADS 8
+
 # runs zoxide if installed
 if type -q zoxide
 zoxide init fish --cmd cd | source
