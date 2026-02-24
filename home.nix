@@ -362,7 +362,7 @@
       ipython
       google-generativeai  # Google Gemini API client (pip: google-genai)
       # pymupdf4llm          # LLM-optimized PDF extraction (custom package) - TEMPORARILY DISABLED: requires PyMuPDF 1.26.6, nixpkgs has 1.24.10
-      pdf2docx             # Convert PDF to DOCX
+      # pdf2docx           # Convert PDF to DOCX - DISABLED: pulls python-docx 1.2.0 -> behave -> cucumber-expressions 18.1.0 -> uv_build<0.10.0 (nixpkgs has 0.10.0). Re-enable once fixed upstream.
       vosk                 # Offline speech recognition (custom package)
     ]))
 
