@@ -4,11 +4,11 @@
     {
       "project_number": 40,
       "project_name": "investigate_laptop_high_fan_optimize_system",
-      "status": "planned",
+      "status": "researched",
       "language": "nix",
       "created": "2026-02-23T21:45:42Z",
-      "last_updated": "2026-02-23T22:24:05Z",
-      "session_id": "sess_1771885336_433554",
+      "last_updated": "2026-02-24T18:21:16Z",
+      "session_id": "sess_1771957000_ab87dd",
       "artifacts": [
         {
           "type": "research",
@@ -19,9 +19,15 @@
           "type": "plan",
           "path": "specs/40_investigate_laptop_high_fan_optimize_system/plans/implementation-001.md",
           "summary": "Implementation plan addressing power management conflict, GNOME tracker CPU load, and thermald enablement"
+        },
+        {
+          "type": "research",
+          "path": "specs/40_investigate_laptop_high_fan_optimize_system/reports/research-002.md",
+          "summary": "Lake build optimization research covering parallelism limits, CPU scheduling, memory management, I/O optimization, and thermal/power tradeoffs for Mathlib compilation on AMD Ryzen AI 300"
         }
       ],
-      "planned": "2026-02-23T22:24:05Z"
+      "planned": "2026-02-23T22:24:05Z",
+      "researched": "2026-02-24T18:21:16Z"
     },
     {
       "project_number": 39,
