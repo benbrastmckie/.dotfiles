@@ -107,14 +107,6 @@
           cvc5 = pySelf.callPackage ./packages/python-cvc5.nix { };
           pymupdf4llm = pySelf.callPackage ./packages/pymupdf4llm.nix { };
           vosk = pySelf.callPackage ./packages/python-vosk.nix { };
-          # cucumber-expressions 18.1.0 requires uv_build<0.10.0 but nixpkgs ships 0.10.0.
-          # behave is in nativeCheckInputs of python-docx. overrideAttrs alone doesn't
-          # remove pre-computed nativeCheckInputs; overridePythonAttrs re-invokes
-          # buildPythonPackage so doCheck properly gates the nativeCheckInputs list.
-          python-docx = pySuper.python-docx.overridePythonAttrs (_: {
-            doCheck = false;
-            nativeCheckInputs = [ ];
-          });
         };
       in {
         python3 = prev.python3.override {
