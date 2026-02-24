@@ -4,10 +4,10 @@
     {
       "project_number": 40,
       "project_name": "investigate_laptop_high_fan_optimize_system",
-      "status": "researched",
+      "status": "planned",
       "language": "nix",
       "created": "2026-02-23T21:45:42Z",
-      "last_updated": "2026-02-24T18:21:16Z",
+      "last_updated": "2026-02-24T18:30:15Z",
       "session_id": "sess_1771957000_ab87dd",
       "artifacts": [
         {
@@ -16,17 +16,17 @@
           "summary": "Research report on laptop thermal optimization for NixOS with AMD Ryzen AI 300"
         },
         {
-          "type": "plan",
-          "path": "specs/40_investigate_laptop_high_fan_optimize_system/plans/implementation-001.md",
-          "summary": "Implementation plan addressing power management conflict, GNOME tracker CPU load, and thermald enablement"
-        },
-        {
           "type": "research",
           "path": "specs/40_investigate_laptop_high_fan_optimize_system/reports/research-002.md",
           "summary": "Lake build optimization research covering parallelism limits, CPU scheduling, memory management, I/O optimization, and thermal/power tradeoffs for Mathlib compilation on AMD Ryzen AI 300"
+        },
+        {
+          "type": "plan",
+          "path": "specs/40_investigate_laptop_high_fan_optimize_system/plans/implementation-002.md",
+          "summary": "Revised implementation plan incorporating both power management fixes and lake build optimization"
         }
       ],
-      "planned": "2026-02-23T22:24:05Z",
+      "planned": "2026-02-24T18:30:15Z",
       "researched": "2026-02-24T18:21:16Z"
     },
     {
