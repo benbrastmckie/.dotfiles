@@ -1,6 +1,24 @@
 {
-  "next_project_number": 41,
+  "next_project_number": 43,
   "active_projects": [
+    {
+      "project_number": 42,
+      "project_name": "reenable_jupytext_nixpkgs_fix",
+      "status": "blocked",
+      "language": "nix",
+      "created": "2026-02-24T20:00:00Z",
+      "last_updated": "2026-02-24T20:00:00Z",
+      "blocked_reason": "Upstream nixpkgs: jupytext 1.18.1 has 2 failing tests in async/sync ContentsManager sync check. Uncomment jupytext in home.nix when fixed."
+    },
+    {
+      "project_number": 41,
+      "project_name": "reenable_pdf2docx_nixpkgs_fix",
+      "status": "blocked",
+      "language": "nix",
+      "created": "2026-02-24T20:00:00Z",
+      "last_updated": "2026-02-24T20:00:00Z",
+      "blocked_reason": "Upstream nixpkgs: cucumber-expressions 18.1.0 requires uv_build<0.10.0, nixpkgs ships 0.10.0. Chain: pdf2docx -> python-docx 1.2.0 -> behave -> cucumber-expressions. Uncomment pdf2docx in home.nix when fixed."
+    },
     {
       "project_number": 40,
       "project_name": "investigate_laptop_high_fan_optimize_system",

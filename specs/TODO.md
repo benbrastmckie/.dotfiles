@@ -2,6 +2,24 @@
 
 ## Active Tasks
 
+### 42. Re-enable jupytext once nixpkgs fixes 1.18.1 test failures
+- **Status**: [BLOCKED]
+- **Language**: nix
+- **Blocked by**: Upstream nixpkgs bug — jupytext 1.18.1 has 2 failing tests in async/sync ContentsManager sync check
+
+**Description**: jupytext is commented out in home.nix pending an upstream fix. When nixpkgs ships a version where the tests pass, uncomment `jupytext` in home.nix and rebuild. See commit `830fbe5` for the disable and the `# DISABLED:` comment for the exact location.
+
+---
+
+### 41. Re-enable pdf2docx once nixpkgs fixes cucumber-expressions/uv_build
+- **Status**: [BLOCKED]
+- **Language**: nix
+- **Blocked by**: Upstream nixpkgs bug — cucumber-expressions 18.1.0 requires uv_build<0.10.0 but nixpkgs ships 0.10.0
+
+**Description**: pdf2docx is commented out in home.nix because it transitively requires cucumber-expressions 18.1.0 (via python-docx 1.2.0 → behave), which needs uv_build<0.10.0 but nixpkgs has 0.10.0. When either cucumber-expressions is updated or uv_build constraint relaxed, uncomment `pdf2docx` in home.nix and rebuild. See commit `6ea088d` and the `# DISABLED:` comment for the exact location.
+
+---
+
 ### 40. Investigate laptop running hot and optimize system
 - **Status**: [COMPLETED]
 - **Language**: nix
