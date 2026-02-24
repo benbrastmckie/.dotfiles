@@ -192,6 +192,14 @@ services.automatic-timezoned.enable = true;
     gnome-keyring.enable = true;
     gnome-remote-desktop.enable = true;
     # core-network.enable = true;  # Ensure GNOME network components are enabled
+
+    # Disable tracker services to reduce background CPU load
+    # localsearch (formerly tracker-miner) indexes files for GNOME search
+    # tinysparql (formerly tracker) provides the database backend
+    # These cause CPU spikes during file indexing
+    # See: specs/40_investigate_laptop_high_fan_optimize_system
+    localsearch.enable = false;
+    tinysparql.enable = false;
   };
 
   # Additional GNOME services that are useful for both environments
@@ -273,9 +281,10 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
   services.libinput.enable = true;
 
   # Power management configuration for Ryzen AI 300
+  # cpuFreqGovernor removed - power-profiles-daemon manages governor dynamically
+  # Setting both causes a conflict where PPD's powersave is overridden on boot
   powerManagement = {
     enable = true;
-    cpuFreqGovernor = "ondemand";  # Balance performance and power saving
   };
 
   # Power profiles daemon for Waybar integration and system-wide power management
@@ -297,8 +306,8 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
     freeSwapThreshold = 10;        # Also consider swap usage
     enableNotifications = true;    # Send desktop notifications when process is killed
     extraArgs = [
-      "--avoid" "^(gnome-shell|Xwayland|niri)$"  # Avoid killing desktop essentials
-      "--prefer" "^(claude|node|npm)$"            # Prefer killing memory-heavy dev tools first
+      "--avoid" "^(gnome-shell|Xwayland|niri)$"   # Avoid killing desktop essentials
+      "--prefer" "^(lean|lake|claude|node|npm)$"  # Prefer killing memory-heavy processes first
     ];
   };
 

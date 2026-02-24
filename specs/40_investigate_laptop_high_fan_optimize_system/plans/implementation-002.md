@@ -2,7 +2,7 @@
 
 - **Task**: 40 - Investigate laptop high fan activity and optimize system
 - **Version**: 002
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 2.5 hours
 - **Dependencies**: Task 39 (memory optimization, completed)
 - **Research Inputs**:
@@ -63,7 +63,7 @@ From research-002.md:
 
 ## Implementation Phases
 
-### Phase 1: Baseline Diagnostics [NOT STARTED]
+### Phase 1: Baseline Diagnostics [COMPLETED]
 
 **Goal**: Collect current system state for comparison after changes
 
@@ -92,7 +92,7 @@ echo "LEAN_NUM_THREADS=$LEAN_NUM_THREADS"
 
 ---
 
-### Phase 2: Remove Power Management Conflict [NOT STARTED]
+### Phase 2: Remove Power Management Conflict [COMPLETED]
 
 **Goal**: Eliminate the cpuFreqGovernor setting that conflicts with power-profiles-daemon
 
@@ -127,7 +127,7 @@ powerManagement = {
 
 ---
 
-### Phase 3: Disable GNOME Tracker Services [NOT STARTED]
+### Phase 3: Disable GNOME Tracker Services [COMPLETED]
 
 **Goal**: Disable tracker-miner services that cause background CPU spikes
 
@@ -154,7 +154,7 @@ services.gnome.tracker.enable = false;
 
 ---
 
-### Phase 4: Configure LEAN_NUM_THREADS [NOT STARTED]
+### Phase 4: Configure LEAN_NUM_THREADS [COMPLETED]
 
 **Goal**: Set optimal Lean compilation parallelism via environment variable
 
@@ -179,7 +179,7 @@ set -gx LEAN_NUM_THREADS 8
 
 ---
 
-### Phase 5: Update earlyoom Configuration [NOT STARTED]
+### Phase 5: Update earlyoom Configuration [COMPLETED]
 
 **Goal**: Configure earlyoom to prefer killing compilation processes during OOM
 
@@ -221,7 +221,7 @@ services.earlyoom = {
 
 ---
 
-### Phase 6: Build and Deploy Configuration [NOT STARTED]
+### Phase 6: Build and Deploy Configuration [PARTIAL]
 
 **Goal**: Apply changes to the system and verify improvements
 
@@ -262,7 +262,7 @@ journalctl -u earlyoom | tail -5
 
 ---
 
-### Phase 7: Post-Implementation Verification [NOT STARTED]
+### Phase 7: Post-Implementation Verification [PARTIAL]
 
 **Goal**: Compare thermal behavior to baseline and test compilation workload
 
