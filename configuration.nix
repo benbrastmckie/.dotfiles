@@ -458,6 +458,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       aristotle            # AI theorem prover with Lean
       lsof                 # Tool to list open files
       # u-root-cmds           
+      git-filter-repo      # For deleting elements from git history
 
       # Lean
       # lean4              # Theorem prover and programming language
