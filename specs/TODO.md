@@ -2,6 +2,16 @@
 
 ## Active Tasks
 
+### 43. Install Forgejo self-hosted git server
+- **Status**: [RESEARCHED]
+- **Language**: nix
+- **Researched**: 2026-02-24
+- **Research**: [research-001.md](specs/43_install_forgejo_self_hosted_git/reports/research-001.md)
+
+**Description**: Install and configure Forgejo as a self-hosted private git server on NixOS via `services.forgejo` in configuration.nix. Configure with SQLite database, disable public registration, and optionally expose via Nginx with HTTPS. Migrate existing private repos (e.g., Logos/Theory) from GitLab to the self-hosted instance.
+
+---
+
 ### 42. Re-enable jupytext once nixpkgs fixes 1.18.1 test failures
 - **Status**: [BLOCKED]
 - **Language**: nix

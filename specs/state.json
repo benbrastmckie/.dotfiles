@@ -1,6 +1,22 @@
 {
-  "next_project_number": 43,
+  "next_project_number": 44,
   "active_projects": [
+    {
+      "project_number": 43,
+      "project_name": "install_forgejo_self_hosted_git",
+      "status": "researched",
+      "language": "nix",
+      "created": "2026-02-25T05:45:00Z",
+      "last_updated": "2026-02-25T06:40:35Z",
+      "session_id": "sess_1772001355_500d69",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/43_install_forgejo_self_hosted_git/reports/research-001.md",
+          "summary": "Research on NixOS Forgejo configuration with SQLite, Nginx reverse proxy, HTTPS/ACME, and GitLab migration"
+        }
+      ]
+    },
     {
       "project_number": 42,
       "project_name": "reenable_jupytext_nixpkgs_fix",
