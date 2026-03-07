@@ -453,7 +453,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       brave                # Privacy-focused web browser based on Chromium
 
       # Appearance
-      neofetch             # Command-line system information tool with ASCII art
+      fastfetch            # Command-line system information tool with ASCII art
       disfetch             # Minimal system information display tool
 
       # Development Tools
