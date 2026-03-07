@@ -32,6 +32,17 @@
   # Use latest kernel for best Ryzen AI 300 series support
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
+  # ==========================================================================
+  # Framework 13 AMD AI 300 - Phantom Audio Interface Fix
+  # ==========================================================================
+  # The Framework BIOS incorrectly reports the ACP device as a wired audio
+  # device. This causes snd_acp70 and snd_acp_pci to load and create phantom
+  # UCM audio interfaces that can cause hardware polling and IRQ noise.
+  # Blacklisting matches the nixos-hardware framework-amd-ai-300-series module.
+  # See: https://github.com/NixOS/nixos-hardware/tree/master/framework/13-inch/amd-ai-300-series
+  # ==========================================================================
+  boot.blacklistedKernelModules = [ "snd_acp70" "snd_acp_pci" ];
+
   # Kernel parameters for Ryzen AI 300 suspend/resume and deadlock detection
   boot.kernelParams = [
     "amd_pstate=active"           # Enable AMD P-state driver for better power management
@@ -40,10 +51,19 @@
     "hung_task_timeout_secs=60"   # Detect deadlocks faster (default: 120s)
   ];
 
-  # Disable power management for audio and WiFi stability
+  # Audio and WiFi kernel module options
+  # snd_hda_intel power_save=1: allow codec to idle after 1s of silence.
+  #   Previously set to 0, but the EAPD speaker-amp is already disabled by the
+  #   disable-speaker-amp service, so clicks from power-state transitions won't
+  #   come through internal speakers. Enabling saves meaningful battery.
+  # battery cache_time=10000: poll battery hardware every 10s (default ~1s).
+  #   At 1s the kernel fires power_supply change events ~60/min, keeping udevd
+  #   and journald busy. 10s gives accurate-enough readings while cutting
+  #   that wakeup rate by 10x.
   boot.extraModprobeConfig = ''
-    options snd_hda_intel power_save=0 power_save_controller=N
-    options mt7925e disable_aspm=1 power_save=0  # WiFi 6E/7 stability
+    options snd_hda_intel power_save=1 power_save_controller=N
+    options mt7925e disable_aspm=1 power_save=0
+    options battery cache_time=10000
   '';
 
   # NOTE: networking.hostName is set per-host in flake.nix
@@ -107,13 +127,11 @@ time.timeZone = lib.mkForce "America/Los_Angeles";
 # Enable automatic timezone detection (will override the default above)
 services.automatic-timezoned.enable = true;
 
-  # makes the split mechanical keyboard recognized
-  services.udev = {
-    enable = true;
-    packages = [
-      pkgs.qmk-udev-rules
-    ];
-  };
+  # QMK keyboard support - creates plugdev group, adds udev rules
+  # Using the NixOS QMK module instead of manual udev packages to avoid
+  # "Failed to resolve group 'plugdev'" spam from systemd-udevd (every 3-4s).
+  # That spam was keeping journald at 4-5% CPU and preventing CPU idle states.
+  hardware.keyboard.qmk.enable = true;
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
@@ -289,6 +307,11 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
 
   # Power profiles daemon for Waybar integration and system-wide power management
   services.power-profiles-daemon.enable = true;
+
+  # Firmware updates via fwupd - recommended for Framework laptops.
+  # BIOS >= 3.05 is required to fix standby power drain (Framework community).
+  # Run: fwupdmgr refresh && fwupdmgr update
+  services.fwupd.enable = true;
 
   # ==========================================================================
   # Memory Management - earlyoom for OOM Prevention
