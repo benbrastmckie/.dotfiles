@@ -41,5 +41,6 @@
     "input_submit": "return",
     "app_exit": "ctrl+c,<leader>q",
     "editor_open": "<leader>e"
-  }
+  },
+  "default_agent": "logos-coder"
 }
