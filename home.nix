@@ -828,7 +828,7 @@
   # };
 
   home.file = {
-    ".config/neofetch/config.conf".source = ./config/neofetch.conf;
+    ".config/fastfetch/config.jsonc".source = ./config/fastfetch.jsonc;
     ".config/opencode/opencode.json".source = ./config/opencode.json;
     ".config/sioyek/prefs_user.config".source = ./config/sioyek/prefs_user.config;
     ".config/sioyek/keys_user.config".source = ./config/sioyek/keys_user.config;

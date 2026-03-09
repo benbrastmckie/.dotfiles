@@ -55,7 +55,7 @@ Files are organized by application and deployment pattern:
 
 | File | Deployed To | Description |
 |------|-------------|-------------|
-| `neofetch.conf` | `~/.config/neofetch/config.conf` | Neofetch system info display configuration |
+| `fastfetch.jsonc` | `~/.config/fastfetch/config.jsonc` | Fastfetch system info display configuration |
 
 ## Notes
 
