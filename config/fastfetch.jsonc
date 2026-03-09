@@ -1,0 +1,60 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
+  "display": {
+    "separator": ""
+  },
+  "logo": {
+    "type": "none"
+  },
+  "modules": [
+    {
+      "type": "custom",
+      "format": "\u001b[90m\n┌─────────────────────────────────────────────────┐"
+    },
+    {
+      "type": "os",
+      "key": "\u001b[90m├─ \u001b[34m󱄅 Distro \u001b[0m",
+      "keyWidth": 0,
+      "format": "{name} {version}"
+    },
+    {
+      "type": "kernel",
+      "key": "\u001b[90m├─ \u001b[31m Kernel \u001b[0m",
+      "keyWidth": 0
+    },
+    {
+      "type": "packages",
+      "key": "\u001b[90m├─ \u001b[33m Packages \u001b[0m",
+      "keyWidth": 0
+    },
+    {
+      "type": "shell",
+      "key": "\u001b[90m├─ \u001b[33m# Shell\u001b[0m ",
+      "keyWidth": 0
+    },
+    {
+      "type": "terminal",
+      "key": "\u001b[90m├─ \u001b[37m Terminal \u001b[0m",
+      "keyWidth": 0
+    },
+    {
+      "type": "disk",
+      "key": "\u001b[90m├─ \u001b[32m󰋊 Disk \u001b[0m",
+      "keyWidth": 0
+    },
+    {
+      "type": "cpu",
+      "key": "\u001b[90m├─ \u001b[95m CPU \u001b[0m",
+      "keyWidth": 0
+    },
+    {
+      "type": "uptime",
+      "key": "\u001b[90m├─ \u001b[96m󰅐 Up Time \u001b[0m",
+      "keyWidth": 0
+    },
+    {
+      "type": "custom",
+      "format": "\u001b[90m└─────────────────────────────────────────────────┘\n"
+    }
+  ]
+}

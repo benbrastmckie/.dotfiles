@@ -30,7 +30,7 @@ if type -q zoxide
 zoxide init fish --cmd cd | source
 end
 
-# runs neofetch if installed
-if type -q neofetch
-neofetch
+# runs fastfetch if installed
+if type -q fastfetch
+fastfetch
 end

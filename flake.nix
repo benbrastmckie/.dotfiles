@@ -362,7 +362,6 @@
               nautilus              # File manager (required by portal)
               
               # Appearance tools
-              neofetch             # System information tool
               disfetch             # Minimal system information display
               
               # NixOS tools
