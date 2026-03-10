@@ -524,6 +524,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       elan                 # Version manager for Lean
 
       # Editors
+      obsidian             # Markdown-based knowledge base and note-taking app
       neovim               # Highly configurable text editor (Vim-fork)
       neovim-remote        # Tool for controlling Neovim processes
       vscodium             # Open source build of VS Code without Microsoft telemetry
