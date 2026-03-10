@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 44. Review memory logs and design system optimizations
+- **Status**: [NOT STARTED]
+- **Language**: nix
+
+**Description**: Review memory monitor logs to identify what is consuming memory when usage reaches 80%. Analyze patterns and design system improvements that can optimize memory usage while avoiding needless complexity.
+
+---
+
 ### 43. Install Forgejo self-hosted git server
 - **Status**: [RESEARCHED]
 - **Language**: nix
