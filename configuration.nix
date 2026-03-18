@@ -592,7 +592,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       mtr                  # Better traceroute (combines ping + traceroute)
 
       # SSL/TLS Tools
-      # openssl is already available system-wide
+      openssl              # SSL/TLS toolkit and cryptography library
       mkcert               # Local SSL certificates for development
 
       # NixOS
