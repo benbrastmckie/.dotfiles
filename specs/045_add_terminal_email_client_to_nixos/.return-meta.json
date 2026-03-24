@@ -1,28 +1,28 @@
 {
   "status": "researched",
   "started_at": "2026-03-24T12:00:00Z",
-  "completed_at": "2026-03-24T12:30:00Z",
+  "completed_at": "2026-03-24T13:30:00Z",
   "artifacts": [
     {
       "type": "research_report",
-      "path": "specs/045_add_terminal_email_client_to_nixos/reports/01_terminal-email-clients.md",
-      "summary": "Comprehensive comparison of terminal email clients (Himalaya, aerc, NeoMutt, notmuch) with focus on vim keybindings, Neovim integration, AI extensibility, and NixOS packaging"
+      "path": "specs/045_add_terminal_email_client_to_nixos/reports/02_aerc-vs-notmuch-comparison.md",
+      "summary": "Deep comparison of aerc (v0.21.0) vs notmuch (v0.40) covering development activity, workflow differences, features, and NixOS/Home Manager setup"
     }
   ],
-  "next_steps": "Run /plan 45 to create implementation plan",
+  "next_steps": "Run /plan 45 to create implementation plan for aerc+notmuch hybrid setup",
   "metadata": {
-    "session_id": "sess_1774391729_a688af",
+    "session_id": "sess_1774392957_ea4e7b",
     "agent_type": "nix-research-agent",
-    "duration_seconds": 1800,
+    "duration_seconds": 5400,
     "delegation_depth": 1,
     "delegation_path": ["orchestrator", "research", "nix-research-agent"],
-    "findings_count": 6
-  },
-  "key_findings": {
-    "primary_recommendation": "himalaya",
-    "secondary_recommendation": "aerc",
-    "neovim_integration_best": "notmuch.nvim",
-    "ai_integration_available": "Gmail MCP servers for Claude Code",
-    "all_have_home_manager": true
+    "findings_count": 9,
+    "key_findings": [
+      "aerc v0.21.0 (March 2026) - 2,921 commits, active development by Robin Jarry at Red Hat",
+      "notmuch v0.40 (Jan 2026) - 7,680 commits, mature Xapian-based search library",
+      "aerc is complete MUA; notmuch is search backend requiring frontend",
+      "Hybrid aerc+notmuch recommended for user's existing mbsync setup",
+      "Both have comprehensive Home Manager module support"
+    ]
   }
 }
