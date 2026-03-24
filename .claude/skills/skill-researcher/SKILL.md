@@ -29,7 +29,7 @@ Note: This skill is a thin wrapper with internal postflight. Context is loaded b
 ## Trigger Conditions
 
 This skill activates when:
-- Task language is "general", "meta", or "markdown"
+- Task language is "general", "meta", "markdown", "latex", or "typst"
 - Research is needed for implementation planning
 - Documentation or external resources need to be gathered
 
@@ -76,7 +76,7 @@ jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     status: $status,
     last_updated: $ts,
     session_id: $sid
-  }' specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
+  }' specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
 ```
 
 **Update TODO.md**: Use Edit tool to change status marker from `[NOT STARTED]` or `[RESEARCHED]` to `[RESEARCHING]`.
@@ -89,9 +89,10 @@ Create the marker file to prevent premature termination:
 
 ```bash
 # Ensure task directory exists
-mkdir -p "specs/${task_number}_${project_name}"
+padded_num=$(printf "%03d" "$task_number")
+mkdir -p "specs/${padded_num}_${project_name}"
 
-cat > "specs/${task_number}_${project_name}/.postflight-pending" << EOF
+cat > "specs/${padded_num}_${project_name}/.postflight-pending" << EOF
 {
   "session_id": "${session_id}",
   "skill": "skill-researcher",
@@ -123,7 +124,7 @@ Prepare delegation context for the subagent:
     "language": "{language}"
   },
   "focus_prompt": "{optional focus}",
-  "metadata_file_path": "specs/{N}_{SLUG}/.return-meta.json"
+  "metadata_file_path": "specs/{NNN}_{SLUG}/.return-meta.json"
 }
 ```
 
@@ -148,8 +149,8 @@ The subagent will:
 - Search codebase for related patterns
 - Search web for documentation and examples
 - Analyze findings and synthesize recommendations
-- Create research report in `specs/{N}_{SLUG}/reports/`
-- Write metadata to `specs/{N}_{SLUG}/.return-meta.json`
+- Create research report in `specs/{NNN}_{SLUG}/reports/`
+- Write metadata to `specs/{NNN}_{SLUG}/.return-meta.json`
 - Return a brief text summary (NOT JSON)
 
 ---
@@ -159,7 +160,7 @@ The subagent will:
 After subagent returns, read the metadata file:
 
 ```bash
-metadata_file="specs/${task_number}_${project_name}/.return-meta.json"
+metadata_file="specs/${padded_num}_${project_name}/.return-meta.json"
 
 if [ -f "$metadata_file" ] && jq empty "$metadata_file" 2>/dev/null; then
     status=$(jq -r '.status' "$metadata_file")
@@ -186,7 +187,7 @@ jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     status: $status,
     last_updated: $ts,
     researched: $ts
-  }' specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
+  }' specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
 ```
 
 **Update TODO.md**: Use Edit tool to change status marker from `[RESEARCHING]` to `[RESEARCHED]`.
@@ -206,21 +207,41 @@ if [ -n "$artifact_path" ]; then
     # Step 1: Filter out existing research artifacts (use "| not" pattern to avoid != escaping - Issue #1132)
     jq '(.active_projects[] | select(.project_number == '$task_number')).artifacts =
         [(.active_projects[] | select(.project_number == '$task_number')).artifacts // [] | .[] | select(.type == "research" | not)]' \
-      specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
+      specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
 
     # Step 2: Add new research artifact
     jq --arg path "$artifact_path" \
        --arg type "$artifact_type" \
        --arg summary "$artifact_summary" \
       '(.active_projects[] | select(.project_number == '$task_number')).artifacts += [{"path": $path, "type": $type, "summary": $summary}]' \
-      specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
+      specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
 fi
 ```
 
-**Update TODO.md**: Add research artifact link:
-```markdown
-- **Research**: [research-{NNN}.md]({artifact_path})
-```
+**Update TODO.md**: Add research artifact link using count-aware format.
+
+See `.claude/rules/state-management.md` "Artifact Linking Format" for canonical rules. Use Edit tool:
+
+1. **Read existing task entry** to detect current research links
+2. **If no `- **Research**:` line exists**: Insert inline format:
+   ```markdown
+   - **Research**: [MM_{short-slug}.md]({artifact_path})
+   ```
+3. **If existing inline (single link)**: Convert to multi-line:
+   ```markdown
+   old_string: - **Research**: [existing.md](existing/path)
+   new_string: - **Research**:
+     - [existing.md](existing/path)
+     - [MM_{short-slug}.md]({artifact_path})
+   ```
+4. **If existing multi-line**: Append new item before next field:
+   ```markdown
+   old_string:   - [last-item.md](last/path)
+   - **Plan**:
+   new_string:   - [last-item.md](last/path)
+     - [MM_{short-slug}.md]({artifact_path})
+   - **Plan**:
+   ```
 
 ---
 
@@ -244,9 +265,9 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
 Remove marker and metadata files:
 
 ```bash
-rm -f "specs/${task_number}_${project_name}/.postflight-pending"
-rm -f "specs/${task_number}_${project_name}/.postflight-loop-guard"
-rm -f "specs/${task_number}_${project_name}/.return-meta.json"
+rm -f "specs/${padded_num}_${project_name}/.postflight-pending"
+rm -f "specs/${padded_num}_${project_name}/.postflight-loop-guard"
+rm -f "specs/${padded_num}_${project_name}/.return-meta.json"
 ```
 
 ---
@@ -259,7 +280,7 @@ Return a brief text summary (NOT JSON). Example:
 Research completed for task {N}:
 - Found {count} relevant patterns and resources
 - Identified implementation approach: {approach}
-- Created report at specs/{N}_{SLUG}/reports/research-{NNN}.md
+- Created report at specs/{NNN}_{SLUG}/reports/MM_{short-slug}.md
 - Status updated to [RESEARCHED]
 - Changes committed
 ```
@@ -286,6 +307,28 @@ Keep status as "researching" for resume.
 
 ---
 
+## MUST NOT (Postflight Boundary)
+
+After the agent returns, this skill MUST NOT:
+
+1. **Edit source files** - All research work is done by agent
+2. **Run build/test commands** - Verification is done by agent
+3. **Use MCP/WebSearch tools** - Research tools are for agent use only
+4. **Analyze or grep source** - Analysis is agent work
+5. **Write reports** - Artifact creation is agent work
+
+The postflight phase is LIMITED TO:
+- Reading agent metadata file
+- Updating state.json via jq
+- Updating TODO.md status marker via Edit
+- Linking artifacts in state.json
+- Git commit
+- Cleanup of temp/marker files
+
+Reference: @.claude/context/core/standards/postflight-tool-restrictions.md
+
+---
+
 ## Return Format
 
 This skill returns a **brief text summary** (NOT JSON). The JSON metadata is written to the file and processed internally.
@@ -295,7 +338,7 @@ Example successful return:
 Research completed for task 412:
 - Found 8 relevant patterns for implementation
 - Identified lazy context loading and skill-to-agent mapping patterns
-- Created report at specs/412_general_research/reports/research-001.md
+- Created report at specs/412_general_research/reports/MM_{short-slug}.md
 - Status updated to [RESEARCHED]
 - Changes committed with session sess_1736700000_abc123
 ```
@@ -305,6 +348,6 @@ Example partial return:
 Research partially completed for task 412:
 - Found 4 codebase patterns
 - Web search failed due to network error
-- Partial report created at specs/412_general_research/reports/research-001.md
+- Partial report created at specs/412_general_research/reports/MM_{short-slug}.md
 - Status remains [RESEARCHING] - run /research 412 to continue
 ```

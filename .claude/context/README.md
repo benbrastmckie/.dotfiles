@@ -71,22 +71,6 @@
 │   │   ├── templates/              # Template files
 │   │   └── tools/                  # Tool documentation (lazy.nvim, etc.)
 │   │
-│   ├── nix/                        # Nix/NixOS/Home Manager knowledge
-│   │   ├── domain/                 # Language and ecosystem concepts
-│   │   │   ├── nix-language.md     # Nix language fundamentals
-│   │   │   ├── flakes.md           # Flake system and inputs
-│   │   │   ├── nixos-modules.md    # NixOS module system
-│   │   │   └── home-manager.md     # Home Manager configuration
-│   │   ├── patterns/               # Configuration patterns
-│   │   │   ├── module-patterns.md  # Module structure patterns
-│   │   │   ├── overlay-patterns.md # Overlay and overrides
-│   │   │   └── derivation-patterns.md # Package derivations
-│   │   ├── standards/              # Coding standards
-│   │   │   └── nix-style-guide.md  # Nix formatting conventions
-│   │   └── tools/                  # Tool documentation
-│   │       ├── nixos-rebuild-guide.md # NixOS rebuild commands
-│   │       └── home-manager-guide.md  # Home Manager usage
-│   │
 │   ├── latex/                      # LaTeX document knowledge
 │   │   ├── patterns/               # Document patterns
 │   │   ├── standards/              # Style standards
@@ -139,7 +123,6 @@
 **Contents**:
 - **meta/** - Meta-builder context (domain patterns, architecture principles)
 - **neovim/** - Neovim configuration knowledge (API, patterns, plugins)
-- **nix/** - Nix/NixOS/Home Manager knowledge (language, modules, flakes)
 - **latex/** - LaTeX document authoring knowledge
 - **typst/** - Typst document authoring knowledge
 - **hooks/** - Git hooks context
@@ -210,3 +193,74 @@ Add to `project/`:
 - LaTeX → `project/latex/`
 - Typst → `project/typst/`
 - Repo-specific → `project/repo/`
+
+---
+
+## Index.json Schema
+
+The `index.json` file enables automated context discovery:
+
+### Entry Structure
+
+```json
+{
+  "version": "1.0",
+  "generated": "2026-03-11T22:13:42Z",
+  "entries": [
+    {
+      "path": "README.md",
+      "domain": "core",
+      "subdomain": "overview",
+      "topics": ["context-system", "lazy-loading"],
+      "keywords": ["index", "context", "loading"],
+      "summary": "Overview of context system",
+      "line_count": 100,
+      "load_when": {
+        "always": true
+      }
+    }
+  ]
+}
+```
+
+### Entry Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `path` | string | Relative path from context/ directory |
+| `domain` | string | Domain category (core, project, extension) |
+| `subdomain` | string | Subcategory within domain |
+| `topics` | array | High-level topics covered |
+| `keywords` | array | Search keywords |
+| `summary` | string | Brief description |
+| `line_count` | integer | File size for budget calculation |
+| `load_when` | object | Loading conditions |
+
+### Load Conditions
+
+```json
+// Always load
+"load_when": { "always": true }
+
+// Load for specific agents
+"load_when": { "agents": ["planner-agent"] }
+
+// Load for specific commands
+"load_when": { "commands": ["/research", "/implement"] }
+
+// Load for specific languages
+"load_when": { "languages": ["neovim", "lean4"] }
+```
+
+### Query Examples
+
+```bash
+# Find context for an agent
+jq -r '.entries[] | select(.load_when.agents[]? == "planner-agent") | .path' .claude/context/index.json
+
+# Find context by topic
+jq -r '.entries[] | select(.topics[]? == "routing") | .path' .claude/context/index.json
+
+# Get line counts for budget
+jq -r '.entries[] | select(.load_when.agents[]? == "planner-agent") | "\(.line_count)\t\(.path)"' .claude/context/index.json
+```

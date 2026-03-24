@@ -7,7 +7,7 @@
 
 ## Overview
 
-This system uses **git as the primary safety mechanism** for all risky operations.
+ProofChecker uses **git as the primary safety mechanism** for all risky operations.
 
 **Core Principle**: Never create `.bak` files. Use git commits for safety.
 

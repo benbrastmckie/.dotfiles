@@ -65,37 +65,13 @@ stdenv.mkDerivation {
 
 ## Wrapper Scripts
 
-Simple wrappers from this repository:
-
-### packages/claude-code.nix
+Simple wrappers:
 
 ```nix
 { lib, writeShellScriptBin, nodejs }:
 
-writeShellScriptBin "claude" ''
-  exec ${nodejs}/bin/npx @anthropic-ai/claude-code@latest "$@"
-''
-```
-
-### packages/loogle.nix
-
-```nix
-{ writeShellScriptBin }:
-
-writeShellScriptBin "loogle" ''
-  LOOGLE_DIR="$HOME/.cache/loogle"
-
-  # First-time setup
-  if [ ! -d "$LOOGLE_DIR" ]; then
-    echo "==> First-time setup: Cloning loogle repository..."
-    git clone https://github.com/nomeata/loogle.git "$LOOGLE_DIR"
-    cd "$LOOGLE_DIR"
-    echo "==> Building loogle (this may take a few minutes)..."
-    nix develop . --command sh -c "lake exe cache get && lake build loogle"
-  fi
-
-  cd "$LOOGLE_DIR"
-  nix develop . --command lake exe loogle "$@"
+writeShellScriptBin "mytool" ''
+  exec ${nodejs}/bin/npx my-tool@latest "$@"
 ''
 ```
 
@@ -107,29 +83,29 @@ Using `buildGoModule`:
 { lib, buildGoModule, fetchFromGitHub, tmux, gh }:
 
 buildGoModule rec {
-  pname = "claude-squad";
-  version = "1.0.8";
+  pname = "mygoapp";
+  version = "1.0.0";
 
   src = fetchFromGitHub {
-    owner = "smtg-ai";
-    repo = "claude-squad";
+    owner = "owner";
+    repo = "mygoapp";
     rev = "v${version}";
-    sha256 = "sha256-mzW9Z+QN4EQ3JLFD3uTDT2/c+ZGLzMqngl3o5TVBZN0=";
+    sha256 = "sha256-...";
   };
 
-  vendorHash = "sha256-BduH6Vu+p5iFe1N5svZRsb9QuFlhf7usBjMsOtRn2nQ=";
+  vendorHash = "sha256-...";
 
   nativeBuildInputs = [ go ];
   buildInputs = [ tmux gh ];
 
   postInstall = ''
-    ln -s $out/bin/claude-squad $out/bin/cs
+    ln -s $out/bin/mygoapp $out/bin/mga
   '';
 
   meta = with lib; {
-    description = "Terminal app that manages multiple AI terminal agents";
-    homepage = "https://github.com/smtg-ai/claude-squad";
-    license = licenses.agpl3Only;
+    description = "My Go application";
+    homepage = "https://github.com/owner/mygoapp";
+    license = licenses.mit;
     platforms = platforms.linux ++ platforms.darwin;
   };
 }
@@ -162,16 +138,14 @@ buildPythonPackage rec {
 }
 ```
 
-### Custom Python Package
-
-From packages/python-cvc5.nix pattern:
+### Wheel Package
 
 ```nix
 { lib, buildPythonPackage, fetchurl, ... }:
 
 buildPythonPackage rec {
-  pname = "cvc5";
-  version = "1.2.0";
+  pname = "mypackage";
+  version = "1.0.0";
   format = "wheel";
 
   src = fetchurl {
@@ -179,7 +153,7 @@ buildPythonPackage rec {
     sha256 = "sha256-...";
   };
 
-  pythonImportsCheck = [ "cvc5" ];
+  pythonImportsCheck = [ "mypackage" ];
 }
 ```
 

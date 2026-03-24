@@ -79,10 +79,10 @@ Load these on-demand using @-references:
 
 1. Ensure task directory exists:
    ```bash
-   mkdir -p "specs/{N}_{SLUG}"
+   mkdir -p "specs/{NNN}_{SLUG}"
    ```
 
-2. Write initial metadata to `specs/{N}_{SLUG}/.return-meta.json`:
+2. Write initial metadata to `specs/{NNN}_{SLUG}/.return-meta.json`:
    ```json
    {
      "status": "in_progress",
@@ -117,8 +117,8 @@ Extract from input:
     "delegation_depth": 1,
     "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"]
   },
-  "plan_path": "specs/412_configure_nginx_module/plans/implementation-001.md",
-  "metadata_file_path": "specs/412_configure_nginx_module/.return-meta.json"
+  "plan_path": "specs/412_onfigure_nginx_module/plans/02_nginx-module-plan.md",
+  "metadata_file_path": "specs/412_onfigure_nginx_module/.return-meta.json"
 }
 ```
 
@@ -212,7 +212,7 @@ home-manager build --flake .#user
 
 ### Stage 6: Create Implementation Summary
 
-Write to `specs/{N}_{SLUG}/summaries/implementation-summary-{DATE}.md`:
+Write to `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md`:
 
 ```markdown
 # Implementation Summary: Task #{N}
@@ -254,7 +254,7 @@ Write to `specs/{N}_{SLUG}/summaries/implementation-summary-{DATE}.md`:
 
 ### Stage 7: Write Metadata File
 
-Write to `specs/{N}_{SLUG}/.return-meta.json`:
+Write to `specs/{NNN}_{SLUG}/.return-meta.json`:
 
 ```json
 {
@@ -268,7 +268,7 @@ Write to `specs/{N}_{SLUG}/.return-meta.json`:
     },
     {
       "type": "summary",
-      "path": "specs/{N}_{SLUG}/summaries/implementation-summary-{DATE}.md",
+      "path": "specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md",
       "summary": "Implementation summary with verification"
     }
   ],
@@ -299,7 +299,7 @@ Nix implementation completed for task 412:
 - Added Home Manager configuration for user shell
 - Configured flake with new module import
 - Verified flake check and nixos-rebuild build pass
-- Created summary at specs/412_configure_nginx_module/summaries/implementation-summary-20260203.md
+- Created summary at specs/412_onfigure_nginx_module/summaries/01_nginx-module-summary.md
 - Metadata written for skill postflight
 ```
 
@@ -579,55 +579,6 @@ mcp__nixos__nix_versions(package="nodejs", limit=10)
 # Returns: available versions with commit hashes
 ```
 
-### Validation Workflow
-
-#### Pre-Write Validation
-
-Before writing Nix code that references packages or options:
-
-1. **New Package Reference**
-   ```
-   # Check: Does pkgs.somePackage exist?
-   result = mcp__nixos__nix(action="search", query="somePackage", source="nixpkgs", limit=5)
-
-   if exact_match_found(result):
-       proceed_with_write()
-   else:
-       suggest_alternatives(result)
-       log_validation_warning()
-   ```
-
-2. **New Option Path**
-   ```
-   # Check: Is services.nginx.virtualHosts a valid option?
-   result = mcp__nixos__nix(action="options", query="services.nginx.virtualHosts", source="nixos-options", limit=5)
-
-   if option_exists(result):
-       proceed_with_write()
-   else:
-       report_invalid_option()
-   ```
-
-#### Post-Error Validation
-
-When build fails with "undefined variable" or "missing attribute":
-
-1. Extract the problematic name from error message
-2. Query MCP for correct name:
-   ```
-   mcp__nixos__nix(action="search", query="{error_name}", source="nixpkgs", limit=10)
-   ```
-3. Suggest corrections based on similar packages
-
-#### Suggestion Generation
-
-When validation fails, use MCP results to suggest alternatives:
-```
-# Original query: "nodejs16"
-# MCP response: [nodejs-18_x, nodejs-16_x, nodejs-14_x]
-# Suggestion: "Did you mean nodejs-16_x?"
-```
-
 ### Graceful Degradation
 
 #### MCP Unavailable
@@ -658,26 +609,6 @@ When MCP returns an error:
    nix search nixpkgs#packageName 2>/dev/null || echo "Package search failed"
    ```
 3. Continue with implementation
-
-#### Session-Level MCP State
-
-Track MCP availability per session:
-```
-mcp_available = false  # Default assumption
-
-# At Stage 4 start:
-try:
-    mcp__nixos__nix(action="stats", source="nixpkgs")
-    mcp_available = true
-except:
-    log("MCP-NixOS unavailable, proceeding without package validation")
-
-# Throughout session:
-if mcp_available:
-    validate_via_mcp()
-else:
-    skip_mcp_validation()
-```
 
 ## Error Handling
 
@@ -764,46 +695,6 @@ error: builder for '/nix/store/...' failed with exit code 1
 3. Fix underlying issue (missing dependency, patch failure, etc.)
 4. Re-verify
 
-### MCP-Related Error Handling
-
-#### Package Not Found (Hallucinated Name)
-
-When MCP validation fails to find a package:
-1. Query MCP for similar packages:
-   ```
-   mcp__nixos__nix(action="search", query="partial_name", source="nixpkgs", limit=10)
-   ```
-2. Suggest alternatives from results
-3. Do not proceed with non-existent package
-
-#### Option Path Invalid
-
-When MCP validation fails to find an option:
-1. Query MCP for parent path:
-   ```
-   mcp__nixos__nix(action="options", query="services.nginx", source="nixos-options", limit=20)
-   ```
-2. List available sub-options
-3. Suggest correct path
-
-#### Version Not Available
-
-When requested package version doesn't exist:
-1. Query available versions:
-   ```
-   mcp__nixos__nix_versions(package="nodejs", limit=10)
-   ```
-2. Suggest closest available version
-3. Provide commit hash for pinning if needed
-
-#### MCP Server Unavailable
-
-When MCP tools fail consistently:
-1. Log informational message (not error)
-2. Proceed without MCP validation
-3. Rely on `nix flake check` for validation
-4. Note in summary that MCP was unavailable
-
 ## Phase Checkpoint Protocol
 
 For each phase in the implementation plan:
@@ -831,7 +722,7 @@ For each phase in the implementation plan:
 
 **MUST DO**:
 1. **Create early metadata at Stage 0** before any substantive work
-2. Always write final metadata to `specs/{N}_{SLUG}/.return-meta.json`
+2. Always write final metadata to `specs/{NNN}_{SLUG}/.return-meta.json`
 3. Always return brief text summary (3-6 bullets), NOT JSON
 4. Always include session_id from delegation context in metadata
 5. Always run `nix flake check` after file changes

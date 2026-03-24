@@ -108,7 +108,7 @@ Update the metadata file at significant milestones:
   "artifacts": [
     {
       "type": "report",
-      "path": "specs/259_proof/reports/research-001.md",
+      "path": "specs/259_proof/reports/01_proof-research.md",
       "summary": "Partial research report (in progress)"
     }
   ],
@@ -215,7 +215,7 @@ Add this to agent execution flow after Stage 1 (Parse Delegation Context):
 
 1. Ensure task directory exists:
    ```bash
-   mkdir -p "specs/{N}_{SLUG}"
+   mkdir -p "specs/{NNN}_{SLUG}"
    ```
 
 2. Write initial metadata:

@@ -7,7 +7,7 @@ Agents write structured metadata to files instead of returning JSON to the conso
 ## File Location
 
 ```
-specs/{N}_{SLUG}/.return-meta.json
+specs/{NNN}_{SLUG}/.return-meta.json
 ```
 
 Where:
@@ -24,7 +24,7 @@ Example: `specs/1_setup_lsp_config/.return-meta.json`
   "artifacts": [
     {
       "type": "report|plan|summary|implementation",
-      "path": "specs/1_setup_lsp_config/reports/research-001.md",
+      "path": "specs/001_setup_lsp_config/reports/01_lsp-config-research.md",
       "summary": "Brief 1-sentence description of artifact"
     }
   ],
@@ -170,12 +170,12 @@ At the end of execution, agents MUST:
 
 1. Create the metadata file:
 ```bash
-mkdir -p "specs/${task_number}_${task_slug}"
+mkdir -p "specs/${padded_num}_${task_slug}"
 ```
 
 2. Write the JSON:
 ```json
-// Write to specs/{N}_{SLUG}/.return-meta.json
+// Write to specs/{NNN}_{SLUG}/.return-meta.json
 {
   "status": "researched",
   "artifacts": [...],
@@ -188,7 +188,7 @@ mkdir -p "specs/${task_number}_${task_slug}"
 Research completed for task 1:
 - Found 5 relevant lazy.nvim plugin patterns
 - Identified configuration strategy using modular approach
-- Created report at specs/1_setup_lsp_config/reports/research-001.md
+- Created report at specs/001_setup_lsp_config/reports/01_lsp-config-research.md
 ```
 
 ### Reading Metadata (Skill Postflight)
@@ -197,7 +197,7 @@ Skills read the metadata file during postflight:
 
 ```bash
 # Read metadata file
-metadata_file="specs/${task_number}_${task_slug}/.return-meta.json"
+metadata_file="specs/${padded_num}_${task_slug}/.return-meta.json"
 if [ -f "$metadata_file" ]; then
     status=$(jq -r '.status' "$metadata_file")
     artifact_path=$(jq -r '.artifacts[0].path' "$metadata_file")
@@ -210,7 +210,7 @@ fi
 After postflight, delete the metadata file:
 
 ```bash
-rm -f "specs/${task_number}_${task_slug}/.return-meta.json"
+rm -f "specs/${padded_num}_${task_slug}/.return-meta.json"
 ```
 
 ## Examples
@@ -223,7 +223,7 @@ rm -f "specs/${task_number}_${task_slug}/.return-meta.json"
   "artifacts": [
     {
       "type": "report",
-      "path": "specs/1_setup_lsp_config/reports/research-001.md",
+      "path": "specs/001_setup_lsp_config/reports/01_lsp-config-research.md",
       "summary": "Research report with 5 plugin patterns and configuration strategy"
     }
   ],
@@ -252,7 +252,7 @@ rm -f "specs/${task_number}_${task_slug}/.return-meta.json"
     },
     {
       "type": "summary",
-      "path": "specs/1_setup_lsp_config/summaries/implementation-summary-20260118.md",
+      "path": "specs/1_setup_lsp_config/summaries/01_lsp-config-summary.md",
       "summary": "Implementation summary with verification results"
     }
   ],
@@ -286,7 +286,7 @@ rm -f "specs/${task_number}_${task_slug}/.return-meta.json"
     },
     {
       "type": "summary",
-      "path": "specs/412_create_agent/summaries/implementation-summary-20260118.md",
+      "path": "specs/412_create_agent/summaries/01_agent-creation-summary.md",
       "summary": "Implementation summary"
     }
   ],
@@ -320,7 +320,7 @@ rm -f "specs/${task_number}_${task_slug}/.return-meta.json"
     },
     {
       "type": "summary",
-      "path": "specs/413_create_script/summaries/implementation-summary-20260118.md",
+      "path": "specs/413_create_script/summaries/01_script-creation-summary.md",
       "summary": "Implementation summary"
     }
   ],
@@ -354,7 +354,7 @@ rm -f "specs/${task_number}_${task_slug}/.return-meta.json"
     },
     {
       "type": "summary",
-      "path": "specs/1_setup_lsp_config/summaries/implementation-summary-20260118.md",
+      "path": "specs/1_setup_lsp_config/summaries/01_lsp-config-summary.md",
       "summary": "Implementation summary with partial progress"
     }
   ],
@@ -387,7 +387,7 @@ rm -f "specs/${task_number}_${task_slug}/.return-meta.json"
   "artifacts": [
     {
       "type": "plan",
-      "path": "specs/1_setup_lsp_config/plans/implementation-001.md",
+      "path": "specs/001_setup_lsp_config/plans/02_lsp-config-plan.md",
       "summary": "4-phase implementation plan for LSP configuration"
     }
   ],
@@ -437,7 +437,7 @@ Written after significant progress, before completion:
   "artifacts": [
     {
       "type": "report",
-      "path": "specs/1_setup_lsp_config/reports/research-001.md",
+      "path": "specs/001_setup_lsp_config/reports/01_lsp-config-research.md",
       "summary": "Partial research report (in progress)"
     }
   ],
@@ -485,7 +485,7 @@ This file-based format complements `subagent-return.md`:
 | Aspect | subagent-return.md | return-metadata-file.md |
 |--------|-------------------|------------------------|
 | Purpose | Console JSON return | File-based metadata |
-| Location | Agent's stdout | `specs/{N}_{SLUG}/.return-meta.json` |
+| Location | Agent's stdout | `specs/{NNN}_{SLUG}/.return-meta.json` |
 | Consumer | Skill validation logic | Skill postflight operations |
 | When | Before file-based pattern | With file-based pattern |
 | Cneovimup | N/A | Deleted after postflight |

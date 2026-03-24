@@ -13,7 +13,7 @@ Create properly scoped git commits for task operations.
 
 Load context on-demand when needed:
 - `@.claude/context/core/standards/git-safety.md` - Git safety rules and best practices
-- `@.claude/context/index.md` - Full context discovery index
+- `@.claude/context/index.json` - Full context discovery index
 
 ## Trigger Conditions
 
@@ -76,7 +76,7 @@ Include only task-related files:
 ```
 specs/TODO.md
 specs/state.json
-specs/{N}_{SLUG}/**
+specs/{NNN}_{SLUG}/**
 ```
 
 ### Implementation Commits

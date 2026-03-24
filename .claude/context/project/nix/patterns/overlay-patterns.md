@@ -58,56 +58,53 @@ final: prev: {
 }
 ```
 
-## Real Examples from flake.nix
-
-### Claude-Squad Overlay
+## Go Package Overlay
 
 Building a Go package:
 
 ```nix
-claudeSquadOverlay = final: prev: {
-  claude-squad = final.buildGoModule rec {
-    pname = "claude-squad";
-    version = "1.0.8";
+myGoOverlay = final: prev: {
+  mygoapp = final.buildGoModule rec {
+    pname = "mygoapp";
+    version = "1.0.0";
 
     src = final.fetchFromGitHub {
-      owner = "smtg-ai";
-      repo = "claude-squad";
+      owner = "owner";
+      repo = "mygoapp";
       rev = "v${version}";
-      sha256 = "sha256-mzW9Z+QN4EQ3JLFD3uTDT2/c+ZGLzMqngl3o5TVBZN0=";
+      sha256 = "sha256-...";
     };
 
-    vendorHash = "sha256-BduH6Vu+p5iFe1N5svZRsb9QuFlhf7usBjMsOtRn2nQ=";
+    vendorHash = "sha256-...";
 
     nativeBuildInputs = with final; [ go ];
-    buildInputs = with final; [ tmux gh ];
+    buildInputs = with final; [ ];
 
     postInstall = ''
-      ln -s $out/bin/claude-squad $out/bin/cs
+      ln -s $out/bin/mygoapp $out/bin/mga
     '';
   };
 };
 ```
 
-### Unstable Packages Overlay
+## Unstable Packages Overlay
 
 Mix stable and unstable packages:
 
 ```nix
 unstablePackagesOverlay = final: prev: {
   # Use package from unstable channel
-  niri = pkgs-unstable.niri;
+  neovim = pkgs-unstable.neovim;
 
   # Custom wrapper scripts
-  claude-code = final.callPackage ./packages/claude-code.nix {};
-  loogle = final.callPackage ./packages/loogle.nix {};
+  my-tool = final.callPackage ./packages/my-tool.nix {};
 
   # Override existing package
-  kooha = import ./packages/kooha.nix prev.kooha final.gst_all_1;
+  mypackage = import ./packages/mypackage.nix prev.mypackage final.gst_all_1;
 };
 ```
 
-### Python Packages Overlay
+## Python Packages Overlay
 
 Add custom Python packages:
 
@@ -115,8 +112,7 @@ Add custom Python packages:
 pythonPackagesOverlay = final: prev:
 let
   customPythonPackages = pySelf: pySuper: {
-    cvc5 = pySelf.callPackage ./packages/python-cvc5.nix {};
-    vosk = pySelf.callPackage ./packages/python-vosk.nix {};
+    mypackage = pySelf.callPackage ./packages/python-mypackage.nix {};
   };
 in {
   python3 = prev.python3.override {

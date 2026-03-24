@@ -1,6 +1,6 @@
 ---
 description: Create, recover, divide, sync, or abandon tasks
-allowed-tools: Read(specs/*), Edit(specs/TODO.md), Bash(jq:*), Bash(git:*), Bash(mv:*), Bash(date:*), Bash(sed:*)
+allowed-tools: Read(specs/*), Edit(specs/TODO.md), Bash(jq:*), Bash(git:*), Bash(mv:*), Bash(date:*), Bash(sed:*), AskUserQuestion
 argument-hint: "description" | --recover N | --expand N | --sync | --abandon N | --review N
 model: claude-opus-4-5-20251101
 ---
@@ -37,7 +37,9 @@ Check $ARGUMENTS for flags:
 
 ## Create Task Mode (Default)
 
-When $ARGUMENTS contains a description (no flags):
+When $ARGUMENTS contains a description (no flags).
+
+**Directory Naming**: When artifacts are created, directories use 3-digit zero-padded task numbers (e.g., `015_task_name`). The padding is applied by artifact-writing agents using `printf "%03d" $task_num`. TODO.md and state.json use unpadded task numbers for readability.
 
 ### Steps
 
@@ -109,6 +111,15 @@ When $ARGUMENTS contains a description (no flags):
 4. **Detect language** from keywords:
    - "neovim", "plugin", "nvim", "lua" → neovim
    - "meta", "agent", "command", "skill" → meta
+   - "lean", "lean4", "mathlib", "theorem", "proof" → lean4
+   - "latex", "tex", "document", "typeset" → latex
+   - "typst" → typst
+   - "python", "pytest", "pip" → python
+   - "z3", "smt", "solver", "constraint" → z3
+   - "nix", "nixos", "home-manager", "flake" → nix
+   - "web", "astro", "tailwind", "cloudflare" → web
+   - "epidemiology", "epimodel", "stan", "infectious" → epidemiology
+   - "formal", "logic", "math", "physics", "modal", "kripke" → formal
    - Otherwise → general
 
 5. **Create slug** from description:
@@ -128,9 +139,9 @@ When $ARGUMENTS contains a description (no flags):
         "created": $ts,
         "last_updated": $ts
       }] + .active_projects' \
-     specs/state.json > /tmp/state.json && \
-     mv /tmp/state.json specs/state.json
-   ```
+     specs/state.json > specs/tmp/state.json && \
+     mv specs/tmp/state.json specs/state.json
+    ```
 
 7. **Update TODO.md** (TWO parts - frontmatter AND entry):
 
@@ -155,6 +166,14 @@ When $ARGUMENTS contains a description (no flags):
 
    **CRITICAL**: Both state.json AND TODO.md frontmatter MUST have matching next_project_number values.
 
+   **Part C - Update Recommended Order section** (non-blocking):
+   ```bash
+   # Update Recommended Order section (non-blocking)
+   if source "$PROJECT_ROOT/.claude/scripts/update-recommended-order.sh" 2>/dev/null; then
+       add_to_recommended_order "$next_num" || echo "Note: Failed to update Recommended Order"
+   fi
+   ```
+
 8. **Git commit**:
    ```
    git add specs/
@@ -166,7 +185,9 @@ When $ARGUMENTS contains a description (no flags):
    Task #{N} created: {TITLE}
    Status: [NOT STARTED]
    Language: {language}
+   Artifacts path: specs/{NNN}_{SLUG}/  (created on first artifact)
    ```
+   Note: `{NNN}` is the 3-digit padded task number (e.g., `015` for task 15). Directories are created lazily when the first artifact is written.
 
 ## Recover Mode (--recover)
 
@@ -193,22 +214,27 @@ Parse task ranges after --recover (e.g., "343-345", "337, 343"):
    # Step 1: Remove from archive using del() instead of map(select(!=))
    jq --arg num "$task_number" \
      'del(.completed_projects[] | select(.project_number == ($num | tonumber)))' \
-     specs/archive/state.json > /tmp/archive.json && \
-     mv /tmp/archive.json specs/archive/state.json
+    specs/archive/state.json > specs/tmp/archive.json && \
+    mv specs/tmp/archive.json specs/archive/state.json
 
    # Step 2: Add to active with status reset
-   jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --argjson task "$task_data" \
-     '.active_projects = [$task | .status = "not_started" | .last_updated = $ts] + .active_projects' \
-     specs/state.json > /tmp/state.json && \
-     mv /tmp/state.json specs/state.json
+    jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --argjson task "$task_data" \
+      '.active_projects = [$task | .status = "not_started" | .last_updated = $ts] + .active_projects' \
+      specs/state.json > specs/tmp/state.json && \
+      mv specs/tmp/state.json specs/state.json
    ```
 
-   **Move project directory from archive** (if it exists):
+   **Move project directory from archive** (handle both legacy unpadded and new padded formats):
    ```bash
+   PADDED_NUM=$(printf "%03d" "$task_number")
+   # Check legacy unpadded format first (e.g., 15_slug), then padded (e.g., 015_slug)
    if [ -d "specs/archive/${task_number}_${slug}" ]; then
-     mv "specs/archive/${task_number}_${slug}" "specs/${task_number}_${slug}"
+     mv "specs/archive/${task_number}_${slug}" "specs/${PADDED_NUM}_${slug}"
+   elif [ -d "specs/archive/${PADDED_NUM}_${slug}" ]; then
+     mv "specs/archive/${PADDED_NUM}_${slug}" "specs/${PADDED_NUM}_${slug}"
    fi
    ```
+   Note: Recovered directories always use 3-digit padding regardless of source format.
 
    **Update TODO.md**: Prepend recovered task entry to `## Tasks` section
 
@@ -243,11 +269,10 @@ Parse task number and optional prompt:
        status: "expanded",
        subtasks: [list_of_subtask_numbers],
        last_updated: $ts
-     }' specs/state.json > /tmp/state.json && \
-     mv /tmp/state.json specs/state.json
-   ```
+      }' specs/state.json > specs/tmp/state.json && \
+      mv specs/tmp/state.json specs/state.json
 
-   **Also update TODO.md**: Change task status to `[EXPANDED]`
+    **Also update TODO.md**: Change task status to `[EXPANDED]`
 
 5. Git commit: "task {N}: expand into subtasks"
 
@@ -305,10 +330,26 @@ language=$(echo "$task_data" | jq -r '.language // "general"')
 
 ### Step 2: Load Task Artifacts
 
+**Find task directory** (handle both legacy unpadded and new padded formats):
+```bash
+PADDED_NUM=$(printf "%03d" "$task_number")
+# Check padded format first (new), then unpadded (legacy)
+if [ -d "specs/${PADDED_NUM}_${slug}" ]; then
+  task_dir="specs/${PADDED_NUM}_${slug}"
+elif [ -d "specs/${task_number}_${slug}" ]; then
+  task_dir="specs/${task_number}_${slug}"
+else
+  task_dir=""  # No directory exists yet
+fi
+```
+
 **Find and load plan file**:
 ```bash
-plan_dir="specs/${task_number}_${slug}/plans"
-plan_file=$(ls -t "$plan_dir"/implementation-*.md 2>/dev/null | head -1)
+plan_file=""
+if [ -n "$task_dir" ]; then
+  plan_dir="${task_dir}/plans"
+  plan_file=$(ls -t "$plan_dir"/*.md 2>/dev/null | head -1)
+fi
 
 if [ -z "$plan_file" ]; then
   echo "No implementation plan found for task $task_number"
@@ -319,14 +360,20 @@ fi
 
 **Find and load summary file** (if exists):
 ```bash
-summary_dir="specs/${task_number}_${slug}/summaries"
-summary_file=$(ls -t "$summary_dir"/implementation-summary-*.md 2>/dev/null | head -1)
+summary_file=""
+if [ -n "$task_dir" ]; then
+  summary_dir="${task_dir}/summaries"
+  summary_file=$(ls -t "$summary_dir"/*-summary.md 2>/dev/null | head -1)
+fi
 ```
 
 **Find research reports** (for context):
 ```bash
-reports_dir="specs/${task_number}_${slug}/reports"
-research_files=$(ls "$reports_dir"/research-*.md 2>/dev/null)
+research_files=""
+if [ -n "$task_dir" ]; then
+  reports_dir="${task_dir}/reports"
+  research_files=$(ls "$reports_dir"/*.md 2>/dev/null | grep -v README)
+fi
 ```
 
 ### Step 3: Parse Plan Phases
@@ -404,26 +451,37 @@ For each incomplete phase, extract:
 
 ### Step 7: Interactive User Selection
 
-**Present options to user**:
+**Use AskUserQuestion with multiSelect**:
+```json
+{
+  "question": "Select follow-up tasks to create:",
+  "header": "Follow-up Tasks",
+  "multiSelect": true,
+  "options": [
+    {
+      "label": "Phase 2: implement_validation_rules",
+      "description": "Goal: {phase_goal} | Effort: {effort}"
+    },
+    {
+      "label": "Phase 3: add_error_reporting",
+      "description": "Goal: {phase_goal} | Effort: {effort}"
+    }
+  ]
+}
 ```
-Found {N} incomplete phase(s) in task #{task_number}.
 
-Suggested follow-up tasks:
-  [1] Complete phase 2 of task 597: implement_validation_rules
-  [2] Complete phase 3 of task 597: add_error_reporting
-
-Options:
-  - Enter numbers to create (e.g., "1,2" or "1")
-  - "all" to create all suggested tasks
-  - "none" to skip task creation
-
-Your selection:
+**For >20 incomplete phases**, add "Select all" option:
+```json
+{
+  "label": "Select all",
+  "description": "Create tasks for all {N} incomplete phases"
+}
 ```
 
-**Parse user selection**:
-- Numbers → Create those specific tasks
-- "all" → Create all suggested tasks
-- "none" → Exit without creating tasks
+**Selection handling**:
+- Selected options → Create those specific tasks
+- Empty selection → Exit without creating tasks (no separate "none" option needed)
+- "Select all" selected → Create all suggested tasks
 
 ### Step 8: Create Selected Follow-up Tasks
 
@@ -450,8 +508,8 @@ jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
      "created": $ts,
      "last_updated": $ts
    }] + .active_projects' \
-  specs/state.json > /tmp/state.json && \
-  mv /tmp/state.json specs/state.json
+     specs/state.json > specs/tmp/state.json && \
+     mv specs/tmp/state.json specs/state.json
 
 # Update TODO.md (add entry and update frontmatter)
 ```
@@ -484,6 +542,25 @@ Review complete. No follow-up tasks created.
 - Does NOT auto-create tasks without user confirmation
 - Gracefully handles missing artifacts (plan, summary, research)
 
+### Standards Reference (--review mode)
+
+This mode implements the multi-task creation pattern. See `.claude/docs/reference/standards/multi-task-creation-standard.md` for the complete standard.
+
+**Compliance Level**: Partial (simplified for follow-up tasks)
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Discovery | Yes | Incomplete phases from plan file |
+| Selection | Yes | Numbered list selection |
+| Grouping | No | One task per phase |
+| Dependencies | Partial | parent_task linking only |
+| Ordering | No | Phase number is implicit order |
+| Visualization | No | Not implemented |
+| Confirmation | Yes | Explicit selection required |
+| State Updates | Yes | Standard task creation |
+
+**Note**: Topological sorting is not needed because follow-up tasks inherit natural ordering from plan phase numbers. The parent_task field provides traceability to the original task.
+
 ## Abandon Mode (--abandon)
 
 Parse task ranges:
@@ -503,28 +580,33 @@ Parse task ranges:
 
    **Move to archive via jq** (two-step to avoid jq escaping bug - see `jq-escaping-workarounds.md`):
    ```bash
-   # Step 1: Add to archive with abandoned status
-   jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --argjson task "$task_data" \
-     '.completed_projects = [$task | .status = "abandoned" | .abandoned = $ts] + .completed_projects' \
-     specs/archive/state.json > /tmp/archive.json && \
-     mv /tmp/archive.json specs/archive/state.json
+    # Step 1: Add to archive with abandoned status
+    jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --argjson task "$task_data" \
+      '.completed_projects = [$task | .status = "abandoned" | .abandoned = $ts] + .completed_projects' \
+      specs/archive/state.json > specs/tmp/archive.json && \
+      mv specs/tmp/archive.json specs/archive/state.json
 
-   # Step 2: Remove from active using del() instead of map(select(!=))
-   jq --arg num "$task_number" \
-     'del(.active_projects[] | select(.project_number == ($num | tonumber)))' \
-     specs/state.json > /tmp/state.json && \
-     mv /tmp/state.json specs/state.json
-   ```
+    # Step 2: Remove from active using del() instead of map(select(!=))
+    jq --arg num "$task_number" \
+      'del(.active_projects[] | select(.project_number == ($num | tonumber)))' \
+      specs/state.json > specs/tmp/state.json && \
+      mv specs/tmp/state.json specs/state.json
+    ```
 
-   **Update TODO.md**: Remove the task entry (abandoned tasks should not appear in TODO.md)
+    **Update TODO.md**: Remove the task entry (abandoned tasks should not appear in TODO.md)
 
-   **Move task directory to archive** (if it exists):
+   **Move task directory to archive** (handle both legacy unpadded and new padded formats):
    ```bash
    slug=$(echo "$task_data" | jq -r '.project_name')
-   if [ -d "specs/${task_number}_${slug}" ]; then
-     mv "specs/${task_number}_${slug}" "specs/archive/${task_number}_${slug}"
+   PADDED_NUM=$(printf "%03d" "$task_number")
+   # Check padded format first (new), then unpadded (legacy)
+   if [ -d "specs/${PADDED_NUM}_${slug}" ]; then
+     mv "specs/${PADDED_NUM}_${slug}" "specs/archive/${PADDED_NUM}_${slug}"
+   elif [ -d "specs/${task_number}_${slug}" ]; then
+     mv "specs/${task_number}_${slug}" "specs/archive/${PADDED_NUM}_${slug}"
    fi
    ```
+   Note: Archived directories always use 3-digit padding regardless of source format.
 
 2. Git commit: "task: abandon tasks {ranges}"
 

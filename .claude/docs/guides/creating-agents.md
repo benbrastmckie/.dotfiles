@@ -76,8 +76,10 @@ Agents are located in `.claude/agents/{name}-agent.md`:
 ├── planner-agent.md
 ├── general-implementation-agent.md
 ├── neovim-implementation-agent.md
-└── latex-implementation-agent.md
+└── meta-builder-agent.md
 ```
+
+**Note**: Additional agents (latex, typst, filetypes) are available via extensions in `.claude/extensions/`.
 
 ---
 
@@ -173,7 +175,7 @@ Based on task language and purpose:
 ### Stage 5: Artifact Creation
 
 Create directory and write artifacts:
-- Path: `specs/{N}_{SLUG}/{type}/`
+- Path: `specs/{NNN}_{SLUG}/{type}/`
 - Verify artifacts are non-empty
 
 ### Stage 6: Return Structured JSON
@@ -342,13 +344,13 @@ Format outputs according to standards:
 
 Create directory structure:
 ```
-specs/{N}_{SLUG}/
+specs/{NNN}_{SLUG}/
 ├── reports/
-│   └── research-{NNN}.md
+│   └── MM_{short-slug}.md
 ├── plans/
-│   └── implementation-{NNN}.md
+│   └── MM_{short-slug}.md
 └── summaries/
-    └── implementation-summary-{DATE}.md
+    └── MM_{short-slug}-summary.md
 ```
 
 Write artifacts and verify:
@@ -371,7 +373,7 @@ Return ONLY valid JSON matching this schema:
   "artifacts": [
     {
       "type": "report|plan|summary|implementation",
-      "path": "specs/{N}_{SLUG}/{type}/{file}.md",
+      "path": "specs/{NNN}_{SLUG}/{type}/{file}.md",
       "summary": "Brief artifact description"
     }
   ],
@@ -481,7 +483,7 @@ Include complete examples:
   "artifacts": [
     {
       "type": "report",
-      "path": "specs/412_create_agent/reports/research-001.md",
+      "path": "specs/412_create_agent/reports/01_create-agent-research.md",
       "summary": "Research report with 8 findings"
     }
   ],
@@ -670,7 +672,9 @@ Research completed successfully. Found 5 patterns. See report at ...
 | `planner-agent` | Implementation planning | skill-planner |
 | `general-implementation-agent` | General file implementation | skill-implementer |
 | `neovim-implementation-agent` | Neovim configuration implementation | skill-neovim-implementation |
-| `latex-implementation-agent` | LaTeX document implementation | skill-latex-implementation |
+| `meta-builder-agent` | System building and task creation | skill-meta |
+
+**Note**: Additional agents (latex, typst, filetypes) are available via extensions in `.claude/extensions/`.
 
 ---
 

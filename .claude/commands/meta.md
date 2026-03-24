@@ -9,6 +9,8 @@ model: claude-opus-4-5-20251101
 
 Interactive system builder that delegates to `skill-meta` for creating TASKS for .claude/ system changes. This command NEVER implements changes directly - it only creates tasks.
 
+**Reference Implementation**: This command is the reference implementation for the multi-task creation standard. See `.claude/docs/reference/standards/multi-task-creation-standard.md` for the complete standard specification.
+
 ## Arguments
 
 - No args: Start interactive interview (7 stages)
@@ -105,17 +107,17 @@ Example: `/meta --analyze`
 ### Tasks Created
 
 ```
-## Tasks Created
+Tasks Created
 
 Created {N} task(s) for {domain}:
 
-**High Priority**:
+High Priority:
 - Task #{N}: {title}
-  Path: specs/{N}_{slug}/
+  Path: specs/{NNN}_{slug}/
 
-**Next Steps**:
+Next Steps:
 1. Review tasks in TODO.md
-2. Run `/research {N}` to begin research on first task
+2. Run /research {N} to begin research on first task
 3. Progress through /research -> /plan -> /implement cycle
 ```
 
@@ -187,3 +189,22 @@ agent: {agent-name}
 ### Agent Template Reference
 
 See `.claude/docs/guides/creating-agents.md` for full 8-stage workflow template.
+
+## Standards Reference
+
+This command implements all 8 components of the multi-task creation standard.
+
+**Compliance Level**: Full (reference implementation)
+
+| Component | Status | Implementation |
+|-----------|--------|----------------|
+| Discovery | Yes | Interview Stage 2-3 |
+| Selection | Yes | Interview Stage 5 (ReviewAndConfirm) |
+| Grouping | Yes | User-defined in Stage 3 |
+| Dependencies | Full | Stage 3 Question 5 (internal + external) |
+| Ordering | Yes | Stage 6 (Kahn's algorithm) |
+| Visualization | Yes | Stage 7 (linear chain / layered DAG) |
+| Confirmation | Yes | Stage 5 (mandatory) |
+| State Updates | Yes | Stage 6 (batch insertion) |
+
+See `meta-builder-agent.md` for complete implementation details.

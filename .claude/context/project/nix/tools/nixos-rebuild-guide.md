@@ -62,10 +62,10 @@ With flakes (recommended):
 sudo nixos-rebuild switch --flake .#hostname
 
 # Specific flake path
-sudo nixos-rebuild switch --flake /path/to/dotfiles#hostname
+sudo nixos-rebuild switch --flake /path/to/config#hostname
 
 # Remote flake
-sudo nixos-rebuild switch --flake github:user/dotfiles#hostname
+sudo nixos-rebuild switch --flake github:user/config#hostname
 ```
 
 Without `#hostname`, uses current hostname:

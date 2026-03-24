@@ -1,0 +1,60 @@
+{
+  "agent": {
+    "neovim-research": {
+      "description": "Research Neovim configuration and plugin tasks",
+      "prompt": "{file:.opencode/agent/subagents/neovim-research-agent.md}",
+      "mode": "subagent",
+      "tools": {
+        "write": true,
+        "glob": true,
+        "websearch": true,
+        "grep": true,
+        "webfetch": true,
+        "bash": true,
+        "read": true,
+        "edit": true
+      }
+    },
+    "nix-implementation": {
+      "description": "Implement Nix expressions and configurations",
+      "prompt": "{file:.opencode/agent/subagents/nix-implementation-agent.md}",
+      "mode": "subagent",
+      "tools": {
+        "write": true,
+        "glob": true,
+        "grep": true,
+        "bash": true,
+        "edit": true,
+        "read": true
+      }
+    },
+    "nix-research": {
+      "description": "Research Nix, NixOS, and flakes",
+      "prompt": "{file:.opencode/agent/subagents/nix-research-agent.md}",
+      "mode": "subagent",
+      "tools": {
+        "write": true,
+        "glob": true,
+        "edit": true,
+        "grep": true,
+        "websearch": true,
+        "bash": true,
+        "webfetch": true,
+        "read": true
+      }
+    },
+    "neovim-implementation": {
+      "description": "Implement Neovim configuration and plugins",
+      "prompt": "{file:.opencode/agent/subagents/neovim-implementation-agent.md}",
+      "mode": "subagent",
+      "tools": {
+        "write": true,
+        "glob": true,
+        "grep": true,
+        "bash": true,
+        "read": true,
+        "edit": true
+      }
+    }
+  }
+}

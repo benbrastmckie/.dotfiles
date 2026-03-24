@@ -68,7 +68,7 @@ jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     status: $status,
     last_updated: $ts,
     session_id: $sid
-  }' specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
+  }' specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
 ```
 
 **Update TODO.md**: Use Edit tool to change status marker to `[RESEARCHING]`.
@@ -78,9 +78,9 @@ jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
 ### Stage 3: Create Postflight Marker
 
 ```bash
-mkdir -p "specs/${task_number}_${project_name}"
+mkdir -p "specs/${padded_num}_${project_name}"
 
-cat > "specs/${task_number}_${project_name}/.postflight-pending" << EOF
+cat > "specs/${padded_num}_${project_name}/.postflight-pending" << EOF
 {
   "session_id": "${session_id}",
   "skill": "skill-nix-research",
@@ -109,7 +109,7 @@ EOF
     "language": "nix"
   },
   "focus_prompt": "{optional focus}",
-  "metadata_file_path": "specs/{N}_{SLUG}/.return-meta.json"
+  "metadata_file_path": "specs/{NNN}_{SLUG}/.return-meta.json"
 }
 ```
 
@@ -141,7 +141,7 @@ The subagent will:
 ### Stage 6: Parse Subagent Return
 
 ```bash
-metadata_file="specs/${task_number}_${project_name}/.return-meta.json"
+metadata_file="specs/${padded_num}_${project_name}/.return-meta.json"
 
 if [ -f "$metadata_file" ] && jq empty "$metadata_file" 2>/dev/null; then
     status=$(jq -r '.status' "$metadata_file")
@@ -183,8 +183,8 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
 ### Stage 10: Cleanup
 
 ```bash
-rm -f "specs/${task_number}_${project_name}/.postflight-pending"
-rm -f "specs/${task_number}_${project_name}/.return-meta.json"
+rm -f "specs/${padded_num}_${project_name}/.postflight-pending"
+rm -f "specs/${padded_num}_${project_name}/.return-meta.json"
 ```
 
 ---
@@ -195,7 +195,7 @@ rm -f "specs/${task_number}_${project_name}/.return-meta.json"
 Research completed for task {N}:
 - Found NixOS module patterns
 - Identified package configuration
-- Created report at specs/{N}_{SLUG}/reports/research-{NNN}.md
+- Created report at specs/{NNN}_{SLUG}/reports/MM_{short-slug}.md
 - Status updated to [RESEARCHED]
 - Changes committed
 ```

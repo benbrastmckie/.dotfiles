@@ -1,6 +1,10 @@
 # Claude Code System Architecture
 
-**Purpose**: Comprehensive user documentation for the .claude skill and task management system for NixOS dotfiles
+**Version**: 2.2
+**Status**: Active
+**Created**: 2025-12-26
+**Updated**: 2026-01-28
+**Purpose**: Comprehensive user documentation for the .claude skill and task management system
 
 This document provides detailed explanations of the system architecture for users who want to understand how the agent system works. For minimal agent context loaded every session, see `.claude/CLAUDE.md`.
 
@@ -15,33 +19,39 @@ This document provides detailed explanations of the system architecture for user
 5. [State Management](#state-management)
 6. [Git Workflow](#git-workflow)
 7. [Language Routing](#language-routing)
-8. [NixOS-Specific Workflows](#nixos-specific-workflows)
-9. [Error Handling and Recovery](#error-handling-and-recovery)
-10. [Testing and Validation](#testing-and-validation)
-11. [Performance Considerations](#performance-considerations)
-12. [Future Enhancements](#future-enhancements)
-13. [Meta System Builder](#meta-system-builder)
-14. [Forked Subagent Pattern](#forked-subagent-pattern)
-15. [Session Maintenance](#session-maintenance)
-16. [MCP Server Configuration](#mcp-server-configuration)
-17. [Related Documentation](#related-documentation)
+8. [Error Handling and Recovery](#error-handling-and-recovery)
+9. [Meta System Builder](#meta-system-builder)
+10. [Forked Subagent Pattern](#forked-subagent-pattern)
+11. [Session Maintenance](#session-maintenance)
+12. [MCP Server Configuration](#mcp-server-configuration)
 
 ---
 
 ## System Overview
 
-The .claude system is a task management and automation framework designed for NixOS dotfiles maintenance and configuration management. It provides multi-domain support for Neovim configuration, Nix/NixOS system configuration, LaTeX/Typst document compilation, and general development tasks.
+The .claude system is a task management and automation framework designed for software development projects, with specialized support for Neovim configuration development. This document describes the architecture of the version 2.0 system, which represents a complete clean-break refactor from the previous version.
 
 ### Purpose and Goals
 
 - Provide structured task management with research, planning, and implementation workflows
 - Prevent delegation hangs and infinite loops through explicit return handling
 - Enable atomic state synchronization across multiple tracking files
-- Support language-specific routing (nix, neovim, latex, typst, general)
-- Manage NixOS system configuration and Home Manager user environments
-- Enable flake-based reproducible system builds across multiple hosts
+- Support language-specific routing (Neovim vs general development)
 - Track and analyze errors for continuous improvement
 - Automate git commits with clear, scoped changes
+
+### Clean Break Rationale
+
+Version 2.0 was built from scratch to address critical issues identified in Task 191:
+
+1. **Delegation Hangs**: Commands would invoke subagents but never receive results, causing indefinite hangs
+2. **Missing Return Handling**: No explicit stages for receiving and validating subagent returns
+3. **Infinite Loops**: No cycle detection or delegation depth limits
+4. **Timeout Failures**: No timeout enforcement, leading to indefinite waits
+5. **Status Sync Failures**: Race conditions when updating TODO.md and state.json
+6. **Missing Git Commits**: No automatic commit creation after task completion
+
+The clean break approach ensures all components follow consistent patterns and standards from the start.
 
 ---
 
@@ -57,7 +67,7 @@ All delegation follows strict safety patterns to prevent hangs and loops:
 - **Timeout Enforcement**: All delegations have timeouts (default 3600s)
 - **Return Validation**: All subagent returns validated against standard format
 
-See `.claude/context/core/orchestration/orchestration-core.md` for detailed patterns.
+See `.claude/context/core/workflows/subagent-delegation-guide.md` for detailed patterns.
 
 ### 2. Standardized Returns
 
@@ -87,7 +97,7 @@ This enables:
 - Error propagation
 - Session tracking
 
-See `.claude/context/core/formats/subagent-return.md` for full specification.
+See `.claude/context/core/standards/subagent-return-format.md` for full specification.
 
 ### 3. Atomic State Updates
 
@@ -102,14 +112,11 @@ Status changes are synchronized atomically across multiple files using the statu
 
 Tasks are routed to appropriate agents based on the Language field:
 
-- `Language: nix` → nix-implementation-agent, nix-research-agent (MCP-NixOS integration)
 - `Language: neovim` → neovim-implementation-agent, neovim-research-agent
-- `Language: latex` → latex-implementation-agent, general-research-agent
-- `Language: typst` → typst-implementation-agent, general-research-agent
-- `Language: meta` → general-implementation-agent (system building)
-- `Language: general` → general agents (researcher, implementer)
+- `Language: markdown` → general agents (researcher, implementer)
+- `Language: python` → general agents (future: python-specific agents)
 
-This enables specialized tooling integration for NixOS system configuration, Neovim development, and document compilation tasks.
+This enables specialized tooling integration for Neovim configuration tasks.
 
 ### 5. Error Tracking and Recovery
 
@@ -145,19 +152,15 @@ Context files are organized into `core/` (reusable) and `project/` (domain-speci
 - `workflows/` - Delegation patterns, status transitions, error handling
 - `system/` - Routing rules, orchestrator guide, validation strategy
 - `templates/` - Command and agent templates
-- `patterns/` - Common implementation patterns (jq workarounds, etc.)
-- `formats/` - File format specifications
-- `orchestration/` - Delegation and routing patterns
 
 **project/**:
-- `nix/` - NixOS/Home Manager configuration (modules, flakes, derivations)
 - `neovim/` - Neovim configuration (plugins, keymaps, patterns)
-- `repo/` - Repository-specific knowledge (project overview, implementation details)
+- `repo/` - Repository-specific knowledge
 
 This enables:
 - **Three-Tier Loading**: Orchestrator (minimal), Commands (targeted), Agents (domain-specific)
 - **Context Budget Enforcement**: Each tier has defined size limits
-- **Clear Separation**: Core context is reusable, project context is domain-specific (Nix, Neovim, etc.)
+- **Clear Separation**: Core context is reusable, project context is Neovim configuration-specific
 
 See `.claude/context/core/system/context-loading-strategy.md` for details.
 
@@ -255,14 +258,6 @@ All commands that invoke subagents follow this workflow:
 - `neovim-implementation-agent`: Neovim configuration implementation
 - `neovim-research-agent`: Plugin and configuration research
 
-**Nix-Specific Subagents**:
-- `nix-implementation-agent`: NixOS/Home Manager configuration implementation
-- `nix-research-agent`: Nix package and module research (uses MCP-NixOS)
-
-**Document Compilation Subagents**:
-- `latex-implementation-agent`: LaTeX document compilation and editing
-- `typst-implementation-agent`: Typst document compilation and editing
-
 **Support Subagents**:
 - `error-diagnostics-agent`: Error pattern analysis and fix recommendations
 - `git-workflow-manager`: Scoped git commits with auto-generated messages
@@ -358,7 +353,7 @@ All returns validated against subagent-return-format.md:
 
 **Purpose**: User-facing task list with status markers
 
-**Format**:
+**Format** (single artifact per type - inline):
 ```markdown
 ### 191. Fix subagent delegation hang
 - **Effort**: 14 hours
@@ -367,9 +362,23 @@ All returns validated against subagent-return-format.md:
 - **Language**: markdown
 - **Started**: 2025-12-20T10:00:00Z
 - **Completed**: 2025-12-26T18:00:00Z
-- **Plan**: [implementation-001.md](191_fix_subagent_delegation_hang/plans/implementation-001.md)
-- **Research**: [research-001.md](191_fix_subagent_delegation_hang/reports/research-001.md)
+- **Plan**: [02_implementation-plan.md](191_fix_subagent_delegation_hang/plans/02_implementation-plan.md)
+- **Research**: [01_research-findings.md](191_fix_subagent_delegation_hang/reports/01_research-findings.md)
 ```
+
+**Format** (multiple artifacts per type - multi-line list):
+```markdown
+### 226. Implement multi-line artifact linking
+- **Effort**: 3-4 hours
+- **Status**: [COMPLETED]
+- **Language**: meta
+- **Research**:
+  - [01_artifact-linking-audit.md](226_multiline_artifact_linking/reports/01_artifact-linking-audit.md)
+  - [02_supplemental-findings.md](226_multiline_artifact_linking/reports/02_supplemental-findings.md)
+- **Plan**: [02_multiline-linking-plan.md](226_multiline_artifact_linking/plans/02_multiline-linking-plan.md)
+```
+
+**Note**: Use inline format for 1 artifact, multi-line list for 2+. See `.claude/rules/state-management.md` "Artifact Linking Format".
 
 **Status Markers**:
 - `[NOT STARTED]`: Task created but not started
@@ -424,7 +433,7 @@ All returns validated against subagent-return-format.md:
       },
       "message": "Command hung waiting for subagent return",
       "fix_status": "resolved",
-      "fix_plan_ref": "191_fix_subagent_delegation_hang/plans/implementation-001.md",
+      "fix_plan_ref": "191_fix_subagent_delegation_hang/plans/02_fix-delegation-hang.md",
       "fix_task_ref": 191,
       "recurrence_count": 1,
       "first_seen": "2025-12-20T10:00:00Z",
@@ -436,7 +445,7 @@ All returns validated against subagent-return-format.md:
 
 ### Plan Files
 
-**Location**: `specs/{task_number}_{topic_slug}/plans/implementation-{version:03d}.md`
+**Location**: `specs/{NNN}_{SLUG}/plans/MM_{short-slug}.md`
 
 **Purpose**: Phased implementation plans with status tracking
 
@@ -508,49 +517,17 @@ Commands check the `Language` field in TODO.md to determine routing:
 
 ```python
 def route_to_agent(task_language, operation):
-    if task_language == "nix":
-        if operation == "research":
-            return "nix-research-agent"
-        elif operation == "implement":
-            return "nix-implementation-agent"
-    elif task_language == "neovim":
+    if task_language == "neovim":
         if operation == "research":
             return "neovim-research-agent"
         elif operation == "implement":
             return "neovim-implementation-agent"
-    elif task_language == "latex":
+    else:
         if operation == "research":
-            return "general-research-agent"
+            return "researcher"
         elif operation == "implement":
-            return "latex-implementation-agent"
-    elif task_language == "typst":
-        if operation == "research":
-            return "general-research-agent"
-        elif operation == "implement":
-            return "typst-implementation-agent"
-    else:  # general, meta, markdown
-        if operation == "research":
-            return "general-research-agent"
-        elif operation == "implement":
-            return "general-implementation-agent"
+            return "implementer"
 ```
-
-### Nix-Specific Integration
-
-Nix tasks use specialized agents with MCP-NixOS tool integration:
-
-**nix-implementation-agent**:
-- Modifies Nix files (flake.nix, configuration.nix, home.nix)
-- Uses `nix flake check` for validation
-- Uses `nixos-rebuild test` for safe pre-apply testing
-- Supports multi-host configurations
-- Logs errors to errors.json
-
-**nix-research-agent**:
-- Uses MCP-NixOS for package/option search
-- Researches NixOS modules and Home Manager options
-- Analyzes flake inputs and dependencies
-- Loads context from .claude/context/project/nix/
 
 ### Neovim-Specific Integration
 
@@ -574,102 +551,6 @@ The architecture supports adding language-specific agents for:
 - JavaScript/TypeScript
 - Rust
 - etc.
-
----
-
-## NixOS-Specific Workflows
-
-This repository manages NixOS system configurations using flakes. The following workflows are specific to NixOS dotfiles management.
-
-### Multi-Host Configuration
-
-The repository supports multiple host configurations in the `hosts/` directory:
-
-| Host | Description | Hardware |
-|------|-------------|----------|
-| nandi | Intel laptop | Primary development machine |
-| hamsa | AMD laptop | Ryzen AI 300 series |
-| garuda | Desktop/server | Additional host |
-| usb-installer | Bootable installer | Generic USB installation media |
-
-Each host has its own `default.nix` in `hosts/{hostname}/` with hardware-specific configuration.
-
-### System Rebuild Workflow
-
-Test changes before applying:
-```bash
-# Check flake syntax and evaluation
-nix flake check
-
-# Test build without activating (safe)
-nixos-rebuild test --flake .#hostname
-
-# Apply changes to running system
-sudo nixos-rebuild switch --flake .#hostname
-
-# Build but activate on next boot
-sudo nixos-rebuild boot --flake .#hostname
-```
-
-### Home Manager Workflow
-
-User environment is managed separately via Home Manager:
-```bash
-# Apply Home Manager configuration
-home-manager switch --flake .#benjamin
-
-# Preview changes without applying
-home-manager build --flake .#benjamin
-```
-
-### Flake Updates
-
-Update inputs (nixpkgs, home-manager, etc.):
-```bash
-# Update all inputs
-nix flake update
-
-# Update specific input
-nix flake lock --update-input nixpkgs
-
-# Show current input versions
-nix flake metadata
-```
-
-### Package Development
-
-Custom packages are defined in `packages/`:
-```bash
-# Build a local package
-nix build .#packageName
-
-# Enter development shell
-nix develop
-
-# Run package without installing
-nix run .#packageName
-```
-
-### Verification Commands
-
-Commands used by nix-implementation-agent for validation:
-
-| Command | Purpose |
-|---------|---------|
-| `nix flake check` | Validate flake syntax and evaluate outputs |
-| `nixos-rebuild test --flake .#host` | Build and test without activating |
-| `nix eval .#nixosConfigurations.host.config.system.build.toplevel` | Evaluate configuration |
-| `home-manager build --flake .#user` | Build Home Manager configuration |
-
-### Related Context Files
-
-Domain-specific documentation is available in `.claude/context/project/nix/`:
-- `domain/nix-language.md` - Nix expression language
-- `domain/flakes.md` - Flake structure and inputs
-- `domain/nixos-modules.md` - NixOS module system
-- `domain/home-manager.md` - Home Manager configuration
-- `patterns/module-patterns.md` - Module design patterns
-- `tools/nixos-rebuild-guide.md` - Rebuild command reference
 
 ---
 
@@ -762,19 +643,9 @@ Test safety mechanisms:
 ### Language Routing Testing
 
 Test language-specific routing:
-- Nix tasks → nix agents (with MCP-NixOS integration)
 - Neovim tasks → neovim agents
-- LaTeX/Typst tasks → document agents
 - Markdown tasks → general agents
 - Mixed-language projects
-
-### NixOS-Specific Testing
-
-Test NixOS configuration workflows:
-- `nix flake check` - Validate flake syntax
-- `nixos-rebuild test --flake .#host` - Test build without activating
-- `home-manager build --flake .#user` - Test Home Manager configuration
-- Multi-host builds - Verify all host configurations evaluate
 
 ### Error Recovery Testing
 
@@ -822,12 +693,26 @@ Two-phase commit ensures:
 
 ---
 
-## Extensibility
+## Future Enhancements
+
+### Planned Features
+
+1. **Parallel Phase Execution**: Execute independent phases in parallel
+2. **Dependency Analysis**: Automatic dependency detection between tasks
+3. **Progress Tracking**: Real-time progress updates during long operations
+4. **Batch Task Execution**: Execute multiple tasks in sequence or parallel
+5. **Advanced Error Analysis**: Machine learning for error pattern detection
+6. **Tool Integration**: Additional tool integrations for development workflows
+7. **Language Support**: Python, JavaScript, Rust-specific agents
+8. **Performance Profiling**: Track and optimize slow operations
+
+### Extensibility
 
 The architecture supports extension through:
-- New commands (add to .claude/commands/)
+- New commands (add to .claude/command/)
 - New subagents (add to .claude/agents/)
-- New language routing (update command routing logic)
+- New specialists (add to .claude/agents/specialists/)
+- New language routing (update orchestrator routing logic)
 - New error types (add to errors.json schema)
 
 ---
@@ -967,13 +852,13 @@ Build a completely separate .claude system for a different project or domain.
 **Build New System**:
 Create a fresh .claude architecture from scratch for a new project.
 
-### Integration with NixOS Dotfiles
+### Integration with Neovim Configuration
 
 The meta system builder is fully integrated into the .claude system:
 - Respects existing delegation safety patterns
 - Follows standardized return format
 - Uses atomic state synchronization
-- Supports language-based routing (nix, neovim, latex, typst, general)
+- Supports language-based routing
 - Integrates with error tracking
 - Creates automatic git commits
 
@@ -1033,19 +918,14 @@ agent: {subagent-name}        # Target subagent to spawn
 
 | Skill | Agent | Domain |
 |-------|-------|--------|
-| skill-nix-research | nix-research-agent | Nix/NixOS/Home Manager research |
-| skill-nix-implementation | nix-implementation-agent | NixOS configuration implementation |
 | skill-neovim-research | neovim-research-agent | Neovim/plugin research |
-| skill-neovim-implementation | neovim-implementation-agent | Neovim configuration implementation |
 | skill-researcher | general-research-agent | General web/codebase research |
 | skill-planner | planner-agent | Implementation planning |
 | skill-implementer | general-implementation-agent | General implementation |
-| skill-latex-implementation | latex-implementation-agent | LaTeX document implementation |
-| skill-typst-implementation | typst-implementation-agent | Typst document implementation |
+| skill-neovim-implementation | neovim-implementation-agent | Neovim configuration implementation |
 | skill-meta | meta-builder-agent | System building and task creation |
-| skill-document-converter | document-converter-agent | Document format conversion |
-| skill-status-sync | (direct execution) | Atomic status updates |
-| skill-refresh | (direct execution) | Process and file cleanup |
+
+**Note**: Additional skills (latex, typst, filetypes) available via extensions in `.claude/extensions/`.
 
 ### Thin Wrapper Execution Flow
 
@@ -1179,15 +1059,11 @@ After any MCP configuration changes, restart Claude Code for changes to take eff
 
 ## Related Documentation
 
-### System Documentation
-- Agent Context: `.claude/CLAUDE.md` - Minimal agent context loaded every session
-- Documentation Hub: `.claude/docs/README.md` - Documentation index
-
-### Core Architecture
+- Quick Start Guide: `.claude/QUICK-START.md`
+- Testing Guide: `.claude/TESTING.md`
+- Agent Context: `.claude/CLAUDE.md`
+- Documentation Hub: `.claude/docs/README.md`
 - Orchestration Core: `.claude/context/core/orchestration/orchestration-core.md`
 - Return Format Standard: `.claude/context/core/formats/subagent-return.md`
-
-### Domain Context
-- Nix Context: `.claude/context/project/nix/README.md` - NixOS/Home Manager domain knowledge
-- Neovim Context: `.claude/context/project/neovim/` - Neovim configuration domain
-- Repository Overview: `.claude/context/project/repo/project-overview.md`
+- Task 191 Research: `specs/191_fix_subagent_delegation_hang/reports/01_fix-delegation-hang.md`
+- Task 191 Plan: `specs/191_fix_subagent_delegation_hang/plans/02_fix-delegation-hang.md`

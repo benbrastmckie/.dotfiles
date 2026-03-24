@@ -135,20 +135,15 @@ Error Analysis Complete
 
 Report: specs/errors/analysis-{DATE}.md
 
-Summary:
-- Total errors: {N}
+Errors: {N} total
 - Critical unfixed: {N}
 - High unfixed: {N}
 
-Top patterns:
-1. {Pattern}: {N} errors
-2. {Pattern}: {N} errors
-
-Created {N} fix tasks:
+Tasks created: {N}
 - Task #{N1}: {title}
 - Task #{N2}: {title}
 
-Next: /implement {N} to fix errors
+Next: /implement {N}
 ```
 
 ## Execution (Fix Mode - --fix N)
@@ -189,3 +184,26 @@ Mark fixed errors:
 git add -A
 git commit -m "errors: fix {N} errors (task {M})"
 ```
+
+## Standards Reference
+
+This command implements the multi-task creation pattern. See `.claude/docs/reference/standards/multi-task-creation-standard.md` for the complete standard.
+
+**Compliance Level**: Partial (intentionally simplified)
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Discovery | Yes | Error patterns from errors.json |
+| Selection | No | Automatic task creation |
+| Grouping | Partial | Groups by error type/severity |
+| Dependencies | No | Not implemented |
+| Ordering | No | Sequential creation |
+| Visualization | No | Not implemented |
+| Confirmation | No | Automatic mode |
+| State Updates | Yes | Standard task creation |
+
+**Rationale**: The `/errors` command intentionally uses automatic task creation without interactive selection. This design prioritizes quick error triage - when errors are detected, immediate task creation is more valuable than manual curation.
+
+**Gap**: No interactive selection or dependency support.
+
+**Future Enhancement**: Add `--interactive` flag for manual selection mode when desired.

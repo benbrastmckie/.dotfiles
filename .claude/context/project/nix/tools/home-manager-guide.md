@@ -4,7 +4,7 @@ Manage user environment and dotfiles.
 
 ## Installation Modes
 
-### As NixOS Module (This Repository)
+### As NixOS Module
 
 Home Manager integrated into NixOS rebuild:
 
@@ -13,7 +13,7 @@ Home Manager integrated into NixOS rebuild:
 home-manager.nixosModules.home-manager {
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.users.benjamin = import ./home.nix;
+  home-manager.users.user = import ./home.nix;
 }
 ```
 
@@ -29,7 +29,7 @@ Separate from NixOS:
 
 ```nix
 # In flake.nix
-homeConfigurations.benjamin = home-manager.lib.homeManagerConfiguration {
+homeConfigurations.user = home-manager.lib.homeManagerConfiguration {
   inherit pkgs;
   modules = [ ./home.nix ];
 };
@@ -38,7 +38,7 @@ homeConfigurations.benjamin = home-manager.lib.homeManagerConfiguration {
 Switch user config independently:
 
 ```bash
-home-manager switch --flake .#benjamin
+home-manager switch --flake .#user
 ```
 
 ## Commands
@@ -163,17 +163,17 @@ Access in home.nix:
 
 ```bash
 # Evaluate specific option
-nix eval .#homeConfigurations.benjamin.config.programs.git.enable
+nix eval .#homeConfigurations.user.config.programs.git.enable
 
 # Show all managed files
-home-manager build --flake .#benjamin
+home-manager build --flake .#user
 ls -la result/home-files/
 ```
 
 ### Verbose Build
 
 ```bash
-home-manager switch --flake .#benjamin --show-trace
+home-manager switch --flake .#user --show-trace
 ```
 
 ### Conflicts
@@ -182,7 +182,7 @@ When files conflict with existing dotfiles:
 
 ```bash
 # Back up existing files
-home-manager switch --flake .#benjamin -b backup
+home-manager switch --flake .#user -b backup
 
 # Files backed up to original-name.backup
 ```

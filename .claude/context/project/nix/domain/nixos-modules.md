@@ -174,44 +174,6 @@ Include other modules:
 }
 ```
 
-## Real Example
-
-From this repository's home-modules/mcp-hub.nix:
-
-```nix
-{ config, lib, pkgs, ... }:
-
-with lib;
-
-let
-  cfg = config.programs.neovim.mcp-hub;
-in {
-  options.programs.neovim.mcp-hub = {
-    enable = mkEnableOption "mcp-hub for neovim";
-
-    package = mkOption {
-      type = types.package;
-      description = "The mcp-hub package to use";
-    };
-
-    port = mkOption {
-      type = types.int;
-      default = 37373;
-      description = "Port on which MCP-Hub will listen";
-    };
-  };
-
-  config = mkIf cfg.enable {
-    home.packages = [ cfg.package ];
-
-    home.sessionVariables = {
-      MCP_HUB_PATH = "${cfg.package}/bin/mcp-hub";
-      MCP_HUB_PORT = toString cfg.port;
-    };
-  };
-}
-```
-
 ## Submodules
 
 Nested configuration options:

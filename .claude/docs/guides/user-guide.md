@@ -2,7 +2,7 @@
 
 [Back to Docs](../README.md) | [CLAUDE.md](../../CLAUDE.md) | [Architecture](../architecture/system-overview.md)
 
-A comprehensive guide to using the `.claude/` task management system commands.
+A comprehensive guide to using the `.claude/` task management system commands for ProofChecker development.
 
 **Last Updated**: 2026-01-28
 
@@ -21,11 +21,10 @@ A comprehensive guide to using the `.claude/` task management system commands.
    - [/todo](#todo-command)
    - [/review](#review-command)
    - [/refresh](#refresh-command)
-   - [/lake](#lake-command)
    - [/errors](#errors-command)
 4. [Utility Commands](#utility-commands)
    - [/meta](#meta-command)
-   - [/learn](#learn-command)
+   - [/fix-it](#fix-it-command)
    - [/convert](#convert-command)
 5. [Quick Reference](#quick-reference)
 6. [Troubleshooting](#troubleshooting)
@@ -107,14 +106,16 @@ Create and manage tasks.
 
 **Examples**:
 ```
-/task "Prove completeness theorem for K modal logic"
+/task "Add telescope picker for recent config files"
 /task "Add README documentation for the semantic evaluator"
-/task "Fix type mismatch error in Frame.lean"
+/task "Fix type mismatch error in lsp/init.lua"
 ```
 
 **Language Detection**: The system automatically detects task language from keywords:
-- `lean`, `theorem`, `proof`, `lemma`, `Mathlib` -> `lean`
+- `neovim`, `plugin`, `keymap`, `lua`, `nvim` -> `neovim`
 - `meta`, `agent`, `command`, `skill`, `.claude/` -> `meta`
+- `latex`, `.tex`, `document` -> `latex`
+- `typst`, `.typ` -> `typst`
 - Otherwise -> `general`
 
 #### Recover Archived Tasks
@@ -181,14 +182,14 @@ Conduct research on a task and create reports.
 **Examples**:
 ```
 /research 123                          # General research
-/research 123 "focus on Mathlib lemmas for decidability"
+/research 123 "focus on lazy.nvim event loading patterns"
 ```
 
 **Language Routing**:
-- `lean` tasks -> Uses Lean MCP tools (leansearch, loogle, leanfinder)
+- `neovim` tasks -> Uses Neovim-specific research agent
 - Other tasks -> Uses web search, documentation, codebase exploration
 
-**Output**: Creates `specs/{N}_{SLUG}/reports/research-{NNN}.md`
+**Output**: Creates `specs/{NNN}_{SLUG}/reports/MM_{short-slug}.md`
 
 **Repeatable**: Yes. Run multiple times to gather additional research. Each run creates a new numbered report (001, 002, etc.).
 
@@ -204,7 +205,7 @@ Create an implementation plan for a task.
 
 **Prerequisites**: Task should exist (ideally researched first, but not required).
 
-**Output**: Creates `specs/{N}_{SLUG}/plans/implementation-{NNN}.md`
+**Output**: Creates `specs/{NNN}_{SLUG}/plans/MM_{short-slug}.md`
 
 **Plan Structure**:
 - **Phases**: Logical groupings of related work
@@ -216,9 +217,9 @@ Create an implementation plan for a task.
 ### Phase 1: Set Up Module Structure [NOT STARTED]
 **Goal**: Create file structure and imports
 **Steps**:
-1. Create Theories/Modal/Completeness.lean
+1. Create lua/neotex/plugins/new_feature.lua
 2. Add required imports
-**Verification**: File compiles without errors
+**Verification**: Module loads without errors
 
 ### Phase 2: Define Helper Lemmas [NOT STARTED]
 **Goal**: Prove prerequisite lemmas
@@ -248,7 +249,7 @@ Create a new plan version or update task description.
 /revise 45   # Interactive revision
 ```
 
-**Output for Plan Revision**: Creates `specs/{N}_{SLUG}/plans/implementation-{NNN}.md` with incremented version number.
+**Output for Plan Revision**: Creates `specs/{NNN}_{SLUG}/plans/MM_{short-slug}.md` with incremented version number.
 
 ---
 
@@ -265,7 +266,7 @@ Execute an implementation plan.
 - `--force` - Skip confirmation prompts (optional)
 
 **Language Routing**:
-- `lean` -> Lean-specific implementation with MCP tools
+- `neovim` -> Neovim-specific implementation agent
 - `latex` -> LaTeX document implementation
 - `typst` -> Typst document implementation
 - Other -> General file implementation
@@ -278,7 +279,7 @@ Execute an implementation plan.
 - `[COMPLETED]` -> Finished successfully
 - `[PARTIAL]` -> Partially complete (interrupted)
 
-**Output**: Creates `specs/{N}_{SLUG}/summaries/implementation-summary-{DATE}.md`
+**Output**: Creates `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md`
 
 ---
 
@@ -328,13 +329,13 @@ Analyze codebase and create review reports.
 
 **Analysis includes**:
 - TODOs, FIXMEs, and code smells
-- For Lean: `sorry` placeholders, axioms, build status
+- For Neovim: deprecated APIs, missing lazy-loading, keymap descriptions
 - Roadmap progress tracking
 - Documentation coverage
 
 **Example**:
 ```
-/review Theories/Modal/         # Review modal logic directory
+/review lua/neotex/plugins/     # Review plugins directory
 /review --create-tasks          # Review all and create tasks for issues
 ```
 
@@ -361,37 +362,6 @@ Clean Claude Code resources.
    - Clean slate (all non-essential files)
 
 ---
-
-### /lake Command
-
-Run Lean build with automatic error repair.
-
-```
-/lake [--clean] [--max-retries N] [--dry-run] [--module NAME]
-```
-
-**Arguments**:
-- `--clean` - Run `lake clean` before building
-- `--max-retries N` - Maximum repair iterations (default: 5)
-- `--dry-run` - Show what would be fixed without doing it
-- `--module NAME` - Build specific module only
-
-**Auto-Fixable Errors**:
-
-| Error Type | Automatic Fix |
-|------------|---------------|
-| Missing pattern match cases | Add `\| {case} => sorry` branches |
-| Unused variables | Rename to `_{name}` |
-| Unused imports | Remove import line |
-
-**For Unfixable Errors**: Creates tasks with error reports for manual resolution.
-
-**Example**:
-```
-/lake                     # Build and auto-repair
-/lake --clean             # Clean build
-/lake --max-retries 10    # More repair iterations
-```
 
 ---
 
@@ -454,12 +424,12 @@ Creates tasks like:
 
 ---
 
-### /learn Command
+### /fix-it Command
 
 Scan for FIX:/NOTE:/TODO: tags and create tasks.
 
 ```
-/learn [PATH...]
+/fix-it [PATH...]
 ```
 
 **Arguments**:
@@ -483,8 +453,8 @@ Scan for FIX:/NOTE:/TODO: tags and create tasks.
 
 **Example**:
 ```
-/learn                           # Scan entire project
-/learn Theories/Modal/           # Scan specific directory
+/fix-it                          # Scan entire project
+/fix-it Theories/Modal/          # Scan specific directory
 ```
 
 ---
@@ -534,10 +504,10 @@ Convert documents between formats.
 | `/todo` | `/todo [--dry-run]` | Archive completed tasks |
 | `/review` | `/review [SCOPE] [--create-tasks]` | Analyze codebase |
 | `/refresh` | `/refresh [--dry-run] [--force]` | Clean resources |
-| `/lake` | `/lake [--clean] [--max-retries N]` | Build with repair |
 | `/errors` | `/errors [--fix N]` | Analyze errors |
 | `/meta` | `/meta [PROMPT] \| --analyze` | System builder |
-| `/learn` | `/learn [PATH...]` | Extract tags to tasks |
+| `/fix-it` | `/fix-it [PATH...]` | Extract tags to tasks |
+| `/tag` | `/tag [--patch|--minor|--major]` | Create semantic version tag (user-only) |
 | `/convert` | `/convert SOURCE [OUTPUT]` | Convert documents |
 
 ### Status Transitions
@@ -562,10 +532,11 @@ Convert documents between formats.
 
 | Language | Detection Keywords | Research Tools | Implementation |
 |----------|-------------------|----------------|----------------|
-| `lean` | theorem, proof, lemma, Mathlib | lean_leansearch, lean_loogle | lean_goal, lean_multi_attempt |
+| `neovim` | neovim, plugin, keymap, lua, nvim | WebSearch, WebFetch, Read | nvim --headless, Write, Edit |
 | `meta` | agent, command, skill, .claude/ | Read, Grep, Glob | Write, Edit |
 | `latex` | latex, .tex, document | WebSearch, Read | pdflatex |
 | `typst` | typst, .typ | WebSearch, Read | typst compile |
+| `markdown` | docs, readme, documentation | WebSearch, Read | Write, Edit |
 | `general` | (default) | WebSearch, Read | Write, Edit, Bash |
 
 ---
@@ -591,7 +562,7 @@ Convert documents between formats.
 **Solutions**:
 1. Verify task is planned: Status should be `[PLANNED]`
 2. Check for missing plan: Run `/plan N` first
-3. Check plan file exists: `specs/{N}_{SLUG}/plans/implementation-001.md`
+3. Check plan file exists: `specs/{NNN}_{SLUG}/plans/MM_{short-slug}.md`
 
 #### Stuck in Implementing Status
 
@@ -612,22 +583,12 @@ Convert documents between formats.
 2. Git shows which file was updated more recently
 3. In extreme cases, one file can be regenerated from the other
 
-#### Build Errors Not Auto-Fixed
+#### Tools Not Responding
 
-**Symptom**: `/lake` keeps failing on same errors
-
-**Solutions**:
-1. Some errors require manual fixes (type mismatches, logic errors)
-2. Check created tasks for unfixable errors
-3. Use `/errors` to analyze patterns
-4. Increase retries: `/lake --max-retries 10`
-
-#### MCP Tools Not Responding
-
-**Symptom**: Lean tools timeout or fail
+**Symptom**: Tools timeout or fail
 
 **Solutions**:
-1. Verify Lean project builds: `lake build`
+1. Verify Neovim configuration loads: `nvim --headless -c "q"`
 2. Check MCP configuration in `~/.claude.json`
 3. Run `/refresh` to clean orphaned processes
 4. Restart Claude Code session

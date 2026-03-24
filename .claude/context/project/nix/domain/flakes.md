@@ -56,9 +56,9 @@ inputs = {
   home-manager.url = "github:nix-community/home-manager/master";
   home-manager.inputs.nixpkgs.follows = "nixpkgs";  # Use our nixpkgs
 
-  # From this repository's flake.nix:
-  niri.url = "github:YaLTeR/niri";
-  niri.inputs.nixpkgs.follows = "nixpkgs";
+  # Other inputs also follow nixpkgs
+  some-flake.url = "github:user/flake";
+  some-flake.inputs.nixpkgs.follows = "nixpkgs";
 };
 ```
 
@@ -92,16 +92,16 @@ outputs = { self, nixpkgs, ... }: {
 
 ## NixOS Configuration
 
-From this repository's flake.nix:
+Example multi-host configuration:
 
 ```nix
 nixosConfigurations = {
-  nandi = lib.nixosSystem {
+  desktop = lib.nixosSystem {
     inherit system;
     modules = [
       ./configuration.nix
-      ./hosts/nandi/hardware-configuration.nix
-      { networking.hostName = "nandi"; }
+      ./hosts/desktop/hardware-configuration.nix
+      { networking.hostName = "desktop"; }
 
       # Apply overlays
       { nixpkgs = nixpkgsConfig; }
@@ -110,7 +110,7 @@ nixosConfigurations = {
       home-manager.nixosModules.home-manager {
         home-manager.useGlobalPkgs = true;
         home-manager.useUserPackages = true;
-        home-manager.users.benjamin = import ./home.nix;
+        home-manager.users.user = import ./home.nix;
         home-manager.extraSpecialArgs = {
           inherit pkgs-unstable;
         };

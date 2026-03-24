@@ -91,8 +91,8 @@ Warning: Operation succeeded but git commit failed
 Changes were successfully applied but could not be committed to git.
 
 Manual commit required:
-  git add path/to/file.nix
-  git commit -m "feat: Add configuration changes"
+  git add ProofChecker/Lattices.neovim
+  git commit -m "feat: Add lattice definitions"
 
 Error: fatal: not a git repository
 ```

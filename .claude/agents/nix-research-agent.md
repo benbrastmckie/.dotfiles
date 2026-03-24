@@ -100,13 +100,13 @@ Use this decision tree to select the right search approach:
 **Search Priority** (when MCP available):
 1. MCP queries for package/option validation (fastest, most accurate)
 2. Local configuration (existing patterns in *.nix files)
-3. Project context files (documented patterns in .claude/context/project/nix/)
+3. Project context files (documented patterns in extension context)
 4. WebSearch for documentation and community patterns
 5. NixOS Wiki and official documentation
 
 **Search Priority** (when MCP unavailable):
 1. Local configuration (existing patterns in *.nix files)
-2. Project context files (documented patterns in .claude/context/project/nix/)
+2. Project context files (documented patterns in extension context)
 3. Nixpkgs documentation via WebSearch (options, packages)
 4. NixOS Wiki and official documentation
 5. Community resources (NixOS Discourse, GitHub examples)
@@ -215,10 +215,10 @@ When MCP returns an error:
 
 1. Ensure task directory exists:
    ```bash
-   mkdir -p "specs/{N}_{SLUG}"
+   mkdir -p "specs/{NNN}_{SLUG}"
    ```
 
-2. Write initial metadata to `specs/{N}_{SLUG}/.return-meta.json`:
+2. Write initial metadata to `specs/{NNN}_{SLUG}/.return-meta.json`:
    ```json
    {
      "status": "in_progress",
@@ -254,7 +254,7 @@ Extract from input:
     "delegation_path": ["orchestrator", "research", "nix-research-agent"]
   },
   "focus_prompt": "optional specific focus area",
-  "metadata_file_path": "specs/412_configure_home_manager_module/.return-meta.json"
+  "metadata_file_path": "specs/412_onfigure_home_manager_module/.return-meta.json"
 }
 ```
 
@@ -318,7 +318,7 @@ Compile discovered information:
 
 Create directory and write report:
 
-**Path**: `specs/{N}_{SLUG}/reports/research-{NNN}.md`
+**Path**: `specs/{NNN}_{SLUG}/reports/MM_{short-slug}.md`
 
 **Structure**:
 ```markdown
@@ -371,7 +371,7 @@ Create directory and write report:
 
 ### Stage 6: Write Metadata File
 
-Write to `specs/{N}_{SLUG}/.return-meta.json`:
+Write to `specs/{NNN}_{SLUG}/.return-meta.json`:
 
 ```json
 {
@@ -379,7 +379,7 @@ Write to `specs/{N}_{SLUG}/.return-meta.json`:
   "artifacts": [
     {
       "type": "report",
-      "path": "specs/{N}_{SLUG}/reports/research-{NNN}.md",
+      "path": "specs/{NNN}_{SLUG}/reports/MM_{short-slug}.md",
       "summary": "Research report with Nix configuration and recommendations"
     }
   ],
@@ -406,7 +406,7 @@ Research completed for task 412:
 - Documented available options from home-manager manual
 - Identified module dependencies (programs.git requires pkgs.git)
 - Found recommended configuration from NixOS Discourse
-- Created report at specs/412_configure_home_manager_module/reports/research-001.md
+- Created report at specs/412_onfigure_home_manager_module/reports/01_home-manager-research.md
 - Metadata written for skill postflight
 ```
 
@@ -456,7 +456,7 @@ If researching a package that doesn't exist in nixpkgs:
 If official docs are insufficient:
 1. Search NixOS Discourse for discussions
 2. Check nixpkgs source code for examples
-3. Look for dotfiles with similar configurations
+3. Look for community configurations with similar patterns
 
 ### Evaluation Errors
 If nix eval fails during research:
@@ -489,7 +489,7 @@ When MCP search returns no results:
 
 **MUST DO**:
 1. **Create early metadata at Stage 0** before any substantive work
-2. Always write final metadata to `specs/{N}_{SLUG}/.return-meta.json`
+2. Always write final metadata to `specs/{NNN}_{SLUG}/.return-meta.json`
 3. Always return brief text summary (3-6 bullets), NOT JSON
 4. Always include session_id from delegation context in metadata
 5. Always search local config before web search

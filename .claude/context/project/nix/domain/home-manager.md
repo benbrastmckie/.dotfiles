@@ -7,8 +7,8 @@ User-level configuration management.
 ```nix
 { config, pkgs, ... }:
 {
-  home.username = "benjamin";
-  home.homeDirectory = "/home/benjamin";
+  home.username = "user";
+  home.homeDirectory = "/home/user";
   home.stateVersion = "24.11";
 
   # Packages
@@ -35,7 +35,7 @@ In flake.nix:
 home-manager.nixosModules.home-manager {
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.users.benjamin = import ./home.nix;
+  home-manager.users.user = import ./home.nix;
   home-manager.extraSpecialArgs = {
     inherit pkgs-unstable;
   };
@@ -51,7 +51,7 @@ sudo nixos-rebuild switch --flake .#hostname
 ### Standalone
 
 ```nix
-homeConfigurations.benjamin = home-manager.lib.homeManagerConfiguration {
+homeConfigurations.user = home-manager.lib.homeManagerConfiguration {
   inherit pkgs;
   modules = [ ./home.nix ];
 };
@@ -60,7 +60,7 @@ homeConfigurations.benjamin = home-manager.lib.homeManagerConfiguration {
 Switch with:
 
 ```bash
-home-manager switch --flake .#benjamin
+home-manager switch --flake .#user
 ```
 
 ## Programs Configuration
@@ -70,8 +70,8 @@ Enable and configure applications:
 ```nix
 programs.git = {
   enable = true;
-  userName = "Benjamin";
-  userEmail = "ben@example.com";
+  userName = "Your Name";
+  userEmail = "you@example.com";
   extraConfig = {
     init.defaultBranch = "main";
     pull.rebase = true;
@@ -95,11 +95,10 @@ Install user packages:
 
 ```nix
 home.packages = with pkgs; [
-  claude-code
-  wezterm
-  stylua
   ripgrep
   fd
+  stylua
+  wezterm
 ];
 ```
 
@@ -160,25 +159,6 @@ systemd.user.services.myservice = {
 };
 ```
 
-Real example from home.nix:
-
-```nix
-systemd.user.services.ydotool = {
-  Unit = {
-    Description = "ydotool daemon for Wayland input simulation";
-    After = [ "graphical-session.target" ];
-  };
-  Service = {
-    ExecStart = "${pkgs.ydotool}/bin/ydotoold";
-    Restart = "on-failure";
-    RestartSec = 3;
-  };
-  Install = {
-    WantedBy = [ "default.target" ];
-  };
-};
-```
-
 ## Session Variables
 
 Environment variables:
@@ -216,18 +196,6 @@ dconf.settings = {
     switch-to-workspace-left = [ "<Super>h" ];
     switch-to-workspace-right = [ "<Super>l" ];
   };
-
-  "org/gnome/settings-daemon/plugins/media-keys" = {
-    custom-keybindings = [
-      "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
-    ];
-  };
-
-  "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-    binding = "<Super>t";
-    command = "wezterm";
-    name = "Terminal";
-  };
 };
 ```
 
@@ -243,8 +211,8 @@ Split configuration into modules:
     ./home-modules/shell.nix
   ];
 
-  home.username = "benjamin";
-  home.homeDirectory = "/home/benjamin";
+  home.username = "user";
+  home.homeDirectory = "/home/user";
 }
 ```
 

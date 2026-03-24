@@ -58,10 +58,10 @@ Load these on-demand using @-references:
 
 1. Ensure task directory exists:
    ```bash
-   mkdir -p "specs/{N}_{SLUG}"
+   mkdir -p "specs/{NNN}_{SLUG}"
    ```
 
-2. Write initial metadata to `specs/{N}_{SLUG}/.return-meta.json`:
+2. Write initial metadata to `specs/{NNN}_{SLUG}/.return-meta.json`:
    ```json
    {
      "status": "in_progress",
@@ -96,8 +96,8 @@ Extract from input:
     "delegation_depth": 1,
     "delegation_path": ["orchestrator", "implement", "neovim-implementation-agent"]
   },
-  "plan_path": "specs/412_configure_telescope/plans/implementation-001.md",
-  "metadata_file_path": "specs/412_configure_telescope/.return-meta.json"
+  "plan_path": "specs/412_onfigure_telescope/plans/02_telescope-config-plan.md",
+  "metadata_file_path": "specs/412_onfigure_telescope/.return-meta.json"
 }
 ```
 
@@ -122,7 +122,12 @@ Scan phases for first incomplete:
 For each phase starting from resume point:
 
 **A. Mark Phase In Progress**
-Edit plan file: Change phase status to `[IN PROGRESS]`
+Edit plan file heading to show the phase is active.
+Use the Edit tool with:
+- old_string: `### Phase {P}: {Phase Name} [NOT STARTED]`
+- new_string: `### Phase {P}: {Phase Name} [IN PROGRESS]`
+
+Phase status lives ONLY in the heading. Do NOT add or edit a separate `**Status**:` line per phase.
 
 **B. Execute Steps**
 
@@ -152,7 +157,12 @@ nvim --headless -c "lua require('plugins.newplugin')" -c "q"
 ```
 
 **D. Mark Phase Complete**
-Edit plan file: Change phase status to `[COMPLETED]`
+Edit plan file heading to show the phase is finished.
+Use the Edit tool with:
+- old_string: `### Phase {P}: {Phase Name} [IN PROGRESS]`
+- new_string: `### Phase {P}: {Phase Name} [COMPLETED]`
+
+Phase status lives ONLY in the heading. Do NOT add or edit a separate `**Status**:` line per phase.
 
 ### Stage 5: Run Final Verification
 
@@ -168,7 +178,7 @@ nvim --headless -c "checkhealth" -c "q" 2>&1 | head -50
 
 ### Stage 6: Create Implementation Summary
 
-Write to `specs/{N}_{SLUG}/summaries/implementation-summary-{DATE}.md`:
+Write to `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md`:
 
 ```markdown
 # Implementation Summary: Task #{N}
@@ -196,9 +206,30 @@ Write to `specs/{N}_{SLUG}/summaries/implementation-summary-{DATE}.md`:
 {Any additional notes, keybinding conflicts resolved, etc.}
 ```
 
+### Stage 6a: Generate Completion Data
+
+**CRITICAL**: Before writing metadata, prepare the `completion_data` object.
+
+1. Generate `completion_summary`: A 1-3 sentence description of what was accomplished
+   - Focus on the configuration outcome
+   - Include key plugins or features configured
+   - Example: "Configured telescope.nvim with fzf-native, added 6 keybindings, and set up lazy loading via cmd and keys."
+
+2. Optionally generate `roadmap_items`: Array of explicit ROAD_MAP.md item texts this task addresses
+   - Only include if the task clearly maps to specific roadmap items
+   - Example: `["Configure telescope.nvim for fuzzy finding"]`
+
+**Example completion_data for Neovim task**:
+```json
+{
+  "completion_summary": "Configured telescope.nvim with fzf-native sorter. Added 6 keybindings for file/grep/buffer operations. Lazy loads via cmd and keys.",
+  "roadmap_items": ["Set up telescope.nvim"]
+}
+```
+
 ### Stage 7: Write Metadata File
 
-Write to `specs/{N}_{SLUG}/.return-meta.json`:
+Write to `specs/{NNN}_{SLUG}/.return-meta.json`:
 
 ```json
 {
@@ -212,10 +243,14 @@ Write to `specs/{N}_{SLUG}/.return-meta.json`:
     },
     {
       "type": "summary",
-      "path": "specs/{N}_{SLUG}/summaries/implementation-summary-{DATE}.md",
+      "path": "specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md",
       "summary": "Implementation summary with verification"
     }
   ],
+  "completion_data": {
+    "completion_summary": "1-3 sentence description of configuration changes",
+    "roadmap_items": ["Optional: roadmap item text this task addresses"]
+  },
   "metadata": {
     "session_id": "{from delegation context}",
     "duration_seconds": 123,
@@ -229,6 +264,10 @@ Write to `specs/{N}_{SLUG}/.return-meta.json`:
 }
 ```
 
+**Note**: Include `completion_data` when status is `implemented`. The `roadmap_items` field is optional.
+
+Use the Write tool to create this file.
+
 ### Stage 8: Return Brief Text Summary
 
 **CRITICAL**: Return a brief text summary (3-6 bullet points), NOT JSON.
@@ -240,7 +279,7 @@ Neovim implementation completed for task 412:
 - Added keymaps for find_files, live_grep, buffers
 - Configured lazy loading via cmd and keys
 - Verified startup and module loading pass
-- Created summary at specs/412_configure_telescope/summaries/implementation-summary-20260202.md
+- Created summary at specs/412_onfigure_telescope/summaries/01_telescope-config-summary.md
 - Metadata written for skill postflight
 ```
 
@@ -328,17 +367,45 @@ When plugins conflict:
 2. Adjust event/dependencies
 3. Document the conflict resolution
 
+## Phase Checkpoint Protocol
+
+For each phase in the implementation plan:
+
+1. **Read plan file**, identify current phase
+2. **Update phase status** to `[IN PROGRESS]` in plan file
+3. **Execute Neovim configuration changes** as documented
+4. **Update phase status** to `[COMPLETED]` or `[BLOCKED]` or `[PARTIAL]`
+5. **Git commit** with message: `task {N} phase {P}: {phase_name}`
+   ```bash
+   git add -A && git commit -m "task {N} phase {P}: {phase_name}
+
+   Session: {session_id}
+
+   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
+   ```
+6. **Proceed to next phase** or return if blocked
+
+**This ensures**:
+- Resume point is always discoverable from plan file
+- Git history reflects phase-level progress
+- Failed phases can be retried from beginning
+
+---
+
 ## Critical Requirements
 
 **MUST DO**:
 1. **Create early metadata at Stage 0** before any substantive work
-2. Always write final metadata to `specs/{N}_{SLUG}/.return-meta.json`
+2. Always write final metadata to `specs/{NNN}_{SLUG}/.return-meta.json`
 3. Always return brief text summary (3-6 bullets), NOT JSON
 4. Always include session_id from delegation context in metadata
 5. Always verify Neovim starts after changes
 6. Always test module loading
 7. Follow lua-style-guide.md conventions
 8. Use appropriate lazy loading
+9. Always update plan file with phase status changes
+10. Always create summary file before returning implemented status
+11. **Update partial_progress** after each phase completion
 
 **MUST NOT**:
 1. Return JSON to the console
@@ -347,3 +414,6 @@ When plugins conflict:
 4. Ignore verification failures
 5. Use status value "completed"
 6. Skip verification steps
+7. Use phrases like "task is complete", "work is done", or "finished"
+8. Assume your return ends the workflow (skill continues with postflight)
+9. **Skip Stage 0** early metadata creation (critical for interruption recovery)

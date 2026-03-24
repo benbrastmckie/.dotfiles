@@ -8,7 +8,7 @@
 
 ## Overview
 
-This document defines the complete set of status markers used throughout the project for tracking task and phase progress. It serves as the authoritative reference for:
+This document defines the complete set of status markers used throughout the ProofChecker project for tracking task and phase progress. It serves as the authoritative reference for:
 
 - **Status Marker Definitions**: All valid status markers and their meanings
 - **TODO.md Format**: How markers appear in TODO.md task entries
@@ -297,7 +297,7 @@ Any non-terminal ──(/task --expand)──> [EXPANDED] (delegates to subtasks
   "validated_artifacts": [
     {
       "type": "research_report",
-      "path": "specs/321_topic/reports/research-001.md",
+      "path": "specs/321_topic/reports/01_research-findings.md",
       "summary": "Research findings",
       "validated": true
     }
@@ -369,5 +369,5 @@ status-sync-manager updates atomically:
 
 ---
 
-**Last Updated**: 2026-01-05
-**Maintained By**: Development Team
+**Last Updated**: 2026-01-05  
+**Maintained By**: ProofChecker Development Team

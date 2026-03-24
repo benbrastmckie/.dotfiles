@@ -384,7 +384,7 @@ The subagent will:
 - Search for Python-specific documentation
 - Analyze package dependencies
 - Review asyncio patterns and best practices
-- Create research report in `specs/{N}_{SLUG}/reports/`
+- Create research report in `specs/{NNN}_{SLUG}/reports/`
 - Return standardized JSON result
 
 ### 4. Return Validation
@@ -413,7 +413,7 @@ Expected successful return:
   "artifacts": [
     {
       "type": "research",
-      "path": "specs/450_add_async_support/reports/research-001.md",
+      "path": "specs/450_add_async_support/reports/01_asyncio-patterns.md",
       "summary": "Python asyncio research report"
     }
   ],

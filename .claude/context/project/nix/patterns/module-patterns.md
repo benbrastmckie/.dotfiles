@@ -123,9 +123,7 @@ services.virtualHosts = {
 };
 ```
 
-## Real Example: MCP-Hub Module
-
-From this repository's home-modules/mcp-hub.nix:
+## Home Manager Module Example
 
 ```nix
 { config, lib, pkgs, ... }:
@@ -133,20 +131,21 @@ From this repository's home-modules/mcp-hub.nix:
 with lib;
 
 let
-  cfg = config.programs.neovim.mcp-hub;
+  cfg = config.programs.myprogram;
 in {
-  options.programs.neovim.mcp-hub = {
-    enable = mkEnableOption "mcp-hub for neovim";
+  options.programs.myprogram = {
+    enable = mkEnableOption "my program";
 
     package = mkOption {
       type = types.package;
-      description = "The mcp-hub package to use";
+      default = pkgs.myprogram;
+      description = "The package to use";
     };
 
     port = mkOption {
       type = types.int;
-      default = 37373;
-      description = "Port on which MCP-Hub will listen";
+      default = 8080;
+      description = "Port to listen on";
     };
   };
 
@@ -154,11 +153,10 @@ in {
     home.packages = [ cfg.package ];
 
     home.sessionVariables = {
-      MCP_HUB_PATH = "${cfg.package}/bin/mcp-hub";
-      MCP_HUB_PORT = toString cfg.port;
+      MY_PROGRAM_PORT = toString cfg.port;
     };
 
-    xdg.configFile."mcphub/.keep".text = "";
+    xdg.configFile."myprogram/.keep".text = "";
   };
 }
 ```
