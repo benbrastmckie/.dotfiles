@@ -1,7 +1,7 @@
 # Implementation Plan: aerc + notmuch Email Setup
 
 - **Task**: 45 - Add Terminal Email Client to NixOS
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 4.5 hours
 - **Dependencies**: Existing mbsync, msmtp, w3m, protonmail-bridge configuration
 - **Research Inputs**:
