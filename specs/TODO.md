@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 45. Add terminal email client to NixOS config
+- **Status**: [NOT STARTED]
+- **Language**: nix
+
+**Description**: Add terminal email client to NixOS config - find and configure best vim-compatible terminal email client (e.g. neomutt, aerc, or mutt) with vim motions support as interim solution while himalaya neovim integration is developed.
+
+---
+
 ### 44. Review memory logs and design system optimizations
 - **Status**: [RESEARCHED]
 - **Language**: nix
