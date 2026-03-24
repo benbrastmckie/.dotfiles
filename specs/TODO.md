@@ -3,12 +3,14 @@
 ## Active Tasks
 
 ### 45. Add terminal email client to NixOS config
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Language**: nix
 - **Researched**: 2026-03-24
+- **Planned**: 2026-03-24
 - **Research**:
   - [01_terminal-email-clients.md](specs/045_add_terminal_email_client_to_nixos/reports/01_terminal-email-clients.md)
   - [02_aerc-vs-notmuch-comparison.md](specs/045_add_terminal_email_client_to_nixos/reports/02_aerc-vs-notmuch-comparison.md)
+- **Plan**: [01_aerc-notmuch-setup.md](specs/045_add_terminal_email_client_to_nixos/plans/01_aerc-notmuch-setup.md)
 
 **Description**: Add terminal email client to NixOS config - find and configure best vim-compatible terminal email client (e.g. neomutt, aerc, or mutt) with vim motions support as interim solution while himalaya neovim integration is developed.
 
