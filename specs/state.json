@@ -4,11 +4,19 @@
     {
       "project_number": 45,
       "project_name": "add_terminal_email_client_to_nixos",
-      "status": "not_started",
+      "status": "researched",
       "language": "nix",
       "description": "Add terminal email client to NixOS config - find and configure best vim-compatible terminal email client (e.g. neomutt, aerc, or mutt) with vim motions support as interim solution while himalaya neovim integration is developed",
       "created": "2026-03-24T22:32:52Z",
-      "last_updated": "2026-03-24T22:32:52Z"
+      "last_updated": "2026-03-24T22:39:07Z",
+      "session_id": "sess_1774391729_a688af",
+      "artifacts": [
+        {
+          "type": "research_report",
+          "path": "specs/045_add_terminal_email_client_to_nixos/reports/01_terminal-email-clients.md",
+          "summary": "Comprehensive comparison of terminal email clients (Himalaya, aerc, NeoMutt, notmuch) with focus on vim keybindings, Neovim integration, AI extensibility, and NixOS packaging"
+        }
+      ]
     },
     {
       "project_number": 44,
