@@ -1,0 +1,20 @@
+{
+  "status": "researched",
+  "summary": "Gmail OAuth2 tokens expire due to Google Testing mode 7-day limit. Primary fix: publish OAuth app to Production in Google Cloud Console. Alternative: switch mbsync to app passwords.",
+  "artifacts": [
+    {
+      "type": "research_report",
+      "path": "specs/046_investigate_fix_gmail_oauth2_token_expiry/reports/01_gmail-oauth2-token-expiry.md",
+      "summary": "Comprehensive analysis of Gmail OAuth2 token expiry causes and solutions"
+    }
+  ],
+  "next_steps": "Run /plan 46 to create implementation plan for the chosen solution",
+  "metadata": {
+    "session_id": "sess_1774399380_d43f04",
+    "agent_type": "nix-research-agent",
+    "duration_seconds": 1500,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "skill-nix-research", "nix-research-agent"],
+    "findings_count": 6
+  }
+}

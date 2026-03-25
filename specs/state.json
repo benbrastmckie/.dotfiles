@@ -4,11 +4,20 @@
     {
       "project_number": 46,
       "project_name": "investigate_fix_gmail_oauth2_token_expiry",
-      "status": "not_started",
+      "status": "researched",
       "language": "nix",
       "description": "Investigate and fix Gmail OAuth2 token expiry - tokens keep expiring requiring repeated re-authentication with himalaya account configure gmail",
       "created": "2026-03-25T00:37:05Z",
-      "last_updated": "2026-03-25T00:37:05Z"
+      "last_updated": "2026-03-25T00:46:52Z",
+      "session_id": "sess_1774399380_d43f04",
+      "researched": "2026-03-25T00:46:52Z",
+      "artifacts": [
+        {
+          "type": "research_report",
+          "path": "specs/046_investigate_fix_gmail_oauth2_token_expiry/reports/01_gmail-oauth2-token-expiry.md",
+          "summary": "Comprehensive analysis of Gmail OAuth2 token expiry causes and solutions"
+        }
+      ]
     },
     {
       "project_number": 45,
