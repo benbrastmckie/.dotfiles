@@ -3,8 +3,10 @@
 ## Active Tasks
 
 ### 46. Investigate and fix Gmail OAuth2 token expiry
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Language**: nix
+- **Researched**: 2026-03-24
+- **Research**: [01_gmail-oauth2-token-expiry.md](specs/046_investigate_fix_gmail_oauth2_token_expiry/reports/01_gmail-oauth2-token-expiry.md)
 
 **Description**: Investigate and fix Gmail OAuth2 token expiry - tokens keep expiring requiring repeated re-authentication with `himalaya account configure gmail`.
 
