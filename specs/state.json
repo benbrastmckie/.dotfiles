@@ -1,6 +1,15 @@
 {
-  "next_project_number": 46,
+  "next_project_number": 47,
   "active_projects": [
+    {
+      "project_number": 46,
+      "project_name": "investigate_fix_gmail_oauth2_token_expiry",
+      "status": "not_started",
+      "language": "nix",
+      "description": "Investigate and fix Gmail OAuth2 token expiry - tokens keep expiring requiring repeated re-authentication with himalaya account configure gmail",
+      "created": "2026-03-25T00:37:05Z",
+      "last_updated": "2026-03-25T00:37:05Z"
+    },
     {
       "project_number": 45,
       "project_name": "add_terminal_email_client_to_nixos",

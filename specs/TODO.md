@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 46. Investigate and fix Gmail OAuth2 token expiry
+- **Status**: [NOT STARTED]
+- **Language**: nix
+
+**Description**: Investigate and fix Gmail OAuth2 token expiry - tokens keep expiring requiring repeated re-authentication with `himalaya account configure gmail`.
+
+---
+
 ### 45. Add terminal email client to NixOS config
 - **Status**: [COMPLETED]
 - **Language**: nix
