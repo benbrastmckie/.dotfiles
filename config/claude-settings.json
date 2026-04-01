@@ -1,4 +1,8 @@
 {
+  "_NOTE": "This file is managed by Home Manager via ~/.dotfiles/config/claude-settings.json (sourced in home.nix). Edit the source file, not ~/.claude/settings.json directly.",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(git:*)",
@@ -26,7 +30,9 @@
       "WebSearch",
       "WebFetch",
       "Task",
-      "TodoWrite",
+      "TaskCreate",
+      "TaskUpdate",
+      "Skill",
       "mcp__lean-lsp__*",
       "Bash(echo:*)"
     ],
@@ -38,12 +44,10 @@
     ],
     "defaultMode": "default"
   },
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  },
   "statusLine": {
     "type": "command",
     "command": "/home/benjamin/.claude/hooks/statusline-push.sh",
     "padding": 0
-  }
+  },
+  "skipDangerousModePermissionPrompt": true
 }

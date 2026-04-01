@@ -331,7 +331,7 @@
       setuptools
       pyinstrument
       build
-      # cvc5  # Temporarily disabled - PyPI wheel unavailable (404)
+      cvc5
       twine
       pytest
       pytest-cov
@@ -364,6 +364,7 @@
       # pymupdf4llm          # LLM-optimized PDF extraction (custom package) - TEMPORARILY DISABLED: requires PyMuPDF 1.26.6, nixpkgs has 1.24.10
       # pdf2docx           # Convert PDF to DOCX - DISABLED: pulls python-docx 1.2.0 -> behave -> cucumber-expressions 18.1.0 -> uv_build<0.10.0 (nixpkgs has 0.10.0). Re-enable once fixed upstream.
       vosk                 # Offline speech recognition (custom package)
+      pymupdf              # PDF manipulation library
     ]))
 
     # Clipboard history manager (for niri session)
@@ -758,6 +759,34 @@
       Type = "simple";
       ExecStart = "${config.home.homeDirectory}/.nix-profile/bin/claude-memory-tracker";
       Restart = "on-failure";
+      RestartSec = 10;
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
+  systemd.user.services.claude-sleep-inhibitor = {
+    Unit = {
+      Description = "Inhibit sleep while Claude Code is active";
+      After = [ "default.target" ];
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = let
+        script = pkgs.writeShellScript "claude-sleep-inhibitor" ''
+          while true; do
+            if ${pkgs.procps}/bin/pgrep -f 'claude' > /dev/null; then
+              ${pkgs.systemd}/bin/systemd-inhibit --what=sleep:idle \
+                --why="Claude Code is running" \
+                --who="claude-sleep-inhibitor" \
+                sh -c 'while ${pkgs.procps}/bin/pgrep -f "claude" > /dev/null; do sleep 30; done'
+            fi
+            sleep 30
+          done
+        '';
+      in "${script}";
+      Restart = "always";
       RestartSec = 10;
     };
     Install = {

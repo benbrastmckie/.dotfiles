@@ -7,7 +7,7 @@
 
 buildPythonPackage rec {
   pname = "cvc5";
-  version = "1.3.2";
+  version = "1.3.3";
   format = "wheel";
 
   src = fetchPypi {
@@ -16,7 +16,7 @@ buildPythonPackage rec {
     python = "cp312";
     abi = "cp312";
     platform = "manylinux2014_x86_64.manylinux_2_17_x86_64";
-    sha256 = "sha256-KdTCjjOZJEuN98nlFU8/jEf8+XINvS3TiyxZq8i0DlE=";
+    sha256 = "sha256-ekGx71KvDFuLewqP9nAAFoC3WPt5/nVwNNvp+hhhJlk=";
   };
 
   nativeBuildInputs = [ autoPatchelfHook ];
