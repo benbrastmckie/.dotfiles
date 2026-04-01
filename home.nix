@@ -173,6 +173,7 @@
     wezterm      # GPU-accelerated terminal emulator
     espeak-ng    # Text-to-speech for notifications
     markitdown   # Document to markdown converter (supports PDF, DOCX, PPTX, etc)
+    slidev       # Presentation slides from Markdown (sli.dev)
     # sioyek is installed via configuration.nix (Wayland wrapper, CSD disabled)
 
     # GNOME Shell Extensions
