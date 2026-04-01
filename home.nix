@@ -166,7 +166,6 @@
     claude-code  # Using overlaid unstable package
     claude-squad # Terminal app for managing multiple AI agents
     gemini-cli   # Google Gemini AI CLI tool
-    goose-cli    # Block's open source AI coding agent
     gh           # GitHub CLI (required by claude-squad)
     lectic       # Formal logic and proof tool
     loogle       # Lean 4 Mathlib search tool (wrapper script)
