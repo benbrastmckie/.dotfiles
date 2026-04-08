@@ -1051,6 +1051,7 @@
     ".config/alacritty/alacritty.toml".source = ./config/alacritty.toml;
     ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
     ".config/himalaya/config.toml".source = ./config/himalaya-config.toml;
+    ".config/rclone/rclone.conf".source = ./config/rclone.conf;
     ".claude/settings.json".source = ./config/claude-settings.json;
 
     # aerc email client accounts configuration

@@ -518,6 +518,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       # u-root-cmds           
       git-filter-repo      # For deleting elements from git history
       rclone               # Command-line cloud storage sync and management tool
+      sox                  # Audio processing and playback (play, rec, sox)
 
       # Lean
       # lean4              # Theorem prover and programming language

@@ -51,6 +51,12 @@ Files are organized by application and deployment pattern:
 |------|-------------|-------------|
 | `himalaya-config.toml` | `~/.config/himalaya/config.toml` | Himalaya email client configuration |
 
+## Cloud Storage
+
+| File | Deployed To | Description |
+|------|-------------|-------------|
+| `rclone.conf` | `~/.config/rclone/rclone.conf` | Rclone cloud storage sync configuration |
+
 ## System Information
 
 | File | Deployed To | Description |
