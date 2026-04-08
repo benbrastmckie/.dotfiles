@@ -517,6 +517,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       lsof                 # Tool to list open files
       # u-root-cmds           
       git-filter-repo      # For deleting elements from git history
+      rclone               # Command-line cloud storage sync and management tool
 
       # Lean
       # lean4              # Theorem prover and programming language
@@ -631,7 +632,7 @@ programs.fish = {
   '';
 };
 
-# Font configuration
+#Font configuration
 fonts = {
   fontDir.enable = true;
   enableDefaultPackages = true;
