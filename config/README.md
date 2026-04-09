@@ -55,7 +55,7 @@ Files are organized by application and deployment pattern:
 
 | File | Deployed To | Description |
 |------|-------------|-------------|
-| `rclone.conf` | `~/.config/rclone/rclone.conf` | Rclone cloud storage sync configuration |
+| `rclone.conf` | `~/.config/rclone/rclone.conf` | Rclone cloud storage sync configuration (seed file; copied via activation script, not symlinked, so rclone can write token refreshes) |
 
 ## System Information
 
@@ -67,7 +67,8 @@ Files are organized by application and deployment pattern:
 
 - All configurations are declaratively managed through `home.nix`
 - Changes to these files require running `home-manager switch` to take effect
+- Most configs are deployed as symlinks; `claude-settings.json` and `rclone.conf` use activation scripts that copy instead of symlink so the applications can write to them at runtime
 - Some configs are also copied to `~/.config/config-files/` for version control backup
-- See `home.nix` lines 803-988 for complete deployment mappings
+- See `home.nix` for complete deployment mappings
 
 [← Back to main README](../README.md)
