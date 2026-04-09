@@ -12,14 +12,19 @@ writeShellScriptBin "markitdown" ''
   # Markitdown virtual environment path
   VENV_DIR="$HOME/.local/share/markitdown-venv"
 
-  # Create and setup venv if it doesn't exist
-  if [ ! -d "$VENV_DIR" ]; then
-    echo "Setting up markitdown virtual environment (first run)..."
+  PYTHON_STORE_PATH="${pythonWithPackages}"
+  MARKER="$VENV_DIR/.python-store-path"
+
+  # Recreate venv if missing or built against a different Python store path
+  if [ ! -d "$VENV_DIR" ] || [ ! -f "$MARKER" ] || [ "$(cat "$MARKER")" != "$PYTHON_STORE_PATH" ]; then
+    echo "Setting up markitdown virtual environment..."
+    rm -rf "$VENV_DIR"
     ${pythonWithPackages}/bin/python -m venv "$VENV_DIR"
     # Disable any pip config that might force --user
     unset PIP_USER
     "$VENV_DIR/bin/pip" install --no-user --upgrade pip setuptools wheel
     "$VENV_DIR/bin/pip" install --no-user 'markitdown[pdf]'
+    printf '%s' "$PYTHON_STORE_PATH" > "$MARKER"
   fi
 
   # Provide system libraries for numpy/onnxruntime
