@@ -1,5 +1,5 @@
 {
-  "_NOTE": "This file is managed by Home Manager via ~/.dotfiles/config/claude-settings.json (sourced in home.nix). Edit the source file, not ~/.claude/settings.json directly.",
+  "_NOTE": "This file is managed by Home Manager via ~/.dotfiles/config/claude-settings.json (sourced in home.nix). Edit the source file, then run 'home-manager switch'. Runtime changes by Claude Code persist until next rebuild.",
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
@@ -49,5 +49,6 @@
     "command": "/home/benjamin/.claude/hooks/statusline-push.sh",
     "padding": 0
   },
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "voiceEnabled": true
 }

@@ -673,6 +673,25 @@
     mkdir -p "/home/benjamin/Mail/Logos/Archive"/{cur,new,tmp}
   '';
 
+  # Copy claude settings as a regular file (not symlink) so Claude Code can write to it
+  home.activation.claudeSettings = config.lib.dag.entryAfter ["writeBoundary"] ''
+    mkdir -p /home/benjamin/.claude
+    rm -f /home/benjamin/.claude/settings.json
+    cp ${./config/claude-settings.json} /home/benjamin/.claude/settings.json
+    chmod u+w /home/benjamin/.claude/settings.json
+  '';
+
+  # Copy rclone config as a regular file (not symlink) so rclone can write token refreshes.
+  # Only seeds the config if it doesn't already exist, to preserve refreshed tokens.
+  home.activation.rcloneConfig = config.lib.dag.entryAfter ["writeBoundary"] ''
+    mkdir -p /home/benjamin/.config/rclone
+    if [ ! -f /home/benjamin/.config/rclone/rclone.conf ] || [ -L /home/benjamin/.config/rclone/rclone.conf ]; then
+      rm -f /home/benjamin/.config/rclone/rclone.conf
+      cp ${./config/rclone.conf} /home/benjamin/.config/rclone/rclone.conf
+      chmod u+w /home/benjamin/.config/rclone/rclone.conf
+    fi
+  '';
+
   # Systemd user services for ydotool daemon (required for dictation)
   systemd.user.services.ydotool = {
     Unit = {
@@ -1051,8 +1070,12 @@
     ".config/alacritty/alacritty.toml".source = ./config/alacritty.toml;
     ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
     ".config/himalaya/config.toml".source = ./config/himalaya-config.toml;
-    ".config/rclone/rclone.conf".source = ./config/rclone.conf;
-    ".claude/settings.json".source = ./config/claude-settings.json;
+    # NOTE: rclone.conf is managed via activation script (not symlink)
+    # so that rclone can write token refreshes and config updates.
+    # See home.activation.rcloneConfig below.
+    # NOTE: .claude/settings.json is managed via activation script (not symlink)
+    # so that Claude Code can write runtime changes (permissions, voice toggle, etc.)
+    # See home.activation.claudeSettings below.
 
     # aerc email client accounts configuration
     ".config/aerc/accounts.conf".text = ''
