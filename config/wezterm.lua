@@ -420,6 +420,9 @@ config.visual_bell = {
 
 -- KEYBINDINGS
 config.keys = {
+  -- Fix Delete key sending ^H under kitty keyboard protocol
+  { key = "Delete", action = act.SendString("\x1b[3~") },
+
   -- Fullscreen toggle (Alt+Enter is the WezTerm default)
   {
     key = "Enter",
