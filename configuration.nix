@@ -528,6 +528,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       # Editors
       obsidian             # Markdown-based knowledge base and note-taking app
       neovim               # Highly configurable text editor (Vim-fork)
+      zed-editor           # Modern code editor with GPU-accelerated rendering
       neovim-remote        # Tool for controlling Neovim processes
       vscodium             # Open source build of VS Code without Microsoft telemetry
       lectic               # Custom editor or tool (appears to be a local package)
