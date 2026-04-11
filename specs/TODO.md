@@ -3,11 +3,12 @@
 ## Active Tasks
 
 ### 47. Fix R/Python/Quarto environment gaps via Nix wrapper refactor
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Language**: nix
-- **Planned**: 2026-04-10
-- **Plan**: [01_nix-env-wrapper-refactor.md](specs/047_fix_r_python_quarto_env_gaps/plans/01_nix-env-wrapper-refactor.md)
-- **Language**: nix
+- **Completed**: 2026-04-10
+- **Artifacts**:
+  - [01_nix-env-wrapper-refactor.md](specs/047_fix_r_python_quarto_env_gaps/plans/01_nix-env-wrapper-refactor.md)
+  - [01_nix-env-wrapper-refactor-summary.md](specs/047_fix_r_python_quarto_env_gaps/summaries/01_nix-env-wrapper-refactor-summary.md)
 
 **Description**: Replace flat `rPackages.*` entries in `~/.dotfiles/configuration.nix` with `rWrapper.override` containing P0/P1/P2 packages (survival, MASS, nlme, lme4, tidyverse, broom, gtsummary, mice, knitr, rmarkdown, languageserver, styler, lintr) so R's `.libPaths()` actually sees them. Add scipy/statsmodels/scikit-learn/seaborn/pyarrow to `home.nix` `python312.withPackages` (note `scikit-learn` hyphen quirk requires `p.scikit-learn` dotted form). Add `quarto` to systemPackages. Rebuild and verify per F8 procedure in source report. Source report: `/home/benjamin/.config/zed/specs/027_fix_task20_env_gaps/reports/01_fix-env-gaps.md`.
 
