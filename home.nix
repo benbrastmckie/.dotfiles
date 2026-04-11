@@ -221,6 +221,7 @@
     vale         # Prose linting for documentation
     marksman     # Markdown language server (LSP)
     mdl          # Markdown linter
+    prettier     # Code formatter (JS/TS/JSON/MD/YAML/CSS)
 
     # Image Optimization
     imagemagick  # Image manipulation
@@ -363,6 +364,7 @@
       google-generativeai  # Google Gemini API client (pip: google-genai)
       # pymupdf4llm          # LLM-optimized PDF extraction (custom package) - TEMPORARILY DISABLED: requires PyMuPDF 1.26.6, nixpkgs has 1.24.10
       # pdf2docx           # Convert PDF to DOCX - DISABLED: pulls python-docx 1.2.0 -> behave -> cucumber-expressions 18.1.0 -> uv_build<0.10.0 (nixpkgs has 0.10.0). Re-enable once fixed upstream.
+      python-docx          # Create/modify Word documents
       vosk                 # Offline speech recognition (custom package)
       pymupdf              # PDF manipulation library
     ]))
@@ -372,6 +374,7 @@
     cliphist
 
     nerd-fonts.roboto-mono  # Nerd Fonts with Roboto Mono (nixos-unstable uses new nerd-fonts structure)
+    jetbrains-mono
 
     # Whisper dictation script for Wayland
     (pkgs.writeShellScriptBin "whisper-dictate" ''
