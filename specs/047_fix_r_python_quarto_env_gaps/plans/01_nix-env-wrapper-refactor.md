@@ -92,12 +92,10 @@ Research report F3 identified the root cause: R sees only its base library at `/
 
 ---
 
-### Phase 3: System Rebuild [BLOCKED]
+### Phase 3: System Rebuild [COMPLETED]
 
-**Blocker**: Requires sudo access in terminal. Run manually:
-```bash
-sudo nixos-rebuild switch --flake ~/.dotfiles#hamsa
-```
+**Note**: Rebuild executed manually by user (`sudo nixos-rebuild switch --flake ~/.dotfiles#hamsa`). Verified by Phase 4 runtime tests.
+
 ---
 (Original Phase 3 content below)
 
@@ -120,7 +118,7 @@ sudo nixos-rebuild switch --flake ~/.dotfiles#hamsa
 
 ---
 
-### Phase 4: Environment Verification [NOT STARTED]
+### Phase 4: Environment Verification [COMPLETED]
 
 **Goal**: Verify all packages are accessible via runtime tests from research F8.
 

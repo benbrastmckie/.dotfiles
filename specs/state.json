@@ -4,11 +4,11 @@
     {
       "project_number": 47,
       "project_name": "fix_r_python_quarto_env_gaps",
-      "status": "implementing",
+      "status": "completed",
       "language": "nix",
       "description": "Fix R/Python/Quarto environment gaps via Nix wrapper refactor. Replace flat rPackages.* entries in configuration.nix with rWrapper.override containing P0/P1/P2 packages (survival, MASS, nlme, lme4, tidyverse, broom, gtsummary, mice, knitr, rmarkdown, languageserver, styler, lintr); add scipy/statsmodels/scikit-learn/seaborn/pyarrow to home.nix python312.withPackages (scikit-learn requires p.scikit-learn dotted form); add quarto to systemPackages; rebuild and verify. Source report: /home/benjamin/.config/zed/specs/027_fix_task20_env_gaps/reports/01_fix-env-gaps.md",
       "created": "2026-04-11T01:43:26Z",
-      "last_updated": "2026-04-11T01:49:10Z",
+      "last_updated": "2026-04-11T02:00:00Z",
       "session_id": "sess_1775872113_79fb0b",
       "planned": "2026-04-11T01:47:26Z",
       "artifacts": [
@@ -16,9 +16,16 @@
           "path": "specs/047_fix_r_python_quarto_env_gaps/plans/01_nix-env-wrapper-refactor.md",
           "type": "plan",
           "summary": "4-phase implementation plan for R wrapper refactor, Python stack, Quarto, and verification"
+        },
+        {
+          "path": "specs/047_fix_r_python_quarto_env_gaps/summaries/01_nix-env-wrapper-refactor-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary with F8 verification results"
         }
       ],
-      "started": "2026-04-11T01:49:10Z"
+      "started": "2026-04-11T01:49:10Z",
+      "completed": "2026-04-11T02:00:00Z",
+      "completion_summary": "Refactored R to use rWrapper.override with all P0/P1/P2 packages, added scipy/statsmodels/sklearn/seaborn/pyarrow to the Python environment, and installed Quarto system-wide. All runtime verification tests pass including end-to-end qmd render."
     },
     {
       "project_number": 46,
