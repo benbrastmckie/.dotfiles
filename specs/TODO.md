@@ -3,7 +3,7 @@
 ## Active Tasks
 
 ### 47. Fix R/Python/Quarto environment gaps via Nix wrapper refactor
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Language**: nix
 - **Planned**: 2026-04-10
 - **Plan**: [01_nix-env-wrapper-refactor.md](specs/047_fix_r_python_quarto_env_gaps/plans/01_nix-env-wrapper-refactor.md)

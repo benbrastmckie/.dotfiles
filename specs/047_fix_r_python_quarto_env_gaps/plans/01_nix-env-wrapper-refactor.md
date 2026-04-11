@@ -1,7 +1,7 @@
 # Implementation Plan: Task 47 - Fix R/Python/Quarto Environment Gaps
 
 - **Task**: 47 - fix_r_python_quarto_env_gaps
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 1.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/027_fix_task20_env_gaps/reports/01_fix-env-gaps.md
@@ -45,7 +45,7 @@ Research report F3 identified the root cause: R sees only its base library at `/
 
 ## Implementation Phases
 
-### Phase 1: R Wrapper Refactor [NOT STARTED]
+### Phase 1: R Wrapper Refactor [COMPLETED]
 
 **Goal**: Replace flat R package entries with composed `rWrapper.override` that makes all packages visible to R binary.
 
@@ -68,7 +68,7 @@ Research report F3 identified the root cause: R sees only its base library at `/
 
 ---
 
-### Phase 2: Python Scientific Stack [NOT STARTED]
+### Phase 2: Python Scientific Stack [COMPLETED]
 
 **Goal**: Add missing scientific Python packages to home.nix using correct identifier syntax.
 
@@ -92,7 +92,14 @@ Research report F3 identified the root cause: R sees only its base library at `/
 
 ---
 
-### Phase 3: System Rebuild [NOT STARTED]
+### Phase 3: System Rebuild [BLOCKED]
+
+**Blocker**: Requires sudo access in terminal. Run manually:
+```bash
+sudo nixos-rebuild switch --flake ~/.dotfiles#hamsa
+```
+---
+(Original Phase 3 content below)
 
 **Goal**: Rebuild NixOS with new configuration and verify activation.
 

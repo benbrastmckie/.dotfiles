@@ -519,11 +519,29 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       git-filter-repo      # For deleting elements from git history
       rclone               # Command-line cloud storage sync and management tool
       sox                  # Audio processing and playback (play, rec, sox)
-      R                    # Statistical computing and graphics language
+      # R environment with all packages composed via wrapper
+      # (flat rPackages.* entries don't expose packages to R's library path)
+      (rWrapper.override {
+        packages = with rPackages; [
+          # P0: Core statistical packages
+          survival
+          MASS
+          nlme
+          lme4
+          # P1: Analysis packages
+          tidyverse
+          broom
+          gtsummary
+          mice
+          knitr
+          rmarkdown
+          # P2: Tooling (LSP, formatter, linter)
+          languageserver
+          styler
+          lintr
+        ];
+      })
       ruff                 # Python linter/formatter
-      rPackages.languageserver  # R LSP
-      rPackages.styler          # R formatter (used by languageserver)
-      rPackages.lintr           # R linter (used by languageserver)
 
       # Lean
       # lean4              # Theorem prover and programming language
@@ -549,6 +567,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       xsel                 # Command-line tool for getting/setting X selection
       pstree               # Display running processes as a tree
       pandoc               # Universal document converter
+      quarto               # Scientific and technical publishing system
       zathura              # Light-weight PDF/document viewer
       libreoffice          # RTF word processor with signature support
       evince               # GNOME document viewer (handles PDF, PS, DVI, etc.)
