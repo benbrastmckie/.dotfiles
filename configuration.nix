@@ -720,9 +720,10 @@ programs.nix-ld = {
     xorg.libXfixes
     xorg.libXrandr
     xorg.libxcb
-    mesa
+    libgbm
     expat
     alsa-lib
+    libxkbcommon
   ];
 };
 
