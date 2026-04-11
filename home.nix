@@ -327,7 +327,7 @@
     # Required for running mcp-hub JavaScript tools
     # MCP-Hub is now managed by the home module
     nodejs    # Required runtime dependency
-    (python312.withPackages(p: with p; [
+    (python312.withPackages(p: (with p; [
       z3-solver  # Renamed from z3 in nixos-unstable
       setuptools
       pyinstrument
@@ -354,6 +354,12 @@
       numpy
       pandas
       torch  # PyTorch for machine learning and AI
+
+      # Scientific computing stack (added for R/Quarto interop)
+      scipy
+      statsmodels
+      seaborn
+      pyarrow
       # pylint
       # black
       # isort
@@ -367,6 +373,8 @@
       python-docx          # Create/modify Word documents
       vosk                 # Offline speech recognition (custom package)
       pymupdf              # PDF manipulation library
+    ]) ++ [
+      p.scikit-learn  # Machine learning (hyphen requires dotted form outside with block)
     ]))
 
     # Clipboard history manager (for niri session)
