@@ -520,6 +520,10 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       rclone               # Command-line cloud storage sync and management tool
       sox                  # Audio processing and playback (play, rec, sox)
       R                    # Statistical computing and graphics language
+      ruff                 # Python linter/formatter
+      rPackages.languageserver  # R LSP
+      rPackages.styler          # R formatter (used by languageserver)
+      rPackages.lintr           # R linter (used by languageserver)
 
       # Lean
       # lean4              # Theorem prover and programming language
