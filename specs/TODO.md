@@ -3,11 +3,13 @@
 ## Active Tasks
 
 ### 48. Replace markitdown venv wrapper with nixpkgs python312Packages.markitdown
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Language**: nix
-- **Researched**: 2026-04-13
-- **Research**: [01_markitdown-nixpkgs-migration.md](specs/048_replace_markitdown_venv_with_nixpkgs/reports/01_markitdown-nixpkgs-migration.md)
-- **Plan**: [01_markitdown-nixpkgs-migration.md](specs/048_replace_markitdown_venv_with_nixpkgs/plans/01_markitdown-nixpkgs-migration.md)
+- **Completed**: 2026-04-13
+- **Artifacts**:
+  - [01_markitdown-nixpkgs-migration.md](specs/048_replace_markitdown_venv_with_nixpkgs/reports/01_markitdown-nixpkgs-migration.md)
+  - [01_markitdown-nixpkgs-migration.md](specs/048_replace_markitdown_venv_with_nixpkgs/plans/01_markitdown-nixpkgs-migration.md)
+  - [01_markitdown-nixpkgs-migration-summary.md](specs/048_replace_markitdown_venv_with_nixpkgs/summaries/01_markitdown-nixpkgs-migration-summary.md)
 
 **Description**: Replace the custom venv-based markitdown wrapper (`packages/markitdown.nix`) with the native `python312Packages.markitdown` from nixpkgs. Add markitdown to the existing `python312.withPackages` block in `home.nix`, remove the overlay entry from `flake.nix`, and delete the custom package file. This makes `import markitdown` work from system Python without pip or venv management.
 
