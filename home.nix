@@ -172,7 +172,6 @@
     stylua       # Lua formatter for Neovim
     wezterm      # GPU-accelerated terminal emulator
     espeak-ng    # Text-to-speech for notifications
-    markitdown   # Document to markdown converter (supports PDF, DOCX, PPTX, etc)
     slidev       # Presentation slides from Markdown (sli.dev)
     # sioyek is installed via configuration.nix (Wayland wrapper, CSD disabled)
 
@@ -373,6 +372,7 @@
       python-docx          # Create/modify Word documents
       vosk                 # Offline speech recognition (custom package)
       pymupdf              # PDF manipulation library
+      markitdown           # Document to markdown converter (nixpkgs)
     ]) ++ [
       p.scikit-learn  # Machine learning (hyphen requires dotted form outside with block)
     ]))

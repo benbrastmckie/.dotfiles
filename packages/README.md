@@ -38,19 +38,6 @@ NPX wrapper for Claude Code that automatically uses the latest version from NPM 
 - 86% reduction in code complexity compared to traditional Nix packaging
 - Offline support via NPX caching
 
-### markitdown.nix
-UV wrapper for markitdown that automatically uses the latest version from PyPI. This zero-maintenance approach eliminates the need for manual version updates while providing document to markdown conversion capabilities.
-
-**Implementation**: Uses `writeShellScriptBin` with `uv run` to execute markitdown in an isolated environment
-
-**Benefits**:
-- Automatic updates to latest version via PyPI
-- Zero maintenance required
-- Isolated environment prevents dependency conflicts
-- Handles PDF, DOCX, PPTX, and other document formats
-
-**Usage**: Available as `markitdown` command after home-manager rebuild.
-
 ### marker-pdf.nix
 UV wrapper for marker-pdf that automatically uses the latest version from PyPI. This zero-maintenance approach eliminates the need for manual version updates while providing PDF to markdown conversion capabilities.
 
@@ -63,19 +50,6 @@ UV wrapper for marker-pdf that automatically uses the latest version from PyPI. 
 - Handles complex dependencies (PyTorch, etc.) automatically
 
 **Usage**: Available as `marker_pdf` command after home-manager rebuild.
-
-### markitdown.nix
-UV wrapper for markitdown that automatically uses the latest version from PyPI. This zero-maintenance approach eliminates the need for manual version updates while providing document to markdown conversion capabilities.
-
-**Implementation**: Uses `writeShellScriptBin` with `uv run` to execute markitdown in an isolated environment
-
-**Benefits**:
-- Automatic updates to latest version via PyPI
-- Zero maintenance required
-- Isolated environment prevents dependency conflicts
-- Handles PDF, DOCX, PPTX, and other document formats
-
-**Usage**: Available as `markitdown` command after home-manager rebuild.
 
 ### loogle.nix
 Wrapper script for the Lean 4 Mathlib search tool that provides lazy installation and caching.
@@ -149,7 +123,6 @@ home.packages = with pkgs; [
 Several packages in this directory follow the same zero-maintenance pattern using UV for package management:
 
 - **aristotle.nix**: `uvx --from aristotlelib@latest aristotle`
-- **markitdown.nix**: `uv run markitdown`
 - **marker-pdf.nix**: `uv run marker-pdf`
 
 **Benefits of UVX Pattern**:
