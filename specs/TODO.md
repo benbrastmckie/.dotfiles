@@ -2,6 +2,16 @@
 
 ## Active Tasks
 
+### 48. Replace markitdown venv wrapper with nixpkgs python312Packages.markitdown
+- **Status**: [RESEARCHED]
+- **Language**: nix
+- **Researched**: 2026-04-13
+- **Research**: [01_markitdown-nixpkgs-migration.md](specs/048_replace_markitdown_venv_with_nixpkgs/reports/01_markitdown-nixpkgs-migration.md)
+
+**Description**: Replace the custom venv-based markitdown wrapper (`packages/markitdown.nix`) with the native `python312Packages.markitdown` from nixpkgs. Add markitdown to the existing `python312.withPackages` block in `home.nix`, remove the overlay entry from `flake.nix`, and delete the custom package file. This makes `import markitdown` work from system Python without pip or venv management.
+
+---
+
 ### 47. Fix R/Python/Quarto environment gaps via Nix wrapper refactor
 - **Status**: [COMPLETED]
 - **Language**: nix
