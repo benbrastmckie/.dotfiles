@@ -1,6 +1,14 @@
 {
-  "next_project_number": 48,
+  "next_project_number": 49,
   "active_projects": [
+    {
+      "project_number": 48,
+      "project_name": "replace_markitdown_venv_with_nixpkgs",
+      "status": "researched",
+      "language": "nix",
+      "created": "2026-04-13T19:31:36Z",
+      "last_updated": "2026-04-13T19:31:36Z"
+    },
     {
       "project_number": 47,
       "project_name": "fix_r_python_quarto_env_gaps",
