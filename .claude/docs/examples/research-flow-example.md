@@ -90,7 +90,7 @@ Read from `specs/state.json`:
   "project_number": 427,
   "project_name": "document_command_skill_subagent_framework",
   "status": "researching",
-  "language": "meta",
+  "task_type": "meta",
   "priority": "medium"
 }
 ```
@@ -144,7 +144,7 @@ description="Systematically document the framework..."
     "task_number": 427,
     "task_name": "document_command_skill_subagent_framework",
     "description": "Systematically document the framework for using commands, skills, and subagents in conjunction.",
-    "language": "meta"
+    "task_type": "meta"
   },
   "focus_prompt": null
 }
@@ -182,9 +182,9 @@ Step 1: Codebase Exploration
 - Read key files to understand patterns
 
 Step 2: Context File Review
-- Read .claude/context/core/templates/thin-wrapper-skill.md
-- Read .claude/context/core/formats/subagent-return.md
-- Read .claude/context/core/orchestration/orchestration-core.md
+- Read .claude/context/templates/thin-wrapper-skill.md
+- Read .claude/context/formats/subagent-return.md
+- Read .claude/context/orchestration/orchestration-core.md
 
 Step 3: Synthesize Findings
 - 8 key patterns identified
@@ -469,7 +469,7 @@ The three-layer architecture provides:
 - [Component Selection](../guides/component-selection.md) - When to create each component
 - [Creating Skills](../guides/creating-skills.md) - Skill creation guide
 - [Creating Agents](../guides/creating-agents.md) - Agent creation guide
-- `.claude/context/core/formats/subagent-return.md` - Return format schema
+- `.claude/context/formats/subagent-return.md` - Return format schema
 
 ---
 

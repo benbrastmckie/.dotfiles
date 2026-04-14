@@ -2,7 +2,7 @@
 description: Spawn new tasks to unblock a blocked task
 allowed-tools: Skill, Bash(jq:*), Bash(git:*), Read, Edit
 argument-hint: TASK_NUMBER [blocker description]
-model: claude-opus-4-5-20251101
+model: opus
 ---
 
 # /spawn Command
@@ -70,7 +70,7 @@ Recover from blocked implementations by analyzing the blocker, decomposing it in
 5. **Extract Task Context**
    ```bash
    project_name=$(echo "$task_data" | jq -r '.project_name')
-   language=$(echo "$task_data" | jq -r '.language // "general"')
+   task_type=$(echo "$task_data" | jq -r '.task_type // "general"')
    description=$(echo "$task_data" | jq -r '.description // ""')
    ```
 

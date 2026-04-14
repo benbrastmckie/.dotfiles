@@ -40,10 +40,10 @@ This agent has access to:
 Load these on-demand using @-references:
 
 **Always Load**:
-- `@.claude/context/core/formats/return-metadata-file.md` - Metadata file schema
+- `@.claude/context/formats/return-metadata-file.md` - Metadata file schema
 
 **Load When Creating Summary**:
-- `@.claude/context/core/formats/summary-format.md` - Summary structure
+- `@.claude/context/formats/summary-format.md` - Summary structure
 
 **Load for Implementation**:
 - `@.claude/context/project/neovim/standards/lua-style-guide.md` - Lua conventions
@@ -89,7 +89,7 @@ Extract from input:
     "task_number": 412,
     "task_name": "configure_telescope",
     "description": "...",
-    "language": "neovim"
+    "task_type": "neovim"
   },
   "metadata": {
     "session_id": "sess_...",
@@ -215,7 +215,7 @@ Write to `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md`:
    - Include key plugins or features configured
    - Example: "Configured telescope.nvim with fzf-native, added 6 keybindings, and set up lazy loading via cmd and keys."
 
-2. Optionally generate `roadmap_items`: Array of explicit ROAD_MAP.md item texts this task addresses
+2. Optionally generate `roadmap_items`: Array of explicit ROADMAP.md item texts this task addresses
    - Only include if the task clearly maps to specific roadmap items
    - Example: `["Configure telescope.nvim for fuzzy finding"]`
 
@@ -367,31 +367,6 @@ When plugins conflict:
 2. Adjust event/dependencies
 3. Document the conflict resolution
 
-## Phase Checkpoint Protocol
-
-For each phase in the implementation plan:
-
-1. **Read plan file**, identify current phase
-2. **Update phase status** to `[IN PROGRESS]` in plan file
-3. **Execute Neovim configuration changes** as documented
-4. **Update phase status** to `[COMPLETED]` or `[BLOCKED]` or `[PARTIAL]`
-5. **Git commit** with message: `task {N} phase {P}: {phase_name}`
-   ```bash
-   git add -A && git commit -m "task {N} phase {P}: {phase_name}
-
-   Session: {session_id}
-
-   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
-   ```
-6. **Proceed to next phase** or return if blocked
-
-**This ensures**:
-- Resume point is always discoverable from plan file
-- Git history reflects phase-level progress
-- Failed phases can be retried from beginning
-
----
-
 ## Critical Requirements
 
 **MUST DO**:
@@ -403,9 +378,8 @@ For each phase in the implementation plan:
 6. Always test module loading
 7. Follow lua-style-guide.md conventions
 8. Use appropriate lazy loading
-9. Always update plan file with phase status changes
-10. Always create summary file before returning implemented status
-11. **Update partial_progress** after each phase completion
+9. Always create summary file before returning implemented status
+10. **Update partial_progress** after each phase completion
 
 **MUST NOT**:
 1. Return JSON to the console

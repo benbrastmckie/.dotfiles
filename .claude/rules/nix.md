@@ -219,11 +219,11 @@ nix build .#myPackage
 ## Related Context
 
 Load for detailed patterns:
-- `@.claude/extensions/nix/context/project/nix/domain/nix-language.md`
-- `@.claude/extensions/nix/context/project/nix/domain/flakes.md`
-- `@.claude/extensions/nix/context/project/nix/domain/nixos-modules.md`
-- `@.claude/extensions/nix/context/project/nix/domain/home-manager.md`
-- `@.claude/extensions/nix/context/project/nix/patterns/module-patterns.md`
-- `@.claude/extensions/nix/context/project/nix/patterns/overlay-patterns.md`
-- `@.claude/extensions/nix/context/project/nix/patterns/derivation-patterns.md`
-- `@.claude/extensions/nix/context/project/nix/standards/nix-style-guide.md`
+- `@.claude/context/project/nix/domain/nix-language.md`
+- `@.claude/context/project/nix/domain/flakes.md`
+- `@.claude/context/project/nix/domain/nixos-modules.md`
+- `@.claude/context/project/nix/domain/home-manager.md`
+- `@.claude/context/project/nix/patterns/module-patterns.md`
+- `@.claude/context/project/nix/patterns/overlay-patterns.md`
+- `@.claude/context/project/nix/patterns/derivation-patterns.md`
+- `@.claude/context/project/nix/standards/nix-style-guide.md`

@@ -1,0 +1,105 @@
+{
+  "name": "journal-club",
+  "mode": "JOURNAL_CLUB",
+  "description": "Paper review presentation for journal club (15-30 min)",
+  "duration_minutes": { "min": 15, "max": 30 },
+  "slide_count": 12,
+  "slides": [
+    {
+      "position": 1,
+      "type": "title",
+      "required": true,
+      "content_focus": "Paper title, authors, journal, year, presenter name",
+      "template": "contents/title/title-standard.md",
+      "notes": "Include full citation. Highlight journal impact factor if relevant."
+    },
+    {
+      "position": 2,
+      "type": "paper-overview",
+      "required": true,
+      "content_focus": "Study type, setting, key question",
+      "template": null,
+      "notes": "One-sentence summary of what the paper does and why."
+    },
+    {
+      "position": 3,
+      "type": "background",
+      "required": true,
+      "content_focus": "What was known before this study, knowledge gap",
+      "template": "contents/motivation/motivation-gap.md",
+      "notes": "Set the stage. Why was this study needed?"
+    },
+    {
+      "position": 4,
+      "type": "objectives",
+      "required": true,
+      "content_focus": "Study aims, primary hypothesis",
+      "template": null,
+      "notes": "State the authors' objectives clearly."
+    },
+    {
+      "position": 5,
+      "type": "methods",
+      "required": true,
+      "content_focus": "Study design, population, exposures, outcomes, analysis",
+      "template": "contents/methods/methods-study-design.md",
+      "notes": "Include CONSORT/STROBE diagram if applicable."
+    },
+    {
+      "position": 6,
+      "type": "results-key",
+      "required": true,
+      "content_focus": "Primary results, key table or figure from paper",
+      "template": "contents/results/results-figure.md",
+      "notes": "Reproduce or summarize the key finding. Include effect sizes and CIs."
+    },
+    {
+      "position": 7,
+      "type": "results-secondary",
+      "required": false,
+      "content_focus": "Secondary findings, subgroup results",
+      "template": "contents/results/results-table.md",
+      "notes": "Highlight surprising or important secondary findings."
+    },
+    {
+      "position": 8,
+      "type": "strengths",
+      "required": true,
+      "content_focus": "Methodological strengths, novel contributions",
+      "template": null,
+      "notes": "What did the authors do well? What is novel about this work?"
+    },
+    {
+      "position": 9,
+      "type": "limitations-critique",
+      "required": true,
+      "content_focus": "Methodological limitations, potential biases, critique",
+      "template": "contents/conclusions/limitations-standard.md",
+      "notes": "Critical appraisal. Identify biases, confounders, design issues."
+    },
+    {
+      "position": 10,
+      "type": "clinical-relevance",
+      "required": true,
+      "content_focus": "Clinical or practical implications, applicability",
+      "template": null,
+      "notes": "How does this change practice? Who benefits?"
+    },
+    {
+      "position": 11,
+      "type": "discussion-questions",
+      "required": true,
+      "content_focus": "Questions for group discussion, unresolved issues",
+      "template": null,
+      "notes": "Prepare 3-5 discussion questions for the group."
+    },
+    {
+      "position": 12,
+      "type": "references",
+      "required": false,
+      "content_focus": "Key related references, suggested further reading",
+      "template": null,
+      "notes": "List 3-5 related papers for context."
+    }
+  ]
+}

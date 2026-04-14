@@ -2,7 +2,7 @@
 
 [Back to Docs](../README.md) | [CLAUDE.md](../../CLAUDE.md) | [Architecture](../architecture/system-overview.md)
 
-A comprehensive guide to using the `.claude/` task management system commands for ProofChecker development.
+A comprehensive guide to using the `.claude/` task management system commands for Neovim configuration development.
 
 **Last Updated**: 2026-01-28
 
@@ -302,7 +302,7 @@ Archive completed and abandoned tasks.
 1. Finds tasks with status `[COMPLETED]` or `[ABANDONED]`
 2. Moves task directories to `specs/archive/`
 3. Updates `specs/TODO.md` and `specs/state.json`
-4. For non-meta tasks: Annotates `ROAD_MAP.md` with completion notes
+4. For non-meta tasks: Annotates `ROADMAP.md` with completion notes
 5. For meta tasks: Displays CLAUDE.md modification suggestions for review
 
 **Example Output**:
@@ -530,7 +530,7 @@ Convert documents between formats.
 
 ### Language Routing
 
-| Language | Detection Keywords | Research Tools | Implementation |
+| Task Type | Detection Keywords | Research Tools | Implementation |
 |----------|-------------------|----------------|----------------|
 | `neovim` | neovim, plugin, keymap, lua, nvim | WebSearch, WebFetch, Read | nvim --headless, Write, Edit |
 | `meta` | agent, command, skill, .claude/ | Read, Grep, Glob | Write, Edit |

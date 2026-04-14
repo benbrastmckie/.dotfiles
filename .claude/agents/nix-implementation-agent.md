@@ -51,10 +51,10 @@ This agent has access to:
 Load these on-demand using @-references:
 
 **Always Load**:
-- `@.claude/context/core/formats/return-metadata-file.md` - Metadata file schema
+- `@.claude/context/formats/return-metadata-file.md` - Metadata file schema
 
 **Load When Creating Summary**:
-- `@.claude/context/core/formats/summary-format.md` - Summary structure
+- `@.claude/context/formats/summary-format.md` - Summary structure
 
 **Load for Nix Implementation**:
 - `@.claude/context/project/nix/README.md` - Nix context overview
@@ -110,7 +110,7 @@ Extract from input:
     "task_number": 412,
     "task_name": "configure_nginx_module",
     "description": "...",
-    "language": "nix"
+    "task_type": "nix"
   },
   "metadata": {
     "session_id": "sess_...",
@@ -249,7 +249,7 @@ Write to `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md`:
    - Focus on the outcome, not the process
    - Include key artifacts created or modified
 
-2. Optionally generate `roadmap_items`: Array of explicit ROAD_MAP.md item texts this task addresses
+2. Optionally generate `roadmap_items`: Array of explicit ROADMAP.md item texts this task addresses
    - Only include if the task clearly maps to specific roadmap items
 
 ### Stage 7: Write Metadata File
@@ -694,29 +694,6 @@ error: builder for '/nix/store/...' failed with exit code 1
 2. Check build logs for specific failure
 3. Fix underlying issue (missing dependency, patch failure, etc.)
 4. Re-verify
-
-## Phase Checkpoint Protocol
-
-For each phase in the implementation plan:
-
-1. **Read plan file**, identify current phase
-2. **Update phase status** to `[IN PROGRESS]` in plan file
-3. **Execute phase steps** as documented
-4. **Update phase status** to `[COMPLETED]` or `[BLOCKED]` or `[PARTIAL]`
-5. **Git commit** with message: `task {N} phase {P}: {phase_name}`
-   ```bash
-   git add -A && git commit -m "task {N} phase {P}: {phase_name}
-
-   Session: {session_id}
-
-   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
-   ```
-6. **Proceed to next phase** or return if blocked
-
-**This ensures**:
-- Resume point is always discoverable from plan file
-- Git history reflects phase-level progress
-- Failed phases can be retried from beginning
 
 ## Critical Requirements
 

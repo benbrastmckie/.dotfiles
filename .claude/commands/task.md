@@ -2,7 +2,7 @@
 description: Create, recover, divide, sync, or abandon tasks
 allowed-tools: Read(specs/*), Edit(specs/TODO.md), Bash(jq:*), Bash(git:*), Bash(mv:*), Bash(date:*), Bash(sed:*), AskUserQuestion
 argument-hint: "description" | --recover N | --expand N | --sync | --abandon N | --review N
-model: claude-opus-4-5-20251101
+model: opus
 ---
 
 # /task Command
@@ -49,8 +49,8 @@ When $ARGUMENTS contains a description (no flags).
    ```
 
 2. **Parse description** from $ARGUMENTS:
-   - Remove any trailing flags (--effort, --language)
-   - Extract optional: effort, language
+   - Remove any trailing flags (--effort, --task-type)
+   - Extract optional: effort, task_type
 
 3. **Improve description** (transform raw input into well-structured task description):
 
@@ -108,7 +108,7 @@ When $ARGUMENTS contains a description (no flags).
    - **Add**: test, tests, spec, feature, support, capability
    - **Implement**: (default for unrecognized patterns)
 
-4. **Detect language** from keywords:
+4. **Detect task_type** from keywords:
    - "neovim", "plugin", "nvim", "lua" → neovim
    - "meta", "agent", "command", "skill" → meta
    - "lean", "lean4", "mathlib", "theorem", "proof" → lean4
@@ -118,8 +118,17 @@ When $ARGUMENTS contains a description (no flags).
    - "z3", "smt", "solver", "constraint" → z3
    - "nix", "nixos", "home-manager", "flake" → nix
    - "web", "astro", "tailwind", "cloudflare" → web
-   - "epidemiology", "epimodel", "stan", "infectious" → epidemiology
+   - "epidemiology", "epi", "cohort", "case-control", "strobe" → epi:study
    - "formal", "logic", "math", "physics", "modal", "kripke" → formal
+   - "deck", "slide", "presentation", "pitch deck" → founder:deck
+   - "spreadsheet", "sheet", "excel" → founder:sheet
+   - "finance", "financial", "revenue", "burn rate" → founder:finance
+   - "market size", "tam", "sam", "som" → founder:market
+   - "competitive", "competitor" → founder:analyze
+   - "strategy", "strategic", "roadmap" → founder:strategy
+   - "legal", "contract", "agreement" → founder:legal
+   - "project plan", "timeline", "milestone" → founder:project
+   - "founder", "go-to-market", "gtm" → founder
    - Otherwise → general
 
 5. **Create slug** from description:
@@ -135,7 +144,7 @@ When $ARGUMENTS contains a description (no flags).
         "project_number": {N},
         "project_name": "slug",
         "status": "not_started",
-        "language": "detected",
+        "task_type": "detected",
         "created": $ts,
         "last_updated": $ts
       }] + .active_projects' \
@@ -157,7 +166,7 @@ When $ARGUMENTS contains a description (no flags).
    ### {N}. {Title}
    - **Effort**: {estimate}
    - **Status**: [NOT STARTED]
-   - **Language**: {language}
+   - **Task Type**: {task_type}
 
    **Description**: {description}
    ```
@@ -184,7 +193,7 @@ When $ARGUMENTS contains a description (no flags).
    ```
    Task #{N} created: {TITLE}
    Status: [NOT STARTED]
-   Language: {language}
+   Task Type: {task_type}
    Artifacts path: specs/{NNN}_{SLUG}/  (created on first artifact)
    ```
    Note: `{NNN}` is the 3-digit padded task number (e.g., `015` for task 15). Directories are created lazily when the first artifact is written.
@@ -325,7 +334,7 @@ fi
 # Extract task metadata
 slug=$(echo "$task_data" | jq -r '.project_name')
 status=$(echo "$task_data" | jq -r '.status')
-language=$(echo "$task_data" | jq -r '.language // "general"')
+task_type=$(echo "$task_data" | jq -r '.task_type // "general"')
 ```
 
 ### Step 2: Load Task Artifacts
@@ -404,7 +413,7 @@ phases=$(grep -E "^### Phase [0-9]+:" "$plan_file" 2>/dev/null)
 ## Task Review: #{N} - {slug}
 
 **Status**: {status from state.json}
-**Language**: {language}
+**Task Type**: {task_type}
 
 ### Artifacts Found
 - Plan: {path or "Not found"}
@@ -441,7 +450,7 @@ For each incomplete phase, extract:
 1. **Complete phase {P} of task {N}: {phase_name}**
    - Goal: {extracted phase goal}
    - Effort: {inherited or "TBD"}
-   - Language: {inherited from parent}
+   - Task Type: {inherited from parent}
    - Ref: Parent task #{N}
 ```
 
@@ -502,7 +511,7 @@ jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
      "project_number": '$next_num',
      "project_name": "followup_{parent_N}_phase_{P}",
      "status": "not_started",
-     "language": "'{language}'",
+     "task_type": "'{task_type}'",
      "description": $desc,
      "parent_task": '{parent_N}',
      "created": $ts,

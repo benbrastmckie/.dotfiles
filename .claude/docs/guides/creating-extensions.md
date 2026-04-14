@@ -11,7 +11,7 @@ Step-by-step guide for creating a new domain extension for the .claude/ system.
 Extensions are self-contained packages that add domain-specific support (agents, skills, rules, context) to the .claude/ system. Extensions can be loaded/unloaded via Neovim picker (`<leader>ac`) without modifying core files.
 
 **When to Create an Extension**:
-- Adding support for a new language/framework (Python, React, Rust)
+- Adding support for a new language/framework (Rust, React, Go)
 - Adding support for a specialized tool (Lean, Z3, Typst)
 - Creating portable domain knowledge that can be shared across projects
 
@@ -31,6 +31,7 @@ mkdir -p .claude/extensions/your-domain/{agents,skills,rules,context/project/you
 # Required files
 touch .claude/extensions/your-domain/manifest.json
 touch .claude/extensions/your-domain/EXTENSION.md
+touch .claude/extensions/your-domain/README.md
 
 # Optional but recommended
 touch .claude/extensions/your-domain/index-entries.json
@@ -94,7 +95,7 @@ Follow the templates below for each file type.
 | `name` | Yes | Extension name (matches directory name) |
 | `version` | Yes | Semantic version for update tracking |
 | `description` | Yes | Shown in picker UI |
-| `language` | Yes | Language code for orchestrator routing |
+| `task_type` | Yes | Language code for orchestrator routing |
 | `dependencies` | No | Extensions that must load first |
 | `provides` | Yes | Lists all files/directories provided |
 | `merge_targets` | Yes | Defines CLAUDE.md and index.json merging |
@@ -111,7 +112,7 @@ This project includes [Your Domain] support via the your-domain extension.
 
 ### Language Routing
 
-| Language | Research Tools | Implementation Tools |
+| Task Type | Research Tools | Implementation Tools |
 |----------|----------------|---------------------|
 | `your-domain` | WebSearch, WebFetch, Read | Read, Write, Edit, Bash (your-tool) |
 
@@ -129,6 +130,32 @@ This project includes [Your Domain] support via the your-domain extension.
 - Common pattern: Example usage
 ```
 
+### README.md (Required)
+
+Every extension must provide a `README.md` file in its root directory. This is the user-facing overview of the extension, distinct from `EXTENSION.md` (which is a snippet injected into `.claude/CLAUDE.md` when the extension is loaded).
+
+Start from the canonical template: `.claude/templates/extension-readme-template.md`.
+
+The template includes a **section-applicability matrix** that distinguishes simple extensions (latex, python, typst, z3) from complex extensions (filetypes, lean, formal, nvim, nix, web, epidemiology). Simple extensions omit sections they do not need (MCP Setup, Workflow diagram, Output Artifacts) and produce README files under ~120 lines. Complex extensions use the full structure.
+
+**Required sections for all extensions**:
+- Overview (with a task type / command table)
+- Installation
+- Skill-Agent Mapping
+- Language Routing
+- References (optional but encouraged)
+
+**Required sections for complex extensions**:
+- MCP Tool Setup (if the extension configures MCP servers)
+- Commands (if the extension provides commands)
+- Architecture tree
+- Workflow diagram
+- Output Artifacts
+- Key Patterns
+- Tool Dependencies
+
+The doc-lint script at `.claude/scripts/check-extension-docs.sh` flags missing `README.md` files during verification.
+
 ### index-entries.json (Recommended)
 
 Context file metadata for agent discovery:
@@ -141,7 +168,7 @@ Context file metadata for agent discovery:
       "description": "Overview of your domain context",
       "tags": ["your-domain", "overview"],
       "load_when": {
-        "languages": ["your-domain"],
+        "task_types": ["your-domain"],
         "agents": ["your-domain-research-agent", "your-domain-implementation-agent"]
       }
     },
@@ -150,7 +177,7 @@ Context file metadata for agent discovery:
       "description": "Common implementation patterns",
       "tags": ["your-domain", "patterns"],
       "load_when": {
-        "languages": ["your-domain"],
+        "task_types": ["your-domain"],
         "agents": ["your-domain-implementation-agent"]
       }
     },
@@ -159,7 +186,7 @@ Context file metadata for agent discovery:
       "description": "Coding style conventions",
       "tags": ["your-domain", "style"],
       "load_when": {
-        "languages": ["your-domain"],
+        "task_types": ["your-domain"],
         "agents": ["your-domain-implementation-agent"]
       }
     }

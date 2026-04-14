@@ -21,7 +21,9 @@
       "WebSearch",
       "WebFetch",
       "Task",
-      "TodoWrite",
+      "TaskCreate",
+      "TaskUpdate",
+      "Skill",
       "mcp__lean-lsp__*"
     ],
     "deny": [
@@ -50,6 +52,15 @@
           {
             "type": "command",
             "command": "bash -c 'FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r \".file_path // empty\" 2>/dev/null); if [[ \"$FILE\" == *\"specs/state.json\"* ]]; then bash .claude/hooks/validate-state-sync.sh 2>/dev/null || echo \"{}\"; else echo \"{}\"; fi'"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/validate-plan-write.sh 2>/dev/null || echo '{}'"
           }
         ]
       }
@@ -136,5 +147,7 @@
       }
     ]
   },
-  "model": "sonnet"
+  "env": {
+    "SLASH_COMMAND_TOOL_CHAR_BUDGET": "50000"
+  }
 }

@@ -17,7 +17,7 @@ Before starting work:
 
 ### 2. Execute
 Perform the actual work:
-- Route to appropriate skill by language
+- Route to appropriate skill by task_type
 - Execute steps/phases
 - Track progress
 - Handle errors gracefully
@@ -32,4 +32,4 @@ After completing work:
 ## Workflow Diagrams
 
 For visual process diagrams (research, planning, implementation, resume, error recovery), see:
-- [Workflow Diagrams](.claude/context/core/reference/workflow-diagrams.md)
+- [Workflow Diagrams](.claude/context/reference/workflow-diagrams.md)

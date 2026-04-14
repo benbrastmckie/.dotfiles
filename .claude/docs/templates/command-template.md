@@ -1,123 +1,84 @@
 ---
-agent: <agent-name>
+description: <one-line description of what this command does>
+allowed-tools: Read, Edit, Write, Bash(git:*), Bash(jq:*), AskUserQuestion
+argument-hint: "<required-arg>" [--flag]
+model: opus
 ---
 
 # /<command-name> Command
 
-## Purpose
+<Brief description of what this command does and when to use it.>
 
-[Brief description of what this command does and when to use it]
+**Use this command when you need to**: <specific use case>
 
-**Use this command when you need to**: [specific use case]
+## Arguments
 
----
+- `<required-arg>`: <description>
+- `[--flag]`: <description> (optional)
 
-## Usage
-
-```
-/<command-name> <required-arg> [optional-arg]
-```
-
-### Arguments
-
-- `<required-arg>`: [Description of required argument]
-- `[optional-arg]`: [Description of optional argument] (optional)
-
-### Examples
+## Examples
 
 ```
-# Example 1: [Description]
-/<command-name> example-value
-
-# Example 2: [Description with optional arg]
-/<command-name> example-value --option
+/<command-name> "example value"
+/<command-name> "example value" --flag
 ```
 
----
+## Checkpoint-Based Execution
 
-## Workflow
+All commands follow the four-stage checkpoint pattern:
 
-This command delegates to the `<agent-name>` agent, which executes the following workflow:
+### 1. GATE IN (Preflight)
 
-1. **Input Validation**: Validates command arguments and prerequisites
-2. **Context Loading**: Loads required context files on-demand
-3. **Core Execution**: [Brief description of core work]
-4. **Output Generation**: [Brief description of output]
-5. **Artifact Creation**: Creates [artifact type] in `specs/<task-number>_<topic>/`
-6. **Return Formatting**: Formats response following subagent-return-format.md
-7. **Artifact Validation**: Validates artifacts, updates TODO.md, state.json, creates git commit
-8. **Cleanup**: Performs any necessary cleanup
+- Parse arguments from $ARGUMENTS
+- Validate task exists and status allows the operation
+- Generate session ID: `sess_{timestamp}_{random}`
+- Update task status to in-progress variant via `skill-status-sync`
+- Load decision context from state.json
 
----
+### 2. DELEGATE
+
+Invoke the appropriate skill via the Skill tool:
+
+```
+Skill: skill-<name>
+Arguments: {
+  "task_number": <N>,
+  "session_id": "sess_...",
+  "task_context": { ... }
+}
+```
+
+The skill prepares delegation context and spawns a subagent through the Task tool. The agent does the real work (research, planning, implementation, etc.) and writes artifacts and a return-metadata file.
+
+### 3. GATE OUT (Postflight)
+
+- Read the return-metadata file written by the agent
+- Validate artifacts exist on disk
+- Update task status to completed variant via `skill-status-sync`
+- Invoke `skill-git-workflow` for the commit
+
+### 4. COMMIT
+
+The git-workflow skill creates a scoped commit following the `task {N}: {action}` convention with the session ID in the commit body.
 
 ## Artifacts
 
-This command creates the following artifacts:
+<List artifact paths this command creates, using the `specs/{NNN}_{SLUG}/...` convention.>
 
-- **[Artifact Type]**: `specs/<task-number>_<topic>/<artifact-path>`
-  - [Description of artifact]
-  - [Required sections or format]
+- `specs/{NNN}_{SLUG}/reports/MM_{short-slug}.md` - research report
+- `specs/{NNN}_{SLUG}/plans/MM_{short-slug}.md` - implementation plan
+- `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md` - execution summary
 
----
+## Error Handling
 
-## Prerequisites
+On failure:
+- Keep task in current status (do not regress)
+- Log error to `specs/errors.json` with session_id
+- Return partial metadata with `status: "partial"` if progress was made
+- The next invocation can resume from the partial progress marker
 
-- [Prerequisite 1]
-- [Prerequisite 2]
+## Related Documentation
 
----
-
-## Related Commands
-
-- `/<related-command-1>`: [Brief description of relationship]
-- `/<related-command-2>`: [Brief description of relationship]
-
----
-
-## See Also
-
-- **Agent**: `.claude/skills/<agent-name>.md`
-- **Workflow Standard**: `.claude/context/core/standards/agent-workflow.md`
-- **Return Format**: `.claude/context/core/standards/subagent-return-format.md`
-
----
-
-## Validation Checklist
-
-Use this checklist when creating a new command:
-
-### Frontmatter
-- [ ] Frontmatter includes `agent:` field
-- [ ] Agent name matches agent file (without `.md` extension)
-- [ ] Agent file exists in `.claude/skills/`
-
-### Documentation
-- [ ] Purpose section clearly describes command use case
-- [ ] Usage section includes syntax and examples
-- [ ] Workflow section describes 8-stage workflow
-- [ ] Artifacts section lists all created artifacts
-- [ ] Prerequisites section lists all requirements
-
-### File Size
-- [ ] Command file is <250 lines (target)
-- [ ] Command file is <300 lines (maximum)
-- [ ] No embedded routing logic (delegated to agent)
-- [ ] No embedded workflow execution (delegated to agent)
-
-### Testing
-- [ ] Command tested with valid arguments
-- [ ] Command tested with invalid arguments (error handling)
-- [ ] Artifacts created successfully
-- [ ] Stage 7 execution verified (TODO.md, state.json, git commit)
-
-### Documentation Quality
-- [ ] All sections complete (no placeholders)
-- [ ] Examples are realistic and helpful
-- [ ] Related commands documented
-- [ ] See Also section includes relevant links
-
----
-
-**Template Version**: 1.0  
-**Last Updated**: 2025-12-29  
-**Maintained By**: ProofChecker Development Team
+- [Creating Commands](../guides/creating-commands.md) - Step-by-step command creation
+- [Command Lifecycle](../../context/workflows/command-lifecycle.md) - Checkpoint stage details
+- [Return Format](../../context/formats/subagent-return.md) - Agent return-metadata schema

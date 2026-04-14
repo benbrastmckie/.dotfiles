@@ -1,0 +1,114 @@
+{
+  "metadata": {
+    "project": "Acme SaaS Inc.",
+    "date": "2026-03-31",
+    "mode": "REVIEW",
+    "currency": "USD",
+    "version": "1.0"
+  },
+  "revenue": {
+    "arr": 2400000,
+    "mrr": 200000,
+    "growth_yoy_pct": 85,
+    "top_customer_pct": 12,
+    "recurring_pct": 92,
+    "metrics": [
+      {"metric": "ARR", "value": "$2.4M", "trend": "up", "verification": "verified"},
+      {"metric": "MRR", "value": "$200K", "trend": "up", "verification": "verified"},
+      {"metric": "Revenue Growth (YoY)", "value": "85%", "trend": "up", "verification": "supported"},
+      {"metric": "Revenue Concentration", "value": "Top customer 12%", "trend": "flat", "verification": "verified"},
+      {"metric": "Revenue Quality", "value": "92% recurring", "trend": "up", "verification": "supported"}
+    ]
+  },
+  "expenses": {
+    "categories": [
+      {"name": "Personnel", "monthly": 120000, "annual": 1440000, "pct_of_total": 0.72, "trend": "up"},
+      {"name": "Infrastructure", "monthly": 18000, "annual": 216000, "pct_of_total": 0.11, "trend": "flat"},
+      {"name": "Marketing & Sales", "monthly": 15000, "annual": 180000, "pct_of_total": 0.09, "trend": "up"},
+      {"name": "Operations", "monthly": 13000, "annual": 156000, "pct_of_total": 0.08, "trend": "flat"}
+    ],
+    "total_monthly": 166000,
+    "total_annual": 1992000
+  },
+  "cash": {
+    "balance": 3200000,
+    "monthly_net_burn": 50000,
+    "gross_burn": 166000,
+    "runway_months": 64,
+    "restricted": 0
+  },
+  "ratios": {
+    "items": [
+      {"name": "Gross Margin", "value": "72%", "benchmark": "> 70% (SaaS)", "assessment": "healthy"},
+      {"name": "Operating Margin", "value": "-30%", "benchmark": "Varies", "assessment": "adequate"},
+      {"name": "Current Ratio", "value": "2.8", "benchmark": "1.5 - 3.0", "assessment": "healthy"},
+      {"name": "Quick Ratio", "value": "2.5", "benchmark": "> 1.0", "assessment": "healthy"},
+      {"name": "Debt-to-Equity", "value": "0.3:1", "benchmark": "< 2:1", "assessment": "healthy"},
+      {"name": "Burn Multiple", "value": "1.8x", "benchmark": "< 2x = efficient", "assessment": "healthy"}
+    ]
+  },
+  "startup_metrics": {
+    "items": [
+      {"name": "Rule of 40", "value": "55%", "benchmark": "> 40%", "assessment": "healthy"},
+      {"name": "Magic Number", "value": "0.9", "benchmark": "> 0.75", "assessment": "healthy"},
+      {"name": "Net Dollar Retention", "value": "115%", "benchmark": "> 110%", "assessment": "healthy"},
+      {"name": "CAC Payback", "value": "14 months", "benchmark": "< 18 months", "assessment": "healthy"},
+      {"name": "LTV:CAC", "value": "4.2:1", "benchmark": "> 3:1", "assessment": "healthy"}
+    ]
+  },
+  "verification": {
+    "items": [
+      {"item": "Revenue", "source1": "P&L: $2.4M", "source2": "Stripe: $2.38M", "source3": "Contracts: $2.4M", "status": "match"},
+      {"item": "Cash", "source1": "BS: $3.2M", "source2": "Bank: $3.2M", "source3": "CF: $3.2M", "status": "match"},
+      {"item": "Headcount", "source1": "P&L: 8", "source2": "Payroll: 8", "source3": "Org chart: 9", "status": "discrepancy"}
+    ]
+  },
+  "scenarios": {
+    "items": [
+      {"name": "Upside", "revenue": 3600000, "expenses": 2200000, "runway_months": 36, "key_driver": "Enterprise deal closes in Q2"},
+      {"name": "Base", "revenue": 2800000, "expenses": 2100000, "runway_months": 28, "key_driver": "Current growth trajectory maintained"},
+      {"name": "Downside", "revenue": 1800000, "expenses": 1500000, "runway_months": 18, "key_driver": "Churn increases to 5%/month"}
+    ]
+  },
+  "assumptions": {
+    "items": [
+      {"assumption": "Revenue growth rate", "value": "85% YoY", "confidence": "healthy", "sensitivity": "high"},
+      {"assumption": "Monthly churn", "value": "2.5%", "confidence": "healthy", "sensitivity": "high"},
+      {"assumption": "Average deal size growth", "value": "15% expansion", "confidence": "adequate", "sensitivity": "medium"},
+      {"assumption": "Hiring pace", "value": "2 engineers in Q2", "confidence": "healthy", "sensitivity": "low"},
+      {"assumption": "Infrastructure cost scaling", "value": "Linear with users", "confidence": "adequate", "sensitivity": "medium"}
+    ]
+  },
+  "red_flags": {
+    "items": [
+      {"category": "Revenue", "finding": "Top customer is 12% of ARR", "severity": "low", "recommendation": "Monitor concentration; diversify customer base"},
+      {"category": "Expenses", "finding": "Personnel is 72% of spend", "severity": "low", "recommendation": "Normal for early-stage SaaS; monitor as scaling"},
+      {"category": "Verification", "finding": "Headcount mismatch: org chart shows 9 vs payroll 8", "severity": "medium", "recommendation": "Clarify contractor vs FTE classification"}
+    ]
+  },
+  "monitoring": {
+    "items": [
+      {"metric": "Cash runway", "frequency": "Monthly", "threshold": "< 12 months", "action": "Begin fundraising process"},
+      {"metric": "Net dollar retention", "frequency": "Quarterly", "threshold": "< 100%", "action": "Investigate churn drivers"},
+      {"metric": "Burn multiple", "frequency": "Monthly", "threshold": "> 3x", "action": "Review spending efficiency"},
+      {"metric": "Customer concentration", "frequency": "Quarterly", "threshold": "Top customer > 20%", "action": "Accelerate pipeline diversification"}
+    ]
+  },
+  "documents": {
+    "inventory": [
+      {"name": "Income Statement", "type": "Statement", "period": "FY2025", "source": "CFO", "quality": "verified"},
+      {"name": "Balance Sheet", "type": "Statement", "period": "Q1 2026", "source": "CFO", "quality": "verified"},
+      {"name": "Bank Statements", "type": "Records", "period": "Jan-Mar 2026", "source": "SVB", "quality": "verified"},
+      {"name": "Stripe Dashboard", "type": "Report", "period": "FY2025", "source": "Stripe", "quality": "verified"},
+      {"name": "Cap Table", "type": "Record", "period": "Current", "source": "Carta", "quality": "verified"}
+    ],
+    "completeness": [
+      {"document": "Income statement", "status": "Available", "notes": "Audited FY2025"},
+      {"document": "Balance sheet", "status": "Available", "notes": "Q1 2026 unaudited"},
+      {"document": "Cash flow statement", "status": "Available", "notes": "FY2025 audited"},
+      {"document": "Bank statements", "status": "Available", "notes": "SVB, 3 months"},
+      {"document": "Tax returns", "status": "Partial", "notes": "FY2024 filed, FY2025 pending"},
+      {"document": "Cap table", "status": "Available", "notes": "Carta, current"}
+    ]
+  }
+}

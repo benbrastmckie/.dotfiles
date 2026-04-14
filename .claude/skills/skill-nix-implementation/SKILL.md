@@ -15,17 +15,17 @@ This eliminates the "continue" prompt issue between skill return and orchestrato
 ## Context References
 
 Reference (do not load eagerly):
-- Path: `.claude/context/core/formats/return-metadata-file.md` - Metadata file schema
-- Path: `.claude/context/core/patterns/postflight-control.md` - Marker file protocol
-- Path: `.claude/context/core/patterns/file-metadata-exchange.md` - File I/O helpers
-- Path: `.claude/context/core/patterns/jq-escaping-workarounds.md` - jq escaping patterns (Issue #1132)
+- Path: `.claude/context/formats/return-metadata-file.md` - Metadata file schema
+- Path: `.claude/context/patterns/postflight-control.md` - Marker file protocol
+- Path: `.claude/context/patterns/file-metadata-exchange.md` - File I/O helpers
+- Path: `.claude/context/patterns/jq-escaping-workarounds.md` - jq escaping patterns (Issue #1132)
 
 Note: This skill is a thin wrapper with internal postflight. Context is loaded by the delegated agent.
 
 ## Trigger Conditions
 
 This skill activates when:
-- Task language is "nix"
+- Task type is "nix"
 - /implement command targets a Nix task
 - NixOS modules, Home Manager configs, or flake changes need to be created using Nix
 
@@ -99,13 +99,13 @@ if [ -z "$task_data" ]; then
 fi
 
 # Extract fields
-language=$(echo "$task_data" | jq -r '.language // "general"')
+task_type=$(echo "$task_data" | jq -r '.task_type // "general"')
 status=$(echo "$task_data" | jq -r '.status')
 project_name=$(echo "$task_data" | jq -r '.project_name')
 description=$(echo "$task_data" | jq -r '.description // ""')
 
 # Validate language
-if [ "$language" != "nix" ]; then
+if [ "$task_type" != "nix" ]; then
   return error "Task $task_number is not a Nix task"
 fi
 
@@ -129,7 +129,7 @@ Prepare delegation context:
     "task_number": N,
     "task_name": "{project_name}",
     "description": "{description}",
-    "language": "nix"
+    "task_type": "nix"
   },
   "plan_path": "specs/{NNN}_{SLUG}/plans/MM_{short-slug}.md",
   "metadata_file_path": "specs/{NNN}_{SLUG}/.return-meta.json"
@@ -186,9 +186,25 @@ This validation:
 - Indicates the subagent instructions need updating
 - Allows graceful handling of mixed v1/v2 agents
 
+### 3b. Self-Execution Fallback
+
+**CRITICAL**: If you performed the work above WITHOUT using the Task tool (i.e., you read files,
+wrote artifacts, or updated metadata directly instead of spawning a subagent), you MUST write a
+`.return-meta.json` file now before proceeding to postflight. Use the schema from
+`return-metadata-file.md` with status value "implemented".
+
+If you DID use the Task tool, skip this stage -- the subagent already wrote the metadata.
+
+---
+
+## Postflight (ALWAYS EXECUTE)
+
+The following stages MUST execute after work is complete, whether the work was done by a
+subagent or inline (Stage 3b). Do NOT skip these stages for any reason.
+
 ### 4. Parse Subagent Return (Read Metadata File)
 
-After subagent returns, read the metadata file:
+Read the metadata file:
 
 ```bash
 metadata_file="specs/${padded_num}_${project_name}/.return-meta.json"
@@ -260,7 +276,7 @@ jq --arg path "$artifact_path" \
 
 Update TODO.md:
 - Change status marker from `[IMPLEMENTING]` to `[COMPLETED]`
-- Add summary artifact link using count-aware format per `.claude/rules/state-management.md` "Artifact Linking Format"
+- Link artifact using count-aware format: apply the four-case Edit logic from `@.claude/context/patterns/artifact-linking-todo.md` with `field_name=**Summary**`, `next_field=**Description**`
 
 **Update plan file** (if exists): Update the Status field to `[COMPLETED]`:
 ```bash
@@ -303,8 +319,6 @@ git add -A
 git commit -m "task ${task_number}: complete implementation
 
 Session: ${session_id}
-
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
 ```
 
 ### 7. Cleanup
@@ -379,4 +393,4 @@ The postflight phase is LIMITED TO:
 - Git commit
 - Cleanup of temp/marker files
 
-Reference: @.claude/context/core/standards/postflight-tool-restrictions.md
+Reference: @.claude/context/standards/postflight-tool-restrictions.md

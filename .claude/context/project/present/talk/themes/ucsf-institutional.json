@@ -1,0 +1,50 @@
+{
+  "name": "ucsf-institutional",
+  "description": "UCSF institutional theme with navy/Pacific Blue palette, Garamond serif headings, and formal academic styling",
+  "use_case": "UCSF departmental talks, institutional presentations, university events",
+  "palette": {
+    "background": "#ffffff",
+    "text": "#1a202c",
+    "heading": "#052049",
+    "accent": "#0093D0",
+    "accent_light": "#e6f2fa",
+    "muted": "#5f6b7a",
+    "highlight": "#16A0AC",
+    "success": "#32A03E",
+    "warning": "#d97706",
+    "error": "#dc2626"
+  },
+  "typography": {
+    "heading_font": "Garamond, Georgia, 'Times New Roman', serif",
+    "body_font": "Arial, 'Helvetica Neue', sans-serif",
+    "code_font": "'Courier New', monospace",
+    "heading_weight": "700",
+    "body_weight": "400",
+    "heading_size": "2rem",
+    "body_size": "1.1rem",
+    "caption_size": "0.85rem"
+  },
+  "spacing": {
+    "slide_padding": "2rem 3rem",
+    "section_gap": "1.5rem",
+    "element_gap": "0.75rem"
+  },
+  "borders": {
+    "divider": "1px solid #d1d5db",
+    "accent_bar": "3px solid #0093D0",
+    "table_header": "2px solid #052049"
+  },
+  "footer": {
+    "custom_footer_style": "margin-top: 1.5rem; font-size: 0.8rem; color: #5f6b7a; display: flex; justify-content: space-between;",
+    "positioning": "flow (margin-top), sits above Slidev built-in footer bar"
+  },
+  "institution": {
+    "name": "UCSF",
+    "full_name": "University of California, San Francisco"
+  },
+  "slidev_config": {
+    "theme": "none",
+    "highlighter": "shiki",
+    "css": "unocss"
+  }
+}

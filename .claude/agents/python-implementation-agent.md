@@ -82,12 +82,38 @@ Extract phases, files to create/modify.
 Scan phases for first incomplete.
 
 ### Stage 4: Execute Python Development Loop
-For each phase:
-1. Mark phase `[IN PROGRESS]`
-2. Create/modify Python code
-3. Run tests
-4. Check results
-5. Mark phase `[COMPLETED]` or `[PARTIAL]`
+
+For each phase starting from resume point:
+
+**A. Mark Phase In Progress**
+Edit plan file heading to show the phase is active.
+Use the Edit tool with:
+- old_string: `### Phase {P}: {Phase Name} [NOT STARTED]`
+- new_string: `### Phase {P}: {Phase Name} [IN PROGRESS]`
+
+Phase status lives ONLY in the heading. Do NOT add or edit a separate `**Status**:` line per phase.
+
+**B. Execute Steps**
+1. Create/modify Python code
+2. Run tests (`pytest -v`, `python -m py_compile`, `mypy`, `ruff check`)
+3. Check results
+
+**C. Mark Phase Complete**
+Edit plan file heading to show the phase is finished.
+Use the Edit tool with:
+- old_string: `### Phase {P}: {Phase Name} [IN PROGRESS]`
+- new_string: `### Phase {P}: {Phase Name} [COMPLETED]`
+
+Phase status lives ONLY in the heading. Do NOT add or edit a separate `**Status**:` line per phase.
+
+**D. Git Commit**
+```bash
+git add -A && git commit -m "task {N} phase {P}: {phase_name}
+
+Session: {session_id}"
+```
+
+**E. Proceed to next phase** or return if blocked
 
 ### Stage 5: Verification
 Run tests to verify implementation.
@@ -107,7 +133,6 @@ Write to `specs/{N}_{SLUG}/.return-meta.json`
 2. Write final metadata to `specs/{N}_{SLUG}/.return-meta.json`
 3. Return brief text summary, NOT JSON
 4. Run tests to verify implementation
-5. Update plan file phase markers with Edit tool
 
 **MUST NOT**:
 1. Return JSON to console

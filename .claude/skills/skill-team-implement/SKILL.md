@@ -4,8 +4,8 @@ description: Orchestrate multi-agent implementation with parallel phase executio
 allowed-tools: Task, Bash, Edit, Read, Write, Glob
 # This skill uses TeammateTool for team coordination (available when CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)
 # Context loaded by lead during coordination:
-#   - .claude/context/core/patterns/team-orchestration.md
-#   - .claude/context/core/formats/team-metadata-extension.md
+#   - .claude/context/patterns/team-orchestration.md
+#   - .claude/context/formats/team-metadata-extension.md
 #   - .claude/utils/team-wave-helpers.md
 ---
 
@@ -18,9 +18,9 @@ Multi-agent implementation with wave-based phase parallelization. Analyzes phase
 ## Context References
 
 Reference (load as needed during coordination):
-- Path: `.claude/context/core/patterns/team-orchestration.md` - Wave coordination patterns
-- Path: `.claude/context/core/formats/team-metadata-extension.md` - Team result schema
-- Path: `.claude/context/core/formats/return-metadata-file.md` - Base metadata schema
+- Path: `.claude/context/patterns/team-orchestration.md` - Wave coordination patterns
+- Path: `.claude/context/formats/team-metadata-extension.md` - Team result schema
+- Path: `.claude/context/formats/return-metadata-file.md` - Base metadata schema
 - Path: `.claude/utils/team-wave-helpers.md` - Reusable wave patterns
 
 ## Trigger Conditions
@@ -62,7 +62,7 @@ if [ -z "$task_data" ]; then
 fi
 
 # Extract fields
-language=$(echo "$task_data" | jq -r '.language // "general"')
+task_type=$(echo "$task_data" | jq -r '.task_type // "general"')
 status=$(echo "$task_data" | jq -r '.status')
 project_name=$(echo "$task_data" | jq -r '.project_name')
 
@@ -147,34 +147,78 @@ If team mode is unavailable:
 
 ---
 
-### Stage 5: Analyze Phase Dependencies
+### Stage 4b: Calculate Artifact Number
 
-Parse implementation plan to identify parallelization opportunities:
+Read `next_artifact_number` from state.json and use (current-1) since summary stays in the same round as research/plan:
 
 ```bash
-# Extract phases and their dependencies
-# Phases with no unfinished dependencies can run in parallel
+# Read next_artifact_number from state.json
+next_num=$(jq -r --argjson num "$task_number" \
+  '.active_projects[] | select(.project_number == $num) | .next_artifact_number // 1' \
+  specs/state.json)
 
-# Phase structure analysis:
-# - Phase status: [NOT STARTED], [IN PROGRESS], [COMPLETED], [PARTIAL]
-# - Dependencies: Listed in phase or inferred from file modifications
+# Implement uses (current - 1) to stay in the same round as research/plan
+# If next_artifact_number is 1 (no research yet), use 1
+if [ "$next_num" -le 1 ]; then
+  artifact_number=1
+else
+  artifact_number=$((next_num - 1))
+fi
 
-# Build dependency graph
-dependency_graph = {}
-for phase in phases:
-  dependency_graph[phase.number] = {
-    "status": phase.status,
-    "depends_on": phase.dependencies,
-    "files": phase.files_modified
-  }
+# Fallback for legacy tasks: count existing summary artifacts
+if [ "$next_num" = "null" ] || [ -z "$next_num" ]; then
+  padded_num=$(printf "%03d" "$task_number")
+  count=$(ls "specs/${padded_num}_${project_name}/summaries/"*[0-9][0-9]*.md 2>/dev/null | wc -l)
+  artifact_number=$((count + 1))
+fi
 
-# Find parallelizable phases (no unfinished dependencies)
-parallel_phases = [p for p in phases
-                   if all(dep_status == "completed" for dep in p.dependencies)]
+run_padded=$(printf "%02d" "$artifact_number")
 ```
 
-**Dependency Analysis**:
-- Explicit dependencies from plan metadata
+**Note**: Team implement does NOT increment `next_artifact_number`. Only research advances the sequence.
+
+---
+
+### Stage 5: Analyze Phase Dependencies
+
+Parse implementation plan to identify parallelization opportunities. Prefer explicit dependency data from the plan; fall back to heuristic inference for older plans.
+
+**Primary: Explicit dependencies** (plans with `**Depends on**:` fields per phase):
+
+```bash
+# Parse explicit "**Depends on**:" fields from each phase
+dependency_graph = {}
+has_explicit_deps = false
+
+for phase in phases:
+  depends_on_field = parse_field(phase, "Depends on")
+  if depends_on_field is not None:
+    has_explicit_deps = true
+    if depends_on_field == "none":
+      deps = []
+    else:
+      deps = [int(x.strip()) for x in depends_on_field.split(",")]
+    dependency_graph[phase.number] = {
+      "status": phase.status,
+      "depends_on": deps
+    }
+```
+
+**Fallback: Heuristic inference** (plans without explicit dependency fields):
+
+```bash
+if not has_explicit_deps:
+  # Build dependency graph from file overlap analysis
+  dependency_graph = {}
+  for phase in phases:
+    dependency_graph[phase.number] = {
+      "status": phase.status,
+      "depends_on": infer_from_file_overlap(phase, phases),
+      "files": phase.files_modified
+    }
+```
+
+**Heuristic signals** (fallback only):
 - Implicit dependencies from file modifications (phases modifying same files are dependent)
 - Cross-phase imports or references
 
@@ -182,20 +226,36 @@ parallel_phases = [p for p in phases
 
 ### Stage 6: Calculate Implementation Waves
 
-Group phases into waves based on dependencies:
+**Primary: Read wave table from plan** (plans with `**Dependency Analysis**` table):
 
 ```
-Wave 1: Phases with no unfinished dependencies
-Wave 2: Phases depending on Wave 1
-Wave 3: Phases depending on Wave 2
-...
+# Parse the Dependency Analysis table from the plan
+# Format: | Wave | Phases | Blocked by |
+waves = parse_dependency_analysis_table(plan)
 
-Example:
-  Plan has phases 1, 2, 3, 4, 5, 6
-  Phase 1, 2, 3: No dependencies -> Wave 1 (parallel)
-  Phase 4: Depends on 1, 2 -> Wave 2
-  Phase 5: Depends on 3 -> Wave 2
-  Phase 6: Depends on 4, 5 -> Wave 3 (sequential after Wave 2)
+if waves is not empty:
+  # Use pre-computed wave groupings directly
+  # Example parsed result:
+  #   Wave 1: [1]        (blocked by: --)
+  #   Wave 2: [2, 3]     (blocked by: 1)
+  #   Wave 3: [4]        (blocked by: 2, 3)
+```
+
+**Fallback: Compute from dependency graph** (plans without wave table):
+
+```
+if waves is empty:
+  # Topological grouping from dependency_graph (Stage 5 output)
+  Wave 1: Phases with no unfinished dependencies
+  Wave 2: Phases depending on Wave 1
+  Wave 3: Phases depending on Wave 2
+  ...
+
+  Example:
+    Phase 1, 2, 3: No dependencies -> Wave 1 (parallel)
+    Phase 4: Depends on 1, 2 -> Wave 2
+    Phase 5: Depends on 3 -> Wave 2
+    Phase 6: Depends on 4, 5 -> Wave 3
 ```
 
 ---
@@ -240,31 +300,48 @@ If build/test fails:
 
 ### Stage 8: Wave Execution Loop
 
-Execute waves sequentially, phases within wave in parallel:
+Execute waves sequentially, phases within wave in parallel. Detect Y-shaped
+dependency patterns: when a single-phase "trunk" wave precedes a multi-phase
+"branching" wave, execute the trunk with a single agent before spawning
+parallel teammates for the branching waves.
 
 ```
+# Y-shaped detection: classify each wave as trunk or branching
+# A trunk wave has 1 phase and is followed by a wave with 2+ phases
+for i, wave in enumerate(waves):
+  next_wave = waves[i+1] if i+1 < len(waves) else None
+  wave.is_trunk = (len(wave.phases) == 1 and
+                   next_wave is not None and
+                   len(next_wave.phases) > 1)
+
 for wave in waves:
-  # Spawn teammates for this wave (up to team_size concurrent)
-  active_teammates = []
-  for phase in wave.phases[:team_size]:
-    teammate = spawn_phase_implementer(phase)
-    active_teammates.append(teammate)
+  if wave.is_trunk:
+    # Trunk wave: execute single phase directly (no team spawning)
+    phase = wave.phases[0]
+    execute_phase_directly(phase)  # single agent, no teammate overhead
+    mark_phase_complete(phase)
+  else:
+    # Branching or standard wave: spawn parallel teammates
+    active_teammates = []
+    for phase in wave.phases[:team_size]:
+      teammate = spawn_phase_implementer(phase)
+      active_teammates.append(teammate)
 
-  # Wait for wave completion
-  while not all_complete(active_teammates):
-    for teammate in active_teammates:
-      if teammate.complete():
-        result = teammate.result
-        if result.error:
-          # Spawn debugger for this phase
-          spawn_debugger(phase, result.error)
-        else:
-          mark_phase_complete(phase)
+    # Wait for wave completion
+    while not all_complete(active_teammates):
+      for teammate in active_teammates:
+        if teammate.complete():
+          result = teammate.result
+          if result.error:
+            # Spawn debugger for this phase
+            spawn_debugger(phase, result.error)
+          else:
+            mark_phase_complete(phase)
 
-    # Spawn additional teammates if slots available
-    remaining_phases = wave.phases[len(active_teammates):]
-    for phase in remaining_phases[:team_size - len(active)]:
-      spawn_phase_implementer(phase)
+      # Spawn additional teammates if slots available
+      remaining_phases = wave.phases[len(active_teammates):]
+      for phase in remaining_phases[:team_size - len(active)]:
+        spawn_phase_implementer(phase)
 
   # Commit wave progress
   git_commit_wave(wave)
@@ -317,8 +394,6 @@ git add \
 git commit -m "task ${task_number}: complete wave ${wave_num} (phases ${phase_list})
 
 Session: ${session_id}
-
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -407,6 +482,14 @@ jq --arg path "specs/${padded_num}_${project_name}/summaries/${run_padded}_imple
   specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
 ```
 
+**Update TODO.md**: Link artifact using the automated script:
+
+```bash
+bash .claude/scripts/link-artifact-todo.sh $task_number '**Summary**' '**Description**' "$artifact_path"
+```
+
+If the script exits non-zero, log a warning but continue (linking errors are non-blocking).
+
 ---
 
 ### Stage 13: Write Metadata File
@@ -463,8 +546,6 @@ git add \
 git commit -m "task ${task_number}: complete team implementation
 
 Session: ${session_id}
-
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -578,4 +659,4 @@ The postflight phase is LIMITED TO:
 - Git commit
 - Cleanup of temp/marker files
 
-Reference: @.claude/context/core/standards/postflight-tool-restrictions.md
+Reference: @.claude/context/standards/postflight-tool-restrictions.md

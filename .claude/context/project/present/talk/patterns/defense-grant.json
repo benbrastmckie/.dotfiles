@@ -1,0 +1,64 @@
+{
+  "name": "defense-grant",
+  "mode": "DEFENSE",
+  "description": "Grant defense presentation (NIH study section or institutional review, 30-60 min)",
+  "duration_minutes": { "min": 30, "max": 60 },
+  "slide_count": 30,
+  "sections": [
+    {
+      "name": "Introduction",
+      "slides": [
+        { "position": 1, "type": "title", "required": true, "content_focus": "Grant title, PI name, institution, mechanism" },
+        { "position": 2, "type": "overview", "required": true, "content_focus": "Grant overview, long-term goal, central hypothesis" },
+        { "position": 3, "type": "significance-1", "required": true, "content_focus": "Scientific premise, burden of disease, knowledge gap" },
+        { "position": 4, "type": "significance-2", "required": true, "content_focus": "Why this matters, potential impact, public health relevance" },
+        { "position": 5, "type": "innovation", "required": true, "content_focus": "Novel concepts, approaches, methodologies, technologies" }
+      ]
+    },
+    {
+      "name": "Preliminary Data",
+      "slides": [
+        { "position": 6, "type": "prelim-overview", "required": true, "content_focus": "Overview of preliminary data supporting the proposal" },
+        { "position": 7, "type": "prelim-data-1", "required": true, "content_focus": "Key preliminary finding 1 with figure/table" },
+        { "position": 8, "type": "prelim-data-2", "required": true, "content_focus": "Key preliminary finding 2" },
+        { "position": 9, "type": "prelim-data-3", "required": false, "content_focus": "Additional preliminary data if available" },
+        { "position": 10, "type": "prelim-summary", "required": true, "content_focus": "How preliminary data supports proposed aims" }
+      ]
+    },
+    {
+      "name": "Specific Aims",
+      "slides": [
+        { "position": 11, "type": "aims-overview", "required": true, "content_focus": "All specific aims with hypotheses" },
+        { "position": 12, "type": "aim-1-approach", "required": true, "content_focus": "Aim 1 experimental approach and rationale" },
+        { "position": 13, "type": "aim-1-design", "required": true, "content_focus": "Aim 1 study design, sample size, analysis" },
+        { "position": 14, "type": "aim-1-expected", "required": true, "content_focus": "Aim 1 expected results and alternatives" },
+        { "position": 15, "type": "aim-2-approach", "required": true, "content_focus": "Aim 2 experimental approach and rationale" },
+        { "position": 16, "type": "aim-2-design", "required": true, "content_focus": "Aim 2 study design, sample size, analysis" },
+        { "position": 17, "type": "aim-2-expected", "required": true, "content_focus": "Aim 2 expected results and alternatives" },
+        { "position": 18, "type": "aim-3-approach", "required": false, "content_focus": "Aim 3 approach (if applicable)" },
+        { "position": 19, "type": "aim-3-design", "required": false, "content_focus": "Aim 3 study design" },
+        { "position": 20, "type": "aim-3-expected", "required": false, "content_focus": "Aim 3 expected results" }
+      ]
+    },
+    {
+      "name": "Rigor and Feasibility",
+      "slides": [
+        { "position": 21, "type": "rigor", "required": true, "content_focus": "Scientific rigor, reproducibility, biological variables" },
+        { "position": 22, "type": "timeline", "required": true, "content_focus": "Project timeline, milestones, Gantt chart" },
+        { "position": 23, "type": "team", "required": true, "content_focus": "Investigator team, expertise, roles" },
+        { "position": 24, "type": "environment", "required": true, "content_focus": "Resources, facilities, institutional support" },
+        { "position": 25, "type": "budget-overview", "required": false, "content_focus": "Budget justification overview" }
+      ]
+    },
+    {
+      "name": "Impact and Closing",
+      "slides": [
+        { "position": 26, "type": "pitfalls", "required": true, "content_focus": "Potential pitfalls and alternative strategies" },
+        { "position": 27, "type": "impact", "required": true, "content_focus": "Expected outcomes and broader impact" },
+        { "position": 28, "type": "summary", "required": true, "content_focus": "Grant summary, key innovations, expected contributions" },
+        { "position": 29, "type": "acknowledgments", "required": true, "content_focus": "Mentors, collaborators, funding" },
+        { "position": 30, "type": "questions", "required": true, "content_focus": "Q&A, contact information" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,349 @@
+---
+name: skill-market
+description: Market sizing research with TAM/SAM/SOM framework
+allowed-tools: Task, Bash, Edit, Read, Write
+---
+
+# Market Skill
+
+Thin wrapper that routes market sizing research requests to the `market-agent`.
+
+**IMPORTANT**: This skill implements the skill-internal postflight pattern. After the subagent returns,
+this skill handles all postflight operations (status update, artifact linking, git commit) before returning.
+
+## Context Pointers
+
+Reference (do not load eagerly):
+- Path: `.claude/context/formats/subagent-return.md`
+- Purpose: Return validation
+- Load at: Subagent execution only
+
+Note: This skill is a thin wrapper. Context is loaded by the delegated agent, not this skill.
+
+## Trigger Conditions
+
+This skill activates when:
+
+### Direct Invocation
+- User explicitly runs `/market` command with task number
+- User runs `/research` on a founder task with `task_type: "market"`
+
+### Implicit Invocation (during task implementation)
+
+When an implementing agent encounters any of these patterns:
+
+**Plan step language patterns**:
+- "Analyze market size"
+- "Calculate TAM/SAM/SOM"
+- "Market sizing analysis"
+- "Estimate addressable market"
+
+**Target mentions**:
+- "TAM", "SAM", "SOM"
+- "total addressable market"
+- "market opportunity"
+- "market sizing"
+
+### When NOT to trigger
+
+Do not invoke for:
+- Competitive analysis (use skill-analyze)
+- GTM strategy (use skill-strategy)
+- General business research (use skill-researcher)
+- Revenue projections (not market sizing)
+
+---
+
+## Execution Flow
+
+### Stage 1: Input Validation
+
+Validate required inputs:
+- `task_number` - Must be provided and exist in state.json
+- `industry` - Optional, string
+- `segment` - Optional, string
+- `mode` - Optional, one of: VALIDATE, SIZE, SEGMENT, DEFEND
+
+```bash
+# Lookup task
+task_data=$(jq -r --argjson num "$task_number" \
+  '.active_projects[] | select(.project_number == $num)' \
+  specs/state.json)
+
+# Validate exists
+if [ -z "$task_data" ]; then
+  return error "Task $task_number not found"
+fi
+
+# Extract fields
+task_type=$(echo "$task_data" | jq -r '.task_type // "founder"')
+status=$(echo "$task_data" | jq -r '.status')
+project_name=$(echo "$task_data" | jq -r '.project_name')
+description=$(echo "$task_data" | jq -r '.description // ""')
+
+# Extract pre-gathered forcing_data (if present)
+forcing_data=$(echo "$task_data" | jq -r '.forcing_data // null')
+pre_gathered_mode=$(echo "$forcing_data" | jq -r '.mode // null' 2>/dev/null)
+
+# Validate mode if provided
+if [ -n "$mode" ]; then
+  case "$mode" in
+    VALIDATE|SIZE|SEGMENT|DEFEND) ;;
+    *) return error "Invalid mode: $mode. Must be VALIDATE, SIZE, SEGMENT, or DEFEND" ;;
+  esac
+fi
+```
+
+---
+
+### Stage 2: Preflight Status Update
+
+Update task status to "researching" BEFORE invoking subagent.
+
+**Update state.json**:
+```bash
+jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+   --arg status "researching" \
+   --arg sid "$session_id" \
+  '(.active_projects[] | select(.project_number == '$task_number')) |= . + {
+    status: $status,
+    last_updated: $ts,
+    session_id: $sid
+  }' specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
+```
+
+**Update TODO.md**: Use Edit tool to change status marker to `[RESEARCHING]`.
+
+---
+
+### Stage 3: Create Postflight Marker
+
+```bash
+padded_num=$(printf "%03d" "$task_number")
+mkdir -p "specs/${padded_num}_${project_name}"
+
+cat > "specs/${padded_num}_${project_name}/.postflight-pending" << EOF
+{
+  "session_id": "${session_id}",
+  "skill": "skill-market",
+  "task_number": ${task_number},
+  "operation": "research",
+  "reason": "Postflight pending: status update, artifact linking, git commit",
+  "created": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+EOF
+```
+
+---
+
+### Stage 4: Prepare Delegation Context
+
+Include pre-gathered forcing_data when available:
+
+```json
+{
+  "task_context": {
+    "task_number": N,
+    "project_name": "{project_name}",
+    "description": "{description}",
+    "task_type": "founder",
+    "task_type": "market"
+  },
+  "forcing_data": {
+    "mode": "{pre_gathered_mode}",
+    "problem": "{pre_gathered_problem}",
+    "target_entity": "{pre_gathered_target}",
+    "geography": "{pre_gathered_geography}",
+    "price_point": "{pre_gathered_price_point}",
+    "gathered_at": "{timestamp}"
+  },
+  "industry": "optional industry hint",
+  "segment": "optional segment hint",
+  "mode": "VALIDATE|SIZE|SEGMENT|DEFEND or use forcing_data.mode",
+  "metadata_file_path": "specs/{NNN}_{SLUG}/.return-meta.json",
+  "metadata": {
+    "session_id": "sess_{timestamp}_{random}",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "market", "skill-market"]
+  }
+}
+```
+
+**Note**: If `forcing_data` is present from STAGE 0 of /market command, pass it to the agent.
+The agent will use pre-gathered data and only ask follow-up questions for missing details.
+
+---
+
+### Stage 5: Invoke Agent
+
+**CRITICAL**: You MUST use the **Task** tool to spawn the agent.
+
+**Required Tool Invocation**:
+```
+Tool: Task (NOT Skill)
+Parameters:
+  - subagent_type: "market-agent"
+  - prompt: [Include task_context, forcing_data, industry, segment, mode, metadata_file_path, metadata]
+  - description: "Market sizing research with TAM/SAM/SOM"
+```
+
+The agent will:
+- Use pre-gathered forcing_data if available (skip already-answered questions)
+- Present mode selection only if not pre-selected
+- Ask follow-up forcing questions for details not in forcing_data
+- Create research report at specs/{NNN}_{SLUG}/reports/
+- Write metadata file
+- Return brief text summary
+
+---
+
+### Stage 5b: Self-Execution Fallback
+
+**CRITICAL**: If you performed the work above WITHOUT using the Task tool (i.e., you read files,
+wrote artifacts, or updated metadata directly instead of spawning a subagent), you MUST write a
+`.return-meta.json` file now before proceeding to postflight. Use the schema from
+`return-metadata-file.md` with the appropriate status value for this operation.
+
+If you DID use the Task tool, skip this stage -- the subagent already wrote the metadata.
+
+---
+
+## Postflight (ALWAYS EXECUTE)
+
+The following stages MUST execute after work is complete, whether the work was done by a
+subagent or inline (Stage 5b). Do NOT skip these stages for any reason.
+
+### Stage 6: Read Metadata File
+
+```bash
+padded_num=$(printf "%03d" "$task_number")
+metadata_file="specs/${padded_num}_${project_name}/.return-meta.json"
+
+if [ -f "$metadata_file" ] && jq empty "$metadata_file" 2>/dev/null; then
+    status=$(jq -r '.status' "$metadata_file")
+    artifact_path=$(jq -r '.artifacts[0].path // ""' "$metadata_file")
+    artifact_type=$(jq -r '.artifacts[0].type // ""' "$metadata_file")
+    artifact_summary=$(jq -r '.artifacts[0].summary // ""' "$metadata_file")
+else
+    status="failed"
+fi
+```
+
+---
+
+### Stage 7: Update Task Status (Postflight)
+
+If status is "researched", update state.json and TODO.md.
+
+**Update state.json**:
+```bash
+jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+   --arg status "researched" \
+  '(.active_projects[] | select(.project_number == '$task_number')) |= . + {
+    status: $status,
+    last_updated: $ts
+  }' specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
+```
+
+**Update TODO.md**: Use Edit tool to change status marker to `[RESEARCHED]`.
+
+---
+
+### Stage 8: Link Artifacts
+
+Add artifact to state.json with summary.
+
+**IMPORTANT**: Use two-step jq pattern to avoid escaping issues.
+
+```bash
+if [ -n "$artifact_path" ]; then
+    # Step 1: Filter out existing research artifacts (use "| not" pattern)
+    jq '(.active_projects[] | select(.project_number == '$task_number')).artifacts =
+        [(.active_projects[] | select(.project_number == '$task_number')).artifacts // [] | .[] | select(.type == "research" | not)]' \
+      specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
+
+    # Step 2: Add new research artifact
+    jq --arg path "$artifact_path" \
+       --arg type "$artifact_type" \
+       --arg summary "$artifact_summary" \
+      '(.active_projects[] | select(.project_number == '$task_number')).artifacts += [{"path": $path, "type": $type, "summary": $summary}]' \
+      specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
+fi
+```
+
+**Update TODO.md**: Link artifact using count-aware format.
+
+Apply the four-case Edit logic from `@.claude/context/patterns/artifact-linking-todo.md`
+with `field_name=**Research**`, `next_field=**Plan**`.
+
+---
+
+### Stage 9: Git Commit
+
+```bash
+git add -A
+git commit -m "task ${task_number}: complete research
+
+Session: ${session_id}
+```
+
+---
+
+### Stage 10: Cleanup
+
+```bash
+rm -f "specs/${padded_num}_${project_name}/.postflight-pending"
+rm -f "specs/${padded_num}_${project_name}/.postflight-loop-guard"
+rm -f "specs/${padded_num}_${project_name}/.return-meta.json"
+```
+
+---
+
+### Stage 11: Return Brief Summary
+
+```
+Market sizing research completed for task {N}:
+- Mode: {mode}, {questions_asked} forcing questions completed
+- Problem: {brief problem statement}
+- Entity count: {value} from {source}
+- Pre-gathered data used: {yes/no}
+- Research report: specs/{NNN}_{SLUG}/reports/01_{short-slug}.md
+- Status updated to [RESEARCHED]
+- Changes committed
+- Next: Run /plan {N} to create implementation plan
+```
+
+---
+
+## Return Format
+
+Brief text summary (NOT JSON).
+
+Expected successful return:
+```
+Market sizing research completed for task 234:
+- Mode: SIZE, 8 forcing questions completed
+- Problem: Streamline deploy coordination for mid-market SaaS
+- Entity count: 500,000 mid-market SaaS companies globally (Gartner)
+- Pre-gathered data used: yes (4 questions from STAGE 0)
+- Research report: specs/234_market_sizing_fintech/reports/01_market-sizing.md
+- Status updated to [RESEARCHED]
+- Changes committed with session sess_1736700000_abc123
+- Next: Run /plan 234 to create implementation plan
+```
+
+---
+
+## Error Handling
+
+### Input Validation Errors
+Return immediately if task not found.
+
+### Metadata File Missing
+Keep status as "researching" for resume.
+
+### User Abandonment
+Return partial status with progress made.
+
+### Git Commit Failure
+Non-blocking: Log failure but continue.

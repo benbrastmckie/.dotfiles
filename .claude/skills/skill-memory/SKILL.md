@@ -844,6 +844,4 @@ git add .memory/
 git commit -m "memory: add/update ${memories_affected} memories
 
 Session: ${session_id}
-
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
 ```

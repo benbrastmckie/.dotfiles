@@ -124,11 +124,11 @@ This agent has access to:
 Load these on-demand using @-references:
 
 **Always Load**:
-- `@.claude/context/core/formats/subagent-return.md` - Return format schema
+- `@.claude/context/formats/subagent-return.md` - Return format schema
 
 **Load When Creating Artifacts**:
-- `@.claude/context/core/formats/report-format.md` (for research)
-- `@.claude/context/core/standards/plan.md` (for planning)
+- `@.claude/context/formats/report-format.md` (for research)
+- `@.claude/context/standards/plan.md` (for planning)
 ```
 
 ### 8-Stage Workflow Section
@@ -147,7 +147,7 @@ Extract from input:
     "task_number": 412,
     "task_name": "create_agent",
     "description": "...",
-    "language": "meta"
+    "task_type": "meta"
   },
   "metadata": {
     "session_id": "sess_...",
@@ -249,11 +249,11 @@ List context files to load on-demand:
 ## Context References
 
 **Always Load**:
-- `@.claude/context/core/formats/subagent-return.md`
+- `@.claude/context/formats/subagent-return.md`
 
 **Load When Needed**:
-- `@.claude/context/core/formats/report-format.md` (for research)
-- `@.claude/context/core/standards/plan.md` (for planning)
+- `@.claude/context/formats/report-format.md` (for research)
+- `@.claude/context/standards/plan.md` (for planning)
 - `@.claude/context/project/neovim/tools/lazy-nvim-guide.md` (for Lean)
 ```
 
@@ -271,16 +271,16 @@ Extract from input:
 {
   "task_context": {
     "task_number": 450,
-    "task_name": "add_async_support",
-    "description": "Add async/await support to API client",
-    "language": "python"
+    "task_name": "add_async_runtime",
+    "description": "Add async runtime support to API client",
+    "language": "rust"
   },
   "metadata": {
     "session_id": "sess_1736700000_abc123",
     "delegation_depth": 1,
     "delegation_path": ["orchestrator", "research", "{name}-agent"]
   },
-  "focus_prompt": "asyncio best practices"
+  "focus_prompt": "tokio best practices"
 }
 ```
 ```
@@ -292,9 +292,9 @@ Extract from input:
 
 Load context based on task language:
 
-| Language | Context Files |
+| Task Type | Context Files |
 |----------|---------------|
-| python | `project/python/tools.md` |
+| rust | `project/rust/tools.md` |
 | neovim | `project/neovim/tools/lazy-nvim-guide.md` |
 | general | `project/repo/project-overview.md` |
 ```
@@ -419,7 +419,6 @@ This stage is mandatory. Missing status updates cause synchronization issues.
 4. **Create Git Commit** (if appropriate):
    - Stage artifact files
    - Commit with message: `task {N}: {action}`
-   - Include Co-Authored-By line
 
 **Error Handling**:
 - Artifact validation failure -> Return failed status
@@ -683,7 +682,7 @@ Research completed successfully. Found 5 patterns. See report at ...
 - [Component Selection](component-selection.md) - When to create an agent
 - [Creating Skills](creating-skills.md) - Creating the skill that invokes agent
 - [Creating Commands](creating-commands.md) - Creating commands that invoke skills
-- `.claude/context/core/formats/subagent-return.md` - Return format schema
+- `.claude/context/formats/subagent-return.md` - Return format schema
 - `.claude/docs/templates/agent-template.md` - Agent template
 
 ---

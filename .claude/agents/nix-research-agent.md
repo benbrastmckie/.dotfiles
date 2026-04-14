@@ -49,10 +49,10 @@ This agent has access to:
 Load these on-demand using @-references:
 
 **Always Load**:
-- `@.claude/context/core/formats/return-metadata-file.md` - Metadata file schema
+- `@.claude/context/formats/return-metadata-file.md` - Metadata file schema
 
 **Load When Creating Report**:
-- `@.claude/context/core/formats/report-format.md` - Research report structure
+- `@.claude/context/formats/report-format.md` - Research report structure
 
 **Load for Nix Research**:
 - `@.claude/context/project/nix/README.md` - Nix context overview
@@ -246,7 +246,7 @@ Extract from input:
     "task_number": 412,
     "task_name": "configure_home_manager_module",
     "description": "...",
-    "language": "nix"
+    "task_type": "nix"
   },
   "metadata": {
     "session_id": "sess_...",

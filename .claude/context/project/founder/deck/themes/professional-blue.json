@@ -1,0 +1,32 @@
+{
+  "id": "theme-professional-blue",
+  "name": "Professional Blue",
+  "headmatter": {
+    "theme": "seriph",
+    "colorSchema": "light",
+    "aspectRatio": "16/9",
+    "canvasWidth": 980,
+    "fonts": {
+      "sans": "Inter",
+      "serif": "Montserrat"
+    },
+    "transition": "fade",
+    "themeConfig": {
+      "primary": "#2b6cb0"
+    },
+    "download": true
+  },
+  "style_presets": [
+    "styles/colors/light-blue-corp.css",
+    "styles/typography/montserrat-inter.css"
+  ],
+  "css_variables": {
+    "--slidev-bg": "#ffffff",
+    "--slidev-text": "#1a365d",
+    "--slidev-text-secondary": "#2d3748",
+    "--slidev-text-muted": "#a0aec0",
+    "--slidev-accent": "#2b6cb0",
+    "--slidev-accent-light": "#4299e1"
+  },
+  "scoped_css_template": "h1 { font-family: 'Montserrat'; font-size: 3em; font-weight: 700; color: var(--slidev-text); }\nh2 { font-family: 'Montserrat'; font-size: 2.25em; font-weight: 600; color: var(--slidev-text-secondary); }\np, li { font-size: 1.5em; line-height: 1.4; color: var(--slidev-text-secondary); }"
+}

@@ -1,0 +1,125 @@
+{
+  "academic-clean": {
+    "palette": {
+      "background": "#ffffff",
+      "text": "#1a1a2e",
+      "heading": "#16213e",
+      "accent": "#3b5998",
+      "accent_light": "#ebf0f9",
+      "muted": "#6b7280",
+      "highlight": "#2563eb",
+      "success": "#059669",
+      "warning": "#d97706",
+      "error": "#dc2626"
+    },
+    "typography": {
+      "heading_font": "Georgia",
+      "body_font": "Helvetica Neue",
+      "code_font": "Courier New",
+      "heading_size_pt": 32,
+      "body_size_pt": 18,
+      "caption_size_pt": 14,
+      "heading_bold": true,
+      "heading_weight": 700,
+      "body_weight": 400
+    },
+    "spacing": {
+      "content_left": 0.75,
+      "content_top": 0.5,
+      "content_width": 11.8,
+      "paragraph_space_pt": 9,
+      "section_gap_inches": 0.35,
+      "element_gap_inches": 0.18
+    },
+    "borders": {
+      "divider_color": "#e5e7eb",
+      "divider_width_pt": 1,
+      "accent_bar_color": "#3b5998",
+      "accent_bar_width_pt": 3,
+      "table_header_color": "#3b5998",
+      "table_header_width_pt": 2
+    }
+  },
+  "clinical-teal": {
+    "palette": {
+      "background": "#ffffff",
+      "text": "#1a202c",
+      "heading": "#0d4f4f",
+      "accent": "#0d9488",
+      "accent_light": "#f0fdfa",
+      "muted": "#64748b",
+      "highlight": "#0891b2",
+      "success": "#059669",
+      "warning": "#d97706",
+      "error": "#dc2626"
+    },
+    "typography": {
+      "heading_font": "Segoe UI",
+      "body_font": "Segoe UI",
+      "code_font": "Courier New",
+      "heading_size_pt": 32,
+      "body_size_pt": 18,
+      "caption_size_pt": 14,
+      "heading_bold": true,
+      "heading_weight": 600,
+      "body_weight": 400
+    },
+    "spacing": {
+      "content_left": 0.75,
+      "content_top": 0.5,
+      "content_width": 11.8,
+      "paragraph_space_pt": 9,
+      "section_gap_inches": 0.35,
+      "element_gap_inches": 0.18
+    },
+    "borders": {
+      "divider_color": "#e2e8f0",
+      "divider_width_pt": 1,
+      "accent_bar_color": "#0d9488",
+      "accent_bar_width_pt": 3,
+      "table_header_color": "#0d9488",
+      "table_header_width_pt": 2
+    }
+  },
+  "ucsf-institutional": {
+    "palette": {
+      "background": "#ffffff",
+      "text": "#1a202c",
+      "heading": "#052049",
+      "accent": "#0093D0",
+      "accent_light": "#e6f2fa",
+      "muted": "#5f6b7a",
+      "highlight": "#16A0AC",
+      "success": "#32A03E",
+      "warning": "#d97706",
+      "error": "#dc2626"
+    },
+    "typography": {
+      "heading_font": "Garamond",
+      "body_font": "Arial",
+      "code_font": "Courier New",
+      "heading_size_pt": 32,
+      "body_size_pt": 18,
+      "caption_size_pt": 14,
+      "heading_bold": true,
+      "heading_weight": 700,
+      "body_weight": 400
+    },
+    "spacing": {
+      "content_left": 0.75,
+      "content_top": 0.5,
+      "content_width": 11.8,
+      "paragraph_space_pt": 9,
+      "section_gap_inches": 0.35,
+      "element_gap_inches": 0.18
+    },
+    "borders": {
+      "divider_color": "#d1d5db",
+      "divider_width_pt": 1,
+      "accent_bar_color": "#0093D0",
+      "accent_bar_width_pt": 3,
+      "table_header_color": "#052049",
+      "table_header_width_pt": 2
+    }
+  }
+}

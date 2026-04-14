@@ -12,7 +12,7 @@ Create properly scoped git commits for task operations.
 ## Context Loading
 
 Load context on-demand when needed:
-- `@.claude/context/core/standards/git-safety.md` - Git safety rules and best practices
+- `@.claude/context/standards/git-safety.md` - Git safety rules and best practices
 - `@.claude/context/index.json` - Full context discovery index
 
 ## Trigger Conditions
@@ -111,8 +111,6 @@ Updated plan with phase status
 
 ```
 {scope}: {action} {description}
-
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 ```
 
 ## CI Triggering
@@ -149,8 +147,6 @@ Skip CI (default) when:
 
 ```
 task {N}: complete implementation [ci]
-
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 ```
 
 ### When CI Always Runs
@@ -167,8 +163,6 @@ CI runs regardless of marker on:
 git add {files}
 git commit -m "$(cat <<'EOF'
 {message}
-
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 EOF
 )"
 ```
@@ -178,8 +172,6 @@ EOF
 git add specs/
 git commit -m "$(cat <<'EOF'
 task {N}: {action}
-
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 EOF
 )"
 ```

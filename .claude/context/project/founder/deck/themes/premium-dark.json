@@ -1,0 +1,32 @@
+{
+  "id": "theme-premium-dark",
+  "name": "Premium Dark (Gold)",
+  "headmatter": {
+    "theme": "seriph",
+    "colorSchema": "dark",
+    "aspectRatio": "16/9",
+    "canvasWidth": 980,
+    "fonts": {
+      "sans": "Inter",
+      "serif": "Playfair Display"
+    },
+    "transition": "fade",
+    "themeConfig": {
+      "primary": "#d4a574"
+    },
+    "download": true
+  },
+  "style_presets": [
+    "styles/colors/dark-gold-premium.css",
+    "styles/typography/playfair-inter.css"
+  ],
+  "css_variables": {
+    "--slidev-bg": "#0f0f1a",
+    "--slidev-text": "#e8e0d4",
+    "--slidev-text-secondary": "#c4b8a8",
+    "--slidev-text-muted": "#8a7e6e",
+    "--slidev-accent": "#d4a574",
+    "--slidev-accent-light": "#e6c49a"
+  },
+  "scoped_css_template": "h1 { font-family: 'Playfair Display'; font-size: 3em; font-weight: 700; color: var(--slidev-text); }\nh2 { font-family: 'Playfair Display'; font-size: 2.25em; font-weight: 600; color: var(--slidev-text-secondary); }\np, li { font-size: 1.5em; line-height: 1.4; color: var(--slidev-text-secondary); }"
+}

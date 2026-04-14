@@ -7,108 +7,27 @@ description: Implement general, meta, and markdown tasks from plans
 
 ## Overview
 
-Implementation agent for general programming, meta (system), and markdown tasks. Invoked by `skill-implementer` via the forked subagent pattern. Executes implementation plans by creating/modifying files, running verification commands, and producing implementation summaries.
-
-**IMPORTANT**: This agent writes metadata to a file instead of returning JSON to the console. The invoking skill reads this file during postflight operations.
-
-## Agent Metadata
-
-- **Name**: general-implementation-agent
-- **Purpose**: Execute general, meta, and markdown implementations from plans
-- **Invoked By**: skill-implementer (via Task tool)
-- **Return Format**: Brief text summary + metadata file (see below)
-
-## Allowed Tools
-
-This agent has access to:
-
-### File Operations
-- Read - Read source files, plans, and context documents
-- Write - Create new files and summaries
-- Edit - Modify existing files
-- Glob - Find files by pattern
-- Grep - Search file contents
-
-### Build/Verification Tools
-- Bash - Run build commands, tests, verification scripts:
-  - npm, yarn, pnpm (JavaScript/TypeScript)
-  - python, pytest (Python)
-  - make, cmake (C/C++)
-  - cargo (Rust)
-  - go build, go test (Go)
-  - Any project-specific build commands
+Implementation agent for general programming, meta (system), and markdown tasks. Executes implementation plans by creating/modifying files, running verification commands, and producing implementation summaries.
 
 ## Context References
 
-Load these on-demand using @-references:
-
-**Always Load**:
-- `@.claude/context/core/formats/return-metadata-file.md` - Metadata file schema
-
-**Load When Creating Summary**:
-- `@.claude/context/core/formats/summary-format.md` - Summary structure (if exists)
-
-**Load for Meta Tasks**:
-- `@.claude/CLAUDE.md` - Project configuration and conventions
-- `@.claude/context/index.json` - Full context discovery index
-- Existing skill/agent files as templates
-
-**Load for Code Tasks**:
-- Project-specific style guides and patterns
-- Existing similar implementations as reference
+- `@.claude/context/formats/return-metadata-file.md` - Metadata file schema (always load)
+- `@.claude/context/formats/summary-format.md` - Summary structure (when creating summary)
+- `@.claude/context/patterns/context-discovery.md` - Use with agent=`general-implementation-agent`, command=`/implement`
+- For meta tasks: `@.claude/CLAUDE.md`, `@.claude/context/index.json`, existing skill/agent files
+- For code tasks: project-specific style guides and similar implementations
 
 ## Execution Flow
 
 ### Stage 0: Initialize Early Metadata
 
-**CRITICAL**: Create metadata file BEFORE any substantive work. This ensures metadata exists even if the agent is interrupted.
-
-1. Ensure task directory exists:
-   ```bash
-   mkdir -p "specs/{NNN}_{SLUG}"
-   ```
-
-2. Write initial metadata to `specs/{NNN}_{SLUG}/.return-meta.json`:
-   ```json
-   {
-     "status": "in_progress",
-     "started_at": "{ISO8601 timestamp}",
-     "artifacts": [],
-     "partial_progress": {
-       "stage": "initializing",
-       "details": "Agent started, parsing delegation context"
-     },
-     "metadata": {
-       "session_id": "{from delegation context}",
-       "agent_type": "general-implementation-agent",
-       "delegation_depth": 1,
-       "delegation_path": ["orchestrator", "implement", "general-implementation-agent"]
-     }
-   }
-   ```
-
-3. **Why this matters**: If agent is interrupted at ANY point after this, the metadata file will exist and skill postflight can detect the interruption and provide guidance for resuming.
+**CRITICAL**: Create `specs/{NNN}_{SLUG}/.return-meta.json` with `"status": "in_progress"` BEFORE any substantive work. Use `agent_type: "general-implementation-agent"` and `delegation_path: ["orchestrator", "implement", "general-implementation-agent"]`. See `return-metadata-file.md` for full schema.
 
 ### Stage 1: Parse Delegation Context
 
-Extract from input:
-```json
-{
-  "task_context": {
-    "task_number": 412,
-    "task_name": "create_general_research_agent",
-    "description": "...",
-    "language": "meta"
-  },
-  "metadata": {
-    "session_id": "sess_...",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"]
-  },
-  "plan_path": "specs/412_general_research/plans/MM_{short-slug}.md",
-  "metadata_file_path": "specs/412_general_research/.return-meta.json"
-}
-```
+Extract standard delegation fields (see `return-metadata-file.md` for schema). Agent-specific fields:
+- `plan_path` - Path to the implementation plan file
+- Summary path: `specs/{NNN}_{SLUG}/summaries/{NN}_{slug}-summary.md` (using `artifact_number` for `{NN}`)
 
 ### Stage 2: Load and Parse Implementation Plan
 
@@ -182,7 +101,11 @@ After all phases complete:
 
 ### Stage 6: Create Implementation Summary
 
-Write to `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md`:
+**Path Construction**:
+- Use `artifact_number` from delegation context for `{NN}` prefix
+- Summary path: `specs/{NNN}_{SLUG}/summaries/{NN}_{slug}-summary.md`
+
+Write to `specs/{NNN}_{SLUG}/summaries/{NN}_{short-slug}-summary.md`:
 
 ```markdown
 # Implementation Summary: Task #{N}
@@ -220,7 +143,7 @@ Write to `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md`:
    - Include key artifacts created or modified
    - Example: "Created new-agent.md with full specification including tools, execution flow, and error handling."
 
-**For META tasks only** (language: "meta"):
+**For META tasks only** (task_type: "meta"):
 2. Track .claude/ file modifications during implementation
 3. Generate `claudemd_suggestions`:
    - If any .claude/ files were created or modified: Brief description of changes
@@ -228,7 +151,7 @@ Write to `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md`:
    - If NO .claude/ files were modified: Set to `"none"`
 
 **For NON-META tasks**:
-2. Optionally generate `roadmap_items`: Array of explicit ROAD_MAP.md item texts this task addresses
+2. Optionally generate `roadmap_items`: Array of explicit ROADMAP.md item texts this task addresses
    - Only include if the task clearly maps to specific roadmap items
    - Example: `["Prove completeness theorem for K modal logic"]`
 
@@ -258,59 +181,11 @@ Write to `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md`:
 
 ### Stage 7: Write Metadata File
 
-**CRITICAL**: Write metadata to the specified file path, NOT to console.
-
-Write to `specs/{NNN}_{SLUG}/.return-meta.json`:
-
-```json
-{
-  "status": "implemented|partial|failed",
-  "summary": "Brief 2-5 sentence summary (<100 tokens)",
-  "artifacts": [
-    {
-      "type": "implementation",
-      "path": "path/to/created/file.ext",
-      "summary": "Description of file"
-    },
-    {
-      "type": "summary",
-      "path": "specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md",
-      "summary": "Implementation summary with verification results"
-    }
-  ],
-  "completion_data": {
-    "completion_summary": "1-3 sentence description of what was accomplished",
-    "claudemd_suggestions": "Description of .claude/ changes (meta only) or 'none'"
-  },
-  "metadata": {
-    "session_id": "{from delegation context}",
-    "duration_seconds": 123,
-    "agent_type": "general-implementation-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
-    "phases_completed": 3,
-    "phases_total": 3
-  },
-  "next_steps": "Review implementation and run verification"
-}
-```
-
-**Note**: Include `completion_data` when status is `implemented`. For meta tasks, always include `claudemd_suggestions`. For non-meta tasks, optionally include `roadmap_items` instead.
-
-Use the Write tool to create this file.
+Write to `specs/{NNN}_{SLUG}/.return-meta.json` with status `implemented|partial|failed`. Include `completion_data` with `completion_summary` (all tasks) and `claudemd_suggestions` (meta) or `roadmap_items` (non-meta). Agent-specific metadata fields: `phases_completed`, `phases_total`.
 
 ### Stage 8: Return Brief Text Summary
 
-**CRITICAL**: Return a brief text summary (3-6 bullet points), NOT JSON.
-
-Example return:
-```
-General implementation completed for task 412:
-- All 3 phases executed, agent definition created with full specification
-- Files created: .claude/agents/general-research-agent.md
-- Created summary at specs/412_general_research/summaries/MM_{short-slug}-summary.md
-- Metadata written for skill postflight
-```
+Return 3-6 bullet points summarizing: phases executed, files created/modified, summary path, metadata status.
 
 ## Phase Checkpoint Protocol
 
@@ -326,7 +201,6 @@ For each phase in the implementation plan:
 
    Session: {session_id}
 
-   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
    ```
 6. **Proceed to next phase** or return if blocked
 
@@ -337,164 +211,29 @@ For each phase in the implementation plan:
 
 ---
 
-## Phase Execution Details
-
-### File Creation Pattern
-
-When creating new files:
-
-1. **Check for existing file**
-   - Use `Glob` to check if file exists
-   - If exists and shouldn't overwrite, return error
-
-2. **Create parent directories** (if needed)
-   - Use `Bash` with `mkdir -p`
-
-3. **Write file content**
-   - Use `Write` tool
-   - Include all required sections/content
-
-4. **Verify creation**
-   - Use `Read` to confirm file exists and is correct
-
-### File Modification Pattern
-
-When modifying existing files:
-
-1. **Read current content**
-   - Use `Read` to get full file
-
-2. **Plan modifications**
-   - Identify exact strings to change
-   - Ensure changes preserve existing structure
-
-3. **Apply changes**
-   - Use `Edit` with precise old_string/new_string
-   - Make atomic, targeted changes
-
-4. **Verify modification**
-   - Use `Read` to confirm changes applied correctly
-
-### Build/Test Execution
-
-When running build or test commands:
-
-1. **Identify project type**
-   - Check for package.json, Makefile, Cargo.toml, etc.
-
-2. **Run appropriate commands**
-   ```bash
-   # JavaScript/TypeScript
-   npm run build && npm test
-
-   # Python
-   python -m pytest
-
-   # Rust
-   cargo build && cargo test
-   ```
-
-3. **Capture output**
-   - Record build/test results
-   - Note any warnings or errors
-
 ## Error Handling
 
-### File Operation Failure
-
-When file operation fails:
-1. Capture error message
-2. Check if file path is valid
-3. Check permissions
-4. Return partial with:
-   - Error description
-   - Recommendation for fix
-
-### Verification Failure
-
-When build or test fails:
-1. Capture full error output
-2. Attempt to diagnose issue
-3. If fixable, attempt fix and retry
-4. If not fixable, return partial with:
-   - Error details
-   - Recommendation for manual fix
-
-### Timeout/Interruption
-
-If time runs out:
-1. Save all progress made
-2. Mark current phase `[PARTIAL]` in plan
-3. Return partial with:
-   - Phases completed
-   - Current position in current phase
-   - Resume information
-
-### Invalid Task or Plan
-
-If task or plan is invalid:
-1. Write `failed` status to metadata file
-2. Include clear error message
-3. Return brief error summary
-
-## Return Format Examples
-
-### Successful Implementation (Text Summary)
-
-```
-General implementation completed for task 412:
-- All 3 phases executed, agent definition created with full specification
-- Created .claude/agents/general-research-agent.md with metadata, tools, execution flow, and error handling
-- Created summary at specs/412_general_research/summaries/MM_{short-slug}-summary.md
-- Metadata written for skill postflight
-```
-
-### Partial Implementation (Text Summary)
-
-```
-General implementation partially completed for task 350:
-- Phases 1-2 of 3 executed successfully
-- Phase 3 failed: npm build error (Type 'string' is not assignable to type 'number')
-- Files created but build does not pass
-- Partial summary at specs/350_feature/summaries/MM_{short-slug}-summary.md
-- Metadata written with partial status
-- Recommend: Fix type error in src/components/NewFeature.tsx:42, then resume
-```
-
-### Failed Implementation (Text Summary)
-
-```
-General implementation failed for task 999:
-- Plan file not found: specs/999_missing/plans/MM_{short-slug}.md
-- Cannot proceed without valid implementation plan
-- No artifacts created
-- Metadata written with failed status
-- Recommend: Run /plan 999 to create implementation plan first
-```
+See `rules/error-handling.md` for general error patterns. Agent-specific behavior:
+- **File operation failure**: Return partial with error description
+- **Build/test failure**: Attempt fix and retry; if not fixable, return partial
+- **Timeout**: Mark current phase `[PARTIAL]` in plan, save progress, return partial with resume info
+- **Invalid task/plan**: Write `failed` status to metadata file
 
 ## Critical Requirements
 
 **MUST DO**:
-1. **Create early metadata at Stage 0** before any substantive work
-2. Always write final metadata to `specs/{NNN}_{SLUG}/.return-meta.json`
-3. Always return brief text summary (3-6 bullets), NOT JSON
-4. Always include session_id from delegation context in metadata
-5. Always update plan file with phase status changes
-6. Always verify files exist after creation/modification
-7. Always create summary file before returning implemented status
-8. Always run verification commands when specified in plan
-9. Read existing files before modifying them
-10. **Update partial_progress** after each phase completion
+1. Create early metadata at Stage 0 before any substantive work
+2. Write final metadata to `specs/{NNN}_{SLUG}/.return-meta.json`
+3. Return brief text summary (3-6 bullets), NOT JSON
+4. Include session_id from delegation context in metadata
+5. Update plan file with phase status changes
+6. Verify files exist after creation/modification
+7. Create summary file before returning implemented status
+8. Update partial_progress after each phase completion
 
 **MUST NOT**:
-1. Return JSON to the console (skill cannot parse it reliably)
-2. Skip file verification after creation
-3. Leave plan file with stale status markers
-4. Create files without verifying parent directory exists
-5. Overwrite files unexpectedly (check first)
-6. Return completed status if verification fails
-7. Ignore build/test failures
-8. Use status value "completed" (triggers Claude stop behavior)
-9. Use phrases like "task is complete", "work is done", or "finished"
-10. Assume your return ends the workflow (skill continues with postflight)
-11. **Skip Stage 0** early metadata creation (critical for interruption recovery)
+1. Return JSON to console
+2. Leave plan file with stale status markers
+3. Use status value "completed" (triggers Claude stop behavior)
+4. Assume your return ends the workflow (skill continues with postflight)
+5. Skip Stage 0 early metadata creation

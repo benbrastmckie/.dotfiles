@@ -1,0 +1,22 @@
+{
+  "name": "DECK_NAME",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DECK_DESCRIPTION",
+  "_slidev_template_version": "52.14",
+  "scripts": {
+    "dev": "slidev --open",
+    "build": "slidev build",
+    "export": "slidev export",
+    "export-png": "slidev export --format png"
+  },
+  "dependencies": {
+    "@slidev/cli": "^52.14.2",
+    "lz-string": "^1.5.0",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "playwright-chromium": "^1.48.0"
+  },
+  "packageManager": "pnpm@9.12.0"
+}

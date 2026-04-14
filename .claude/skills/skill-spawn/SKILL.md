@@ -15,9 +15,9 @@ Thin wrapper that delegates blocker analysis to `spawn-agent` subagent, then han
 ## Context References
 
 Reference (do not load eagerly):
-- Path: `.claude/context/core/formats/return-metadata-file.md` - Metadata file schema
-- Path: `.claude/context/core/patterns/postflight-control.md` - Marker file protocol
-- Path: `.claude/context/core/patterns/jq-escaping-workarounds.md` - jq escaping patterns (Issue #1132)
+- Path: `.claude/context/formats/return-metadata-file.md` - Metadata file schema
+- Path: `.claude/context/patterns/postflight-control.md` - Marker file protocol
+- Path: `.claude/context/patterns/jq-escaping-workarounds.md` - jq escaping patterns (Issue #1132)
 
 Note: This skill is a thin wrapper with internal postflight. Context is loaded by the delegated agent.
 
@@ -55,7 +55,7 @@ fi
 
 # Extract fields
 project_name=$(echo "$task_data" | jq -r '.project_name')
-language=$(echo "$task_data" | jq -r '.language // "general"')
+task_type=$(echo "$task_data" | jq -r '.task_type // "general"')
 status=$(echo "$task_data" | jq -r '.status')
 description=$(echo "$task_data" | jq -r '.description // ""')
 ```
@@ -139,7 +139,7 @@ Prepare delegation context for the subagent:
     "project_number": N,
     "project_name": "{slug}",
     "status": "blocked",
-    "language": "{language}",
+    "task_type": "{task_type}",
     "description": "{description}",
     "effort": "{effort}"
   },
@@ -176,9 +176,25 @@ The subagent will:
 
 ---
 
+### Stage 6b: Self-Execution Fallback
+
+**CRITICAL**: If you performed the work above WITHOUT using the Task tool (i.e., you read files,
+wrote artifacts, or updated metadata directly instead of spawning a subagent), you MUST write a
+`.return-meta.json` file now before proceeding to postflight. Use the schema from
+`return-metadata-file.md` with the appropriate status value for this operation.
+
+If you DID use the Task tool, skip this stage -- the subagent already wrote the metadata.
+
+---
+
+## Postflight (ALWAYS EXECUTE)
+
+The following stages MUST execute after work is complete, whether the work was done by a
+subagent or inline (Stage 6b). Do NOT skip these stages for any reason.
+
 ### Stage 7: Read Return Metadata
 
-After subagent returns, read the spawn return file:
+Read the spawn return file:
 
 ```bash
 spawn_file="specs/${padded_num}_${project_name}/.spawn-return.json"
@@ -266,7 +282,7 @@ for idx in $(echo "$dependency_order" | jq -r '.[]'); do
     task_title=$(jq -r --argjson i "$idx" '.new_tasks[$i].title' "$spawn_file")
     task_desc=$(jq -r --argjson i "$idx" '.new_tasks[$i].description' "$spawn_file")
     task_effort=$(jq -r --argjson i "$idx" '.new_tasks[$i].effort' "$spawn_file")
-    task_lang=$(jq -r --argjson i "$idx" '.new_tasks[$i].language' "$spawn_file")
+    task_lang=$(jq -r --argjson i "$idx" '.new_tasks[$i].task_type' "$spawn_file")
     internal_deps=$(jq -r --argjson i "$idx" '.new_tasks[$i].dependencies' "$spawn_file")
 
     # Convert internal deps to task numbers
@@ -293,7 +309,7 @@ for idx in $(echo "$dependency_order" | jq -r '.[]'); do
         "project_number": $num,
         "project_name": $name,
         "status": "researched",
-        "language": $lang,
+        "task_type": $lang,
         "description": $desc,
         "effort": $effort,
         "parent_task": $parent,
@@ -320,7 +336,7 @@ Insert new task entries after the Tasks header, in topological order:
 ### {NEW_TASK_NUM}. {Title}
 - **Effort**: {estimate}
 - **Status**: [RESEARCHED]
-- **Language**: {language}
+- **Task Type**: {task_type}
 - **Dependencies**: Task #{dep1}, Task #{dep2}  OR  None
 - **Parent Task**: #{parent_task_number}
 - **Started**: {timestamp}
@@ -392,7 +408,6 @@ task {N}: spawn {M} tasks to resolve blocker
 
 Session: {session_id}
 
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 EOF
 )"
 ```
@@ -475,7 +490,7 @@ The postflight phase is LIMITED TO:
 - Git commit
 - Cleanup of temp/marker files
 
-Reference: @.claude/context/core/standards/postflight-tool-restrictions.md
+Reference: @.claude/context/standards/postflight-tool-restrictions.md
 
 ---
 
