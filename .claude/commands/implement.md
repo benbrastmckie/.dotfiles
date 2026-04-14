@@ -173,29 +173,19 @@ if validated_tasks is empty:
 batch_session_id="sess_$(date +%s)_$(od -An -N3 -tx1 /dev/urandom | tr -d ' ')"
 ```
 
-#### Step 3: Invoke Batch Skill
+#### Step 3: Dispatch Agents
 
-Invoke a single batch skill that orchestrates parallel agent spawning internally.
+For each validated task, spawn an independent implementation agent using the orchestrator's built-in batch loop:
 
-```
-Tool: Skill
-Parameters:
-  skill: "skill-batch-dispatch"
-  args: |
-    command=implement
-    task_numbers={validated_tasks joined by comma}
-    session_id={batch_session_id}
-    remaining_args={remaining_args}
-```
-
-The batch skill handles:
-- Task type extraction per task (from state.json)
-- Agent routing per task (using existing task-type-based routing from extension manifests)
-- Parallel Task tool spawning (one agent per task)
+- Extract task type per task (from state.json)
+- Route per task using existing task-type-based routing from extension manifests
+- Spawn one agent per task via parallel Task tool calls
 - Per-task lifecycle: preflight status update, agent execution, postflight status update
-- Result collection
+- Collect results from all agents
 
-**--force flag**: When `--force` is present in `remaining_args`, the batch skill passes it to each spawned agent, which bypasses status validation in its single-task GATE IN.
+**Note**: Batch dispatch is handled directly by this command's orchestrator loop, not by a separate skill.
+
+**--force flag**: When `--force` is present in `remaining_args`, it is passed to each spawned agent, which bypasses status validation in its single-task GATE IN.
 
 **--team flag**: When `--team` is present in `remaining_args`, each task gets team mode (multiple agents per task). Total agents = `N_tasks * team_size`. Cost warning applies.
 

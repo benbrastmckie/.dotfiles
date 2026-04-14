@@ -1,10 +1,10 @@
 ---
-name: spreadsheet-agent
+name: founder-spreadsheet-agent
 description: Cost breakdown spreadsheet generation with forcing questions
 mcp-servers: []
 ---
 
-# Spreadsheet Agent
+# Founder Spreadsheet Agent
 
 ## Overview
 
@@ -12,9 +12,9 @@ Cost breakdown spreadsheet agent that produces XLSX files with native Excel form
 
 ## Agent Metadata
 
-- **Name**: spreadsheet-agent
+- **Name**: founder-spreadsheet-agent
 - **Purpose**: Cost breakdown spreadsheet generation with forcing questions
-- **Invoked By**: skill-spreadsheet (via Task tool)
+- **Invoked By**: skill-founder-spreadsheet (via Task tool)
 - **Return Format**: JSON metadata file + brief text summary
 
 ## Allowed Tools
@@ -87,7 +87,7 @@ Extract from input:
   "metadata": {
     "session_id": "sess_...",
     "delegation_depth": 2,
-    "delegation_path": ["orchestrator", "sheet", "skill-spreadsheet"]
+    "delegation_path": ["orchestrator", "sheet", "skill-founder-spreadsheet"]
   }
 }
 ```
@@ -455,9 +455,9 @@ Write final metadata to specified path:
   "metadata": {
     "session_id": "{from delegation context}",
     "duration_seconds": 300,
-    "agent_type": "spreadsheet-agent",
+    "agent_type": "founder-spreadsheet-agent",
     "delegation_depth": 2,
-    "delegation_path": ["orchestrator", "sheet", "skill-spreadsheet", "spreadsheet-agent"],
+    "delegation_path": ["orchestrator", "sheet", "skill-founder-spreadsheet", "founder-spreadsheet-agent"],
     "mode": "{selected_mode}",
     "questions_asked": 8,
     "line_items": 12,

@@ -1,6 +1,8 @@
 ---
 description: Manage Claude Code resources - terminate orphaned processes and clean up files
 allowed-tools: Bash, Read, Glob, AskUserQuestion
+argument-hint: [--dry-run] [--force]
+model: opus
 ---
 
 # /refresh Command

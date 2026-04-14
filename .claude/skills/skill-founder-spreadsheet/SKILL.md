@@ -1,12 +1,12 @@
 ---
-name: skill-spreadsheet
+name: skill-founder-spreadsheet
 description: Cost breakdown spreadsheet generation with forcing questions
 allowed-tools: Task, Bash, Edit, Read, Write
 ---
 
 # Spreadsheet Skill
 
-Thin wrapper that routes cost breakdown spreadsheet requests to the `spreadsheet-agent`.
+Thin wrapper that routes cost breakdown spreadsheet requests to the `founder-spreadsheet-agent`.
 
 **IMPORTANT**: This skill implements the skill-internal postflight pattern. After the subagent returns,
 this skill handles all postflight operations (status update, artifact linking, git commit) before returning.
@@ -123,7 +123,7 @@ mkdir -p "specs/${padded_num}_${project_name}"
 cat > "specs/${padded_num}_${project_name}/.postflight-pending" << EOF
 {
   "session_id": "${session_id}",
-  "skill": "skill-spreadsheet",
+  "skill": "skill-founder-spreadsheet",
   "task_number": ${task_number},
   "operation": "research",
   "reason": "Postflight pending: status update, artifact linking, git commit",
@@ -158,7 +158,7 @@ Include pre-gathered forcing_data when available:
   "metadata": {
     "session_id": "sess_{timestamp}_{random}",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "sheet", "skill-spreadsheet"]
+    "delegation_path": ["orchestrator", "sheet", "skill-founder-spreadsheet"]
   }
 }
 ```
@@ -176,7 +176,7 @@ The agent will use pre-gathered data and only ask follow-up questions for missin
 ```
 Tool: Task (NOT Skill)
 Parameters:
-  - subagent_type: "spreadsheet-agent"
+  - subagent_type: "founder-spreadsheet-agent"
   - prompt: [Include task_context, forcing_data, mode, metadata_file_path, metadata]
   - description: "Cost breakdown spreadsheet generation"
 ```

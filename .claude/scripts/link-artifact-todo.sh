@@ -122,7 +122,14 @@ if [[ -z "$field_line_relative" ]]; then
   fi
 
   actual_next_line=$((heading_line + next_field_line - 1))
-  new_line="- ${field_name}: [${artifact_filename}](${todo_link_path})"
+  new_line="- ${field_name}: [${todo_link_path}]"
+
+  # Blank line preservation: if the line before the insertion point is blank,
+  # insert before the blank line so it remains between the new field and the next field
+  prev_line_content=$(sed -n "$((actual_next_line - 1))p" "$TODO_FILE")
+  if [[ -z "$prev_line_content" ]]; then
+    actual_next_line=$((actual_next_line - 1))
+  fi
 
   if [[ "$DRY_RUN" == "true" ]]; then
     echo "[dry-run] Case 1: Insert new field line before line $actual_next_line"
@@ -165,7 +172,14 @@ if [[ -z "$field_value" || "$field_value" == "$field_line_content" ]]; then
     insert_before=$((field_actual_line + next_field_line_abs))
   fi
 
-  new_bullet="  - [${artifact_filename}](${todo_link_path})"
+  new_bullet="  - [${todo_link_path}]"
+
+  # Blank line preservation: if the line before the insertion point is blank,
+  # insert before the blank line so it remains between the artifact list and the next field
+  prev_line_content=$(sed -n "$((insert_before - 1))p" "$TODO_FILE")
+  if [[ -z "$prev_line_content" ]]; then
+    insert_before=$((insert_before - 1))
+  fi
 
   if [[ "$DRY_RUN" == "true" ]]; then
     echo "[dry-run] Case 3: Append bullet before line $insert_before"
@@ -178,8 +192,8 @@ if [[ -z "$field_value" || "$field_value" == "$field_line_content" ]]; then
   exit 0
 fi
 
-# Field has inline content -- check if it's a link
-if echo "$field_value" | grep -qE '^\[.*\]\(.*\)$'; then
+# Field has inline content -- check if it's a link (bracket-only [path] or markdown [text](url))
+if echo "$field_value" | grep -qE '^\[.*\](\(.*\))?$'; then
   # --- Case 2: Existing inline single link ---
   existing_link="$field_value"
 
@@ -189,16 +203,16 @@ if echo "$field_value" | grep -qE '^\[.*\]\(.*\)$'; then
     echo "[dry-run]   new:"
     echo "[dry-run]     - ${field_name}:"
     echo "[dry-run]       - ${existing_link}"
-    echo "[dry-run]       - [${artifact_filename}](${todo_link_path})"
+    echo "[dry-run]       - [${todo_link_path}]"
     exit 0
   fi
 
   # Use awk for reliable multi-line replacement
-  awk -v line="$field_actual_line" -v field="$field_name" -v existing="$existing_link" -v filename="$artifact_filename" -v linkpath="$todo_link_path" '
+  awk -v line="$field_actual_line" -v field="$field_name" -v existing="$existing_link" -v linkpath="$todo_link_path" '
     NR == line {
       print "- " field ":"
       print "  - " existing
-      print "  - [" filename "](" linkpath ")"
+      print "  - [" linkpath "]"
       next
     }
     { print }
@@ -212,10 +226,10 @@ fi
 if [[ "$DRY_RUN" == "true" ]]; then
   echo "[dry-run] Replacing ${field_name} value with artifact link"
   echo "[dry-run]   old: $field_line_content"
-  echo "[dry-run]   new: - ${field_name}: [${artifact_filename}](${todo_link_path})"
+  echo "[dry-run]   new: - ${field_name}: [${todo_link_path}]"
   exit 0
 fi
 
-sed -i "${field_actual_line}s|.*|- ${field_name}: [${artifact_filename}](${todo_link_path})|" "$TODO_FILE"
+sed -i "${field_actual_line}s|.*|- ${field_name}: [${todo_link_path}]|" "$TODO_FILE"
 echo "OK: Replaced ${field_name} value with link for task $task_number"
 exit 0

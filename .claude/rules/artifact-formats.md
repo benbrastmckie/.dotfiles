@@ -108,8 +108,8 @@ Use in plan files:
 
 ## Artifact Linking in TODO.md
 
-Use count-aware format from `.claude/rules/state-management.md`:
-- Single artifact (1): Use inline format `- **Type**: [file](path)`
+Use count-aware format from `.claude/context/reference/state-management-schema.md`:
+- Single artifact (1): Use inline format `- **Type**: [path]`
 - Multiple artifacts (2+): Use multi-line list format with 2-space indentation
 
 ## Template Reference

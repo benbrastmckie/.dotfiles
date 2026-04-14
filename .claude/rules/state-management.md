@@ -71,7 +71,7 @@ When updating task status:
 1. Log the inconsistency
 2. Use git blame to determine latest
 3. Sync to latest version
-4. Create backup of overwritten version
+4. Use git for recovery of overwritten versions
 
 ## Schema Reference
 

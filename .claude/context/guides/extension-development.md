@@ -29,19 +29,33 @@ Extensions provide task-type-specific and domain-specific capabilities to the co
   "name": "neovim",
   "version": "1.0.0",
   "description": "Neovim configuration development support",
-  "task_types": ["neovim", "lua"],
-  "agents": [
-    "neovim-research-agent",
-    "neovim-implementation-agent"
-  ],
-  "skills": [
-    "skill-neovim-research",
-    "skill-neovim-implementation"
-  ],
-  "merge_targets": [
-    ".claude/context/index.json",
-    ".claude/CLAUDE.md"
-  ]
+  "task_type": "neovim",
+  "dependencies": [],
+  "provides": {
+    "agents": ["neovim-research-agent.md", "neovim-implementation-agent.md"],
+    "skills": ["skill-neovim-research", "skill-neovim-implementation"],
+    "commands": [],
+    "rules": [],
+    "context": ["project/neovim"],
+    "scripts": [],
+    "hooks": []
+  },
+  "routing": {
+    "research": { "neovim": "skill-neovim-research" },
+    "plan": { "neovim": "skill-planner" },
+    "implement": { "neovim": "skill-neovim-implementation" }
+  },
+  "merge_targets": {
+    "claudemd": {
+      "source": "EXTENSION.md",
+      "target": ".claude/CLAUDE.md",
+      "section_id": "extension_neovim"
+    },
+    "index": {
+      "source": "index-entries.json",
+      "target": ".claude/context/index.json"
+    }
+  }
 }
 ```
 
@@ -52,21 +66,21 @@ Extensions provide task-type-specific and domain-specific capabilities to the co
 | `name` | string | Extension identifier |
 | `version` | string | Semver version |
 | `description` | string | Brief description |
-| `languages` | array | Supported languages |
-| `agents` | array | Agent names provided |
-| `skills` | array | Skill names provided |
-| `merge_targets` | array | Files to merge into core system |
+| `task_type` | string | Task type this extension handles |
+| `dependencies` | array | Other extensions required |
+| `provides` | object | Agents, skills, commands, rules, context, scripts, hooks |
+| `routing` | object | Task-type to skill mapping for research/plan/implement |
+| `merge_targets` | object | Source-to-target file mappings for system integration |
 
 ## Merge Process
 
-The extension merger (`scripts/merge-extensions.sh`) combines extension content:
+Extensions are loaded via `<leader>ac` in Neovim. The loader reads each extension's `manifest.json` and merges content according to `merge_targets`:
 
 ### 1. Context Index Merging
 
-Extension context entries are appended to `.claude/context/index.json`:
+Extension context entries from `index-entries.json` are merged into `.claude/context/index.json`:
 
-```bash
-# From extension context/index.json
+```json
 {
   "entries": [
     {
@@ -83,15 +97,7 @@ Extension context entries are appended to `.claude/context/index.json`:
 
 ### 2. CLAUDE.md Merging
 
-Routing tables and command references are merged into CLAUDE.md.
-
-### 3. Verification
-
-Run verification after merging:
-
-```bash
-.claude/scripts/merge-extensions.sh --verify
-```
+Extension `EXTENSION.md` content is merged into `.claude/CLAUDE.md` at the section identified by `section_id`.
 
 ## Creating an Extension
 
@@ -108,10 +114,33 @@ mkdir -p .claude/extensions/{name}/{context,agents,skills}
   "name": "myextension",
   "version": "1.0.0",
   "description": "My domain extension",
-  "task_types": ["mydomain"],
-  "agents": ["mydomain-research-agent"],
-  "skills": ["skill-mydomain-research"],
-  "merge_targets": [".claude/context/index.json"]
+  "task_type": "mydomain",
+  "dependencies": [],
+  "provides": {
+    "agents": ["mydomain-research-agent.md"],
+    "skills": ["skill-mydomain-research"],
+    "commands": [],
+    "rules": [],
+    "context": ["project/mydomain"],
+    "scripts": [],
+    "hooks": []
+  },
+  "routing": {
+    "research": { "mydomain": "skill-mydomain-research" },
+    "plan": { "mydomain": "skill-planner" },
+    "implement": { "mydomain": "skill-implementer" }
+  },
+  "merge_targets": {
+    "claudemd": {
+      "source": "EXTENSION.md",
+      "target": ".claude/CLAUDE.md",
+      "section_id": "extension_mydomain"
+    },
+    "index": {
+      "source": "index-entries.json",
+      "target": ".claude/context/index.json"
+    }
+  }
 }
 ```
 
@@ -127,35 +156,9 @@ Create skills in `skills/skill-{name}/SKILL.md`.
 
 Add domain knowledge to `context/project/{domain}/`.
 
-### Step 6: Register Extension
+### Step 6: Load Extension
 
-Add to `.claude/extensions/manifest.json`:
-
-```json
-{
-  "extensions": [
-    "neovim",
-    "lean",
-    "myextension"
-  ]
-}
-```
-
-### Step 7: Merge and Verify
-
-```bash
-.claude/scripts/merge-extensions.sh
-.claude/scripts/merge-extensions.sh --verify
-```
-
-## Extension Loading
-
-Extensions are loaded via `<leader>ac>` in Neovim:
-
-1. Reads `.claude/extensions/manifest.json`
-2. Runs merge script
-3. Updates context index
-4. Reloads routing tables
+Extensions are loaded via `<leader>ac` in Neovim. The loader discovers extensions by scanning `.claude/extensions/*/manifest.json` directories automatically -- no central registry is needed.
 
 ## Best Practices
 
@@ -171,12 +174,12 @@ See `extensions/template/` for a minimal extension structure.
 
 ## Troubleshooting
 
-### Merge Conflicts
+### Load Failures
 
-If merging fails:
+If loading fails:
 1. Check manifest.json syntax
 2. Verify all referenced files exist
-3. Run with `--verify` for detailed errors
+3. Ensure merge_targets point to valid source files
 
 ### Context Not Loading
 
@@ -186,6 +189,6 @@ If merging fails:
 
 ### Routing Not Working
 
-1. Verify language is registered in manifest
+1. Verify task_type is set in manifest
 2. Check agent names match skill mappings
-3. Ensure merge updated CLAUDE.md
+3. Ensure routing entries map task_type to correct skills

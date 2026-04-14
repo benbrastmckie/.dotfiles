@@ -153,27 +153,17 @@ fi
 batch_session_id="sess_$(date +%s)_$(od -An -N3 -tx1 /dev/urandom | tr -d ' ')"
 ```
 
-#### Step 3: Invoke Batch Skill
+#### Step 3: Dispatch Agents
 
-Invoke a single batch skill that handles parallel agent spawning and result collection:
+For each validated task, spawn an independent planning agent using the orchestrator's built-in batch loop:
 
-```
-Tool: Skill
-Parameters:
-  skill: "skill-batch-dispatch"
-  args: |
-    command=plan
-    task_numbers={validated_tasks}
-    session_id={batch_session_id}
-    remaining_args={remaining_args}
-```
+1. Extract task_type per task from state.json
+2. Route each task to the appropriate planner skill (extension routing or default `skill-planner`)
+3. Spawn one agent per task via parallel Task tool calls
+4. Collect results from all agents
+5. Produce consolidated status update
 
-The batch skill:
-1. Extracts task_type per task from state.json
-2. Routes each task to the appropriate planner skill (extension routing or default `skill-planner`)
-3. Spawns one agent per task via parallel Task tool calls
-4. Collects results from all agents
-5. Produces consolidated status update
+**Note**: Batch dispatch is handled directly by this command's orchestrator loop, not by a separate skill.
 
 #### Step 4: Batch Git Commit
 

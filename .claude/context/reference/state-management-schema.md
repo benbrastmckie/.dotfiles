@@ -48,8 +48,8 @@ Complete schema reference for state.json, TODO.md, and artifact formats. For beh
 - **Dependencies**: Task #{N}, Task #{N}  OR  None
 - **Started**: {ISO timestamp}
 - **Completed**: {ISO timestamp}
-- **Research**: [link to report]
-- **Plan**: [link to plan]
+- **Research**: [{NNN}_{SLUG}/reports/01_slug.md]
+- **Plan**: [{NNN}_{SLUG}/plans/01_slug.md]
 
 **Description**: {full description}
 ```
@@ -245,23 +245,25 @@ The vault system manages task number cycling when `next_project_number` exceeds 
 
 ## Artifact Linking Formats
 
+Links use bracket-only format `[path]` (not markdown `[text](url)` format).
+
 ### Research Completion
 ```markdown
 - **Status**: [RESEARCHED]
-- **Research**: [01_research-findings.md]({NNN}_{SLUG}/reports/01_research-findings.md)
+- **Research**: [{NNN}_{SLUG}/reports/01_research-findings.md]
 ```
 
 ### Plan Completion
 ```markdown
 - **Status**: [PLANNED]
-- **Plan**: [02_implementation-plan.md]({NNN}_{SLUG}/plans/02_implementation-plan.md)
+- **Plan**: [{NNN}_{SLUG}/plans/02_implementation-plan.md]
 ```
 
 ### Implementation Completion
 ```markdown
 - **Status**: [COMPLETED]
 - **Completed**: 2026-01-08
-- **Summary**: [03_execution-summary.md]({NNN}_{SLUG}/summaries/03_execution-summary.md)
+- **Summary**: [{NNN}_{SLUG}/summaries/03_execution-summary.md]
 ```
 
 ### Count-Aware Linking
@@ -270,19 +272,19 @@ The vault system manages task number cycling when `next_project_number` exceeds 
 
 **Single artifact**:
 ```markdown
-- **Research**: [01_research-findings.md]({NNN}_{SLUG}/reports/01_research-findings.md)
+- **Research**: [{NNN}_{SLUG}/reports/01_research-findings.md]
 ```
 
 **Multiple artifacts**:
 ```markdown
 - **Research**:
-  - [01_research-findings.md]({NNN}_{SLUG}/reports/01_research-findings.md)
-  - [02_supplemental.md]({NNN}_{SLUG}/reports/02_supplemental.md)
+  - [{NNN}_{SLUG}/reports/01_research-findings.md]
+  - [{NNN}_{SLUG}/reports/02_supplemental.md]
 ```
 
 **Detection Patterns**:
 - **No existing line**: `- **{Type}**:` not found in task entry
-- **Existing inline**: Line matches `- **{Type}**: \[.*\]\(.*\)` (has link on same line)
+- **Existing inline**: Line matches `- **{Type}**: \[.*\]` (has link on same line)
 - **Existing multi-line**: Line matches `- **{Type}**:$` (ends with colon, no link)
 
 **Implementation Reference**: For the full four-case Edit tool logic used by skills during postflight, see `.claude/context/patterns/artifact-linking-todo.md`.

@@ -2,7 +2,6 @@
 name: skill-reviser
 description: Thin wrapper that delegates plan revision to reviser-agent subagent. Invoke for /revise command.
 allowed-tools: Task, Bash, Edit, Read, Write, Glob, Grep
-model: opus
 ---
 
 # Reviser Skill

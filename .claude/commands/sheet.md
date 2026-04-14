@@ -288,10 +288,10 @@ Next Steps:
 
 **If input_type == "quick"**:
 
-Invoke skill-spreadsheet directly (original behavior):
+Invoke skill-founder-spreadsheet directly (original behavior):
 
 ```
-skill: "skill-spreadsheet"
+skill: "skill-founder-spreadsheet"
 args: "mode={mode} session_id={session_id}"
 ```
 
@@ -299,16 +299,16 @@ Skip to CHECKPOINT 2 (Legacy).
 
 ### STAGE 2B: Task Workflow Mode (existing task)
 
-**Run research via skill-spreadsheet**:
+**Run research via skill-founder-spreadsheet**:
 
 ```
-skill: "skill-spreadsheet"
+skill: "skill-founder-spreadsheet"
 args: "task_number={task_number} session_id={session_id}"
 ```
 
 The skill workflow:
 1. Updates status to [RESEARCHING] (preflight)
-2. Invokes spreadsheet-agent, passing forcing_data from task metadata
+2. Invokes founder-spreadsheet-agent, passing forcing_data from task metadata
 3. Agent uses pre-gathered data, asks follow-up questions for cost details
 4. Agent generates XLSX spreadsheet with formulas
 5. Agent exports JSON metrics for Typst

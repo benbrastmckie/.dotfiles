@@ -500,27 +500,17 @@ Tasks 351-353 apply this pattern to each workflow command. This section summariz
 | `/plan` | researched | planner agent | "create implementation plan" |
 | `/implement` | planned, implementing | implementation agent (by language) | "complete implementation" |
 
-### Batch Skill Integration
+### Batch Dispatch Architecture
 
-Each command invokes a single batch skill entry point:
+Multi-task dispatch is handled by the orchestrator loop built into each command file (`/research`, `/plan`, `/implement`), not by a separate `skill-batch-dispatch` skill. Each command's MULTI-TASK DISPATCH section implements:
 
-```
-Tool: Skill
-Parameters:
-  skill: "skill-batch-dispatch"  # or integrated into skill-orchestrator
-  args: |
-    command={command}
-    task_numbers={validated_tasks}
-    session_id={batch_session_id}
-    remaining_args={remaining_args}
-```
-
-The batch skill handles:
-- Language extraction per task (from state.json)
-- Agent routing per task (using existing task-type-based routing)
-- Parallel Task tool spawning
+- Task type extraction per task (from state.json)
+- Agent routing per task (using existing task-type-based routing from extension manifests)
+- Parallel Task tool spawning (one agent per task)
 - Result collection
-- Consolidated status update
+- Consolidated status update and batch git commit
+
+This approach keeps dispatch logic co-located with each command's validation and routing rules, avoiding an additional indirection layer.
 
 ---
 

@@ -146,11 +146,11 @@ Convert spreadsheet files to LaTeX or Typst table format.
 
 **Invoke the Skill tool NOW** with:
 ```
-skill: "skill-spreadsheet"
+skill: "skill-filetypes-spreadsheet"
 args: "source_path={source_path} output_path={output_path} output_format={output_format} sheet_name={sheet_name} session_id={session_id}"
 ```
 
-The skill will spawn the spreadsheet-agent to perform the conversion.
+The skill will spawn the filetypes-spreadsheet-agent to perform the conversion.
 
 **On DELEGATE success**: Conversion attempted. **IMMEDIATELY CONTINUE** to CHECKPOINT 2 below.
 

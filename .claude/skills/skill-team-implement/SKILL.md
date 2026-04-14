@@ -222,6 +222,8 @@ if not has_explicit_deps:
 - Implicit dependencies from file modifications (phases modifying same files are dependent)
 - Cross-phase imports or references
 
+> **CRITICAL: Plan-Text-Only Analysis** -- Stage 5 analyzes dependencies using file paths and phase descriptions extracted from the plan text. The lead agent MUST NOT read, grep, or glob source files to infer dependencies. All signals come from parsing the plan document itself. Actual source file reading is the exclusive responsibility of phase implementer sub-agents.
+
 ---
 
 ### Stage 6: Calculate Implementation Waves
@@ -263,6 +265,8 @@ if waves is empty:
 ### Stage 7: Spawn Phase Implementers
 
 For each wave, spawn teammates for parallelizable phases (up to team_size):
+
+> **CRITICAL: Template Population from Plan Text Only** -- All template variables (`{phase_details}`, `{files_list}`, `{steps_from_plan}`, `{verification_criteria}`) MUST be populated by extracting text from the plan file. The lead agent MUST NOT read source files, run grep/glob, or use MCP tools to populate these fields. The sub-agent will read source files after it is spawned.
 
 **Phase Implementer Prompt Template**:
 ```
@@ -660,3 +664,22 @@ The postflight phase is LIMITED TO:
 - Cleanup of temp/marker files
 
 Reference: @.claude/context/standards/postflight-tool-restrictions.md
+
+---
+
+## MUST NOT (Pre-Delegation Boundary)
+
+Before spawning phase implementer teammates, this skill MUST NOT:
+
+1. **Read source files** - Source files are read by sub-agents, not the lead
+2. **Grep or glob the codebase** - Codebase exploration is sub-agent work
+3. **Use MCP tools** - Domain tools (LSP, build, etc.) are for sub-agent use only
+4. **Analyze source code** - Code analysis belongs to phase implementers
+5. **Run build or test commands** - Verification is done by sub-agents
+
+The pre-delegation phase is LIMITED TO:
+- Reading the plan file to extract phases, dependencies, and template variables
+- Reading state.json and TODO.md for status updates
+- Parsing phase dependency graphs from plan text
+- Populating prompt templates with plan-extracted content
+- Spawning sub-agents with delegation context

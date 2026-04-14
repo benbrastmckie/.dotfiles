@@ -1,8 +1,6 @@
 ---
 name: skill-spawn
 description: Research blockers and spawn new tasks to overcome them, updating parent task dependencies
-version: "1.0"
-author: meta-builder-agent
 allowed-tools: Task, Bash, Edit, Read, Write
 ---
 

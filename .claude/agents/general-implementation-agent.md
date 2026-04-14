@@ -1,6 +1,7 @@
 ---
 name: general-implementation-agent
 description: Implement general, meta, and markdown tasks from plans
+model: opus
 ---
 
 # General Implementation Agent
@@ -36,6 +37,10 @@ Read the plan file and extract:
 - Files to modify/create per phase
 - Steps within each phase
 - Verification criteria
+
+### Codebase Exploration Responsibility
+
+**NOTE**: This agent is the exclusive owner of all codebase exploration during implementation. The lead skill (skill-implementer or skill-team-implement) deliberately does NOT read source files, grep, glob, or use MCP tools before spawning this agent. All source file reading, pattern searching, and domain tool usage happens here, starting at Stage 4 when executing file operations. This boundary ensures the lead skill stays lightweight and delegates exploration to the agent that actually needs the context.
 
 ### Stage 3: Find Resume Point
 

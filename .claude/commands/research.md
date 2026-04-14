@@ -147,29 +147,19 @@ Report skipped tasks as warnings. If no validated tasks remain, ABORT.
 batch_session_id="sess_$(date +%s)_$(od -An -N3 -tx1 /dev/urandom | tr -d ' ')"
 ```
 
-#### Step 3: Invoke Batch Dispatch
+#### Step 3: Dispatch Agents
 
-Invoke the batch dispatch skill with the validated task list:
+For each validated task, spawn an independent research agent using the orchestrator's built-in batch loop:
 
-```
-Tool: Skill
-Parameters:
-  skill: "skill-batch-dispatch"
-  args: |
-    command=research
-    task_numbers={validated_tasks}
-    session_id={batch_session_id}
-    remaining_args={remaining_args}
-```
-
-The batch skill internally:
-1. Extracts task_type per task from state.json
-2. Routes to the appropriate research skill per task (extension routing or default)
-3. Spawns one agent per task via parallel Task tool calls
+1. Extract task_type per task from state.json
+2. Route to the appropriate research skill per task (extension routing or default `skill-researcher`)
+3. Spawn one agent per task via parallel Task tool calls
 4. Each agent runs the full single-task research lifecycle independently (preflight, research, postflight)
-5. Collects results from all agents
+5. Collect results from all agents
 
-**Team mode interaction**: If `--team` is in `remaining_args`, the batch skill applies team mode to ALL tasks. Total agents spawned = `N_tasks * team_size`. Use with care due to cost multiplication.
+**Note**: Batch dispatch is handled directly by this command's orchestrator loop, not by a separate skill.
+
+**Team mode interaction**: If `--team` is in `remaining_args`, team mode is applied to ALL tasks. Total agents spawned = `N_tasks * team_size`. Use with care due to cost multiplication.
 
 #### Step 4: Batch Git Commit
 
