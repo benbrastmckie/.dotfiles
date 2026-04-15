@@ -448,6 +448,25 @@ The pre-delegation phase is LIMITED TO:
 - Reading the summary format file for injection (Stage 4b)
 - Spawning the sub-agent with the Task tool
 
-## Postflight Boundary
+## MUST NOT (Postflight Boundary)
 
-After the agent returns, this skill is LIMITED TO: reading metadata, updating state.json/TODO.md, linking artifacts, git commit, cleanup. No source edits, builds, MCP tools, or analysis. See `@.claude/context/standards/postflight-tool-restrictions.md`.
+After the agent returns -- whether with status implemented, partial, or failed -- this skill MUST proceed immediately to Stage 6 (read metadata file). The skill MUST NOT:
+
+1. **Read source files** - Source files were the subagent's responsibility
+2. **Edit source files** - All implementation work is done by the subagent
+3. **Run build/test commands** - Verification is done by the subagent
+4. **Use MCP tools** - Domain tools are for subagent use only
+5. **Grep or glob the codebase** - Analysis is subagent work
+6. **Write summary/reports** - Artifact creation is done by the subagent
+
+> **PROHIBITION**: If the subagent returned partial or failed status, the lead skill MUST NOT attempt to continue, complete, or "fill in" the subagent's work. Report the partial/failed status and let the user re-run `/implement` to resume.
+
+The postflight phase is LIMITED TO:
+- Reading agent metadata file (.return-meta.json)
+- Updating state.json via jq
+- Updating TODO.md status marker via Edit or script
+- Linking artifacts in state.json
+- Git commit
+- Cleanup of temp/marker files
+
+Reference: @.claude/context/standards/postflight-tool-restrictions.md

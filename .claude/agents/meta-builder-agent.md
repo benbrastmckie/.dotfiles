@@ -236,7 +236,6 @@ Let's begin!
 ### Interview Stage 2.5: DetectDomainType
 
 **Classification Logic**:
-- Keywords: "nvim", "neovim", "plugin", "lazy.nvim", "lsp", "treesitter" -> task_type = "neovim"
 - Keywords: "command", "skill", "agent", "meta", ".claude/" -> task_type = "meta"
 - Keywords: "latex", "document", "pdf", "tex" -> task_type = "latex"
 - Otherwise -> task_type = "general"
@@ -1009,7 +1008,7 @@ Parallel execution is possible for tasks marked [parallel with above].
 
 **Template Variables**:
 - `{N}` = Count of tasks created
-- `{domain}` = Domain from interview (e.g., "meta changes", "neovim configuration")
+- `{domain}` = Domain from interview (e.g., "meta changes", "frontend development")
 - `{task_table}` = Markdown table from `generate_execution_summary()`
 - `{dependency_graph}` = ASCII visualization from graph generation
 - `{execution_order}` = Numbered list from `generate_execution_order()`
@@ -1149,7 +1148,7 @@ When mode is "prompt", analyze the request and propose tasks:
 ### Step 1: Parse Prompt for Keywords
 
 Identify:
-- Language indicators: "neovim", "plugin", "command", "skill", "latex", etc.
+- Language indicators: "command", "skill", "latex", etc.
 - Change type: "fix", "add", "refactor", "document", "create"
 - Scope: component names, file paths, feature areas
 

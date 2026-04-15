@@ -130,46 +130,45 @@ context/hybrid/
 
 ---
 
-## Neovim Configuration Domain Pattern
+## Extension Domain Pattern (Template)
 
-**Characteristics**: Editor configuration, plugin management, Lua scripting
+**Characteristics**: Domain-specific tooling, workflows, and conventions provided by an extension
 
 ### Typical Use Cases
 
-- Plugin configuration and management
-- Keymap setup and customization
-- LSP client configuration
-- Filetype-specific settings
-- UI customization and themes
+- Domain-specific code generation and configuration
+- Tool-specific setup and customization
+- Language server / tool integration
+- Domain-specific testing and validation
 
 ### Recommended Agent Structure
 
 ```
-neovim-orchestrator
-├── config-agent (core configuration)
-├── plugin-agent (plugin management)
-├── keymap-agent (keymap setup)
-├── lsp-agent (LSP configuration)
-└── ftplugin-agent (filetype settings)
+{extension}-orchestrator
+├── {extension}-research-agent (domain research)
+├── {extension}-implementation-agent (domain implementation)
+└── utility agents as needed
 ```
 
 ### Context Organization
 
 ```
-context/neovim/
-├── domain/neovim-api.md
-├── patterns/plugin-spec.md
-├── patterns/keymap-patterns.md
-├── standards/lua-style-guide.md
-└── tools/lazy-nvim-guide.md
+extensions/{ext}/context/
+├── domain/          # Core domain concepts
+├── patterns/        # Common implementation patterns
+├── standards/       # Coding conventions
+├── tools/           # Tool-specific guides
+└── templates/       # Boilerplate templates
 ```
 
 ### Integration Points
 
-- Plugin managers (lazy.nvim, packer.nvim)
-- LSP servers (lua-language-server)
-- Testing (nvim --headless, plenary.nvim)
-- Linting (luacheck, stylua)
+- Domain-specific build/test tools
+- Language servers and linters
+- Package managers and registries
+- Domain-specific documentation sources
+
+See `.claude/extensions/*/manifest.json` for concrete extension examples.
 
 ---
 
@@ -193,11 +192,9 @@ context/neovim/
 - Tools: data warehouse, BI, project management, ETL
 - Artifacts: data schemas, reports, roadmaps
 
-### Neovim Configuration Indicators
+### Extension Domain Indicators
 
-- Keywords: plugin, keymap, config, lsp, autocmd, filetype
-- Tools: lazy.nvim, treesitter, telescope, nvim-lsp
-- Artifacts: init.lua, plugin specs, ftplugin files
+Extension-specific indicators are defined in the extension's manifest and context. Each extension declares its own keywords, tools, and artifact patterns. See `.claude/extensions/*/manifest.json`.
 
 ---
 

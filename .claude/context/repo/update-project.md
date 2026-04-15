@@ -139,4 +139,4 @@ project-root/
 - Keep the document concise but complete
 - Focus on information agents need for research and implementation
 - Update when project structure changes significantly
-- The existing project-overview.md in this repository is an example for a Neovim configuration project
+- The existing project-overview.md serves as a template for generating project-specific documentation

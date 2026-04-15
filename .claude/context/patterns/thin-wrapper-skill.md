@@ -131,20 +131,20 @@ Return validated result to caller without modification.
 
 ```markdown
 ---
-name: skill-neovim-research
-description: Research Neovim plugins and configuration patterns tasks.
+name: skill-{extension}-research
+description: Research {extension} patterns and conventions.
 allowed-tools: Task
 context: fork
-agent: neovim-research-agent
+agent: {extension}-research-agent
 ---
 
-# Neovim Research Skill
+# {Extension} Research Skill
 
-Specialized research for Neovim configuration tasks.
+Specialized research for {extension} tasks.
 
 ## Trigger Conditions
-- Task language is "neovim"
-- Research involves plugins, LSP, or configuration patterns
+- Task type is "{extension}"
+- Research involves {extension}-specific patterns and tools
 
 ## Execution
 
@@ -155,7 +155,7 @@ Extract task_number. Validate task exists.
 Generate session_id. Prepare delegation context.
 
 ### 3. Invoke Subagent
-Use Task tool with subagent_type: neovim-research-agent
+Use Task tool with subagent_type: {extension}-research-agent
 
 ### 4. Return Validation
 Validate return matches subagent-return.md schema.
@@ -180,9 +180,9 @@ allowed-tools: Bash, Edit, Read
 
 **Note**: Direct-execution skills do not need the Stage 5b self-execution fallback since they do not delegate to subagents and handle their own metadata directly.
 
-### Neovim Skills (Standard Pattern)
+### Extension Skills (Standard Pattern)
 
-The Neovim skills (`skill-neovim-research`, `skill-neovim-implementation`) follow the standard thin wrapper pattern, delegating to `neovim-research-agent` and `neovim-implementation-agent` respectively.
+Extension skills follow the standard thin wrapper pattern, delegating to extension-provided agents. For example, an extension may provide `skill-{ext}-research` and `skill-{ext}-implementation` that delegate to `{ext}-research-agent` and `{ext}-implementation-agent` respectively.
 
 ---
 

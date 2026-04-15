@@ -77,8 +77,8 @@ It does NOT handle:
    **Performance**: ~12ms for state.json vs ~100ms for TODO.md (8x faster)
 
 2. Map language to agent:
-   - /research: neovim → neovim-research-agent, default → researcher
-   - /implement: neovim → neovim-implementation-agent, default → implementer
+   - /research: Extension type → extension agent, default → general-research-agent
+   - /implement: Extension type → extension agent, default → general-implementation-agent
 
 **For Direct Routing** (routing.task_type_based: false):
 - Use routing.target_agent from command frontmatter
@@ -105,7 +105,7 @@ It does NOT handle:
     "task_context": {
       "task_number": 244,
       "description": "...",
-      "task_type": "neovim"
+      "task_type": "general"
     }
   }
   ```
@@ -194,7 +194,7 @@ Without loading:
 ```json
 {
   "task_number": 244,
-  "task_type": "neovim",
+  "task_type": "general",
   ...
 }
 ```
@@ -211,7 +211,7 @@ Without loading:
 **Example**:
 ```markdown
 ### 244. Implement feature X
-- **Task Type**: neovim
+- **Task Type**: general
 ```
 
 **When to use**: Task exists in TODO.md (always)
@@ -243,9 +243,8 @@ routing:
 ### Task-Type-Based Routing
 ```yaml
 routing:
-  language_based: true
-  neovim: neovim-research-agent
-  default: researcher
+  task_type_based: true
+  default: general-research-agent
 ```
 
 **Used by**: /research, /implement
@@ -816,11 +815,11 @@ User: /research 197
 
 Orchestrator:
 1. Load command file: .claude/command/research.md
-2. Extract language from TODO.md: "neovim"
-3. Route to: neovim-research-agent
+2. Extract task_type from state.json: "general"
+3. Route to: general-research-agent
 4. Generate session_id: sess_1703606400_a1b2c3
 5. Register delegation in registry
-6. Invoke neovim-research-agent with context
+6. Invoke general-research-agent with context
 7. Monitor timeout (3600s)
 8. Receive return, validate format
 9. Complete delegation, remove from registry

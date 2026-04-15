@@ -189,7 +189,7 @@ Command File: Return to orchestrator
    - `researcher`: Conduct research, create reports
    - `planner`: Create implementation plans
    - `implementer`: Execute implementation phases
-   - `neovim-implementation-agent`: Execute Neovim-specific implementations
+   - Extension-provided agents for domain-specific implementations
    - `reviewer`: Review code and documentation
 
 2. **State Managers**:

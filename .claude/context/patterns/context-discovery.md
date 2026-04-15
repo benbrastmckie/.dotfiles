@@ -32,7 +32,7 @@ jq -r '.entries[] |
 
 ```bash
 jq -r '.entries[] |
-  select(.load_when.task_types[]? == "neovim") |
+  select(.load_when.task_types[]? == "meta") |
   .path' .claude/context/index.json
 ```
 
@@ -138,7 +138,7 @@ jq -r '.entries[] |
 
 ```bash
 jq -r '.entries[] |
-  select(.load_when.task_types[]? == "neovim") |
+  select(.load_when.task_types[]? == "meta") |
   select(.line_count < 300) |
   .path' .claude/context/index.json
 ```
@@ -190,7 +190,7 @@ jq -r --arg agent "general-implementation-agent" \
 jq -r '.entries[] |
   select(
     any(.load_when.agents[]?; . == "general-implementation-agent") or
-    any(.load_when.task_types[]?; . == "neovim")
+    any(.load_when.task_types[]?; . == "meta")
   ) |
   select(.deprecated == true | not) |
   .path' .claude/context/index.json

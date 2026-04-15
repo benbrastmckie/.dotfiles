@@ -8,7 +8,7 @@
 
 ## Overview
 
-This document defines the core orchestration patterns for Neovim Configuration's command-skill-agent architecture:
+This document defines the core orchestration patterns for the project's command-skill-agent architecture:
 
 - **Session Tracking**: Unique identifiers for delegation chains
 - **Delegation Safety**: Depth limits, cycle detection, timeouts
@@ -180,9 +180,9 @@ Every delegation MUST include this context:
 
 | Command | Language-Based | Agent(s) |
 |---------|---------------|----------|
-| /research | Yes | neovim: neovim-research-agent, default: general-research-agent |
+| /research | Yes | Extension-provided or general-research-agent |
 | /plan | No | planner-agent |
-| /implement | Yes | neovim: neovim-implementation-agent, default: general-implementation-agent |
+| /implement | Yes | Extension-provided or general-implementation-agent |
 | /revise | No | planner-agent |
 | /review | No | reviewer-agent |
 | /meta | No | meta-builder-agent |
@@ -210,11 +210,9 @@ Priority order for extracting task language:
 Validate language/agent compatibility before delegation:
 
 ```bash
-# Neovim tasks must route to neovim-* agents
-if [ "$task_type" == "neovim" ] && [[ ! "$agent" =~ ^neovim- ]]; then
-  echo "Error: Neovim task must route to neovim-* agent"
-  exit 1
-fi
+# Extension tasks must route to extension-provided agents
+# Each extension defines its own task_type -> agent mapping in manifest.json
+# Core task types (general, meta, markdown) route to core agents
 ```
 
 ---

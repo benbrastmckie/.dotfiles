@@ -47,9 +47,9 @@ During research, agents should note when:
 ### Example Entry
 
 ```
-- **Topic**: telescope.nvim advanced pickers
-- **Gap**: No context file covers custom picker creation
-- **Recommendation**: Add to `project/neovim/tools/telescope-guide.md` or create `project/neovim/patterns/telescope-pickers.md`
+- **Topic**: Advanced search/filter patterns
+- **Gap**: No context file covers custom search implementation
+- **Recommendation**: Add to relevant extension context or create new pattern file
 ```
 
 ## Next Steps

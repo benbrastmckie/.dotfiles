@@ -351,14 +351,14 @@ For each topic group in `topic_groups`:
 ```
 
 Where:
-- `{topic_label}` = generated label (e.g., "Telescope Worktrees")
+- `{topic_label}` = generated label (e.g., "Database Migrations")
 - `{item_count}` = number of items in group
 - `{item_list}` = formatted list of items:
   ```
   - [ ] {content} (`{file}:{line}`)
   - [ ] {content} (`{file}:{line}`)
   ```
-- `{shared_terms_description}` = brief description of why items are grouped (e.g., "Related to telescope worktree functionality")
+- `{shared_terms_description}` = brief description of why items are grouped (e.g., "Related to database schema changes")
 
 **Effort Scaling Formula**:
 ```
@@ -407,7 +407,7 @@ For each selected TODO item individually:
 
 **Language Detection for Todo-Task** (all modes):
 ```
-.lua (nvim/) -> "neovim"
+.lua -> "general"
 .tex  -> "latex"
 .md   -> "markdown"
 .py/.sh -> "general"
@@ -421,7 +421,6 @@ For each selected TODO item individually:
 Uses `question_grouping_mode` from Step 7.7 (defaults to "separate"). Same grouped/combined/separate modes as TODO tasks (Step 8.4), with these differences:
 
 - **Language detection is content-based** (not file-based): Match question text against keyword lists:
-  - neovim: nvim, neovim, plugin, lazy, telescope, treesitter, lsp, buffer, window, keymap, autocmd, lua
   - latex: theorem, proof, lemma, axiom, logic, formula, derivation, proposition, corollary, latex, tex
   - meta: .claude, command, agent, skill, workflow, state.json, TODO.md, specs/
   - Default: "general"

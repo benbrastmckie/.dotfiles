@@ -84,7 +84,7 @@ Extensions define their own skill-to-agent mappings via `manifest.json`:
 }
 ```
 
-When an extension is loaded (via `<leader>ac` or `@-reference`), its skills become available for routing.
+When an extension is loaded (via the extension picker or `@-reference`), its skills become available for routing.
 
 **Example Extension Routing** (when lean extension loaded):
 
@@ -143,7 +143,7 @@ Command invoked with task N
 
 Extensions are loaded via:
 
-1. **Keybind**: `<leader>ac` opens extension selector
+1. **Extension picker**: Opens extension selector
 2. **@-reference**: `@.claude/extensions/lean/context/...` auto-loads extension
 3. **Context discovery**: Agents query `index.json` which includes merged extension entries
 

@@ -31,10 +31,10 @@ Example: `specs/1_setup_lsp_config/.return-meta.json`
   "next_steps": "Run /plan 1 to create implementation plan",
   "metadata": {
     "session_id": "sess_1736700000_abc123",
-    "agent_type": "neovim-research-agent",
+    "agent_type": "general-research-agent",
     "duration_seconds": 180,
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "neovim-research-agent"]
+    "delegation_path": ["orchestrator", "research", "general-research-agent"]
   },
   "errors": [
     {
@@ -94,7 +94,7 @@ Each artifact object:
 | Field | Required | Description |
 |-------|----------|-------------|
 | `session_id` | Yes | Session ID from delegation context |
-| `agent_type` | Yes | Name of agent (e.g., `neovim-research-agent`) |
+| `agent_type` | Yes | Name of agent (e.g., `general-research-agent`) |
 | `duration_seconds` | No | Execution time |
 | `delegation_depth` | Yes | Nesting depth in delegation chain |
 | `delegation_path` | Yes | Array of delegation steps |
@@ -159,7 +159,7 @@ Each error object:
 |-------|------|----------|-------------|
 | `type` | string | Yes | Error category |
 | `message` | string | Yes | Human-readable error message |
-| `recoverable` | booneovim | Yes | Whether retry may succeed |
+| `recoverable` | boolean | Yes | Whether retry may succeed |
 | `recommendation` | string | Yes | How to fix or proceed |
 
 ## Agent Instructions
@@ -186,7 +186,7 @@ mkdir -p "specs/${padded_num}_${task_slug}"
 3. Return a brief summary (NOT JSON) to the console:
 ```
 Research completed for task 1:
-- Found 5 relevant lazy.nvim plugin patterns
+- Found 5 relevant implementation patterns
 - Identified configuration strategy using modular approach
 - Created report at specs/001_setup_lsp_config/reports/01_lsp-config-research.md
 ```
@@ -205,7 +205,7 @@ if [ -f "$metadata_file" ]; then
 fi
 ```
 
-### Cneovimup
+### Cleanup
 
 After postflight, delete the metadata file:
 
@@ -230,10 +230,10 @@ rm -f "specs/${padded_num}_${task_slug}/.return-meta.json"
   "next_steps": "Run /plan 1 to create implementation plan",
   "metadata": {
     "session_id": "sess_1736700000_abc123",
-    "agent_type": "neovim-research-agent",
+    "agent_type": "general-research-agent",
     "duration_seconds": 180,
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "neovim-research-agent"],
+    "delegation_path": ["orchestrator", "research", "general-research-agent"],
     "findings_count": 5
   }
 }
@@ -247,8 +247,8 @@ rm -f "specs/${padded_num}_${task_slug}/.return-meta.json"
   "artifacts": [
     {
       "type": "implementation",
-      "path": "nvim/lua/plugins/lsp.lua",
-      "summary": "LSP configuration with 4 language servers"
+      "path": "src/config/server-setup.ext",
+      "summary": "Server configuration with 4 integrations"
     },
     {
       "type": "summary",
@@ -257,16 +257,16 @@ rm -f "specs/${padded_num}_${task_slug}/.return-meta.json"
     }
   ],
   "completion_data": {
-    "completion_summary": "Configured LSP for 4 language servers with mason.nvim integration. Implemented keymaps for code actions, hover, and go-to-definition.",
-    "roadmap_items": ["Configure LSP for Neovim"]
+    "completion_summary": "Configured 4 server integrations with automated installation. Implemented keybindings for common actions.",
+    "roadmap_items": ["Configure server integrations"]
   },
   "next_steps": "Review implementation and verify with /test",
   "metadata": {
     "session_id": "sess_1736700000_def456",
-    "agent_type": "neovim-implementation-agent",
+    "agent_type": "general-implementation-agent",
     "duration_seconds": 3600,
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "neovim-implementation-agent"],
+    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
     "phases_completed": 4,
     "phases_total": 4
   }
@@ -325,7 +325,7 @@ rm -f "specs/${padded_num}_${task_slug}/.return-meta.json"
     }
   ],
   "completion_data": {
-    "completion_summary": "Created utility.sh script for automated cneovimup operations.",
+    "completion_summary": "Created utility.sh script for automated cleanup operations.",
     "claudemd_suggestions": "none"
   },
   "next_steps": "Test script execution",
@@ -349,8 +349,8 @@ rm -f "specs/${padded_num}_${task_slug}/.return-meta.json"
   "artifacts": [
     {
       "type": "implementation",
-      "path": "nvim/lua/plugins/lsp.lua",
-      "summary": "Partial LSP configuration (phases 1-2 of 4)"
+      "path": "src/config/server-setup.ext",
+      "summary": "Partial server configuration (phases 1-2 of 4)"
     },
     {
       "type": "summary",
@@ -361,10 +361,10 @@ rm -f "specs/${padded_num}_${task_slug}/.return-meta.json"
   "next_steps": "Run /implement 1 to resume from phase 3",
   "metadata": {
     "session_id": "sess_1736700000_def456",
-    "agent_type": "neovim-implementation-agent",
+    "agent_type": "general-implementation-agent",
     "duration_seconds": 3600,
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "neovim-implementation-agent"],
+    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
     "phases_completed": 2,
     "phases_total": 4
   },
@@ -419,9 +419,9 @@ Written at Stage 0, before substantive work begins:
   },
   "metadata": {
     "session_id": "sess_1736700000_abc123",
-    "agent_type": "neovim-research-agent",
+    "agent_type": "general-research-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "neovim-research-agent"]
+    "delegation_path": ["orchestrator", "research", "general-research-agent"]
   }
 }
 ```
@@ -447,9 +447,9 @@ Written after significant progress, before completion:
   },
   "metadata": {
     "session_id": "sess_1736700000_abc123",
-    "agent_type": "neovim-research-agent",
+    "agent_type": "general-research-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "neovim-research-agent"]
+    "delegation_path": ["orchestrator", "research", "general-research-agent"]
   }
 }
 ```
@@ -471,9 +471,9 @@ For implementation agents tracking phase progress:
   },
   "metadata": {
     "session_id": "sess_1736700000_def456",
-    "agent_type": "neovim-implementation-agent",
+    "agent_type": "general-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "neovim-implementation-agent"]
+    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"]
   }
 }
 ```
@@ -488,7 +488,7 @@ This file-based format complements `subagent-return.md`:
 | Location | Agent's stdout | `specs/{NNN}_{SLUG}/.return-meta.json` |
 | Consumer | Skill validation logic | Skill postflight operations |
 | When | Before file-based pattern | With file-based pattern |
-| Cneovimup | N/A | Deleted after postflight |
+| Cleanup | N/A | Deleted after postflight |
 
 **Migration path**: Skills migrate from validating console JSON to reading file metadata. The schema is nearly identical for compatibility.
 

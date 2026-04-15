@@ -182,7 +182,7 @@ Write to `specs/{NNN}_{SLUG}/.spawn-return.json`:
 | `new_tasks[].title` | string | Task title (will become project_name as snake_case) |
 | `new_tasks[].description` | string | Full task description |
 | `new_tasks[].effort` | string | Time estimate like "1-2 hours" |
-| `new_tasks[].task_type` | string | Task type (meta, general, neovim, etc.) |
+| `new_tasks[].task_type` | string | Task type (meta, general, etc.) |
 | `new_tasks[].dependencies` | array | Indices of other new tasks this depends on |
 | `dependency_order` | array | Topologically sorted list of indices (foundational first) |
 | `parent_task_number` | integer | The blocked task number |

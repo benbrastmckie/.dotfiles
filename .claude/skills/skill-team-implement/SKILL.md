@@ -647,13 +647,15 @@ Team implementation partially completed for task 412:
 
 ## MUST NOT (Postflight Boundary)
 
-After teammates complete phase execution, this skill MUST NOT:
+After teammates complete phase execution -- whether with status implemented, partial, or failed -- this skill MUST proceed immediately to postflight operations. The skill MUST NOT:
 
 1. **Edit source files** - All implementation work is done by teammates
 2. **Run build/test commands** - Verification is done by teammates
 3. **Use MCP tools** - Domain tools are for teammate use only
 4. **Analyze or grep source** - Analysis is teammate work
 5. **Write summary/reports** - Artifact creation is done by teammates
+
+> **PROHIBITION**: If a teammate returned partial or failed status, the lead skill MUST NOT attempt to continue, complete, or "fill in" the teammate's work. Report the partial/failed status and let the user re-run `/implement` to resume.
 
 The postflight phase is LIMITED TO:
 - Reading teammate metadata files

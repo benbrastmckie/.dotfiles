@@ -44,7 +44,7 @@ Complete schema reference for state.json, TODO.md, and artifact formats. For beh
 ### {NUMBER}. {TITLE}
 - **Effort**: {estimate}
 - **Status**: [{STATUS}]
-- **Task Type**: {neovim|general|meta|markdown|latex|typst}
+- **Task Type**: {general|meta|markdown} or extension-provided type
 - **Dependencies**: Task #{N}, Task #{N}  OR  None
 - **Started**: {ISO timestamp}
 - **Completed**: {ISO timestamp}
@@ -63,7 +63,7 @@ Complete schema reference for state.json, TODO.md, and artifact formats. For beh
 | `project_number` | number | Yes | Unique task identifier |
 | `project_name` | string | Yes | Snake_case slug from title |
 | `status` | string | Yes | Current status (see Status Values) |
-| `task_type` | string | Yes | Task type for routing (see Task Type Values). Bare values (`meta`, `neovim`) or compound `extension:subtype` (`present:grant`, `founder:deck`) |
+| `task_type` | string | Yes | Task type for routing (see Task Type Values). Bare values (`meta`, `general`) or compound `extension:subtype` (`present:grant`, `founder:deck`) |
 | `effort` | string | No | Estimated effort |
 | `created` | string | Yes | ISO8601 creation timestamp |
 | `last_updated` | string | Yes | ISO8601 last update timestamp |
@@ -80,7 +80,7 @@ The `task_type` field is the unified routing field for all tasks. It replaces th
 | `task_type` | string | Yes | - | Routing key: bare value or compound `extension:subtype` |
 
 **Values**:
-- **Bare values**: `meta`, `general`, `markdown`, `neovim`, `lean4`, `latex`, etc.
+- **Bare values**: `meta`, `general`, `markdown`, plus extension-provided types (e.g., `lean4`, `latex`, etc.)
 - **Compound values**: `present:grant`, `founder:deck`, `present:slides`, etc.
 - Compound format: `{extension}:{subtype}` -- the extension prefix is used for routing to the correct extension, the subtype for sub-routing within the extension.
 
@@ -95,7 +95,7 @@ The `task_type` field is the unified routing field for all tasks. It replaces th
 | state.json | TODO.md |
 |------------|---------|
 | `"meta"` | `- **Task Type**: meta` |
-| `"neovim"` | `- **Task Type**: neovim` |
+| `"general"` | `- **Task Type**: general` |
 | `"present:grant"` | `- **Task Type**: present:grant` |
 
 ### Task Type Values

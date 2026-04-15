@@ -41,7 +41,6 @@ Route to appropriate skill based on task type:
 
 | Task Type | Research Skill | Implementation Skill |
 |-----------|---------------|---------------------|
-| neovim | skill-neovim-research | skill-neovim-implementation |
 | general | skill-researcher | skill-implementer |
 | meta | skill-researcher | skill-implementer |
 | markdown | skill-researcher | skill-implementer |
@@ -66,7 +65,7 @@ Prepare context package for delegated skill:
 {
   "task_number": 259,
   "task_name": "task_slug",
-  "task_type": "neovim",
+  "task_type": "general",
   "status": "planned",
   "description": "Full task description",
   "artifacts": {

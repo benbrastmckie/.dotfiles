@@ -75,7 +75,7 @@ All documentation files in `.claude/` use **lowercase kebab-case** with `.md` ex
 - Always specify language for syntax highlighting
 - Use `bash` for shell commands
 - Use `json` for JSON examples
-- Use `lua` for Neovim configuration
+- Use the appropriate language identifier for project source files
 - Use `lean` for Lean code (when extension loaded)
 
 ### File Trees

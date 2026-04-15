@@ -159,13 +159,18 @@ All agent-delegating skills should include this section:
 ```markdown
 ## MUST NOT (Postflight Boundary)
 
-After the agent returns, this skill MUST NOT:
+After the agent returns -- whether with status implemented, partial, or failed --
+this skill MUST proceed immediately to postflight. The skill MUST NOT:
 
 1. **Edit source files** - All implementation work is done by agent
 2. **Run build/test commands** - Verification is done by agent
 3. **Use MCP tools** - Domain tools are for agent use only
 4. **Analyze or grep source** - Analysis is agent work
 5. **Write summary/reports** - Artifact creation is agent work
+
+> **PROHIBITION**: If the subagent returned partial or failed status, the lead skill
+> MUST NOT attempt to continue, complete, or "fill in" the subagent's work. Report
+> the partial/failed status and let the user re-run `/implement` to resume.
 
 The postflight phase is LIMITED TO:
 - Reading agent metadata file

@@ -68,11 +68,11 @@ session_id="sess_$(date +%s)_$(od -An -N3 -tx1 /dev/urandom | tr -d ' ')"
 **Language Routing**:
 | Task Type | Research | Planning | Implementation |
 |----------|----------|----------|----------------|
-| neovim | skill-neovim-research | skill-planner | skill-neovim-implementation |
 | general | skill-researcher | skill-planner | skill-implementer |
 | meta | skill-researcher | skill-planner | skill-implementer |
+| _{extension}_ | _Extension-provided_ | skill-planner | _Extension-provided_ |
 
-**Note**: Additional languages (latex, typst) available via extensions.
+**Note**: Extensions add task type routing entries. See `.claude/extensions/*/manifest.json`.
 
 ---
 

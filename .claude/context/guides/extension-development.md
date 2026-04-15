@@ -26,30 +26,30 @@ Extensions provide task-type-specific and domain-specific capabilities to the co
 
 ```json
 {
-  "name": "neovim",
+  "name": "python",
   "version": "1.0.0",
-  "description": "Neovim configuration development support",
-  "task_type": "neovim",
+  "description": "Python development support",
+  "task_type": "python",
   "dependencies": [],
   "provides": {
-    "agents": ["neovim-research-agent.md", "neovim-implementation-agent.md"],
-    "skills": ["skill-neovim-research", "skill-neovim-implementation"],
+    "agents": ["python-research-agent.md", "python-implementation-agent.md"],
+    "skills": ["skill-python-research", "skill-python-implementation"],
     "commands": [],
     "rules": [],
-    "context": ["project/neovim"],
+    "context": ["project/python"],
     "scripts": [],
     "hooks": []
   },
   "routing": {
-    "research": { "neovim": "skill-neovim-research" },
-    "plan": { "neovim": "skill-planner" },
-    "implement": { "neovim": "skill-neovim-implementation" }
+    "research": { "python": "skill-python-research" },
+    "plan": { "python": "skill-planner" },
+    "implement": { "python": "skill-python-implementation" }
   },
   "merge_targets": {
     "claudemd": {
       "source": "EXTENSION.md",
       "target": ".claude/CLAUDE.md",
-      "section_id": "extension_neovim"
+      "section_id": "extension_python"
     },
     "index": {
       "source": "index-entries.json",
@@ -74,7 +74,7 @@ Extensions provide task-type-specific and domain-specific capabilities to the co
 
 ## Merge Process
 
-Extensions are loaded via `<leader>ac` in Neovim. The loader reads each extension's `manifest.json` and merges content according to `merge_targets`:
+Extensions are loaded via the extension picker. The loader reads each extension's `manifest.json` and merges content according to `merge_targets`:
 
 ### 1. Context Index Merging
 
@@ -84,11 +84,11 @@ Extension context entries from `index-entries.json` are merged into `.claude/con
 {
   "entries": [
     {
-      "path": "extensions/neovim/context/project/neovim/lua-patterns.md",
+      "path": "extensions/python/context/project/python/coding-patterns.md",
       "domain": "project",
-      "subdomain": "neovim",
+      "subdomain": "python",
       "load_when": {
-        "task_types": ["neovim"]
+        "task_types": ["python"]
       }
     }
   ]
@@ -158,7 +158,7 @@ Add domain knowledge to `context/project/{domain}/`.
 
 ### Step 6: Load Extension
 
-Extensions are loaded via `<leader>ac` in Neovim. The loader discovers extensions by scanning `.claude/extensions/*/manifest.json` directories automatically -- no central registry is needed.
+Extensions are loaded via the extension picker. The loader discovers extensions by scanning `.claude/extensions/*/manifest.json` directories automatically -- no central registry is needed.
 
 ## Best Practices
 

@@ -9,7 +9,7 @@
 
 ## Three-Layer Architecture
 
-The Neovim Configuration agent system implements a three-layer delegation pattern separating concerns into distinct execution layers.
+The agent system implements a three-layer delegation pattern separating concerns into distinct execution layers.
 
 ```
                          USER INPUT
@@ -24,14 +24,14 @@ The Neovim Configuration agent system implements a three-layer delegation patter
                               ▼
                     ┌─────────────────┐
      Layer 2:       │     Skills      │  Thin wrappers with validation
-     (Skills)       │ (skill-neovim-    │  Prepare delegation context
-                    │  research, etc.)│  Invoke agents via Task tool
+     (Skills)       │ (skill-researcher,│  Prepare delegation context
+                    │  etc.)          │  Invoke agents via Task tool
                     └────────┬────────┘
                               │
                               ▼
                     ┌─────────────────┐
      Layer 3:       │     Agents      │  Full execution components
-     (Agents)       │ (neovim-research- │  Load context on-demand
+     (Agents)       │ (general-research-│  Load context on-demand
                     │  agent, etc.)   │  Create artifacts
                     └────────┬────────┘
                               │
@@ -78,8 +78,8 @@ The Neovim Configuration agent system implements a three-layer delegation patter
 ```yaml
 ---
 routing:
-  neovim: skill-neovim-research
   general: skill-researcher
+  meta: skill-researcher
   default: skill-researcher
 ---
 ```
@@ -164,7 +164,7 @@ Skills implement three distinct architecture patterns based on their execution n
 
 ### Pattern A: Delegating Skills with Internal Postflight
 
-**Used by**: skill-researcher, skill-neovim-research, skill-planner, skill-implementer, skill-neovim-implementation, skill-meta (6 core skills; extensions add more)
+**Used by**: skill-researcher, skill-planner, skill-implementer, skill-meta (core skills; extensions add more)
 
 **Characteristics**:
 - Frontmatter: `allowed-tools: Task, Bash, Edit, Read, Write`
@@ -261,13 +261,13 @@ User: "/research 259"
          ▼
 ┌───────────────────┐
 │ 1. Command parses │  Extract task_number=259
-│    $ARGUMENTS     │  Determine language=neovim
+│    $ARGUMENTS     │  Determine task_type=general
 └─────────┬─────────┘
           │
           ▼
 ┌───────────────────┐
-│ 2. Route to skill │  language=neovim → skill-neovim-research
-│    by language    │
+│ 2. Route to skill │  task_type=general → skill-researcher
+│    by task_type   │
 └─────────┬─────────┘
           │
           ▼
@@ -279,7 +279,7 @@ User: "/research 259"
           │
           ▼
 ┌───────────────────┐
-│ 4. Skill invokes  │  Task tool with subagent_type: neovim-research-agent
+│ 4. Skill invokes  │  Task tool with subagent_type: general-research-agent
 │    agent via Task │  Pass: task_context, delegation_context
 └─────────┬─────────┘
           │
@@ -380,11 +380,11 @@ Tasks route to specialized skills/agents based on their `task_type` field:
 
 | Task Type | Research | Planning | Implementation |
 |----------|----------|----------|----------------|
-| `neovim` | skill-neovim-research → neovim-research-agent | skill-planner → planner-agent | skill-neovim-implementation → neovim-implementation-agent |
 | `general` | skill-researcher → general-research-agent | skill-planner → planner-agent | skill-implementer → general-implementation-agent |
 | `meta` | skill-researcher → general-research-agent | skill-planner → planner-agent | skill-implementer → general-implementation-agent |
+| _{extension}_ | _Extension-provided skill → extension agent_ | skill-planner → planner-agent | _Extension-provided skill → extension agent_ |
 
-**Note**: Additional languages (latex, typst) available via extensions in `.claude/extensions/`.
+**Note**: Extensions (e.g., neovim, lean4, latex, typst) add task type routing entries. See `.claude/extensions/*/manifest.json`.
 
 ---
 
@@ -394,9 +394,9 @@ Complete mapping of all commands to their skill and agent paths:
 
 | Command | Routing Type | Skill(s) | Agent(s) | Pattern |
 |---------|--------------|----------|----------|---------|
-| `/research` | Language-based | neovim: skill-neovim-research, other: skill-researcher | neovim-research-agent, general-research-agent | A |
+| `/research` | Task-type-based | Extension or skill-researcher | Extension or general-research-agent | A |
 | `/plan` | Single | skill-planner | planner-agent | A |
-| `/implement` | Language-based | neovim: skill-neovim-implementation, other: skill-implementer | neovim-implementation-agent, general-implementation-agent | A |
+| `/implement` | Task-type-based | Extension or skill-implementer | Extension or general-implementation-agent | A |
 | `/revise` | Single | skill-planner (new version) | planner-agent | A |
 | `/meta` | Single | skill-meta | meta-builder-agent | A |
 | `/review` | Direct | skill-orchestrator | (inline execution) | C |

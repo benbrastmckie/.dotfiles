@@ -501,6 +501,10 @@ The skill will spawn the appropriate agent(s) which execute plan phases (in para
    - Task entry: `- **Status**: [IMPLEMENTING]` → `- **Status**: [COMPLETED]`
    - Task Order: `**{N}** [IMPLEMENTING]` → `**{N}** [COMPLETED]`
 
+7. **Post-Delegation Takeover Detection (Future Work)**
+
+   > **Note**: A future enhancement should detect if the skill performed source-file reads, builds, or codebase exploration after the subagent returned. If the skill's tool-call sequence shows Read/Grep/Glob/Bash operations on non-specs files after the Task tool returned, log a warning: "Skill violated postflight boundary -- source operations detected after delegation." This is not currently enforced automatically but is documented as a desired GATE OUT validation.
+
 **RETRY** skill if validation fails.
 
 **On GATE OUT success**: Artifacts and completion summary verified. **IMMEDIATELY CONTINUE** to CHECKPOINT 3 below.

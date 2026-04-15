@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://nvim.config/context/index.schema.json",
+  "$id": "https://claude-agent.config/context/index.schema.json",
   "title": "Context Index Schema",
   "description": "Machine-readable index for .claude/context/ files enabling automated context discovery via jq queries",
   "type": "object",
@@ -48,8 +48,8 @@
         },
         "subdomain": {
           "type": "string",
-          "description": "Subdomain within the domain (e.g., orchestration, neovim, latex)",
-          "examples": ["orchestration", "neovim", "latex", "typst", "meta"]
+          "description": "Subdomain within the domain (e.g., orchestration, formats, meta)",
+          "examples": ["orchestration", "formats", "meta", "architecture", "patterns"]
         },
         "topics": {
           "type": "array",
@@ -88,7 +88,7 @@
                 "type": "string"
               },
               "description": "Agents that should load this context",
-              "examples": [["neovim-research-agent", "planner-agent"]]
+              "examples": [["general-research-agent", "planner-agent"]]
             },
             "commands": {
               "type": "array",
@@ -104,7 +104,7 @@
                 "type": "string"
               },
               "description": "Task languages that trigger loading",
-              "examples": [["neovim", "meta"]]
+              "examples": [["general", "meta"]]
             },
             "always": {
               "type": "boolean",

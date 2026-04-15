@@ -27,7 +27,7 @@ Create a new context file when:
 - Concept is orthogonal to existing files
 - Topic deserves dedicated focus
 
-**Example**: Creating `project/neovim/plugin-optimization-patterns.md` for Neovim-specific patterns
+**Example**: Creating `extensions/{ext}/context/patterns/optimization-patterns.md` for domain-specific patterns
 
 ### Split Existing File
 
@@ -115,7 +115,7 @@ Split an existing file when:
 ### Project Domain (`.claude/context/project/{domain}/`)
 
 **When to revise**: Domain knowledge expands
-**Examples**: `lazy-nvim-guide.md`, `plugin-spec.md`, `keymap-patterns.md`
+**Examples**: Domain-specific tool guides, pattern files, API references
 **Revision pattern**: Create new files for new concepts
 **Frequency**: High (per-task)
 

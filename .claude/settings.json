@@ -84,7 +84,7 @@
           },
           {
             "type": "command",
-            "command": "bash ~/.config/nvim/scripts/claude-ready-signal.sh 2>/dev/null || echo '{}'"
+            "command": "bash scripts/claude-ready-signal.sh 2>/dev/null || echo '{}'"
           }
         ]
       }

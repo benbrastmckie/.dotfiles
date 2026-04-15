@@ -32,9 +32,9 @@
 **Purpose**: Provides early orientation on how the research topic fits into the codebase by documenting dependency relationships.
 
 **Fields**:
-- **Upstream Dependencies**: Existing modules, functions, or components this builds upon. Example: "Depends on `utils/helpers.lua`, `config/keymaps.lua`"
-- **Downstream Dependents**: Existing or planned components that will use this. Example: "Enables `plugins/telescope.lua`, `config/lsp.lua`"
-- **Alternative Paths**: Where this provides redundancy or different approaches. Example: "Alternative to the native LSP approach"
+- **Upstream Dependencies**: Existing modules, functions, or components this builds upon. Example: "Depends on `utils/helpers.ext`, `config/settings.ext`"
+- **Downstream Dependents**: Existing or planned components that will use this. Example: "Enables `modules/search.ext`, `config/server.ext`"
+- **Alternative Paths**: Where this provides redundancy or different approaches. Example: "Alternative to the direct API approach"
 - **Potential Extensions**: New directions this enables or suggests. Example: "Could extend to support additional filetypes"
 
 ## Timestamps
@@ -119,13 +119,13 @@
 ```markdown
 ## Context Extension Recommendations
 
-- **Topic**: telescope.nvim advanced picker creation
-- **Gap**: No context file covers custom picker implementation patterns
-- **Recommendation**: Create `project/neovim/patterns/telescope-pickers.md` or extend `project/neovim/tools/telescope-guide.md`
+- **Topic**: Advanced search/filter patterns
+- **Gap**: No context file covers custom search implementation patterns
+- **Recommendation**: Create `patterns/search-patterns.md` or extend existing tool guide
 
-- **Topic**: Neovim floating window API
-- **Gap**: `domain/neovim-api.md` does not cover floating window creation
-- **Recommendation**: Add floating window section to `domain/neovim-api.md`
+- **Topic**: Dynamic UI component API
+- **Gap**: No context file covers dynamic UI component creation
+- **Recommendation**: Add UI component section to relevant domain context file
 ```
 
 **Note**: Context gap task creation is currently disabled. Agents should document gaps in reports for future manual review rather than automatically creating tasks.

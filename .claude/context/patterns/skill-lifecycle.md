@@ -134,12 +134,10 @@ Not all skills need inline status updates. Skills that match these patterns are 
 
 These skills manage task lifecycle transitions:
 - skill-researcher (not_started/researched -> researching -> researched)
-- skill-neovim-research (same as researcher, neovim-specific)
 - skill-planner (researched -> planning -> planned)
 - skill-implementer (planned -> implementing -> completed)
-- skill-neovim-implementation (same as implementer, neovim-specific)
 
-**Note**: Additional workflow skills (latex, typst) available via extensions.
+**Note**: Extensions add workflow skills (e.g., skill-{ext}-research, skill-{ext}-implementation) that follow the same lifecycle pattern.
 
 ### Non-Workflow Skills (Excluded from Pattern)
 

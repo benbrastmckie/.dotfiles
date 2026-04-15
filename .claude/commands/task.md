@@ -97,8 +97,8 @@ When $ARGUMENTS contains a description (no flags).
 
    **Edge Cases**:
    - Input with quotes: `Add "hello world" test` -> No change to quoted content
-   - Input with file path: `Fix bug in nvim/lua/plugins/lsp.lua` -> Preserve path exactly
-   - Input with version: `Update to neovim v0.10.0` -> Preserve version identifier
+   - Input with file path: `Fix bug in src/config/lsp.lua` -> Preserve path exactly
+   - Input with version: `Update to python v3.12` -> Preserve version identifier
    - Input with issue ref: `Fix #123 memory leak` -> Preserve issue reference
    - CamelCase preserved: `prove_CoherentConstruction_complete` -> `Prove CoherentConstruction complete`
 
@@ -109,7 +109,6 @@ When $ARGUMENTS contains a description (no flags).
    - **Implement**: (default for unrecognized patterns)
 
 4. **Detect task_type** from keywords:
-   - "neovim", "plugin", "nvim", "lua" → neovim
    - "meta", "agent", "command", "skill" → meta
    - "lean", "lean4", "mathlib", "theorem", "proof" → lean4
    - "latex", "tex", "document", "typeset" → latex

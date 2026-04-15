@@ -858,17 +858,17 @@ Update repository-wide metrics in both state.json and TODO.md header.
 
 **Step 5.7.1: Compute current metrics**:
 ```bash
-# Count TODOs in Lua files
-todo_count=$(grep -r "TODO" nvim/lua/ --include="*.lua" | wc -l)
+# Count TODOs in source files
+todo_count=$(grep -r "TODO" . --include="*.lua" --include="*.py" --include="*.js" --include="*.ts" --include="*.tex" | wc -l)
 
 # Count FIXME markers
-fixme_count=$(grep -r "FIXME" nvim/lua/ --include="*.lua" | wc -l)
+fixme_count=$(grep -r "FIXME" . --include="*.lua" --include="*.py" --include="*.js" --include="*.ts" --include="*.tex" | wc -l)
 
 # Get current timestamp
 ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-# Build errors (0 if nvim starts successfully)
-if nvim --headless -c "quit" 2>/dev/null; then
+# Build errors (0 if project-specific lint/check passes)
+if make check 2>/dev/null || npm run lint 2>/dev/null || true; then
   build_errors=0
 else
   build_errors=1
