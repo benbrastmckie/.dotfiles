@@ -4,17 +4,23 @@
     {
       "project_number": 49,
       "project_name": "fix_claude_sleep_inhibitor_nix",
-      "status": "researched",
+      "status": "planned",
       "task_type": "nix",
       "created": "2026-04-20T00:40:17Z",
-      "last_updated": "2026-04-20T00:43:54Z",
+      "last_updated": "2026-04-20T00:55:00Z",
       "session_id": "sess_1776645664_beee5c",
       "researched": "2026-04-20T00:43:54Z",
+      "planned": "2026-04-20T00:55:00Z",
       "artifacts": [
         {
           "path": "specs/049_fix_claude_sleep_inhibitor_nix/reports/01_sleep-inhibitor-fix.md",
           "type": "research",
           "summary": "Identified bare sh and sleep references in claude-sleep-inhibitor systemd service (home.nix:813). Fix: replace sh with ${pkgs.bash}/bin/bash, sleep with ${pkgs.coreutils}/bin/sleep inside -c string, add || sleep 5 failure guard."
+        },
+        {
+          "path": "specs/049_fix_claude_sleep_inhibitor_nix/plans/01_sleep-inhibitor-fix.md",
+          "type": "plan",
+          "summary": "Single-phase plan to fix bare sh and sleep references with Nix store paths and add failure guard"
         }
       ],
       "next_artifact_number": 2

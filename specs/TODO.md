@@ -3,9 +3,10 @@
 ## Active Tasks
 
 ### 49. Fix claude-sleep-inhibitor Nix derivation broken sh path causing tight failure loop
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
-- **Research**: [specs/049_fix_claude_sleep_inhibitor_nix/reports/01_sleep-inhibitor-fix.md]
+- **Research**: [01_sleep-inhibitor-fix.md](specs/049_fix_claude_sleep_inhibitor_nix/reports/01_sleep-inhibitor-fix.md)
+- **Plan**: [01_sleep-inhibitor-fix.md](specs/049_fix_claude_sleep_inhibitor_nix/plans/01_sleep-inhibitor-fix.md)
 
 **Description**: The claude-sleep-inhibitor Nix derivation uses a bare `sh` in `systemd-inhibit ... sh -c '...'` which fails to resolve in the Nix environment ("No such file or directory"). This causes ~110 process spawns/sec, driving polkitd (8.4%), nsncd (8.3%), and dbus-daemon (4.1%) CPU usage, heating thermal zones to 89.8°C and ramping fans. Fix by replacing bare `sh` with a full Nix store path (e.g., `${pkgs.bash}/bin/bash`) and add a sleep-on-failure guard to the outer loop.
 

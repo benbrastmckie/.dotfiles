@@ -1,11 +1,21 @@
 {
-  "status": "researched",
+  "status": "planned",
   "session_id": "sess_1776645664_beee5c",
+  "agent_type": "planner-agent",
+  "delegation_path": ["orchestrator", "plan", "planner-agent"],
   "artifacts": [
     {
-      "path": "specs/049_fix_claude_sleep_inhibitor_nix/reports/01_sleep-inhibitor-fix.md",
-      "type": "research",
-      "summary": "Identified bare sh and sleep references in claude-sleep-inhibitor systemd service (home.nix:813). Fix: replace sh with ${pkgs.bash}/bin/bash, sleep with ${pkgs.coreutils}/bin/sleep inside -c string, add || sleep 5 failure guard."
+      "path": "specs/049_fix_claude_sleep_inhibitor_nix/plans/01_sleep-inhibitor-fix.md",
+      "type": "plan",
+      "summary": "Single-phase plan to fix bare sh and sleep references in claude-sleep-inhibitor systemd service by replacing with Nix store paths and adding failure guard"
     }
-  ]
+  ],
+  "plan_metadata": {
+    "phases": 1,
+    "total_effort_hours": 0.5,
+    "complexity": "simple",
+    "research_integrated": true,
+    "plan_version": 1
+  },
+  "next_steps": "Run /implement 49 to execute the plan"
 }
