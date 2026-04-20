@@ -1,7 +1,7 @@
 # Implementation Plan: Fix claude-sleep-inhibitor Nix derivation
 
 - **Task**: 49 - fix_claude_sleep_inhibitor_nix
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 0.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/049_fix_claude_sleep_inhibitor_nix/reports/01_sleep-inhibitor-fix.md
@@ -55,7 +55,7 @@ No ROADMAP.md found.
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Fix bare command references and add failure guard [NOT STARTED]
+### Phase 1: Fix bare command references and add failure guard [COMPLETED]
 
 **Goal**: Replace all bare command references with Nix store paths and add error handling
 

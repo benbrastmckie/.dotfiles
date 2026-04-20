@@ -810,9 +810,10 @@
               ${pkgs.systemd}/bin/systemd-inhibit --what=sleep:idle \
                 --why="Claude Code is running" \
                 --who="claude-sleep-inhibitor" \
-                sh -c 'while ${pkgs.procps}/bin/pgrep -f "claude" > /dev/null; do sleep 30; done'
+                ${pkgs.bash}/bin/bash -c 'while ${pkgs.procps}/bin/pgrep -f "claude" > /dev/null; do ${pkgs.coreutils}/bin/sleep 30; done' \
+                || ${pkgs.coreutils}/bin/sleep 5
             fi
-            sleep 30
+            ${pkgs.coreutils}/bin/sleep 30
           done
         '';
       in "${script}";
