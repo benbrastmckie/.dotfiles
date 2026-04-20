@@ -1,6 +1,14 @@
 {
-  "next_project_number": 49,
+  "next_project_number": 50,
   "active_projects": [
+    {
+      "project_number": 49,
+      "project_name": "fix_claude_sleep_inhibitor_nix",
+      "status": "not_started",
+      "task_type": "nix",
+      "created": "2026-04-20T00:40:17Z",
+      "last_updated": "2026-04-20T00:40:17Z"
+    },
     {
       "project_number": 48,
       "project_name": "replace_markitdown_venv_with_nixpkgs",
