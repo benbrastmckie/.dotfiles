@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 50. Fix claude-sleep-inhibitor pgrep self-matching preventing sleep
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+
+**Description**: Fix claude-sleep-inhibitor pgrep self-matching: `pgrep -f 'claude'` matches the inhibitor script itself, claude-memory-tracker, earlyoom --prefer pattern, and other non-session processes, causing the inhibitor to never release and permanently blocking sleep. Replace with a more specific pattern that only matches actual Claude Code session processes.
+
+---
+
 ### 49. Fix claude-sleep-inhibitor Nix derivation broken sh path causing tight failure loop
 - **Status**: [COMPLETED]
 - **Task Type**: nix

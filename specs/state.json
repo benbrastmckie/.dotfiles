@@ -1,6 +1,14 @@
 {
-  "next_project_number": 50,
+  "next_project_number": 51,
   "active_projects": [
+    {
+      "project_number": 50,
+      "project_name": "fix_sleep_inhibitor_pgrep_self_matching",
+      "status": "not_started",
+      "task_type": "nix",
+      "created": "2026-04-20T04:11:54Z",
+      "last_updated": "2026-04-20T04:11:54Z"
+    },
     {
       "project_number": 49,
       "project_name": "fix_claude_sleep_inhibitor_nix",
