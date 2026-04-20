@@ -1,0 +1,11 @@
+{
+  "status": "researched",
+  "session_id": "sess_1776645664_beee5c",
+  "artifacts": [
+    {
+      "path": "specs/049_fix_claude_sleep_inhibitor_nix/reports/01_sleep-inhibitor-fix.md",
+      "type": "research",
+      "summary": "Identified bare sh and sleep references in claude-sleep-inhibitor systemd service (home.nix:813). Fix: replace sh with ${pkgs.bash}/bin/bash, sleep with ${pkgs.coreutils}/bin/sleep inside -c string, add || sleep 5 failure guard."
+    }
+  ]
+}
