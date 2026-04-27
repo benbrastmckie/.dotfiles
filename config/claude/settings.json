@@ -1,7 +1,9 @@
 {
-  "_NOTE": "This file is managed by Home Manager via ~/.dotfiles/config/claude-settings.json (sourced in home.nix). Edit the source file, then run 'home-manager switch'. Runtime changes by Claude Code persist until next rebuild.",
+  "_NOTE": "Managed by Home Manager via ~/.dotfiles/config/claude/settings.json. Edit the source, then run 'home-manager switch'. Runtime changes persist until next rebuild.",
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "1",
+    "CLAUDE_CODE_FORK_SUBAGENT": "1"
   },
   "permissions": {
     "allow": [
@@ -51,5 +53,7 @@
   },
   "skipDangerousModePermissionPrompt": true,
   "voiceEnabled": true,
+  "voiceMode": "tap",
+  "recapEnabled": false,
   "autoMemoryEnabled": false
 }

@@ -40,10 +40,15 @@ $bibtex_use = 1;  # Use bibtex (not biber)
 # Prevents race conditions from rapid saves during editing
 $sleep_time = 2;
 
+# Pre-build: remove aux files corrupted with null bytes (^^@ in TeX)
+# Null bytes appear when a build is interrupted mid-write to the aux file;
+# the next build then fails reading garbage, cascading into persistent errors.
+$compiling_cmd = 'perl -e \'for my $f (glob("build/*.aux")) { open my $fh, "<", $f or next; local $/; my $c = <$fh>; close $fh; if (defined $c && $c =~ /\x00/) { unlink $f; print STDERR "Removed corrupted $f\\n" } }\'';
+
 # Auto-cleanup After Build Failures
-# Ensures next build starts with clean aux files
-# Prevents propagation of corrupted auxiliary files
-$failure_cmd = 'latexmk -c && echo "[$(date)] Build failed, aux files cleaned" >> build/compile.log';
+# Uses direct rm instead of latexmk -c to avoid spawning a second latexmk
+# process that races with the running -pvc watcher
+$failure_cmd = 'rm -f build/*.aux build/*.bbl build/*.blg && echo "[$(date)] Build failed, aux files cleaned" >> build/compile.log';
 
 # Success Logging (optional, for diagnostics)
 $success_cmd = 'echo "[$(date)] Build succeeded" >> build/compile.log';

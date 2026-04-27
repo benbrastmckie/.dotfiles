@@ -41,7 +41,8 @@ Files are organized by application and deployment pattern:
 
 | File | Deployed To | Description |
 |------|-------------|-------------|
-| `claude-settings.json` | `~/.claude/settings.json` | Claude Code CLI settings |
+| `claude/settings.json` | `~/.claude/settings.json` | Claude Code CLI settings (copied, not symlinked) |
+| `claude/keybindings.json` | `~/.claude/keybindings.json` | Claude Code keyboard shortcuts (copied, not symlinked) |
 | `opencode.json` | `~/.config/opencode/opencode.json` | OpenCode configuration |
 | `latexmkrc` | `~/.latexmkrc` | LaTeX build automation configuration |
 
@@ -67,7 +68,7 @@ Files are organized by application and deployment pattern:
 
 - All configurations are declaratively managed through `home.nix`
 - Changes to these files require running `home-manager switch` to take effect
-- Most configs are deployed as symlinks; `claude-settings.json` and `rclone.conf` use activation scripts that copy instead of symlink so the applications can write to them at runtime
+- Most configs are deployed as symlinks; `claude/` and `rclone.conf` use activation scripts that copy instead of symlink so the applications can write to them at runtime
 - Some configs are also copied to `~/.config/config-files/` for version control backup
 - See `home.nix` for complete deployment mappings
 
