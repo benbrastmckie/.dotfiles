@@ -1,0 +1,11 @@
+{
+  "bindings": [
+    {
+      "context": "Chat",
+      "bindings": {
+        "ctrl+'": "voice:pushToTalk",
+        "meta+k": "voice:pushToTalk"
+      }
+    }
+  ]
+}

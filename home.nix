@@ -684,12 +684,15 @@
     mkdir -p "/home/benjamin/Mail/Logos/Archive"/{cur,new,tmp}
   '';
 
-  # Copy claude settings as a regular file (not symlink) so Claude Code can write to it
+  # Copy claude config files as regular files (not symlinks) so Claude Code can write to them
   home.activation.claudeSettings = config.lib.dag.entryAfter ["writeBoundary"] ''
     mkdir -p /home/benjamin/.claude
     rm -f /home/benjamin/.claude/settings.json
-    cp ${./config/claude-settings.json} /home/benjamin/.claude/settings.json
+    cp ${./config/claude/settings.json} /home/benjamin/.claude/settings.json
     chmod u+w /home/benjamin/.claude/settings.json
+    rm -f /home/benjamin/.claude/keybindings.json
+    cp ${./config/claude/keybindings.json} /home/benjamin/.claude/keybindings.json
+    chmod u+w /home/benjamin/.claude/keybindings.json
   '';
 
   # Copy rclone config as a regular file (not symlink) so rclone can write token refreshes.
@@ -796,34 +799,36 @@
     };
   };
 
-  systemd.user.services.claude-sleep-inhibitor = {
-    Unit = {
-      Description = "Inhibit sleep while Claude Code is active";
-      After = [ "default.target" ];
-    };
-    Service = {
-      Type = "simple";
-      ExecStart = let
-        script = pkgs.writeShellScript "claude-sleep-inhibitor" ''
-          while true; do
-            if ${pkgs.procps}/bin/pgrep -f 'claude' > /dev/null; then
-              ${pkgs.systemd}/bin/systemd-inhibit --what=sleep:idle \
-                --why="Claude Code is running" \
-                --who="claude-sleep-inhibitor" \
-                ${pkgs.bash}/bin/bash -c 'while ${pkgs.procps}/bin/pgrep -f "claude" > /dev/null; do ${pkgs.coreutils}/bin/sleep 30; done' \
-                || ${pkgs.coreutils}/bin/sleep 5
-            fi
-            ${pkgs.coreutils}/bin/sleep 30
-          done
-        '';
-      in "${script}";
-      Restart = "always";
-      RestartSec = 10;
-    };
-    Install = {
-      WantedBy = [ "default.target" ];
-    };
-  };
+  # DISABLED: pgrep -f 'claude' self-matches inhibitor script, memory-tracker,
+  # earlyoom, etc., causing sleep to be permanently blocked. See task 50.
+  # systemd.user.services.claude-sleep-inhibitor = {
+  #   Unit = {
+  #     Description = "Inhibit sleep while Claude Code is active";
+  #     After = [ "default.target" ];
+  #   };
+  #   Service = {
+  #     Type = "simple";
+  #     ExecStart = let
+  #       script = pkgs.writeShellScript "claude-sleep-inhibitor" ''
+  #         while true; do
+  #           if ${pkgs.procps}/bin/pgrep -f 'claude' > /dev/null; then
+  #             ${pkgs.systemd}/bin/systemd-inhibit --what=sleep:idle \
+  #               --why="Claude Code is running" \
+  #               --who="claude-sleep-inhibitor" \
+  #               ${pkgs.bash}/bin/bash -c 'while ${pkgs.procps}/bin/pgrep -f "claude" > /dev/null; do ${pkgs.coreutils}/bin/sleep 30; done' \
+  #               || ${pkgs.coreutils}/bin/sleep 5
+  #           fi
+  #           ${pkgs.coreutils}/bin/sleep 30
+  #         done
+  #       '';
+  #     in "${script}";
+  #     Restart = "always";
+  #     RestartSec = 10;
+  #   };
+  #   Install = {
+  #     WantedBy = [ "default.target" ];
+  #   };
+  # };
 
   # Add systemd user session variables for broader availability
   systemd.user.sessionVariables = {
@@ -1085,8 +1090,8 @@
     # NOTE: rclone.conf is managed via activation script (not symlink)
     # so that rclone can write token refreshes and config updates.
     # See home.activation.rcloneConfig below.
-    # NOTE: .claude/settings.json is managed via activation script (not symlink)
-    # so that Claude Code can write runtime changes (permissions, voice toggle, etc.)
+    # NOTE: .claude/{settings,keybindings}.json managed via activation script (not symlink)
+    # so that Claude Code can write runtime changes. Source: config/claude/
     # See home.activation.claudeSettings below.
 
     # aerc email client accounts configuration
