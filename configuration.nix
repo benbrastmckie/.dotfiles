@@ -519,6 +519,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       git-filter-repo      # For deleting elements from git history
       rclone               # Command-line cloud storage sync and management tool
       sox                  # Audio processing and playback (play, rec, sox)
+      cloc                 # Tools to check the size of a repo
       # R environment with all packages composed via wrapper
       # (flat rPackages.* entries don't expose packages to R's library path)
       (rWrapper.override {
