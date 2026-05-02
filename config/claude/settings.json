@@ -55,5 +55,29 @@
   "voiceEnabled": true,
   "voiceMode": "tap",
   "recapEnabled": false,
-  "autoMemoryEnabled": false
+  "autoMemoryEnabled": false,
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "SESSION_ID=$(jq -r '.session_id // \"default\"'); systemd-inhibit --what=sleep:idle --who=claude-code --why=\"Claude Code session\" --mode=block sleep infinity & echo $! > /tmp/claude-inhibitor-${SESSION_ID}.pid",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "SESSION_ID=$(jq -r '.session_id // \"default\"'); PID_FILE=\"/tmp/claude-inhibitor-${SESSION_ID}.pid\"; [ -f \"$PID_FILE\" ] && kill \"$(cat \"$PID_FILE\")\" 2>/dev/null; rm -f \"$PID_FILE\"",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
 }

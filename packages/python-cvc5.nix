@@ -1,6 +1,6 @@
 { lib
 , buildPythonPackage
-, fetchPypi
+, fetchurl
 , stdenv
 , autoPatchelfHook
 }:
@@ -10,12 +10,8 @@ buildPythonPackage rec {
   version = "1.3.3";
   format = "wheel";
 
-  src = fetchPypi {
-    inherit pname version;
-    format = "wheel";
-    python = "cp312";
-    abi = "cp312";
-    platform = "manylinux2014_x86_64.manylinux_2_17_x86_64";
+  src = fetchurl {
+    url = "https://files.pythonhosted.org/packages/99/f5/7843b57f53001606bb0acc53af13900303814a9e7a29d798390840073c32/cvc5-1.3.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl";
     sha256 = "sha256-ekGx71KvDFuLewqP9nAAFoC3WPt5/nVwNNvp+hhhJlk=";
   };
 
