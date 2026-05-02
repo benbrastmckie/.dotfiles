@@ -127,7 +127,7 @@ config.colors = {
 
 -- KEYBOARD PROTOCOL
 -- Enable Kitty keyboard protocol for unambiguous Ctrl+punctuation keys (e.g., <C-'>)
--- config.enable_kitty_keyboard = true
+config.enable_kitty_keyboard = true
 
 -- GENERAL
 config.default_prog = { "fish" }
