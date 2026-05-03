@@ -3,8 +3,8 @@
 # allowing version updates independent of the nixpkgs packaging lag.
 #
 # To update: change version, then run:
-#   nix-prefetch-url --unpack "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-linux-x64.tar.gz"
-# and update the hash below.
+#   nix store prefetch-file --hash-type sha256 "https://github.com/anomalyco/opencode/releases/download/v<VERSION>/opencode-linux-x64.tar.gz"
+# (no --unpack flag — hash the tarball itself, not its contents) and update the hash below.
 
 { lib, stdenvNoCC, fetchurl, makeWrapper, ripgrep }:
 
@@ -24,6 +24,12 @@ stdenvNoCC.mkDerivation {
 
   dontBuild = true;
   dontConfigure = true;
+
+  # Tarball contains a single binary with no directory wrapper,
+  # so the default unpackPhase fails trying to cd into a nonexistent dir.
+  unpackPhase = ''
+    tar -xzf $src
+  '';
 
   installPhase = ''
     runHook preInstall
