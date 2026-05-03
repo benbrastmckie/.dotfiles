@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "obsidian-memory": {
+      "args": [
+        "-y",
+        "@dsebastien/obsidian-cli-rest-mcp@latest"
+      ],
+      "command": "npx",
+      "env": {
+        "OBSIDIAN_PORT": "27124",
+        "OBSIDIAN_API_KEY": "${OBSIDIAN_API_KEY}"
+      }
+    },
+    "mcp-nixos": {
+      "args": [
+        "mcp-nixos"
+      ],
+      "command": "uvx"
+    }
+  },
+  "permissions": {
+    "allow": [
+      "mcp__nixos__nix",
+      "mcp__nixos__nix_versions"
+    ]
+  }
+}
