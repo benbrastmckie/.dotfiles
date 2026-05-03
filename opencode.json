@@ -1,4 +1,5 @@
 {
+  "$schema": "https://opencode.ai/config.json",
   "agent": {
     "python-implementation": {
       "description": "Implement Python code and applications",
