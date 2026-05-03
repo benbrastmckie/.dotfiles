@@ -12,7 +12,7 @@ let
   version = "1.14.33";
   src = fetchurl {
     url = "https://github.com/anomalyco/opencode/releases/download/v${version}/opencode-linux-x64.tar.gz";
-    hash = "sha256-is/XYkgKTKr6/p2Ft4CXWt169Wn4XUkdkNCUJca6kvM=";
+    hash = "sha256-qz3j1ApnVzQZ7HSRYhDPkNz4wYDcnYBS23Gsn1XCiBA=";
   };
 in
 stdenvNoCC.mkDerivation {
