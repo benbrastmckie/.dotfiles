@@ -14,6 +14,7 @@
 
   programs.git = {
     enable = true;
+    signing.format = null;
     settings.user = {
       name = "benbrastmckie";
       email = "benbrastmckie@gmail.com";
@@ -23,6 +24,8 @@
   programs.neovim = {
     enable = true;
     package = pkgs-unstable.neovim-unwrapped;  # Use neovim-unwrapped directly from unstable
+    withRuby = false;
+    withPython3 = false;
 
     # By default, programs.neovim writes provider config (python3_host_prog,
     # ruby_host_prog, etc.) to ~/.config/nvim/init.lua as a Home Manager-managed
