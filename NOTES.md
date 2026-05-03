@@ -91,6 +91,35 @@
 - run `home-manager switch --flake ~/.dotfiles/`
 - run `fish_vi_key_bindings`
 
+## Neovim
+
+The nvim configuration lives in `~/.config/nvim/` and is maintained as a
+separate git repository — it is not part of this dotfiles repo.
+
+`programs.neovim.enable = true` is kept in `home.nix` for two reasons:
+
+1. **Provider wrapping** — Home Manager wraps the neovim binary to inject
+   Nix-store paths for the Python3 and Ruby providers (`python3_host_prog`,
+   `ruby_host_prog`), which would otherwise be unavailable on NixOS.
+2. **`extraPackages`** — makes `jsregexp` available on neovim's runtime path,
+   which LuaSnip requires.
+
+### Why `sideloadInitLua = true` is required
+
+By default (introduced in a home-manager update, May 2026), the neovim module
+writes its generated provider config to `~/.config/nvim/init.lua` as a
+Home Manager-managed symlink into the nix store. This overwrites the user's
+actual `init.lua`.
+
+`sideloadInitLua = true` tells the module to inject that provider config via
+`--cmd` wrapper arguments on the neovim binary instead. The result is
+identical — Python/Ruby providers work — but `~/.config/nvim/` is left
+completely unmanaged by Home Manager.
+
+**Without this option**, after any `nixos-rebuild switch`, `~/.config/nvim/init.lua`
+becomes a read-only nix store symlink containing only the four provider lines,
+and neovim shows the default startup screen instead of loading your config.
+
 ## Niri
 
 - You can check the logs by running:
