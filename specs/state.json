@@ -1,6 +1,14 @@
 {
-  "next_project_number": 52,
+  "next_project_number": 53,
   "active_projects": [
+    {
+      "project_number": 52,
+      "project_name": "sleep_inhibition_claude_opencode",
+      "status": "not_started",
+      "task_type": "nix",
+      "created": "2026-05-04T19:44:46Z",
+      "last_updated": "2026-05-04T19:44:46Z"
+    },
     {
       "project_number": 51,
       "project_name": "documentation_refactor_integrate_adhoc_notes",
