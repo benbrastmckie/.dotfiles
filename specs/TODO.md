@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 52. Add sleep inhibition during active Claude Code/Opencode sessions
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+
+**Description**: Create a feature to inhibit computer sleep while Claude Code or Opencode are actively running (not idle), while allowing screen dimming per GNOME settings. Research best practices for achieving this within the current NixOS configuration. The end goal is a `<leader>ai` Neovim mapping that inhibits sleep when these tools are running. The Neovim keymapping will be handled separately in the nvim config.
+
+---
+
 ### 51. Documentation refactor: integrate ad-hoc notes into systematic docs
 - **Status**: [NOT STARTED]
 - **Task Type**: markdown
