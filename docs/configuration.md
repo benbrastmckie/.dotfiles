@@ -138,6 +138,71 @@ Tuned for desktop responsiveness with zram:
 
 > Note: Hibernation is not supported — it requires swap ≥ RAM (32GB+).
 
+## Secrets Management (sops-nix)
+
+Secrets are managed with sops-nix using age encryption. The sops-nix flake input is imported as a NixOS module on all hosts (hamsa, nandi, iso, usb-installer).
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `.sops.yaml` | Age public key + creation rules for `secrets/*.yaml` |
+| `secrets/secrets.yaml` | Encrypted secrets (committed encrypted) |
+| `~/.config/sops/age/keys.txt` | Age private key (**never committed**) |
+
+### NixOS Configuration
+
+sops-nix decrypts secrets at activation time to `/run/secrets/` (tmpfs):
+
+```nix
+sops = {
+  defaultSopsFile = ./secrets/secrets.yaml;
+  age.sshKeyPaths = [ "/home/benjamin/.config/sops/age/keys.txt" ];
+
+  secrets = {
+    "discord_bot_token" = {
+      owner = config.users.users.benjamin.name;
+    };
+    "opencode_server_password" = {
+      owner = config.users.users.benjamin.name;
+    };
+  };
+};
+```
+
+### Operations
+
+```bash
+sops secrets/secrets.yaml              # Edit secrets interactively
+sops --decrypt secrets/secrets.yaml    # View plaintext (read-only)
+sops --rotate secrets/secrets.yaml     # Re-encrypt after key change
+```
+
+Full documentation: [`docs/discord-bot.md`](discord-bot.md)
+
+## Systemd Services
+
+### opencode-serve
+
+Persistent headless OpenCode agent server. Binds to `127.0.0.1`, receives server password via `LoadCredential` from sops-nix. Runs as user `benjamin`.
+
+```nix
+ExecStart = "${pkgs.opencode}/bin/opencode serve --hostname 127.0.0.1"
+```
+
+### discord-bot
+
+Nextcord Discord bot relay for OpenCode agent management. Depends on `opencode-serve.service` (Requires + After). Uses the dedicated `discordBotPython` environment, not global system Python. Injectes both Discord token and server password via `LoadCredential`.
+
+```nix
+ExecStart = "${discordBotPython}/bin/python -m opencode_discord_bot.src.bot"
+PYTHONPATH = "/home/benjamin/.dotfiles/opencode-discord-bot"
+```
+
+Both services use `Type=simple`, `Restart=always`, `RestartSec=10s`, and `WantedBy=multi-user.target`.
+
+Full documentation: [`docs/discord-bot.md`](discord-bot.md)
+
 ## Key Integration Points
 
 - Flake inputs provide package sources
