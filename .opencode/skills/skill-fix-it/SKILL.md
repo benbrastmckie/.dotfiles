@@ -463,9 +463,24 @@ current=$(cat specs/state.json)
 
 #### 9.2: Update TODO.md
 
-Prepend new task entry to `## Tasks` section (new tasks at top):
+**CRITICAL — Batch Insertion**: Fix-it may create multiple tasks (learn-it, fix-it, TODO, research). Build a single `batch_markdown` string by joining all task entries with `\n\n`, then use ONE Edit tool call:
 
-**Standard format (no dependency)**:
+```
+oldString: "## Tasks\n"
+newString: "## Tasks\n\n{batch_markdown}\n"
+```
+
+**WARNING**: DO NOT search for the last `---` separator and append text after it.
+DO NOT insert at the bottom of the file.
+DO NOT prepend each task individually — individual prepending reverses task order (last task becomes first).
+ALWAYS use the heading-anchored Edit tool pattern with `oldString: "## Tasks\n"`.
+The heading `## Tasks` is unique in TODO.md and is the only reliable insertion anchor.
+
+After inserting, re-read the first few lines after `## Tasks`:
+- Confirm the first task after ## Tasks has the expected task number
+- If it doesn't match, the insertion went wrong — fix and re-verify
+
+**Task entry format (no dependency)**:
 ```markdown
 ### {N}. {Title}
 - **Effort**: {estimate}
@@ -478,7 +493,7 @@ Prepend new task entry to `## Tasks` section (new tasks at top):
 ---
 ```
 
-**Fix-it task format when has_note_dependency is TRUE**:
+**Task entry format when has_note_dependency is TRUE**:
 ```markdown
 ### {N}. {Title}
 - **Effort**: {estimate}

@@ -30,7 +30,7 @@ specs/                       # Task management
     ├── plans/
     └── summaries/
 
-.opencode/                     # Claude Code configuration
+.opencode/                     # OpenCode configuration
 ├── AGENTS.md               # Main reference
 ├── commands/               # Slash commands
 ├── skills/                 # Skill definitions

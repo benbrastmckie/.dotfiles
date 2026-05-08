@@ -1,0 +1,62 @@
+{
+  "name": "filetypes",
+  "version": "2.0.0",
+  "description": "File format conversion and manipulation for documents, spreadsheets, and presentations",
+  "language": null,
+  "dependencies": [
+    "core"
+  ],
+  "provides": {
+    "agents": [
+      "filetypes-router-agent.md",
+      "document-agent.md",
+      "spreadsheet-agent.md",
+      "presentation-agent.md",
+      "deck-agent.md"
+    ],
+    "skills": [
+      "skill-filetypes",
+      "skill-spreadsheet",
+      "skill-presentation",
+      "skill-deck"
+    ],
+    "commands": [
+      "convert.md",
+      "table.md",
+      "slides.md",
+      "deck.md"
+    ],
+    "rules": [],
+    "context": [
+      "project/filetypes"
+    ],
+    "scripts": [],
+    "hooks": []
+  },
+  "merge_targets": {
+    "opencode_md": {
+      "source": "EXTENSION.md",
+      "target": ".opencode/AGENTS.md",
+      "section_id": "extension_oc_filetypes"
+    },
+    "index": {
+      "source": "index-entries.json",
+      "target": ".opencode/context/index.json"
+    }
+  },
+  "routing": {
+    "research": {
+      "filetypes": "skill-filetypes",
+      "filetypes:spreadsheet": "skill-spreadsheet",
+      "filetypes:presentation": "skill-presentation",
+      "filetypes:deck": "skill-deck"
+    },
+    "implement": {
+      "filetypes": "skill-filetypes",
+      "filetypes:spreadsheet": "skill-spreadsheet",
+      "filetypes:presentation": "skill-presentation",
+      "filetypes:deck": "skill-deck"
+    }
+  },
+  "mcp_servers": {}
+}

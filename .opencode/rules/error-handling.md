@@ -135,7 +135,7 @@ Return structured error:
 4. If retry succeeds, log recovery
 ```
 
-**Note**: jq failures are often caused by Claude Code Issue #1132 variants:
+**Note**: jq failures are often caused by OpenCode Issue #1132 variants:
 - **Pipe injection**: `|` in quoted strings triggers `< /dev/null` injection
 - **`!=` escaping**: The `!=` operator gets escaped as `\!=`
 
@@ -164,7 +164,7 @@ after a brief delay.
 ```
 
 **Note**: Delegation interrupted occurs when an agent is terminated (by timeout, MCP error, or
-Claude Code abort) before writing final metadata. The early-metadata-pattern.md ensures
+OpenCode abort) before writing final metadata. The early-metadata-pattern.md ensures
 metadata exists for recovery.
 
 ## Non-Blocking Errors

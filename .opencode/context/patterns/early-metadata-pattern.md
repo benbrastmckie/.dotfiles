@@ -8,7 +8,7 @@
 
 ## Overview
 
-Agents currently write metadata files only as a final step (Stage 6-7). If interrupted before reaching that stage (e.g., MCP AbortError, timeout, Claude Code abort), no metadata is written, leaving tasks stuck in intermediate status.
+Agents currently write metadata files only as a final step (Stage 6-7). If interrupted before reaching that stage (e.g., MCP AbortError, timeout, OpenCode abort), no metadata is written, leaving tasks stuck in intermediate status.
 
 This pattern ensures metadata files are created early and updated incrementally, preserving progress even on interruption.
 
@@ -26,7 +26,7 @@ Stage 7: Return summary
 **Failure modes**:
 - MCP AbortError terminates agent before Stage 6
 - Timeout kills agent mid-execution
-- Claude Code's shared AbortController cascade (Issue #6594)
+- OpenCode's shared AbortController cascade (Issue #6594)
 - Any unexpected termination before metadata write
 
 **Impact**: Task stuck in "researching" or "implementing" status with no artifact or progress information.

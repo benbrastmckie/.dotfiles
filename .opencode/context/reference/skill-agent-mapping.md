@@ -45,7 +45,7 @@ These skills cannot be invoked by agents:
 
 ## Team Mode Skills
 
-When `--team` flag is passed to commands, routing overrides to team skills which spawn multiple parallel teammates. Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` environment variable.
+When `--team` flag is passed to commands, routing overrides to team skills which spawn multiple parallel teammates. Requires `OPENCODE_EXPERIMENTAL_AGENT_TEAMS=1` environment variable.
 
 | Flag | Team Skill | Teammates | Purpose |
 |------|------------|-----------|---------|

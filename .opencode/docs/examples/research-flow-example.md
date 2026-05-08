@@ -58,7 +58,7 @@ Output: Research report created at specs/427_document.../reports/01_research-fin
 /research 427
 ```
 
-Claude Code reads `.opencode/commands/research.md` and sees:
+OpenCode reads `.opencode/commands/research.md` and sees:
 
 ```yaml
 ---

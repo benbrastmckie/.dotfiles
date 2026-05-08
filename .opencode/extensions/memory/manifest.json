@@ -1,0 +1,52 @@
+{
+  "name": "memory",
+  "version": "1.0.0",
+  "description": "Obsidian-compatible memory vault for knowledge capture and retrieval with MCP integration",
+  "language": null,
+  "dependencies": [
+    "core"
+  ],
+  "provides": {
+    "commands": [
+      "learn.md"
+    ],
+    "skills": [
+      "skill-memory"
+    ],
+    "context": [
+      "project/memory"
+    ],
+    "data": [
+      ".memory"
+    ],
+    "hooks": []
+  },
+  "merge_targets": {
+    "opencode_md": {
+      "source": "EXTENSION.md",
+      "target": ".opencode/AGENTS.md",
+      "section_id": "extension_oc_memory"
+    },
+    "settings": {
+      "source": "settings-fragment.json",
+      "target": ".opencode/settings.local.json"
+    },
+    "index": {
+      "source": "index-entries.json",
+      "target": ".opencode/context/index.json"
+    }
+  },
+  "mcp_servers": {
+    "obsidian-memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@dsebastien/obsidian-cli-rest-mcp@latest"
+      ],
+      "env": {
+        "OBSIDIAN_API_KEY": "${OBSIDIAN_API_KEY}",
+        "OBSIDIAN_PORT": "27124"
+      }
+    }
+  }
+}

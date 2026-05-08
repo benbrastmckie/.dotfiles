@@ -329,8 +329,27 @@ for position, task_idx in enumerate(sorted_indices):
 
 # Join and insert entire batch after ## Tasks heading
 batch_markdown = "\n\n".join(batch_entries)
-insert_after_heading("## Tasks", batch_markdown)
+
+# Use the Edit tool with heading-anchored pattern:
+# oldString: "## Tasks\n"
+# newString: "## Tasks\n\n" + batch_markdown + "\n"
 ```
+
+**CRITICAL — Heading-Anchored Edit Tool Pattern**:
+```
+oldString: "## Tasks\n"
+newString: "## Tasks\n\n{batch_markdown}\n"
+```
+
+**WARNING**: DO NOT search for the last `---` separator and append text after it.
+DO NOT insert at the bottom of the file.
+DO NOT prepend each task individually — individual prepending reverses task order (last task becomes first).
+ALWAYS use the heading-anchored Edit tool pattern with `oldString: "## Tasks\n"`.
+The heading `## Tasks` is unique in TODO.md and is the only reliable insertion anchor.
+
+After inserting, re-read the first few lines after `## Tasks`:
+- Confirm the first task after ## Tasks has the expected task number
+- If it doesn't match, the insertion went wrong — fix and re-verify
 
 **Why Batch Insertion**: Individual prepends reverse the order (last task at top). Batch insertion preserves topological order.
 

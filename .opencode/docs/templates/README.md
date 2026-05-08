@@ -1,6 +1,6 @@
 # Development Templates
 
-This directory contains templates for creating new commands and agents in the Claude Code agent system.
+This directory contains templates for creating new commands and agents in the OpenCode agent system.
 
 ---
 

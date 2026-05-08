@@ -319,7 +319,7 @@ specs/{NNN}_{SLUG}/
 
 **Note**: Directory numbers use 3-digit zero-padding (e.g., `014_task_name`). Use `printf "%03d" $task_num` for path construction.
 
-**System-specific naming**: Claude Code uses `specs/{NNN}_{SLUG}/` (no prefix). OpenCode uses `specs/OC_{NNN}_{SLUG}/` (OC_ prefix).
+**System-specific naming**: All tasks use `specs/{NNN}_{SLUG}/` (plain numbers, no prefix).
 
 **Correct Pattern**:
 ```bash

@@ -339,7 +339,7 @@ Analyze codebase and create review reports.
 
 ### /refresh Command
 
-Clean Claude Code resources.
+Clean OpenCode resources.
 
 ```
 /refresh [--dry-run] [--force]
@@ -585,7 +585,7 @@ Convert documents between formats.
 1. Verify your project builds or loads correctly
 2. Check MCP configuration in `~/.claude.json`
 3. Run `/refresh` to clean orphaned processes
-4. Restart Claude Code session
+4. Restart OpenCode session
 
 ### Getting Help
 

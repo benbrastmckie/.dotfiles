@@ -7,7 +7,12 @@ description: Analyzes blocked tasks, researches blockers, and proposes minimal n
 
 ## Overview
 
-Blocker analysis and task decomposition agent for the /spawn workflow. Analyzes what is blocking a task, identifies root causes, and proposes a minimal set of new tasks to overcome the blocker with explicit dependency reasoning.
+Blocker analysis and task decomposition agent for the /spawn workflow. Operates in two modes:
+
+- **Blocker mode**: Analyzes what is blocking a stuck task, identifies root causes, and proposes minimal new tasks to overcome the blocker.
+- **Holistic mode**: Assesses a non-blocked task holistically, identifies natural decomposition points, and proposes tasks with interactive user confirmation.
+
+Both modes produce a minimal set of new tasks with explicit dependency reasoning.
 
 ## Context References
 
@@ -35,7 +40,20 @@ Extract standard delegation fields (see `return-metadata-file.md` for schema). A
 - Read any partial summaries or debug artifacts
 - Note the task description and effort estimate
 
-### Stage 2: Analyze Blocker
+### Stage 1.5: Determine Analysis Mode
+
+Based on task status and blocker prompt from delegation context:
+
+| Mode | Condition | Analysis Focus |
+|------|-----------|---------------|
+| `blocker` | `status` is `blocked`, `implementing`, or `partial` OR `blocker_prompt` is provided | Root cause of blocker |
+| `holistic` | `status` is any other non-terminal state AND `blocker_prompt` is empty | Task decomposition opportunities |
+
+Store `analysis_mode` for use in Stage 2.
+
+### Stage 2: Analyze (Blocker or Holistic)
+
+#### Blocker Mode
 
 **If `blocker_prompt` provided**: Use it as primary signal for what's blocking. The user has explicitly stated the blocker.
 
@@ -54,6 +72,19 @@ Extract standard delegation fields (see `return-metadata-file.md` for schema). A
 | Design ambiguity | Multiple approaches, unclear path | "How should we structure X?" |
 | Scope creep | Task too large for single implementation | "This is actually 3 tasks" |
 | Technical unknowns | Research needed before implementation | "Don't know how X works" |
+
+#### Holistic Mode
+
+**Assess the task holistically**:
+1. Read the task description, plan, and any research reports
+2. Identify natural decomposition points:
+   - Are there multiple distinct components that could be implemented independently?
+   - Are there prerequisite pieces of work that could be extracted?
+   - Is the scope too large for a single implementation pass?
+3. Determine if spawning is warranted (not all tasks should be decomposed)
+4. If spawning is warranted, propose 2-4 minimal tasks following the Task Minimization Principle
+
+**For each proposed task**, determine the same fields as blocker mode (index, title, description, effort, task_type, dependencies).
 
 ### Stage 3: Decompose into Minimal Tasks
 
@@ -84,6 +115,31 @@ Apply the **Task Minimization Principle**:
 - Prefer 2-3 tasks (rarely need more)
 - Maximum 4 tasks (if more needed, blocker analysis is too broad)
 - If blocker requires 1 task, that's fine
+
+### Stage 3.5: Interactive Confirmation (Holistic Mode Only)
+
+**If `analysis_mode == "holistic"`**: Present proposed tasks to the user for confirmation before creating them.
+
+**Use AskUserQuestion**:
+```json
+{
+  "question": "Which of these proposed tasks should be created?",
+  "header": "Spawn Proposals for Task #{N}",
+  "multiSelect": true,
+  "options": [
+    {
+      "label": "{task_title}",
+      "description": "{effort} | {rationale_summary}"
+    }
+  ]
+}
+```
+
+**Selection handling**:
+- Empty selection: Write `.spawn-return.json` with `new_tasks: []`, set status to `cancelled`, return "No tasks selected. Spawn cancelled."
+- Any selection: Proceed to Stage 4 with only the selected tasks.
+
+**If `analysis_mode == "blocker"`**: Skip this stage and proceed directly to Stage 4 (existing behavior).
 
 ### Stage 4: Write Blocker Analysis Report
 
@@ -139,6 +195,7 @@ The blocker will be resolved because: {explanation of how completing these tasks
 
 Write to `specs/{NNN}_{SLUG}/.spawn-return.json`:
 
+**For normal completion** (tasks proposed and selected):
 ```json
 {
   "new_tasks": [
@@ -166,6 +223,17 @@ Write to `specs/{NNN}_{SLUG}/.spawn-return.json`:
 }
 ```
 
+**For cancelled spawn** (holistic mode, no tasks selected):
+```json
+{
+  "new_tasks": [],
+  "dependency_order": [],
+  "parent_task_number": N,
+  "analysis_summary": "Spawn cancelled by user - no tasks selected",
+  "report_path": null
+}
+```
+
 **Field definitions**:
 
 | Field | Type | Description |
@@ -186,7 +254,10 @@ Write to `specs/{NNN}_{SLUG}/.spawn-return.json`:
 
 ### Stage 6: Update Early Metadata to Final Status
 
-Update `specs/{NNN}_{SLUG}/.return-meta.json` with status `researched`. Agent-specific metadata fields: `proposed_task_count`. Set `next_steps` to `"Skill postflight will create tasks from .spawn-return.json"`.
+Update `specs/{NNN}_{SLUG}/.return-meta.json`:
+
+- **Normal completion**: status `researched`. Agent-specific metadata fields: `proposed_task_count`. Set `next_steps` to `"Skill postflight will create tasks from .spawn-return.json"`.
+- **Cancelled spawn** (holistic mode, empty selection): status `cancelled`. Set `next_steps` to `"No tasks selected by user"`.
 
 ### Stage 7: Return Brief Text Summary
 

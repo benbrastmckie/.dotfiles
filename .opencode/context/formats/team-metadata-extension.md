@@ -96,7 +96,7 @@ When team mode is unavailable:
   "team_execution": {
     "enabled": true,
     "degraded_to_single": true,
-    "degradation_reason": "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS not set"
+    "degradation_reason": "OPENCODE_EXPERIMENTAL_AGENT_TEAMS not set"
   }
 }
 ```

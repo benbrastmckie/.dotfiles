@@ -1,4 +1,4 @@
-# Claude Code Agent System
+# OpenCode Agent System
 
 **Version**: 3.0
 **Updated**: 2026-03-28
@@ -185,7 +185,7 @@ Context files are discovered via `.opencode/context/index.json`:
 
 ### Getting Started
 
-- [User Installation Guide](docs/guides/user-installation.md) - Set up Claude Code
+- [User Installation Guide](docs/guides/user-installation.md) - Set up OpenCode
 - [User Guide](docs/guides/user-guide.md) - Command workflows
 ### Development
 
@@ -212,7 +212,7 @@ Context files are discovered via `.opencode/context/index.json`:
 
 ### /refresh Command
 
-Clean up Claude Code resources:
+Clean up OpenCode resources:
 
 | Option | Description |
 |--------|-------------|

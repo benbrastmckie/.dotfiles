@@ -147,7 +147,7 @@ Session: {session_id}
 
 ### Handling Interrupted Agents
 
-When agent is interrupted (MCP abort, timeout, Claude Code abort), the early metadata pattern
+When agent is interrupted (MCP abort, timeout, OpenCode abort), the early metadata pattern
 ensures a metadata file exists. Postflight should handle this gracefully:
 
 **Detection**: Metadata file exists but `status: "in_progress"`

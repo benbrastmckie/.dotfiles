@@ -1,6 +1,6 @@
 # Extension Development Guide
 
-Guide for creating and managing domain extensions in the Claude Code system.
+Guide for creating and managing domain extensions in the OpenCode system.
 
 ## Overview
 
@@ -8,7 +8,7 @@ Extensions provide task-type-specific and domain-specific capabilities to the co
 
 ## Two-Layer Architecture
 
-The extension system splits across an extension loader (Layer 1) that manages which files exist in the `.opencode/` runtime, and the `.opencode/` agent system (Layer 2) that Claude Code reads. The loader copies files from extension sources into the runtime on load, merges context index entries, and calls `generate_claudemd()` to rebuild `.opencode/AGENTS.md`. On unload, it removes those files and regenerates. Claude Code has no knowledge of the extension system itself -- it only sees the resulting runtime.
+The extension system splits across an extension loader (Layer 1) that manages which files exist in the `.opencode/` runtime, and the `.opencode/` agent system (Layer 2) that OpenCode reads. The loader copies files from extension sources into the runtime on load, merges context index entries, and calls `generate_claudemd()` to rebuild `.opencode/AGENTS.md`. On unload, it removes those files and regenerates. OpenCode has no knowledge of the extension system itself -- it only sees the resulting runtime.
 
 For complete architecture details, see [Extension System Architecture](../../docs/architecture/extension-system.md).
 

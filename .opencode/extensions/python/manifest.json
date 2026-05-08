@@ -1,0 +1,46 @@
+{
+  "name": "python",
+  "version": "1.0.0",
+  "description": "Python development with pytest integration and type checking",
+  "language": "python",
+  "dependencies": [
+    "core"
+  ],
+  "provides": {
+    "agents": [
+      "python-research-agent.md",
+      "python-implementation-agent.md"
+    ],
+    "skills": [
+      "skill-python-research",
+      "skill-python-implementation"
+    ],
+    "commands": [],
+    "rules": [],
+    "context": [
+      "project/python"
+    ],
+    "scripts": [],
+    "hooks": []
+  },
+  "routing": {
+    "research": {
+      "python": "skill-python-research"
+    },
+    "implement": {
+      "python": "skill-python-implementation"
+    }
+  },
+  "merge_targets": {
+    "opencode_md": {
+      "source": "EXTENSION.md",
+      "target": ".opencode/AGENTS.md",
+      "section_id": "extension_oc_python"
+    },
+    "index": {
+      "source": "index-entries.json",
+      "target": ".opencode/context/index.json"
+    }
+  },
+  "mcp_servers": {}
+}

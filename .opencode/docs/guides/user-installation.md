@@ -2,14 +2,14 @@
 
 [Back to Docs](../README.md) | [Detailed Installation](../../../docs/installation/README.md)
 
-A quick-start guide for installing Claude Code and using it with your project.
+A quick-start guide for installing OpenCode and using it with your project.
 
 ---
 
 ## What This Guide Covers
 
 This guide helps you:
-1. Install Claude Code (Anthropic's AI CLI)
+1. Install OpenCode (Anthropic's AI CLI)
 2. Set up your project
 3. Set up Claude agent commands (optional)
 4. Work with your project files
@@ -19,9 +19,9 @@ This guide helps you:
 
 ---
 
-## Installing Claude Code
+## Installing OpenCode
 
-Claude Code is Anthropic's command-line interface for AI-assisted development.
+OpenCode is Anthropic's command-line interface for AI-assisted development.
 
 ### Quick Installation
 
@@ -52,13 +52,13 @@ You should see a version number.
 
 ## Authentication
 
-Before using Claude Code, authenticate with your Anthropic account:
+Before using OpenCode, authenticate with your Anthropic account:
 
 ```bash
 claude auth login
 ```
 
-This opens a browser window. Log in with your Anthropic account and authorize Claude Code.
+This opens a browser window. Log in with your Anthropic account and authorize OpenCode.
 
 **Verify authentication:**
 ```bash
@@ -67,7 +67,7 @@ claude auth status
 
 ---
 
-## Setting Up Your Project with Claude Code
+## Setting Up Your Project with OpenCode
 
 ### Step 1: Navigate to Your Project
 
@@ -83,7 +83,7 @@ git add .
 git commit -m "Initial commit"
 ```
 
-### Step 3: Start Claude Code
+### Step 3: Start OpenCode
 
 ```bash
 claude
@@ -104,7 +104,7 @@ Please verify my project setup by:
 
 ## Setting Up Claude Agent Commands (Optional)
 
-The repository includes a `.opencode/` agent system that provides enhanced task management and workflow commands for Claude Code.
+The repository includes a `.opencode/` agent system that provides enhanced task management and workflow commands for OpenCode.
 
 ### What the Agent System Provides
 
@@ -112,11 +112,11 @@ The repository includes a `.opencode/` agent system that provides enhanced task 
 - **Structured Workflow**: `/research` -> `/plan` -> `/implement` cycle
 - **Specialized Skills**: Language-specific agents via extensions
 - **Context Files**: Domain knowledge loaded per task type
-- **State Persistence**: Track progress across Claude Code sessions
+- **State Persistence**: Track progress across OpenCode sessions
 
 ### After Installation
 
-1. **Restart Claude Code** - Exit and restart for commands to be available
+1. **Restart OpenCode** - Exit and restart for commands to be available
 2. **Test the setup** - Try creating a test task:
    ```
    /task "Test task"
@@ -139,11 +139,11 @@ For complete documentation, see the [Commands Reference](../commands/README.md).
 
 ## Working with Your Project
 
-Once your project is set up, use Claude Code to assist with development.
+Once your project is set up, use OpenCode to assist with development.
 
 ### Explore the Codebase
 
-In Claude Code, ask:
+In OpenCode, ask:
 
 ```
 Show me the structure of my project and explain
@@ -175,7 +175,7 @@ find popular libraries and set one up?
 
 ## GitHub CLI Setup
 
-The GitHub CLI (`gh`) allows Claude Code to create issues and pull requests. This is helpful for reporting bugs or contributing.
+The GitHub CLI (`gh`) allows OpenCode to create issues and pull requests. This is helpful for reporting bugs or contributing.
 
 ### Installing GitHub CLI
 
@@ -223,7 +223,7 @@ gh auth status
 ### Complete First-Time Setup
 
 ```bash
-# Install Claude Code (see platform commands above)
+# Install OpenCode (see platform commands above)
 claude --version
 
 # Authenticate
@@ -236,7 +236,7 @@ cd /path/to/your/project
 claude
 ```
 
-In Claude Code:
+In OpenCode:
 ```
 Please help me:
 1. Verify my project is properly structured
@@ -273,7 +273,7 @@ Please diagnose the issue and suggest fixes.
 
 ## Troubleshooting
 
-### Claude Code Issues
+### OpenCode Issues
 
 **"Command not found":**
 - Restart your terminal

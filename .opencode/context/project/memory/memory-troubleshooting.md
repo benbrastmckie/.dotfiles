@@ -61,7 +61,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 ### Memories Not Found in Research
 
 **Symptoms**:
-- `/research OC_N --remember` shows "No relevant memories found"
+- `/research {N} --remember` shows "No relevant memories found"
 - Memory vault appears empty in research context
 
 **Causes & Solutions**:

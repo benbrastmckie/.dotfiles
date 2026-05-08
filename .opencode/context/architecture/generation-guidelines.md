@@ -348,7 +348,7 @@ Return ONLY valid JSON:
 
 ### Generation Rules for Agents
 
-1. **Include frontmatter** - Required for Claude Code recognition
+1. **Include frontmatter** - Required for OpenCode recognition
 2. **Document allowed tools** - List all tools the agent uses
 3. **Use @-references** - For context loading
 4. **Include execution stages** - Clear multi-stage workflow

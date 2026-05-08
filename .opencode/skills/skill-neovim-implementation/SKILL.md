@@ -14,9 +14,9 @@ this skill handles all postflight operations (status update, artifact linking, g
 ## Context References
 
 Reference (do not load eagerly):
-- Path: `.claude/context/core/formats/return-metadata-file.md` - Metadata file schema
-- Path: `.claude/context/core/patterns/postflight-control.md` - Marker file protocol
-- Path: `.claude/context/core/patterns/jq-escaping-workarounds.md` - jq escaping patterns
+- Path: `.opencode/context/core/formats/return-metadata-file.md` - Metadata file schema
+- Path: `.opencode/context/core/patterns/postflight-control.md` - Marker file protocol
+- Path: `.opencode/context/core/patterns/jq-escaping-workarounds.md` - jq escaping patterns
 
 ## Trigger Conditions
 
@@ -65,23 +65,8 @@ fi
 
 Update task status to "implementing" BEFORE invoking subagent.
 
-**Update state.json**:
 ```bash
-jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-   --arg status "implementing" \
-   --arg sid "$session_id" \
-  '(.active_projects[] | select(.project_number == '$task_number')) |= . + {
-    status: $status,
-    last_updated: $ts,
-    session_id: $sid
-  }' specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
-```
-
-**Update TODO.md**: Use Edit tool to change status marker to `[IMPLEMENTING]`.
-
-**Update plan file** (if exists): Update the Status field in plan metadata:
-```bash
-.claude/scripts/update-plan-status.sh "$task_number" "$project_name" "IMPLEMENTING"
+bash .opencode/scripts/update-task-status.sh preflight "$task_number" implement "$session_id"
 ```
 
 ---
@@ -195,38 +180,27 @@ fi
 
 ### Stage 7: Update Task Status (Postflight)
 
-If status is "implemented", update state.json and TODO.md.
+If status is "implemented":
 
-**Update state.json**:
 ```bash
-jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-   --arg status "completed" \
-  '(.active_projects[] | select(.project_number == '$task_number')) |= . + {
-    status: $status,
-    last_updated: $ts,
-    completed: $ts
-  }' specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
+bash .opencode/scripts/update-task-status.sh postflight "$task_number" implement "$session_id"
+```
 
-# Add completion_summary (always required for completed tasks)
+Then add completion_data to state.json (not covered by centralized script):
+```bash
+# Add completion_summary if present
 if [ -n "$completion_summary" ]; then
     jq --arg summary "$completion_summary" \
       '(.active_projects[] | select(.project_number == '$task_number')).completion_summary = $summary' \
       specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
 fi
 
-# Add roadmap_items (if present and non-empty)
-if [ "$roadmap_items" != "[]" ] && [ -n "$roadmap_items" ]; then
+# Add roadmap_items if present (for non-meta tasks only)
+if [ "$task_type" != "meta" ] && [ "$roadmap_items" != "[]" ] && [ -n "$roadmap_items" ]; then
     jq --argjson items "$roadmap_items" \
       '(.active_projects[] | select(.project_number == '$task_number')).roadmap_items = $items' \
       specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
 fi
-```
-
-**Update TODO.md**: Use Edit tool to change status marker to `[COMPLETED]`.
-
-**Update plan file** (if exists): Update the Status field to `[COMPLETED]`:
-```bash
-.claude/scripts/update-plan-status.sh "$task_number" "$project_name" "COMPLETED"
 ```
 
 **If status is "partial"**:
@@ -245,7 +219,7 @@ TODO.md stays as `[IMPLEMENTING]`.
 
 **Update plan file** (if exists): Update the Status field to `[PARTIAL]`:
 ```bash
-.claude/scripts/update-plan-status.sh "$task_number" "$project_name" "PARTIAL"
+.opencode/scripts/update-plan-status.sh "$task_number" "$project_name" "PARTIAL"
 ```
 
 **On failed**: Keep status as "implementing" for retry. Do not update plan file (leave as `[IMPLEMENTING]` for retry).

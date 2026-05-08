@@ -10,8 +10,8 @@
 MCP tools can fail with AbortError -32001 due to:
 - Request timeout (60s default)
 - Resource contention from multiple concurrent MCP server instances
-- Connection issues between Claude Code and MCP servers
-- Claude Code's shared AbortController cascading errors (Issue #6594)
+- Connection issues between OpenCode and MCP servers
+- OpenCode's shared AbortController cascading errors (Issue #6594)
 
 This pattern provides defensive strategies for graceful degradation when MCP tools fail.
 

@@ -2,7 +2,7 @@
 name: skill-team-implement
 description: Orchestrate multi-agent implementation with parallel phase execution. Spawns teammates for independent phases and coordinates dependent phases. Includes debugger teammate for error recovery.
 allowed-tools: Task, Bash, Edit, Read, Write, Glob
-# This skill uses TeammateTool for team coordination (available when CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)
+# This skill uses TeammateTool for team coordination (available when OPENCODE_EXPERIMENTAL_AGENT_TEAMS=1)
 # Context loaded by lead during coordination:
 #   - .opencode/context/patterns/team-orchestration.md
 #   - .opencode/context/formats/team-metadata-extension.md
@@ -13,7 +13,7 @@ allowed-tools: Task, Bash, Edit, Read, Write, Glob
 
 Multi-agent implementation with wave-based phase parallelization. Analyzes phase dependencies to identify parallelization opportunities, spawns teammates for independent phases, and coordinates sequential execution of dependent phases.
 
-**IMPORTANT**: This skill requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` environment variable. If team creation fails, gracefully degrades to single-agent implementation via skill-implementer.
+**IMPORTANT**: This skill requires `OPENCODE_EXPERIMENTAL_AGENT_TEAMS=1` environment variable. If team creation fails, gracefully degrades to single-agent implementation via skill-implementer.
 
 ## Context References
 
@@ -136,7 +136,7 @@ Verify Agent Teams feature is available:
 
 ```bash
 # Check environment variable
-if [ "$CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS" != "1" ]; then
+if [ "$OPENCODE_EXPERIMENTAL_AGENT_TEAMS" != "1" ]; then
   echo "Warning: Team mode unavailable, falling back to single agent"
   # Fall back to skill-implementer (see Stage 4a)
 fi

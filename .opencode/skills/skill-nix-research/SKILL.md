@@ -14,9 +14,9 @@ this skill handles all postflight operations (status update, artifact linking, g
 ## Context References
 
 Reference (do not load eagerly):
-- Path: `.claude/context/core/formats/return-metadata-file.md` - Metadata file schema
-- Path: `.claude/context/core/patterns/postflight-control.md` - Marker file protocol
-- Path: `.claude/context/core/patterns/jq-escaping-workarounds.md` - jq escaping patterns
+- Path: `.opencode/context/core/formats/return-metadata-file.md` - Metadata file schema
+- Path: `.opencode/context/core/patterns/postflight-control.md` - Marker file protocol
+- Path: `.opencode/context/core/patterns/jq-escaping-workarounds.md` - jq escaping patterns
 
 ## Trigger Conditions
 
@@ -59,19 +59,9 @@ description=$(echo "$task_data" | jq -r '.description // ""')
 
 Update task status to "researching" BEFORE invoking subagent.
 
-**Update state.json**:
 ```bash
-jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-   --arg status "researching" \
-   --arg sid "$session_id" \
-  '(.active_projects[] | select(.project_number == '$task_number')) |= . + {
-    status: $status,
-    last_updated: $ts,
-    session_id: $sid
-  }' specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
+bash .opencode/scripts/update-task-status.sh preflight "$task_number" research "$session_id"
 ```
-
-**Update TODO.md**: Use Edit tool to change status marker to `[RESEARCHING]`.
 
 ---
 
@@ -158,6 +148,10 @@ fi
 ### Stage 7: Update Task Status (Postflight)
 
 If status is "researched", update state.json and TODO.md.
+
+```bash
+bash .opencode/scripts/update-task-status.sh postflight "$task_number" research "$session_id"
+```
 
 ---
 

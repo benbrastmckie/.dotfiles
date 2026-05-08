@@ -15,10 +15,10 @@ This eliminates the "continue" prompt issue between skill return and orchestrato
 ## Context References
 
 Reference (do not load eagerly):
-- Path: `.claude/context/core/formats/return-metadata-file.md` - Metadata file schema
-- Path: `.claude/context/core/patterns/postflight-control.md` - Marker file protocol
-- Path: `.claude/context/core/patterns/file-metadata-exchange.md` - File I/O helpers
-- Path: `.claude/context/core/patterns/jq-escaping-workarounds.md` - jq escaping patterns (Issue #1132)
+- Path: `.opencode/context/core/formats/return-metadata-file.md` - Metadata file schema
+- Path: `.opencode/context/core/patterns/postflight-control.md` - Marker file protocol
+- Path: `.opencode/context/core/patterns/file-metadata-exchange.md` - File I/O helpers
+- Path: `.opencode/context/core/patterns/jq-escaping-workarounds.md` - jq escaping patterns (Issue #1132)
 
 Note: This skill is a thin wrapper with internal postflight. Context is loaded by the delegated agent.
 
@@ -37,46 +37,8 @@ This skill activates when:
 
 Before delegating to the subagent, update task status to "implementing".
 
-**Update state.json**:
 ```bash
-jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-   --arg status "implementing" \
-   --arg sid "$session_id" \
-  '(.active_projects[] | select(.project_number == '$task_number')) |= . + {
-    status: $status,
-    last_updated: $ts,
-    session_id: $sid,
-    started: $ts
-  }' specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
-```
-
-**Update TODO.md**: Use Edit tool to change status marker from `[PLANNED]` to `[IMPLEMENTING]`.
-
-**Update plan file** (if exists): Update the Status field in plan metadata:
-```bash
-# Find latest plan file
-plan_file=$(ls -1 "specs/OC_${padded_num}_${project_name}/plans/implementation-"*.md 2>/dev/null | sort -V | tail -1)
-if [ -n "$plan_file" ] && [ -f "$plan_file" ]; then
-    sed -i "s/^\- \*\*Status\*\*: \[.*\]$/- **Status**: [IMPLEMENTING]/" "$plan_file"
-fi
-```
-
-**Create Postflight Marker**:
-```bash
-# Ensure task directory exists
-mkdir -p "specs/OC_${padded_num}_${project_name}"
-
-cat > "specs/OC_${padded_num}_${project_name}/.postflight-pending" << EOF
-{
-  "session_id": "${session_id}",
-  "skill": "skill-nix-implementation",
-  "task_number": ${task_number},
-  "operation": "implement",
-  "reason": "Postflight pending: status update, artifact linking, git commit",
-  "created": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "stop_hook_active": false
-}
-EOF
+bash .opencode/scripts/update-task-status.sh preflight "$task_number" implement "$session_id"
 ```
 
 ---
@@ -152,8 +114,8 @@ Parameters:
 ```
 
 **DO NOT** use `Skill(nix-implementation-agent)` - this will FAIL.
-Agents live in `.claude/agents/`, not `.claude/skills/`.
-The Skill tool can only invoke skills from `.claude/skills/`.
+Agents live in `.opencode/agents/`, not `.opencode/skills/`.
+The Skill tool can only invoke skills from `.opencode/skills/`.
 
 The subagent will:
 - Load Nix-specific context files (style guide, module patterns, etc.)
@@ -222,53 +184,38 @@ After implementation, update task status based on result.
 
 **If result.status == "implemented"**:
 
-Update state.json to "completed" and add completion_data fields (two-step pattern for Issue #1132):
+Step 1: Run centralized script for state.json, TODO.md, and plan file status:
 ```bash
-# Step 1: Update status and timestamps
-jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-   --arg status "completed" \
-  '(.active_projects[] | select(.project_number == '$task_number')) |= . + {
-    status: $status,
-    last_updated: $ts,
-    completed: $ts
-  }' specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
+bash .opencode/scripts/update-task-status.sh postflight "$task_number" implement "$session_id"
+```
 
-# Step 2: Add completion_summary (always required for completed tasks)
+Step 2: Add completion_summary and roadmap_items:
+```bash
 if [ -n "$completion_summary" ]; then
     jq --arg summary "$completion_summary" \
       '(.active_projects[] | select(.project_number == '$task_number')).completion_summary = $summary' \
       specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
 fi
 
-# Step 3: Add roadmap_items (if present and non-empty)
-if [ "$roadmap_items" != "[]" ] && [ -n "$roadmap_items" ]; then
+if [ "$language" != "meta" ] && [ "$roadmap_items" != "[]" ] && [ -n "$roadmap_items" ]; then
     jq --argjson items "$roadmap_items" \
       '(.active_projects[] | select(.project_number == '$task_number')).roadmap_items = $items' \
       specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
 fi
+```
 
-# Step 4: Filter out existing summary artifacts (use "| not" pattern to avoid != escaping - Issue #1132)
+Step 3: Filter existing summary artifacts and add new one:
+```bash
 jq '(.active_projects[] | select(.project_number == '$task_number')).artifacts =
     [(.active_projects[] | select(.project_number == '$task_number')).artifacts // [] | .[] | select(.type == "summary" | not)]' \
   specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
 
-# Step 5: Add new summary artifact
 jq --arg path "$artifact_path" \
   '(.active_projects[] | select(.project_number == '$task_number')).artifacts += [{"path": $path, "type": "summary"}]' \
   specs/state.json > /tmp/state.json && mv /tmp/state.json specs/state.json
 ```
 
-Update TODO.md:
-- Change status marker from `[IMPLEMENTING]` to `[COMPLETED]`
-- Add summary artifact link: `- **Summary**: [implementation-summary-{DATE}.md]({artifact_path})`
-
-**Update plan file** (if exists): Update the Status field to `[COMPLETED]`:
-```bash
-plan_file=$(ls -1 "specs/OC_${padded_num}_${project_name}/plans/implementation-"*.md 2>/dev/null | sort -V | tail -1)
-if [ -n "$plan_file" ] && [ -f "$plan_file" ]; then
-    sed -i "s/^\- \*\*Status\*\*: \[.*\]$/- **Status**: [COMPLETED]/" "$plan_file"
-fi
-```
+TODO.md status already updated by script. Add summary artifact link: `- **Summary**: [implementation-summary-{DATE}.md]({artifact_path})`.
 
 **If result.status == "partial"**:
 

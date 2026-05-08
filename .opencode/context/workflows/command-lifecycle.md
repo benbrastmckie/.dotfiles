@@ -265,7 +265,7 @@ The `/task` command follows a different pattern from workflow commands since it 
 **Stage 2 (CreateTask):**
 - Read next_project_number from state.json using jq
 - Format TODO.md entry with proper metadata
-- Append to correct priority section in TODO.md
+- Prepend new entry after `## Tasks` heading in TODO.md (insert at top, not bottom)
 - Update state.json (increment next_project_number, add to active_projects)
 - Verify updates succeeded
 - Return task number to user
@@ -289,7 +289,8 @@ entry="### ${next_number}. ${description}
 
 ---"
 
-# Append to TODO.md (using Edit tool)
+# Insert after ## Tasks heading in TODO.md (using Edit tool with heading-anchored pattern)
+# Use: oldString: "## Tasks\n" / newString: "## Tasks\n\n{entry}\n"
 # Update state.json (using jq)
 jq '.next_project_number = (.next_project_number + 1) | 
     .active_projects += [...]' specs/state.json

@@ -6,7 +6,7 @@
 
 ## Overview
 
-Agent files in `.opencode/agents/` use YAML frontmatter to declare metadata that the Claude Code system and invoking skills use for agent selection, model enforcement, and capability discovery.
+Agent files in `.opencode/agents/` use YAML frontmatter to declare metadata that the OpenCode system and invoking skills use for agent selection, model enforcement, and capability discovery.
 
 ## Required Fields
 
@@ -31,38 +31,25 @@ description: Research general tasks using web search and codebase exploration
 ---
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `model` | string | No | Preferred model for this agent (`opus`, `sonnet`, `haiku`) |
+Currently no optional frontmatter fields are supported in OpenCode agent files.
 
-## Model Field
+## Model Field (NOT Supported in OpenCode)
 
-The `model` field allows explicit model selection for agents that benefit from specific model capabilities.
+**IMPORTANT**: The `model` field is NOT supported in OpenCode frontmatter. Including it causes "Model not found" errors because OpenCode's `parseModel()` function splits model strings by `/`, so bare aliases like `"opus"` produce `{providerID: "opus", modelID: ""}` which fails model resolution.
 
-### Default Policy
+### How Model Selection Works in OpenCode
 
-**All agents default to Opus.** All 7 core agents and all extension agents declare `model: opus` in their frontmatter. This provides the highest reasoning quality as the baseline.
+OpenCode uses the session model selected via the TUI model picker. All commands and agents inherit the user's session model selection. There is no per-command or per-agent model override via frontmatter.
 
-Users can override the model at invocation time using model flags (`--haiku`, `--sonnet`, `--opus`) for cost/speed tradeoffs on specific tasks.
+### Claude Code Compatibility Note
 
-### Values
+In Claude Code (`.claude/` system), the `model` field IS supported as a short alias (`opus`, `sonnet`, `haiku`). When porting from Claude Code to OpenCode, the `model:` line must be removed from all frontmatter.
 
-| Value | Use Case | Rationale |
-|-------|----------|-----------|
-| `opus` | Default for all agents | Superior analytical and reasoning capabilities |
-| `sonnet` | Cost-effective alternative when specified via `--sonnet` | Good quality, faster, lower cost |
-| `haiku` | Lightweight tasks when specified via `--haiku` | Fastest, lowest cost, suitable for simple tasks |
-| (omitted) | Default behavior | System chooses based on context |
+### Runtime Model Selection
 
-### Usage Guidelines
-
-**Use `model: opus` for**:
-- All core agents (research, planning, implementation, coordination)
-- All extension agents (domain-specific research and implementation)
-
-**Omit model field when**:
-- Model flexibility is desired
-- Default model selection is appropriate
+Users control model selection via:
+1. The OpenCode TUI model picker (session-level)
+2. Model flags at invocation time (`--haiku`, `--sonnet`, `--opus`) which are passed as `model_flag` in the delegation context
 
 ### Runtime Override Flags
 
@@ -127,7 +114,7 @@ Agent frontmatter is validated during:
 
 1. `name` must be present and non-empty
 2. `description` must be present and non-empty
-3. `model`, if present, must be one of: `opus`, `sonnet`, `haiku`
+3. `model` field must NOT be present (OpenCode does not support it; remove if found)
 
 ## Examples
 
@@ -167,15 +154,15 @@ description: Research and prove Lean4 theorems using Mathlib
 ---
 ```
 
-## Migration
+## Migration from Claude Code
 
-To add model enforcement to existing agents:
+When porting agent or command files from `.claude/` to `.opencode/`:
 
-1. Open agent file (e.g., `.opencode/agents/general-research-agent.md`)
-2. Add `model: opus` to frontmatter (default for all agents)
-3. Document rationale in agent comments
+1. Remove the `model:` line entirely from the YAML frontmatter
+2. Do not convert to `provider/model` format (hard-coding a provider defeats OpenCode's model-agnostic design)
+3. Verify that the remaining frontmatter fields (`name`, `description`, `allowed-tools`, etc.) are valid
 
-No other changes are required - the Task tool will respect the model field when spawning agents.
+Model selection in OpenCode is handled by the user's session model picker, not by per-file frontmatter.
 
 ## Related Documentation
 

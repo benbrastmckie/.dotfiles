@@ -6,7 +6,7 @@ This guide addresses common workflow interruption issues in the agent orchestrat
 
 ## Background
 
-Claude Code has known limitations with nested skill execution (GitHub Issue #17351):
+OpenCode has known limitations with nested skill execution (GitHub Issue #17351):
 - Nested skills return to the main session instead of the invoking skill
 - This causes workflow interruptions requiring manual "continue" input
 
@@ -246,7 +246,7 @@ chmod +x .opencode/hooks/subagent-postflight.sh
 
 2. Verify settings.json configuration includes SubagentStop hook
 
-3. Restart Claude Code session (hooks loaded on startup)
+3. Restart OpenCode session (hooks loaded on startup)
 
 ---
 
@@ -256,7 +256,7 @@ chmod +x .opencode/hooks/subagent-postflight.sh
 
 If workflow is completely stuck:
 
-1. **Stop Claude Code** (Ctrl+C)
+1. **Stop OpenCode** (Ctrl+C)
 
 2. **Clean up marker files**:
 ```bash
@@ -275,7 +275,7 @@ jq empty specs/state.json && echo "Valid JSON"
 jq '.active_projects[] | select(.status == "researching" or .status == "planning" or .status == "implementing") | {project_number, status}' specs/state.json
 ```
 
-4. **Restart Claude Code**
+4. **Restart OpenCode**
 
 5. **Manually fix stuck tasks** if needed:
 ```bash

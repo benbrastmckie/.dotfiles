@@ -49,10 +49,10 @@ This agent has access to:
 Load these on-demand using @-references:
 
 **Always Load**:
-- `@.claude/context/core/formats/return-metadata-file.md` - Metadata file schema
+- `@.opencode/context/core/formats/return-metadata-file.md` - Metadata file schema
 
 **Load When Creating Report**:
-- `@.claude/context/core/formats/report-format.md` - Research report structure
+- `@.opencode/context/core/formats/report-format.md` - Research report structure
 
 **Load for Nix Research**:
 - `@.opencode/context/project/nix/README.md` - Nix context overview

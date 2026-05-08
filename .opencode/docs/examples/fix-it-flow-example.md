@@ -65,7 +65,7 @@ Output: Created N tasks from M tags
 /fix-it src/
 ```
 
-Claude Code reads `.opencode/commands/fix-it.md` and sees:
+OpenCode reads `.opencode/commands/fix-it.md` and sees:
 
 ```yaml
 ---

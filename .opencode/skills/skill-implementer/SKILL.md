@@ -17,6 +17,8 @@ This eliminates the "continue" prompt issue between skill return and orchestrato
 Reference (do not load eagerly):
 - Path: `.opencode/context/formats/return-metadata-file.md` - Metadata file schema
 - Path: `.opencode/context/patterns/postflight-control.md` - Marker file protocol
+- Path: `.opencode/context/patterns/subagent-continuation-loop.md` - Continuation loop pattern
+- Path: `.opencode/context/patterns/context-exhaustion-detection.md` - Context exhaustion heuristics
 - Path: `.opencode/context/patterns/file-metadata-exchange.md` - File I/O helpers
 - Path: `.opencode/context/patterns/jq-escaping-workarounds.md` - jq escaping patterns (Issue #1132)
 
@@ -268,12 +270,46 @@ If you DID use the Task tool (Stage 5), skip this stage -- the subagent already 
 
 ---
 
+### Stage 5c: Continuation Loop Init
+
+Initialize continuation tracking before entering the postflight loop:
+
+```bash
+continuation_count=0
+max_continuations=3
+
+# Create loop-guard file to track count across potential interruptions
+task_dir="specs/${padded_num}_${project_name}"
+cat > "${task_dir}/.continuation-loop-guard" << EOF
+{
+  "session_id": "${session_id}",
+  "continuation_count": 0,
+  "max_continuations": 3,
+  "created": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+EOF
+```
+
+**Note**: The loop guard ensures that even if the skill is interrupted between iterations, the next invocation can read the count and enforce the limit.
+
+---
+
 ## Postflight (ALWAYS EXECUTE)
 
 The following stages MUST execute after work is complete, whether the work was done by a
 subagent (Stage 5) or inline (Stage 5b). Do NOT skip these stages for any reason.
 
-### Stage 6: Parse Subagent Return (Read Metadata File)
+### Continuation Loop
+
+The postflight stages below run inside a loop. Each iteration processes the return from one
+subagent execution. If the subagent returns `partial` with a `handoff_path`, a successor
+subagent is spawned and the loop continues (up to `max_continuations`).
+
+```
+while true; do
+```
+
+#### Stage 6: Parse Subagent Return (Read Metadata File)
 
 Read the metadata file:
 
@@ -292,6 +328,9 @@ if [ -f "$metadata_file" ] && jq empty "$metadata_file" 2>/dev/null; then
     completion_summary=$(jq -r '.completion_data.completion_summary // ""' "$metadata_file")
     roadmap_items=$(jq -c '.completion_data.roadmap_items // []' "$metadata_file")
     memory_candidates=$(jq -c '.memory_candidates // []' "$metadata_file")
+
+    # Extract handoff_path for continuation loop (if present)
+    handoff_path=$(jq -r '.partial_progress.handoff_path // ""' "$metadata_file")
 else
     echo "Error: Invalid or missing metadata file"
     status="failed"
@@ -319,7 +358,23 @@ fi
 
 ---
 
-### Stage 7: Update Task Status (Postflight)
+#### Stage 6b: Commit Phase Progress (Inside Loop)
+
+After each subagent completes (whether implemented, partial, or failed), commit the work:
+
+```bash
+git add -A
+git commit -m "task ${task_number} phase ${phases_completed}: implementation progress
+
+Session: ${session_id}
+" || echo "Note: Nothing to commit or commit failed (non-blocking)"
+```
+
+This ensures each subagent's progress is checkpointed in git before proceeding.
+
+---
+
+#### Stage 7: Update Task Status (Postflight)
 
 **If status is "implemented"**:
 
@@ -367,6 +422,10 @@ if source "$PROJECT_ROOT/.opencode/scripts/update-recommended-order.sh" 2>/dev/n
 fi
 ```
 
+**Break loop** — proceed to Stage 8 (Link Artifacts).
+
+---
+
 **If status is "partial"**:
 
 Keep status as "implementing" but update resume point. This path remains inline because the centralized `update-task-status.sh` maps `postflight:implement` to "completed" only -- it has no "partial" mapping.
@@ -387,7 +446,57 @@ TODO.md stays as `[IMPLEMENTING]`.
 .opencode/scripts/update-plan-status.sh "$task_number" "$project_name" "PARTIAL"
 ```
 
-**On failed**: Keep status as "implementing" for retry. Do not update plan file (leave as `[IMPLEMENTING]` for retry).
+**Continuation decision**:
+
+```bash
+if [ -n "$handoff_path" ] && [ -f "$handoff_path" ] && [ "$continuation_count" -lt "$max_continuations" ]; then
+    # Increment counter and update loop guard
+    continuation_count=$((continuation_count + 1))
+    jq --argjson count "$continuation_count" \
+       --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      '.continuation_count = $count | .last_updated = $ts' \
+      "${task_dir}/.continuation-loop-guard" > "${task_dir}/.continuation-loop-guard.tmp" \
+      && mv "${task_dir}/.continuation-loop-guard.tmp" "${task_dir}/.continuation-loop-guard"
+
+    # Log handoff for visibility
+    echo "Spawning successor subagent (continuation $continuation_count/$max_continuations)"
+    echo "Handoff: $handoff_path"
+
+    # Prepare successor delegation context (see Stage 5 for base context)
+    # Injected fields:
+    # - delegation_depth: incremented by 1
+    # - continuation_context: { is_successor: true, continuation_number: N, handoff_path: ..., progress_path: ..., previous_phases_completed: N }
+
+    # Spawn successor subagent via Task tool with updated context
+    # (Same as Stage 5, but with continuation_context injected into delegation context JSON)
+
+    # Continue loop — next iteration reads successor's metadata
+    continue
+else
+    if [ -z "$handoff_path" ]; then
+        echo "Partial return with no handoff_path. User must re-run /implement to resume."
+    else
+        echo "Max continuations ($max_continuations) reached. Returning partial."
+    fi
+    # Break loop — proceed to Stage 8
+    break
+fi
+```
+
+**If no handoff_path**: Break loop, report partial (user must resume).
+**If continuation_count >= max_continuations**: Break loop, report partial (max reached).
+
+---
+
+**If status is "failed"**:
+
+Keep status as "implementing" for retry. Do not update plan file (leave as `[IMPLEMENTING]` for retry).
+
+**Break loop** — proceed to Stage 8.
+
+```
+done  # End Continuation Loop
+```
 
 ---
 
@@ -438,11 +547,14 @@ Session: ${session_id}
 
 ### Stage 10: Cleanup
 
-Remove marker and metadata files:
+Cleanup runs **after** the continuation loop exits. The `.postflight-pending` marker persists across loop iterations to ensure the SubagentStop hook fires correctly.
+
+Remove marker, metadata, and loop-guard files:
 
 ```bash
 rm -f "specs/${padded_num}_${project_name}/.postflight-pending"
 rm -f "specs/${padded_num}_${project_name}/.postflight-loop-guard"
+rm -f "specs/${padded_num}_${project_name}/.continuation-loop-guard"
 rm -f "specs/${padded_num}_${project_name}/.return-meta.json"
 ```
 
@@ -500,7 +612,11 @@ After the agent returns -- whether with status implemented, partial, or failed -
 5. **Grep or glob the codebase** - Analysis is subagent work
 6. **Write summary/reports** - Artifact creation is done by the subagent
 
-> **PROHIBITION**: If the subagent returned partial or failed status, the lead skill MUST NOT attempt to continue, complete, or "fill in" the subagent's work. Report the partial/failed status and let the user re-run `/implement` to resume.
+> **Continuation Policy**: If the subagent returned `partial` status **WITH** a `handoff_path` in its metadata, the lead skill **MAY** spawn a successor subagent to continue the work automatically (see Continuation Loop in Postflight). This is the preferred path for context exhaustion recovery.
+>
+> If the subagent returned `partial` status **WITHOUT** a `handoff_path`, the lead skill MUST report partial and let the user re-run `/implement` to resume.
+>
+> If the subagent returned `failed` status, the lead skill MUST NOT attempt to continue or "fill in" the subagent's work. Report the failure and let the user investigate.
 
 The postflight phase is LIMITED TO:
 - Reading agent metadata file (.return-meta.json)

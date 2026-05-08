@@ -6,7 +6,7 @@ This pattern enables uninterrupted workflow execution by using a marker file to 
 
 ## Purpose
 
-Claude Code skill returns can bypass the invoking skill and return directly to the main session (GitHub Issue #17351). This pattern uses a marker file to ensure postflight operations execute after subagent return.
+OpenCode skill returns can bypass the invoking skill and return directly to the main session (GitHub Issue #17351). This pattern uses a marker file to ensure postflight operations execute after subagent return.
 
 ## Solution Architecture
 

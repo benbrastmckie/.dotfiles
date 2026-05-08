@@ -1,165 +1,6 @@
 {
-  "version": "1.0.0",
   "extensions": {
     "core": {
-      "installed_dirs": [
-        ".opencode/agent/subagents",
-        ".opencode/commands",
-        ".opencode/rules",
-        ".opencode/skills",
-        ".opencode/skills/skill-fix-it",
-        ".opencode/skills/skill-git-workflow",
-        ".opencode/skills/skill-implementer",
-        ".opencode/skills/skill-meta",
-        ".opencode/skills/skill-orchestrator",
-        ".opencode/skills/skill-planner",
-        ".opencode/skills/skill-project-overview",
-        ".opencode/skills/skill-refresh",
-        ".opencode/skills/skill-researcher",
-        ".opencode/skills/skill-reviser",
-        ".opencode/skills/skill-spawn",
-        ".opencode/skills/skill-status-sync",
-        ".opencode/skills/skill-tag",
-        ".opencode/skills/skill-team-implement",
-        ".opencode/skills/skill-team-plan",
-        ".opencode/skills/skill-team-research",
-        ".opencode/skills/skill-todo",
-        ".opencode/context",
-        ".opencode/context/architecture",
-        ".opencode/context/checkpoints",
-        ".opencode/context/formats",
-        ".opencode/context/guides",
-        ".opencode/context/meta",
-        ".opencode/context/orchestration",
-        ".opencode/context/patterns",
-        ".opencode/context/processes",
-        ".opencode/context/reference",
-        ".opencode/context/repo",
-        ".opencode/context/schemas",
-        ".opencode/context/standards",
-        ".opencode/context/templates",
-        ".opencode/context/troubleshooting",
-        ".opencode/context/workflows",
-        ".opencode/scripts",
-        ".opencode/hooks",
-        ".opencode/docs",
-        ".opencode/docs/architecture",
-        ".opencode/docs/examples",
-        ".opencode/docs/guides",
-        ".opencode/docs/reference",
-        ".opencode/docs/templates",
-        ".opencode/templates",
-        ".opencode/systemd"
-      ],
-      "source_dir": "/home/benjamin/.config/nvim/.opencode/extensions/core",
-      "data_skeleton_files": [],
-      "loaded_at": "2026-05-03T22:44:45Z",
-      "version": "1.0.0",
-      "merged_sections": {
-        "index": {
-          "paths": [
-            "architecture/component-checklist.md",
-            "architecture/context-layers.md",
-            "architecture/generation-guidelines.md",
-            "architecture/system-overview.md",
-            "checkpoints/checkpoint-commit.md",
-            "checkpoints/checkpoint-gate-in.md",
-            "checkpoints/checkpoint-gate-out.md",
-            "checkpoints/README.md",
-            "formats/command-output.md",
-            "formats/command-structure.md",
-            "formats/frontmatter.md",
-            "formats/handoff-artifact.md",
-            "formats/plan-format.md",
-            "formats/progress-file.md",
-            "formats/report-format.md",
-            "formats/return-metadata-file.md",
-            "formats/roadmap-format.md",
-            "formats/subagent-return.md",
-            "formats/summary-format.md",
-            "formats/task-order-format.md",
-            "formats/team-metadata-extension.md",
-            "guides/extension-development.md",
-            "guides/loader-reference.md",
-            "meta/context-revision-guide.md",
-            "meta/domain-patterns.md",
-            "meta/meta-guide.md",
-            "orchestration/architecture.md",
-            "orchestration/delegation.md",
-            "orchestration/orchestration-core.md",
-            "orchestration/orchestration-reference.md",
-            "orchestration/orchestration-validation.md",
-            "orchestration/orchestrator.md",
-            "orchestration/postflight-pattern.md",
-            "orchestration/preflight-pattern.md",
-            "orchestration/sessions.md",
-            "orchestration/state-management.md",
-            "orchestration/subagent-validation.md",
-            "orchestration/validation.md",
-            "patterns/anti-stop-patterns.md",
-            "patterns/artifact-linking-todo.md",
-            "patterns/checkpoint-execution.md",
-            "patterns/context-discovery.md",
-            "patterns/early-metadata-pattern.md",
-            "patterns/file-metadata-exchange.md",
-            "patterns/inline-status-update.md",
-            "patterns/jq-escaping-workarounds.md",
-            "patterns/mcp-tool-recovery.md",
-            "patterns/metadata-file-return.md",
-            "patterns/multi-task-operations.md",
-            "patterns/postflight-control.md",
-            "patterns/roadmap-update.md",
-            "patterns/skill-lifecycle.md",
-            "patterns/team-orchestration.md",
-            "patterns/thin-wrapper-skill.md",
-            "processes/implementation-workflow.md",
-            "processes/planning-workflow.md",
-            "processes/research-workflow.md",
-            "README.md",
-            "reference/artifact-templates.md",
-            "reference/README.md",
-            "reference/skill-agent-mapping.md",
-            "reference/state-management-schema.md",
-            "reference/team-wave-helpers.md",
-            "reference/workflow-diagrams.md",
-            "repo/project-overview.md",
-            "repo/self-healing-implementation-details.md",
-            "repo/update-project.md",
-            "routing.md",
-            "schemas/frontmatter-schema.json",
-            "schemas/subagent-frontmatter.yaml",
-            "standards/analysis-framework.md",
-            "standards/ci-workflow.md",
-            "standards/code-patterns.md",
-            "standards/documentation-standards.md",
-            "standards/error-handling.md",
-            "standards/git-integration.md",
-            "standards/git-safety.md",
-            "standards/interactive-selection.md",
-            "standards/postflight-tool-restrictions.md",
-            "standards/status-markers.md",
-            "standards/task-management.md",
-            "standards/testing.md",
-            "standards/xml-structure.md",
-            "templates/agent-template.md",
-            "templates/command-template.md",
-            "templates/delegation-context.md",
-            "templates/orchestrator-template.md",
-            "templates/state-template.json",
-            "templates/subagent-template.md",
-            "templates/thin-wrapper-skill.md",
-            "troubleshooting/workflow-interruptions.md",
-            "validation.md",
-            "workflows/command-lifecycle.md",
-            "workflows/preflight-postflight.md",
-            "workflows/review-process.md",
-            "workflows/status-transitions.md",
-            "workflows/task-breakdown.md",
-            "index.schema.json"
-          ]
-        }
-      },
-      "status": "active",
       "installed_files": [
         ".opencode/agent/subagents/code-reviewer-agent.md",
         ".opencode/agent/subagents/general-implementation-agent.md",
@@ -252,6 +93,7 @@
         ".opencode/context/patterns/artifact-linking-todo.md",
         ".opencode/context/patterns/checkpoint-execution.md",
         ".opencode/context/patterns/context-discovery.md",
+        ".opencode/context/patterns/context-exhaustion-detection.md",
         ".opencode/context/patterns/early-metadata-pattern.md",
         ".opencode/context/patterns/file-metadata-exchange.md",
         ".opencode/context/patterns/inline-status-update.md",
@@ -262,6 +104,7 @@
         ".opencode/context/patterns/postflight-control.md",
         ".opencode/context/patterns/roadmap-update.md",
         ".opencode/context/patterns/skill-lifecycle.md",
+        ".opencode/context/patterns/subagent-continuation-loop.md",
         ".opencode/context/patterns/team-orchestration.md",
         ".opencode/context/patterns/thin-wrapper-skill.md",
         ".opencode/context/processes/implementation-workflow.md",
@@ -370,14 +213,192 @@
         ".opencode/templates/extension-readme-template.md",
         ".opencode/templates/settings.json",
         ".opencode/systemd/claude-refresh.service",
-        ".opencode/systemd/claude-refresh.timer"
-      ]
+        ".opencode/systemd/claude-refresh.timer",
+        ".opencode/extensions/core/manifest.json"
+      ],
+      "version": "1.0.0",
+      "status": "active",
+      "loaded_at": "2026-05-08T01:49:53Z",
+      "data_skeleton_files": [],
+      "installed_dirs": [
+        ".opencode/agent/subagents",
+        ".opencode/commands",
+        ".opencode/rules",
+        ".opencode/skills",
+        ".opencode/skills/skill-fix-it",
+        ".opencode/skills/skill-git-workflow",
+        ".opencode/skills/skill-implementer",
+        ".opencode/skills/skill-meta",
+        ".opencode/skills/skill-orchestrator",
+        ".opencode/skills/skill-planner",
+        ".opencode/skills/skill-project-overview",
+        ".opencode/skills/skill-refresh",
+        ".opencode/skills/skill-researcher",
+        ".opencode/skills/skill-reviser",
+        ".opencode/skills/skill-spawn",
+        ".opencode/skills/skill-status-sync",
+        ".opencode/skills/skill-tag",
+        ".opencode/skills/skill-team-implement",
+        ".opencode/skills/skill-team-plan",
+        ".opencode/skills/skill-team-research",
+        ".opencode/skills/skill-todo",
+        ".opencode/context",
+        ".opencode/context/architecture",
+        ".opencode/context/checkpoints",
+        ".opencode/context/formats",
+        ".opencode/context/guides",
+        ".opencode/context/meta",
+        ".opencode/context/orchestration",
+        ".opencode/context/patterns",
+        ".opencode/context/processes",
+        ".opencode/context/reference",
+        ".opencode/context/repo",
+        ".opencode/context/schemas",
+        ".opencode/context/standards",
+        ".opencode/context/templates",
+        ".opencode/context/troubleshooting",
+        ".opencode/context/workflows",
+        ".opencode/scripts",
+        ".opencode/hooks",
+        ".opencode/docs",
+        ".opencode/docs/architecture",
+        ".opencode/docs/examples",
+        ".opencode/docs/guides",
+        ".opencode/docs/reference",
+        ".opencode/docs/templates",
+        ".opencode/templates",
+        ".opencode/systemd",
+        ".opencode/extensions/core"
+      ],
+      "source_dir": "/home/benjamin/.config/nvim/.opencode/extensions/core",
+      "merged_sections": {
+        "index": {
+          "paths": [
+            "architecture/component-checklist.md",
+            "architecture/context-layers.md",
+            "architecture/generation-guidelines.md",
+            "architecture/system-overview.md",
+            "checkpoints/checkpoint-commit.md",
+            "checkpoints/checkpoint-gate-in.md",
+            "checkpoints/checkpoint-gate-out.md",
+            "checkpoints/README.md",
+            "formats/command-output.md",
+            "formats/command-structure.md",
+            "formats/frontmatter.md",
+            "formats/handoff-artifact.md",
+            "formats/plan-format.md",
+            "formats/progress-file.md",
+            "formats/report-format.md",
+            "formats/return-metadata-file.md",
+            "formats/roadmap-format.md",
+            "formats/subagent-return.md",
+            "formats/summary-format.md",
+            "formats/task-order-format.md",
+            "formats/team-metadata-extension.md",
+            "guides/extension-development.md",
+            "guides/loader-reference.md",
+            "meta/context-revision-guide.md",
+            "meta/domain-patterns.md",
+            "meta/meta-guide.md",
+            "orchestration/architecture.md",
+            "orchestration/delegation.md",
+            "orchestration/orchestration-core.md",
+            "orchestration/orchestration-reference.md",
+            "orchestration/orchestration-validation.md",
+            "orchestration/orchestrator.md",
+            "orchestration/postflight-pattern.md",
+            "orchestration/preflight-pattern.md",
+            "orchestration/sessions.md",
+            "orchestration/state-management.md",
+            "orchestration/subagent-validation.md",
+            "orchestration/validation.md",
+            "patterns/anti-stop-patterns.md",
+            "patterns/artifact-linking-todo.md",
+            "patterns/checkpoint-execution.md",
+            "patterns/context-discovery.md",
+            "patterns/early-metadata-pattern.md",
+            "patterns/file-metadata-exchange.md",
+            "patterns/inline-status-update.md",
+            "patterns/jq-escaping-workarounds.md",
+            "patterns/mcp-tool-recovery.md",
+            "patterns/metadata-file-return.md",
+            "patterns/multi-task-operations.md",
+            "patterns/postflight-control.md",
+            "patterns/roadmap-update.md",
+            "patterns/skill-lifecycle.md",
+            "patterns/team-orchestration.md",
+            "patterns/thin-wrapper-skill.md",
+            "processes/implementation-workflow.md",
+            "processes/planning-workflow.md",
+            "processes/research-workflow.md",
+            "README.md",
+            "reference/artifact-templates.md",
+            "reference/README.md",
+            "reference/skill-agent-mapping.md",
+            "reference/state-management-schema.md",
+            "reference/team-wave-helpers.md",
+            "reference/workflow-diagrams.md",
+            "repo/project-overview.md",
+            "repo/self-healing-implementation-details.md",
+            "repo/update-project.md",
+            "routing.md",
+            "schemas/frontmatter-schema.json",
+            "schemas/subagent-frontmatter.yaml",
+            "standards/analysis-framework.md",
+            "standards/ci-workflow.md",
+            "standards/code-patterns.md",
+            "standards/documentation-standards.md",
+            "standards/error-handling.md",
+            "standards/git-integration.md",
+            "standards/git-safety.md",
+            "standards/interactive-selection.md",
+            "standards/postflight-tool-restrictions.md",
+            "standards/status-markers.md",
+            "standards/task-management.md",
+            "standards/testing.md",
+            "standards/xml-structure.md",
+            "templates/agent-template.md",
+            "templates/command-template.md",
+            "templates/delegation-context.md",
+            "templates/orchestrator-template.md",
+            "templates/state-template.json",
+            "templates/subagent-template.md",
+            "templates/thin-wrapper-skill.md",
+            "troubleshooting/workflow-interruptions.md",
+            "validation.md",
+            "workflows/command-lifecycle.md",
+            "workflows/preflight-postflight.md",
+            "workflows/review-process.md",
+            "workflows/status-transitions.md",
+            "workflows/task-breakdown.md",
+            "index.schema.json"
+          ]
+        }
+      }
     },
     "python": {
+      "installed_files": [
+        ".opencode/agent/subagents/python-research-agent.md",
+        ".opencode/agent/subagents/python-implementation-agent.md",
+        ".opencode/skills/skill-python-research/SKILL.md",
+        ".opencode/skills/skill-python-implementation/SKILL.md",
+        ".opencode/context/project/python/README.md",
+        ".opencode/context/project/python/domain/application-api-patterns.md",
+        ".opencode/context/project/python/domain/library-patterns.md",
+        ".opencode/context/project/python/patterns/semantic-evaluation.md",
+        ".opencode/context/project/python/patterns/testing-patterns.md",
+        ".opencode/context/project/python/standards/code-style.md",
+        ".opencode/extensions/python/manifest.json"
+      ],
+      "version": "1.0.0",
+      "status": "active",
+      "loaded_at": "2026-05-08T01:50:00Z",
+      "data_skeleton_files": [],
       "installed_dirs": [
         ".opencode/skills/skill-python-research",
         ".opencode/skills/skill-python-implementation",
-        ".opencode/context/project/python"
+        ".opencode/context/project/python",
+        ".opencode/extensions/python"
       ],
       "source_dir": "/home/benjamin/.config/nvim/.opencode/extensions/python",
       "merged_sections": {
@@ -391,34 +412,39 @@
             "project/python/README.md"
           ]
         }
-      },
-      "loaded_at": "2026-05-03T22:45:01Z",
-      "version": "1.0.0",
-      "data_skeleton_files": [],
-      "status": "active",
-      "installed_files": [
-        ".opencode/agent/subagents/python-research-agent.md",
-        ".opencode/agent/subagents/python-implementation-agent.md",
-        ".opencode/skills/skill-python-research/SKILL.md",
-        ".opencode/skills/skill-python-implementation/SKILL.md",
-        ".opencode/context/project/python/README.md",
-        ".opencode/context/project/python/domain/application-api-patterns.md",
-        ".opencode/context/project/python/domain/library-patterns.md",
-        ".opencode/context/project/python/patterns/semantic-evaluation.md",
-        ".opencode/context/project/python/patterns/testing-patterns.md",
-        ".opencode/context/project/python/standards/code-style.md"
-      ]
+      }
     },
     "nix": {
+      "installed_files": [
+        ".opencode/agent/subagents/nix-research-agent.md",
+        ".opencode/agent/subagents/nix-implementation-agent.md",
+        ".opencode/rules/nix.md",
+        ".opencode/skills/skill-nix-research/SKILL.md",
+        ".opencode/skills/skill-nix-implementation/SKILL.md",
+        ".opencode/context/project/nix/README.md",
+        ".opencode/context/project/nix/domain/flakes.md",
+        ".opencode/context/project/nix/domain/home-manager.md",
+        ".opencode/context/project/nix/domain/nix-language.md",
+        ".opencode/context/project/nix/domain/nixos-modules.md",
+        ".opencode/context/project/nix/patterns/derivation-patterns.md",
+        ".opencode/context/project/nix/patterns/module-patterns.md",
+        ".opencode/context/project/nix/patterns/overlay-patterns.md",
+        ".opencode/context/project/nix/standards/nix-style-guide.md",
+        ".opencode/context/project/nix/tools/home-manager-guide.md",
+        ".opencode/context/project/nix/tools/nixos-rebuild-guide.md",
+        ".opencode/extensions/nix/manifest.json"
+      ],
+      "version": "1.0.0",
+      "status": "active",
+      "loaded_at": "2026-05-08T01:49:55Z",
+      "data_skeleton_files": [],
       "installed_dirs": [
         ".opencode/skills/skill-nix-research",
         ".opencode/skills/skill-nix-implementation",
-        ".opencode/context/project/nix"
+        ".opencode/context/project/nix",
+        ".opencode/extensions/nix"
       ],
       "source_dir": "/home/benjamin/.config/nvim/.opencode/extensions/nix",
-      "data_skeleton_files": [],
-      "loaded_at": "2026-05-03T22:44:48Z",
-      "version": "1.0.0",
       "merged_sections": {
         "index": {
           "paths": [
@@ -469,32 +495,162 @@
             }
           }
         }
+      }
+    },
+    "filetypes": {
+      "merged_sections": {
+        "index": {
+          "paths": [
+            "project/filetypes/tools/tool-detection.md",
+            "project/filetypes/tools/dependency-guide.md",
+            "project/filetypes/tools/mcp-integration.md",
+            "project/filetypes/patterns/spreadsheet-tables.md",
+            "project/filetypes/patterns/presentation-slides.md",
+            "project/filetypes/README.md",
+            "project/filetypes/patterns/pitch-deck-structure.md",
+            "project/filetypes/patterns/touying-pitch-deck-template.md"
+          ]
+        }
       },
+      "version": "2.0.0",
       "status": "active",
+      "loaded_at": "2026-05-08T01:50:06Z",
+      "data_skeleton_files": [],
+      "installed_dirs": [
+        ".opencode/skills/skill-filetypes",
+        ".opencode/skills/skill-spreadsheet",
+        ".opencode/skills/skill-presentation",
+        ".opencode/skills/skill-deck",
+        ".opencode/context/project/filetypes",
+        ".opencode/extensions/filetypes"
+      ],
+      "source_dir": "/home/benjamin/.config/nvim/.opencode/extensions/filetypes",
       "installed_files": [
-        ".opencode/agent/subagents/nix-research-agent.md",
-        ".opencode/agent/subagents/nix-implementation-agent.md",
-        ".opencode/rules/nix.md",
-        ".opencode/skills/skill-nix-research/SKILL.md",
-        ".opencode/skills/skill-nix-implementation/SKILL.md",
-        ".opencode/context/project/nix/README.md",
-        ".opencode/context/project/nix/domain/flakes.md",
-        ".opencode/context/project/nix/domain/home-manager.md",
-        ".opencode/context/project/nix/domain/nix-language.md",
-        ".opencode/context/project/nix/domain/nixos-modules.md",
-        ".opencode/context/project/nix/patterns/derivation-patterns.md",
-        ".opencode/context/project/nix/patterns/module-patterns.md",
-        ".opencode/context/project/nix/patterns/overlay-patterns.md",
-        ".opencode/context/project/nix/standards/nix-style-guide.md",
-        ".opencode/context/project/nix/tools/home-manager-guide.md",
-        ".opencode/context/project/nix/tools/nixos-rebuild-guide.md"
+        ".opencode/agent/subagents/filetypes-router-agent.md",
+        ".opencode/agent/subagents/document-agent.md",
+        ".opencode/agent/subagents/spreadsheet-agent.md",
+        ".opencode/agent/subagents/presentation-agent.md",
+        ".opencode/agent/subagents/deck-agent.md",
+        ".opencode/commands/convert.md",
+        ".opencode/commands/table.md",
+        ".opencode/commands/slides.md",
+        ".opencode/commands/deck.md",
+        ".opencode/skills/skill-filetypes/SKILL.md",
+        ".opencode/skills/skill-spreadsheet/SKILL.md",
+        ".opencode/skills/skill-presentation/SKILL.md",
+        ".opencode/skills/skill-deck/SKILL.md",
+        ".opencode/context/project/filetypes/README.md",
+        ".opencode/context/project/filetypes/patterns/pitch-deck-structure.md",
+        ".opencode/context/project/filetypes/patterns/presentation-slides.md",
+        ".opencode/context/project/filetypes/patterns/spreadsheet-tables.md",
+        ".opencode/context/project/filetypes/patterns/touying-pitch-deck-template.md",
+        ".opencode/context/project/filetypes/tools/dependency-guide.md",
+        ".opencode/context/project/filetypes/tools/mcp-integration.md",
+        ".opencode/context/project/filetypes/tools/tool-detection.md",
+        ".opencode/extensions/filetypes/manifest.json"
+      ]
+    },
+    "memory": {
+      "merged_sections": {
+        "index": {
+          "paths": [
+            "project/memory/learn-usage.md",
+            "project/memory/memory-setup.md",
+            "project/memory/memory-troubleshooting.md",
+            "project/memory/knowledge-capture-usage.md"
+          ]
+        },
+        "settings": {
+          "mcpServers": {
+            "type": "new_object",
+            "children": {
+              "obsidian-memory": {
+                "type": "new_object",
+                "children": {
+                  "command": {
+                    "type": "new_value",
+                    "value": "npx"
+                  },
+                  "args": {
+                    "type": "new_array",
+                    "items": [
+                      "-y",
+                      "@dsebastien/obsidian-cli-rest-mcp@latest"
+                    ]
+                  },
+                  "env": {
+                    "type": "new_object",
+                    "children": {
+                      "OBSIDIAN_PORT": {
+                        "type": "new_value",
+                        "value": "27124"
+                      },
+                      "OBSIDIAN_API_KEY": {
+                        "type": "new_value",
+                        "value": "${OBSIDIAN_API_KEY}"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "version": "1.0.0",
+      "status": "active",
+      "loaded_at": "2026-05-08T01:49:53Z",
+      "data_skeleton_files": [],
+      "installed_dirs": [
+        ".opencode/skills/skill-memory",
+        ".opencode/context/project/memory",
+        ".opencode/extensions/memory"
+      ],
+      "source_dir": "/home/benjamin/.config/nvim/.opencode/extensions/memory",
+      "installed_files": [
+        ".opencode/commands/learn.md",
+        ".opencode/skills/skill-memory/README.md",
+        ".opencode/skills/skill-memory/SKILL.md",
+        ".opencode/context/project/memory/README.md",
+        ".opencode/context/project/memory/knowledge-capture-usage.md",
+        ".opencode/context/project/memory/learn-usage.md",
+        ".opencode/context/project/memory/memory-setup.md",
+        ".opencode/context/project/memory/memory-troubleshooting.md",
+        ".opencode/extensions/memory/manifest.json"
       ]
     },
     "nvim": {
+      "merged_sections": {
+        "index": {
+          "paths": [
+            "project/neovim/README.md",
+            "project/neovim/domain/lua-patterns.md",
+            "project/neovim/domain/neovim-api.md",
+            "project/neovim/domain/plugin-ecosystem.md",
+            "project/neovim/domain/lsp-overview.md",
+            "project/neovim/patterns/autocommand-patterns.md",
+            "project/neovim/patterns/ftplugin-patterns.md",
+            "project/neovim/patterns/keymap-patterns.md",
+            "project/neovim/patterns/plugin-spec.md",
+            "project/neovim/standards/lua-style-guide.md",
+            "project/neovim/standards/testing-patterns.md",
+            "project/neovim/templates/ftplugin-template.md",
+            "project/neovim/templates/plugin-template.md",
+            "project/neovim/tools/lazy-nvim-guide.md",
+            "project/neovim/tools/telescope-guide.md",
+            "project/neovim/tools/treesitter-guide.md"
+          ]
+        }
+      },
+      "version": "1.0.0",
+      "status": "active",
+      "loaded_at": "2026-05-08T01:49:57Z",
+      "data_skeleton_files": [],
       "installed_dirs": [
         ".opencode/skills/skill-neovim-research",
         ".opencode/skills/skill-neovim-implementation",
-        ".opencode/context/project/neovim"
+        ".opencode/context/project/neovim",
+        ".opencode/extensions/nvim"
       ],
       "source_dir": "/home/benjamin/.config/nvim/.opencode/extensions/nvim",
       "installed_files": [
@@ -518,101 +674,10 @@
         ".opencode/context/project/neovim/templates/plugin-template.md",
         ".opencode/context/project/neovim/tools/lazy-nvim-guide.md",
         ".opencode/context/project/neovim/tools/telescope-guide.md",
-        ".opencode/context/project/neovim/tools/treesitter-guide.md"
-      ],
-      "loaded_at": "2026-05-03T22:44:53Z",
-      "version": "1.0.0",
-      "merged_sections": {
-        "index": {
-          "paths": [
-            "project/neovim/README.md",
-            "project/neovim/domain/lua-patterns.md",
-            "project/neovim/domain/neovim-api.md",
-            "project/neovim/domain/plugin-ecosystem.md",
-            "project/neovim/domain/lsp-overview.md",
-            "project/neovim/patterns/autocommand-patterns.md",
-            "project/neovim/patterns/ftplugin-patterns.md",
-            "project/neovim/patterns/keymap-patterns.md",
-            "project/neovim/patterns/plugin-spec.md",
-            "project/neovim/standards/lua-style-guide.md",
-            "project/neovim/standards/testing-patterns.md",
-            "project/neovim/templates/ftplugin-template.md",
-            "project/neovim/templates/plugin-template.md",
-            "project/neovim/tools/lazy-nvim-guide.md",
-            "project/neovim/tools/telescope-guide.md",
-            "project/neovim/tools/treesitter-guide.md"
-          ]
-        }
-      },
-      "status": "active",
-      "data_skeleton_files": []
-    },
-    "memory": {
-      "installed_dirs": [
-        ".opencode/skills/skill-memory",
-        ".opencode/context/project/memory"
-      ],
-      "source_dir": "/home/benjamin/.config/nvim/.opencode/extensions/memory",
-      "installed_files": [
-        ".opencode/commands/learn.md",
-        ".opencode/skills/skill-memory/README.md",
-        ".opencode/skills/skill-memory/SKILL.md",
-        ".opencode/context/project/memory/README.md",
-        ".opencode/context/project/memory/knowledge-capture-usage.md",
-        ".opencode/context/project/memory/learn-usage.md",
-        ".opencode/context/project/memory/memory-setup.md",
-        ".opencode/context/project/memory/memory-troubleshooting.md"
-      ],
-      "loaded_at": "2026-05-03T22:44:46Z",
-      "version": "1.0.0",
-      "merged_sections": {
-        "index": {
-          "paths": [
-            "project/memory/learn-usage.md",
-            "project/memory/memory-setup.md",
-            "project/memory/memory-troubleshooting.md",
-            "project/memory/knowledge-capture-usage.md"
-          ]
-        },
-        "settings": {
-          "mcpServers": {
-            "type": "new_object",
-            "children": {
-              "obsidian-memory": {
-                "type": "new_object",
-                "children": {
-                  "command": {
-                    "type": "new_value",
-                    "value": "npx"
-                  },
-                  "env": {
-                    "type": "new_object",
-                    "children": {
-                      "OBSIDIAN_API_KEY": {
-                        "type": "new_value",
-                        "value": "${OBSIDIAN_API_KEY}"
-                      },
-                      "OBSIDIAN_PORT": {
-                        "type": "new_value",
-                        "value": "27124"
-                      }
-                    }
-                  },
-                  "args": {
-                    "type": "new_array",
-                    "items": [
-                      "-y",
-                      "@dsebastien/obsidian-cli-rest-mcp@latest"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "status": "active",
-      "data_skeleton_files": []
+        ".opencode/context/project/neovim/tools/treesitter-guide.md",
+        ".opencode/extensions/nvim/manifest.json"
+      ]
     }
-  }
+  },
+  "version": "1.0.0"
 }

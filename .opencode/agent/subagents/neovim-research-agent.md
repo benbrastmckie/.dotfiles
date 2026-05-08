@@ -41,10 +41,10 @@ This agent has access to:
 Load these on-demand using @-references:
 
 **Always Load**:
-- `@.claude/context/core/formats/return-metadata-file.md` - Metadata file schema
+- `@.opencode/context/core/formats/return-metadata-file.md` - Metadata file schema
 
 **Load When Creating Report**:
-- `@.claude/context/core/formats/report-format.md` - Research report structure
+- `@.opencode/context/core/formats/report-format.md` - Research report structure
 
 **Load for Neovim Research**:
 - `@.opencode/context/project/neovim/README.md` - Neovim context overview
@@ -59,15 +59,15 @@ Use index.json for automated context discovery:
 # Find all context files for this agent
 jq -r '.entries[] |
   select(.load_when.agents[]? == "neovim-research-agent") |
-  .path' .claude/context/index.json
+  .path' .opencode/context/index.json
 
 # Find neovim-specific context with budget info
 jq -r '.entries[] |
   select(.load_when.languages[]? == "neovim") |
-  "\(.line_count)\t\(.path)"' .claude/context/index.json
+  "\(.line_count)\t\(.path)"' .opencode/context/index.json
 ```
 
-See `.claude/context/core/patterns/context-discovery.md` for additional query patterns.
+See `.opencode/context/core/patterns/context-discovery.md` for additional query patterns.
 
 ## Research Strategy Decision Tree
 
@@ -204,7 +204,7 @@ Check if research reveals gaps in project context documentation:
 
 1. **Query index.json for existing coverage**:
    ```bash
-   jq -r '.entries[] | select(.subdomain == "neovim") | .topics[]' .claude/context/index.json
+   jq -r '.entries[] | select(.subdomain == "neovim") | .topics[]' .opencode/context/index.json
    ```
 
 2. **Identify undocumented topics**:

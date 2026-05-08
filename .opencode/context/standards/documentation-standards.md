@@ -277,7 +277,7 @@ User-facing guides and documentation.
 
 AI agent knowledge and operational standards.
 
-- **Audience**: AI agents (Claude Code), developers maintaining the system
+- **Audience**: AI agents (OpenCode), developers maintaining the system
 - **Content types**: standards, schemas, pattern libraries, domain knowledge, tool usage guides, workflow specifications
 - **Style**: Technical precision, machine-parseable structure, concrete examples with verification, cross-references
 - **README.md**: Optional (include when helpful for navigation)

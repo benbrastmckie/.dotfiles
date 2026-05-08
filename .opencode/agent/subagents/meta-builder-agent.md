@@ -730,10 +730,25 @@ for position, task_idx in enumerate(sorted_indices):
 
 # Join all entries (foundational tasks first in the string)
 batch_markdown = "\n\n".join(batch_entries)
+```
 
-# Insert entire batch after ## Tasks heading
-# This preserves order: first entry in batch appears first in file
-insert_after_heading("## Tasks", batch_markdown)
+**WARNING**: DO NOT search for the last `---` separator and append text.
+DO NOT insert at the bottom of the file.
+ALWAYS use the heading-anchored Edit tool pattern with `oldString: "## Tasks\n"`.
+The heading `## Tasks` is unique in TODO.md and is the only reliable insertion anchor.
+
+**Insert the batch** using the Edit tool to prepend at the TOP of the Tasks section:
+
+```
+oldString: "## Tasks\n"
+newString: "## Tasks\n\n{batch_markdown}\n"
+```
+
+This prepends the batch immediately after the `## Tasks` heading, before any existing task entries.
+
+**Verify insertion**: After inserting, re-read the first few lines after `## Tasks` using the Read tool:
+- Confirm the first task after `## Tasks` has the expected foundational task number
+- If it doesn't match, the insertion went wrong — fix and re-verify
 ```
 
 **Why batch insertion matters**: With prepend-each semantics, the last task created ends up at the top of TODO.md. Batch insertion ensures the first task in `sorted_indices` (foundational) appears first in the file. Users then see tasks in dependency order: complete the top task first.
@@ -1340,10 +1355,13 @@ Return ONLY valid JSON matching this schema:
    - Format each task entry using the TODO.md Entry Format (see Stage 6 CreateTasks)
    - Collect all entries into a single markdown block
 
-2. **Insert batch into TODO.md**:
-   - Insert the entire batch after `## Tasks` heading (before existing tasks)
-   - This preserves topological order: foundational tasks appear higher in the file
-   - The batch as a whole is "prepended" to existing tasks
+2. **Insert batch into TODO.md** using the canonical Edit tool pattern (see Stage 6 CreateTasks above for the full anti-pattern warning):
+   - **WARNING**: DO NOT search for `---` separators or insert at the bottom of the file. Always use the heading-anchored Edit tool pattern.
+   - Use the Edit tool: `oldString: "## Tasks\n"` → `newString: "## Tasks\n\n{batch_markdown}\n"`
+   - This prepends the batch immediately after the `## Tasks` heading, before any existing task entries
+   - **Verify insertion**: Re-read the first few lines after `## Tasks` using the Read tool
+   - Confirm the first task after `## Tasks` has the expected foundational task number
+   - If it doesn't match, the insertion went wrong — fix and re-verify
 
 3. **Include all required fields** in each entry
 

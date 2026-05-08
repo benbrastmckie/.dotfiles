@@ -1,13 +1,13 @@
 ---
 name: skill-refresh
-description: Manage Claude Code resources - terminate orphaned processes and clean up ~/.opencode/ directory
+description: Manage OpenCode resources - terminate orphaned processes and clean up ~/.opencode/ directory
 allowed-tools: Bash, AskUserQuestion
 ---
 
 # Refresh Skill (Direct Execution)
 
-Direct execution skill for managing Claude Code resources. Performs two operations:
-1. **Process cleanup**: Identify and terminate orphaned Claude Code processes
+Direct execution skill for managing OpenCode resources. Performs two operations:
+1. **Process cleanup**: Identify and terminate orphaned OpenCode processes
 2. **Directory cleanup**: Clean up accumulated files in ~/.opencode/
 
 This skill executes inline without spawning a subagent.
@@ -225,7 +225,7 @@ esac
 # User runs: /refresh
 
 # Output:
-Claude Code Refresh
+OpenCode Refresh
 ===================
 
 No orphaned processes found.
@@ -233,7 +233,7 @@ All 3 Claude processes are active sessions.
 
 ---
 
-Claude Code Directory Cleanup
+OpenCode Directory Cleanup
 =============================
 
 Target: ~/.opencode/

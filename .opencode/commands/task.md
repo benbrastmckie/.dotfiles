@@ -169,7 +169,19 @@ When $ARGUMENTS contains a description (no flags).
    **Description**: {description}
    ```
 
-   **Insertion**: Use sed or Edit to insert the new task entry immediately after the `## Tasks` line, so new tasks appear at the top of the list.
+   **Insertion**: Use the Edit tool with heading-anchored pattern:
+
+   ```
+   oldString: "## Tasks\n"
+   newString: "## Tasks\n\n### {N}. {Title}\n- **Effort**: {estimate}\n- **Status**: [NOT STARTED]\n- **Task Type**: {task_type}\n\n**Description**: {description}\n\n---\n"
+   ```
+
+   **WARNING**: DO NOT search for the last `---` separator and append text after it.
+   DO NOT insert at the bottom of the file.
+   ALWAYS use the heading-anchored Edit tool pattern with `oldString: "## Tasks\n"`.
+   The heading `## Tasks` is unique in TODO.md and is the only reliable insertion anchor.
+
+   After inserting, re-read the first few lines after `## Tasks` and verify the task number.
 
    **CRITICAL**: Both state.json AND TODO.md frontmatter MUST have matching next_project_number values.
 

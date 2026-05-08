@@ -4,7 +4,7 @@ This guide explains how to set up the MCP (Model Context Protocol) server for ad
 
 ## Multi-System Architecture
 
-The memory extension is designed to work across both Claude Code and OpenCode:
+The memory extension is designed to work across both OpenCode and OpenCode:
 
 ### Shared Components
 - `.memory/` vault at project root (single source of truth)
@@ -13,7 +13,7 @@ The memory extension is designed to work across both Claude Code and OpenCode:
 
 ### System-Specific Components
 - MCP server configuration (different ports, different protocols)
-- Context reference paths (`.claude/` vs `.opencode/`)
+- Context reference paths (`.opencode/` vs `.opencode/`)
 - Extension loading mechanics
 
 ### Concurrent Usage Safety

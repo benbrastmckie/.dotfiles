@@ -23,7 +23,7 @@ Example: `specs/1_setup_lsp_config/.return-meta.json`
   "status": "researched|planned|implemented|partial|failed|blocked",
   "artifacts": [
     {
-      "type": "report|plan|summary|implementation",
+      "type": "report|plan|summary|implementation|handoff",
       "path": "specs/001_setup_lsp_config/reports/01_lsp-config-research.md",
       "summary": "Brief 1-sentence description of artifact"
     }
@@ -134,6 +134,7 @@ Tracks progress for interrupted or partially completed work:
 | `details` | string | Yes | Human-readable description of progress |
 | `phases_completed` | number | No | For implementation agents: phases completed |
 | `phases_total` | number | No | For implementation agents: total phases |
+| `handoff_path` | string | No | Path to handoff artifact written before context exhaustion (see `handoff-artifact.md`) |
 
 **Purpose**: Enables skill postflight to determine resume point and provide user guidance when
 an agent is interrupted before completion.

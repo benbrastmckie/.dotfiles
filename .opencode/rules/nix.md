@@ -219,11 +219,11 @@ nix build .#myPackage
 ## Related Context
 
 Load for detailed patterns:
-- `@.claude/extensions/nix/context/project/nix/domain/nix-language.md`
-- `@.claude/extensions/nix/context/project/nix/domain/flakes.md`
-- `@.claude/extensions/nix/context/project/nix/domain/nixos-modules.md`
-- `@.claude/extensions/nix/context/project/nix/domain/home-manager.md`
-- `@.claude/extensions/nix/context/project/nix/patterns/module-patterns.md`
-- `@.claude/extensions/nix/context/project/nix/patterns/overlay-patterns.md`
-- `@.claude/extensions/nix/context/project/nix/patterns/derivation-patterns.md`
-- `@.claude/extensions/nix/context/project/nix/standards/nix-style-guide.md`
+- `@.opencode/extensions/nix/context/project/nix/domain/nix-language.md`
+- `@.opencode/extensions/nix/context/project/nix/domain/flakes.md`
+- `@.opencode/extensions/nix/context/project/nix/domain/nixos-modules.md`
+- `@.opencode/extensions/nix/context/project/nix/domain/home-manager.md`
+- `@.opencode/extensions/nix/context/project/nix/patterns/module-patterns.md`
+- `@.opencode/extensions/nix/context/project/nix/patterns/overlay-patterns.md`
+- `@.opencode/extensions/nix/context/project/nix/patterns/derivation-patterns.md`
+- `@.opencode/extensions/nix/context/project/nix/standards/nix-style-guide.md`

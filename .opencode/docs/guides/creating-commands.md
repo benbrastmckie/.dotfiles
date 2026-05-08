@@ -1,6 +1,6 @@
 # Creating Commands Guide
 
-This guide walks through creating a new slash command in the Claude Code agent system. Commands are the user-facing entry points; they route work to skills, which delegate to agents.
+This guide walks through creating a new slash command in the OpenCode agent system. Commands are the user-facing entry points; they route work to skills, which delegate to agents.
 
 ## Prerequisites
 

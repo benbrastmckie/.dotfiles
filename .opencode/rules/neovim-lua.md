@@ -142,6 +142,6 @@ nvim --headless -c "checkhealth" -c "q"
 ## Related Context
 
 Load for detailed patterns:
-- `@.claude/context/project/neovim/standards/lua-style-guide.md`
-- `@.claude/context/project/neovim/patterns/plugin-spec.md`
-- `@.claude/context/project/neovim/patterns/keymap-patterns.md`
+- `@.opencode/context/project/neovim/standards/lua-style-guide.md`
+- `@.opencode/context/project/neovim/patterns/plugin-spec.md`
+- `@.opencode/context/project/neovim/patterns/keymap-patterns.md`

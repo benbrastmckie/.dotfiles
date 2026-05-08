@@ -1,10 +1,10 @@
-# Anti-Stop Patterns for Claude Code Agent Systems
+# Anti-Stop Patterns for OpenCode Agent Systems
 
 ## Critical Background
 
 Claude interprets certain words and phrases as signals to stop execution immediately. This causes workflow delegation to fail when subagents return these patterns, because the orchestrator's postflight (status updates, git commits) never runs.
 
-**Root Cause**: Claude Code treats certain return values as "conversation complete" signals, halting execution before the calling skill/orchestrator can continue.
+**Root Cause**: OpenCode treats certain return values as "conversation complete" signals, halting execution before the calling skill/orchestrator can continue.
 
 **Impact**: Workflow commands like /research, /plan, /implement stop prematurely, leaving tasks in inconsistent states (e.g., [RESEARCHING] instead of [RESEARCHED]).
 

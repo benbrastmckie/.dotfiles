@@ -2,6 +2,15 @@
 
 ## Active Tasks
 
+### 53. Install NixOS prerequisites for Discord bot setup
+- **Status**: [RESEARCHED]
+- **Task Type**: nix
+- **Research**: [053_nixos_discord_bot_prerequisites/reports/01_nixos-discord-bot-prerequisites.md]
+
+**Description**: Configure NixOS prerequisites for the Discord bot system (based on external research task 547). Includes: sops-nix flake input + module, dedicated Python environment (nextcord, aiohttp, anyio), `opencode-serve` systemd service (OpenCode headless server), `discord-bot` systemd service (Nextcord bot relay), `.sops.yaml` with age key, encrypted `secrets/secrets.yaml` for Discord token and OpenCode server password. Bot project source lives at `~/.dotfiles/opencode-discord-bot/` per the external plan.
+
+---
+
 ### 52. Add sleep inhibition during active Claude Code/Opencode sessions
 - **Status**: [RESEARCHED]
 - **Task Type**: nix

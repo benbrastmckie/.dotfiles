@@ -298,7 +298,7 @@ grep "completed.*triggers" .opencode/agents/{name}-agent.md
 
 ### 1. Missing Agent Frontmatter
 
-**Wrong**: Agent file without frontmatter (Claude Code ignores it)
+**Wrong**: Agent file without frontmatter (OpenCode ignores it)
 ```markdown
 # My Agent
 This agent does things...

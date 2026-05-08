@@ -8,7 +8,7 @@ Instructions for copying the `.opencode/` agent system directory to a new projec
 
 ## What is the .opencode/ System?
 
-The `.opencode/` directory provides an agent system for Claude Code that enhances your development workflow with:
+The `.opencode/` directory provides an agent system for OpenCode that enhances your development workflow with:
 
 - **Task Management Commands**: `/task`, `/research`, `/plan`, `/implement` - structured workflow for development tasks
 - **Specialized Skills**: Language-specific agents available via extensions (LaTeX, Typst, and more)
@@ -30,14 +30,14 @@ Before proceeding, ensure you have:
    ```
    If not installed, see [Git Installation Guide](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 
-2. **Claude Code installed and authenticated**
+2. **OpenCode installed and authenticated**
    ```bash
    claude --version
    claude auth status
    ```
 
 3. **A target project directory**
-   - This should be the root directory where you run Claude Code
+   - This should be the root directory where you run OpenCode
    - The `.opencode/` directory will be placed here
 
 ---
@@ -206,7 +206,7 @@ You should see:
 - `rules/` - Automatic behavior rules
 - `context/` - Domain knowledge
 
-### 2. Restart Claude Code
+### 2. Restart OpenCode
 
 ```
 /exit
@@ -243,7 +243,7 @@ After installation:
 
 ### Commands not available
 
-1. Ensure you restarted Claude Code
+1. Ensure you restarted OpenCode
 2. Verify you're in the correct directory
 3. Check that `.opencode/commands/` contains `.md` files
 

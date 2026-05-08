@@ -48,7 +48,7 @@ The `.opencode/` directory implements a three-layer architecture: Commands, Skil
 ## Guides
 
 ### Getting Started
-- [User Installation Guide](guides/user-installation.md) - Install Claude Code, set up the agent system, and learn the basics
+- [User Installation Guide](guides/user-installation.md) - Install OpenCode, set up the agent system, and learn the basics
 - [Command Workflows User Guide](guides/user-guide.md) - Comprehensive guide to all commands with examples and troubleshooting
 - [Copy .opencode/ Directory](guides/copy-claude-directory.md) - Install the agent system in another project
 ### Component Development

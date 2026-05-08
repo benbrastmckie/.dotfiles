@@ -984,7 +984,7 @@ The summary should:
 
 ### jq Pattern Safety (Issue #1132)
 
-**Problem**: Claude Code Issue #1132 causes jq commands with `!=` operators to fail with `INVALID_CHARACTER` or syntax errors when Claude generates them inline.
+**Problem**: OpenCode Issue #1132 causes jq commands with `!=` operators to fail with `INVALID_CHARACTER` or syntax errors when Claude generates them inline.
 
 **Solution**: This command uses safe jq patterns throughout:
 

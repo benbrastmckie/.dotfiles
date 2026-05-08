@@ -2,7 +2,7 @@
 
 Reusable patterns for updating task status directly in skills without invoking skill-status-sync.
 
-**IMPORTANT**: All artifact filtering uses `select(.type == "X" | not)` instead of `select(.type != "X")` to avoid Claude Code Issue #1132 which escapes `!=` as `\!=`. See `jq-escaping-workarounds.md` for details.
+**IMPORTANT**: All artifact filtering uses `select(.type == "X" | not)` instead of `select(.type != "X")` to avoid OpenCode Issue #1132 which escapes `!=` as `\!=`. See `jq-escaping-workarounds.md` for details.
 
 ## Preflight Patterns
 
