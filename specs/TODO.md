@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 54. Revise configuration.md to be renamed discord-bot.md and correctly document the Discord bot feature with proper crosslinking
+- **Status**: [NOT STARTED]
+- **Task Type**: markdown
+
+**Description**: Revise /home/benjamin/.dotfiles/docs/configuration.md to be named discord-bot.md and to carefully and correctly document this feature, maintaining repo documentation standards with careful crosslinking.
+
+---
+
 ### 53. Install NixOS prerequisites for Discord bot setup
 - **Status**: [COMPLETED]
 - **Task Type**: nix
