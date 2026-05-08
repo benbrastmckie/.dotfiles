@@ -3,7 +3,7 @@
 ## Active Tasks
 
 ### 53. Install NixOS prerequisites for Discord bot setup
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Research**: [053_nixos_discord_bot_prerequisites/reports/01_nixos-discord-bot-prerequisites.md]
 
