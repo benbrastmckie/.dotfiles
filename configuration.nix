@@ -3,6 +3,16 @@
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
 { config, lib, pkgs, lectic, ... }:
+let
+  # Discord Bot Python environment (Task 53)
+  # Dedicated Python 3.12 environment for the Nextcord bot service
+  # (nextcord: Discord library, aiohttp: local HTTP API, anyio: structured concurrency)
+  discordBotPython = pkgs.python312.withPackages (p: with p; [
+    nextcord
+    aiohttp
+    anyio
+  ]);
+in
 {
   imports =
     [ # Hardware configuration is now imported in flake.nix
@@ -441,6 +451,29 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.input-fonts.acceptLicense = true;
+
+  # ==========================================================================
+  # Discord Bot Prerequisites (Task 53)
+  # ==========================================================================
+  # sops-nix decryption: injects bot token and OpenCode password into
+  # systemd services via LoadCredential (never on disk unencrypted).
+  # Bot project: ~/.dotfiles/opencode-discord-bot/src/bot.py (Nextcord)
+  # See: specs/053_nixos_discord_bot_prerequisites/reports/01_nixos-discord-bot-prerequisites.md
+  # ==========================================================================
+
+  sops = {
+    defaultSopsFile = ./secrets/secrets.yaml;
+    age.sshKeyPaths = [ "/home/benjamin/.config/sops/age/keys.txt" ];
+
+    secrets = {
+      "discord_bot_token" = {
+        owner = config.users.users.benjamin.name;
+      };
+      "opencode_server_password" = {
+        owner = config.users.users.benjamin.name;
+      };
+    };
+  };
   
   environment.systemPackages =
     (with pkgs; [
@@ -626,6 +659,10 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       # NixOS
       home-manager         # Tool for managing user configuration
       nix-index            # Utility for indexing Nix store files
+
+      # Discord Bot Prerequisites (Task 53)
+      sops                 # Secrets encryption/decryption (3.12.2)
+      age                  # Encryption backend for sops (age 1.3.1)
 
 
 
@@ -819,6 +856,69 @@ systemd.services = {
   # Note: automatic-timezoned-geoclue-agent already has Restart = "on-failure"
   # defined by the NixOS module, which is sufficient for handling D-Bus
   # disconnections when geoclue2 shuts down. No override needed.
+
+  # ==========================================================================
+  # Discord Bot Infrastructure Services (Task 53)
+  # ==========================================================================
+  # opencode-serve: headless OpenCode agent server binding to localhost.
+  # Server password is injected from sops-nix via systemd LoadCredential.
+  # ==========================================================================
+  opencode-serve = {
+    description = "OpenCode headless agent server";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${pkgs.opencode}/bin/opencode serve --hostname 127.0.0.1";
+      Restart = "always";
+      RestartSec = "10s";
+      # Inject the server password from sops-nix
+      LoadCredential = "opencode_server_password:${config.sops.secrets."opencode_server_password".path}";
+      Environment = "OPENCODE_SERVER_PASSWORD=%d/opencode_server_password";
+      # Working directory where .opencode/ config lives
+      WorkingDirectory = "/home/benjamin/.dotfiles";
+      User = config.users.users.benjamin.name;
+      Group = "users";
+    };
+  };
+
+  # ==========================================================================
+  # discord-bot: Nextcord Discord bot relay for OpenCode agent management.
+  # Depends on opencode-serve. Uses dedicated discordBotPython environment.
+  # PYTHONPATH points to bot project at ~/.dotfiles/opencode-discord-bot/.
+  # ==========================================================================
+  discord-bot = {
+    description = "Discord bot relay for OpenCode agent management";
+    after = [ "network-online.target" "opencode-serve.service" ];
+    wants = [ "network-online.target" ];
+    requires = [ "opencode-serve.service" ];
+    wantedBy = [ "multi-user.target" ];
+
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${discordBotPython}/bin/python -m opencode_discord_bot.src.bot";
+      Restart = "always";
+      RestartSec = "10s";
+      LoadCredential = [
+        "discord_bot_token:${config.sops.secrets."discord_bot_token".path}"
+        "opencode_server_password:${config.sops.secrets."opencode_server_password".path}"
+      ];
+      Environment = [
+        "DISCORD_BOT_TOKEN=%d/discord_bot_token"
+        "OPENCODE_SERVER_PASSWORD=%d/opencode_server_password"
+        "OPENCODE_SERVER_URL=http://127.0.0.1"
+        "WHITELISTED_USER_IDS="
+        "LINK_API_TOKEN="
+        "LOG_LEVEL=info"
+        "PYTHONPATH=/home/benjamin/.dotfiles/opencode-discord-bot"
+      ];
+      WorkingDirectory = "/home/benjamin/.dotfiles";
+      User = config.users.users.benjamin.name;
+      Group = "users";
+    };
+  };
 };
 
 # Do not change this value after initial installation

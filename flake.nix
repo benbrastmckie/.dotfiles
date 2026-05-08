@@ -20,13 +20,16 @@
     utils.url = "github:numtide/flake-utils";
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    # sops-nix for age-based secrets management (Task 53)
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     # Note: MCPHub is loaded via lazy.nvim, not as a flake input
     # home-manager = {
     #   url = "github:nix-community/home-manager/release-23.11";  
     # };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, lectic, nix-ai-tools, utils, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, lean4, niri, lectic, nix-ai-tools, utils, sops-nix, ... }@inputs:
 
   let
     lib = nixpkgs.lib;
@@ -146,6 +149,9 @@
           ./hosts/nandi/hardware-configuration.nix
           { networking.hostName = "nandi"; }
           
+          # sops-nix for age-based secrets management (Task 53)
+          sops-nix.nixosModules.sops
+          
           # Apply our unstable packages overlay globally
           { nixpkgs = nixpkgsConfig; }
           
@@ -174,6 +180,9 @@
           ./configuration.nix
           ./hosts/hamsa/hardware-configuration.nix
           { networking.hostName = "hamsa"; }
+          
+          # sops-nix for age-based secrets management (Task 53)
+          sops-nix.nixosModules.sops
           
           # Apply our unstable packages overlay globally
           { nixpkgs = nixpkgsConfig; }
@@ -204,6 +213,9 @@
           ./configuration.nix
           "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
           { networking.hostName = "nixos-iso"; }
+          
+          # sops-nix for age-based secrets management (Task 53)
+          sops-nix.nixosModules.sops
           
           # Apply our unstable packages overlay globally
           { nixpkgs = nixpkgsConfig; }
@@ -263,6 +275,9 @@
           ./configuration.nix
           ./hosts/usb-installer/hardware-configuration.nix
           "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+          
+          # sops-nix for age-based secrets management (Task 53)
+          sops-nix.nixosModules.sops
           
           # Apply our unstable packages overlay globally
           { nixpkgs = nixpkgsConfig; }

@@ -3,11 +3,13 @@
 ## Active Tasks
 
 ### 53. Install NixOS prerequisites for Discord bot setup
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Research**: [01_nixos-discord-bot-prerequisites.md](specs/053_nixos_discord_bot_prerequisites/reports/01_nixos-discord-bot-prerequisites.md)
 - **Research**: [02_python-discord-bot-best-practices.md](specs/053_nixos_discord_bot_prerequisites/reports/02_python-discord-bot-best-practices.md)
 - **Plan**: [02_nixos-discord-bot-prerequisites.md](specs/053_nixos_discord_bot_prerequisites/plans/02_nixos-discord-bot-prerequisites.md)
+- **Completed**: 2026-05-07
+- **Summary**: [02_nixos-discord-bot-prerequisites-summary.md](specs/053_nixos_discord_bot_prerequisites/summaries/02_nixos-discord-bot-prerequisites-summary.md)
 
 **Description**: Configure NixOS prerequisites for the Discord bot system (based on external research task 547). Includes: sops-nix flake input + module, dedicated Python environment (nextcord, aiohttp, anyio), `opencode-serve` systemd service (OpenCode headless server), `discord-bot` systemd service (Nextcord bot relay), `.sops.yaml` with age key, encrypted `secrets/secrets.yaml` for Discord token and OpenCode server password. Bot project source lives at `~/.dotfiles/opencode-discord-bot/` per the external plan.
 

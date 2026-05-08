@@ -1,7 +1,7 @@
 # Implementation Plan: NixOS Discord Bot Prerequisites
 
 - **Task**: 53 - nixos_discord_bot_prerequisites
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 5 hours
 - **Dependencies**: External task 547 (bot project source at `~/.dotfiles/opencode-discord-bot/`)
 - **Research Inputs**:
@@ -69,7 +69,7 @@ No ROADMAP.md found.
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: sops-nix Integration [NOT STARTED]
+### Phase 1: sops-nix Integration [COMPLETED]
 
 **Goal**: Wire up sops-nix for age-based secrets management — flake input, NixOS module import, `.sops.yaml`, age key generation, encrypted `secrets/secrets.yaml`, and sops-nix NixOS configuration block.
 
@@ -103,7 +103,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Python Environment Setup [NOT STARTED]
+### Phase 2: Python Environment Setup [COMPLETED]
 
 **Goal**: Create a dedicated `discordBotPython` Python 3.12 environment with nextcord, aiohttp, and anyio — scoped to the bot service only, not leaking into the global system PATH.
 
@@ -125,7 +125,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: opencode-serve Systemd Service [NOT STARTED]
+### Phase 3: opencode-serve Systemd Service [COMPLETED]
 
 **Goal**: Define a persistent NixOS systemd service running `opencode serve --hostname 127.0.0.1` with the server password injected via `LoadCredential` from sops-nix.
 
@@ -153,7 +153,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: discord-bot Systemd Service [NOT STARTED]
+### Phase 4: discord-bot Systemd Service [COMPLETED]
 
 **Goal**: Define a NixOS systemd service running the Nextcord Discord bot that depends on `opencode-serve.service` and uses the dedicated Python environment with `PYTHONPATH` to the bot project.
 
@@ -182,7 +182,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Verification & Build Validation [NOT STARTED]
+### Phase 5: Verification & Build Validation [COMPLETED]
 
 **Goal**: Run comprehensive build checks across all hosts, verify secret decryption, and confirm service definitions are correct in the generated systemd units.
 

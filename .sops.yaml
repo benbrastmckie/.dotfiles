@@ -1,0 +1,8 @@
+keys:
+  - &benjamin_age age173cp99dekavwh2s4cdv7eurpmcvda5339n6w4t23pg72fnz4g38qzfsyzt
+
+creation_rules:
+  - path_regex: secrets/[^/]+\.yaml$
+    key_groups:
+      - age:
+          - *benjamin_age
