@@ -1,5 +1,11 @@
 # Application Configurations
 
+## Discord Bot (OpenCode Relay)
+
+Nextcord Discord bot that bridges Discord to a headless OpenCode agent server. Systemd services (`opencode-serve` + `discord-bot`) handle the bot lifecycle with secrets injected from sops-nix.
+
+**Complete documentation**: [`docs/discord-bot.md`](discord-bot.md)
+
 ## Email (Himalaya)
 
 Modern CLI email client with Gmail OAuth2 authentication and mbsync synchronization. 

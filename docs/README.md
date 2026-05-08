@@ -16,6 +16,7 @@ This directory contains comprehensive documentation for the NixOS configuration 
 
 ### Applications & Desktop
 - **[applications.md](applications.md)** - Application-specific configurations
+- **[discord-bot.md](discord-bot.md)** - Discord bot infrastructure and secrets management
 - **[himalaya.md](himalaya.md)** - Himalaya email client setup and configuration
 - **[niri.md](niri.md)** - Niri window manager keybindings and configuration
 - **[terminal.md](terminal.md)** - WezTerm and Kitty terminal configuration

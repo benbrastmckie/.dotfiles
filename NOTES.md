@@ -127,3 +127,15 @@ and neovim shows the default startup screen instead of loading your config.
     journalctl -b -u niri
     ```
 
+## Secrets Management
+
+Secrets (Discord bot tokens, server passwords) are managed with sops-nix using age encryption. See [`docs/discord-bot.md`](docs/discord-bot.md) for full documentation.
+
+Quick reference:
+```bash
+sops secrets/secrets.yaml              # Edit secrets interactively
+sops --decrypt secrets/secrets.yaml    # View plaintext (read-only)
+```
+
+The age private key lives at `~/.config/sops/age/keys.txt` and is **never committed** to git. Backup this file securely — if lost, secrets cannot be decrypted and must be re-encrypted with a new key.
+

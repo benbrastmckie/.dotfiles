@@ -83,6 +83,9 @@ Modern CLI email client with Gmail OAuth2 authentication and mbsync synchronizat
 ### MCP-Hub 
 Model Context Protocol integration for AI tools with Neovim. Architecture details in [`docs/applications.md`](docs/applications.md#mcp-hub-integration).
 
+### Discord Bot (OpenCode Relay)
+Nextcord bot bridging Discord to a headless OpenCode agent server. Secrets managed with sops-nix/age encryption, injected via systemd LoadCredential. Never touches disk unencrypted. Complete guide at [`docs/discord-bot.md`](docs/discord-bot.md).
+
 ### PDF Viewers
 Custom Zathura and Sioyek configurations with title bar removal. Implementation details in [`docs/applications.md`](docs/applications.md#pdf-viewers).
 
