@@ -58,14 +58,12 @@ Recover from blocked implementations by analyzing the blocker, decomposing it in
    status=$(echo "$task_data" | jq -r '.status')
    ```
 
-   | Status | Action |
-   |--------|--------|
-   | `implementing`, `partial`, `blocked` | ALLOW - task is stuck |
-   | `planned`, `researched` | ALLOW - preemptive spawn |
-   | `completed` | ABORT "Task is already complete. Nothing to spawn." |
-   | `abandoned` | ABORT "Task is abandoned. Recover it first with /task --recover {N}." |
-   | `not_started` | ALLOW - may have discovered blocker before starting |
-   | `researching`, `planning` | ABORT "Task in progress. Wait for current phase to complete." |
+   | Status Category | Action |
+   |-----------------|--------|
+   | Terminal (`completed`, `abandoned`, `expanded`) | ABORT "Task is in terminal state [$status]. Nothing to spawn." |
+   | Non-terminal (all others) | ALLOW - /spawn works from any non-terminal state |
+
+   **Rationale**: The system-wide permissive rule allows any command from any non-terminal status. Terminal states only: completed, abandoned, expanded. See `status-markers.md` and `state-management.md`. |
 
 5. **Extract Task Context**
    ```bash
@@ -240,3 +238,9 @@ Agent uses the provided description as primary signal for blocker analysis.
 /spawn 150 task scope is too large, need to break down
 ```
 Spawns sub-tasks before implementation begins.
+
+### Spawn during research (break down scope)
+```
+/spawn 150 scope is larger than expected, need to decompose
+```
+Spawns sub-tasks while research is still in progress.

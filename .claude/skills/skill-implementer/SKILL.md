@@ -17,6 +17,8 @@ This eliminates the "continue" prompt issue between skill return and orchestrato
 Reference (do not load eagerly):
 - Path: `.claude/context/formats/return-metadata-file.md` - Metadata file schema
 - Path: `.claude/context/patterns/postflight-control.md` - Marker file protocol
+- Path: `.claude/context/patterns/subagent-continuation-loop.md` - Continuation loop pattern
+- Path: `.claude/context/patterns/context-exhaustion-detection.md` - Context exhaustion heuristics
 - Path: `.claude/context/patterns/file-metadata-exchange.md` - File I/O helpers
 - Path: `.claude/context/patterns/jq-escaping-workarounds.md` - jq escaping patterns (Issue #1132)
 
@@ -56,9 +58,9 @@ status=$(echo "$task_data" | jq -r '.status')
 project_name=$(echo "$task_data" | jq -r '.project_name')
 description=$(echo "$task_data" | jq -r '.description // ""')
 
-# Validate status
-if [ "$status" = "completed" ]; then
-  return error "Task already completed"
+# Validate status (only block terminal states)
+if [ "$status" = "completed" ] || [ "$status" = "abandoned" ] || [ "$status" = "expanded" ]; then
+  return error "Task is in terminal state [$status]"
 fi
 ```
 
@@ -134,6 +136,29 @@ artifact_padded=$(printf "%02d" "$artifact_number")
 
 ---
 
+### Stage 4a: Memory Retrieval (Auto)
+
+Retrieve relevant memories from the memory system to inject into the delegation context.
+
+**Skip if**: `clean_flag` is true in the delegation context (from `--clean` command flag).
+
+```bash
+# Check clean_flag
+if [ "$clean_flag" != "true" ]; then
+  memory_context=$(bash .claude/scripts/memory-retrieve.sh "$description" "$task_type" "" 2>/dev/null) || memory_context=""
+fi
+
+# memory_context will be empty string if:
+# - clean_flag is true (skipped)
+# - memory-index.json missing or empty
+# - no keywords matched any entries
+# - script exited with error
+```
+
+If `memory_context` is non-empty, it will be injected into the Stage 5 prompt alongside the format specification from Stage 4b. If empty, no memory block is injected.
+
+---
+
 ### Stage 4: Prepare Delegation Context
 
 Prepare delegation context for the subagent:
@@ -151,12 +176,16 @@ Prepare delegation context for the subagent:
     "task_type": "{task_type}"
   },
   "artifact_number": "{artifact_number from Stage 3a}",
+  "effort_flag": "{effort_flag from command, null if not set}",
+  "model_flag": "{model_flag from command, null if not set}",
   "plan_path": "specs/{NNN}_{SLUG}/plans/MM_{short-slug}.md",
   "metadata_file_path": "specs/{NNN}_{SLUG}/.return-meta.json"
 }
 ```
 
 **Note**: The `artifact_number` field tells the agent which sequence number to use for artifact naming (e.g., `01`, `02`). Summary uses the same round number as the research and plan that preceded it.
+
+**Model/Effort Flags**: If `model_flag` is set (haiku, sonnet, opus), pass it as the `model` parameter on the Task tool to override the agent's frontmatter default. If `effort_flag` is set (fast, hard), include it as prompt context for reasoning depth guidance.
 
 > **CRITICAL: No Source Reading Before Delegation** -- Between preparing the delegation context (Stage 4) and spawning the sub-agent (Stage 5), the lead skill MUST NOT read, grep, glob, or analyze source files. The plan file and state.json are the only files the lead reads. All codebase exploration (reading source files, grepping for patterns, using MCP tools) is the exclusive responsibility of the sub-agent after it is spawned.
 
@@ -203,6 +232,14 @@ Non-compliance will be caught by postflight validation.
 
 Place this section AFTER the delegation context JSON and BEFORE any other instructions.
 
+**Memory Context Injection**: If `memory_context` from Stage 4a is non-empty, include it in the prompt as a separate block:
+
+```
+{memory_context from Stage 4a -- already wrapped in <memory-context> tags}
+```
+
+Place the memory context block AFTER the format specification and BEFORE the task-specific instructions. Do NOT inject an empty `<memory-context>` block when no memories were retrieved.
+
 **DO NOT** use `Skill(general-implementation-agent)` - this will FAIL.
 
 The subagent will:
@@ -233,12 +270,46 @@ If you DID use the Task tool (Stage 5), skip this stage -- the subagent already 
 
 ---
 
+### Stage 5c: Continuation Loop Init
+
+Initialize continuation tracking before entering the postflight loop:
+
+```bash
+continuation_count=0
+max_continuations=3
+
+# Create loop-guard file to track count across potential interruptions
+task_dir="specs/${padded_num}_${project_name}"
+cat > "${task_dir}/.continuation-loop-guard" << EOF
+{
+  "session_id": "${session_id}",
+  "continuation_count": 0,
+  "max_continuations": 3,
+  "created": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+EOF
+```
+
+**Note**: The loop guard ensures that even if the skill is interrupted between iterations, the next invocation can read the count and enforce the limit.
+
+---
+
 ## Postflight (ALWAYS EXECUTE)
 
 The following stages MUST execute after work is complete, whether the work was done by a
 subagent (Stage 5) or inline (Stage 5b). Do NOT skip these stages for any reason.
 
-### Stage 6: Parse Subagent Return (Read Metadata File)
+### Continuation Loop
+
+The postflight stages below run inside a loop. Each iteration processes the return from one
+subagent execution. If the subagent returns `partial` with a `handoff_path`, a successor
+subagent is spawned and the loop continues (up to `max_continuations`).
+
+```
+while true; do
+```
+
+#### Stage 6: Parse Subagent Return (Read Metadata File)
 
 Read the metadata file:
 
@@ -255,8 +326,11 @@ if [ -f "$metadata_file" ] && jq empty "$metadata_file" 2>/dev/null; then
 
     # Extract completion_data fields (if present)
     completion_summary=$(jq -r '.completion_data.completion_summary // ""' "$metadata_file")
-    claudemd_suggestions=$(jq -r '.completion_data.claudemd_suggestions // ""' "$metadata_file")
     roadmap_items=$(jq -c '.completion_data.roadmap_items // []' "$metadata_file")
+    memory_candidates=$(jq -c '.memory_candidates // []' "$metadata_file")
+
+    # Extract handoff_path for continuation loop (if present)
+    handoff_path=$(jq -r '.partial_progress.handoff_path // ""' "$metadata_file")
 else
     echo "Error: Invalid or missing metadata file"
     status="failed"
@@ -284,7 +358,23 @@ fi
 
 ---
 
-### Stage 7: Update Task Status (Postflight)
+#### Stage 6b: Commit Phase Progress (Inside Loop)
+
+After each subagent completes (whether implemented, partial, or failed), commit the work:
+
+```bash
+git add -A
+git commit -m "task ${task_number} phase ${phases_completed}: implementation progress
+
+Session: ${session_id}
+" || echo "Note: Nothing to commit or commit failed (non-blocking)"
+```
+
+This ensures each subagent's progress is checkpointed in git before proceeding.
+
+---
+
+#### Stage 7: Update Task Status (Postflight)
 
 **If status is "implemented"**:
 
@@ -302,15 +392,8 @@ if [ -n "$completion_summary" ]; then
 fi
 ```
 
-**Step 3**: Add task-type-specific completion fields (implementer-specific):
+**Step 3**: Add roadmap_items for non-meta tasks (implementer-specific):
 ```bash
-# For meta tasks: add claudemd_suggestions
-if [ "$task_type" = "meta" ] && [ -n "$claudemd_suggestions" ]; then
-    jq --arg suggestions "$claudemd_suggestions" \
-      '(.active_projects[] | select(.project_number == '$task_number')).claudemd_suggestions = $suggestions' \
-      specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
-fi
-
 # For non-meta tasks: add roadmap_items (if present and non-empty)
 if [ "$task_type" != "meta" ] && [ "$roadmap_items" != "[]" ] && [ -n "$roadmap_items" ]; then
     jq --argjson items "$roadmap_items" \
@@ -319,12 +402,29 @@ if [ "$task_type" != "meta" ] && [ "$roadmap_items" != "[]" ] && [ -n "$roadmap_
 fi
 ```
 
-**Step 4**: Remove from Recommended Order section (non-blocking, not covered by centralized script):
+**Step 4**: Propagate memory candidates (if any) with append semantics:
+```bash
+if [ "$memory_candidates" != "[]" ] && [ -n "$memory_candidates" ]; then
+    # Append new candidates to existing array (append semantics, not overwrite)
+    jq --argjson new_candidates "$memory_candidates" \
+      '(.active_projects[] | select(.project_number == '$task_number')).memory_candidates =
+        ((.active_projects[] | select(.project_number == '$task_number')).memory_candidates // []) + $new_candidates' \
+      specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
+fi
+```
+
+**Note**: Uses `// []` fallback and `+` append so research candidates (from skill-researcher) and implementation candidates coexist on the same task entry.
+
+**Step 5**: Remove from Recommended Order section (non-blocking, not covered by centralized script):
 ```bash
 if source "$PROJECT_ROOT/.claude/scripts/update-recommended-order.sh" 2>/dev/null; then
     remove_from_recommended_order "$task_number" || echo "Note: Failed to update Recommended Order"
 fi
 ```
+
+**Break loop** — proceed to Stage 8 (Link Artifacts).
+
+---
 
 **If status is "partial"**:
 
@@ -346,7 +446,57 @@ TODO.md stays as `[IMPLEMENTING]`.
 .claude/scripts/update-plan-status.sh "$task_number" "$project_name" "PARTIAL"
 ```
 
-**On failed**: Keep status as "implementing" for retry. Do not update plan file (leave as `[IMPLEMENTING]` for retry).
+**Continuation decision**:
+
+```bash
+if [ -n "$handoff_path" ] && [ -f "$handoff_path" ] && [ "$continuation_count" -lt "$max_continuations" ]; then
+    # Increment counter and update loop guard
+    continuation_count=$((continuation_count + 1))
+    jq --argjson count "$continuation_count" \
+       --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      '.continuation_count = $count | .last_updated = $ts' \
+      "${task_dir}/.continuation-loop-guard" > "${task_dir}/.continuation-loop-guard.tmp" \
+      && mv "${task_dir}/.continuation-loop-guard.tmp" "${task_dir}/.continuation-loop-guard"
+
+    # Log handoff for visibility
+    echo "Spawning successor subagent (continuation $continuation_count/$max_continuations)"
+    echo "Handoff: $handoff_path"
+
+    # Prepare successor delegation context (see Stage 5 for base context)
+    # Injected fields:
+    # - delegation_depth: incremented by 1
+    # - continuation_context: { is_successor: true, continuation_number: N, handoff_path: ..., progress_path: ..., previous_phases_completed: N }
+
+    # Spawn successor subagent via Task tool with updated context
+    # (Same as Stage 5, but with continuation_context injected into delegation context JSON)
+
+    # Continue loop — next iteration reads successor's metadata
+    continue
+else
+    if [ -z "$handoff_path" ]; then
+        echo "Partial return with no handoff_path. User must re-run /implement to resume."
+    else
+        echo "Max continuations ($max_continuations) reached. Returning partial."
+    fi
+    # Break loop — proceed to Stage 8
+    break
+fi
+```
+
+**If no handoff_path**: Break loop, report partial (user must resume).
+**If continuation_count >= max_continuations**: Break loop, report partial (max reached).
+
+---
+
+**If status is "failed"**:
+
+Keep status as "implementing" for retry. Do not update plan file (leave as `[IMPLEMENTING]` for retry).
+
+**Break loop** — proceed to Stage 8.
+
+```
+done  # End Continuation Loop
+```
 
 ---
 
@@ -397,11 +547,14 @@ Session: ${session_id}
 
 ### Stage 10: Cleanup
 
-Remove marker and metadata files:
+Cleanup runs **after** the continuation loop exits. The `.postflight-pending` marker persists across loop iterations to ensure the SubagentStop hook fires correctly.
+
+Remove marker, metadata, and loop-guard files:
 
 ```bash
 rm -f "specs/${padded_num}_${project_name}/.postflight-pending"
 rm -f "specs/${padded_num}_${project_name}/.postflight-loop-guard"
+rm -f "specs/${padded_num}_${project_name}/.continuation-loop-guard"
 rm -f "specs/${padded_num}_${project_name}/.return-meta.json"
 ```
 
@@ -459,7 +612,11 @@ After the agent returns -- whether with status implemented, partial, or failed -
 5. **Grep or glob the codebase** - Analysis is subagent work
 6. **Write summary/reports** - Artifact creation is done by the subagent
 
-> **PROHIBITION**: If the subagent returned partial or failed status, the lead skill MUST NOT attempt to continue, complete, or "fill in" the subagent's work. Report the partial/failed status and let the user re-run `/implement` to resume.
+> **Continuation Policy**: If the subagent returned `partial` status **WITH** a `handoff_path` in its metadata, the lead skill **MAY** spawn a successor subagent to continue the work automatically (see Continuation Loop in Postflight). This is the preferred path for context exhaustion recovery.
+>
+> If the subagent returned `partial` status **WITHOUT** a `handoff_path`, the lead skill MUST report partial and let the user re-run `/implement` to resume.
+>
+> If the subagent returned `failed` status, the lead skill MUST NOT attempt to continue or "fill in" the subagent's work. Report the failure and let the user investigate.
 
 The postflight phase is LIMITED TO:
 - Reading agent metadata file (.return-meta.json)

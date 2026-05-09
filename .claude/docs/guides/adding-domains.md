@@ -12,7 +12,7 @@ The .claude/ system supports two approaches for adding domain support:
 
 | Approach | Use When | Portability | Complexity |
 |----------|----------|-------------|------------|
-| **Extension** (Recommended) | Adding any new domain | High - portable across projects | Moderate - self-contained package |
+| **Extension** (Recommended) | Adding any new domain | High - portable across projects | Moderate - self-contained package with optional dependencies |
 | **Core** | Primary project domain only | Low - embedded in repository | Simple - direct integration |
 
 ### Decision Tree
@@ -27,6 +27,7 @@ Is this the repository's PRIMARY domain?
 
 **Why Extensions?**
 - Extensions are self-contained packages that can be loaded/unloaded
+- Extensions can declare dependencies on other extensions for shared resources
 - Extensions are portable across projects without modification
 - Extensions keep the core system clean and focused
 - Extensions can be versioned and shared independently

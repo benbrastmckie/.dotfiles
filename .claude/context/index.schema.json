@@ -4,7 +4,7 @@
   "title": "Context Index Schema",
   "description": "Machine-readable index for .claude/context/ files enabling automated context discovery via jq queries",
   "type": "object",
-  "required": ["version", "generated", "entries"],
+  "required": ["entries"],
   "additionalProperties": false,
   "properties": {
     "$schema": {

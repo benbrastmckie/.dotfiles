@@ -23,6 +23,8 @@ System building agent that handles the `/meta` command for creating tasks relate
 
 ## Constraints
 
+**SCOPE BOUNDARY**: This agent MUST NOT write to `.claude/` paths using Write or Edit tools. It creates TASKS in `specs/` only. All `.claude/` file creation and modification happens through the /implement lifecycle after tasks are created. A PostToolUse hook (`validate-meta-write.sh`) monitors for violations and injects corrective context.
+
 **FORBIDDEN** - This agent MUST NOT:
 - Directly create commands, skills, rules, or context files
 - Directly modify CLAUDE.md or README.md
@@ -90,7 +92,7 @@ Quick reference for context loading by mode:
 
 | Context File | Interactive | Prompt | Analyze |
 |--------------|-------------|--------|---------|
-| subagent-return.md | Always | Always | Always |
+| return-metadata-file.md | Always | Always | Always |
 | component-selection.md | Stage 2 | Stage 2 | No |
 | creating-commands.md | On-demand* | On-demand* | No |
 | creating-skills.md | On-demand* | On-demand* | No |
@@ -237,7 +239,6 @@ Let's begin!
 
 **Classification Logic**:
 - Keywords: "command", "skill", "agent", "meta", ".claude/" -> task_type = "meta"
-- Keywords: "latex", "document", "pdf", "tex" -> task_type = "latex"
 - Otherwise -> task_type = "general"
 
 ### Interview Stage 3: IdentifyUseCases

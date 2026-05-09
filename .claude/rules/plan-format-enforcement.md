@@ -4,43 +4,10 @@ paths: specs/**/plans/**
 
 # Plan Format Checklist
 
-When writing or modifying plan files, verify all requirements below are met.
 Full specification: `.claude/context/formats/plan-format.md`
 
-## Required Metadata (Markdown block at top, not YAML frontmatter)
+**Required metadata fields**: Task, Status, Effort, Dependencies, Research Inputs, Artifacts, Standards, Type (Markdown block, not YAML frontmatter).
 
-- [ ] **Task**: {id} - {title}
-- [ ] **Status**: [NOT STARTED] (use status-markers.md values)
-- [ ] **Effort**: estimated duration
-- [ ] **Dependencies**: task numbers or "None"
-- [ ] **Research Inputs**: report path(s) or "None"
-- [ ] **Artifacts**: plans/MM_{short-slug}.md (this file)
-- [ ] **Standards**: list of referenced standard files
-- [ ] **Type**: task_type identifier (meta, general, etc.)
+**Required sections**: Overview, Goals & Non-Goals, Risks & Mitigations, Implementation Phases, Testing & Validation, Artifacts & Outputs, Rollback/Contingency.
 
-## Required Sections
-
-1. **Overview** -- 2-4 sentences: problem, scope, constraints, definition of done
-2. **Goals & Non-Goals** -- bullets
-3. **Risks & Mitigations** -- bullets
-4. **Implementation Phases** -- see phase format below
-5. **Testing & Validation** -- bullets/tests to run
-6. **Artifacts & Outputs** -- enumerate expected outputs with paths
-7. **Rollback/Contingency** -- brief revert plan
-
-## Phase Format
-
-Each phase under `## Implementation Phases`:
-
-```
-### Phase N: {name} [STATUS]
-- **Goal:** short statement
-- **Tasks:** bullet checklist
-- **Timing:** expected duration
-- **Depends on:** phase numbers or "none" (optional; absence = sequential)
-```
-
-Valid status markers: `[NOT STARTED]`, `[IN PROGRESS]`, `[COMPLETED]`, `[PARTIAL]`, `[BLOCKED]`
-
-Phase status lives ONLY in the heading. Do not add separate Status lines per phase.
-Do not use emojis in headings or markers.
+**Phase heading format**: `### Phase N: {name} [STATUS]` -- status lives ONLY in the heading. Valid markers: `[NOT STARTED]`, `[IN PROGRESS]`, `[COMPLETED]`, `[PARTIAL]`, `[BLOCKED]`. No emojis.

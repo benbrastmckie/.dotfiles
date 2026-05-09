@@ -1,7 +1,7 @@
 ---
 description: Execute implementation with resume support
 allowed-tools: Skill, Bash(jq:*), Bash(git:*), Read, Edit, Glob
-argument-hint: TASK_NUMBERS [--team [--team-size N]] [--force]
+argument-hint: TASK_NUMBERS [--team [--team-size N]] [--force] [--fast|--hard] [--haiku|--sonnet|--opus]
 model: opus
 ---
 
@@ -25,6 +25,12 @@ Execute implementation plan with automatic resume support by delegating to the a
 | `--team` | Enable parallel phase execution with multiple teammates | false |
 | `--team-size N` | Number of implementation teammates to spawn (2-4) | 2 |
 | `--force` | Override status validation | false |
+| `--fast` | Low-effort mode: lighter reasoning, faster responses | false |
+| `--hard` | High-effort mode: deeper reasoning, more thorough analysis | false |
+| `--haiku` | Use Haiku model (fastest, lowest cost) | false |
+| `--sonnet` | Use Sonnet model (balanced cost/quality) | false |
+| `--opus` | Use Opus model (highest quality, same as agent default) | false |
+| `--clean` | Skip automatic memory retrieval | false |
 
 When `--team` is specified, implementation is delegated to `skill-team-implement` which spawns teammates to execute independent phases in parallel. Dependent phases wait for their dependencies. A debugger teammate can be spawned on build errors.
 
@@ -129,10 +135,8 @@ for task_num in "${task_numbers[@]}"; do
 
   status=$(echo "$task_data" | jq -r '.status')
 
-  # Allowed statuses for /implement (same as GATE IN step 3)
-  # With --force: also allow "completed"
+  # Block terminal statuses only; --force overrides completed
   case "$status" in
-    planned|implementing|partial|researched|not_started) ;;
     completed)
       if [ "$force_mode" = "true" ]; then
         : # Allow with --force
@@ -141,12 +145,8 @@ for task_num in "${task_numbers[@]}"; do
         continue
       fi
       ;;
-    abandoned)
-      skipped_tasks+=("$task_num: abandoned (recover first)")
-      continue
-      ;;
-    *)
-      skipped_tasks+=("$task_num: invalid status [$status]")
+    abandoned|expanded)
+      skipped_tasks+=("$task_num: terminal status [$status]")
       continue
       ;;
   esac
@@ -283,9 +283,8 @@ Skipped: {count}
 
 3. **Validate**
    - Task exists (ABORT if not)
-   - Status allows implementation: planned, implementing, partial, researched, not_started
-   - If completed: ABORT unless --force
-   - If abandoned: ABORT "Recover task first"
+   - Status is not terminal: block completed (unless --force), abandoned, expanded
+   - If terminal (and not --force): ABORT with recommendation
 
 4. **Load Implementation Plan**
    Find latest: `specs/{NNN}_{SLUG}/plans/*.md` (sorted by version)
@@ -319,13 +318,36 @@ Skipped: {count}
 2. **Extract Other Flags**
    - `--force` -> `force_mode = true`
 
-3. **Validate Team Size**
+3. **Extract Effort Flags**
+   Check remaining args for effort flags:
+   - `--fast` -> `effort_flag = "fast"` (low-effort mode: lighter reasoning)
+   - `--hard` -> `effort_flag = "hard"` (high-effort mode: deeper reasoning)
+
+   If multiple are provided, last one wins.
+   If none: `effort_flag = null` (normal effort)
+
+4. **Extract Model Flags**
+   Check remaining args for model flags:
+   - `--haiku` -> `model_flag = "haiku"` (use Haiku model)
+   - `--sonnet` -> `model_flag = "sonnet"` (use Sonnet model)
+   - `--opus` -> `model_flag = "opus"` (use Opus model)
+
+   If multiple are provided, last one wins.
+   If none: `model_flag = null` (use agent default, currently opus for all agents)
+
+5. **Validate Team Size**
    ```bash
    # Clamp team_size to valid range
    team_size=${team_size:-2}
    [ "$team_size" -lt 2 ] && team_size=2
    [ "$team_size" -gt 4 ] && team_size=4
    ```
+
+6. **Extract Clean Flag**
+   Check remaining args for memory retrieval suppression:
+   - `--clean` -> `clean_flag = true` (skip automatic memory retrieval)
+
+   If not present: `clean_flag = false`
 
 **On STAGE 1.5 success**: Flags parsed. **IMMEDIATELY CONTINUE** to STAGE 2 below.
 
@@ -403,16 +425,24 @@ else:
 ```
 # For team mode:
 skill: "skill-team-implement"
-args: "task_number={N} plan_path={path to implementation plan} resume_phase={phase number} team_size={team_size} session_id={session_id}"
+args: "task_number={N} plan_path={path to implementation plan} resume_phase={phase number} team_size={team_size} session_id={session_id} effort_flag={effort_flag} model_flag={model_flag} clean_flag={clean_flag}"
 
 # For extension-routed skill (e.g., skill-founder-implement):
 skill: "{skill_name from extension routing}"
-args: "task_number={N} plan_path={path to implementation plan} resume_phase={phase number} session_id={session_id}"
+args: "task_number={N} plan_path={path to implementation plan} resume_phase={phase number} session_id={session_id} effort_flag={effort_flag} model_flag={model_flag} clean_flag={clean_flag}"
 
 # For default single-agent mode:
 skill: "skill-implementer"
-args: "task_number={N} plan_path={path to implementation plan} resume_phase={phase number} session_id={session_id}"
+args: "task_number={N} plan_path={path to implementation plan} resume_phase={phase number} session_id={session_id} effort_flag={effort_flag} model_flag={model_flag} clean_flag={clean_flag}"
 ```
+
+If `model_flag` is set, pass the `model` parameter to override the agent's default model:
+- `model_flag="haiku"` -> pass `model: haiku`
+- `model_flag="sonnet"` -> pass `model: sonnet`
+- `model_flag="opus"` -> pass `model: opus`
+- `model_flag=null` -> omit `model` parameter (use agent default, currently opus for all agents)
+
+If `effort_flag` is set, pass it as prompt context to the skill/agent for reasoning depth guidance.
 
 The skill will spawn the appropriate agent(s) which execute plan phases (in parallel for team mode), update phase markers, create commits per phase, and return a structured result.
 

@@ -1,8 +1,23 @@
+<!-- GENERIC TEMPLATE: This file provides a default project overview for new repositories.
+     To generate a project-specific version, run:
+       /task "Generate project-overview.md for this repository"
+     Then add context/repo/project-overview.md to your .syncprotect file to prevent
+     future syncs from overwriting it. -->
+
 # Project Overview
 
 ## Purpose
 
 This file describes the repository structure for agent context. When extensions are loaded, they provide project-specific domain knowledge (technology stack, development workflows, verification commands).
+
+## Two-Layer Extension Architecture
+
+This repository uses a two-layer extension system:
+
+- **Layer 1 -- Editor loader**: Manages which agent files, skills, rules, and context exist in the agent runtime directory. The extension picker triggers the loader, which copies files from extension sources into the runtime and regenerates the main configuration file.
+- **Layer 2 -- Agent system** (`.claude/` or `.opencode/`): The runtime read by the AI coding assistant. Contains only the files that have been loaded by the editor loader. The assistant does not know about the extension system; it sees a standard directory structure.
+
+See `.claude/docs/architecture/extension-system.md` for the full two-layer architecture documentation.
 
 ## Repository Structure
 
@@ -37,7 +52,9 @@ Extensions supply project-specific knowledge:
 - Coding standards and patterns
 - Tool-specific guides
 
-See `.claude/extensions/*/manifest.json` for available extensions and their capabilities.
+Extensions can declare dependencies on other extensions. Resource-only extensions provide only context files with no agents, skills, or routing.
+
+See `.claude/extensions/*/manifest.json` for available extensions, their capabilities, and dependency declarations.
 
 ## AI-Assisted Workflow
 

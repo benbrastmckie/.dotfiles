@@ -6,7 +6,7 @@ allowed-tools: Task, Bash, Edit, Read, Write, Glob
 # Context loaded by lead during coordination:
 #   - .claude/context/patterns/team-orchestration.md
 #   - .claude/context/formats/team-metadata-extension.md
-#   - .claude/utils/team-wave-helpers.md
+#   - .claude/context/reference/team-wave-helpers.md
 ---
 
 # Team Implement Skill
@@ -21,7 +21,7 @@ Reference (load as needed during coordination):
 - Path: `.claude/context/patterns/team-orchestration.md` - Wave coordination patterns
 - Path: `.claude/context/formats/team-metadata-extension.md` - Team result schema
 - Path: `.claude/context/formats/return-metadata-file.md` - Base metadata schema
-- Path: `.claude/utils/team-wave-helpers.md` - Reusable wave patterns
+- Path: `.claude/context/reference/team-wave-helpers.md` - Reusable wave patterns
 
 ## Trigger Conditions
 
@@ -39,6 +39,15 @@ This skill activates when:
 | `resume_phase` | integer | No | Phase to resume from |
 | `team_size` | integer | No | Max concurrent teammates (2-4, default 2) |
 | `session_id` | string | Yes | Session ID for tracking |
+| `model_flag` | string | No | Model override (haiku, sonnet, opus). If set, use instead of default |
+| `effort_flag` | string | No | Effort level (fast, hard). Passed as prompt context |
+
+**Model Selection**: Determine teammate model early:
+```bash
+# Use model_flag if provided, otherwise default to sonnet (cost-effective for team mode)
+teammate_model="${model_flag:-sonnet}"
+model_preference_line="Model preference: Use Claude ${teammate_model^} 4.6 for this task."
+```
 
 ---
 
@@ -521,8 +530,7 @@ Write team execution metadata:
     "degraded_to_single": false
   },
   "completion_data": {
-    "completion_summary": "Brief description of what was implemented",
-    "claudemd_suggestions": "Changes to .claude/ (meta tasks) or 'none'"
+    "completion_summary": "Brief description of what was implemented"
   },
   "metadata": {
     "session_id": "{session_id}",

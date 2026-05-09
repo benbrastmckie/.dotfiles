@@ -14,7 +14,11 @@ Implementation agent for general programming, meta (system), and markdown tasks.
 
 - `@.claude/context/formats/return-metadata-file.md` - Metadata file schema (always load)
 - `@.claude/context/formats/summary-format.md` - Summary structure (when creating summary)
+- `@.claude/context/formats/handoff-artifact.md` - Handoff document template (when writing handoffs)
+- `@.claude/context/formats/progress-file.md` - Progress tracking schema (when tracking progress)
 - `@.claude/context/patterns/context-discovery.md` - Use with agent=`general-implementation-agent`, command=`/implement`
+- `@.claude/context/patterns/subagent-continuation-loop.md` - When continuing from handoffs
+- `@.claude/context/patterns/context-exhaustion-detection.md` - For context pressure monitoring
 - For meta tasks: `@.claude/CLAUDE.md`, `@.claude/context/index.json`, existing skill/agent files
 - For code tasks: project-specific style guides and similar implementations
 
@@ -29,6 +33,19 @@ Implementation agent for general programming, meta (system), and markdown tasks.
 Extract standard delegation fields (see `return-metadata-file.md` for schema). Agent-specific fields:
 - `plan_path` - Path to the implementation plan file
 - Summary path: `specs/{NNN}_{SLUG}/summaries/{NN}_{slug}-summary.md` (using `artifact_number` for `{NN}`)
+- `continuation_context` - If present, this is a successor subagent continuing from a handoff:
+  - `is_successor`: true
+  - `continuation_number`: N (1-based index in continuation chain)
+  - `handoff_path`: Path to handoff artifact
+  - `progress_path`: Path to progress file
+  - `previous_phases_completed`: Number of phases completed before handoff
+
+**Successor Behavior**: If `continuation_context.is_successor` is true:
+1. Read the handoff artifact FIRST (it contains Immediate Next Action and Current State)
+2. Read the progress file to understand what objectives were completed
+3. Resume from the indicated phase/objective
+4. Do NOT re-read the full plan unless necessary (the handoff References section points to deeper context if needed)
+5. **Optionally review the plan file** to see checked-off items for human-readable context. The progress file is the primary resume point; the plan file check-off provides supplementary visibility.
 
 ### Stage 2: Load and Parse Implementation Plan
 
@@ -52,9 +69,52 @@ Scan phases for first incomplete:
 
 If all phases are `[COMPLETED]`: Task already done, return completed status.
 
+### Stage 3.5: Initialize Progress Tracking
+
+After identifying the resume phase, create or update the progress file for the current phase:
+
+```bash
+# Create progress directory if needed
+mkdir -p "specs/{NNN}_{SLUG}/progress"
+
+# Write progress file
+progress_file="specs/{NNN}_{SLUG}/progress/phase-{P}-progress.json"
+```
+
+Populate the progress file with objectives derived from the plan file steps for the current phase:
+
+```json
+{
+  "phase": {P},
+  "phase_name": "{Phase Name from plan}",
+  "started_at": "{ISO8601 timestamp}",
+  "last_updated": "{ISO8601 timestamp}",
+  "objectives": [
+    {"id": 1, "description": "{step 1 description}", "status": "not_started"},
+    {"id": 2, "description": "{step 2 description}", "status": "not_started"}
+  ],
+  "current_objective": 1,
+  "approaches_tried": [],
+  "handoff_count": 0
+}
+```
+
+If resuming from a previous handoff, read the existing progress file and use its `handoff_count` value instead of 0.
+
+Reference: `@.claude/context/formats/progress-file.md` for full schema.
+
 ### Stage 4: Execute File Operations Loop
 
 For each phase starting from resume point:
+
+#### Context Exhaustion Monitoring (Stage 4.5)
+
+Throughout execution, monitor for signs of context pressure:
+
+- **After every 10 tool calls**, assess whether you have sufficient context remaining to complete the current phase
+- **If you find yourself re-reading files you already read**, this is a signal of context pressure — consider writing a handoff before continuing
+- **Before starting any operation that reads 3+ files**, check if a handoff would be safer
+- **If tool calls exceed ~50** and the phase is not nearly complete, proactively write a handoff
 
 **A. Mark Phase In Progress**
 Edit plan file heading to show the phase is active.
@@ -81,6 +141,35 @@ For each step in the phase:
    - Check file exists and is non-empty
    - Run any step-specific verification commands
 
+4. **Update Progress File**
+   After completing each objective/step, update the progress file:
+   - Set the current objective's `status` to `done` or `in_progress`
+   - Update `current_objective` to the next pending objective
+   - Update `last_updated` to current timestamp
+   - If an approach was attempted and failed, add it to `approaches_tried` with `result: "failed"` and a brief `reason`
+
+   ```bash
+   # Update progress file via Write tool (overwrite with updated JSON)
+   progress_file="specs/{NNN}_{SLUG}/progress/phase-{P}-progress.json"
+   ```
+
+#### 4B-ii. Check Off Completed Items in Plan File
+
+After updating the progress file, also update the plan file to reflect completed work:
+
+1. **Locate the current phase's Tasks section** in the plan file
+2. **For each objective just completed**: Edit the corresponding checklist item:
+   - old_string: `- [ ] **Task {P}.{N}**: {description}`
+   - new_string: `- [x] **Task {P}.{N}**: {description} *(completed)*`
+   
+   If a brief completion note adds value (e.g., "removed 9,611 files", "3 of 5 validators done"), append it:
+   - new_string: `- [x] **Task {P}.{N}**: {description} *(completed: {brief note})*`
+
+3. **For the current in-progress objective** (if any): Leave as `- [ ]` but optionally append a note:
+   - `- [ ] **Task {P}.{N}**: {description} *(in progress)*`
+
+**Note**: If the plan file does not use `- [ ]` checklist syntax for the current phase, skip this step. The progress file remains the authoritative tracking mechanism.
+
 **C. Verify Phase Completion**
 
 Run phase verification criteria:
@@ -96,6 +185,32 @@ Use the Edit tool with:
 - new_string: `### Phase {P}: {Phase Name} [COMPLETED]`
 
 Phase status lives ONLY in the heading. Do NOT add or edit a separate `**Status**:` line per phase.
+
+#### E. Handoff on Context Pressure (Stage 4C)
+
+If context pressure is detected during a phase (per Stage 4.5 monitoring), do NOT continue with more file operations. Instead:
+
+1. **Update progress file** to reflect the exact current state:
+   - Set current objective status to `in_progress` (or `done` if just completed)
+   - Update `last_updated`
+
+2. **Write handoff artifact** to `specs/{NNN}_{SLUG}/handoffs/phase-{P}-handoff-{TIMESTAMP}.md`:
+   ```bash
+   mkdir -p "specs/{NNN}_{SLUG}/handoffs"
+   handoff_file="specs/{NNN}_{SLUG}/handoffs/phase-{P}-handoff-$(date -u +%Y%m%dT%H%M%SZ).md"
+   ```
+
+   Follow the template from `@.claude/context/formats/handoff-artifact.md`:
+   - Immediate Next Action
+   - Current State
+   - Key Decisions Made
+   - What NOT to Try
+   - Critical Context
+   - References
+
+3. **Increment `handoff_count`** in the progress file
+
+4. **Skip remaining steps** in this phase and proceed directly to Stage 7 (Write Metadata File), returning `partial` status with `handoff_path` in `partial_progress`
 
 ### Stage 5: Run Final Verification
 
@@ -148,31 +263,15 @@ Write to `specs/{NNN}_{SLUG}/summaries/{NN}_{short-slug}-summary.md`:
    - Include key artifacts created or modified
    - Example: "Created new-agent.md with full specification including tools, execution flow, and error handling."
 
-**For META tasks only** (task_type: "meta"):
-2. Track .claude/ file modifications during implementation
-3. Generate `claudemd_suggestions`:
-   - If any .claude/ files were created or modified: Brief description of changes
-     - Example: "Added completion_data field to return-metadata-file.md, updated general-implementation-agent with Stage 6a"
-   - If NO .claude/ files were modified: Set to `"none"`
-
 **For NON-META tasks**:
 2. Optionally generate `roadmap_items`: Array of explicit ROADMAP.md item texts this task addresses
    - Only include if the task clearly maps to specific roadmap items
    - Example: `["Prove completeness theorem for K modal logic"]`
 
-**Example completion_data for meta task with .claude/ changes**:
+**Example completion_data for meta task**:
 ```json
 {
-  "completion_summary": "Added completion_data generation to all implementation agents and updated skill postflight to propagate fields.",
-  "claudemd_suggestions": "Updated return-metadata-file.md schema, modified 3 agent definitions, updated 3 skill postflight sections"
-}
-```
-
-**Example completion_data for meta task without .claude/ changes**:
-```json
-{
-  "completion_summary": "Created utility script for automated test execution.",
-  "claudemd_suggestions": "none"
+  "completion_summary": "Added completion_data generation to all implementation agents and updated skill postflight to propagate fields."
 }
 ```
 
@@ -184,9 +283,56 @@ Write to `specs/{NNN}_{SLUG}/summaries/{NN}_{short-slug}-summary.md`:
 }
 ```
 
+### Stage 6b: Emit Memory Candidates
+
+Review work completed across all phases and emit 0-3 structured memory candidates for reusable knowledge discovered during implementation.
+
+**What to capture** (implementation-specific):
+- Reusable code patterns or architecture approaches that worked well
+- Configuration discoveries (tool settings, flags, build options)
+- Debugging techniques that resolved non-obvious issues
+- File organization or naming patterns worth preserving
+
+**What NOT to capture**:
+- Task-specific implementation details that only apply to this task
+- Information already documented in `.claude/context/` or `.memory/`
+- Obvious or well-known patterns
+
+**Candidate Construction**:
+For each candidate, create an object with:
+- `content`: Concise description of the reusable knowledge (~300 tokens max)
+- `category`: One of `TECHNIQUE`, `PATTERN`, `CONFIG`, `WORKFLOW`, `INSIGHT`
+- `source_artifact`: Path to the implementation summary being created
+- `confidence`: Float 0-1 (>= 0.8 for clearly reusable, 0.5-0.8 for potentially useful, < 0.5 for speculative)
+- `suggested_keywords`: 3-6 keywords for memory index retrieval
+
+Store the candidates array in memory for inclusion in the metadata file at Stage 7. If no candidates are worth emitting, use an empty array.
+
 ### Stage 7: Write Metadata File
 
-Write to `specs/{NNN}_{SLUG}/.return-meta.json` with status `implemented|partial|failed`. Include `completion_data` with `completion_summary` (all tasks) and `claudemd_suggestions` (meta) or `roadmap_items` (non-meta). Agent-specific metadata fields: `phases_completed`, `phases_total`.
+Write to `specs/{NNN}_{SLUG}/.return-meta.json` with status `implemented|partial|failed`. Include `completion_data` with `completion_summary` (all tasks) and `roadmap_items` (non-meta). Include `memory_candidates` array (from Stage 6b) at the top level of the JSON output. Agent-specific metadata fields: `phases_completed`, `phases_total`.
+
+**If returning `partial` and a handoff artifact was written** (Stage 4C), include `handoff_path` in `partial_progress`:
+
+```json
+{
+  "status": "partial",
+  "partial_progress": {
+    "stage": "context_exhaustion_handoff",
+    "details": "Handoff written for successor. See handoff artifact for current state.",
+    "handoff_path": "specs/.../handoffs/phase-P-handoff-TIMESTAMP.md",
+    "phases_completed": N,
+    "phases_total": M
+  },
+  "artifacts": [
+    {
+      "type": "handoff",
+      "path": "specs/.../handoffs/phase-P-handoff-TIMESTAMP.md",
+      "summary": "Context exhaustion handoff for phase P with state and approach constraints"
+    }
+  ]
+}
+```
 
 ### Stage 8: Return Brief Text Summary
 

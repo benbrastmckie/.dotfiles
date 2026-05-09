@@ -152,21 +152,34 @@ Direct execution skill for archiving tasks, updating CHANGE_LOG.md, and suggesti
   </stage>
   
   <stage id="7" name="HarvestMemories">
-    <action>Scan artifacts for memory harvest suggestions</action>
+    <action>Collect, deduplicate, and classify memory candidates from state.json</action>
     <process>
-      1. For each completed task:
-         - Scan reports/ for insights and findings
-         - Scan plans/ for reusable patterns
-         - Check summaries/ for key learnings
-      2. Extract potential memory candidates:
-         - Research findings with general applicability
-         - Implementation patterns documented
-         - Configuration examples
-         - Workflow descriptions
-      3. Generate suggestions list with:
-         - Source file path
-         - Brief description of insight
-         - Suggested memory category (TECHNIQUE, PATTERN, CONFIG, WORKFLOW, INSIGHT)
+      1. Collect candidates from state.json:
+         - For each completed task in the archival batch:
+           - Read `memory_candidates // []` from the task's state.json entry
+           - Flatten into a single list, tagging each candidate with `task_number` provenance
+         - If no candidates across all tasks, set `harvest_candidates = []` and skip to Stage 8
+
+      2. Deduplicate against existing memory-index.json:
+         - Read `.memory/memory-index.json` (if missing or empty, skip dedup -- all candidates are CREATE)
+         - For each candidate, compute keyword overlap against every index entry:
+           ```
+           overlap = |candidate.suggested_keywords INTERSECT entry.keywords| / |candidate.suggested_keywords|
+           ```
+         - Classify dedup action:
+           - overlap > 90%: mark `dedup_action = "NOOP"` (exclude from prompt)
+           - overlap > 60%: mark `dedup_action = "UPDATE"` (present with warning label)
+           - overlap <= 60%: mark `dedup_action = "CREATE"` (standard new memory)
+         - If ALL candidates are NOOP after dedup, set `harvest_candidates = []` and skip to Stage 8
+
+      3. Apply three-tier classification:
+         - **Tier 1** (pre-selected): category in [PATTERN, CONFIG] AND confidence >= 0.8
+         - **Tier 2** (shown, not pre-selected): category in [WORKFLOW, TECHNIQUE] AND confidence >= 0.5
+         - **Tier 3** (hidden by default): category == INSIGHT OR confidence < 0.5
+         - Assign `tier` (1, 2, or 3) to each non-NOOP candidate
+
+      4. Store the classified candidate list as `harvest_candidates`:
+         Each entry contains: `task_number`, `content`, `category`, `source_artifact`, `confidence`, `suggested_keywords`, `tier`, `dedup_action`
     </process>
   </stage>
   
@@ -180,7 +193,9 @@ Direct execution skill for archiving tasks, updating CHANGE_LOG.md, and suggesti
          - Misplaced directories count
          - Roadmap updates needed
          - README.md suggestions count
-         - Memory harvest suggestions count
+         - Memory candidates: tiered breakdown from `harvest_candidates`
+           - Format: `Memory candidates: {T1} Tier 1, {T2} Tier 2, {T3} Tier 3 ({after_dedup} after dedup, {noop_count} NOOP excluded)`
+           - If no candidates: `Memory candidates: none`
       2. Exit after display
     </process>
   </stage>
@@ -192,7 +207,23 @@ Direct execution skill for archiving tasks, updating CHANGE_LOG.md, and suggesti
       1. **Orphaned directories**: track/skip options per directory
       2. **Misplaced directories**: move/skip options per directory
       3. **TODO.md orphans**: multiSelect list of completed/abandoned tasks not in state.json; store as `selected_todo_orphans`
-      4. **Memory harvest suggestions**: multiSelect with category-tagged options (e.g., "[PATTERN] Config from task 142"); store selected for creation
+      4. **Memory harvest candidates** (from `harvest_candidates`):
+         - If `harvest_candidates` is empty (no candidates or all NOOP), skip this sub-step entirely
+         - Build multiSelect option list, ordered by tier:
+           a. **Tier 1 candidates first** (pre-selected): Format each as:
+              `[PRE-SELECTED] [TIER 1] [{CATEGORY}] Task {N}: {content first 80 chars}... (confidence: {X.XX})`
+              If `dedup_action == "UPDATE"`, append: ` [WARNING: similar memory exists]`
+           b. **Tier 2 candidates** (shown, not pre-selected): Format each as:
+              `[TIER 2] [{CATEGORY}] Task {N}: {content first 80 chars}... (confidence: {X.XX})`
+              If `dedup_action == "UPDATE"`, append: ` [WARNING: similar memory exists]`
+           c. **Tier 3 expansion option**: If Tier 3 candidates exist, add a final option:
+              `Show {count} more candidates (Tier 3 -- low confidence/insight)`
+         - Present AskUserQuestion with multiSelect
+         - If user selected the Tier 3 expansion option:
+           - Re-prompt with ALL tiers visible (Tier 1 + Tier 2 + Tier 3), Tier 1 still pre-selected
+           - Tier 3 candidates formatted as:
+             `[TIER 3] [{CATEGORY}] Task {N}: {content first 80 chars}... (confidence: {X.XX})`
+         - Store user-approved candidates as `approved_memories` for Stage 14
     </process>
   </stage>
   
@@ -643,12 +674,42 @@ ${transition_comment}
   </stage>
 
   <stage id="14" name="CreateMemories">
-    <action>Create selected memories</action>
+    <action>Create approved memory files and regenerate indexes</action>
     <process>
-      For each selected memory suggestion:
-      1. Generate memory ID (MEM-YYYY-MM-DD-NNN), create file in .opencode/memory/10-Memories/
-      2. Format with: title, category (TECHNIQUE|PATTERN|CONFIG|WORKFLOW|INSIGHT), source task, date, content
-      3. Update .opencode/memory/20-Indices/index.md
+      If `approved_memories` is empty, skip this stage entirely.
+
+      For each candidate in `approved_memories`:
+
+      1. **Generate slug**:
+         - Derive from candidate category + content first few words (lowercase, hyphens, no special chars)
+         - Example: `pattern-jq-safe-not-operator`, `config-lean4-lake-env`
+         - Collision check: if `MEM-{slug}.md` exists in `.memory/10-Memories/`, append numeric suffix (`-2`, `-3`, ...)
+
+      2. **Create memory file** at `.memory/10-Memories/MEM-{slug}.md`:
+         - Use template from `.memory/30-Templates/memory-template.md`
+         - Field mapping from candidate:
+           - `{{title}}` -> descriptive title derived from content (first ~60 chars, cleaned)
+           - `{{date}}` -> current date (YYYY-MM-DD)
+           - `{{tags}}` -> `[{category}]` (e.g., `[PATTERN]`)
+           - `{{topic}}` -> derived from category (lowercase, e.g., "pattern", "configuration")
+           - `{{source}}` -> `"Task {N}: {source_artifact}"`
+           - `{{last_updated}}` -> current date (YYYY-MM-DD)
+           - `retrieval_count` -> `0`
+           - `last_retrieved` -> `null`
+           - `keywords` -> candidate's `suggested_keywords` array
+           - `summary` -> first 60 characters of `content`
+           - `token_count` -> `word_count(content) * 1.3` (rounded to integer)
+           - `{{content}}` -> candidate's `content` field
+
+      3. After ALL memory files are created, **batch-regenerate indexes**:
+         - `.memory/memory-index.json`: Rebuild from filesystem scan of `.memory/10-Memories/MEM-*.md`
+           - Parse frontmatter of each file to populate entries array
+           - Update `entry_count`, `total_tokens`, `generated_at`
+         - `.memory/20-Indices/index.md`: Rebuild table of contents from all memory files
+         - `.memory/10-Memories/README.md`: Update memory listing
+
+      Note: `memory_candidates` field is implicitly cleaned when the task entry is removed from
+      active_projects and moved to archive during Stage 10.
     </process>
   </stage>
   
@@ -664,7 +725,59 @@ ${transition_comment}
   <stage id="16" name="OutputResults">
     <action>Display final results</action>
     <process>
-      Display summary with counts for: archived tasks (completed/abandoned), directory operations (orphans/misplaced), updates applied (roadmap/readme/changelog), memory harvest (created/suggested), and active tasks remaining.
+      Display summary with counts for:
+      - Archived tasks (completed/abandoned)
+      - Directory operations (orphans tracked/misplaced moved)
+      - Updates applied (roadmap annotations/readme changes/changelog entries)
+      - Memory harvest with tier breakdown:
+        - Format: `Memory harvest: {created} created ({t1_created} Tier 1, {t2_created} Tier 2, {t3_created} Tier 3), {noop_skipped} skipped (NOOP), {user_skipped} declined`
+        - If no memories created: `Memory harvest: none (no candidates)` or `Memory harvest: none (all skipped)`
+      - Active tasks remaining
+
+      **Suggested Next Steps**:
+
+      After displaying the archival summary, append a numbered "Suggested Next Steps" list.
+      The list always includes at least one item (the archive review suggestion).
+      Distill suggestions are conditionally added based on `memory_health` from state.json.
+
+      1. Read `memory_health` from specs/state.json with fallback:
+         ```bash
+         memory_health=$(jq -r '.memory_health // {}' specs/state.json)
+         total_memories=$(echo "$memory_health" | jq -r '.total_memories // 0')
+         never_retrieved=$(echo "$memory_health" | jq -r '.never_retrieved // 0')
+         health_score=$(echo "$memory_health" | jq -r '.health_score // 100')
+         last_distilled=$(echo "$memory_health" | jq -r '.last_distilled // null')
+         ```
+         If `memory_health` is absent or empty (`{}`), suppress all /distill suggestions
+         (only show the archive review suggestion).
+
+      2. Always include as the first suggestion:
+         `1. Review the archive at specs/archive/ to verify task directories moved correctly`
+
+      3. Suppress ALL /distill suggestions when `total_memories < 5`:
+         - Do not mention /distill at all in this case
+
+      4. When `total_memories >= 5`, evaluate these conditions (in order):
+
+         a. Suggest `/distill --report` when `total_memories >= 10`:
+            `N. Run /distill --report to review memory vault health ({total_memories} memories, {health_score}/100 health)`
+
+         b. Suggest `/distill` (full interactive) when ANY of these conditions are true:
+            - `total_memories >= 30`
+            - `never_retrieved / total_memories > 0.5` AND `total_memories >= 5`
+            - `last_distilled` is null or stale (older than 30 days) AND `total_memories >= 10`
+
+            Format: `N. Run /distill to maintain memory vault ({total_memories} memories, {health_score}/100 health)`
+
+         Note: If condition (b) is met, it replaces condition (a) -- do not show both
+         /distill --report and /distill suggestions. Show the stronger suggestion only.
+
+      5. Format as a clean numbered list:
+         ```
+         Suggested next steps:
+         1. Review the archive at specs/archive/ to verify task directories moved correctly
+         2. Run /distill to maintain memory vault (42 memories, 72/100 health)
+         ```
     </process>
   </stage>
 </execution>

@@ -56,7 +56,7 @@ Before returning, verify:
 Update `specs/{NNN}_{SLUG}/.return-meta.json` with:
 - `status`: `"researched"`, `"planned"`, `"implemented"`, `"partial"`, or `"failed"`
 - `artifacts`: array of `{path, type, summary}` entries
-- `completion_data`: object with `completion_summary` (1-3 sentences). For meta tasks, also include `claudemd_suggestions`.
+- `completion_data`: object with `completion_summary` (1-3 sentences).
 - `metadata`: agent-specific fields (e.g., `phases_completed`/`phases_total` for implementers)
 
 **Never use status value "completed"** - that value triggers Claude's stop behavior.

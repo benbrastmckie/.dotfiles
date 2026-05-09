@@ -62,7 +62,7 @@ project_name=$(echo "$task_data" | jq -r '.project_name')
 description=$(echo "$task_data" | jq -r '.description // ""')
 
 # Validate status (only block terminal states)
-if [ "$status" = "completed" ] || [ "$status" = "abandoned" ]; then
+if [ "$status" = "completed" ] || [ "$status" = "abandoned" ] || [ "$status" = "expanded" ]; then
   return error "Task is in terminal state [$status]"
 fi
 ```
@@ -139,6 +139,29 @@ artifact_padded=$(printf "%02d" "$artifact_number")
 
 ---
 
+### Stage 4a: Memory Retrieval (Auto)
+
+Retrieve relevant memories from the memory system to inject into the delegation context.
+
+**Skip if**: `clean_flag` is true in the delegation context (from `--clean` command flag).
+
+```bash
+# Check clean_flag
+if [ "$clean_flag" != "true" ]; then
+  memory_context=$(bash .claude/scripts/memory-retrieve.sh "$description" "$task_type" "" 2>/dev/null) || memory_context=""
+fi
+
+# memory_context will be empty string if:
+# - clean_flag is true (skipped)
+# - memory-index.json missing or empty
+# - no keywords matched any entries
+# - script exited with error
+```
+
+If `memory_context` is non-empty, it will be injected into the Stage 5 prompt alongside the format specification from Stage 4b. If empty, no memory block is injected.
+
+---
+
 ### Stage 4: Prepare Delegation Context
 
 **Prior plan discovery**: Find the latest existing plan file (if any) to pass as reference context.
@@ -165,6 +188,9 @@ Prepare delegation context for the subagent:
     "task_type": "{task_type}"
   },
   "artifact_number": "{artifact_number from Stage 3a}",
+  "effort_flag": "{effort_flag from command, null if not set}",
+  "model_flag": "{model_flag from command, null if not set}",
+  "roadmap_flag": "{roadmap_flag from command, false if not set}",
   "research_path": "{path to research report if exists}",
   "prior_plan_path": "{path to latest prior plan if exists}",
   "roadmap_path": "specs/ROADMAP.md",
@@ -173,6 +199,8 @@ Prepare delegation context for the subagent:
 ```
 
 **Note**: The `artifact_number` field tells the agent which sequence number to use for artifact naming (e.g., `01`, `02`). Plan uses `(next_artifact_number - 1)` to share the same round as the preceding research.
+
+**Model/Effort Flags**: If `model_flag` is set (haiku, sonnet, opus), pass it as the `model` parameter on the Task tool to override the agent's frontmatter default. If `effort_flag` is set (fast, hard), include it as prompt context for reasoning depth guidance.
 
 ---
 
@@ -216,6 +244,14 @@ Non-compliance will be caught by postflight validation.
 ```
 
 Place this section AFTER the delegation context JSON and BEFORE any other instructions.
+
+**Memory Context Injection**: If `memory_context` from Stage 4a is non-empty, include it in the prompt as a separate block:
+
+```
+{memory_context from Stage 4a -- already wrapped in <memory-context> tags}
+```
+
+Place the memory context block AFTER the format specification and BEFORE the task-specific instructions. Do NOT inject an empty `<memory-context>` block when no memories were retrieved.
 
 **DO NOT** use `Skill(planner-agent)` - this will FAIL.
 

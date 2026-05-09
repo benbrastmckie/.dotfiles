@@ -6,7 +6,7 @@ allowed-tools: Task, Bash, Edit, Read, Write
 # Context loaded by lead during synthesis:
 #   - .claude/context/patterns/team-orchestration.md
 #   - .claude/context/formats/team-metadata-extension.md
-#   - .claude/utils/team-wave-helpers.md
+#   - .claude/context/reference/team-wave-helpers.md
 ---
 
 # Team Research Skill
@@ -23,7 +23,7 @@ Reference (load as needed during synthesis):
 - Path: `.claude/context/patterns/team-orchestration.md` - Wave coordination patterns
 - Path: `.claude/context/formats/team-metadata-extension.md` - Team result schema
 - Path: `.claude/context/formats/return-metadata-file.md` - Base metadata schema
-- Path: `.claude/utils/team-wave-helpers.md` - Reusable wave patterns
+- Path: `.claude/context/reference/team-wave-helpers.md` - Reusable wave patterns
 
 ## Trigger Conditions
 
@@ -40,6 +40,8 @@ This skill activates when:
 | `focus_prompt` | string | No | Optional focus for research |
 | `team_size` | integer | No | Number of teammates (2-4, default 2) |
 | `session_id` | string | Yes | Session ID for tracking |
+| `model_flag` | string | No | Model override (haiku, sonnet, opus). If set, use instead of default |
+| `effort_flag` | string | No | Effort level (fast, hard). Passed as prompt context |
 
 ---
 
@@ -176,20 +178,21 @@ Determine task-type-specific configuration for teammate prompts:
 case "$task_type" in
   "meta")
     # Meta tasks - focus on .claude/ system patterns
-    default_model="sonnet"
     context_refs="@.claude/CLAUDE.md, @.claude/context/index.json"
     available_tools="Read, Grep, Glob"
     ;;
   *)
-    # General tasks - use Sonnet for cost-effectiveness
-    default_model="sonnet"
+    # General tasks
     context_refs=""
     available_tools="WebSearch, WebFetch, Read, Grep, Glob"
     ;;
 esac
 
+# Determine model for teammates: use model_flag if provided, otherwise default to sonnet (cost-effective for team mode)
+teammate_model="${model_flag:-sonnet}"
+
 # Prepare model preference line for prompts (secondary guidance)
-model_preference_line="Model preference: Use Claude ${default_model^} 4.6 for this analysis."
+model_preference_line="Model preference: Use Claude ${teammate_model^} 4.6 for this analysis."
 ```
 
 ---
@@ -309,7 +312,7 @@ Format: Same as Teammate A
 **Spawn teammates using TeammateTool**.
 
 **IMPORTANT**: Pass the `model` parameter to enforce model selection:
-- Use `model: "sonnet"` for all tasks (cost-effective for non-Lean work)
+- Use `model: "${teammate_model}"` (from Stage 5b: model_flag if provided, otherwise "sonnet" as default)
 
 The `model_preference_line` in prompts serves as secondary guidance only. The `model` parameter on TeammateTool is the enforced selection.
 
@@ -457,9 +460,9 @@ jq '(.active_projects[] | select(.project_number == '$task_number')).next_artifa
 
 **Note**: Team research (like single-agent research) is the only operation that increments `next_artifact_number`. Team plan and team implement use `(current - 1)` to stay in the same "round".
 
-**Update TODO.md**: Change status marker to `[RESEARCHED]`.
+**Update TODO.md**: Change status marker from `[RESEARCHING]` to `[RESEARCHED]` via Edit tool.
 
-**Link artifact**:
+**Link artifact in state.json**:
 ```bash
 padded_num=$(printf "%03d" "$task_number")
 jq --arg path "specs/${padded_num}_${project_name}/reports/${run_padded}_team-research.md" \
@@ -469,13 +472,13 @@ jq --arg path "specs/${padded_num}_${project_name}/reports/${run_padded}_team-re
   specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
 ```
 
-**Update TODO.md**: Link artifact using the automated script:
+**Link artifact in TODO.md**: Use the `link-artifact-todo.sh` script (REQUIRED -- do NOT manually edit artifact links in TODO.md):
 
 ```bash
 bash .claude/scripts/link-artifact-todo.sh $task_number '**Research**' '**Plan**' "$artifact_path"
 ```
 
-If the script exits non-zero, log a warning but continue (linking errors are non-blocking).
+The script produces bracket-only `[path]` format. Never use markdown `[name](path)` format for artifact links. If the script exits non-zero, log a warning but continue (linking errors are non-blocking).
 
 ---
 

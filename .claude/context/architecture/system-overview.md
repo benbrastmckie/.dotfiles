@@ -109,7 +109,12 @@ allowed-tools: Task, Bash, Edit, Read, Write
 ---
 ```
 
-**Note**: Skills do NOT use `context: fork` or `agent:` frontmatter fields. Delegation is explicit via Task tool invocation in the skill body. Context loading happens in the agent (not via skill frontmatter).
+**Note on delegation patterns**: Skills use one of two delegation approaches:
+- **Core skills** (skill-researcher, skill-planner, skill-implementer, etc.): Use Task tool with explicit `subagent_type` for structured delegation. These do NOT use `context: fork` or `agent:` frontmatter because they inject structured context (session_id, delegation_depth, memory_context) directly.
+- **Extension skills** (skill-{ext}-research, skill-{ext}-implementation, etc.): May optionally use `context: fork` + `agent:` frontmatter for simpler delegation when structured context injection is not needed. This is the standard thin-wrapper pattern documented in the template.
+- **skill-meta**: Uses `agent:` frontmatter (but not `context: fork`) as a hybrid pattern.
+
+In all cases, delegation happens via the **Task tool** (not the Skill tool). See @.claude/context/patterns/fork-patterns.md for the full decision matrix.
 
 **Critical**: Skills delegate via Task tool, not Skill tool. Agents live in `.claude/agents/`, not `.claude/skills/`.
 
@@ -384,7 +389,7 @@ Tasks route to specialized skills/agents based on their `task_type` field:
 | `meta` | skill-researcher → general-research-agent | skill-planner → planner-agent | skill-implementer → general-implementation-agent |
 | _{extension}_ | _Extension-provided skill → extension agent_ | skill-planner → planner-agent | _Extension-provided skill → extension agent_ |
 
-**Note**: Extensions (e.g., neovim, lean4, latex, typst) add task type routing entries. See `.claude/extensions/*/manifest.json`.
+**Note**: Extensions (e.g., nix, lean4, latex, typst) add task type routing entries. See `.claude/extensions/*/manifest.json`.
 
 ---
 

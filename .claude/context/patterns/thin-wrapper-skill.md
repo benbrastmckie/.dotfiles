@@ -166,6 +166,56 @@ Return validated result to caller.
 
 ---
 
+## Two Delegation Sub-Patterns
+
+Thin wrapper skills use one of two delegation approaches. The choice depends on whether structured context injection is needed.
+
+### Pattern A: Core skill pattern (explicit `subagent_type`, no `context: fork`)
+
+Used by: skill-researcher, skill-planner, skill-implementer, skill-reviser, skill-spawn, and other core workflow skills.
+
+```yaml
+---
+name: skill-implementer
+description: Execute implementation tasks.
+allowed-tools: Task, Bash, Edit, Read, Write
+---
+```
+
+The skill body explicitly calls the Task tool with `subagent_type`:
+```
+Tool: Task
+Parameters:
+  subagent_type: "general-implementation-agent"
+  prompt: [full structured context JSON: session_id, delegation_depth, memory_context, etc.]
+```
+
+**Why no `context: fork`**: Core skills have multi-stage postflight (status update, artifact linking, git commit). They inject structured context that requires knowing the exact agent. They do NOT use `context: fork` or `agent:` frontmatter.
+
+---
+
+### Pattern B: Extension skill pattern (`context: fork` + `agent:`, simpler delegation)
+
+Used by: skill-lean-research, skill-present-research, and similar extension skills.
+
+```yaml
+---
+name: skill-{ext}-research
+description: Research {ext} patterns. Invoke for {ext} research tasks.
+allowed-tools: Task
+context: fork
+agent: {ext}-research-agent
+---
+```
+
+The skill body passes simpler instructions to the agent without a full structured context JSON.
+
+**Why `context: fork`**: Extension skills are thin wrappers with minimal postflight. The `context: fork` field prevents context files from being loaded into the skill's session, since the agent loads its own context.
+
+**Note**: `context: fork` and `CLAUDE_CODE_FORK_SUBAGENT=1` are independent. See @.claude/context/patterns/fork-patterns.md for the full decision matrix and cache sharing mechanics.
+
+---
+
 ## When NOT to Use This Pattern
 
 Use direct execution instead when:

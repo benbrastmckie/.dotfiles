@@ -105,7 +105,7 @@ agent: {target-agent-name}
 | `context` | `fork` | Signals NOT to load context eagerly |
 | `agent` | `{name}-agent` | Target agent to invoke |
 
-**Critical**: `context: fork` is essential for token efficiency. Without it, context would be loaded into the skill's conversation, wasting tokens.
+**Note on `context: fork`**: This frontmatter shows the **extension skill pattern** (Pattern B). Extension skills use `context: fork` + `agent:` for simple delegation, where the agent loads its own context. Core skills (skill-researcher, skill-planner, skill-implementer, etc.) use a different pattern: they omit `context: fork` and call Task with explicit `subagent_type` to inject structured context (session_id, delegation_depth, memory_context). See @.claude/context/patterns/fork-patterns.md for the full decision matrix.
 
 ### Body Structure
 
