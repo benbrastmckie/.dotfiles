@@ -4,19 +4,38 @@
     {
       "project_number": 54,
       "project_name": "revise_configuration_to_discord_bot_documentation",
-      "status": "researched",
+      "status": "planned",
       "task_type": "markdown",
       "created": "2026-05-08T16:17:39Z",
-      "last_updated": "2026-05-09T00:04:49Z",
-      "session_id": "sess_1778284794_531f5a",
+      "last_updated": "2026-05-09T00:15:01Z",
+      "session_id": "sess_1778285527_74498b",
       "next_artifact_number": 2,
       "artifacts": [
         {
           "path": "specs/054_revise_configuration_to_discord_bot_documentation/reports/01_discord-bot-docs.md",
           "type": "research",
           "summary": "Research report for Discord bot documentation revision"
+        },
+        {
+          "path": "specs/054_revise_configuration_to_discord_bot_documentation/plans/01_discord-bot-docs.md",
+          "type": "plan",
+          "summary": "Implementation plan for Discord bot documentation revision"
         }
-      ]
+      ],
+      "plan_metadata": {
+        "phases": 2,
+        "total_effort_hours": 0.75,
+        "complexity": "simple",
+        "research_integrated": true,
+        "plan_version": 1,
+        "reports_integrated": [
+          {
+            "path": "reports/01_discord-bot-docs.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-05-08"
+          }
+        ]
+      }
     },
     {
       "project_number": 53,
