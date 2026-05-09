@@ -1,7 +1,7 @@
 # Implementation Plan: Revise Configuration to Discord Bot Documentation
 
 - **Task**: 54 - revise_configuration_to_discord_bot_documentation
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 0.75 hours
 - **Dependencies**: Task 53 (completed)
 - **Research Inputs**: specs/054_revise_configuration_to_discord_bot_documentation/reports/01_discord-bot-docs.md
@@ -63,7 +63,7 @@ No ROADMAP.md found.
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Revise `docs/configuration.md` [NOT STARTED]
+### Phase 1: Revise `docs/configuration.md` [COMPLETED]
 
 **Goal**: Remove Discord-bot-specific sections and add a crosslink to discord-bot.md
 
@@ -87,7 +87,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Fix `docs/discord-bot.md` Inaccuracies [NOT STARTED]
+### Phase 2: Fix `docs/discord-bot.md` Inaccuracies [IN PROGRESS]
 
 **Goal**: Correct three documented inaccuracies identified by research
 
