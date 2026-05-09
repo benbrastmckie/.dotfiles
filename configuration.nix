@@ -472,6 +472,9 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       "opencode_server_password" = {
         owner = config.users.users.benjamin.name;
       };
+      "discord_channel_id" = {
+        owner = config.users.users.benjamin.name;
+      };
     };
   };
   
@@ -516,9 +519,10 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       ghostty              # Modern terminal emulator with GPU acceleration
       libsecret            # Tool for managing secrets (provides secret-tool command)
       
-      # Browsers
+      # Browsers & Communication
       vivaldi              # Feature-rich web browser with built-in tools
       brave                # Privacy-focused web browser based on Chromium
+      discord              # Voice, video, and text chat platform
 
       # Appearance
       fastfetch            # Command-line system information tool with ASCII art
@@ -871,7 +875,7 @@ systemd.services = {
 
     serviceConfig = {
       Type = "simple";
-      ExecStart = "${pkgs.opencode}/bin/opencode serve --hostname 127.0.0.1";
+      ExecStart = "${pkgs.opencode}/bin/opencode serve --hostname 127.0.0.1 --port 4096";
       Restart = "always";
       RestartSec = "10s";
       # Inject the server password from sops-nix
@@ -904,11 +908,13 @@ systemd.services = {
       LoadCredential = [
         "discord_bot_token:${config.sops.secrets."discord_bot_token".path}"
         "opencode_server_password:${config.sops.secrets."opencode_server_password".path}"
+        "discord_channel_id:${config.sops.secrets."discord_channel_id".path}"
       ];
       Environment = [
         "DISCORD_BOT_TOKEN=%d/discord_bot_token"
         "OPENCODE_SERVER_PASSWORD=%d/opencode_server_password"
-        "OPENCODE_SERVER_URL=http://127.0.0.1"
+        "OPENCODE_SERVER_URL=http://127.0.0.1:4096"
+        "DISCORD_CHANNEL_ID=%d/discord_channel_id"
         "WHITELISTED_USER_IDS="
         "LINK_API_TOKEN="
         "LOG_LEVEL=info"
