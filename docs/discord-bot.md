@@ -7,7 +7,7 @@ NixOS systemd services and Python environment for the OpenCode Discord bot relay
 ```
 Discord ←→ discord-bot.service ←→ opencode-serve.service ←→ OpenCode Agent
                 (Nextcord)              (opencode serve)
-                :41100 (random)
+                                         127.0.0.1 (dynamic port)
 ```
 
 - **opencode-serve**: Persistent agent server bound to `127.0.0.1`, no port fixed (mDNS discovery)
@@ -28,11 +28,13 @@ Discord ←→ discord-bot.service ←→ opencode-serve.service ←→ OpenCode
 
 `discordBotPython` is a dedicated `python312.withPackages` environment defined as a let-binding in `configuration.nix`. It contains:
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `nextcord` | 3.1.1 | Discord API library |
-| `aiohttp` | 3.13.4 | HTTP client for local OpenCode API calls |
-| `anyio` | 4.13.0 | Structured concurrency |
+| Package | Purpose |
+|---------|---------|
+| `nextcord` | Discord API library |
+| `aiohttp` | HTTP client for local OpenCode API calls |
+| `anyio` | Structured concurrency |
+
+Versions are not pinned — they track whatever is in the nixpkgs flake input.
 
 The environment is scoped to the bot service only — it does not leak into the global system PATH. The bot service runs it directly:
 
@@ -119,12 +121,14 @@ creation_rules:
 ```
 
 **`secrets/secrets.yaml`** (encrypted, committed):
-| Key | Purpose |
-|-----|---------|
-| `discord_bot_token` | Discord bot authentication token |
-| `opencode_server_password` | Password for OpenCode headless server |
-| `whitelisted_user_ids` | Comma-separated Discord user IDs allowed to use the bot |
-| `link_api_token` | Token for external link shortening/API service |
+| Key | sops-managed? | Purpose |
+|-----|--------------|---------|
+| `discord_bot_token` | Yes | Discord bot authentication token (decrypted to `/run/secrets/`) |
+| `opencode_server_password` | Yes | Password for OpenCode headless server (decrypted to `/run/secrets/`) |
+| `whitelisted_user_ids` | No | Comma-separated Discord user IDs allowed to use the bot |
+| `link_api_token` | No | Token for external link shortening/API service |
+
+> **Note**: `whitelisted_user_ids` and `link_api_token` exist in the encrypted file but are **not** declared in `sops.secrets` in `configuration.nix`. They are not decrypted to `/run/secrets/` or injected via `LoadCredential`. Instead, the discord-bot service sets these as empty-string environment variables directly. To actually use these values, either add them to `sops.secrets` + `LoadCredential`, or set them directly in the service environment.
 
 **`~/.config/sops/age/keys.txt`** (private key — never committed, never pushed):
 ```
@@ -208,7 +212,7 @@ Before running `nixos-rebuild switch`:
    ```
    - Replace `discord_bot_token` with actual Discord token
    - Replace `opencode_server_password` with a strong random password
-   - Set `whitelisted_user_ids` and `link_api_token` if used
+   - Optionally set `whitelisted_user_ids` and `link_api_token` (note: these are stored in the encrypted file but not currently wired through sops-nix — see secrets table above)
 
 3. **Back up age key**: Store `~/.config/sops/age/keys.txt` securely (password manager, encrypted backup)
 

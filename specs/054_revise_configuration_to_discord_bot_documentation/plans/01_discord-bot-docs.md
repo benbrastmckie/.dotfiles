@@ -87,7 +87,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Fix `docs/discord-bot.md` Inaccuracies [IN PROGRESS]
+### Phase 2: Fix `docs/discord-bot.md` Inaccuracies [COMPLETED]
 
 **Goal**: Correct three documented inaccuracies identified by research
 
