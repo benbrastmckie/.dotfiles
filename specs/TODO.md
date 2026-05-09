@@ -3,10 +3,11 @@
 ## Active Tasks
 
 ### 55. Create the Discord bot Python source code
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: python
 - **Research**: [055_create_discord_bot_python_source/reports/01_discord-bot-source.md]
 - **Plan**: [055_create_discord_bot_python_source/plans/01_discord-bot-source.md]
+- **Summary**: [055_create_discord_bot_python_source/summaries/01_discord-bot-source-summary.md]
 
 **Description**: Create the Discord bot Python source code at ~/.dotfiles/opencode-discord-bot/. This is the actual Nextcord bot that bridges Discord to the headless OpenCode agent server. The discord-bot.service systemd unit (defined in configuration.nix, task 53) expects `opencode_discord_bot.src.bot` to be importable from this directory via PYTHONPATH=/home/benjamin/.dotfiles/opencode-discord-bot. Both dotfiles task 53 and nvim task 547 treated the bot source as the other's responsibility, so it was never created. The bot must implement: (1) Nextcord bot connecting to Discord with MESSAGE_CONTENT intent, (2) relay messages between Discord threads and the opencode-serve headless server at OPENCODE_SERVER_URL, (3) HTTP API endpoints for Neovim integration: POST /link (create Discord thread, return thread URL), GET /sessions (list linked sessions), POST /kill (kill a session), GET /health, (4) auth via LINK_API_TOKEN header on HTTP API, (5) read credentials from systemd LoadCredential paths (DISCORD_BOT_TOKEN, OPENCODE_SERVER_PASSWORD at %d/ paths), (6) environment variables: DISCORD_BOT_TOKEN, OPENCODE_SERVER_PASSWORD, OPENCODE_SERVER_URL, WHITELISTED_USER_IDS, LINK_API_TOKEN, LOG_LEVEL. The Python environment (nextcord, aiohttp, anyio) is already provided by the discordBotPython nix derivation. Task type: python.
 
