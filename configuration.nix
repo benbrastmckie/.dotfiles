@@ -463,7 +463,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
 
   sops = {
     defaultSopsFile = ./secrets/secrets.yaml;
-    age.sshKeyPaths = [ "/home/benjamin/.config/sops/age/keys.txt" ];
+    age.keyFile = "/home/benjamin/.config/sops/age/keys.txt";
 
     secrets = {
       "discord_bot_token" = {
