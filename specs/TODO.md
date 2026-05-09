@@ -3,8 +3,9 @@
 ## Active Tasks
 
 ### 54. Revise configuration.md to be renamed discord-bot.md and correctly document the Discord bot feature with proper crosslinking
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: markdown
+- **Research**: [01_discord-bot-docs.md](specs/054_revise_configuration_to_discord_bot_documentation/reports/01_discord-bot-docs.md)
 
 **Description**: Revise /home/benjamin/.dotfiles/docs/configuration.md to be named discord-bot.md and to carefully and correctly document this feature, maintaining repo documentation standards with careful crosslinking.
 
