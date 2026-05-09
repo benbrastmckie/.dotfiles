@@ -1,0 +1,18 @@
+# Session data (contains runtime state, not source code)
+data/sessions.json
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Virtual environments (not used in nix, but just in case)
+.venv/
+venv/

@@ -1,7 +1,7 @@
 # Implementation Plan: Discord Bot Python Source
 
 - **Task**: 55 - create_discord_bot_python_source
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 7 hours
 - **Dependencies**: Task 53 (NixOS prerequisites - completed)
 - **Research Inputs**: specs/055_create_discord_bot_python_source/reports/01_discord-bot-source.md
@@ -76,7 +76,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: Project Scaffolding and Configuration [NOT STARTED]
+### Phase 1: Project Scaffolding and Configuration [COMPLETED]
 
 **Goal**: Create the Python package directory structure and the configuration/credential loading module so all subsequent phases have a working import base.
 
@@ -114,7 +114,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Session Store and OpenCode Client [NOT STARTED]
+### Phase 2: Session Store and OpenCode Client [COMPLETED]
 
 **Goal**: Implement the JSON-backed session store and the async HTTP client for communicating with the OpenCode server, providing the data and communication layers needed by the HTTP API and message relay.
 
@@ -152,7 +152,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: HTTP API Server (Neovim Integration) [NOT STARTED]
+### Phase 3: HTTP API Server (Neovim Integration) [COMPLETED]
 
 **Goal**: Implement the aiohttp HTTP API server that serves POST /link, GET /sessions, POST /kill, and GET /health -- matching the exact contract defined by the existing Neovim client code.
 
@@ -202,7 +202,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Bot Integration and Thread Management [NOT STARTED]
+### Phase 4: Bot Integration and Thread Management [COMPLETED]
 
 **Goal**: Wire the HTTP API server and session store into the Nextcord bot lifecycle, implement thread creation, and add the on_message handler for relaying Discord messages to OpenCode.
 
@@ -256,7 +256,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Error Handling, Shutdown, and Smoke Test [NOT STARTED]
+### Phase 5: Error Handling, Shutdown, and Smoke Test [COMPLETED]
 
 **Goal**: Add robust error handling, graceful shutdown via signal handlers, and perform an end-to-end smoke test to verify the complete bot works as an integrated system.
 
