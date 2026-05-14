@@ -53,10 +53,11 @@
     {
       "project_number": 50,
       "project_name": "fix_sleep_inhibitor_pgrep_self_matching",
-      "status": "not_started",
+      "status": "researching",
       "task_type": "nix",
       "created": "2026-04-20T04:11:54Z",
-      "last_updated": "2026-04-20T04:11:54Z"
+      "last_updated": "2026-05-14T20:54:29Z",
+      "session_id": "sess_1778792046_3f3589"
     },
     {
       "project_number": 46,
@@ -82,13 +83,42 @@
       "status": "researched",
       "language": "nix",
       "created": "2026-03-10T16:23:48Z",
-      "last_updated": "2026-03-10T16:27:58Z",
-      "session_id": "sess_1773159856_1dce34",
+      "last_updated": "2026-05-14T21:09:21Z",
+      "session_id": "sess_1778792046_3f3589",
       "artifacts": [
         {
+          "path": "specs/044_review_memory_logs_design_optimizations/reports/02_memory-usage-update.md",
           "type": "research",
-          "path": "specs/44_review_memory_logs_design_optimizations/reports/research-001.md",
-          "summary": "Analysis of memory consumers, evaluation of existing optimizations, and recommendations focused on user practices rather than system changes"
+          "summary": "Updated memory assessment shows system usage dropped from 80% to 50%. OpenCode is a new significant consumer (~1.7 GB). Infrastructure remains fully operational. One critical spike to 99% on 2026-03-29 recovered without intervention. No system changes recommended; focus on OpenCode session hygiene."
+        }
+      ],
+      "next_artifact_number": 2,
+      "memory_candidates": [
+        {
+          "content": "OpenCode has emerged as a new major memory consumer (~1.7 GB across 3 instances), comparable to Claude Code. The existing claude-memory-tracker only matches claude processes, making OpenCode invisible to process-specific memory tracking. Future memory monitoring should track both Claude and OpenCode, or use a broader pattern like AI assistant process matching.",
+          "category": "INSIGHT",
+          "source_artifact": "specs/044_review_memory_logs_design_optimizations/reports/02_memory-usage-update.md",
+          "confidence": 0.92,
+          "suggested_keywords": [
+            "opencode",
+            "memory",
+            "claude-memory-tracker",
+            "process-tracking",
+            "ai-assistant"
+          ]
+        },
+        {
+          "content": "On 2026-03-29 the system experienced a critical memory spike to 99% with swap at 86%, yet recovered fully without earlyoom intervention. This validates that the zram + swapfile + VM tuning infrastructure from Task 39 is resilient even under extreme pressure. The system can handle 99% memory utilization without hard failure.",
+          "category": "INSIGHT",
+          "source_artifact": "specs/044_review_memory_logs_design_optimizations/reports/02_memory-usage-update.md",
+          "confidence": 0.88,
+          "suggested_keywords": [
+            "memory-spike",
+            "zram",
+            "resilience",
+            "earlyoom",
+            "swap"
+          ]
         }
       ]
     },

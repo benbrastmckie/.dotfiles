@@ -24,7 +24,7 @@
 ---
 
 ### 50. Fix claude-sleep-inhibitor pgrep self-matching preventing sleep
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHING]
 - **Task Type**: nix
 
 **Description**: Fix claude-sleep-inhibitor pgrep self-matching: `pgrep -f 'claude'` matches the inhibitor script itself, claude-memory-tracker, earlyoom --prefer pattern, and other non-session processes, causing the inhibitor to never release and permanently blocking sleep. Replace with a more specific pattern that only matches actual Claude Code session processes.
@@ -45,7 +45,9 @@
 - **Status**: [RESEARCHED]
 - **Language**: nix
 - **Researched**: 2026-03-10
-- **Research**: [research-001.md](specs/44_review_memory_logs_design_optimizations/reports/research-001.md)
+- **Research**:
+  - [research-001.md](specs/44_review_memory_logs_design_optimizations/reports/research-001.md)
+  - [044_review_memory_logs_design_optimizations/reports/02_memory-usage-update.md]
 
 **Description**: Review memory monitor logs to identify what is consuming memory when usage reaches 80%. Analyze patterns and design system improvements that can optimize memory usage while avoiding needless complexity.
 
