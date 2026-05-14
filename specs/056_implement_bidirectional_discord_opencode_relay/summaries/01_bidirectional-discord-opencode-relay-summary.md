@@ -5,6 +5,7 @@
 - **Started**: 2026-05-14T12:00:00Z
 - **Completed**: 2026-05-14T12:00:00Z
 - **Artifacts**: plans/01_bidirectional-discord-opencode-relay.md
+- **Standards**: status-markers.md, artifact-management.md, tasks.md, summary-format.md
 
 ## Overview
 

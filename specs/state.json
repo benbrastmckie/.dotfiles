@@ -4,10 +4,10 @@
     {
       "project_number": 56,
       "project_name": "implement_bidirectional_discord_opencode_relay",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "general",
       "created": "2026-05-14T22:07:45Z",
-      "last_updated": "2026-05-14T22:24:27Z",
+      "last_updated": "2026-05-14T22:36:14Z",
       "description": "Implement the reverse relay for the Discord-OpenCode bot: when a user types in the OpenCode TUI and receives an assistant response, that response should automatically appear in the corresponding linked Discord thread. The existing Discord->OpenCode relay is fully operational; this task adds the missing TUI->Discord direction by introducing an SSE subscriber that listens to the TUI's /event endpoint and posts assistant responses back to Discord.",
       "next_artifact_number": 2,
       "artifacts": [
@@ -22,7 +22,49 @@
           "summary": "Implementation plan with 4 phases (5 hours total) to create TuiSseSubscriber class, integrate subscriber lifecycle into bot.py, wire link/kill API endpoints, and test end-to-end behavior."
         }
       ],
-      "session_id": "sess_1778797462_86103a"
+      "session_id": "sess_1778797462_86103a",
+      "completion_summary": "Implemented the reverse relay for the Discord-OpenCode bot by creating a new TuiSseSubscriber class (sse_subscriber.py) that listens to the TUI SSE event stream and posts assistant responses back to Discord. Integrated subscriber lifecycle into bot.py with dedup guard and health checks, and wired link/kill endpoints in api.py to start/stop subscribers automatically.",
+      "memory_candidates": [
+        {
+          "content": "When implementing SSE subscribers with asyncio, store asyncio.Task objects in a dict keyed by session_id for lightweight management. Add dead-task cleanup (check task.done()) before starting new subscribers to prevent crashed tasks from blocking restarts. Cancel and await tasks in close() to avoid Task exception was never retrieved warnings.",
+          "category": "PATTERN",
+          "source_artifact": "specs/056_implement_bidirectional_discord_opencode_relay/summaries/01_bidirectional-discord-opencode-relay-summary.md",
+          "confidence": 0.85,
+          "suggested_keywords": [
+            "asyncio",
+            "SSE",
+            "task management",
+            "dedup",
+            "subscriber pattern"
+          ]
+        },
+        {
+          "content": "For bidirectional relay deduplication between Discord→OpenCode and TUI→Discord paths, use a shared session-level guard set (e.g., _discord_relay_sessions) that is populated before the Discord relay starts and cleared only after the response is posted back to Discord. This blocks the reverse SSE subscriber from posting duplicates during the round-trip window.",
+          "category": "PATTERN",
+          "source_artifact": "specs/056_implement_bidirectional_discord_opencode_relay/summaries/01_bidirectional-discord-opencode-relay-summary.md",
+          "confidence": 0.8,
+          "suggested_keywords": [
+            "relay",
+            "deduplication",
+            "Discord",
+            "OpenCode",
+            "bidirectional"
+          ]
+        },
+        {
+          "content": "When parsing Server-Sent Events (SSE) with aiohttp, use response.content.readline() in a loop rather than iterating over chunks. This cleanly handles line-oriented SSE format (data: {...}) and properly detects connection closure (empty line). Wrap readline in try/except to handle CancelledError and connection errors gracefully.",
+          "category": "TECHNIQUE",
+          "source_artifact": "specs/056_implement_bidirectional_discord_opencode_relay/summaries/01_bidirectional-discord-opencode-relay-summary.md",
+          "confidence": 0.9,
+          "suggested_keywords": [
+            "SSE",
+            "aiohttp",
+            "streaming",
+            "readline",
+            "event parsing"
+          ]
+        }
+      ]
     },
     {
       "project_number": 52,
