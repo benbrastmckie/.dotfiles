@@ -79,12 +79,12 @@ LoadCredential = [
 ### discord-bot.service
 
 ```nix
-Type = "simple"
+Type = "notify"
 Restart = "always"
 RestartSec = "10s"
+WatchdogSec = "120s"
 After = [ "network-online.target" "opencode-serve.service" ]
-Wants = [ "network-online.target" ]
-Requires = [ "opencode-serve.service" ]
+Wants = [ "network-online.target" "opencode-serve.service" ]
 WantedBy = [ "multi-user.target" ]
 User = "benjamin"
 Group = "users"
@@ -109,7 +109,8 @@ Environment = [
 ]
 ```
 
-- **`Requires`** (hard dependency) + **`After`** (ordering) on `opencode-serve.service`
+- **`Wants`** (soft dependency) + **`After`** (ordering) on `opencode-serve.service` — the bot tolerates OpenCode restarts without being force-restarted itself
+- **`Type = "notify"`** + **`WatchdogSec = "120s"`** — the bot sends `READY=1` to systemd when the Discord gateway connects, then pings `WATCHDOG=1` every 60s. If the event loop freezes (no ping for 120s), systemd kills and restarts the bot automatically
 - `PYTHONPATH` points to bot project source at `~/.dotfiles/opencode-discord-bot/`
 - Bot will fail to start until the Python source code exists (external task 547)
 - All secrets injected via `LoadCredential`, each in its own credential file
@@ -292,9 +293,9 @@ journalctl -fu discord-bot
 | OpenCode health returns 401 | `OPENCODE_SERVER_PASSWORD` was set to credential file path, not contents | Use bash wrapper in ExecStart to `cat` the credential file (current config already does this) |
 | Messages sent but silently ignored | `default_agent` in `config/opencode.json` references a non-existent agent | Remove `default_agent` from `config/opencode.json` or define the agent |
 | LLM provider returns 401 | `OLLAMA_API_KEY` not available in opencode-serve env | Add `ollama_api_key` to sops secrets + LoadCredential in opencode-serve |
-| Discord heartbeat blocked (>30s warnings) | Sync POST to OpenCode blocks event loop for long AI tasks | Bot uses `ThreadPoolExecutor` for message relay; restart if stale: `sudo systemctl restart discord-bot` |
+| Discord heartbeat blocked (>30s warnings) | Event loop froze (e.g., OpenCode dependency restarted mid-relay) | Systemd watchdog auto-restarts after 120s; manual: `sudo systemctl restart discord-bot` |
 | `<leader>ar` shows no sessions | OpenCode TUI not running, or no session created yet | Start OpenCode TUI first and send at least one message to create a session |
-| Bot HTTP API unresponsive (port 8080) | Service crashed or event loop stalled | `sudo systemctl restart discord-bot` |
+| Bot HTTP API unresponsive (port 8080) | Service crashed or event loop stalled | Watchdog should auto-restart; manual: `sudo systemctl restart discord-bot` |
 | `nixos-rebuild build --flake .#hamsa` fails | sops-nix module import issue | Verify `sops-nix.nixosModules.sops` is in hamsa's modules list |
 | sops decrypt fails | Wrong key or corrupted file | Check `.sops.yaml` has correct public key; regenerate if needed |
 

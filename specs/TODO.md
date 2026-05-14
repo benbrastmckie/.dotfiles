@@ -12,10 +12,11 @@
 ---
 
 ### 51. Documentation refactor: integrate ad-hoc notes into systematic docs
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: markdown
 - **Research**: [051_documentation_refactor_integrate_adhoc_notes/reports/01_documentation-analysis.md]
 - **Plan**: [051_documentation_refactor_integrate_adhoc_notes/plans/01_documentation-refactor.md]
+- **Summary**: [051_documentation_refactor_integrate_adhoc_notes/summaries/01_documentation-refactor-summary.md]
 
 **Description**: Use the `programs.neovim` / `sideloadInitLua` fix (May 2026) as a concrete worked example to drive a repo-wide documentation refactor. The fix itself: a home-manager update changed the default behavior of `programs.neovim` so that provider config (python3_host_prog, ruby_host_prog) was written to `~/.config/nvim/init.lua` as a managed nix-store symlink, overwriting the user's config. Fix was `sideloadInitLua = true` in home.nix, which routes provider config through `--cmd` wrapper args instead. Initial documentation was created as: (1) an expanded inline comment on the `sideloadInitLua` line in `home.nix`, and (2) a new "Neovim" section in `NOTES.md`. The task is to evaluate and clean up that documentation, integrate it properly into `docs/` (likely `docs/applications.md` or a new `docs/neovim.md`) and any relevant `README.md` files, and use this specific case to establish a pattern and conventions for how NixOS config decisions, gotchas, and fixes should be documented repo-wide going forward. The goal is a sustainable, navigable documentation system where inline comments capture the why briefly, and `docs/` contains the full context.
 

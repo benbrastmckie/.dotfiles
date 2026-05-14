@@ -7,6 +7,8 @@ messages between threads and OpenCode sessions.
 from __future__ import annotations
 
 import logging
+import os
+import re
 
 import aiohttp
 import nextcord
@@ -14,11 +16,35 @@ import nextcord
 logger = logging.getLogger(__name__)
 
 
+def _build_thread_name(session_name: str, session_id: str, directory: str) -> str:
+    """Build a Discord thread name from session metadata.
+
+    Format: ``{dir} #{task}: {label}`` when a task number is found in the
+    session name, otherwise ``{dir}: {session_name}``, falling back to
+    ``{session_id[:12]}`` when no name is provided.  Discord truncates
+    thread names to 100 characters.
+    """
+    dir_label = os.path.basename(directory.rstrip("/")) if directory else ""
+    label = session_name or session_id[:12]
+
+    task_match = re.search(r"task\s+(\d+)", label, re.IGNORECASE)
+    if dir_label and task_match:
+        task_num = task_match.group(1)
+        name = f"{dir_label} #{task_num}: {label}"
+    elif dir_label:
+        name = f"{dir_label}: {label}"
+    else:
+        name = label
+
+    return name[:100]
+
+
 async def create_session_thread(
     bot: object,
     channel_id: int,
     session_id: str,
     session_name: str,
+    directory: str = "",
 ) -> tuple[nextcord.Thread, str]:
     """Create a Discord thread linked to an OpenCode session.
 
@@ -32,6 +58,8 @@ async def create_session_thread(
         The OpenCode session ID.
     session_name:
         A human-readable name for the session.
+    directory:
+        Working directory of the OpenCode session.
 
     Returns
     -------
@@ -56,7 +84,7 @@ async def create_session_thread(
             "ensure the bot has access to the channel"
         )
 
-    thread_name = f"Session: {session_name}" if session_name else f"Session: {session_id[:12]}"
+    thread_name = _build_thread_name(session_name, session_id, directory)
 
     thread = await channel.create_thread(
         name=thread_name,

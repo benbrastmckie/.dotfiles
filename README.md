@@ -35,6 +35,7 @@ These dotfiles provide a complete NixOS setup with:
 - [`docs/usb-installer.md`](docs/usb-installer.md): Create bootable USB installer with your complete configuration
 - [`docs/configuration.md`](docs/configuration.md): Core configuration details
 - [`docs/applications.md`](docs/applications.md): Application-specific configurations
+- [`docs/neovim.md`](docs/neovim.md): Neovim configuration, package choice, and sideloadInitLua gotcha
 - [`docs/packages.md`](docs/packages.md): Package management and custom packages
 - [`docs/testing.md`](docs/testing.md): Testing and validation procedures
 
