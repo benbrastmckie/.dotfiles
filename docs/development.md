@@ -95,7 +95,7 @@ This shows boot logs specific to the Niri service.
 
 ## OAuth2 Example URL
 
-For reference, here's an example of what a Google OAuth2 authorization URL looks like (from NOTES.md):
+For reference, here's an example of what a Google OAuth2 authorization URL looks like:
 
 ```
 https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=810486121108-i3d8dloc9hc0rg7g6ee9cj1tl8l1m0i8.apps.googleusercontent.com&state=JG-dxurfv1CAtSGA9Q7afg&code_challenge=vDgC6ctcdQi0ucIfdY3kehoLEA5yzvZn98IATf2TXcY&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A49152&scope=https%3A%2F%2Fmail.google.com%2F+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcontacts+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcarddav

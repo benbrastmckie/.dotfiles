@@ -1,7 +1,7 @@
 # Implementation Plan: Documentation Refactor - Integrate Ad-hoc Notes
 
 - **Task**: 51 - documentation_refactor_integrate_adhoc_notes
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 4 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/051_documentation_refactor_integrate_adhoc_notes/reports/01_documentation-analysis.md
@@ -61,7 +61,7 @@ ROADMAP.md exists but contains no relevant items (empty placeholder). No roadmap
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Create docs/neovim.md [NOT STARTED]
+### Phase 1: Create docs/neovim.md [COMPLETED]
 
 **Goal**: Create a new `docs/neovim.md` as the authoritative documentation file for the Neovim configuration, consolidating content currently scattered across NOTES.md, home.nix inline comments, and docs/development.md.
 
@@ -87,7 +87,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Dissolve NOTES.md [NOT STARTED]
+### Phase 2: Dissolve NOTES.md [COMPLETED]
 
 **Goal**: Verify all content in NOTES.md is covered by existing docs/ files and the new docs/neovim.md, then delete NOTES.md or replace it with a redirect.
 
@@ -115,7 +115,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Update Cross-References [NOT STARTED]
+### Phase 3: Update Cross-References [COMPLETED]
 
 **Goal**: Wire the new docs/neovim.md into the repository's navigation structure and add cross-references from nix files to docs/.
 
@@ -145,7 +145,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Establish Inline Comment Convention [NOT STARTED]
+### Phase 4: Establish Inline Comment Convention [COMPLETED]
 
 **Goal**: Define a lightweight, consistent convention for inline comments in nix files, including cross-reference patterns and severity levels.
 
@@ -168,7 +168,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Document the Convention in docs/README.md [NOT STARTED]
+### Phase 5: Document the Convention in docs/README.md [COMPLETED]
 
 **Goal**: Add a "Documentation Conventions" section to docs/README.md that formalizes the inline comment convention and establishes docs/ as the authoritative home for configuration documentation.
 

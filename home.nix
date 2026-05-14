@@ -32,6 +32,7 @@
     # symlink, overwriting any user-managed init.lua. sideloadInitLua = true
     # routes that same config through --cmd wrapper args on the neovim binary
     # instead, leaving ~/.config/nvim/ entirely unmanaged by Home Manager.
+    # See docs/neovim.md.
     sideloadInitLua = true;
 
     # jsregexp is required by LuaSnip and must be on neovim's runtime path.

@@ -21,10 +21,10 @@
     {
       "project_number": 51,
       "project_name": "documentation_refactor_integrate_adhoc_notes",
-      "status": "planned",
+      "status": "completed",
       "task_type": "markdown",
       "created": "2026-05-03T20:00:10Z",
-      "last_updated": "2026-05-14T20:02:35Z",
+      "last_updated": "2026-05-14T20:19:39Z",
       "session_id": "sess_1778788681_b473c6",
       "artifacts": [
         {
@@ -36,8 +36,14 @@
           "path": "specs/051_documentation_refactor_integrate_adhoc_notes/plans/01_documentation-refactor.md",
           "type": "plan",
           "summary": "Implementation plan with 5 phases: create docs/neovim.md, dissolve NOTES.md, update cross-references, establish inline comment convention, and document the convention in docs/README.md"
+        },
+        {
+          "path": "specs/051_documentation_refactor_integrate_adhoc_notes/summaries/01_documentation-refactor-summary.md",
+          "type": "summary",
+          "summary": "Completed 5-phase documentation refactor covering neovim.md creation, NOTES.md dissolution, cross-reference updates, and conventions documentation"
         }
-      ]
+      ],
+      "completion_summary": "Created docs/neovim.md as authoritative Neovim documentation, dissolved redundant NOTES.md, added cross-references linking nix inline comments to docs/, and formalized documentation conventions in docs/README.md."
     },
     {
       "project_number": 50,

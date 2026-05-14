@@ -66,6 +66,7 @@ async def _handle_link(request: web.Request) -> web.Response:
     session_id = body.get("session_id")
     session_name = body.get("session_name", "")
     server_url = body.get("server_url", "")
+    directory = body.get("directory", "")
 
     if not session_id:
         return web.json_response(
@@ -100,6 +101,7 @@ async def _handle_link(request: web.Request) -> web.Response:
             bot.config.discord_channel_id,
             session_id,
             session_name,
+            directory,
         )
 
         await bot.session_store.link(
@@ -108,7 +110,7 @@ async def _handle_link(request: web.Request) -> web.Response:
             thread_id=str(thread.id),
             channel_id=str(bot.config.discord_channel_id),
             thread_url=thread_url,
-            working_directory="",
+            working_directory=directory,
             server_url=server_url,
         )
 
