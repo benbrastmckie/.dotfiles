@@ -49,6 +49,7 @@ class DiscordBot(commands.Bot):
             base_url=config.opencode_server_url,
             password=config.opencode_server_password,
         )
+        self._extra_clients: dict[str, OpenCodeClient] = {}
         self.http_app = web.Application()
         self.http_runner: web.AppRunner | None = None
         self.start_time = time.time()
@@ -127,18 +128,42 @@ class DiscordBot(commands.Bot):
                 return
 
         session_id = session["session_id"]
+        server_url = session.get("server_url", "")
         logger.info(
-            "Relaying message from thread %s to session %s: %s",
+            "Relaying message from thread %s to session %s (server=%s): %s",
             message.channel.id,
             session_id,
+            server_url or "default",
             message.content[:100],
         )
 
+        asyncio.create_task(
+            self._relay_and_respond(message.channel, session_id, message.content, server_url)
+        )
+
+    def _get_client_for_url(self, server_url: str) -> OpenCodeClient:
+        """Get or create an OpenCodeClient for a given server URL."""
+        if not server_url:
+            return self.opencode_client
+        if server_url not in self._extra_clients:
+            # TUI instances don't use auth
+            self._extra_clients[server_url] = OpenCodeClient(base_url=server_url)
+        return self._extra_clients[server_url]
+
+    async def _relay_and_respond(
+        self,
+        thread: nextcord.Thread,
+        session_id: str,
+        text: str,
+        server_url: str = "",
+    ) -> None:
+        """Background task: relay message to OpenCode and post response."""
         try:
+            client = self._get_client_for_url(server_url)
             response_text = await relay_to_opencode(
-                self.opencode_client, session_id, message.content
+                client, session_id, text
             )
-            await relay_response_to_thread(message.channel, response_text)
+            await relay_response_to_thread(thread, response_text)
         except Exception as exc:
             logger.error(
                 "Error relaying message to session %s: %s",
@@ -150,7 +175,7 @@ class DiscordBot(commands.Bot):
                 error_msg = str(exc)
                 if "ClientError" in type(exc).__name__ or "ConnectionError" in type(exc).__name__:
                     error_msg = "OpenCode server unavailable -- is the service running?"
-                await message.channel.send(
+                await thread.send(
                     f"Error communicating with OpenCode: {error_msg}"
                 )
             except Exception:
@@ -163,7 +188,10 @@ class DiscordBot(commands.Bot):
             await self.http_runner.cleanup()
             logger.info("HTTP API server stopped")
         await self.opencode_client.close()
-        logger.info("OpenCode client closed")
+        for client in self._extra_clients.values():
+            await client.close()
+        self._extra_clients.clear()
+        logger.info("OpenCode client(s) closed")
         await super().close()
         logger.info("Discord gateway closed")
 

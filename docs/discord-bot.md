@@ -5,14 +5,18 @@ NixOS systemd services and Python environment for the OpenCode Discord bot relay
 ## Architecture
 
 ```
-Discord ←→ discord-bot.service ←→ opencode-serve.service ←→ OpenCode Agent
-                (Nextcord)              (opencode serve)
-                                         127.0.0.1 (dynamic port)
+Neovim TUI (opencode --port)  <-->  discord-bot.service  <-->  Discord
+  dynamic port per project           (Nextcord, port 8080)
+                                          |
+                               opencode-serve.service
+                                (port 4096, fallback)
 ```
 
-- **opencode-serve**: Persistent agent server bound to `127.0.0.1:4096`
-- **discord-bot**: Nextcord relay connecting to opencode-serve at `OPENCODE_SERVER_URL`
-- Secrets (Discord token, OpenCode password, link API token) injected via systemd `LoadCredential` from sops-nix — never touch disk unencrypted (held in tmpfs at `/run/credentials/<service>.service/`)
+- **Neovim TUI**: Each `opencode --port` instance runs an embedded HTTP server on a dynamic port. The bot connects to whichever instance owns the linked session.
+- **discord-bot**: Nextcord relay with a local HTTP API on port 8080 for Neovim integration. Stores a `server_url` per linked session so it routes messages to the correct OpenCode instance.
+- **opencode-serve**: Persistent headless server bound to `127.0.0.1:4096`. Acts as a fallback when no TUI-specific `server_url` is stored for a session. Scoped to a single working directory (`~/.dotfiles`).
+- TUI instances do **not** require authentication. The headless server uses HTTP Basic Auth (`OPENCODE_SERVER_PASSWORD`).
+- Secrets (Discord token, OpenCode password, Ollama API key, link API token) injected via systemd `LoadCredential` from sops-nix — never touch disk unencrypted (held in tmpfs at `/run/credentials/<service>.service/`)
 
 ## Files
 
@@ -57,15 +61,20 @@ User = "benjamin"
 Group = "users"
 WorkingDirectory = "/home/benjamin/.dotfiles"
 
-ExecStart = "${pkgs.opencode}/bin/opencode serve --hostname 127.0.0.1 --port 4096"
-LoadCredential = "opencode_server_password:/run/secrets/opencode_server_password"
-Environment = "OPENCODE_SERVER_PASSWORD=%d/opencode_server_password"
+ExecStart = "${pkgs.bash}/bin/bash -c 'OPENCODE_SERVER_PASSWORD=$(cat %d/opencode_server_password) OLLAMA_API_KEY=$(cat %d/ollama_api_key) exec ${pkgs.opencode}/bin/opencode serve --hostname 127.0.0.1 --port 4096'"
+LoadCredential = [
+  "opencode_server_password:${config.sops.secrets."opencode_server_password".path}"
+  "ollama_api_key:${config.sops.secrets."ollama_api_key".path}"
+]
 ```
 
-- `%d` expands to `/run/credentials/opencode-serve.service/`
+- **Bash wrapper**: OpenCode reads `OPENCODE_SERVER_PASSWORD` literally from the env var. Systemd's `%d` expands to the credential directory path, not the file contents. The wrapper uses `cat` to read the actual secret into the env var before `exec`-ing OpenCode. Same pattern for `OLLAMA_API_KEY`.
+- The previous `Environment = "OPENCODE_SERVER_PASSWORD=%d/opencode_server_password"` line was removed — the wrapper handles it.
+- `OLLAMA_API_KEY` provides LLM provider authentication (Ollama cloud API).
 - Uses the existing `packages/opencode.nix` wrapper
 - Port is fixed at 4096 (`--port 4096`)
 - Service starts on boot, survives crashes (always restart with 10s backoff)
+- This server is scoped to `WorkingDirectory = /home/benjamin/.dotfiles`. Sessions created here belong to that project only. For other projects, the bot connects to per-project TUI instances instead.
 
 ### discord-bot.service
 
@@ -131,6 +140,7 @@ creation_rules:
 | `opencode_server_password` | Yes | Password for OpenCode headless server (decrypted to `/run/secrets/`) |
 | `discord_channel_id` | Yes | Discord channel ID for thread creation (decrypted to `/run/secrets/`) |
 | `link_api_token` | Yes | Bearer token for the bot HTTP API, used by Neovim integration (decrypted to `/run/secrets/`) |
+| `ollama_api_key` | Yes | API key for Ollama LLM provider, used by opencode-serve (decrypted to `/run/secrets/`) |
 | `whitelisted_user_ids` | No | Comma-separated Discord user IDs allowed to use the bot |
 
 > **Note**: `whitelisted_user_ids` exists in the encrypted file but is **not** declared in `sops.secrets` in `configuration.nix`. It is set as an empty-string environment variable directly in the service. To use it, add it to `sops.secrets` + `LoadCredential`.
@@ -161,6 +171,9 @@ sops = {
     "link_api_token" = {
       owner = config.users.users.benjamin.name;
     };
+    "ollama_api_key" = {
+      owner = config.users.users.benjamin.name;
+    };
   };
 };
 ```
@@ -170,6 +183,7 @@ This creates:
 - `/run/secrets/opencode_server_password` — decrypted at activation time
 - `/run/secrets/discord_channel_id` — decrypted at activation time
 - `/run/secrets/link_api_token` — decrypted at activation time
+- `/run/secrets/ollama_api_key` — decrypted at activation time
 
 Decryption happens before systemd starts, so services can rely on secrets being available. If decryption fails (e.g., missing age key), services will fail to start gracefully.
 
@@ -226,6 +240,7 @@ Before running `nixos-rebuild switch`:
    - Replace `discord_bot_token` with actual Discord token
    - Replace `opencode_server_password` with a strong random password
    - Set `link_api_token` to a random hex string (`openssl rand -hex 32`) — this is the Bearer token for the bot's HTTP API
+   - Set `ollama_api_key` to your Ollama cloud API key (used by opencode-serve for LLM calls)
    - Optionally set `whitelisted_user_ids` (note: stored in the encrypted file but not currently wired through sops-nix — see secrets table above)
 
 3. **Back up age key**: Store `~/.config/sops/age/keys.txt` securely (password manager, encrypted backup)
@@ -274,7 +289,12 @@ journalctl -fu discord-bot
 | Both services fail with LoadCredential errors | Age key missing at `~/.config/sops/age/keys.txt` | Generate key with `age-keygen` |
 | `DISCORD_BOT_LINK_TOKEN not set` in Neovim | Fish shell didn't read `/run/secrets/link_api_token` | Ensure `link_api_token` is set in `secrets.yaml` and rebuild; restart fish |
 | Bot returns 401 on `/link` or `/sessions` | Token mismatch between Neovim and bot | Both read from same sops secret; rebuild and restart shell |
-| Bot HTTP API unresponsive (port 8080) | Heartbeat blocked (asyncio event loop stall) | `sudo systemctl restart discord-bot` |
+| OpenCode health returns 401 | `OPENCODE_SERVER_PASSWORD` was set to credential file path, not contents | Use bash wrapper in ExecStart to `cat` the credential file (current config already does this) |
+| Messages sent but silently ignored | `default_agent` in `config/opencode.json` references a non-existent agent | Remove `default_agent` from `config/opencode.json` or define the agent |
+| LLM provider returns 401 | `OLLAMA_API_KEY` not available in opencode-serve env | Add `ollama_api_key` to sops secrets + LoadCredential in opencode-serve |
+| Discord heartbeat blocked (>30s warnings) | Sync POST to OpenCode blocks event loop for long AI tasks | Bot uses `ThreadPoolExecutor` for message relay; restart if stale: `sudo systemctl restart discord-bot` |
+| `<leader>ar` shows no sessions | OpenCode TUI not running, or no session created yet | Start OpenCode TUI first and send at least one message to create a session |
+| Bot HTTP API unresponsive (port 8080) | Service crashed or event loop stalled | `sudo systemctl restart discord-bot` |
 | `nixos-rebuild build --flake .#hamsa` fails | sops-nix module import issue | Verify `sops-nix.nixosModules.sops` is in hamsa's modules list |
 | sops decrypt fails | Wrong key or corrupted file | Check `.sops.yaml` has correct public key; regenerate if needed |
 
@@ -297,7 +317,20 @@ The encrypted `secrets/secrets.yaml` is inert without sops-nix and can remain or
 
 ## Neovim Integration
 
-The Neovim plugins at `lua/neotex/plugins/ai/opencode/discord-link.lua` and `discord-session-picker.lua` communicate with the bot's HTTP API on `localhost:8080`.
+Two Neovim plugins provide the Discord integration:
+- `lua/neotex/plugins/ai/opencode/discord-link.lua` — session linking (`<leader>ar`)
+- `lua/neotex/plugins/ai/opencode/discord-session-picker.lua` — session management (`<leader>as`)
+- `lua/neotex/plugins/ai/opencode.lua` — TUI launcher (uses `opencode --port` for standalone instances)
+
+### How Linking Works
+
+1. `<leader>ar` discovers the TUI's embedded server port by scanning `ss -tlnp` for `opencode` processes matching the current working directory.
+2. Queries that server's `GET /session` and `GET /session/status` endpoints to list sessions (busy/active sessions sorted first, then by most recently updated).
+3. Shows a Telescope picker (capped at 20 sessions) with a preview pane displaying title, directory, status, age, and file change stats.
+4. On selection, calls the bot's `POST /link` endpoint with `session_id`, `session_name`, and `server_url` (the TUI's dynamic port).
+5. The bot stores the `server_url` per session so future Discord messages route to the correct TUI instance.
+
+The `discord-link.lua` queries the OpenCode HTTP API directly (no CLI `opencode session list`). TUI instances do not require authentication.
 
 ### Environment Variables
 
@@ -315,13 +348,14 @@ end
 | `DISCORD_BOT_URL` | Default `http://localhost:8080` | Neovim plugins (override if port changes) |
 | `DISCORD_BOT_LINK_TOKEN` | `/run/secrets/link_api_token` via fish init | Neovim plugins (Bearer token) |
 | `LINK_API_TOKEN` | `LoadCredential` via systemd | discord-bot service (validates Bearer tokens) |
+| `OPENCODE_SERVER_URL` | Default `http://127.0.0.1:4096` | Neovim plugins (override for non-standard headless server port) |
 
 ### Keybindings
 
 | Key | Command | Action |
 |-----|---------|--------|
-| `<leader>ar` | `:OpenCodeLinkDiscord` | Link current OpenCode session to a Discord thread |
-| `<leader>as` | `:DiscordSessions` | Browse/manage linked sessions (Telescope picker) |
+| `<leader>ar` | `:OpenCodeLinkDiscord` | Discover TUI server, pick a session, link to Discord thread |
+| `<leader>as` | `:DiscordSessions` | Browse/manage linked sessions (Telescope picker: `<CR>` kills, `<C-o>` copies URL) |
 
 ### Verification
 
@@ -331,6 +365,9 @@ echo $DISCORD_BOT_LINK_TOKEN
 
 # Bot API responds
 curl -s -H "Authorization: Bearer $DISCORD_BOT_LINK_TOKEN" http://localhost:8080/health | jq .
+
+# TUI server is running (look for opencode --port processes)
+ss -tlnp | grep opencode
 ```
 
 ## Related Documentation

@@ -97,6 +97,7 @@ class SessionStore:
         channel_id: str,
         thread_url: str,
         working_directory: str = "",
+        server_url: str = "",
     ) -> dict:
         """Link an OpenCode session to a Discord thread.
 
@@ -111,6 +112,7 @@ class SessionStore:
                 "thread_url": thread_url,
                 "linked_at": datetime.now(timezone.utc).isoformat(),
                 "working_directory": working_directory,
+                "server_url": server_url,
                 "status": "active",
             }
             self._data[session_id] = entry

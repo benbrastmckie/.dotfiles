@@ -65,6 +65,7 @@ async def _handle_link(request: web.Request) -> web.Response:
 
     session_id = body.get("session_id")
     session_name = body.get("session_name", "")
+    server_url = body.get("server_url", "")
 
     if not session_id:
         return web.json_response(
@@ -97,6 +98,7 @@ async def _handle_link(request: web.Request) -> web.Response:
             channel_id=str(bot.config.discord_channel_id),
             thread_url=thread_url,
             working_directory="",
+            server_url=server_url,
         )
 
         logger.info("Linked session %s to thread %s", session_id, thread_url)
