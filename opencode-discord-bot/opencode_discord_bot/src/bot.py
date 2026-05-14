@@ -15,6 +15,7 @@ import os
 import signal
 import time
 
+import aiohttp
 import nextcord
 from aiohttp import web
 from nextcord.ext import commands
@@ -227,8 +228,8 @@ class DiscordBot(commands.Bot):
     async def start_sse_subscriber(self, session: dict) -> None:
         """Start an SSE subscriber for a linked session.
 
-        Performs a lightweight health check on the TUI server before
-        subscribing.  Skips gracefully if the server is unreachable.
+        Skips gracefully if the server is unreachable — the subscriber
+        itself handles connection errors.
         """
         session_id = session.get("session_id", "")
         server_url = session.get("server_url", "")
@@ -243,30 +244,6 @@ class DiscordBot(commands.Bot):
             if existing_task and not existing_task.done():
                 return
             self._sse_subscribers.pop(session_id, None)
-
-        # Health-check the TUI server before subscribing
-        try:
-            async with aiohttp.ClientSession() as health_session:
-                async with health_session.get(
-                    f"{server_url}/global/health",
-                    timeout=aiohttp.ClientTimeout(total=3),
-                ) as resp:
-                    if resp.status != 200:
-                        logger.info(
-                            "Skipping SSE subscriber for %s: "
-                            "health check returned %d",
-                            session_id,
-                            resp.status,
-                        )
-                        return
-        except Exception:
-            logger.info(
-                "Skipping SSE subscriber for %s: "
-                "TUI server at %s unreachable",
-                session_id,
-                server_url,
-            )
-            return
 
         subscriber = TuiSseSubscriber(
             bot=self,
