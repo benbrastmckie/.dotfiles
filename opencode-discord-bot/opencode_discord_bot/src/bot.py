@@ -27,6 +27,7 @@ from opencode_discord_bot.src.relay import (
     relay_response_to_thread,
     relay_to_opencode,
 )
+from opencode_discord_bot.src.sse_subscriber import TuiSseSubscriber
 from opencode_discord_bot.src.store import SessionStore
 
 logger = logging.getLogger(__name__)
@@ -54,6 +55,8 @@ class DiscordBot(commands.Bot):
         self.http_app = web.Application()
         self.http_runner: web.AppRunner | None = None
         self.start_time = time.time()
+        self._sse_subscribers: dict[str, asyncio.Task] = {}
+        self._discord_relay_sessions: set[str] = set()
 
     async def start(self, token: str, **kwargs) -> None:
         """Start the HTTP API server, then connect to Discord.
@@ -129,6 +132,12 @@ class DiscordBot(commands.Bot):
                 exc_info=True,
             )
 
+        # Start SSE subscribers for existing linked sessions with TUI URLs
+        for session in self.session_store.list_all():
+            server_url = session.get("server_url", "")
+            if server_url:
+                asyncio.create_task(self.start_sse_subscriber(session))
+
     async def on_message(self, message: nextcord.Message) -> None:
         """Handle messages in linked Discord threads.
 
@@ -188,28 +197,97 @@ class DiscordBot(commands.Bot):
         server_url: str = "",
     ) -> None:
         """Background task: relay message to OpenCode and post response."""
+        self._discord_relay_sessions.add(session_id)
         try:
-            client = self._get_client_for_url(server_url)
-            response_text = await relay_to_opencode(
-                client, session_id, text
-            )
-            await relay_response_to_thread(thread, response_text)
-        except Exception as exc:
-            logger.error(
-                "Error relaying message to session %s: %s",
-                session_id,
-                exc,
-                exc_info=True,
-            )
             try:
-                error_msg = str(exc)
-                if "ClientError" in type(exc).__name__ or "ConnectionError" in type(exc).__name__:
-                    error_msg = "OpenCode server unavailable -- is the service running?"
-                await thread.send(
-                    f"Error communicating with OpenCode: {error_msg}"
+                client = self._get_client_for_url(server_url)
+                response_text = await relay_to_opencode(
+                    client, session_id, text
                 )
-            except Exception:
-                logger.error("Failed to send error message to thread", exc_info=True)
+                await relay_response_to_thread(thread, response_text)
+            except Exception as exc:
+                logger.error(
+                    "Error relaying message to session %s: %s",
+                    session_id,
+                    exc,
+                    exc_info=True,
+                )
+                try:
+                    error_msg = str(exc)
+                    if "ClientError" in type(exc).__name__ or "ConnectionError" in type(exc).__name__:
+                        error_msg = "OpenCode server unavailable -- is the service running?"
+                    await thread.send(
+                        f"Error communicating with OpenCode: {error_msg}"
+                    )
+                except Exception:
+                    logger.error("Failed to send error message to thread", exc_info=True)
+        finally:
+            self._discord_relay_sessions.discard(session_id)
+
+    async def start_sse_subscriber(self, session: dict) -> None:
+        """Start an SSE subscriber for a linked session.
+
+        Performs a lightweight health check on the TUI server before
+        subscribing.  Skips gracefully if the server is unreachable.
+        """
+        session_id = session.get("session_id", "")
+        server_url = session.get("server_url", "")
+        thread_id = session.get("thread_id", "")
+
+        if not session_id or not server_url or not thread_id:
+            return
+
+        # Skip if already running; clean up dead tasks
+        if session_id in self._sse_subscribers:
+            existing_task = self._sse_subscribers[session_id]
+            if existing_task and not existing_task.done():
+                return
+            self._sse_subscribers.pop(session_id, None)
+
+        # Health-check the TUI server before subscribing
+        try:
+            async with aiohttp.ClientSession() as health_session:
+                async with health_session.get(
+                    f"{server_url}/global/health",
+                    timeout=aiohttp.ClientTimeout(total=3),
+                ) as resp:
+                    if resp.status != 200:
+                        logger.info(
+                            "Skipping SSE subscriber for %s: "
+                            "health check returned %d",
+                            session_id,
+                            resp.status,
+                        )
+                        return
+        except Exception:
+            logger.info(
+                "Skipping SSE subscriber for %s: "
+                "TUI server at %s unreachable",
+                session_id,
+                server_url,
+            )
+            return
+
+        subscriber = TuiSseSubscriber(
+            bot=self,
+            session_id=session_id,
+            server_url=server_url,
+            thread_id=thread_id,
+        )
+        await subscriber.start()
+        self._sse_subscribers[session_id] = subscriber._task
+        logger.info("Started SSE subscriber for session %s", session_id)
+
+    async def stop_sse_subscriber(self, session_id: str) -> None:
+        """Stop the SSE subscriber for a session."""
+        task = self._sse_subscribers.pop(session_id, None)
+        if task and not task.done():
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+        logger.info("Stopped SSE subscriber for session %s", session_id)
 
     async def close(self) -> None:
         """Clean up resources on shutdown."""
@@ -222,6 +300,18 @@ class DiscordBot(commands.Bot):
             await client.close()
         self._extra_clients.clear()
         logger.info("OpenCode client(s) closed")
+
+        # Cancel all SSE subscriber tasks
+        for session_id, task in list(self._sse_subscribers.items()):
+            if task and not task.done():
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+        self._sse_subscribers.clear()
+        logger.info("SSE subscribers stopped")
+
         await super().close()
         logger.info("Discord gateway closed")
 

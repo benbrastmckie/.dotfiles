@@ -3,7 +3,7 @@
 ## Active Tasks
 
 ### 56. Implement bidirectional Discord-OpenCode relay
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: general
 - **Research**: [056_implement_bidirectional_discord_opencode_relay/reports/01_discord-opencode-relay.md]
 - **Plan**: [056_implement_bidirectional_discord_opencode_relay/plans/01_bidirectional-discord-opencode-relay.md]

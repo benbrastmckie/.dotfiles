@@ -4,10 +4,10 @@
     {
       "project_number": 56,
       "project_name": "implement_bidirectional_discord_opencode_relay",
-      "status": "not_started",
+      "status": "implementing",
       "task_type": "general",
       "created": "2026-05-14T22:07:45Z",
-      "last_updated": "2026-05-14T22:22:36Z",
+      "last_updated": "2026-05-14T22:24:27Z",
       "description": "Implement the reverse relay for the Discord-OpenCode bot: when a user types in the OpenCode TUI and receives an assistant response, that response should automatically appear in the corresponding linked Discord thread. The existing Discord->OpenCode relay is fully operational; this task adds the missing TUI->Discord direction by introducing an SSE subscriber that listens to the TUI's /event endpoint and posts assistant responses back to Discord.",
       "next_artifact_number": 2,
       "artifacts": [
@@ -21,7 +21,8 @@
           "type": "plan",
           "summary": "Implementation plan with 4 phases (5 hours total) to create TuiSseSubscriber class, integrate subscriber lifecycle into bot.py, wire link/kill API endpoints, and test end-to-end behavior."
         }
-      ]
+      ],
+      "session_id": "sess_1778797462_86103a"
     },
     {
       "project_number": 52,

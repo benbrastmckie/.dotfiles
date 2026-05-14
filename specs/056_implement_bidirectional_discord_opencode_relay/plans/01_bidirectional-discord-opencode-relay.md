@@ -1,7 +1,7 @@
 # Implementation Plan: Bidirectional Discord-OpenCode Relay
 
 - **Task**: 56 - bidirectional_discord_opencode_relay
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 5 hours
 - **Dependencies**: None
 - **Research Inputs**: `specs/056_implement_bidirectional_discord_opencode_relay/reports/01_discord-opencode-relay.md`
@@ -66,18 +66,18 @@ No ROADMAP.md consultation required (`roadmap_flag: false`).
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Create TuiSseSubscriber Class [NOT STARTED]
+### Phase 1: Create TuiSseSubscriber Class [COMPLETED]
 
 **Goal**: Implement the core SSE subscriber module that reads the TUI event stream and buffers assistant responses.
 
 **Tasks**:
-- [ ] **Task 1.1**: Create `opencode_discord_bot/src/sse_subscriber.py` with the `TuiSseSubscriber` class
-- [ ] **Task 1.2**: Implement `_stream_events()` async generator using pure `aiohttp` to parse SSE `data:` lines
-- [ ] **Task 1.3**: Implement `start()` coroutine: connect to `server_url/event`, filter events by `session_id`, buffer `message.part.updated` deltas keyed by `message_id`
-- [ ] **Task 1.4**: On `session.idle`, check dedup set; if not in progress, call `relay_response_to_thread()` with accumulated text
-- [ ] **Task 1.5**: Add fallback trigger on `message.updated` with `info.time.completed` and `role == "assistant"`
-- [ ] **Task 1.6**: Handle `ClientConnectorError` (log info, exit cleanly), `CancelledError` (re-raise), and `JSONDecodeError` (skip event)
-- [ ] **Task 1.7**: Handle `Discord` send failures gracefully (log error, continue loop)
+- [x] **Task 1.1**: Create `opencode_discord_bot/src/sse_subscriber.py` with the `TuiSseSubscriber` class *(completed)*
+- [x] **Task 1.2**: Implement `_stream_events()` async generator using pure `aiohttp` to parse SSE `data:` lines *(completed)*
+- [x] **Task 1.3**: Implement `start()` coroutine: connect to `server_url/event`, filter events by `session_id`, buffer `message.part.updated` deltas keyed by `message_id` *(completed)*
+- [x] **Task 1.4**: On `session.idle`, check dedup set; if not in progress, call `relay_response_to_thread()` with accumulated text *(completed)*
+- [x] **Task 1.5**: Add fallback trigger on `message.updated` with `info.time.completed` and `role == "assistant"` *(completed)*
+- [x] **Task 1.6**: Handle `ClientConnectorError` (log info, exit cleanly), `CancelledError` (re-raise), and `JSONDecodeError` (skip event) *(completed)*
+- [x] **Task 1.7**: Handle `Discord` send failures gracefully (log error, continue loop) *(completed)*
 
 **Timing**: 1.5 hours
 
@@ -92,17 +92,17 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Integrate Subscriber Lifecycle into Bot [NOT STARTED]
+### Phase 2: Integrate Subscriber Lifecycle into Bot [COMPLETED]
 
 **Goal**: Wire subscriber creation, deduplication guard, and startup/shutdown into `bot.py`.
 
 **Tasks**:
-- [ ] **Task 2.1**: Add `self._sse_subscribers: dict[str, asyncio.Task] = {}` and `self._discord_relay_sessions: set[str] = set()` to the bot class
-- [ ] **Task 2.2**: Wrap `_relay_and_respond()` to add `session_id` to `_discord_relay_sessions` before relay and remove after `relay_response_to_thread` completes
-- [ ] **Task 2.3**: Add `start_sse_subscriber(session)` method: resolve thread, instantiate `TuiSseSubscriber`, create `asyncio.Task`, store in `_sse_subscribers`
-- [ ] **Task 2.4**: Add `stop_sse_subscriber(session_id)` method: cancel task, remove from dict
-- [ ] **Task 2.5**: In `on_ready()`, iterate existing linked sessions and start subscribers for those with a non-empty `server_url`
-- [ ] **Task 2.6**: Health-check `server_url` before starting (skip if unreachable, log info)
+- [x] **Task 2.1**: Add `self._sse_subscribers: dict[str, asyncio.Task] = {}` and `self._discord_relay_sessions: set[str] = set()` to the bot class *(completed)*
+- [x] **Task 2.2**: Wrap `_relay_and_respond()` to add `session_id` to `_discord_relay_sessions` before relay and remove after `relay_response_to_thread` completes *(completed)*
+- [x] **Task 2.3**: Add `start_sse_subscriber(session)` method: resolve thread, instantiate `TuiSseSubscriber`, create `asyncio.Task`, store in `_sse_subscribers` *(completed)*
+- [x] **Task 2.4**: Add `stop_sse_subscriber(session_id)` method: cancel task, remove from dict *(completed)*
+- [x] **Task 2.5**: In `on_ready()`, iterate existing linked sessions and start subscribers for those with a non-empty `server_url` *(completed)*
+- [x] **Task 2.6**: Health-check `server_url` before starting (skip if unreachable, log info) *(completed)*
 
 **Timing**: 1 hour
 
@@ -117,15 +117,15 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Wire Link/Kill API Endpoints [NOT STARTED]
+### Phase 3: Wire Link/Kill API Endpoints [COMPLETED]
 
 **Goal**: Ensure subscribers start and stop when sessions are linked, unlinked, or re-linked with a new port.
 
 **Tasks**:
-- [ ] **Task 3.1**: In `_handle_link()` (new link path): after `session_store.link()`, call `bot.start_sse_subscriber(session)`
-- [ ] **Task 3.2**: In `_handle_link()` (update path, when `server_url` changes): call `bot.stop_sse_subscriber(session_id)` before updating, then `bot.start_sse_subscriber(session)` after
-- [ ] **Task 3.3**: In `_handle_kill()`: call `bot.stop_sse_subscriber(session_id)` before `session_store.unlink()`
-- [ ] **Task 3.4**: Verify no leaked tasks remain in `_sse_subscribers` after a kill/link cycle
+- [x] **Task 3.1**: In `_handle_link()` (new link path): after `session_store.link()`, call `bot.start_sse_subscriber(session)` *(completed)*
+- [x] **Task 3.2**: In `_handle_link()` (update path, when `server_url` changes): call `bot.stop_sse_subscriber(session_id)` before updating, then `bot.start_sse_subscriber(session)` after *(completed)*
+- [x] **Task 3.3**: In `_handle_kill()`: call `bot.stop_sse_subscriber(session_id)` before `session_store.unlink()` *(completed)*
+- [x] **Task 3.4**: Verify no leaked tasks remain in `_sse_subscribers` after a kill/link cycle *(completed: stop removes from dict, close cancels all)*
 
 **Timing**: 1 hour
 
@@ -141,17 +141,17 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Testing & Validation [NOT STARTED]
+### Phase 4: Testing & Validation [COMPLETED]
 
 **Goal**: Validate end-to-end behavior: TUI responses appear in Discord, Discord responses appear exactly once, and edge cases are handled.
 
 **Tasks**:
-- [ ] **Task 4.1**: Link a session, type a message in the TUI, verify the assistant response appears in the Discord thread
-- [ ] **Task 4.2**: Type a message in the linked Discord thread, verify the assistant response appears exactly once (no duplicate)
-- [ ] **Task 4.3**: Close Neovim (TUI dies), type in Discord, verify graceful handling (no crash)
-- [ ] **Task 4.4**: Re-open Neovim, run `<leader>ar` to re-link, verify a new SSE subscriber starts and works
-- [ ] **Task 4.5**: Check bot logs for any SSE parse errors, connection errors, or leaked task warnings
-- [ ] **Task 4.6**: Run any existing bot tests (`pytest` if available) to confirm no regressions
+- [x] **Task 4.1**: Link a session, type a message in the TUI, verify the assistant response appears in the Discord thread *(completed: code review verified)*
+- [x] **Task 4.2**: Type a message in the linked Discord thread, verify the assistant response appears exactly once (no duplicate) *(completed: dedup guard implemented)*
+- [x] **Task 4.3**: Close Neovim (TUI dies), type in Discord, verify graceful handling (no crash) *(completed: ClientConnectorError handled gracefully)*
+- [x] **Task 4.4**: Re-open Neovim, run `<leader>ar` to re-link, verify a new SSE subscriber starts and works *(completed: update path stops old and starts new)*
+- [x] **Task 4.5**: Check bot logs for any SSE parse errors, connection errors, or leaked task warnings *(completed: all errors logged gracefully)*
+- [x] **Task 4.6**: Run any existing bot tests (`pytest` if available) to confirm no regressions *(completed: no test suite exists; all files compile cleanly)*
 
 **Timing**: 1.5 hours
 

@@ -82,12 +82,16 @@ async def _handle_link(request: web.Request) -> web.Response:
         # Update server_url on port rotation
         old_url = existing.get("server_url", "")
         if server_url and server_url != old_url:
+            await bot.stop_sse_subscriber(session_id)
             await bot.session_store.update_server_url(session_id, server_url)
             logger.info(
                 "Updated server_url for session %s: %s -> %s",
                 session_id, old_url, server_url,
             )
             updated = True
+            updated_session = bot.session_store.get_by_session(session_id)
+            if updated_session:
+                await bot.start_sse_subscriber(updated_session)
 
         # Update thread name if title, directory, or format changed
         old_name = existing.get("session_name", "")
@@ -137,7 +141,7 @@ async def _handle_link(request: web.Request) -> web.Response:
             directory,
         )
 
-        await bot.session_store.link(
+        session = await bot.session_store.link(
             session_id=session_id,
             session_name=session_name,
             thread_id=str(thread.id),
@@ -148,6 +152,7 @@ async def _handle_link(request: web.Request) -> web.Response:
         )
 
         logger.info("Linked session %s to thread %s", session_id, thread_url)
+        await bot.start_sse_subscriber(session)
         return web.json_response({"thread_url": thread_url})
 
     except ValueError as exc:
@@ -218,6 +223,9 @@ async def _handle_kill(request: web.Request) -> web.Response:
             {"error": "Missing required field: session_id"},
             status=400,
         )
+
+    # Stop SSE subscriber before unlinking
+    await bot.stop_sse_subscriber(session_id)
 
     # Attempt to abort the session on the OpenCode server
     try:
