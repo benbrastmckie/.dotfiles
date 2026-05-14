@@ -1,7 +1,7 @@
 # Implementation Plan: Bidirectional Discord-OpenCode Relay
 
 - **Task**: 56 - bidirectional_discord_opencode_relay
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 5 hours
 - **Dependencies**: None
 - **Research Inputs**: `specs/056_implement_bidirectional_discord_opencode_relay/reports/01_discord-opencode-relay.md`

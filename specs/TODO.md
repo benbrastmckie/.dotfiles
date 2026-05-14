@@ -3,10 +3,11 @@
 ## Active Tasks
 
 ### 56. Implement bidirectional Discord-OpenCode relay
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: general
 - **Research**: [056_implement_bidirectional_discord_opencode_relay/reports/01_discord-opencode-relay.md]
 - **Plan**: [056_implement_bidirectional_discord_opencode_relay/plans/01_bidirectional-discord-opencode-relay.md]
+- **Summary**: [056_implement_bidirectional_discord_opencode_relay/summaries/01_bidirectional-discord-opencode-relay-summary.md]
 
 **Description**: Implement the reverse relay for the Discord-OpenCode bot: when a user types in the OpenCode TUI and receives an assistant response, that response should automatically appear in the corresponding linked Discord thread. The existing Discord->OpenCode relay is fully operational; this task adds the missing TUI->Discord direction by introducing an SSE subscriber that listens to the TUI's /event endpoint and posts assistant responses back to Discord. Primary complexity is deduplication: responses from Discord-sourced prompts must not be re-posted.
 
