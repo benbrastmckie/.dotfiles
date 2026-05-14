@@ -153,3 +153,13 @@ class SessionStore:
             self._data[session_id]["status"] = status
             self._save()
             return True
+
+    async def update_server_url(self, session_id: str, server_url: str) -> bool:
+        """Update the server URL for a linked session (port rotation)."""
+        async with self._lock:
+            if session_id not in self._data:
+                return False
+            self._data[session_id]["server_url"] = server_url
+            self._save()
+            logger.info("Updated server_url for %s to %s", session_id, server_url)
+            return True

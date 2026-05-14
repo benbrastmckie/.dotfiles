@@ -73,9 +73,20 @@ async def _handle_link(request: web.Request) -> web.Response:
             status=400,
         )
 
-    # Check if already linked
+    # Check if already linked — update server_url if it changed (TUI port rotation)
     existing = bot.session_store.get_by_session(session_id)
     if existing:
+        old_url = existing.get("server_url", "")
+        if server_url and server_url != old_url:
+            await bot.session_store.update_server_url(session_id, server_url)
+            logger.info(
+                "Updated server_url for session %s: %s -> %s",
+                session_id, old_url, server_url,
+            )
+            return web.json_response(
+                {"thread_url": existing["thread_url"], "updated": True},
+                status=200,
+            )
         logger.info("Session %s already linked to thread %s", session_id, existing["thread_id"])
         return web.json_response(
             {"thread_url": existing["thread_url"]},
