@@ -652,7 +652,7 @@
 
         # Find all Claude-related processes
         # Matches: claude, claude-code, @anthropics/claude-code, node processes with claude
-        PIDS=$(${pkgs.procps}/bin/pgrep -f "(claude|@anthropic)" 2>/dev/null)
+        PIDS=$(${pkgs.procps}/bin/pgrep -f "(claude|@anthropic|opencode)" 2>/dev/null)
 
         if [ -n "$PIDS" ]; then
           for PID in $PIDS; do

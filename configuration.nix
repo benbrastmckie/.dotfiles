@@ -375,7 +375,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
     enableNotifications = true;    # Send desktop notifications when process is killed
     extraArgs = [
       "--avoid" "^(gnome-shell|Xwayland|niri)$"   # Avoid killing desktop essentials
-      "--prefer" "^(lean|lake|claude|node|npm)$"  # Prefer killing memory-heavy processes first
+      "--prefer" "^(lean|lake|claude|node|npm|opencode)$"  # Prefer killing memory-heavy processes first
     ];
   };
 

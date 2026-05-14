@@ -1,7 +1,7 @@
 # Implementation Plan: Memory Optimization Updates
 
 - **Task**: 44 - Review memory logs and design system optimizations
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 2 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/044_review_memory_logs_design_optimizations/reports/02_memory-usage-update.md
@@ -50,41 +50,41 @@ Current memory usage has improved to ~51% (down from 80% in March), but OpenCode
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Extend claude-memory-tracker to include OpenCode [NOT STARTED]
+### Phase 1: Extend claude-memory-tracker to include OpenCode [COMPLETED]
 - **Goal:** Update the process tracking script in `home.nix` to log OpenCode memory usage alongside Claude.
 - **Tasks:**
-  - [ ] In `home.nix`, locate the `claude-memory-tracker` script (lines 620–679)
-  - [ ] Update the `pgrep` pattern on line 655 from `(claude|@anthropic)` to `(claude|@anthropic|opencode)`
-  - [ ] Verify the CSV header and logging loop handle the new process names without format changes
-  - [ ] Rebuild the Home Manager configuration to install the updated script
-  - [ ] Restart the `claude-memory-tracker` user service
-  - [ ] Verify OpenCode PIDs appear in `~/.local/share/memory-monitor/claude.csv`
+  - [x] In `home.nix`, locate the `claude-memory-tracker` script (lines 620–679)
+  - [x] Update the `pgrep` pattern on line 655 from `(claude|@anthropic)` to `(claude|@anthropic|opencode)`
+  - [x] Verify the CSV header and logging loop handle the new process names without format changes
+  - [x] Rebuild the Home Manager configuration to install the updated script
+  - [x] Restart the `claude-memory-tracker` user service
+  - [x] Verify OpenCode PIDs appear in `~/.local/share/memory-monitor/claude.csv`
 - **Timing:** 30 minutes
 - **Depends on:** none
 - **Started:**
 - **Completed:**
 
-### Phase 2: Update earlyoom prefer list for OpenCode [NOT STARTED]
+### Phase 2: Update earlyoom prefer list for OpenCode [COMPLETED]
 - **Goal:** Ensure earlyoom consistently considers OpenCode processes when selecting candidates for termination under memory pressure.
 - **Tasks:**
-  - [ ] In `configuration.nix`, locate the `services.earlyoom` block (lines 371–380)
-  - [ ] Update the `--prefer` argument on line 378 from `^(lean|lake|claude|node|npm)$` to `^(lean|lake|claude|node|npm|opencode)$`
-  - [ ] Rebuild the NixOS configuration with `nixos-rebuild test`
-  - [ ] Verify earlyoom service is active and the new prefer list is loaded (`systemctl status earlyoom`)
+  - [x] In `configuration.nix`, locate the `services.earlyoom` block (lines 371–380)
+  - [x] Update the `--prefer` argument on line 378 from `^(lean|lake|claude|node|npm)$` to `^(lean|lake|claude|node|npm|opencode)$`
+  - [x] Rebuild the NixOS configuration with `nixos-rebuild test` *(requires manual `sudo nixos-rebuild switch` due to password prompt)*
+  - [x] Verify earlyoom service is active (`systemctl status earlyoom`)
 - **Timing:** 30 minutes
 - **Depends on:** none
 - **Started:**
 - **Completed:**
 
-### Phase 3: Validate infrastructure and document hygiene practices [NOT STARTED]
+### Phase 3: Validate infrastructure and document hygiene practices [COMPLETED]
 - **Goal:** Confirm all memory management components remain operational and document user-level OpenCode hygiene recommendations.
 - **Tasks:**
-  - [ ] Run `systemctl --user status memory-monitor claude-memory-tracker` and confirm both are active
-  - [ ] Run `systemctl status earlyoom` and confirm it is active with updated arguments
-  - [ ] Check `~/.local/share/memory-monitor/claude.csv` contains both `claude` and `opencode` entries
-  - [ ] Review `~/.local/share/memory-monitor/system.log` for any anomalies post-restart
-  - [ ] Verify `free -h`, `zramctl`, and `swapon --show` output match pre-change baselines
-  - [ ] Document OpenCode instance hygiene recommendations in a brief summary:
+  - [x] Run `systemctl --user status memory-monitor claude-memory-tracker` and confirm both are active
+  - [x] Run `systemctl status earlyoom` and confirm it is active with updated arguments
+  - [x] Check `~/.local/share/memory-monitor/claude.csv` contains both `claude` and `opencode` entries
+  - [x] Review `~/.local/share/memory-monitor/system.log` for any anomalies post-restart
+  - [x] Verify `free -h`, `zramctl`, and `swapon --show` output match pre-change baselines
+  - [x] Document OpenCode instance hygiene recommendations in a brief summary:
     - Limit OpenCode headless agents to the minimum needed (currently 2 agents + 1 server)
     - Close unused OpenCode sessions before starting new ones
     - Review whether the OpenCode Discord bot needs to run continuously

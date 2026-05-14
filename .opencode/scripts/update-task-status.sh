@@ -337,7 +337,6 @@ if [[ "$operation" == "preflight" && "$DRY_RUN" != "true" ]]; then
   project_name=$(jq -r --arg num "$task_number" \
     '.active_projects[] | select(.project_number == ($num | tonumber)) | .project_name' \
     "$STATE_FILE")
-  # Capitalize first letter of target_status for display
   label="$(echo "${target_status:0:1}" | tr '[:lower:]' '[:upper:]')${target_status:1}"
   rename_script="$SCRIPT_DIR/rename-session.sh"
   if [[ -x "$rename_script" ]]; then
