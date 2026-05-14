@@ -100,10 +100,16 @@ class Config:
             if uid.strip()
         ]
 
-        link_api_token = os.environ.get("LINK_API_TOKEN", "")
+        try:
+            link_api_token = read_credential("LINK_API_TOKEN")
+        except RuntimeError:
+            link_api_token = ""
         log_level = os.environ.get("LOG_LEVEL", "info").upper()
 
-        channel_id_raw = os.environ.get("DISCORD_CHANNEL_ID", "0")
+        try:
+            channel_id_raw = read_credential("DISCORD_CHANNEL_ID")
+        except RuntimeError:
+            channel_id_raw = "0"
         try:
             discord_channel_id = int(channel_id_raw)
         except ValueError:

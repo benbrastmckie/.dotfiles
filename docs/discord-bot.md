@@ -10,9 +10,9 @@ Discord ←→ discord-bot.service ←→ opencode-serve.service ←→ OpenCode
                                          127.0.0.1 (dynamic port)
 ```
 
-- **opencode-serve**: Persistent agent server bound to `127.0.0.1`, no port fixed (mDNS discovery)
+- **opencode-serve**: Persistent agent server bound to `127.0.0.1:4096`
 - **discord-bot**: Nextcord relay connecting to opencode-serve at `OPENCODE_SERVER_URL`
-- Secrets (Discord token, OpenCode password) injected via systemd `LoadCredential` from sops-nix — never touch disk unencrypted (held in tmpfs at `/run/credentials/<service>.service/`)
+- Secrets (Discord token, OpenCode password, link API token) injected via systemd `LoadCredential` from sops-nix — never touch disk unencrypted (held in tmpfs at `/run/credentials/<service>.service/`)
 
 ## Files
 
@@ -57,14 +57,14 @@ User = "benjamin"
 Group = "users"
 WorkingDirectory = "/home/benjamin/.dotfiles"
 
-ExecStart = "${pkgs.opencode}/bin/opencode serve --hostname 127.0.0.1"
+ExecStart = "${pkgs.opencode}/bin/opencode serve --hostname 127.0.0.1 --port 4096"
 LoadCredential = "opencode_server_password:/run/secrets/opencode_server_password"
 Environment = "OPENCODE_SERVER_PASSWORD=%d/opencode_server_password"
 ```
 
 - `%d` expands to `/run/credentials/opencode-serve.service/`
 - Uses the existing `packages/opencode.nix` wrapper
-- Port is not fixed — OpenCode uses default mDNS-based discovery
+- Port is fixed at 4096 (`--port 4096`)
 - Service starts on boot, survives crashes (always restart with 10s backoff)
 
 ### discord-bot.service
@@ -85,13 +85,16 @@ ExecStart = "${discordBotPython}/bin/python -m opencode_discord_bot.src.bot"
 LoadCredential = [
   "discord_bot_token:/run/secrets/discord_bot_token"
   "opencode_server_password:/run/secrets/opencode_server_password"
+  "discord_channel_id:/run/secrets/discord_channel_id"
+  "link_api_token:/run/secrets/link_api_token"
 ]
 Environment = [
   "DISCORD_BOT_TOKEN=%d/discord_bot_token"
   "OPENCODE_SERVER_PASSWORD=%d/opencode_server_password"
-  "OPENCODE_SERVER_URL=http://127.0.0.1"
+  "OPENCODE_SERVER_URL=http://127.0.0.1:4096"
+  "DISCORD_CHANNEL_ID=%d/discord_channel_id"
   "WHITELISTED_USER_IDS="
-  "LINK_API_TOKEN="
+  "LINK_API_TOKEN=%d/link_api_token"
   "LOG_LEVEL=info"
   "PYTHONPATH=/home/benjamin/.dotfiles/opencode-discord-bot"
 ]
@@ -100,7 +103,8 @@ Environment = [
 - **`Requires`** (hard dependency) + **`After`** (ordering) on `opencode-serve.service`
 - `PYTHONPATH` points to bot project source at `~/.dotfiles/opencode-discord-bot/`
 - Bot will fail to start until the Python source code exists (external task 547)
-- Both secrets injected via `LoadCredential`, each in its own credential file
+- All secrets injected via `LoadCredential`, each in its own credential file
+- `LINK_API_TOKEN` enables Bearer authentication on the HTTP API (used by Neovim integration)
 
 ## Secrets Management (sops-nix)
 
@@ -125,10 +129,11 @@ creation_rules:
 |-----|--------------|---------|
 | `discord_bot_token` | Yes | Discord bot authentication token (decrypted to `/run/secrets/`) |
 | `opencode_server_password` | Yes | Password for OpenCode headless server (decrypted to `/run/secrets/`) |
+| `discord_channel_id` | Yes | Discord channel ID for thread creation (decrypted to `/run/secrets/`) |
+| `link_api_token` | Yes | Bearer token for the bot HTTP API, used by Neovim integration (decrypted to `/run/secrets/`) |
 | `whitelisted_user_ids` | No | Comma-separated Discord user IDs allowed to use the bot |
-| `link_api_token` | No | Token for external link shortening/API service |
 
-> **Note**: `whitelisted_user_ids` and `link_api_token` exist in the encrypted file but are **not** declared in `sops.secrets` in `configuration.nix`. They are not decrypted to `/run/secrets/` or injected via `LoadCredential`. Instead, the discord-bot service sets these as empty-string environment variables directly. To actually use these values, either add them to `sops.secrets` + `LoadCredential`, or set them directly in the service environment.
+> **Note**: `whitelisted_user_ids` exists in the encrypted file but is **not** declared in `sops.secrets` in `configuration.nix`. It is set as an empty-string environment variable directly in the service. To use it, add it to `sops.secrets` + `LoadCredential`.
 
 **`~/.config/sops/age/keys.txt`** (private key — never committed, never pushed):
 ```
@@ -150,6 +155,12 @@ sops = {
     "opencode_server_password" = {
       owner = config.users.users.benjamin.name;
     };
+    "discord_channel_id" = {
+      owner = config.users.users.benjamin.name;
+    };
+    "link_api_token" = {
+      owner = config.users.users.benjamin.name;
+    };
   };
 };
 ```
@@ -157,6 +168,8 @@ sops = {
 This creates:
 - `/run/secrets/discord_bot_token` — decrypted at activation time
 - `/run/secrets/opencode_server_password` — decrypted at activation time
+- `/run/secrets/discord_channel_id` — decrypted at activation time
+- `/run/secrets/link_api_token` — decrypted at activation time
 
 Decryption happens before systemd starts, so services can rely on secrets being available. If decryption fails (e.g., missing age key), services will fail to start gracefully.
 
@@ -212,7 +225,8 @@ Before running `nixos-rebuild switch`:
    ```
    - Replace `discord_bot_token` with actual Discord token
    - Replace `opencode_server_password` with a strong random password
-   - Optionally set `whitelisted_user_ids` and `link_api_token` (note: these are stored in the encrypted file but not currently wired through sops-nix — see secrets table above)
+   - Set `link_api_token` to a random hex string (`openssl rand -hex 32`) — this is the Bearer token for the bot's HTTP API
+   - Optionally set `whitelisted_user_ids` (note: stored in the encrypted file but not currently wired through sops-nix — see secrets table above)
 
 3. **Back up age key**: Store `~/.config/sops/age/keys.txt` securely (password manager, encrypted backup)
 
@@ -258,6 +272,9 @@ journalctl -fu discord-bot
 | `discord-bot` fails to start | Bot source missing at `~/.dotfiles/opencode-discord-bot/` | Create bot project (task 547) |
 | `opencode-serve` fails to start | Missing server password | Run `sops secrets/secrets.yaml` and set password |
 | Both services fail with LoadCredential errors | Age key missing at `~/.config/sops/age/keys.txt` | Generate key with `age-keygen` |
+| `DISCORD_BOT_LINK_TOKEN not set` in Neovim | Fish shell didn't read `/run/secrets/link_api_token` | Ensure `link_api_token` is set in `secrets.yaml` and rebuild; restart fish |
+| Bot returns 401 on `/link` or `/sessions` | Token mismatch between Neovim and bot | Both read from same sops secret; rebuild and restart shell |
+| Bot HTTP API unresponsive (port 8080) | Heartbeat blocked (asyncio event loop stall) | `sudo systemctl restart discord-bot` |
 | `nixos-rebuild build --flake .#hamsa` fails | sops-nix module import issue | Verify `sops-nix.nixosModules.sops` is in hamsa's modules list |
 | sops decrypt fails | Wrong key or corrupted file | Check `.sops.yaml` has correct public key; regenerate if needed |
 
@@ -277,6 +294,44 @@ To remove the Discord bot infrastructure:
 ```
 
 The encrypted `secrets/secrets.yaml` is inert without sops-nix and can remain or be deleted.
+
+## Neovim Integration
+
+The Neovim plugins at `lua/neotex/plugins/ai/opencode/discord-link.lua` and `discord-session-picker.lua` communicate with the bot's HTTP API on `localhost:8080`.
+
+### Environment Variables
+
+The `DISCORD_BOT_LINK_TOKEN` env var is required by the Neovim plugins and must match the bot's `LINK_API_TOKEN`. It is set automatically in fish shell init by reading the sops-nix decrypted secret:
+
+```fish
+# In programs.fish.interactiveShellInit (configuration.nix):
+if test -r /run/secrets/link_api_token
+  set -gx DISCORD_BOT_LINK_TOKEN (cat /run/secrets/link_api_token)
+end
+```
+
+| Variable | Source | Used by |
+|----------|--------|---------|
+| `DISCORD_BOT_URL` | Default `http://localhost:8080` | Neovim plugins (override if port changes) |
+| `DISCORD_BOT_LINK_TOKEN` | `/run/secrets/link_api_token` via fish init | Neovim plugins (Bearer token) |
+| `LINK_API_TOKEN` | `LoadCredential` via systemd | discord-bot service (validates Bearer tokens) |
+
+### Keybindings
+
+| Key | Command | Action |
+|-----|---------|--------|
+| `<leader>ar` | `:OpenCodeLinkDiscord` | Link current OpenCode session to a Discord thread |
+| `<leader>as` | `:DiscordSessions` | Browse/manage linked sessions (Telescope picker) |
+
+### Verification
+
+```bash
+# Token is available in shell
+echo $DISCORD_BOT_LINK_TOKEN
+
+# Bot API responds
+curl -s -H "Authorization: Bearer $DISCORD_BOT_LINK_TOKEN" http://localhost:8080/health | jq .
+```
 
 ## Related Documentation
 
