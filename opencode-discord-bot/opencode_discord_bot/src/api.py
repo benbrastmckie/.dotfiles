@@ -97,6 +97,8 @@ async def _handle_link(request: web.Request) -> web.Response:
         )
         try:
             thread = bot.get_channel(int(existing["thread_id"]))
+            if thread is None:
+                thread = await bot.fetch_channel(int(existing["thread_id"]))
             if thread and thread.name != new_thread_name:
                 await thread.edit(name=new_thread_name)
                 logger.info(
