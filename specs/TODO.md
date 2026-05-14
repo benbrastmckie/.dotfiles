@@ -12,7 +12,7 @@
 ---
 
 ### 51. Documentation refactor: integrate ad-hoc notes into systematic docs
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNING]
 - **Task Type**: markdown
 - **Research**: [051_documentation_refactor_integrate_adhoc_notes/reports/01_documentation-analysis.md]
 
