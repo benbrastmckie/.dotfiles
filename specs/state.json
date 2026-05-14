@@ -4,17 +4,22 @@
     {
       "project_number": 52,
       "project_name": "sleep_inhibition_claude_opencode",
-      "status": "researched",
+      "status": "planned",
       "task_type": "nix",
       "created": "2026-05-04T19:44:46Z",
-      "last_updated": "2026-05-04T19:57:08Z",
-      "session_id": "sess_1777924101_6d8d3d",
+      "last_updated": "2026-05-14T20:48:08Z",
+      "session_id": "sess_1778791443_841b84",
       "next_artifact_number": 2,
       "artifacts": [
         {
           "path": "specs/052_sleep_inhibition_claude_opencode/reports/01_sleep_inhibition_claude_opencode.md",
           "type": "research",
           "summary": "Research findings for Task 52: Sleep Inhibition for Claude Code/Opencode. Analyzed existing disabled inhibitor service, identified Task 50 pgrep self-match as a blocker, confirmed systemd-inhibit as the correct mechanism for Nix/Wayland systems, and recommended consolidating Task 50 and 52 fixes into a single implementation phase."
+        },
+        {
+          "path": "specs/052_sleep_inhibition_claude_opencode/plans/01_sleep-inhibition-implementation.md",
+          "type": "plan",
+          "summary": "Implementation plan with 4 phases (3.5h total) to fix pgrep self-match bug, add opencode detection, re-enable the sleep inhibitor service, and document toggle interface"
         }
       ]
     },

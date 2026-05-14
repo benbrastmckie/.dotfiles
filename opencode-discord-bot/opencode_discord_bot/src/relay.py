@@ -79,6 +79,8 @@ async def create_session_thread(
 
     channel = bot.get_channel(channel_id)
     if channel is None:
+        channel = await bot.fetch_channel(channel_id)
+    if channel is None:
         raise ValueError(
             f"Could not find Discord channel {channel_id} -- "
             "ensure the bot has access to the channel"
