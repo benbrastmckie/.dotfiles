@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 56. Implement bidirectional Discord OpenCode relay
+- **Status**: [NOT STARTED]
+- **Task Type**: general
+
+**Description**: Implement bidirectional Discord OpenCode relay
+
+---
+
 ### 52. Add sleep inhibition during active Claude Code/Opencode sessions
 - **Status**: [PLANNED]
 - **Task Type**: nix
