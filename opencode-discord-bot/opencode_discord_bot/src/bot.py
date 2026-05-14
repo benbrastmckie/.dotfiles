@@ -53,10 +53,11 @@ class DiscordBot(commands.Bot):
         self.http_runner: web.AppRunner | None = None
         self.start_time = time.time()
 
-    async def setup_hook(self) -> None:
-        """Called when the bot is starting up, before connecting to Discord.
+    async def start(self, token: str, **kwargs) -> None:
+        """Start the HTTP API server, then connect to Discord.
 
-        Starts the aiohttp HTTP API server on the configured port.
+        Overrides Client.start() because this version of nextcord does not
+        call setup_hook(), so HTTP server startup must happen here instead.
         """
         setup_api(self.http_app, self)
 
@@ -68,6 +69,8 @@ class DiscordBot(commands.Bot):
             "HTTP API server started on http://127.0.0.1:%d",
             self.config.bot_http_port,
         )
+
+        await super().start(token, **kwargs)
 
     async def on_ready(self) -> None:
         """Called when the bot has connected to Discord."""
