@@ -1,6 +1,14 @@
 {
-  "next_project_number": 56,
+  "next_project_number": 57,
   "active_projects": [
+    {
+      "project_number": 56,
+      "project_name": "implement_bidirectional_discord_opencode_relay",
+      "status": "not_started",
+      "task_type": "general",
+      "created": "2026-05-14T22:07:45Z",
+      "last_updated": "2026-05-14T22:07:45Z"
+    },
     {
       "project_number": 52,
       "project_name": "sleep_inhibition_claude_opencode",
