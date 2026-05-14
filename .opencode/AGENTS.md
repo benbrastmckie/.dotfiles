@@ -526,6 +526,15 @@ This project includes comprehensive file format conversion and manipulation via 
 | skill-filetypes | document-agent | Document format conversion (PDF/DOCX/Markdown) |
 | skill-spreadsheet | spreadsheet-agent | Spreadsheet to LaTeX/Typst table conversion |
 | skill-presentation | presentation-agent | Presentation extraction and slide generation |
+| skill-sheet | sheet-agent | XLSX creation, editing, and analysis (openpyxl) |
+
+### Commands
+
+| Command | Usage | Description |
+|---------|-------|-------------|
+| `/convert` | `/convert file.pdf` | Convert between document formats |
+| `/table` | `/table data.xlsx` | Convert spreadsheets to LaTeX/Typst tables |
+| `/sheet` | `/sheet file.xlsx "instruction"` | Create, edit, or analyze XLSX spreadsheets |
 
 ### Supported Conversions
 

@@ -1,6 +1,6 @@
 {
   "name": "filetypes",
-  "version": "2.0.0",
+  "version": "2.2.0",
   "description": "File format conversion and manipulation for documents, spreadsheets, and presentations",
   "language": null,
   "dependencies": [
@@ -12,19 +12,22 @@
       "document-agent.md",
       "spreadsheet-agent.md",
       "presentation-agent.md",
-      "deck-agent.md"
+      "deck-agent.md",
+      "sheet-agent.md"
     ],
     "skills": [
       "skill-filetypes",
       "skill-spreadsheet",
       "skill-presentation",
-      "skill-deck"
+      "skill-deck",
+      "skill-sheet"
     ],
     "commands": [
       "convert.md",
       "table.md",
       "slides.md",
-      "deck.md"
+      "deck.md",
+      "sheet.md"
     ],
     "rules": [],
     "context": [
@@ -49,13 +52,22 @@
       "filetypes": "skill-filetypes",
       "filetypes:spreadsheet": "skill-spreadsheet",
       "filetypes:presentation": "skill-presentation",
-      "filetypes:deck": "skill-deck"
+      "filetypes:deck": "skill-deck",
+      "filetypes:sheet": "skill-sheet"
+    },
+    "plan": {
+      "filetypes": "skill-planner",
+      "filetypes:spreadsheet": "skill-planner",
+      "filetypes:presentation": "skill-planner",
+      "filetypes:deck": "skill-planner",
+      "filetypes:sheet": "skill-planner"
     },
     "implement": {
       "filetypes": "skill-filetypes",
       "filetypes:spreadsheet": "skill-spreadsheet",
       "filetypes:presentation": "skill-presentation",
-      "filetypes:deck": "skill-deck"
+      "filetypes:deck": "skill-deck",
+      "filetypes:sheet": "skill-sheet"
     }
   },
   "mcp_servers": {}
