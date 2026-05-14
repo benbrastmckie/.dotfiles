@@ -89,22 +89,30 @@ async def _handle_link(request: web.Request) -> web.Response:
             )
             updated = True
 
-        # Update thread name if session title changed
+        # Update thread name if title, directory, or format changed
         old_name = existing.get("session_name", "")
-        if session_name and session_name != old_name:
-            new_thread_name = _build_thread_name(session_name, session_id, directory)
-            try:
-                thread = bot.get_channel(int(existing["thread_id"]))
-                if thread:
-                    await thread.edit(name=new_thread_name)
-                    logger.info(
-                        "Renamed thread %s: %r -> %r",
-                        existing["thread_id"], old_name, session_name,
-                    )
-                await bot.session_store.update_session_name(session_id, session_name)
+        old_dir = existing.get("working_directory", "")
+        new_thread_name = _build_thread_name(
+            session_name or old_name, session_id, directory or old_dir,
+        )
+        try:
+            thread = bot.get_channel(int(existing["thread_id"]))
+            if thread and thread.name != new_thread_name:
+                await thread.edit(name=new_thread_name)
+                logger.info(
+                    "Renamed thread %s: %r -> %r",
+                    existing["thread_id"], thread.name, new_thread_name,
+                )
                 updated = True
-            except Exception as exc:
-                logger.warning("Failed to rename thread for session %s: %s", session_id, exc)
+        except Exception as exc:
+            logger.warning("Failed to rename thread for session %s: %s", session_id, exc)
+
+        if session_name and session_name != old_name:
+            await bot.session_store.update_session_name(session_id, session_name)
+            updated = True
+        if directory and directory != old_dir:
+            await bot.session_store.update_working_directory(session_id, directory)
+            updated = True
 
         if updated:
             return web.json_response(

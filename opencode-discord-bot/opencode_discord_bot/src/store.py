@@ -164,6 +164,16 @@ class SessionStore:
             logger.info("Updated session_name for %s to %r", session_id, session_name)
             return True
 
+    async def update_working_directory(self, session_id: str, directory: str) -> bool:
+        """Update the working directory for a linked session."""
+        async with self._lock:
+            if session_id not in self._data:
+                return False
+            self._data[session_id]["working_directory"] = directory
+            self._save()
+            logger.info("Updated working_directory for %s to %r", session_id, directory)
+            return True
+
     async def update_server_url(self, session_id: str, server_url: str) -> bool:
         """Update the server URL for a linked session (port rotation)."""
         async with self._lock:
