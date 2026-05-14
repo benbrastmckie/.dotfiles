@@ -87,53 +87,9 @@ async def relay_to_opencode(
 ) -> str:
     """Send a message to an OpenCode session and return the response text.
 
-    Parameters
-    ----------
-    opencode_client:
-        The OpenCodeClient instance.
-    session_id:
-        The target OpenCode session ID.
-    message_text:
-        The message to send.
-
-    Returns
-    -------
-    str
-        The text response from the OpenCode session.
-
-    Raises
-    ------
-    aiohttp.ClientError
-        If the OpenCode server is unreachable.
+    Uses SSE events to collect the assistant's response asynchronously.
     """
-    response = await opencode_client.send_message(session_id, message_text)
-
-    # Extract text parts from the response
-    text_parts = []
-    if isinstance(response, dict):
-        # Response may contain message parts directly or nested
-        parts = response.get("parts", [])
-        if not parts:
-            # Try alternative response shapes
-            messages = response.get("messages", [])
-            if messages and isinstance(messages, list):
-                last_msg = messages[-1] if messages else {}
-                parts = last_msg.get("parts", [])
-
-        for part in parts:
-            if isinstance(part, dict) and part.get("type") == "text":
-                text_parts.append(part.get("text", ""))
-
-    if text_parts:
-        return "\n".join(text_parts)
-
-    # Fallback: try to extract any text content
-    if isinstance(response, dict):
-        content = response.get("content", response.get("text", ""))
-        if content:
-            return str(content)
-
-    return "(No text response from OpenCode)"
+    return await opencode_client.send_message_and_wait(session_id, message_text)
 
 
 def split_discord_message(text: str, limit: int = 2000) -> list[str]:
