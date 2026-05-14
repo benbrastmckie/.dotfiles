@@ -328,10 +328,16 @@ Two Neovim plugins provide the Discord integration:
 1. `<leader>ar` discovers the TUI's embedded server port by scanning `ss -tlnp` for `opencode` processes matching the current working directory.
 2. Queries that server's `GET /session` and `GET /session/status` endpoints to list sessions (busy/active sessions sorted first, then by most recently updated).
 3. Shows a Telescope picker (capped at 20 sessions) with a preview pane displaying title, directory, status, age, and file change stats.
-4. On selection, calls the bot's `POST /link` endpoint with `session_id`, `session_name`, and `server_url` (the TUI's dynamic port).
-5. The bot stores the `server_url` per session so future Discord messages route to the correct TUI instance.
+4. On selection, calls the bot's `POST /link` endpoint with `session_id`, `session_name`, `server_url` (the TUI's dynamic port), and `directory`.
+5. The bot creates a Discord thread and stores the mapping so future Discord messages route to the correct TUI instance.
 
 The `discord-link.lua` queries the OpenCode HTTP API directly (no CLI `opencode session list`). TUI instances do not require authentication.
+
+### Thread Naming
+
+Discord threads are named using the format `{dir} #{task}: {title}` when the session title contains a task number (e.g., `.dotfiles #51: Implementation plan for task 51`). When no task number is found, the format is `{dir}: {title}`. The directory component is the basename of the OpenCode session's working directory. Names are truncated to Discord's 100-character limit.
+
+Thread names update automatically: re-linking an existing session with `<leader>ar` detects title changes and renames the Discord thread to match. This handles the case where a session's title changes after the initial link (e.g., starting a new task in the same session).
 
 ### Environment Variables
 
