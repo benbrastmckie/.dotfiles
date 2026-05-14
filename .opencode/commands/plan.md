@@ -4,6 +4,8 @@ allowed-tools: Skill, Bash(jq:*), Bash(git:*), Read, Edit
 argument-hint: TASK_NUMBERS [--team [--team-size N]] [--fast|--hard] [--haiku|--sonnet|--opus]
 ---
 
+> **COMMAND EXECUTION MODE** — You have been invoked as this command with arguments: `$ARGUMENTS`. Execute the workflow below immediately. Do not summarize this file, ask what to do with it, or describe its contents. Start execution now.
+
 # /plan Command
 
 Create a phased implementation plan for a task by delegating to the planner skill/subagent.
@@ -39,7 +41,7 @@ When `--team` is specified, planning is delegated to `skill-team-plan` which spa
 
 ## Anti-Bypass Constraint
 
-**PROHIBITION**: You MUST NOT write plan artifacts directly using Write or Edit tools. All plan files MUST be created by invoking the appropriate skill (skill-planner or skill-team-plan) via the Skill tool.
+**PROHIBITION**: You MUST NOT write plan artifacts directly using Write or Edit tools. All plan files MUST be created by invoking the appropriate skill via the Skill tool. The correct skill is determined by manifest discovery in `.opencode/extensions/*/manifest.json` — query `.routing.plan[<task_type>]` from the matching extension manifest, falling back to the default skill (`skill-planner` or `skill-team-plan`) if no extension match is found.
 
 **Why**: Direct writes bypass format enforcement (validate-artifact.sh), produce non-conforming artifacts missing required metadata fields and sections, and circumvent the delegation chain that ensures quality. A PostToolUse hook monitors all Write/Edit operations to artifact paths and will flag violations with corrective context.
 
@@ -337,10 +339,16 @@ Check extension manifests for task-type-specific plan routing:
 # Get task_type (may be simple "founder" or compound "founder:deck")
 task_type=$(echo "$task_data" | jq -r '.task_type // "general"')
 
+# Derive project root for absolute manifest paths
+project_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+manifest_dir="$project_root/.opencode/extensions"
+
 # Check extension routing for plan (skill_name starts empty)
 skill_name=""
-for manifest in .opencode/extensions/*/manifest.json; do
+manifest_count=0
+for manifest in "$manifest_dir"/*/manifest.json; do
   if [ -f "$manifest" ]; then
+    manifest_count=$((manifest_count + 1))
     ext_skill=$(jq -r --arg tt "$task_type" \
       '.routing.plan[$tt] // empty' "$manifest")
     if [ -n "$ext_skill" ]; then
@@ -353,7 +361,7 @@ done
 # Fallback: if compound key (contains ":"), try base task_type
 if [ -z "$skill_name" ] && echo "$task_type" | grep -q ":"; then
   base_type=$(echo "$task_type" | cut -d: -f1)
-  for manifest in .opencode/extensions/*/manifest.json; do
+  for manifest in "$manifest_dir"/*/manifest.json; do
     if [ -f "$manifest" ]; then
       ext_skill=$(jq -r --arg tt "$base_type" \
         '.routing.plan[$tt] // empty' "$manifest")
@@ -365,18 +373,30 @@ if [ -z "$skill_name" ] && echo "$task_type" | grep -q ":"; then
   done
 fi
 
+if [ "$manifest_count" -eq 0 ]; then
+  echo "[WARN] No extension manifests found in $manifest_dir."
+fi
+
 # Fallback to default planner if no extension routing found
 skill_name=${skill_name:-"skill-planner"}
+
+# Routing validation warning: fire when a non-default task type was requested
+# but no extension routing was found (and manifests did exist to search through)
+if [ -z "$skill_name" ] || [ "$skill_name" = "skill-planner" ]; then
+  case "$task_type" in
+    general|meta|markdown)
+      : # Default task types — no warning needed
+      ;;
+    *)
+      if [ "$manifest_count" -gt 0 ]; then
+        echo "[WARN] Task type '$task_type' requested but no extension routing found in $manifest_count manifest(s). Falling back to skill-planner. If this task should use a specialized planner, check that the correct extension is installed and its manifest.json has a 'routing.plan.$task_type' entry."
+      fi
+      ;;
+  esac
+fi
 ```
 
-**Extension-Based Routing Table**:
-
-| Task Type | Skill to Invoke |
-|-----------|-----------------|
-| `founder` | `skill-founder-plan` (from founder extension) |
-| `founder:deck` | `skill-deck-plan` (from founder extension) |
-| `founder:{sub-type}` | Compound key lookup, falls back to `skill-founder-plan` |
-| Other | `skill-planner` (default) |
+**Extension Skills Location**: Extension skills are located in `.opencode/extensions/{ext}/skills/`. OpenCode discovers these skills dynamically by reading `routing` entries from each extension's `manifest.json`. The bash discovery code above is the authoritative runtime mechanism; no hardcoded tables are used.
 
 **Skill Selection Logic**:
 ```
@@ -385,6 +405,12 @@ if team_mode:
 else:
   skill_name = {extension routing lookup} OR "skill-planner"
 ```
+
+**Delegation Chain Note**: This command uses a two-step delegation pattern:
+1. **Step 1** (this command): The orchestrator uses the `Skill` tool to load the selected skill's instructions
+2. **Step 2** (inside skill): The loaded skill instructions direct the orchestrator to use the `Task` tool to spawn the actual agent
+
+Skills are thin wrappers that handle preflight/postflight (status updates, artifact linking, git commits). Agents do the actual work. **Do NOT use `Skill(agent-name)` directly — agents are not skills.**
 
 **Invoke the Skill tool NOW** with:
 ```
