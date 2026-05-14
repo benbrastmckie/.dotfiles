@@ -1,0 +1,15 @@
+{
+  "phase": 3,
+  "phase_name": "Wire Link/Kill API Endpoints",
+  "started_at": "2026-05-14T12:00:00Z",
+  "last_updated": "2026-05-14T12:00:00Z",
+  "objectives": [
+    {"id": 1, "description": "In _handle_link() new link path: call bot.start_sse_subscriber(session) after link", "status": "not_started"},
+    {"id": 2, "description": "In _handle_link() update path (server_url changes): stop old, start new", "status": "not_started"},
+    {"id": 3, "description": "In _handle_kill(): call bot.stop_sse_subscriber(session_id) before unlink", "status": "not_started"},
+    {"id": 4, "description": "Verify no leaked tasks remain in _sse_subscribers after kill/link cycle", "status": "not_started"}
+  ],
+  "current_objective": 1,
+  "approaches_tried": [],
+  "handoff_count": 0
+}

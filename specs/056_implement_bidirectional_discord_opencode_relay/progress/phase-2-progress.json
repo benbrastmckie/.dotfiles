@@ -1,0 +1,17 @@
+{
+  "phase": 2,
+  "phase_name": "Integrate Subscriber Lifecycle into Bot",
+  "started_at": "2026-05-14T12:00:00Z",
+  "last_updated": "2026-05-14T12:00:00Z",
+  "objectives": [
+    {"id": 1, "description": "Add _sse_subscribers and _discord_relay_sessions to bot class", "status": "not_started"},
+    {"id": 2, "description": "Wrap _relay_and_respond with dedup guard", "status": "not_started"},
+    {"id": 3, "description": "Add start_sse_subscriber(session) method", "status": "not_started"},
+    {"id": 4, "description": "Add stop_sse_subscriber(session_id) method", "status": "not_started"},
+    {"id": 5, "description": "In on_ready(), iterate linked sessions and start subscribers", "status": "not_started"},
+    {"id": 6, "description": "Health-check server_url before starting", "status": "not_started"}
+  ],
+  "current_objective": 1,
+  "approaches_tried": [],
+  "handoff_count": 0
+}

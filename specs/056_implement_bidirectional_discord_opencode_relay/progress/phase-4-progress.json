@@ -1,0 +1,17 @@
+{
+  "phase": 4,
+  "phase_name": "Testing & Validation",
+  "started_at": "2026-05-14T12:00:00Z",
+  "last_updated": "2026-05-14T12:00:00Z",
+  "objectives": [
+    {"id": 1, "description": "Verify TUI response appears in Discord thread (manual test)", "status": "not_started"},
+    {"id": 2, "description": "Verify Discord response appears exactly once (dedup test)", "status": "not_started"},
+    {"id": 3, "description": "Verify graceful handling when TUI dies", "status": "not_started"},
+    {"id": 4, "description": "Verify re-linking restores SSE subscription", "status": "not_started"},
+    {"id": 5, "description": "Check bot logs for SSE parse/connection errors", "status": "not_started"},
+    {"id": 6, "description": "Run existing bot tests to confirm no regressions", "status": "not_started"}
+  ],
+  "current_objective": 6,
+  "approaches_tried": [],
+  "handoff_count": 0
+}
