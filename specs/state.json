@@ -21,16 +21,21 @@
     {
       "project_number": 51,
       "project_name": "documentation_refactor_integrate_adhoc_notes",
-      "status": "planning",
+      "status": "planned",
       "task_type": "markdown",
       "created": "2026-05-03T20:00:10Z",
-      "last_updated": "2026-05-14T19:58:25Z",
+      "last_updated": "2026-05-14T20:02:35Z",
       "session_id": "sess_1778788681_b473c6",
       "artifacts": [
         {
           "path": "specs/051_documentation_refactor_integrate_adhoc_notes/reports/01_documentation-analysis.md",
           "type": "research",
           "summary": "Documentation refactor analysis covering NOTES.md dissolution, docs/neovim.md creation, inline comment conventions, and cross-reference patterns"
+        },
+        {
+          "path": "specs/051_documentation_refactor_integrate_adhoc_notes/plans/01_documentation-refactor.md",
+          "type": "plan",
+          "summary": "Implementation plan with 5 phases: create docs/neovim.md, dissolve NOTES.md, update cross-references, establish inline comment convention, and document the convention in docs/README.md"
         }
       ]
     },
