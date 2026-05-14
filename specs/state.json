@@ -53,11 +53,20 @@
     {
       "project_number": 50,
       "project_name": "fix_sleep_inhibitor_pgrep_self_matching",
-      "status": "researching",
+      "status": "researched",
       "task_type": "nix",
       "created": "2026-04-20T04:11:54Z",
-      "last_updated": "2026-05-14T20:54:29Z",
-      "session_id": "sess_1778792046_3f3589"
+      "last_updated": "2026-05-14T21:48:39Z",
+      "session_id": "sess_1778794717_856278",
+      "artifacts": [
+        {
+          "type": "research",
+          "path": "specs/050_fix_sleep_inhibitor_pgrep_self_matching/reports/01_sleep-inhibitor-research.md",
+          "summary": "Comprehensive research report analyzing pgrep self-matching in claude-sleep-inhibitor, documenting all false positives, verifying safe alternatives on live system, and recommending a hybrid approach with safe pgrep patterns for Claude (-x claude) and OpenCode (-f '/bin/opencode ')."
+        }
+      ],
+      "researched": "2026-05-14T21:48:58Z",
+      "next_artifact_number": 2
     },
     {
       "project_number": 46,
