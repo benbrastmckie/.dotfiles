@@ -883,12 +883,10 @@ systemd.services = {
 
     serviceConfig = {
       Type = "simple";
-      ExecStart = "${pkgs.opencode}/bin/opencode serve --hostname 127.0.0.1 --port 4096";
+      ExecStart = "${pkgs.bash}/bin/bash -c 'OPENCODE_SERVER_PASSWORD=$(cat %d/opencode_server_password) exec ${pkgs.opencode}/bin/opencode serve --hostname 127.0.0.1 --port 4096'";
       Restart = "always";
       RestartSec = "10s";
-      # Inject the server password from sops-nix
       LoadCredential = "opencode_server_password:${config.sops.secrets."opencode_server_password".path}";
-      Environment = "OPENCODE_SERVER_PASSWORD=%d/opencode_server_password";
       # Working directory where .opencode/ config lives
       WorkingDirectory = "/home/benjamin/.dotfiles";
       User = config.users.users.benjamin.name;
