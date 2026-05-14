@@ -15,7 +15,7 @@ import time
 from aiohttp import web
 
 from opencode_discord_bot.src.auth import check_bearer_token
-from opencode_discord_bot.src.relay import create_session_thread
+from opencode_discord_bot.src.relay import _build_thread_name, create_session_thread
 
 logger = logging.getLogger(__name__)
 
@@ -74,9 +74,12 @@ async def _handle_link(request: web.Request) -> web.Response:
             status=400,
         )
 
-    # Check if already linked — update server_url if it changed (TUI port rotation)
+    # Check if already linked — update server_url / thread name if changed
     existing = bot.session_store.get_by_session(session_id)
     if existing:
+        updated = False
+
+        # Update server_url on port rotation
         old_url = existing.get("server_url", "")
         if server_url and server_url != old_url:
             await bot.session_store.update_server_url(session_id, server_url)
@@ -84,6 +87,26 @@ async def _handle_link(request: web.Request) -> web.Response:
                 "Updated server_url for session %s: %s -> %s",
                 session_id, old_url, server_url,
             )
+            updated = True
+
+        # Update thread name if session title changed
+        old_name = existing.get("session_name", "")
+        if session_name and session_name != old_name:
+            new_thread_name = _build_thread_name(session_name, session_id, directory)
+            try:
+                thread = bot.get_channel(int(existing["thread_id"]))
+                if thread:
+                    await thread.edit(name=new_thread_name)
+                    logger.info(
+                        "Renamed thread %s: %r -> %r",
+                        existing["thread_id"], old_name, session_name,
+                    )
+                await bot.session_store.update_session_name(session_id, session_name)
+                updated = True
+            except Exception as exc:
+                logger.warning("Failed to rename thread for session %s: %s", session_id, exc)
+
+        if updated:
             return web.json_response(
                 {"thread_url": existing["thread_url"], "updated": True},
                 status=200,
