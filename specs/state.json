@@ -2,140 +2,6 @@
   "next_project_number": 56,
   "active_projects": [
     {
-      "project_number": 55,
-      "project_name": "create_discord_bot_python_source",
-      "status": "completed",
-      "task_type": "python",
-      "created": "2026-05-09T00:31:15Z",
-      "last_updated": "2026-05-09T01:06:42Z",
-      "session_id": "sess_1778288316_2cdc34",
-      "next_artifact_number": 2,
-      "artifacts": [
-        {
-          "path": "specs/055_create_discord_bot_python_source/reports/01_discord-bot-source.md",
-          "type": "research",
-          "summary": "Research report for Discord bot Python source creation"
-        },
-        {
-          "path": "specs/055_create_discord_bot_python_source/plans/01_discord-bot-source.md",
-          "type": "plan",
-          "summary": "5-phase implementation plan for Discord bot Python source code"
-        },
-        {
-          "path": "specs/055_create_discord_bot_python_source/summaries/01_discord-bot-source-summary.md",
-          "type": "summary",
-          "summary": "Implementation summary for Discord bot Python source"
-        }
-      ],
-      "plan_metadata": {
-        "phases": 5,
-        "total_effort_hours": 7,
-        "complexity": "complex",
-        "research_integrated": true,
-        "plan_version": 1,
-        "dependency_waves": [
-          [
-            1
-          ],
-          [
-            2,
-            3
-          ],
-          [
-            4
-          ],
-          [
-            5
-          ]
-        ],
-        "reports_integrated": [
-          {
-            "path": "reports/01_discord-bot-source.md",
-            "integrated_in_plan_version": 1,
-            "integrated_date": "2026-05-08"
-          }
-        ]
-      },
-      "completion_summary": "Created Discord bot Python source at opencode-discord-bot/ with Nextcord bot, aiohttp HTTP API server, OpenCode relay, and session management"
-    },
-    {
-      "project_number": 54,
-      "project_name": "revise_configuration_to_discord_bot_documentation",
-      "status": "completed",
-      "task_type": "markdown",
-      "created": "2026-05-08T16:17:39Z",
-      "last_updated": "2026-05-09T00:21:19Z",
-      "session_id": "sess_1778285845_760717",
-      "next_artifact_number": 2,
-      "artifacts": [
-        {
-          "path": "specs/054_revise_configuration_to_discord_bot_documentation/reports/01_discord-bot-docs.md",
-          "type": "research",
-          "summary": "Research report for Discord bot documentation revision"
-        },
-        {
-          "path": "specs/054_revise_configuration_to_discord_bot_documentation/plans/01_discord-bot-docs.md",
-          "type": "plan",
-          "summary": "Implementation plan for Discord bot documentation revision"
-        },
-        {
-          "path": "specs/054_revise_configuration_to_discord_bot_documentation/summaries/01_discord-bot-docs-summary.md",
-          "type": "summary",
-          "summary": "Implementation summary for Discord bot documentation revision"
-        }
-      ],
-      "plan_metadata": {
-        "phases": 2,
-        "total_effort_hours": 0.75,
-        "complexity": "simple",
-        "research_integrated": true,
-        "plan_version": 1,
-        "reports_integrated": [
-          {
-            "path": "reports/01_discord-bot-docs.md",
-            "integrated_in_plan_version": 1,
-            "integrated_date": "2026-05-08"
-          }
-        ]
-      },
-      "completion_summary": "Removed duplicated Discord bot sections from configuration.md and fixed inaccuracies in discord-bot.md (misleading port, pinned versions, undeclared sops secrets)"
-    },
-    {
-      "project_number": 53,
-      "project_name": "nixos_discord_bot_prerequisites",
-      "status": "completed",
-      "task_type": "nix",
-      "created": "2026-05-08T01:24:00Z",
-      "last_updated": "2026-05-08T06:26:58Z",
-      "session_id": "sess_1778212736_18723d",
-      "researched": "2026-05-08T02:00:00Z",
-      "next_artifact_number": 3,
-      "artifacts": [
-        {
-          "path": "specs/053_nixos_discord_bot_prerequisites/reports/01_nixos-discord-bot-prerequisites.md",
-          "type": "research",
-          "summary": "Research on NixOS prerequisites for Discord bot setup: confirmed nextcord (3.1.1), sops (3.12.2), age (1.3.1) availability in nixpkgs; designed dedicated Python environment, sops-nix integration, opencode-serve/discord-bot systemd services, and secrets management with age-encrypted sops file."
-        },
-        {
-          "path": "specs/053_nixos_discord_bot_prerequisites/reports/02_python-discord-bot-best-practices.md",
-          "type": "research",
-          "summary": "Comprehensive research on 2026 Python Discord bot best practices: nextcord v3.1.1 (in nixpkgs) confirmed as best choice, age-based sops-nix for secrets, systemd service patterns for production bots, slash-command-only architecture, dedicated python312.withPackages environment, and bot directory structure recommendations."
-        },
-        {
-          "path": "specs/053_nixos_discord_bot_prerequisites/plans/02_nixos-discord-bot-prerequisites.md",
-          "type": "plan",
-          "summary": "Implementation plan with 5 phases covering sops-nix integration, Python environment setup, opencode-serve and discord-bot systemd services, and build verification across all NixOS hosts"
-        },
-        {
-          "path": "specs/053_nixos_discord_bot_prerequisites/summaries/02_nixos-discord-bot-prerequisites-summary.md",
-          "type": "summary"
-        }
-      ],
-      "started": "2026-05-08T03:59:07Z",
-      "completed": "2026-05-08T06:26:58Z",
-      "completion_summary": "Configured sops-nix for age-based secrets, created dedicated Python 3.12 environment with nextcord/aiohttp/anyio, defined opencode-serve and discord-bot systemd services with LoadCredential wiring. Both hamsa and nandi build successfully."
-    },
-    {
       "project_number": 52,
       "project_name": "sleep_inhibition_claude_opencode",
       "status": "researched",
@@ -155,10 +21,18 @@
     {
       "project_number": 51,
       "project_name": "documentation_refactor_integrate_adhoc_notes",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "markdown",
       "created": "2026-05-03T20:00:10Z",
-      "last_updated": "2026-05-03T20:00:10Z"
+      "last_updated": "2026-05-14T19:28:28Z",
+      "session_id": "sess_1778786601_1e2d46",
+      "artifacts": [
+        {
+          "path": "specs/051_documentation_refactor_integrate_adhoc_notes/reports/01_documentation-analysis.md",
+          "type": "research",
+          "summary": "Documentation refactor analysis covering NOTES.md dissolution, docs/neovim.md creation, inline comment conventions, and cross-reference patterns"
+        }
+      ]
     },
     {
       "project_number": 50,
@@ -167,89 +41,6 @@
       "task_type": "nix",
       "created": "2026-04-20T04:11:54Z",
       "last_updated": "2026-04-20T04:11:54Z"
-    },
-    {
-      "project_number": 49,
-      "project_name": "fix_claude_sleep_inhibitor_nix",
-      "status": "completed",
-      "task_type": "nix",
-      "created": "2026-04-20T00:40:17Z",
-      "last_updated": "2026-04-20T01:05:00Z",
-      "session_id": "sess_1776645664_beee5c",
-      "researched": "2026-04-20T00:43:54Z",
-      "planned": "2026-04-20T00:55:00Z",
-      "started": "2026-04-20T00:57:00Z",
-      "completed": "2026-04-20T01:05:00Z",
-      "completion_summary": "Fixed claude-sleep-inhibitor Nix derivation by replacing bare sh and sleep commands with fully-qualified Nix store paths and adding a failure guard to prevent tight retry loops.",
-      "artifacts": [
-        {
-          "path": "specs/049_fix_claude_sleep_inhibitor_nix/reports/01_sleep-inhibitor-fix.md",
-          "type": "research",
-          "summary": "Identified bare sh and sleep references in claude-sleep-inhibitor systemd service (home.nix:813). Fix: replace sh with ${pkgs.bash}/bin/bash, sleep with ${pkgs.coreutils}/bin/sleep inside -c string, add || sleep 5 failure guard."
-        },
-        {
-          "path": "specs/049_fix_claude_sleep_inhibitor_nix/plans/01_sleep-inhibitor-fix.md",
-          "type": "plan",
-          "summary": "Single-phase plan to fix bare sh and sleep references with Nix store paths and add failure guard"
-        },
-        {
-          "path": "specs/049_fix_claude_sleep_inhibitor_nix/summaries/01_sleep-inhibitor-fix-summary.md",
-          "type": "summary",
-          "summary": "Implementation summary for fixing bare command paths in claude-sleep-inhibitor service"
-        }
-      ],
-      "next_artifact_number": 2
-    },
-    {
-      "project_number": 48,
-      "project_name": "replace_markitdown_venv_with_nixpkgs",
-      "status": "completed",
-      "language": "nix",
-      "created": "2026-04-13T19:31:36Z",
-      "last_updated": "2026-04-13T19:41:56Z",
-      "session_id": "sess_1776108909_59d89d",
-      "planned": "2026-04-13T19:34:18Z",
-      "artifacts": [
-        {
-          "path": "specs/048_replace_markitdown_venv_with_nixpkgs/plans/01_markitdown-nixpkgs-migration.md",
-          "type": "plan",
-          "summary": "2-phase implementation plan for markitdown nixpkgs migration"
-        },
-        {
-          "path": "specs/048_replace_markitdown_venv_with_nixpkgs/summaries/01_markitdown-nixpkgs-migration-summary.md",
-          "type": "summary",
-          "summary": "Implementation summary with verification results"
-        }
-      ],
-      "started": "2026-04-13T19:35:33Z",
-      "completed": "2026-04-13T19:41:56Z",
-      "completion_summary": "Replaced custom markitdown venv wrapper with nixpkgs python312Packages.markitdown. Modified home.nix, flake.nix, deleted packages/markitdown.nix, and updated documentation. Build verification passed."
-    },
-    {
-      "project_number": 47,
-      "project_name": "fix_r_python_quarto_env_gaps",
-      "status": "completed",
-      "language": "nix",
-      "description": "Fix R/Python/Quarto environment gaps via Nix wrapper refactor. Replace flat rPackages.* entries in configuration.nix with rWrapper.override containing P0/P1/P2 packages (survival, MASS, nlme, lme4, tidyverse, broom, gtsummary, mice, knitr, rmarkdown, languageserver, styler, lintr); add scipy/statsmodels/scikit-learn/seaborn/pyarrow to home.nix python312.withPackages (scikit-learn requires p.scikit-learn dotted form); add quarto to systemPackages; rebuild and verify. Source report: /home/benjamin/.config/zed/specs/027_fix_task20_env_gaps/reports/01_fix-env-gaps.md",
-      "created": "2026-04-11T01:43:26Z",
-      "last_updated": "2026-04-11T02:00:00Z",
-      "session_id": "sess_1775872113_79fb0b",
-      "planned": "2026-04-11T01:47:26Z",
-      "artifacts": [
-        {
-          "path": "specs/047_fix_r_python_quarto_env_gaps/plans/01_nix-env-wrapper-refactor.md",
-          "type": "plan",
-          "summary": "4-phase implementation plan for R wrapper refactor, Python stack, Quarto, and verification"
-        },
-        {
-          "path": "specs/047_fix_r_python_quarto_env_gaps/summaries/01_nix-env-wrapper-refactor-summary.md",
-          "type": "summary",
-          "summary": "Implementation summary with F8 verification results"
-        }
-      ],
-      "started": "2026-04-11T01:49:10Z",
-      "completed": "2026-04-11T02:00:00Z",
-      "completion_summary": "Refactored R to use rWrapper.override with all P0/P1/P2 packages, added scipy/statsmodels/sklearn/seaborn/pyarrow to the Python environment, and installed Quarto system-wide. All runtime verification tests pass including end-to-end qmd render."
     },
     {
       "project_number": 46,
@@ -268,42 +59,6 @@
           "summary": "Comprehensive analysis of Gmail OAuth2 token expiry causes and solutions"
         }
       ]
-    },
-    {
-      "project_number": 45,
-      "project_name": "add_terminal_email_client_to_nixos",
-      "status": "completed",
-      "language": "nix",
-      "description": "Add terminal email client to NixOS config - find and configure best vim-compatible terminal email client (e.g. neomutt, aerc, or mutt) with vim motions support as interim solution while himalaya neovim integration is developed",
-      "created": "2026-03-24T22:32:52Z",
-      "last_updated": "2026-03-24T23:50:53Z",
-      "session_id": "sess_1774395819_afbf20",
-      "artifacts": [
-        {
-          "type": "research_report",
-          "path": "specs/045_add_terminal_email_client_to_nixos/reports/01_terminal-email-clients.md",
-          "summary": "Comprehensive comparison of terminal email clients (Himalaya, aerc, NeoMutt, notmuch) with focus on vim keybindings, Neovim integration, AI extensibility, and NixOS packaging"
-        },
-        {
-          "type": "research_report",
-          "path": "specs/045_add_terminal_email_client_to_nixos/reports/02_aerc-vs-notmuch-comparison.md",
-          "summary": "Deep comparison of aerc (v0.21.0) vs notmuch (v0.40) covering development activity, workflow differences, features, and NixOS/Home Manager setup"
-        },
-        {
-          "type": "plan",
-          "path": "specs/045_add_terminal_email_client_to_nixos/plans/01_aerc-notmuch-setup.md",
-          "summary": "6-phase implementation plan for aerc + notmuch email setup with Neovim integration"
-        },
-        {
-          "type": "summary",
-          "path": "specs/045_add_terminal_email_client_to_nixos/summaries/01_implementation-summary.md",
-          "summary": "Implementation summary with usage guide"
-        }
-      ],
-      "planned": "2026-03-24T23:10:54Z",
-      "started": "2026-03-24T23:44:05Z",
-      "completed": "2026-03-24T23:50:53Z",
-      "completion_summary": "Configured aerc terminal email client with notmuch backend, vim keybindings, dual-account support (Gmail/Logos), and Neovim integration for a comprehensive terminal email workflow."
     },
     {
       "project_number": 44,
@@ -354,72 +109,6 @@
       "created": "2026-02-24T20:00:00Z",
       "last_updated": "2026-02-24T20:00:00Z",
       "blocked_reason": "Upstream nixpkgs: cucumber-expressions 18.1.0 requires uv_build<0.10.0, nixpkgs ships 0.10.0. Chain: pdf2docx -> python-docx 1.2.0 -> behave -> cucumber-expressions. Uncomment pdf2docx in home.nix when fixed."
-    },
-    {
-      "project_number": 40,
-      "project_name": "investigate_laptop_high_fan_optimize_system",
-      "status": "completed",
-      "language": "nix",
-      "created": "2026-02-23T21:45:42Z",
-      "last_updated": "2026-02-24T19:10:31Z",
-      "session_id": "sess_1771959807_2ef5d3",
-      "artifacts": [
-        {
-          "type": "research",
-          "path": "specs/40_investigate_laptop_high_fan_optimize_system/reports/research-001.md",
-          "summary": "Research report on laptop thermal optimization for NixOS with AMD Ryzen AI 300"
-        },
-        {
-          "type": "research",
-          "path": "specs/40_investigate_laptop_high_fan_optimize_system/reports/research-002.md",
-          "summary": "Lake build optimization research covering parallelism limits, CPU scheduling, memory management, I/O optimization, and thermal/power tradeoffs for Mathlib compilation on AMD Ryzen AI 300"
-        },
-        {
-          "type": "plan",
-          "path": "specs/40_investigate_laptop_high_fan_optimize_system/plans/implementation-002.md",
-          "summary": "Revised implementation plan incorporating both power management fixes and lake build optimization"
-        },
-        {
-          "type": "summary",
-          "path": "specs/40_investigate_laptop_high_fan_optimize_system/summaries/implementation-summary-20260224.md",
-          "summary": "Implementation summary with baseline data, changes, and manual steps"
-        }
-      ],
-      "planned": "2026-02-24T18:30:15Z",
-      "researched": "2026-02-24T18:21:16Z",
-      "started": "2026-02-24T19:03:45Z",
-      "completed": "2026-02-24T19:10:31Z",
-      "completion_summary": "Implemented laptop thermal optimization by removing cpuFreqGovernor conflict with power-profiles-daemon, disabling GNOME tracker services, configuring LEAN_NUM_THREADS=8, and adding lean/lake to earlyoom prefer pattern. Manual nixos-rebuild switch required to activate."
-    },
-    {
-      "project_number": 39,
-      "project_name": "analyze_memory_logs_optimize_system",
-      "status": "completed",
-      "language": "nix",
-      "created": "2026-02-22T21:43:25Z",
-      "last_updated": "2026-02-23T00:11:00Z",
-      "session_id": "sess_1771801460_36b158",
-      "artifacts": [
-        {
-          "type": "research",
-          "path": "specs/39_analyze_memory_logs_optimize_system/reports/research-001.md",
-          "summary": "Comprehensive memory analysis with NixOS configuration recommendations for zram, sysctl tuning, and OOM killer consolidation"
-        },
-        {
-          "path": "specs/39_analyze_memory_logs_optimize_system/plans/implementation-001.md",
-          "type": "plan",
-          "summary": "4-phase implementation plan for memory optimization: disable systemd-oomd, enable zram, tune VM parameters"
-        },
-        {
-          "path": "specs/39_analyze_memory_logs_optimize_system/summaries/implementation-summary-20260222.md",
-          "type": "summary",
-          "summary": "Implementation summary with verification results for all 4 phases"
-        }
-      ],
-      "planned": "2026-02-22T22:58:21Z",
-      "started": "2026-02-22T23:04:42Z",
-      "completed": "2026-02-23T00:11:00Z",
-      "completion_summary": "Implemented memory management optimizations including disabling systemd-oomd, enabling zram compressed swap with zstd algorithm, and tuning VM parameters for desktop responsiveness. All changes verified through phased rebuilds."
     },
     {
       "project_number": 23,

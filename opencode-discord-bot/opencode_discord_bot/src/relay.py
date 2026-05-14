@@ -85,11 +85,20 @@ async def relay_to_opencode(
     session_id: str,
     message_text: str,
 ) -> str:
-    """Send a message to an OpenCode session and return the response text.
+    """Send a message to an OpenCode session and return the response text."""
+    response = await opencode_client.send_message(session_id, message_text)
+    if not response:
+        return "(No response from OpenCode)"
 
-    Uses SSE events to collect the assistant's response asynchronously.
-    """
-    return await opencode_client.send_message_and_wait(session_id, message_text)
+    text_parts = []
+    for part in response.get("parts", []):
+        if isinstance(part, dict) and part.get("type") == "text":
+            text_parts.append(part.get("text", ""))
+
+    if text_parts:
+        return "\n".join(text_parts)
+
+    return "(No text response from OpenCode)"
 
 
 def split_discord_message(text: str, limit: int = 2000) -> list[str]:
