@@ -7,6 +7,7 @@
 - **Effort**: ~30 minutes
 - **Dependencies**: None
 - **Artifacts**: plans/01_memory-optimization.md, home.nix, configuration.nix
+- **Standards**: status-markers.md, artifact-management.md, tasks.md, summary-format.md
 
 ## Overview
 
