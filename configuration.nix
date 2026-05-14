@@ -475,6 +475,9 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       "discord_channel_id" = {
         owner = config.users.users.benjamin.name;
       };
+      "link_api_token" = {
+        owner = config.users.users.benjamin.name;
+      };
     };
   };
   
@@ -697,6 +700,11 @@ programs.fish = {
   interactiveShellInit = ''
     # Initialize zoxide for better directory navigation
     zoxide init fish | source
+
+    # Discord bot link token for Neovim integration (read from sops-nix secret)
+    if test -r /run/secrets/link_api_token
+      set -gx DISCORD_BOT_LINK_TOKEN (cat /run/secrets/link_api_token)
+    end
   '';
 };
 
@@ -909,6 +917,7 @@ systemd.services = {
         "discord_bot_token:${config.sops.secrets."discord_bot_token".path}"
         "opencode_server_password:${config.sops.secrets."opencode_server_password".path}"
         "discord_channel_id:${config.sops.secrets."discord_channel_id".path}"
+        "link_api_token:${config.sops.secrets."link_api_token".path}"
       ];
       Environment = [
         "DISCORD_BOT_TOKEN=%d/discord_bot_token"
@@ -916,7 +925,7 @@ systemd.services = {
         "OPENCODE_SERVER_URL=http://127.0.0.1:4096"
         "DISCORD_CHANNEL_ID=%d/discord_channel_id"
         "WHITELISTED_USER_IDS="
-        "LINK_API_TOKEN="
+        "LINK_API_TOKEN=%d/link_api_token"
         "LOG_LEVEL=info"
         "PYTHONPATH=/home/benjamin/.dotfiles/opencode-discord-bot"
       ];
