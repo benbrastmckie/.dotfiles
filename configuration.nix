@@ -908,13 +908,13 @@ systemd.services = {
   discord-bot = {
     description = "Discord bot relay for OpenCode agent management";
     after = [ "network-online.target" "opencode-serve.service" ];
-    wants = [ "network-online.target" ];
-    requires = [ "opencode-serve.service" ];
+    wants = [ "network-online.target" "opencode-serve.service" ];
     wantedBy = [ "multi-user.target" ];
 
     serviceConfig = {
-      Type = "simple";
+      Type = "notify";
       ExecStart = "${discordBotPython}/bin/python -m opencode_discord_bot.src.bot";
+      WatchdogSec = "120s";
       Restart = "always";
       RestartSec = "10s";
       LoadCredential = [

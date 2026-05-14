@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import signal
 import time
 
@@ -73,6 +74,33 @@ class DiscordBot(commands.Bot):
 
         await super().start(token, **kwargs)
 
+    @staticmethod
+    def _notify_systemd(msg: bytes) -> None:
+        """Send a notification to the systemd notify socket."""
+        sock_addr = os.environ.get("NOTIFY_SOCKET")
+        if not sock_addr:
+            return
+        import socket
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        try:
+            if sock_addr.startswith("@"):
+                sock_addr = "\0" + sock_addr[1:]
+            sock.sendto(msg, sock_addr)
+        except OSError:
+            pass
+        finally:
+            sock.close()
+
+    async def _watchdog_loop(self) -> None:
+        """Ping the systemd watchdog at half the WatchdogSec interval."""
+        usec = os.environ.get("WATCHDOG_USEC")
+        if not usec:
+            return
+        interval = int(usec) / 1_000_000 / 2
+        while True:
+            self._notify_systemd(b"WATCHDOG=1")
+            await asyncio.sleep(interval)
+
     async def on_ready(self) -> None:
         """Called when the bot has connected to Discord."""
         logger.info(
@@ -81,6 +109,8 @@ class DiscordBot(commands.Bot):
             len(self.guilds),
             self.config.bot_http_port,
         )
+        self._notify_systemd(b"READY=1")
+        asyncio.create_task(self._watchdog_loop())
         # Non-blocking health check of OpenCode server
         try:
             healthy = await self.opencode_client.health()
