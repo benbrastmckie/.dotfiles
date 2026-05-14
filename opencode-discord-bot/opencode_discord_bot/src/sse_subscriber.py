@@ -152,30 +152,41 @@ class TuiSseSubscriber:
                 continue
 
             event_type = event.get("type", "")
-            event_session_id = event.get("session_id", "")
+            properties = event.get("properties", {})
+
+            # Extract session ID from properties (event-type specific)
+            event_session_id = ""
+            if event_type == "message.part.updated":
+                event_session_id = properties.get("part", {}).get("sessionID", "")
+            elif event_type == "message.updated":
+                event_session_id = properties.get("info", {}).get("sessionID", "")
+            elif event_type == "session.idle":
+                event_session_id = properties.get("sessionID", "")
+            elif event_type == "session.status":
+                event_session_id = properties.get("sessionID", "")
 
             # Only process events for our session
             if event_session_id and event_session_id != self.session_id:
                 continue
 
             if event_type == "message.part.updated":
-                info = event.get("info", {})
-                message_id = info.get("message_id", "")
-                role = info.get("role", "")
-                part = info.get("part", {})
+                part = properties.get("part", {})
+                message_id = part.get("messageID", "")
 
-                if (
-                    role == "assistant"
-                    and message_id
-                    and part.get("type") == "text"
-                ):
-                    text = part.get("text", "")
-                    text_buffer[message_id] = text_buffer.get(message_id, "") + text
+                if part.get("type") == "text" and message_id:
+                    # Prefer incremental delta; fall back to part.text
+                    delta = properties.get("delta")
+                    if delta is not None:
+                        text_buffer[message_id] = text_buffer.get(message_id, "") + str(delta)
+                    else:
+                        text = part.get("text", "")
+                        if text:
+                            text_buffer[message_id] = text
                     pending_message_id = message_id
 
             elif event_type == "message.updated":
-                info = event.get("info", {})
-                message_id = info.get("message_id", "")
+                info = properties.get("info", {})
+                message_id = info.get("id", "")
                 role = info.get("role", "")
                 time_completed = info.get("time", {}).get("completed")
 
@@ -187,7 +198,13 @@ class TuiSseSubscriber:
                         if pending_message_id == message_id:
                             pending_message_id = None
 
-            elif event_type == "session.idle":
+            elif event_type in ("session.idle", "session.status"):
+                # For session.status, only trigger on idle status
+                if event_type == "session.status":
+                    status = properties.get("status", {})
+                    if status.get("type") != "idle":
+                        continue
+
                 # Primary trigger: post any pending text
                 if pending_message_id and pending_message_id in text_buffer:
                     full_text = text_buffer[pending_message_id]
