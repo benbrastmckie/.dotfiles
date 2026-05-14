@@ -332,4 +332,17 @@ if [[ "$DRY_RUN" != "true" ]]; then
   echo "OK: task $task_number status -> $STATE_STATUS"
 fi
 
+# --- Rename OpenCode session on preflight ---
+if [[ "$operation" == "preflight" && "$DRY_RUN" != "true" ]]; then
+  project_name=$(jq -r --arg num "$task_number" \
+    '.active_projects[] | select(.project_number == ($num | tonumber)) | .project_name' \
+    "$STATE_FILE")
+  # Capitalize first letter of target_status for display
+  label="$(echo "${target_status:0:1}" | tr '[:lower:]' '[:upper:]')${target_status:1}"
+  rename_script="$SCRIPT_DIR/rename-session.sh"
+  if [[ -x "$rename_script" ]]; then
+    bash "$rename_script" "${label} task ${task_number}: ${project_name}" 2>/dev/null || true
+  fi
+fi
+
 exit 0

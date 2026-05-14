@@ -80,16 +80,21 @@
     {
       "project_number": 44,
       "project_name": "review_memory_logs_design_optimizations",
-      "status": "researched",
+      "status": "planned",
       "language": "nix",
       "created": "2026-03-10T16:23:48Z",
-      "last_updated": "2026-05-14T21:09:21Z",
-      "session_id": "sess_1778792046_3f3589",
+      "last_updated": "2026-05-14T21:17:48Z",
+      "session_id": "sess_1778793266_63276e",
       "artifacts": [
         {
           "path": "specs/044_review_memory_logs_design_optimizations/reports/02_memory-usage-update.md",
           "type": "research",
           "summary": "Updated memory assessment shows system usage dropped from 80% to 50%. OpenCode is a new significant consumer (~1.7 GB). Infrastructure remains fully operational. One critical spike to 99% on 2026-03-29 recovered without intervention. No system changes recommended; focus on OpenCode session hygiene."
+        },
+        {
+          "path": "specs/044_review_memory_logs_design_optimizations/plans/01_memory-optimization.md",
+          "type": "plan",
+          "summary": "3-phase plan (2 hours, simple complexity) to extend claude-memory-tracker for OpenCode, add opencode to earlyoom prefer list, and validate infrastructure"
         }
       ],
       "next_artifact_number": 2,
