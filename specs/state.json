@@ -4,11 +4,11 @@
     {
       "project_number": 58,
       "project_name": "discord_permission_approval_flow",
-      "status": "researched",
+      "status": "planned",
       "task_type": "general",
       "created": "2026-05-15T00:16:50Z",
-      "last_updated": "2026-05-15T00:59:35Z",
-      "session_id": "sess_1778806265_e4c602",
+      "last_updated": "2026-05-15T01:15:02Z",
+      "session_id": "sess_1778807458_add189",
       "next_artifact_number": 2,
       "memory_candidates": [
         {
@@ -44,6 +44,11 @@
           "path": "specs/058_discord_permission_approval_flow/reports/01_permission-approval-research.md",
           "type": "research",
           "summary": "Research report on Discord permission approval flow: OpenCode permission API, SSE events, nextcord button patterns, and implementation design"
+        },
+        {
+          "path": "specs/058_discord_permission_approval_flow/plans/01_permission-approval-plan.md",
+          "type": "plan",
+          "summary": "Implementation plan with 4 phases for Discord permission approval flow"
         }
       ]
     },
