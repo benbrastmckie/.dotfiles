@@ -1,6 +1,14 @@
 {
-  "next_project_number": 57,
+  "next_project_number": 58,
   "active_projects": [
+    {
+      "project_number": 57,
+      "project_name": "auto_cleanup_killed_sessions_from_discord",
+      "status": "not_started",
+      "task_type": "general",
+      "created": "2026-05-15T00:04:59Z",
+      "last_updated": "2026-05-15T00:04:59Z"
+    },
     {
       "project_number": 56,
       "project_name": "implement_bidirectional_discord_opencode_relay",

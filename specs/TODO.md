@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 57. Auto cleanup killed sessions from Discord
+- **Status**: [NOT STARTED]
+- **Task Type**: general
+
+**Description**: Auto cleanup killed sessions from Discord — when an OpenCode session is killed, the corresponding Discord thread should also be cleaned up rather than left as a dead/cluttered session.
+
+---
+
 ### 56. Implement bidirectional Discord-OpenCode relay
 - **Status**: [COMPLETED]
 - **Task Type**: general
