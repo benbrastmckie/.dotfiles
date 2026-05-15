@@ -19,6 +19,10 @@ import time
 import aiohttp
 import nextcord
 
+from opencode_discord_bot.src.permission_view import (
+    PermissionApprovalView,
+    make_permission_embed,
+)
 from opencode_discord_bot.src.relay import relay_response_to_thread
 
 logger = logging.getLogger(__name__)
@@ -56,6 +60,8 @@ class TuiSseSubscriber:
         self._started_at: int = 0
         self._embed_timer: asyncio.Task | None = None
         self._pending_embed_thread: nextcord.Thread | None = None
+        # Track posted permission messages by request_id for external resolution updates
+        self._permission_messages: dict[str, nextcord.Message] = {}
 
     async def start(self) -> None:
         """Start the SSE subscription as a background task."""
@@ -283,6 +289,8 @@ class TuiSseSubscriber:
                 event_session_id = properties.get("sessionID", "")
             elif event_type == "session.status":
                 event_session_id = properties.get("sessionID", "")
+            elif event_type in ("permission.asked", "permission.replied"):
+                event_session_id = properties.get("sessionID", "")
 
             if event_session_id and event_session_id != self.session_id:
                 continue
@@ -365,6 +373,12 @@ class TuiSseSubscriber:
                     await self._handle_session_death()
                     break
 
+            elif event_type == "permission.asked":
+                await self._handle_permission_asked(properties)
+
+            elif event_type == "permission.replied":
+                await self._handle_permission_replied(properties)
+
     async def _handle_session_death(self) -> None:
         """Clean up Discord thread and unlink session when the session dies."""
         self._running = False
@@ -402,4 +416,101 @@ class TuiSseSubscriber:
             logger.error(
                 "Failed to send response to thread %s: %s",
                 self.thread_id, exc, exc_info=True,
+            )
+
+    # ------------------------------------------------------------------
+    # Permission event handlers
+    # ------------------------------------------------------------------
+
+    async def _handle_permission_asked(self, properties: dict) -> None:
+        """Handle a permission.asked event by posting an approval embed."""
+        request_id = properties.get("id", "")
+        permission_type = properties.get("permission", "")
+        patterns = properties.get("patterns", [])
+        metadata = properties.get("metadata", {})
+        always_patterns = properties.get("always", [])
+
+        if not request_id:
+            logger.warning("Received permission.asked with no id, skipping")
+            return
+
+        # Skip if we already posted for this request_id (e.g. reconnect recovery)
+        if request_id in self._permission_messages:
+            return
+
+        thread = await self._resolve_thread()
+        if thread is None:
+            return
+
+        # Build embed and view
+        embed = make_permission_embed(
+            request_id=request_id,
+            permission_type=permission_type,
+            patterns=patterns,
+            session_id=self.session_id,
+            metadata=metadata,
+            always_patterns=always_patterns,
+        )
+
+        # Get whitelist from bot config
+        whitelisted = getattr(self.bot, "config", None)
+        whitelisted_ids = whitelisted.whitelisted_user_ids if whitelisted else []
+
+        view = PermissionApprovalView(
+            request_id=request_id,
+            server_url=self.server_url,
+            whitelisted_user_ids=whitelisted_ids,
+        )
+
+        try:
+            msg = await thread.send(embed=embed, view=view)
+            self._permission_messages[request_id] = msg
+            logger.info(
+                "Posted permission request %s for session %s in thread %s",
+                request_id, self.session_id, self.thread_id,
+            )
+        except Exception as exc:
+            logger.error(
+                "Failed to post permission embed for %s: %s",
+                request_id, exc, exc_info=True,
+            )
+
+    async def _handle_permission_replied(self, properties: dict) -> None:
+        """Handle a permission.replied event by updating the posted message."""
+        request_id = properties.get("requestID", "")
+        reply_type = properties.get("reply", "")
+
+        if not request_id:
+            return
+
+        msg = self._permission_messages.pop(request_id, None)
+        if msg is None:
+            # We didn't post this permission (or it was already resolved)
+            return
+
+        action_label = {
+            "once": "Approved (once)",
+            "always": "Approved (always)",
+            "reject": "Rejected",
+        }.get(reply_type, reply_type)
+
+        colour = 0x4CAF50 if reply_type != "reject" else 0xF44336
+
+        embed = nextcord.Embed(
+            title=f"Permission {action_label}",
+            description="Resolved externally (not via Discord buttons).",
+            colour=colour,
+        )
+        embed.set_footer(text=f"Request {request_id[:16]}")
+
+        try:
+            # Edit message to show resolved state with no buttons
+            await msg.edit(embed=embed, view=None)
+            logger.info(
+                "Updated permission message %s as externally resolved (%s)",
+                request_id, reply_type,
+            )
+        except Exception as exc:
+            logger.debug(
+                "Failed to update permission message %s: %s", request_id, exc
             )
