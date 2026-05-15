@@ -1,7 +1,12 @@
 """SSE subscriber that listens to the OpenCode TUI event stream.
 
 Connects to the TUI's ``GET /event`` endpoint and forwards assistant
-responses back to the corresponding Discord thread.
+responses back to the corresponding Discord thread.  For long-running
+tasks (>10s), shows a status embed that updates in-place.  Short
+exchanges get the response posted directly with no embed.
+
+Reconnects automatically with exponential backoff when the SSE
+connection drops.
 """
 
 from __future__ import annotations
@@ -9,29 +14,27 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 
 import aiohttp
+import nextcord
 
 from opencode_discord_bot.src.relay import relay_response_to_thread
 
 logger = logging.getLogger(__name__)
 
+COLOUR_WORKING = 0xFFC107  # yellow/amber
+COLOUR_DONE = 0x4CAF50  # green
+COLOUR_ERROR = 0xF44336  # red
+PROGRESS_EDIT_INTERVAL = 15  # seconds between embed edits
+EMBED_DELAY = 10  # seconds before showing a status embed
+RECONNECT_BASE = 2  # seconds, doubled each retry
+RECONNECT_MAX = 60  # cap on backoff
+
 
 class TuiSseSubscriber:
     """Subscribes to a TUI SSE event stream and relays assistant responses
     to the linked Discord thread.
-
-    Parameters
-    ----------
-    bot:
-        The DiscordBot instance (provides ``get_channel``, ``fetch_channel``,
-        and ``_discord_relay_sessions``).
-    session_id:
-        The OpenCode session ID to filter events for.
-    server_url:
-        Base URL of the TUI server (e.g. ``http://127.0.0.1:4096``).
-    thread_id:
-        Discord thread ID to post responses to.
     """
 
     def __init__(
@@ -48,17 +51,23 @@ class TuiSseSubscriber:
         self._running = False
         self._task: asyncio.Task | None = None
 
+        self._status_msg: nextcord.Message | None = None
+        self._last_edit_time: float = 0
+        self._started_at: int = 0
+        self._embed_timer: asyncio.Task | None = None
+        self._pending_embed_thread: nextcord.Thread | None = None
+
     async def start(self) -> None:
         """Start the SSE subscription as a background task."""
         if self._running:
-            logger.warning("SSE subscriber for %s already running", self.session_id)
             return
         self._running = True
-        self._task = asyncio.create_task(self._run())
+        self._task = asyncio.create_task(self._run_with_reconnect())
 
     async def stop(self) -> None:
         """Stop the SSE subscription."""
         self._running = False
+        self._cancel_embed_timer()
         if self._task and not self._task.done():
             self._task.cancel()
             try:
@@ -66,53 +75,169 @@ class TuiSseSubscriber:
             except asyncio.CancelledError:
                 pass
         self._task = None
-        logger.info("SSE subscriber for %s stopped", self.session_id)
 
-    async def _run(self) -> None:
-        """Main loop: connect to SSE endpoint and process events."""
-        if not self.server_url:
-            logger.info(
-                "No server_url for session %s, skipping SSE subscription",
-                self.session_id,
+    # ------------------------------------------------------------------
+    # Thread resolution
+    # ------------------------------------------------------------------
+
+    async def _resolve_thread(self) -> nextcord.Thread | None:
+        thread = self.bot.get_channel(int(self.thread_id))
+        if thread is None:
+            try:
+                thread = await self.bot.fetch_channel(int(self.thread_id))
+            except Exception as exc:
+                logger.error(
+                    "Failed to resolve thread %s for session %s: %s",
+                    self.thread_id, self.session_id, exc,
+                )
+                return None
+        return thread
+
+    # ------------------------------------------------------------------
+    # Status embed (only for long-running tasks)
+    # ------------------------------------------------------------------
+
+    def _make_embed(
+        self, status: str, snippet: str = "", colour: int = COLOUR_WORKING
+    ) -> nextcord.Embed:
+        embed = nextcord.Embed(colour=colour)
+        embed.add_field(name="Status", value=status, inline=True)
+        if self._started_at:
+            embed.add_field(
+                name="Started", value=f"<t:{self._started_at}:R>", inline=True
             )
+        if snippet:
+            if len(snippet) > 300:
+                snippet = snippet[-300:]
+            embed.add_field(
+                name="Latest activity",
+                value=f"```\n{snippet}\n```",
+                inline=False,
+            )
+        embed.set_footer(text=f"Session {self.session_id[:12]}")
+        return embed
+
+    def _cancel_embed_timer(self) -> None:
+        if self._embed_timer and not self._embed_timer.done():
+            self._embed_timer.cancel()
+        self._embed_timer = None
+
+    def _schedule_embed(self, thread: nextcord.Thread) -> None:
+        """Schedule an embed to appear after EMBED_DELAY seconds."""
+        self._cancel_embed_timer()
+        self._started_at = int(time.time())
+        self._pending_embed_thread = thread
+        self._embed_timer = asyncio.create_task(self._delayed_embed())
+
+    async def _delayed_embed(self) -> None:
+        """Wait, then post the status embed if the response hasn't arrived."""
+        try:
+            await asyncio.sleep(EMBED_DELAY)
+        except asyncio.CancelledError:
+            return
+        thread = self._pending_embed_thread
+        if thread is None:
+            return
+        try:
+            embed = self._make_embed("Processing...")
+            self._status_msg = await thread.send(embed=embed)
+            self._last_edit_time = time.time()
+        except Exception as exc:
+            logger.debug("Failed to post delayed status embed: %s", exc)
+
+    async def _update_progress(self, snippet: str) -> None:
+        """Edit the status embed with a progress snippet, throttled."""
+        if not self._status_msg:
+            return
+        now = time.time()
+        if now - self._last_edit_time < PROGRESS_EDIT_INTERVAL:
+            return
+        try:
+            embed = self._make_embed("Processing...", snippet)
+            await self._status_msg.edit(embed=embed)
+            self._last_edit_time = now
+        except Exception as exc:
+            logger.debug("Failed to edit progress embed: %s", exc)
+
+    async def _finalize_embed(self, success: bool = True) -> None:
+        """Final edit of the status embed, or cancel if it hasn't appeared."""
+        self._cancel_embed_timer()
+        if not self._status_msg:
+            return
+        try:
+            colour = COLOUR_DONE if success else COLOUR_ERROR
+            status = "Completed" if success else "Error"
+            embed = self._make_embed(status, colour=colour)
+            await self._status_msg.edit(embed=embed)
+        except Exception as exc:
+            logger.debug("Failed to finalize status embed: %s", exc)
+        self._status_msg = None
+
+    # ------------------------------------------------------------------
+    # SSE connection with reconnect
+    # ------------------------------------------------------------------
+
+    async def _run_with_reconnect(self) -> None:
+        """Outer loop: reconnect on failure with exponential backoff."""
+        if not self.server_url:
             return
 
         url = f"{self.server_url}/event"
-        logger.info(
-            "Starting SSE subscriber for session %s at %s",
-            self.session_id,
-            url,
-        )
+        backoff = RECONNECT_BASE
 
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url) as response:
-                    if response.status != 200:
-                        logger.warning(
-                            "SSE endpoint returned %d for session %s",
-                            response.status,
-                            self.session_id,
-                        )
-                        return
-
-                    await self._process_stream(response.content)
-        except aiohttp.ClientConnectorError as exc:
+        while self._running:
             logger.info(
-                "Could not connect to SSE endpoint for session %s: %s",
-                self.session_id,
-                exc,
+                "SSE connecting for session %s at %s", self.session_id, url
             )
-        except asyncio.CancelledError:
-            logger.info("SSE subscriber for %s cancelled", self.session_id)
-            raise
-        except Exception:
-            logger.exception("SSE subscriber for %s crashed", self.session_id)
-        finally:
-            self._running = False
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url) as response:
+                        if response.status != 200:
+                            logger.warning(
+                                "SSE endpoint returned %d for session %s",
+                                response.status, self.session_id,
+                            )
+                            await asyncio.sleep(backoff)
+                            backoff = min(backoff * 2, RECONNECT_MAX)
+                            continue
+
+                        backoff = RECONNECT_BASE  # reset on successful connect
+                        await self._process_stream(response.content)
+
+            except aiohttp.ClientConnectorError as exc:
+                logger.info(
+                    "SSE connect failed for session %s: %s",
+                    self.session_id, exc,
+                )
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                logger.exception(
+                    "SSE subscriber for %s crashed", self.session_id
+                )
+
+            if not self._running:
+                break
+
+            logger.info(
+                "SSE reconnecting for session %s in %ds",
+                self.session_id, backoff,
+            )
+            try:
+                await asyncio.sleep(backoff)
+            except asyncio.CancelledError:
+                break
+            backoff = min(backoff * 2, RECONNECT_MAX)
+
+        self._running = False
+
+    # ------------------------------------------------------------------
+    # Stream processing
+    # ------------------------------------------------------------------
 
     async def _process_stream(self, content) -> None:
         """Parse SSE events from the response stream and handle them."""
-        text_buffer: dict[str, str] = {}  # message_id -> accumulated text
+        text_buffer: dict[str, str] = {}
         pending_message_id: str | None = None
 
         while self._running:
@@ -122,13 +247,12 @@ class TuiSseSubscriber:
                 raise
             except Exception:
                 logger.exception(
-                    "Error reading SSE stream for session %s",
-                    self.session_id,
+                    "Error reading SSE stream for session %s", self.session_id
                 )
                 break
 
             if not line:
-                break  # Connection closed
+                break
 
             try:
                 line_str = line.decode("utf-8").strip()
@@ -145,16 +269,11 @@ class TuiSseSubscriber:
             try:
                 event = json.loads(data_str)
             except json.JSONDecodeError:
-                logger.debug(
-                    "Skipping invalid JSON in SSE stream: %s",
-                    data_str[:200],
-                )
                 continue
 
             event_type = event.get("type", "")
             properties = event.get("properties", {})
 
-            # Extract session ID from properties (event-type specific)
             event_session_id = ""
             if event_type == "message.part.updated":
                 event_session_id = properties.get("part", {}).get("sessionID", "")
@@ -165,7 +284,6 @@ class TuiSseSubscriber:
             elif event_type == "session.status":
                 event_session_id = properties.get("sessionID", "")
 
-            # Only process events for our session
             if event_session_id and event_session_id != self.session_id:
                 continue
 
@@ -174,15 +292,26 @@ class TuiSseSubscriber:
                 message_id = part.get("messageID", "")
 
                 if part.get("type") == "text" and message_id:
-                    # Prefer incremental delta; fall back to part.text
                     delta = properties.get("delta")
                     if delta is not None:
-                        text_buffer[message_id] = text_buffer.get(message_id, "") + str(delta)
+                        text_buffer[message_id] = (
+                            text_buffer.get(message_id, "") + str(delta)
+                        )
                     else:
                         text = part.get("text", "")
                         if text:
                             text_buffer[message_id] = text
                     pending_message_id = message_id
+
+                    # Start delayed embed on first chunk (if not already started)
+                    if not self._embed_timer or self._embed_timer.done():
+                        if not self._status_msg:
+                            thread = await self._resolve_thread()
+                            if thread:
+                                self._schedule_embed(thread)
+
+                    snippet = text_buffer.get(message_id, "")
+                    await self._update_progress(snippet)
 
             elif event_type == "message.updated":
                 info = properties.get("info", {})
@@ -193,72 +322,48 @@ class TuiSseSubscriber:
                 if role == "assistant" and message_id and time_completed:
                     full_text = text_buffer.get(message_id, "")
                     if full_text:
+                        await self._finalize_embed(success=True)
                         await self._post_response(full_text, message_id)
                         text_buffer.pop(message_id, None)
                         if pending_message_id == message_id:
                             pending_message_id = None
 
             elif event_type in ("session.idle", "session.status"):
-                # For session.status, only trigger on idle status
                 if event_type == "session.status":
                     status = properties.get("status", {})
                     if status.get("type") != "idle":
                         continue
 
-                # Primary trigger: post any pending text
                 if pending_message_id and pending_message_id in text_buffer:
                     full_text = text_buffer[pending_message_id]
+                    await self._finalize_embed(success=True)
                     await self._post_response(full_text, pending_message_id)
                     text_buffer.pop(pending_message_id, None)
                     pending_message_id = None
                 elif text_buffer:
-                    # Post everything remaining
+                    await self._finalize_embed(success=True)
                     for msg_id, full_text in list(text_buffer.items()):
                         await self._post_response(full_text, msg_id)
                     text_buffer.clear()
                     pending_message_id = None
 
     async def _post_response(self, text: str, message_id: str) -> None:
-        """Post the assistant response to Discord, with deduplication."""
+        """Post the assistant response to Discord."""
         if not text:
             return
 
-        # Check dedup guard: if a Discord->OpenCode relay is in progress
-        # for this session, skip to avoid duplicate posts.
-        if self.session_id in self.bot._discord_relay_sessions:
-            logger.debug(
-                "Skipping SSE relay for session %s message %s (relay in progress)",
-                self.session_id,
-                message_id,
-            )
-            return
-
-        # Resolve Discord thread
-        thread = self.bot.get_channel(int(self.thread_id))
+        thread = await self._resolve_thread()
         if thread is None:
-            try:
-                thread = await self.bot.fetch_channel(int(self.thread_id))
-            except Exception as exc:
-                logger.error(
-                    "Failed to resolve thread %s for session %s: %s",
-                    self.thread_id,
-                    self.session_id,
-                    exc,
-                )
-                return
+            return
 
         try:
             await relay_response_to_thread(thread, text)
             logger.info(
-                "Relayed SSE response for session %s message %s to thread %s",
-                self.session_id,
-                message_id,
-                self.thread_id,
+                "Relayed response for session %s message %s",
+                self.session_id, message_id,
             )
         except Exception as exc:
             logger.error(
-                "Failed to send SSE response to thread %s: %s",
-                self.thread_id,
-                exc,
-                exc_info=True,
+                "Failed to send response to thread %s: %s",
+                self.thread_id, exc, exc_info=True,
             )

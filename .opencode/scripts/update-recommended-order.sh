@@ -23,6 +23,8 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 TODO_FILE="${PROJECT_ROOT}/specs/TODO.md"
 STATE_FILE="${PROJECT_ROOT}/specs/state.json"
 
+mkdir -p specs/tmp
+
 # ============================================================================
 # Helper Functions
 # ============================================================================
@@ -151,7 +153,7 @@ renumber_entries() {
 
     # Create temp file for processing
     local tmp_file
-    tmp_file=$(mktemp)
+    tmp_file=$(mktemp -p specs/tmp tmp.XXXXXXXXXX)
 
     local counter=1
     local in_section=0
@@ -385,7 +387,7 @@ refresh_recommended_order() {
 
         # Insert the new section
         local tmp_file
-        tmp_file=$(mktemp)
+        tmp_file=$(mktemp -p specs/tmp tmp.XXXXXXXXXX)
 
         head -n "$insert_line" "$TODO_FILE" > "$tmp_file"
         echo "" >> "$tmp_file"
@@ -400,7 +402,7 @@ refresh_recommended_order() {
         section_end=$(get_section_end "$section_start")
 
         local tmp_file
-        tmp_file=$(mktemp)
+        tmp_file=$(mktemp -p specs/tmp tmp.XXXXXXXXXX)
 
         # Copy everything before section
         head -n "$((section_start - 1))" "$TODO_FILE" > "$tmp_file"
@@ -494,7 +496,7 @@ add_to_recommended_order() {
         insert_line=$(find_tasks_section_end)
 
         local tmp_file
-        tmp_file=$(mktemp)
+        tmp_file=$(mktemp -p specs/tmp tmp.XXXXXXXXXX)
 
         head -n "$insert_line" "$TODO_FILE" > "$tmp_file"
         echo "" >> "$tmp_file"
@@ -550,7 +552,7 @@ add_to_recommended_order() {
     section_end=$(get_section_end "$section_start")
 
     local tmp_file
-    tmp_file=$(mktemp)
+    tmp_file=$(mktemp -p specs/tmp tmp.XXXXXXXXXX)
 
     local line_num=0
     local entry_num=0
@@ -610,7 +612,7 @@ add_to_recommended_order() {
         section_start=$(get_section_start)
         section_end=$(get_section_end "$section_start")
 
-        tmp_file=$(mktemp)
+        tmp_file=$(mktemp -p specs/tmp tmp.XXXXXXXXXX)
         line_num=0
         in_section=0
         inserted=0
@@ -637,7 +639,7 @@ add_to_recommended_order() {
         # Insert after last entry
         if [[ "$last_entry_line" -gt 0 ]]; then
             local tmp_file2
-            tmp_file2=$(mktemp)
+            tmp_file2=$(mktemp -p specs/tmp tmp.XXXXXXXXXX)
             head -n "$last_entry_line" "$tmp_file" > "$tmp_file2"
             echo "$entry" >> "$tmp_file2"
             tail -n +"$((last_entry_line + 1))" "$tmp_file" >> "$tmp_file2"
@@ -646,7 +648,7 @@ add_to_recommended_order() {
         else
             # No entries yet, insert after section header + blank line
             local tmp_file2
-            tmp_file2=$(mktemp)
+            tmp_file2=$(mktemp -p specs/tmp tmp.XXXXXXXXXX)
             head -n "$((section_start + 1))" "$tmp_file" > "$tmp_file2"
             echo "$entry" >> "$tmp_file2"
             tail -n +"$((section_start + 2))" "$tmp_file" >> "$tmp_file2"

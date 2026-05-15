@@ -10,10 +10,6 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from concurrent.futures import ThreadPoolExecutor
-from urllib.request import Request, urlopen
-from urllib.error import HTTPError, URLError
-import base64
 
 import aiohttp
 
@@ -35,7 +31,6 @@ class OpenCodeClient:
         self._base_url = base_url.rstrip("/")
         self._auth = aiohttp.BasicAuth(login="opencode", password=password) if password else None
         self._session: aiohttp.ClientSession | None = None
-        self._executor = ThreadPoolExecutor(max_workers=4)
 
     def _get_session(self) -> aiohttp.ClientSession:
         """Lazily create the aiohttp session."""
@@ -114,42 +109,28 @@ class OpenCodeClient:
             resp.raise_for_status()
             return await resp.json()
 
-    async def send_message(self, session_id: str, text: str) -> dict:
-        """Send a message and wait for the assistant response.
+    async def send_message(self, session_id: str, text: str) -> None:
+        """Send a message to OpenCode without waiting for the full response.
 
-        Runs the blocking HTTP call in a thread pool so it never starves
-        the asyncio event loop (OpenCode can take minutes for long tasks).
+        The SSE subscriber handles capturing and relaying the assistant
+        response back to Discord, so we only need to confirm the POST
+        was accepted (not wait for the response body).
         """
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            self._executor, self._send_message_sync, session_id, text
-        )
-
-    def _send_message_sync(self, session_id: str, text: str) -> dict:
-        """Synchronous HTTP POST that blocks until the response arrives."""
+        session = self._get_session()
         url = f"{self._base_url}/session/{session_id}/message"
-        payload = json.dumps({"parts": [{"type": "text", "text": text}]}).encode()
+        payload = {"parts": [{"type": "text", "text": text}]}
 
-        req = Request(url, data=payload, method="POST")
-        req.add_header("Content-Type", "application/json")
-        if self._auth:
-            cred = base64.b64encode(
-                f"{self._auth.login}:{self._auth.password}".encode()
-            ).decode()
-            req.add_header("Authorization", f"Basic {cred}")
-
-        try:
-            with urlopen(req, timeout=600) as resp:
-                body = resp.read()
-                if not body:
-                    return {}
-                return json.loads(body)
-        except HTTPError as exc:
-            logger.error("OpenCode API error %d: %s", exc.code, exc.reason)
-            raise
-        except URLError as exc:
-            logger.error("OpenCode connection error: %s", exc.reason)
-            raise
+        async with session.post(
+            url,
+            json=payload,
+            timeout=aiohttp.ClientTimeout(total=30),
+        ) as resp:
+            resp.raise_for_status()
+            logger.info(
+                "Message sent to session %s (status %d)",
+                session_id,
+                resp.status,
+            )
 
     async def abort_session(self, session_id: str) -> bool:
         """Abort a running OpenCode session."""

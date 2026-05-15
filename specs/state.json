@@ -12,11 +12,11 @@
     {
       "project_number": 57,
       "project_name": "auto_cleanup_killed_sessions_from_discord",
-      "status": "researched",
+      "status": "planned",
       "task_type": "general",
       "created": "2026-05-15T00:04:59Z",
-      "last_updated": "2026-05-15T00:15:57Z",
-      "session_id": "sess_57_team_fallback",
+      "last_updated": "2026-05-15T00:36:43Z",
+      "session_id": "sess_1778805139_ef9fa6",
       "next_artifact_number": 2,
       "memory_candidates": [
         {
@@ -81,6 +81,11 @@
           "path": "specs/057_auto_cleanup_killed_sessions_from_discord/reports/01_auto-cleanup-sessions.md",
           "type": "research",
           "summary": "Complete analysis of session kill lifecycle with two distinct paths: explicit (POST /kill with bot as caller) and implicit (SSE session.deleted/error events or TUI death). Identifies the exact insertion point for thread cleanup in _handle_kill(), missing SSE event handlers in TuiSseSubscriber, and recommends a health-check polling loop as a fallback. Recommends thread archiving+locking as default cleanup mode."
+        },
+        {
+          "path": "specs/057_auto_cleanup_killed_sessions_from_discord/plans/01_auto-cleanup-killed-sessions.md",
+          "type": "plan",
+          "summary": "5-phase implementation plan for auto-cleanup of killed OpenCode sessions from Discord. Covers explicit kill path (api.py), implicit kill path via SSE events (sse_subscriber.py), health-check polling loop (bot.py), and configurable cleanup mode (config.py)."
         }
       ]
     },
