@@ -1,7 +1,7 @@
 # Implementation Plan: Discord Permission Approval Flow
 
 - **Task**: 58 - discord_permission_approval_flow
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 3.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/058_discord_permission_approval_flow/reports/01_permission-approval-research.md
@@ -70,7 +70,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: Extend OpenCode Client with Permission API Methods [NOT STARTED]
+### Phase 1: Extend OpenCode Client with Permission API Methods [COMPLETED]
 
 **Goal**: Add `reply_permission()` and `list_permissions()` methods to the `OpenCodeClient` class so downstream code can interact with the permission endpoints.
 
