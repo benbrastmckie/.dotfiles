@@ -208,6 +208,8 @@ class TuiSseSubscriber:
                             continue
 
                         backoff = RECONNECT_BASE  # reset on successful connect
+                        # Recover any pending permissions missed during disconnection
+                        await self._recover_pending_permissions()
                         await self._process_stream(response.content)
 
             except aiohttp.ClientConnectorError as exc:
@@ -514,3 +516,50 @@ class TuiSseSubscriber:
             logger.debug(
                 "Failed to update permission message %s: %s", request_id, exc
             )
+
+    async def _recover_pending_permissions(self) -> None:
+        """Fetch and display any pending permissions missed during SSE disconnection.
+
+        Called after a successful SSE reconnect to ensure no permission
+        requests are lost. Skips permissions that have already been posted.
+        """
+        from opencode_discord_bot.src.opencode_client import OpenCodeClient
+
+        client = OpenCodeClient(base_url=self.server_url)
+        try:
+            pending = await client.list_permissions()
+        except Exception as exc:
+            logger.debug(
+                "Failed to recover permissions for session %s: %s",
+                self.session_id, exc,
+            )
+            return
+        finally:
+            await client.close()
+
+        if not pending:
+            return
+
+        # Filter to permissions for this session only
+        session_permissions = [
+            p for p in pending
+            if p.get("sessionID", "") == self.session_id
+        ]
+
+        if not session_permissions:
+            return
+
+        logger.info(
+            "Recovering %d pending permission(s) for session %s",
+            len(session_permissions), self.session_id,
+        )
+
+        for perm in session_permissions:
+            request_id = perm.get("id", "")
+            if not request_id:
+                continue
+            # Skip if already posted
+            if request_id in self._permission_messages:
+                continue
+            # Reuse the same handler logic
+            await self._handle_permission_asked(perm)
