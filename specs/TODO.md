@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 58. Implement Discord permission approval flow
+- **Status**: [NOT STARTED]
+- **Task Type**: general
+
+**Description**: Implement a Discord permission approval flow — when OpenCode requires permissions (e.g. file access, command execution), users should be notified in Discord and be able to approve or deny the permission request directly from a Discord message, rather than having no visibility into pending permission requests.
+
+---
+
 ### 57. Auto cleanup killed sessions from Discord
 - **Status**: [RESEARCHED]
 - **Task Type**: general
