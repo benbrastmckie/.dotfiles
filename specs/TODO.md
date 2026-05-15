@@ -2,39 +2,6 @@
 
 ## Active Tasks
 
-### 58. Implement Discord permission approval flow
-- **Status**: [COMPLETED]
-- **Task Type**: general
-- **Research**: [058_discord_permission_approval_flow/reports/01_permission-approval-research.md]
-- **Plan**: [058_discord_permission_approval_flow/plans/01_permission-approval-plan.md]
-- **Summary**: [058_discord_permission_approval_flow/summaries/01_permission-approval-summary.md]
-
-**Description**: Implement a Discord permission approval flow — when OpenCode requires permissions (e.g. file access, command execution), users should be notified in Discord and be able to approve or deny the permission request directly from a Discord message, rather than having no visibility into pending permission requests.
-
----
-
-### 57. Auto cleanup killed sessions from Discord
-- **Status**: [COMPLETED]
-- **Task Type**: general
-- **Research**: [057_auto_cleanup_killed_sessions_from_discord/reports/01_auto-cleanup-sessions.md]
-- **Plan**: [057_auto_cleanup_killed_sessions_from_discord/plans/01_auto-cleanup-killed-sessions.md]
-- **Summary**: [057_auto_cleanup_killed_sessions_from_discord/summaries/01_auto-cleanup-killed-sessions-summary.md]
-
-**Description**: Auto cleanup killed sessions from Discord — when an OpenCode session is killed, the corresponding Discord thread should also be cleaned up rather than left as a dead/cluttered session.
-
----
-
-### 56. Implement bidirectional Discord-OpenCode relay
-- **Status**: [COMPLETED]
-- **Task Type**: general
-- **Research**: [056_implement_bidirectional_discord_opencode_relay/reports/01_discord-opencode-relay.md]
-- **Plan**: [056_implement_bidirectional_discord_opencode_relay/plans/01_bidirectional-discord-opencode-relay.md]
-- **Summary**: [056_implement_bidirectional_discord_opencode_relay/summaries/01_bidirectional-discord-opencode-relay-summary.md]
-
-**Description**: Implement the reverse relay for the Discord-OpenCode bot: when a user types in the OpenCode TUI and receives an assistant response, that response should automatically appear in the corresponding linked Discord thread. The existing Discord->OpenCode relay is fully operational; this task adds the missing TUI->Discord direction by introducing an SSE subscriber that listens to the TUI's /event endpoint and posts assistant responses back to Discord. Primary complexity is deduplication: responses from Discord-sourced prompts must not be re-posted.
-
----
-
 ### 52. Add sleep inhibition during active Claude Code/Opencode sessions
 - **Status**: [PLANNED]
 - **Task Type**: nix
@@ -42,17 +9,6 @@
 - **Plan**: [052_sleep_inhibition_claude_opencode/plans/01_sleep-inhibition-implementation.md]
 
 **Description**: Create a feature to inhibit computer sleep while Claude Code or Opencode are actively running (not idle), while allowing screen dimming per GNOME settings. Research best practices for achieving this within the current NixOS configuration. The end goal is a `<leader>ai` Neovim mapping that inhibits sleep when these tools are running. The Neovim keymapping will be handled separately in the nvim config.
-
----
-
-### 51. Documentation refactor: integrate ad-hoc notes into systematic docs
-- **Status**: [COMPLETED]
-- **Task Type**: markdown
-- **Research**: [051_documentation_refactor_integrate_adhoc_notes/reports/01_documentation-analysis.md]
-- **Plan**: [051_documentation_refactor_integrate_adhoc_notes/plans/01_documentation-refactor.md]
-- **Summary**: [051_documentation_refactor_integrate_adhoc_notes/summaries/01_documentation-refactor-summary.md]
-
-**Description**: Use the `programs.neovim` / `sideloadInitLua` fix (May 2026) as a concrete worked example to drive a repo-wide documentation refactor. The fix itself: a home-manager update changed the default behavior of `programs.neovim` so that provider config (python3_host_prog, ruby_host_prog) was written to `~/.config/nvim/init.lua` as a managed nix-store symlink, overwriting the user's config. Fix was `sideloadInitLua = true` in home.nix, which routes provider config through `--cmd` wrapper args instead. Initial documentation was created as: (1) an expanded inline comment on the `sideloadInitLua` line in `home.nix`, and (2) a new "Neovim" section in `NOTES.md`. The task is to evaluate and clean up that documentation, integrate it properly into `docs/` (likely `docs/applications.md` or a new `docs/neovim.md`) and any relevant `README.md` files, and use this specific case to establish a pattern and conventions for how NixOS config decisions, gotchas, and fixes should be documented repo-wide going forward. The goal is a sustainable, navigable documentation system where inline comments capture the why briefly, and `docs/` contains the full context.
 
 ---
 
@@ -71,20 +27,6 @@
 - **Research**: [01_gmail-oauth2-token-expiry.md](specs/046_investigate_fix_gmail_oauth2_token_expiry/reports/01_gmail-oauth2-token-expiry.md)
 
 **Description**: Investigate and fix Gmail OAuth2 token expiry - tokens keep expiring requiring repeated re-authentication with `himalaya account configure gmail`.
-
----
-
-### 44. Review memory logs and design system optimizations
-- **Status**: [COMPLETED]
-- **Language**: nix
-- **Researched**: 2026-03-10
-- **Research**:
-  - [research-001.md](specs/44_review_memory_logs_design_optimizations/reports/research-001.md)
-  - [044_review_memory_logs_design_optimizations/reports/02_memory-usage-update.md]
-- **Plan**: [044_review_memory_logs_design_optimizations/plans/01_memory-optimization.md]
-- **Summary**: [044_review_memory_logs_design_optimizations/summaries/01_memory-optimization-summary.md]
-
-**Description**: Review memory monitor logs to identify what is consuming memory when usage reaches 80%. Analyze patterns and design system improvements that can optimize memory usage while avoiding needless complexity.
 
 ---
 
