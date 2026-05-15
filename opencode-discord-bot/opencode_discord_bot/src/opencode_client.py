@@ -159,3 +159,74 @@ class OpenCodeClient:
         except aiohttp.ClientError as exc:
             logger.error("Failed to delete session %s: %s", session_id, exc)
             return False
+
+    # ------------------------------------------------------------------
+    # Permission API methods
+    # ------------------------------------------------------------------
+
+    async def reply_permission(
+        self, request_id: str, reply: str, message: str = ""
+    ) -> bool:
+        """Reply to a permission request.
+
+        Parameters
+        ----------
+        request_id:
+            Permission request ID (starts with "per").
+        reply:
+            One of "once", "always", "reject".
+        message:
+            Optional feedback message (used with reject).
+
+        Returns
+        -------
+        bool
+            True if the reply was accepted, False on error.
+        """
+        session = self._get_session()
+        url = f"{self._base_url}/permission/{request_id}/reply"
+        payload: dict = {"reply": reply}
+        if message:
+            payload["message"] = message
+
+        try:
+            async with session.post(
+                url,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=10),
+            ) as resp:
+                resp.raise_for_status()
+                logger.info(
+                    "Permission %s replied with '%s' (status %d)",
+                    request_id, reply, resp.status,
+                )
+                return True
+        except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+            logger.error(
+                "Failed to reply to permission %s: %s", request_id, exc
+            )
+            return False
+
+    async def list_permissions(self) -> list[dict]:
+        """List all pending permission requests.
+
+        Returns
+        -------
+        list[dict]
+            Array of pending Permission.Request objects.
+        """
+        session = self._get_session()
+        url = f"{self._base_url}/permission"
+
+        try:
+            async with session.get(
+                url, timeout=aiohttp.ClientTimeout(total=10)
+            ) as resp:
+                resp.raise_for_status()
+                data = await resp.json()
+                if isinstance(data, list):
+                    return data
+                return data.get("permissions", data.get("data", []))
+        except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+            logger.error("Failed to list permissions: %s", exc)
+            return []
