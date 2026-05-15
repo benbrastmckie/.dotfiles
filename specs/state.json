@@ -4,10 +4,77 @@
     {
       "project_number": 57,
       "project_name": "auto_cleanup_killed_sessions_from_discord",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "general",
       "created": "2026-05-15T00:04:59Z",
-      "last_updated": "2026-05-15T00:04:59Z"
+      "last_updated": "2026-05-15T00:15:57Z",
+      "session_id": "sess_57_team_fallback",
+      "next_artifact_number": 2,
+      "memory_candidates": [
+        {
+          "content": "OpenCode sessions can be killed via two distinct paths: explicit kill (POST /kill via the Discord bot API where the bot is the caller with access to thread_id) and implicit kill (SSE session.deleted/session.error events or TUI process death where the bot is only an observer). The SSE event stream emits session.deleted and session.error events that signal session termination. When implementing cleanup for any session-based relay system, both paths must be handled separately since the bot's access to session metadata differs between them.",
+          "category": "PATTERN",
+          "source_artifact": "specs/057_auto_cleanup_killed_sessions_from_discord/reports/01_auto-cleanup-sessions.md",
+          "confidence": 0.85,
+          "suggested_keywords": [
+            "opencode",
+            "discord",
+            "session-lifecycle",
+            "kill-paths",
+            "sse-events",
+            "cleanup"
+          ]
+        },
+        {
+          "content": "Discord thread cleanup for bot-created threads can be done via Thread.edit(archived=True, locked=True) for non-destructive archival or Thread.delete() for permanent removal. Archiving is the safer default since it preserves conversation history and is reversible. Threads created as PUBLIC_THREAD with auto_archive_duration will auto-archive after the configured period of inactivity, but explicit cleanup provides immediate housekeeping rather than waiting for the timeout.",
+          "category": "TECHNIQUE",
+          "source_artifact": "specs/057_auto_cleanup_killed_sessions_from_discord/reports/01_auto-cleanup-sessions.md",
+          "confidence": 0.9,
+          "suggested_keywords": [
+            "discord",
+            "nextcord",
+            "thread-cleanup",
+            "archive",
+            "delete",
+            "bot"
+          ]
+        },
+        {
+          "content": "OpenCode sessions can be killed via two distinct paths: explicit kill (POST /kill via the Discord bot API where the bot is the caller with access to thread_id) and implicit kill (SSE session.deleted/session.error events or TUI process death where the bot is only an observer).",
+          "category": "PATTERN",
+          "source_artifact": "specs/057_auto_cleanup_killed_sessions_from_discord/reports/01_auto-cleanup-sessions.md",
+          "confidence": 0.85,
+          "suggested_keywords": [
+            "opencode",
+            "discord",
+            "session-lifecycle",
+            "kill-paths",
+            "sse-events",
+            "cleanup"
+          ]
+        },
+        {
+          "content": "Discord thread cleanup for bot-created threads can be done via Thread.edit(archived=True, locked=True) for non-destructive archival or Thread.delete() for permanent removal.",
+          "category": "TECHNIQUE",
+          "source_artifact": "specs/057_auto_cleanup_killed_sessions_from_discord/reports/01_auto-cleanup-sessions.md",
+          "confidence": 0.9,
+          "suggested_keywords": [
+            "discord",
+            "nextcord",
+            "thread-cleanup",
+            "archive",
+            "delete",
+            "bot"
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "specs/057_auto_cleanup_killed_sessions_from_discord/reports/01_auto-cleanup-sessions.md",
+          "type": "research",
+          "summary": "Complete analysis of session kill lifecycle with two distinct paths: explicit (POST /kill with bot as caller) and implicit (SSE session.deleted/error events or TUI death). Identifies the exact insertion point for thread cleanup in _handle_kill(), missing SSE event handlers in TuiSseSubscriber, and recommends a health-check polling loop as a fallback. Recommends thread archiving+locking as default cleanup mode."
+        }
+      ]
     },
     {
       "project_number": 56,
