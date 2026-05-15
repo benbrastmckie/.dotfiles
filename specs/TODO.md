@@ -11,10 +11,11 @@
 ---
 
 ### 57. Auto cleanup killed sessions from Discord
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: general
 - **Research**: [057_auto_cleanup_killed_sessions_from_discord/reports/01_auto-cleanup-sessions.md]
 - **Plan**: [057_auto_cleanup_killed_sessions_from_discord/plans/01_auto-cleanup-killed-sessions.md]
+- **Summary**: [057_auto_cleanup_killed_sessions_from_discord/summaries/01_auto-cleanup-killed-sessions-summary.md]
 
 **Description**: Auto cleanup killed sessions from Discord — when an OpenCode session is killed, the corresponding Discord thread should also be cleaned up rather than left as a dead/cluttered session.
 
