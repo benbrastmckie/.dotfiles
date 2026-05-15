@@ -4,10 +4,48 @@
     {
       "project_number": 58,
       "project_name": "discord_permission_approval_flow",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "general",
       "created": "2026-05-15T00:16:50Z",
-      "last_updated": "2026-05-15T00:16:50Z"
+      "last_updated": "2026-05-15T00:59:35Z",
+      "session_id": "sess_1778806265_e4c602",
+      "next_artifact_number": 2,
+      "memory_candidates": [
+        {
+          "content": "OpenCode permission system uses SSE event permission.asked with properties {id, sessionID, permission, patterns, metadata, always, tool?}. Replies via POST /permission/:requestID/reply with body {reply: once|always|reject, message?: string}. Pending permissions listed via GET /permission.",
+          "category": "PATTERN",
+          "source_artifact": "specs/058_discord_permission_approval_flow/reports/01_permission-approval-research.md",
+          "confidence": 0.95,
+          "suggested_keywords": [
+            "opencode",
+            "permission",
+            "SSE",
+            "API",
+            "approval",
+            "headless"
+          ]
+        },
+        {
+          "content": "Nextcord persistent views (buttons that survive bot restarts) require: timeout=None in View.__init__, unique custom_id on each button, and re-registration via bot.add_view() on startup.",
+          "category": "TECHNIQUE",
+          "source_artifact": "specs/058_discord_permission_approval_flow/reports/01_permission-approval-research.md",
+          "confidence": 0.8,
+          "suggested_keywords": [
+            "nextcord",
+            "discord",
+            "persistent-view",
+            "buttons",
+            "custom_id"
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "specs/058_discord_permission_approval_flow/reports/01_permission-approval-research.md",
+          "type": "research",
+          "summary": "Research report on Discord permission approval flow: OpenCode permission API, SSE events, nextcord button patterns, and implementation design"
+        }
+      ]
     },
     {
       "project_number": 57,
