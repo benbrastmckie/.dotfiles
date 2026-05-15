@@ -227,11 +227,25 @@ async def _handle_kill(request: web.Request) -> web.Response:
     # Stop SSE subscriber before unlinking
     await bot.stop_sse_subscriber(session_id)
 
+    # Look up thread_id before unlinking so we can clean up
+    session_entry = bot.session_store.get_by_session(session_id)
+    thread_id = session_entry.get("thread_id", "") if session_entry else ""
+
     # Attempt to abort the session on the OpenCode server
     try:
         await bot.opencode_client.abort_session(session_id)
     except Exception as exc:
         logger.warning("Failed to abort session %s on OpenCode server: %s", session_id, exc)
+
+    # Clean up Discord thread before unlinking from store
+    if thread_id:
+        logger.info(
+            "Cleaning up Discord thread %s for session %s (mode: %s)",
+            thread_id,
+            session_id,
+            bot.config.cleanup_mode,
+        )
+        await bot._cleanup_discord_thread(thread_id)
 
     # Unlink from store regardless
     await bot.session_store.unlink(session_id)

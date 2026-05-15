@@ -347,6 +347,42 @@ class TuiSseSubscriber:
                     text_buffer.clear()
                     pending_message_id = None
 
+            elif event_type == "session.deleted":
+                logger.info(
+                    "Session %s received session.deleted, cleaning up thread",
+                    self.session_id,
+                )
+                await self._handle_session_death()
+                break
+
+            elif event_type == "session.error":
+                error_session_id = properties.get("sessionID", "")
+                if error_session_id and error_session_id == self.session_id:
+                    logger.info(
+                        "Session %s received terminal session.error, cleaning up thread",
+                        self.session_id,
+                    )
+                    await self._handle_session_death()
+                    break
+
+    async def _handle_session_death(self) -> None:
+        """Clean up Discord thread and unlink session when the session dies."""
+        self._running = False
+        self._cancel_embed_timer()
+
+        # Look up thread_id from session store before unlinking
+        session_entry = self.bot.session_store.get_by_session(self.session_id)
+        thread_id = session_entry.get("thread_id", "") if session_entry else ""
+
+        if thread_id:
+            await self.bot._cleanup_discord_thread(thread_id)
+
+        await self.bot.session_store.unlink(self.session_id)
+
+        # Remove from bot tracking without awaiting our own task
+        self.bot._sse_subscriber_instances.pop(self.session_id, None)
+        self.bot._sse_subscribers.pop(self.session_id, None)
+
     async def _post_response(self, text: str, message_id: str) -> None:
         """Post the assistant response to Discord."""
         if not text:

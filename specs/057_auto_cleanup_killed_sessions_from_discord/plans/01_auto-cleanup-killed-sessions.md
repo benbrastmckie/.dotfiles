@@ -1,7 +1,7 @@
 # Implementation Plan: Auto Cleanup Killed Sessions from Discord
 
 - **Task**: 57 - Auto cleanup killed sessions from Discord
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 4 hours
 - **Dependencies**: Task 56 (Bidirectional Discord-OpenCode relay)
 - **Research Inputs**: `specs/057_auto_cleanup_killed_sessions_from_discord/reports/01_auto-cleanup-sessions.md`
@@ -64,7 +64,7 @@ No ROADMAP.md items found.
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Add Cleanup Configuration and Helper [NOT STARTED]
+### Phase 1: Add Cleanup Configuration and Helper [COMPLETED]
 
 **Goal**: Add the `CLEANUP_MODE` configuration option and a reusable Discord thread cleanup helper to `bot.py`.
 
@@ -94,7 +94,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Path A — Explicit Kill Cleanup in api.py [NOT STARTED]
+### Phase 2: Path A — Explicit Kill Cleanup in api.py [COMPLETED]
 
 **Goal**: Update `_handle_kill()` to clean up the Discord thread before unlinking the session from the store.
 
@@ -119,7 +119,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Path B — SSE Event Handlers in sse_subscriber.py [NOT STARTED]
+### Phase 3: Path B — SSE Event Handlers in sse_subscriber.py [COMPLETED]
 
 **Goal**: Add handlers for `session.deleted` and terminal `session.error` events in `TuiSseSubscriber` to trigger thread cleanup.
 
@@ -148,7 +148,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Health-Check Polling Loop in bot.py [NOT STARTED]
+### Phase 4: Health-Check Polling Loop in bot.py [COMPLETED]
 
 **Goal**: Add a background task that periodically polls the headless server to detect stale sessions and trigger cleanup.
 
@@ -183,7 +183,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Testing and Validation [NOT STARTED]
+### Phase 5: Testing and Validation [COMPLETED]
 
 **Goal**: Verify all three cleanup paths work correctly in a live or mocked environment.
 

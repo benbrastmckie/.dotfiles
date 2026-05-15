@@ -61,6 +61,9 @@ class Config:
         LOG_LEVEL                  - Python logging level (default: info)
         DISCORD_CHANNEL_ID         - Discord channel for thread creation
         BOT_HTTP_PORT              - Port for the local HTTP API (default: 8080)
+        OPENCODE_DISCORD_CLEANUP_MODE - Thread cleanup mode: "archive" (default) or "delete"
+        OPENCODE_HEALTH_CHECK_ENABLED - Enable periodic health-check polling (default: true)
+        OPENCODE_HEALTH_CHECK_INTERVAL - Health-check polling interval in seconds (default: 300)
     """
 
     discord_bot_token: str = ""
@@ -71,6 +74,9 @@ class Config:
     log_level: str = "INFO"
     discord_channel_id: int = 0
     bot_http_port: int = 8080
+    cleanup_mode: str = "archive"
+    health_check_enabled: bool = True
+    health_check_interval: int = 300
 
     @classmethod
     def from_env(cls) -> Config:
@@ -129,6 +135,26 @@ class Config:
             )
             bot_http_port = 8080
 
+        cleanup_mode = os.environ.get("OPENCODE_DISCORD_CLEANUP_MODE", "archive").lower()
+        if cleanup_mode not in ("archive", "delete"):
+            logger.warning(
+                "OPENCODE_DISCORD_CLEANUP_MODE=%r is not valid, defaulting to 'archive'",
+                cleanup_mode,
+            )
+            cleanup_mode = "archive"
+
+        health_check_enabled = os.environ.get("OPENCODE_HEALTH_CHECK_ENABLED", "true").lower() != "false"
+
+        interval_raw = os.environ.get("OPENCODE_HEALTH_CHECK_INTERVAL", "300")
+        try:
+            health_check_interval = int(interval_raw)
+        except ValueError:
+            logger.warning(
+                "OPENCODE_HEALTH_CHECK_INTERVAL=%r is not a valid integer, defaulting to 300",
+                interval_raw,
+            )
+            health_check_interval = 300
+
         return cls(
             discord_bot_token=discord_bot_token,
             opencode_server_password=opencode_server_password,
@@ -138,4 +164,7 @@ class Config:
             log_level=log_level,
             discord_channel_id=discord_channel_id,
             bot_http_port=bot_http_port,
+            cleanup_mode=cleanup_mode,
+            health_check_enabled=health_check_enabled,
+            health_check_interval=health_check_interval,
         )

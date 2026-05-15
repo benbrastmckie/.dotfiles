@@ -12,10 +12,10 @@
     {
       "project_number": 57,
       "project_name": "auto_cleanup_killed_sessions_from_discord",
-      "status": "planned",
+      "status": "completed",
       "task_type": "general",
       "created": "2026-05-15T00:04:59Z",
-      "last_updated": "2026-05-15T00:36:43Z",
+      "last_updated": "2026-05-15T00:42:10Z",
       "session_id": "sess_1778805139_ef9fa6",
       "next_artifact_number": 2,
       "memory_candidates": [
@@ -86,8 +86,14 @@
           "path": "specs/057_auto_cleanup_killed_sessions_from_discord/plans/01_auto-cleanup-killed-sessions.md",
           "type": "plan",
           "summary": "5-phase implementation plan for auto-cleanup of killed OpenCode sessions from Discord. Covers explicit kill path (api.py), implicit kill path via SSE events (sse_subscriber.py), health-check polling loop (bot.py), and configurable cleanup mode (config.py)."
+        },
+        {
+          "path": "specs/057_auto_cleanup_killed_sessions_from_discord/summaries/01_auto-cleanup-killed-sessions-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary for Task 57: Auto cleanup killed sessions from Discord covering explicit kill path, implicit SSE event handlers, and health-check polling loop."
         }
-      ]
+      ],
+      "completion_summary": "Implemented auto-cleanup of killed OpenCode sessions from Discord across all three kill paths: explicit kill via POST /kill (api.py), implicit kill via SSE session.deleted/session.error events (sse_subscriber.py), and stale session detection via a periodic health-check polling loop (bot.py). Added configurable cleanup mode (archive vs delete) via OPENCODE_DISCORD_CLEANUP_MODE env var."
     },
     {
       "project_number": 56,

@@ -53,6 +53,8 @@ class DiscordBot(commands.Bot):
         self.start_time = time.time()
         self._sse_subscribers: dict[str, asyncio.Task] = {}
         self._sse_subscriber_instances: dict[str, TuiSseSubscriber] = {}
+        self._session_health_task: asyncio.Task | None = None
+        self._session_health_running: bool = False
 
     async def start(self, token: str, **kwargs) -> None:
         """Start the HTTP API server, then connect to Discord.
@@ -133,6 +135,14 @@ class DiscordBot(commands.Bot):
             server_url = session.get("server_url", "")
             if server_url:
                 asyncio.create_task(self.start_sse_subscriber(session))
+
+        # Start periodic health-check loop for stale headless sessions
+        if self.config.health_check_enabled:
+            self._session_health_task = asyncio.create_task(self._run_session_health_check())
+            logger.info(
+                "Session health check started (interval=%ds)",
+                self.config.health_check_interval,
+            )
 
     async def on_message(self, message: nextcord.Message) -> None:
         """Handle messages in linked Discord threads.
@@ -260,9 +270,91 @@ class DiscordBot(commands.Bot):
                 pass
         logger.info("Stopped SSE subscriber for session %s", session_id)
 
+    async def _cleanup_discord_thread(self, thread_id: str) -> None:
+        """Archive/lock or delete a Discord thread based on cleanup_mode config."""
+        if not thread_id:
+            return
+        try:
+            thread = self.get_channel(int(thread_id))
+            if thread is None:
+                thread = await self.fetch_channel(int(thread_id))
+            if thread is None:
+                logger.debug("Thread %s not found for cleanup", thread_id)
+                return
+            if self.config.cleanup_mode == "delete":
+                await thread.delete()
+                logger.info("Deleted Discord thread %s", thread_id)
+            else:
+                await thread.edit(archived=True, locked=True)
+                logger.info("Archived and locked Discord thread %s", thread_id)
+        except nextcord.NotFound:
+            logger.debug("Thread %s already deleted, skipping cleanup", thread_id)
+        except nextcord.Forbidden:
+            logger.warning(
+                "Missing permission to clean up thread %s (cleanup_mode=%s)",
+                thread_id,
+                self.config.cleanup_mode,
+            )
+        except Exception as exc:
+            logger.error(
+                "Failed to clean up thread %s (mode=%s): %s",
+                thread_id,
+                self.config.cleanup_mode,
+                exc,
+                exc_info=True,
+            )
+
+    async def _run_session_health_check(self) -> None:
+        """Periodic background task: poll headless server for stale sessions."""
+        self._session_health_running = True
+        while self._session_health_running:
+            try:
+                sessions = await self.opencode_client.list_sessions()
+                existing_ids = {s.get("id", "") for s in sessions}
+            except Exception as exc:
+                logger.debug("Health check: headless server unreachable: %s", exc)
+                try:
+                    await asyncio.sleep(self.config.health_check_interval)
+                except asyncio.CancelledError:
+                    break
+                continue
+
+            for session in self.session_store.list_all():
+                session_id = session.get("session_id", "")
+                server_url = session.get("server_url", "")
+                # Only health-check headless sessions (no custom TUI server_url)
+                if server_url:
+                    continue
+                if session_id and session_id not in existing_ids:
+                    thread_id = session.get("thread_id", "")
+                    logger.warning(
+                        "Session %s not found on headless server, cleaning up orphaned thread",
+                        session_id,
+                    )
+                    await self.stop_sse_subscriber(session_id)
+                    await self._cleanup_discord_thread(thread_id)
+                    await self.session_store.unlink(session_id)
+
+            try:
+                await asyncio.sleep(self.config.health_check_interval)
+            except asyncio.CancelledError:
+                break
+
     async def close(self) -> None:
         """Clean up resources on shutdown."""
         logger.info("Shutting down bot...")
+
+        # Stop health-check loop
+        self._session_health_running = False
+        if self._session_health_task and not self._session_health_task.done():
+            self._session_health_task.cancel()
+            try:
+                await self._session_health_task
+            except asyncio.CancelledError:
+                pass
+        self._session_health_task = None
+        logger.info("Session health check stopped")
+
         if self.http_runner:
             await self.http_runner.cleanup()
             logger.info("HTTP API server stopped")
