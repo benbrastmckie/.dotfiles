@@ -122,7 +122,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Wire Permission Event into SSE Subscriber [NOT STARTED]
+### Phase 3: Wire Permission Event into SSE Subscriber [COMPLETED]
 
 **Goal**: Add `permission.asked` event handling to `_process_stream()` so permission requests are detected and routed to the Discord thread.
 
