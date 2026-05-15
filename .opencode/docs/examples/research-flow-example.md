@@ -234,7 +234,7 @@ jq '.active_projects |= map(
   if .project_number == 427
   then .status = "researched" | .last_updated = "2026-01-12T05:40:23Z"
   else . end
-)' state.json > state.json.tmp && mv state.json.tmp state.json
+)' specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
 
 # Update TODO.md
 # Add [RESEARCHED] status and research report link

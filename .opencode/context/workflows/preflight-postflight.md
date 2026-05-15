@@ -484,7 +484,7 @@ Delegate → Proceed (without verification) ← WRONG
 # DO NOT DO THIS in command files
 jq --arg num "$task_number" \
   '.active_projects[] |= if .project_number == ($num | tonumber) then .status = "researched" else . end' \
-  specs/state.json > specs/tmp/state.json.tmp
+  specs/state.json > specs/tmp/state.json
 ```
 
 **Problem**: Bypasses status-sync-manager, doesn't link artifacts, not atomic.

@@ -283,6 +283,7 @@ echo ""
 state_file="specs/state.json"
 timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 commit_sha=$(git rev-parse HEAD)
+mkdir -p specs/tmp
 
 # Check if deployment_versions section exists
 if jq -e '.deployment_versions' "$state_file" >/dev/null 2>&1; then
@@ -297,7 +298,7 @@ if jq -e '.deployment_versions' "$state_file" >/dev/null 2>&1; then
         "deployed_at": $timestamp,
         "commit_sha": $sha
       }] + .deployment_versions.deployment_history[0:9])' \
-     "$state_file" > "${state_file}.tmp" && mv "${state_file}.tmp" "$state_file"
+     "$state_file" > "specs/tmp/state.json" && mv "specs/tmp/state.json" "$state_file"
 else
   # Create new section
   jq --arg version "$new_version" \
@@ -312,7 +313,7 @@ else
           "commit_sha": $sha
         }]
       }' \
-     "$state_file" > "${state_file}.tmp" && mv "${state_file}.tmp" "$state_file"
+     "$state_file" > "specs/tmp/state.json" && mv "specs/tmp/state.json" "$state_file"
 fi
 
 echo "Updated state.json with deployment version $new_version"

@@ -787,6 +787,7 @@ slug=$(echo "$title" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g' | cut 
 
 **3. Add task to state.json:**
 ```bash
+mkdir -p specs/tmp
 jq --arg num "$next_num" --arg slug "$slug" --arg title "$title" \
    --arg desc "$description" --arg tt "$task_type" --arg prio "$priority" \
    '.active_projects += [{
@@ -798,7 +799,7 @@ jq --arg num "$next_num" --arg slug "$slug" --arg title "$title" \
      "description": $title,
      "created": (now | strftime("%Y-%m-%dT%H:%M:%SZ"))
    }] | .next_project_number = (($num | tonumber) + 1)' \
-   specs/state.json > specs/state.json.tmp && mv specs/state.json.tmp specs/state.json
+   specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
 ```
 
 **4. Update TODO.md:**
@@ -806,17 +807,18 @@ Add task entry following existing format in TODO.md frontmatter section.
 
 **5. Track in review state:**
 ```bash
+mkdir -p specs/tmp
 # Add task numbers to review entry
 jq --argjson tasks "[${task_nums}]" \
    '.reviews[-1].tasks_created = $tasks' \
-   specs/reviews/state.json > specs/reviews/state.json.tmp && \
-   mv specs/reviews/state.json.tmp specs/reviews/state.json
+   specs/reviews/state.json > specs/tmp/reviews-state.json && \
+   mv specs/tmp/reviews-state.json specs/reviews/state.json
 
 # Update statistics
 jq --argjson count "${task_count}" \
    '.statistics.total_tasks_created += $count' \
-   specs/reviews/state.json > specs/reviews/state.json.tmp && \
-   mv specs/reviews/state.json.tmp specs/reviews/state.json
+   specs/reviews/state.json > specs/tmp/reviews-state.json && \
+   mv specs/tmp/reviews-state.json specs/reviews/state.json
 ```
 
 #### 5.6.4. Duplicate Prevention

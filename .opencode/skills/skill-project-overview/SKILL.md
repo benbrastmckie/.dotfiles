@@ -361,6 +361,7 @@ Run `/plan {N}` to create an implementation plan, then `/implement {N}` to gener
 
 Add new task to active_projects:
 ```bash
+mkdir -p specs/tmp
 jq --argjson num "$next_num" \
    --arg name "$task_slug" \
    '.active_projects += [{
@@ -370,7 +371,7 @@ jq --argjson num "$next_num" \
      "task_type": "meta",
      "next_artifact_number": 2
    }] | .next_project_number = ($num + 1)' \
-   specs/state.json > specs/state.json.tmp && mv specs/state.json.tmp specs/state.json
+   specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
 ```
 
 #### 5.4: Update TODO.md

@@ -396,8 +396,9 @@ Remove archived tasks from active_projects array using `del()` pattern (avoids I
 ```bash
 # Use del() instead of map(select(.status != "completed" and .status != "abandoned"))
 # This pattern is Issue #1132-safe
+mkdir -p specs/tmp
 jq 'del(.active_projects[] | select(.status == "completed" or .status == "abandoned"))' \
-  specs/state.json > specs/state.json.tmp && mv specs/state.json.tmp specs/state.json
+  specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
 ```
 
 **C. Update TODO.md**
@@ -484,8 +485,8 @@ for orphan_dir in "${orphaned_dirs[@]}"; do
        archived: $date,
        source: "orphan_recovery",
        detected_artifacts: $arts
-     }]' specs/archive/state.json > specs/archive/state.json.tmp \
-  && mv specs/archive/state.json.tmp specs/archive/state.json
+     }]' specs/archive/state.json > specs/tmp/archive-state.json \
+  && mv specs/tmp/archive-state.json specs/archive/state.json
 
   echo "Added state entry for orphan: ${dir_name}"
 done
@@ -625,6 +626,7 @@ fi
 
 **Step 5.7.2: Update state.json repository_health**:
 ```bash
+mkdir -p specs/tmp
 jq --arg todo "$todo_count" \
    --arg fixme "$fixme_count" \
    --arg ts "$ts" \
@@ -635,7 +637,7 @@ jq --arg todo "$todo_count" \
      "fixme_count": ($fixme | tonumber),
      "build_errors": ($errors | tonumber),
      "status": (if ($build_errors | tonumber) == 0 then "healthy" else "needs_attention" end)
-   }' specs/state.json > specs/state.json.tmp && mv specs/state.json.tmp specs/state.json
+   }' specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
 ```
 
 **Step 5.7.3: Update TODO.md frontmatter**:
@@ -778,8 +780,8 @@ jq --argjson new_next "$new_next_num" \
       vault_number: $vault_num,
       vault_dir: $vault_path,
       created_at: $created
-    }]' specs/state.json > specs/state.json.tmp
-mv specs/state.json.tmp specs/state.json
+    }]' specs/state.json > specs/tmp/state.json
+mv specs/tmp/state.json specs/state.json
 ```
 
 **Step 5.8.9: Add transition comment to TODO.md**:

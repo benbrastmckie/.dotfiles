@@ -475,6 +475,7 @@ Direct execution skill for archiving tasks, updating CHANGE_LOG.md, and suggesti
 
          For each task in renumber_mappings, update state.json:
          ```bash
+         mkdir -p specs/tmp
          # Update each task's project_number and artifact paths
          for mapping in $(echo "$renumber_mappings" | jq -c '.[]'); do
            old_num=$(echo "$mapping" | jq -r '.old')
@@ -500,8 +501,8 @@ Direct execution skill for archiving tasks, updating CHANGE_LOG.md, and suggesti
                  ) else . end)
                else . end
              )
-           ' specs/state.json > specs/state.json.tmp
-           mv specs/state.json.tmp specs/state.json
+           ' specs/state.json > specs/tmp/state.json
+           mv specs/tmp/state.json specs/state.json
          done
          ```
 
@@ -519,8 +520,8 @@ Direct execution skill for archiving tasks, updating CHANGE_LOG.md, and suggesti
                else $dep end
              ) else . end)
            )
-         ' specs/state.json > specs/state.json.tmp
-         mv specs/state.json.tmp specs/state.json
+         ' specs/state.json > specs/tmp/state.json
+         mv specs/tmp/state.json specs/state.json
          ```
 
          Rename task directories:
@@ -582,14 +583,14 @@ Direct execution skill for archiving tasks, updating CHANGE_LOG.md, and suggesti
          Update state.json with new next_project_number:
          ```bash
          jq --argjson new_next "$new_next_num" \
-            '.next_project_number = $new_next' specs/state.json > specs/state.json.tmp
-         mv specs/state.json.tmp specs/state.json
+            '.next_project_number = $new_next' specs/state.json > specs/tmp/state.json
+         mv specs/tmp/state.json specs/state.json
          ```
 
          Increment vault_count:
          ```bash
-         jq '.vault_count = (.vault_count // 0) + 1' specs/state.json > specs/state.json.tmp
-         mv specs/state.json.tmp specs/state.json
+         jq '.vault_count = (.vault_count // 0) + 1' specs/state.json > specs/tmp/state.json
+         mv specs/tmp/state.json specs/state.json
          ```
 
          Add entry to vault_history:
@@ -612,8 +613,8 @@ Direct execution skill for archiving tasks, updating CHANGE_LOG.md, and suggesti
              archived_count: $archived,
              final_task_number: $final
            }]
-         ' specs/state.json > specs/state.json.tmp
-         mv specs/state.json.tmp specs/state.json
+         ' specs/state.json > specs/tmp/state.json
+         mv specs/tmp/state.json specs/state.json
          ```
 
          Add vault transition comment to TODO.md:

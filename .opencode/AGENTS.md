@@ -156,6 +156,8 @@ Core rules (auto-applied by file path):
 | [artifact-formats.md](rules/artifact-formats.md) | Report/plan formats | `specs/**` |
 | [workflows.md](rules/workflows.md) | Command lifecycle | `.opencode/**` |
 
+**Temp File Convention**: Always use `specs/tmp/` for temporary files. NEVER use system `/tmp/` or in-place `.tmp` suffixes (e.g., `specs/state.json.tmp`). Run `mkdir -p specs/tmp` before writing temp files. Canonical pattern: `mkdir -p specs/tmp && jq '...' specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json`
+
 ## Context Architecture
 
 The system uses a 5-layer context model for organizing information:
