@@ -23,6 +23,7 @@ from opencode_discord_bot.src.api import setup_api
 from opencode_discord_bot.src.config import Config
 from opencode_discord_bot.src.logging_config import setup_logging
 from opencode_discord_bot.src.opencode_client import OpenCodeClient
+from opencode_discord_bot.src.permission_view import PermissionApprovalView
 from opencode_discord_bot.src.sse_subscriber import TuiSseSubscriber
 from opencode_discord_bot.src.store import SessionStore
 
@@ -112,6 +113,12 @@ class DiscordBot(commands.Bot):
         )
         self._notify_systemd(b"READY=1")
         asyncio.create_task(self._watchdog_loop())
+
+        # Note: Permission approval views use timeout=None for persistence
+        # within a session, but after bot restart we rely on reconnect
+        # recovery (list_permissions API) to re-post fresh embeds for any
+        # pending permissions rather than trying to re-register old views.
+
         # Non-blocking health check of OpenCode server
         try:
             healthy = await self.opencode_client.health()
