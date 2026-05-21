@@ -246,6 +246,8 @@
     mailutils    # Email utilities
     # protonmail-bridge is now managed by services.protonmail-bridge
 
+    # Video recording/editing
+    obs-studio
     # Dictation tools
     whisper-cpp  # Fast offline speech-to-text (renamed from openai-whisper-cpp)
     ydotool      # Universal input tool (works with GNOME/Wayland)
@@ -255,6 +257,7 @@
     satty        # Screenshot annotation tool
     grim         # Wayland screenshot utility
     slurp        # Region selection tool for Wayland
+    inotify-tools  # Filesystem event monitoring (used by screenshot-path-copy service)
     
     # OAuth2 token refresh script
     (pkgs.writeShellScriptBin "refresh-gmail-oauth2" ''
@@ -367,6 +370,7 @@
       numpy
       pandas
       torch  # PyTorch for machine learning and AI
+      moviepy
 
       # Scientific computing stack (added for R/Quarto interop)
       scipy
@@ -721,6 +725,29 @@
   '';
 
   # Systemd user services for ydotool daemon (required for dictation)
+  systemd.user.services.screenshot-path-copy = {
+    Unit = {
+      Description = "Copy screenshot file path to clipboard on creation";
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = toString (pkgs.writeShellScript "screenshot-path-copy" ''
+        DIR="$HOME/Pictures/Screenshots"
+        mkdir -p "$DIR"
+        ${pkgs.inotify-tools}/bin/inotifywait -m -e close_write --format '%f' "$DIR" | while read -r filename; do
+          filepath="$DIR/$filename"
+          printf '%s' "$filepath" | ${pkgs.wl-clipboard}/bin/wl-copy
+        done
+      '');
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
   systemd.user.services.ydotool = {
     Unit = {
       Description = "ydotool daemon for input automation";
@@ -876,19 +903,17 @@
     Name=Sioyek
     GenericName=PDF Viewer
     Comment=PDF viewer for reading research papers and technical books
-    Exec=/run/current-system/sw/bin/sioyek --reuse-instance %f
+    Exec=/run/current-system/sw/bin/sioyek --reuse-window %f
     Icon=sioyek-icon-linux
     Terminal=false
     Categories=Office;Viewer;
     MimeType=application/pdf;
   '';
 
-  # MIME type associations - PDF opens in sioyek by default
-  # Force overwrite existing mimeapps.list (was manually created)
+  # MIME type associations - browser defaults only, PDF managed via GNOME
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
-      "application/pdf" = "sioyek.desktop";
       "text/html" = "brave-browser.desktop";
       "x-scheme-handler/http" = "brave-browser.desktop";
       "x-scheme-handler/https" = "brave-browser.desktop";
@@ -896,9 +921,6 @@
       "x-scheme-handler/unknown" = "brave-browser.desktop";
     };
   };
-
-  # Force Home Manager to manage mimeapps.list
-  xdg.configFile."mimeapps.list".force = true;
 
   # Configure WezTerm through home-manager
   # programs.wezterm = {
