@@ -2,18 +2,6 @@
 
 ## Active Tasks
 
-### 59. Fix Neovim rendering corruption after system sleep in WezTerm
-- **Status**: [RESEARCHED]
-- **Task Type**: neovim
-- **Research**:
-  - [059_fix_neovim_rendering_after_sleep_wezterm/reports/01_neovim-sleep-rendering.md]
-  - [059_fix_neovim_rendering_after_sleep_wezterm/reports/02_yanky-alternatives.md]
-  - [059_fix_neovim_rendering_after_sleep_wezterm/reports/03_custom-yank-design.md]
-
-**Description**: Fix Neovim rendering corruption after system sleep in WezTerm - cursor missing, syntax highlighting broken, Claude Code sidebar stale. Only affects the tab that was visible/focused when sleep occurred; background tabs recover instantly.
-
----
-
 ### 52. Add sleep inhibition during active Claude Code/Opencode sessions
 - **Status**: [PLANNED]
 - **Task Type**: nix
