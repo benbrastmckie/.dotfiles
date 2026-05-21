@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 59. Fix Neovim rendering corruption after system sleep in WezTerm
+- **Status**: [NOT STARTED]
+- **Task Type**: neovim
+
+**Description**: Fix Neovim rendering corruption after system sleep in WezTerm - cursor missing, syntax highlighting broken, Claude Code sidebar stale. Only affects the tab that was visible/focused when sleep occurred; background tabs recover instantly.
+
+---
+
 ### 52. Add sleep inhibition during active Claude Code/Opencode sessions
 - **Status**: [PLANNED]
 - **Task Type**: nix
@@ -88,3 +96,6 @@
 **Description**: Configure NixOS timezone to be set based on location with California as default. Research best practices for automatic timezone detection and configuration.
 
 ---
+
+## Recommended Order
+
