@@ -55,6 +55,7 @@
   "voiceEnabled": true,
   "voiceMode": "tap",
   "recapEnabled": false,
+  "awaySummaryEnabled": false,
   "autoMemoryEnabled": false,
   "hooks": {
     "SessionStart": [
