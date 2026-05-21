@@ -7,14 +7,14 @@
       "status": "researched",
       "task_type": "neovim",
       "created": "2026-05-21T16:32:36Z",
-      "last_updated": "2026-05-21T16:56:24Z",
-      "session_id": "sess_1779381878_63d16b",
-      "next_artifact_number": 3,
+      "last_updated": "2026-05-21T17:08:15Z",
+      "session_id": "sess_1779382789_3e5b8a",
+      "next_artifact_number": 4,
       "artifacts": [
         {
-          "path": "specs/059_fix_neovim_rendering_after_sleep_wezterm/reports/02_yanky-alternatives.md",
+          "path": "specs/059_fix_neovim_rendering_after_sleep_wezterm/reports/03_custom-yank-design.md",
           "type": "research",
-          "summary": "Yanky alternatives research: feature audit, plugin comparison (neoclip, yankbank, cutlass, vim-yoink, miniyank), custom implementation LOC estimate, and non-blocking clipboard sync design. Recommends hybrid approach (Option D) over full replacement."
+          "summary": "Complete custom yank ring architecture design with production-quality code sketches for 6 modules, file change list, comparison analysis, and risk assessment"
         }
       ],
       "memory_candidates": [
@@ -80,6 +80,32 @@
             "FocusGained",
             "sync_with_ring",
             "clipboard-sync"
+          ]
+        },
+        {
+          "content": "vim.system() in Neovim 0.10+ provides non-blocking subprocess execution with built-in timeout support. Pattern: vim.system({\"wl-paste\",\"--no-newline\"},{text=true,timeout=2000},function(obj) vim.schedule(function() if obj.code==0 then use(obj.stdout) end end) end)",
+          "category": "PATTERN",
+          "confidence": 0.9,
+          "suggested_keywords": [
+            "vim.system",
+            "clipboard",
+            "async",
+            "timeout",
+            "wl-paste",
+            "non-blocking"
+          ]
+        },
+        {
+          "content": "Post-sleep rendering recovery in Neovim requires: (1) vim.cmd(\"mode\") to reset terminal state, (2) vim.cmd(\"redraw!\") for full screen redraw, (3) treesitter parser:invalidate(true)+parse() to regenerate syntax highlighting. Must run on FocusGained/VimResume autocommands.",
+          "category": "TECHNIQUE",
+          "confidence": 0.85,
+          "suggested_keywords": [
+            "neovim",
+            "recovery",
+            "sleep",
+            "treesitter",
+            "redraw",
+            "FocusGained"
           ]
         }
       ]
