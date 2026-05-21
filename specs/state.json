@@ -1,6 +1,14 @@
 {
-  "next_project_number": 59,
+  "next_project_number": 60,
   "active_projects": [
+    {
+      "project_number": 59,
+      "project_name": "fix_neovim_rendering_after_sleep_wezterm",
+      "status": "not_started",
+      "task_type": "neovim",
+      "created": "2026-05-21T16:32:36Z",
+      "last_updated": "2026-05-21T16:32:36Z"
+    },
     {
       "project_number": 52,
       "project_name": "sleep_inhibition_claude_opencode",
