@@ -7,14 +7,14 @@
       "status": "researched",
       "task_type": "neovim",
       "created": "2026-05-21T16:32:36Z",
-      "last_updated": "2026-05-21T16:41:19Z",
-      "session_id": "sess_1779381178_62aa1c",
-      "next_artifact_number": 2,
+      "last_updated": "2026-05-21T16:56:24Z",
+      "session_id": "sess_1779381878_63d16b",
+      "next_artifact_number": 3,
       "artifacts": [
         {
-          "path": "specs/059_fix_neovim_rendering_after_sleep_wezterm/reports/01_neovim-sleep-rendering.md",
+          "path": "specs/059_fix_neovim_rendering_after_sleep_wezterm/reports/02_yanky-alternatives.md",
           "type": "research",
-          "summary": "Comprehensive research report identifying yanky.nvim clipboard sync as primary cause of Neovim freeze after sleep, with secondary TUI reset and treesitter re-highlight recommendations"
+          "summary": "Yanky alternatives research: feature audit, plugin comparison (neoclip, yankbank, cutlass, vim-yoink, miniyank), custom implementation LOC estimate, and non-blocking clipboard sync design. Recommends hybrid approach (Option D) over full replacement."
         }
       ],
       "memory_candidates": [
@@ -55,6 +55,31 @@
             "active-tab",
             "background-tab",
             "focus-events"
+          ]
+        },
+        {
+          "content": "vim.fn.getreg(+) on Wayland calls wl-paste synchronously and can hang indefinitely after system sleep (Neovim issue #24470, unresolved). The fix is to use vim.system with timeout for non-blocking reads, or define a custom vim.g.clipboard provider.",
+          "category": "INSIGHT",
+          "confidence": 0.95,
+          "suggested_keywords": [
+            "neovim",
+            "wayland",
+            "wl-paste",
+            "clipboard",
+            "vim.system",
+            "FocusGained"
+          ]
+        },
+        {
+          "content": "yanky.nvim system_clipboard module creates FocusGained autocmd that calls vim.fn.getreg(+) to detect external clipboard changes. PR #117 prevents loops but does NOT add timeout. Only safe mitigation is sync_with_ring=false or replacing getreg with vim.system()+timeout.",
+          "category": "PATTERN",
+          "confidence": 0.9,
+          "suggested_keywords": [
+            "yanky.nvim",
+            "system_clipboard",
+            "FocusGained",
+            "sync_with_ring",
+            "clipboard-sync"
           ]
         }
       ]
