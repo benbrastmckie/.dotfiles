@@ -310,27 +310,24 @@ wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_wid
 
   -- Check for Claude Code notification status on inactive tabs
   -- The CLAUDE_STATUS user variable is set by .claude/hooks/wezterm-notify.sh
-  -- Supports lifecycle states: needs_input, researched, planned, completed, blocked
-  -- and artifact-type states: report, plan, summary, error
+  -- Supports lifecycle states only: needs_input, researching, researched, planning,
+  -- planned, implementing, completed, blocked
+  -- Dim-to-bold transitions within same hue family indicate workflow progress
   if not tab.is_active then
     local active_pane = tab.active_pane
     if active_pane and active_pane.user_vars and active_pane.user_vars.CLAUDE_STATUS then
       local claude_status = active_pane.user_vars.CLAUDE_STATUS
-      -- Lifecycle and artifact-type color mapping for inactive tabs
+      -- Lifecycle-only color mapping for inactive tabs
+      -- Same hue family per phase: dim bg+fg = in-progress, bright bg+fg = completed
       local status_colors = {
-        needs_input  = { bg = "#3a3a3a", fg = "#d0d0d0" },  -- gray (Stop hook default)
-        researched   = { bg = "#2a4a2a", fg = "#d0d0d0" },  -- dark green
-        planned      = { bg = "#2a2a5a", fg = "#d0d0d0" },  -- dark blue
-        completed    = { bg = "#1a5a1a", fg = "#d0d0d0" },  -- bright green
-        blocked      = { bg = "#5a2a2a", fg = "#d0d0d0" },  -- dark red
-        researching  = { bg = "#2a4a2a", fg = "#808080" },  -- dim green (in progress)
-        planning     = { bg = "#2a2a5a", fg = "#808080" },  -- dim blue (in progress)
-        implementing = { bg = "#3a3a1a", fg = "#808080" },  -- dim yellow (in progress)
-        -- Artifact-type states (set by postflight notification, distinct from lifecycle states)
-        report       = { bg = "#1a5a2a", fg = "#d0d0d0" },  -- bright green (research artifact)
-        plan         = { bg = "#1a2a5a", fg = "#d0d0d0" },  -- bright blue (plan artifact)
-        summary      = { bg = "#5a4a1a", fg = "#d0d0d0" },  -- dark gold (implementation summary)
-        error        = { bg = "#5a1a1a", fg = "#d0d0d0" },  -- bright red (error condition)
+        needs_input  = { bg = "#3a3a3a", fg = "#d0d0d0" },
+        researching  = { bg = "#1e2e1e", fg = "#5a7a5a" },
+        researched   = { bg = "#1a4a1a", fg = "#a0d080" },
+        planning     = { bg = "#1a1e30", fg = "#5a6a8a" },
+        planned      = { bg = "#1a2a5a", fg = "#80a8d8" },
+        implementing = { bg = "#2e2a18", fg = "#8a7a40" },
+        completed    = { bg = "#4a3e18", fg = "#e5c060" },
+        blocked      = { bg = "#5a2a2a", fg = "#d0d0d0" },
       }
       local colors = status_colors[claude_status]
       if colors then
@@ -415,9 +412,10 @@ wezterm.on("update-status", function(window, pane)
     -- Tab changed! Check if new tab has CLAUDE_STATUS and clear it
     for _, tab_pane in ipairs(active_tab:panes()) do
       local user_vars = tab_pane:get_user_vars()
-      if user_vars.CLAUDE_STATUS and user_vars.CLAUDE_STATUS ~= "" then
+      if user_vars.CLAUDE_STATUS == "needs_input" then
         -- Clear the user variable via OSC escape sequence
-        -- This removes lifecycle/notification coloring when the user views the tab
+        -- This removes needs_input notification coloring when the user views the tab
+        -- Lifecycle states (researching, researched, planning, etc.) are preserved
         tab_pane:inject_output("\027]1337;SetUserVar=CLAUDE_STATUS=\007")
       end
     end
