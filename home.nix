@@ -14,8 +14,8 @@
 
   programs.git = {
     enable = true;
-    userName = "benbrastmckie";
-    userEmail = "benbrastmckie@gmail.com";
+    settings.user.name = "benbrastmckie";
+    settings.user.email = "benbrastmckie@gmail.com";
     signing.format = null;
   };
 
