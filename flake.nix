@@ -113,6 +113,9 @@
           httplib2 = pySuper.httplib2.overridePythonAttrs (old: {
             doCheck = false;
           });
+          pymupdf = pySuper.pymupdf.overridePythonAttrs (old: {
+            doCheck = false;
+          });
         };
       in {
         python3 = prev.python3.override {
