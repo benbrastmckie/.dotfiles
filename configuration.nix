@@ -157,7 +157,6 @@ services.automatic-timezoned.enable = true;
 
   services.displayManager.gdm = {
     enable = true;
-    wayland = true;
   };
 
   # Hide root user from GDM login screen and GNOME user settings
