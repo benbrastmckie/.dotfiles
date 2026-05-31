@@ -18,7 +18,7 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     utils.url = "github:numtide/flake-utils";
-    home-manager.url = "github:nix-community/home-manager/master";
+    home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     # sops-nix for age-based secrets management (Task 53)
     sops-nix.url = "github:Mic92/sops-nix";
