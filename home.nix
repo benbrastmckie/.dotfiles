@@ -14,11 +14,9 @@
 
   programs.git = {
     enable = true;
+    userName = "benbrastmckie";
+    userEmail = "benbrastmckie@gmail.com";
     signing.format = null;
-    settings.user = {
-      name = "benbrastmckie";
-      email = "benbrastmckie@gmail.com";
-    };
   };
 
   programs.neovim = {
