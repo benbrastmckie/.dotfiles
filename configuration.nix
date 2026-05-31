@@ -540,7 +540,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       gcc                  # GNU Compiler Collection for C/C++
       unzip                # Extract files from ZIP archives
       gnumake              # Build automation tool
-      nodejs_20            # JavaScript runtime environment
+      nodejs_22            # JavaScript runtime environment
       uv                   # Fast Python package installer and resolver
       bun                  # Fast all-in-one JavaScript runtime
       pnpm_9               # Fast, disk space efficient package manager

@@ -360,7 +360,7 @@
               python3              # Python programming language
               go                   # Go programming language
               gcc                  # GNU Compiler Collection
-              nodejs_20            # JavaScript runtime
+               nodejs_22            # JavaScript runtime
               uv                   # Fast Python package installer
               bun                  # Fast JavaScript runtime
               unzip                # Extract ZIP archives
