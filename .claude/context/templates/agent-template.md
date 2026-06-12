@@ -20,7 +20,7 @@ model: opus
 
 **Optional field**: `model` (values: `opus`, `sonnet`)
 
-**Do NOT include** these fields - they are not supported by the current Task tool:
+**Do NOT include** these fields - they are not supported by the current Agent tool:
 - `mode`
 - `version`
 - `temperature`

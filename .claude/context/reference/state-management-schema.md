@@ -328,38 +328,6 @@ mkdir -p "specs/${padded_num}_${slug}/reports"
 write "specs/${padded_num}_${slug}/reports/01_research-findings.md"
 ```
 
-## Recommended Order Section
-
-The `## Recommended Order` section in TODO.md provides a topologically-sorted list of active tasks.
-
-### Section Format
-```markdown
-## Recommended Order
-
-1. **995** -> plan + implement (unblocks 988, 989, 997)
-2. **996** -> research (independent)
-3. **997** -> implement (independent)
-```
-
-### Action Hint Derivation
-
-| Task Status | Action Hint |
-|-------------|-------------|
-| `not_started`, `researching` | `research` |
-| `researched`, `planning` | `plan` |
-| `planned`, `implementing`, `partial` | `implement` |
-| `completed` | `complete` |
-| `blocked` | `blocked` |
-| `abandoned`, `expanded` | `skip` |
-
-### Utility Script
-
-```bash
-.claude/scripts/update-recommended-order.sh add TASK_NUM
-.claude/scripts/update-recommended-order.sh remove TASK_NUM
-.claude/scripts/update-recommended-order.sh refresh
-```
-
 ## Examples
 
 ### New Task Entry

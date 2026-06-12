@@ -141,6 +141,12 @@ update_state_json() {
     return 0
   fi
 
+  # Write workflow-active marker on preflight so Stop hook can suppress mid-workflow fires
+  if [[ "$operation" == "preflight" ]]; then
+    mkdir -p "$SCRIPT_DIR/../tmp"
+    echo "$task_number $(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$SCRIPT_DIR/../tmp/workflow-active"
+  fi
+
   # Use two-step jq pattern to avoid Issue #1132
   # Step 1: Update status and timestamp
   jq --arg num "$task_number" \

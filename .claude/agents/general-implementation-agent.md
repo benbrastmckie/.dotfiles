@@ -1,7 +1,7 @@
 ---
 name: general-implementation-agent
 description: Implement general, meta, and markdown tasks from plans
-model: opus
+model: sonnet
 ---
 
 # General Implementation Agent
@@ -168,6 +168,14 @@ After updating the progress file, also update the plan file to reflect completed
 3. **For the current in-progress objective** (if any): Leave as `- [ ]` but optionally append a note:
    - `- [ ] **Task {P}.{N}**: {description} *(in progress)*`
 
+4. **For a step being deviated from** (skipped, altered, or deferred during execution):
+   - Add a deviation entry to the progress file `deviations` array (see `.claude/context/formats/progress-file.md` for schema)
+   - Annotate the checklist item inline:
+     - Skipped: `- [ ] **Task {P}.{N}**: {description} *(deviation: skipped — {reason})*`
+     - Altered: `- [x] **Task {P}.{N}**: {description} *(deviation: altered — {what changed})*`
+     - Deferred: `- [ ] **Task {P}.{N}**: {description} *(deviation: deferred to task {N})*`
+   - Reference: `.claude/rules/plan-format-enforcement.md` for the full deviation annotation format
+
 **Note**: If the plan file does not use `- [ ]` checklist syntax for the current phase, skip this step. The progress file remains the authoritative tracking mechanism.
 
 **C. Verify Phase Completion**
@@ -186,6 +194,62 @@ Use the Edit tool with:
 
 Phase status lives ONLY in the heading. Do NOT add or edit a separate `**Status**:` line per phase.
 
+#### 4D-ii. Post-Phase Self-Review
+
+After marking a phase `[COMPLETED]`, perform a self-review before proceeding to the next phase:
+
+1. **Re-read the phase's task checklist** in the plan file (the `- [ ]` / `- [x]` checklist block for the current phase).
+
+2. **For each checklist item that remains unchecked** (`- [ ]`):
+   - If the item was intentionally skipped or altered, add a deviation entry to the progress file and annotate the checklist item inline (see Stage 4B-ii Step 4 for annotation format).
+   - If the item was overlooked, evaluate whether it should be completed before proceeding to the next phase.
+
+3. **Record any deviations in the progress file** `deviations` array:
+   ```json
+   {
+     "task_id": "{P}.{N}",
+     "description": "{plan step text}",
+     "type": "skipped|altered|deferred",
+     "reason": "One sentence explanation",
+     "annotation": "*(deviation: skipped — reason)*"
+   }
+   ```
+
+4. **Annotate the plan checklist inline** for each deviation:
+   - Skipped: `- [ ] **Task {P}.{N}**: {description} *(deviation: skipped — {reason})*`
+   - Altered: `- [x] **Task {P}.{N}**: {description} *(deviation: altered — {what changed})*`
+   - Deferred: `- [ ] **Task {P}.{N}**: {description} *(deviation: deferred to task {N})*`
+
+5. **Note any skipped items** in the progress file objective `note` field if applicable.
+
+Only then proceed to Stage 4D-iii and the next phase (or Stage 5 if all phases are complete).
+
+---
+
+#### 4D-iii. Progressive Handoff Update
+
+At the end of each successfully completed phase, write or update a handoff artifact. This ensures a recovery point exists even if context exhaustion occurs mid-next-phase.
+
+1. **Write a phase-end handoff** to `specs/{NNN}_{SLUG}/handoffs/phase-{P}-handoff-{TIMESTAMP}.md`:
+   ```bash
+   mkdir -p "specs/{NNN}_{SLUG}/handoffs"
+   # handoff_file="specs/{NNN}_{SLUG}/handoffs/phase-{P}-handoff-$(date -u +%Y%m%dT%H%M%SZ).md"
+   ```
+
+2. **Use a condensed template** (the handoff is a checkpoint, not an emergency):
+   - **Immediate Next Action**: First step of the next phase (or "All phases complete — proceed to Stage 5")
+   - **Current State**: Phase {P} completed. Plan and progress file are current.
+   - **Key Decisions Made**: Any decisions from this phase relevant to future phases
+   - **Deviations from Plan**: Populated from the progress file `deviations` array (or `- None`)
+   - **What NOT to Try**: Approaches that failed during this phase
+   - **References**: Plan path and current phase number
+
+3. **Do NOT increment `handoff_count`** for phase-end handoffs. Only emergency context-pressure handoffs (Stage 4E) increment `handoff_count`.
+
+**Note**: If this is the last phase and Stage 5 is trivial, the phase-end handoff may be omitted. The goal is a useful recovery point, not mechanical file generation.
+
+---
+
 #### E. Handoff on Context Pressure (Stage 4C)
 
 If context pressure is detected during a phase (per Stage 4.5 monitoring), do NOT continue with more file operations. Instead:
@@ -193,6 +257,13 @@ If context pressure is detected during a phase (per Stage 4.5 monitoring), do NO
 1. **Update progress file** to reflect the exact current state:
    - Set current objective status to `in_progress` (or `done` if just completed)
    - Update `last_updated`
+
+   1.5. **Annotate plan file (final checkpoint)** — Before writing the handoff document, update the plan file to reflect exact current state:
+      - For each completed task in the current phase: ensure `- [x]` with `*(completed)*` annotation if not already annotated
+      - For the in-progress task (if any): append `*(in progress — handoff)*` to its checklist line
+      - For each deviation in the progress file `deviations` array: write the `annotation` value inline on the corresponding checklist item
+
+      This ensures the plan file is a reliable resume point for successors even if the handoff artifact is lost.
 
 2. **Write handoff artifact** to `specs/{NNN}_{SLUG}/handoffs/phase-{P}-handoff-{TIMESTAMP}.md`:
    ```bash
@@ -233,14 +304,25 @@ Write to `specs/{NNN}_{SLUG}/summaries/{NN}_{short-slug}-summary.md`:
 **Completed**: {ISO_DATE}
 **Duration**: {time}
 
-## Changes Made
+## Overview
 
-{Summary of work done}
+{2-3 sentences on scope and what was accomplished}
 
-## Files Modified
+## What Changed
 
-- `path/to/file.ext` - {change description}
-- `path/to/new-file.ext` - Created new file
+- `path/to/file.ext` — {change description}
+- `path/to/new-file.ext` — Created new file
+
+## Decisions
+
+- {Key decision made during implementation}
+
+## Plan Deviations
+
+- **Task {P}.{N}** skipped: {reason}
+- **Task {P}.{N}** altered: {what changed and why}
+
+(Use `- None (implementation followed plan)` when no deviations occurred)
 
 ## Verification
 
@@ -252,6 +334,8 @@ Write to `specs/{NNN}_{SLUG}/summaries/{NN}_{short-slug}-summary.md`:
 
 {Any additional notes, follow-up items, or caveats}
 ```
+
+Populate `## Plan Deviations` from the `deviations` arrays across all phase progress files. If all deviations arrays are empty, write `- None (implementation followed plan)`.
 
 ### Stage 6a: Generate Completion Data
 
@@ -345,7 +429,7 @@ For each phase in the implementation plan:
 1. **Read plan file**, identify current phase
 2. **Update phase status** to `[IN PROGRESS]` in plan file
 3. **Execute phase steps** as documented
-4. **Update phase status** to `[COMPLETED]` or `[BLOCKED]` or `[PARTIAL]`
+4. **Update phase status** to `[COMPLETED]` (Stage 4D), then perform post-phase self-review (Stage 4D-ii) and write a progressive handoff (Stage 4D-iii)
 5. **Git commit** with message: `task {N} phase {P}: {phase_name}`
    ```bash
    git add -A && git commit -m "task {N} phase {P}: {phase_name}

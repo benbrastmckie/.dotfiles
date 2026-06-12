@@ -1,6 +1,6 @@
 ---
 description: Research a task and create reports
-allowed-tools: Skill, Bash(jq:*), Bash(git:*), Read, Edit
+allowed-tools: Skill, Agent, Bash(jq:*), Bash(git:*), Read, Edit
 argument-hint: TASK_NUMBERS [FOCUS] [--team [--team-size N]] [--fast|--hard] [--haiku|--sonnet|--opus]
 model: opus
 ---
@@ -153,23 +153,23 @@ Report skipped tasks as warnings. If no validated tasks remain, ABORT.
 batch_session_id="sess_$(date +%s)_$(od -An -N3 -tx1 /dev/urandom | tr -d ' ')"
 ```
 
-#### Step 3: Dispatch Agents
+#### Step 3: Dispatch Skills
 
-For each validated task, spawn an independent research agent using the orchestrator's built-in batch loop:
+For each validated task, invoke the appropriate research skill using parallel Skill tool calls from the orchestrator's built-in batch loop:
 
 1. Extract task_type per task from state.json
 2. Route to the appropriate research skill per task (extension routing or default `skill-researcher`)
-3. Spawn one agent per task via parallel Task tool calls
-4. Each agent runs the full single-task research lifecycle independently (preflight, research, postflight)
-5. Collect results from all agents
+3. Invoke all skills in a single message (parallel execution, one skill per task)
+4. Each skill runs the full single-task research lifecycle independently (preflight, agent delegation, postflight)
+5. Collect text results from all skills; read `.return-meta.json` in each task directory for structured data if needed
 
-**Note**: Batch dispatch is handled directly by this command's orchestrator loop, not by a separate skill.
+**Note**: Batch dispatch is handled directly by this command's orchestrator loop via parallel Skill tool calls, not by a separate batch skill.
 
-**Team mode interaction**: If `--team` is in `remaining_args`, team mode is applied to ALL tasks. Total agents spawned = `N_tasks * team_size`. Use with care due to cost multiplication.
+**Team mode interaction**: If `--team` is in `remaining_args`, team mode is applied to ALL tasks (each task routes to `skill-team-research`). Total agents spawned = `N_tasks * team_size`. Use with care due to cost multiplication.
 
 #### Step 4: Batch Git Commit
 
-After all agents complete, produce a single batch commit:
+After all skills complete, produce a single batch commit. Per-skill postflight may have already committed individual task changes; this batch commit captures any remaining unstaged changes and may be empty (which fails gracefully).
 
 **Full success**:
 ```
@@ -296,7 +296,7 @@ Skipped: {count}
    - `--opus` -> `model_flag = "opus"` (use Opus model)
 
    If multiple are provided, last one wins.
-   If none: `model_flag = null` (use agent default, currently opus for all agents)
+   If none: `model_flag = null` (use agent's frontmatter default: opus for planner/meta-builder/reviser; sonnet for general-purpose agents)
 
 5. **Extract Clean Flag**
    Check remaining args for memory retrieval suppression:
@@ -400,7 +400,7 @@ If `model_flag` is set, pass the `model` parameter to override the agent's defau
 - `model_flag="haiku"` -> pass `model: haiku`
 - `model_flag="sonnet"` -> pass `model: sonnet`
 - `model_flag="opus"` -> pass `model: opus`
-- `model_flag=null` -> omit `model` parameter (use agent default, currently opus for all agents)
+- `model_flag=null` -> omit `model` parameter (use agent's frontmatter default: opus for planner/meta-builder/reviser; sonnet for general-purpose agents)
 
 If `effort_flag` is set, pass it as prompt context to the skill/agent for reasoning depth guidance.
 

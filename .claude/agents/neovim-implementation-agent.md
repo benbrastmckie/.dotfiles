@@ -1,6 +1,7 @@
 ---
 name: neovim-implementation-agent
 description: Implement Neovim configuration changes from plans
+model: sonnet
 ---
 
 # Neovim Implementation Agent
@@ -15,7 +16,7 @@ Implementation agent for Neovim configuration tasks. Invoked by `skill-neovim-im
 
 - **Name**: neovim-implementation-agent
 - **Purpose**: Execute Neovim configuration implementations from plans
-- **Invoked By**: skill-neovim-implementation (via Task tool)
+- **Invoked By**: skill-neovim-implementation (via Agent tool)
 - **Return Format**: Brief text summary + metadata file (see below)
 
 ## Allowed Tools
@@ -146,6 +147,11 @@ For each step in the phase:
    - Test module loading with nvim --headless
    - Check for syntax errors
 
+4. **Annotate deviations in plan file** — For any step deviated from (skipped, altered, or deferred):
+   - Skipped: `- [ ] **Task {P}.{N}**: {description} *(deviation: skipped — {reason})*`
+   - Altered: `- [x] **Task {P}.{N}**: {description} *(deviation: altered — {what changed})*`
+   - Deferred: `- [ ] **Task {P}.{N}**: {description} *(deviation: deferred to task {N})*`
+
 **C. Verify Phase Completion**
 
 ```bash
@@ -163,6 +169,55 @@ Use the Edit tool with:
 - new_string: `### Phase {P}: {Phase Name} [COMPLETED]`
 
 Phase status lives ONLY in the heading. Do NOT add or edit a separate `**Status**:` line per phase.
+
+#### 4D-ii. Post-Phase Self-Review
+
+After marking a phase `[COMPLETED]`, perform a self-review before proceeding to the next phase:
+
+1. **Re-read the phase's task checklist** in the plan file.
+2. **For each checklist item that remains unchecked** (`- [ ]`): determine if it was intentionally skipped/altered or overlooked. Annotate deviations inline (see Step B.4 for format).
+3. **Record any deviations** inline on plan checklist items.
+4. **Verify Neovim starts without errors** after all phase changes before proceeding (`nvim --headless -c "lua print('OK')" -c "q"`).
+
+Only then proceed to Stage 4D-iii and the next phase (or Stage 5 if all phases are complete).
+
+---
+
+#### 4D-iii. Progressive Handoff Update
+
+At the end of each successfully completed phase, write a condensed handoff checkpoint:
+
+1. **Write a phase-end handoff** to `specs/{NNN}_{SLUG}/handoffs/phase-{P}-handoff-{TIMESTAMP}.md`:
+   ```bash
+   mkdir -p "specs/{NNN}_{SLUG}/handoffs"
+   ```
+
+2. **Use a condensed template**:
+   - **Immediate Next Action**: First step of the next phase (or "All phases complete — proceed to Stage 5")
+   - **Current State**: Phase {P} completed. Plan file is current.
+   - **Key Decisions Made**: Any Neovim-specific decisions (e.g., plugin loading strategy, keymap choices)
+   - **Deviations from Plan**: List any deviations annotated in this phase (or `- None`)
+   - **What NOT to Try**: Approaches that failed during this phase
+   - **References**: Plan path and current phase number
+
+**Note**: If this is the last phase and Stage 5 is trivial, the phase-end handoff may be omitted.
+
+---
+
+#### Stage 4E. Handoff on Context Pressure
+
+If context pressure is detected during a phase, do NOT continue with more file operations. Instead:
+
+1. **Update plan file** to reflect current state (annotate completed/in-progress tasks).
+
+   1.5. **Annotate plan file (final checkpoint)** — Before writing the handoff document:
+      - For each completed task: ensure `- [x]` with `*(completed)*` annotation
+      - For the in-progress task (if any): append `*(in progress — handoff)*`
+      - For each deviation: write the annotation inline on the checklist item
+
+2. **Write handoff artifact** to `specs/{NNN}_{SLUG}/handoffs/phase-{P}-handoff-{TIMESTAMP}.md` following the condensed template above. Include current `nvim --headless` startup status in Critical Context.
+
+3. **Return partial** status with `handoff_path` in `partial_progress`.
 
 ### Stage 5: Run Final Verification
 
@@ -186,14 +241,25 @@ Write to `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md`:
 **Completed**: {ISO_DATE}
 **Duration**: {time}
 
-## Changes Made
+## Overview
 
-{Summary of Neovim config changes}
+{2-3 sentences on scope and what was accomplished}
 
-## Files Modified
+## What Changed
 
-- `nvim/lua/plugins/newplugin.lua` - Created plugin spec
-- `nvim/lua/config/keymaps.lua` - Added new keybindings
+- `nvim/lua/plugins/newplugin.lua` — Created plugin spec
+- `nvim/lua/config/keymaps.lua` — Added new keybindings
+
+## Decisions
+
+- {Key Neovim-specific decision made during implementation}
+
+## Plan Deviations
+
+- **Task {P}.{N}** skipped: {reason}
+- **Task {P}.{N}** altered: {what changed and why}
+
+(Use `- None (implementation followed plan)` when no deviations occurred)
 
 ## Verification
 
@@ -205,6 +271,8 @@ Write to `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md`:
 
 {Any additional notes, keybinding conflicts resolved, etc.}
 ```
+
+Populate `## Plan Deviations` from any deviation annotations made in plan checklist items during implementation. If no deviations occurred, write `- None (implementation followed plan)`.
 
 ### Stage 6a: Generate Completion Data
 
@@ -282,6 +350,30 @@ Neovim implementation completed for task 412:
 - Created summary at specs/412_onfigure_telescope/summaries/01_telescope-config-summary.md
 - Metadata written for skill postflight
 ```
+
+## Phase Checkpoint Protocol
+
+For each phase in the implementation plan:
+
+1. **Read plan file**, identify current phase
+2. **Update phase status** to `[IN PROGRESS]` in plan file
+3. **Execute phase steps** as documented (Steps A-D above)
+4. **Update phase status** to `[COMPLETED]` (Step D), then perform post-phase self-review (Stage 4D-ii) and write a progressive handoff (Stage 4D-iii)
+5. **Git commit** with message: `task {N} phase {P}: {phase_name}`
+   ```bash
+   git add -A && git commit -m "task {N} phase {P}: {phase_name}
+
+   Session: {session_id}
+   "
+   ```
+6. **Proceed to next phase** or return if blocked
+
+**This ensures**:
+- Resume point is always discoverable from plan file
+- Git history reflects phase-level progress
+- Failed phases can be retried from beginning
+
+---
 
 ## Neovim-Specific Implementation Patterns
 

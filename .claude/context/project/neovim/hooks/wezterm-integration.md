@@ -6,7 +6,7 @@ This document describes the WezTerm terminal integration for Claude Code, provid
 
 The integration enables:
 - Task number display in WezTerm tab titles (e.g., `nvim #792`)
-- Amber highlighting for tabs awaiting Claude Code input
+- Lifecycle-aware tab coloring with dim-to-bold transitions within same hue families
 - Automatic notification clearing when the user views or responds
 
 ## Architecture
@@ -28,7 +28,7 @@ The integration enables:
     │                         │    │                          │
     │ Directory updates from  │    │ wezterm-task-number.sh   │
     │ shells and Neovim       │    │ wezterm-notify.sh        │
-    │ autocmds                │    │ wezterm-clear-status.sh  │
+    │ autocmds                │    │ wezterm-preflight-status │
     └─────────────────────────┘    └──────────────────────────┘
 ```
 
@@ -37,18 +37,39 @@ The integration enables:
 ### wezterm-notify.sh
 
 **Path**: `.claude/hooks/wezterm-notify.sh`
-**Hook Event**: `Stop`
-**Purpose**: Set amber tab notification when Claude awaits input
+**Hook Event**: `Stop` (also called directly by `update-task-status.sh`)
+**Purpose**: Set tab notification color based on lifecycle state
 
-Sets `CLAUDE_STATUS=needs_input` via OSC 1337 to the pane TTY. The WezTerm `format-tab-title` handler reads this variable and applies amber background (#e5b566) to inactive tabs.
+Sets `CLAUDE_STATUS` via OSC 1337 to the pane TTY. The WezTerm `format-tab-title` handler reads this variable and applies color-coded background to inactive tabs.
 
-### wezterm-clear-status.sh
+Uses shared TTY discovery from `wezterm-utils.sh`.
 
-**Path**: `.claude/hooks/wezterm-clear-status.sh`
+**Usage**:
+- `bash wezterm-notify.sh` -- Sets `CLAUDE_STATUS=needs_input` (Stop hook, gray tab)
+- `bash wezterm-notify.sh researched` -- Sets `CLAUDE_STATUS=researched` (bright green tab)
+- `bash wezterm-notify.sh completed` -- Sets `CLAUDE_STATUS=completed` (bright gold tab)
+
+### wezterm-preflight-status.sh
+
+**Path**: `.claude/hooks/wezterm-preflight-status.sh`
 **Hook Event**: `UserPromptSubmit`
-**Purpose**: Clear notification when user submits a prompt
+**Purpose**: Set in-progress tab coloring immediately when user submits a lifecycle command
 
-Clears `CLAUDE_STATUS` by setting it to an empty value, restoring normal tab appearance.
+3-tier logic:
+- **Tier 1** (lifecycle commands): Sets dim in-progress color before Claude responds
+- **Tier 2** (other slash commands): Clears CLAUDE_STATUS and workflow-active marker
+- **Tier 3** (free text): Preserves CLAUDE_STATUS (no-op)
+
+Also clears the workflow-active marker on Tier 2 to handle ESC-cancel edge cases.
+
+### wezterm-utils.sh
+
+**Path**: `.claude/hooks/wezterm-utils.sh`
+**Purpose**: Shared TTY discovery and OSC write functions (sourced by other hooks)
+
+Provides:
+- `get_pane_tty()`: Returns writable TTY path for the current WezTerm pane
+- `set_user_var()`: Sets a WezTerm user variable via OSC 1337
 
 ### wezterm-task-number.sh
 
@@ -56,25 +77,77 @@ Clears `CLAUDE_STATUS` by setting it to an empty value, restoring normal tab app
 **Hook Event**: `UserPromptSubmit`
 **Purpose**: Extract and display task number in tab title
 
-Parses `CLAUDE_USER_PROMPT` environment variable for workflow patterns:
-- `/research N`
-- `/plan N`
-- `/implement N`
+Parses user prompt for workflow patterns using 3-tier logic (task 590):
+- `/research N` or `/research N, N-N, N` (multi-task)
+- `/plan N` or `/plan N, N-N`
+- `/implement N` or `/implement N, N-N, N`
 - `/revise N`
+- `/spawn N`
+- `/task --recover N`
+- `/task --expand N`
+- `/task --abandon N`
+- `/task --review N`
+- `/errors --fix N`
 
-**Behavior** (task 795):
-- **Workflow command**: Sets `TASK_NUMBER` user variable to N
-- **Non-workflow command**: Clears `TASK_NUMBER` user variable
-- **Claude output**: No change (preserves current state - no hook fires)
+**Behavior** (task 590):
+- **Workflow command with task number**: Sets `TASK_NUMBER` to compact spec (e.g., `7,22-24,59`)
+- **Slash command without task number**: Clears `TASK_NUMBER` user variable
+- **Free text / follow-up**: Preserves `TASK_NUMBER` (no change)
 
-This ensures task numbers persist correctly during Claude's responses and tool executions, only changing when the user submits a new prompt.
+## Workflow-Active Marker
+
+**Path**: `.claude/tmp/workflow-active`
+**Purpose**: Suppress Stop hook during mid-workflow orchestrator pauses
+
+The workflow-active marker prevents the Stop hook from resetting the tab color during
+orchestrator pauses between subagent calls (the primary cause of mid-workflow color resets).
+
+**Lifecycle**:
+1. Written by `update-task-status.sh` preflight (contains task number and timestamp)
+2. Stop hook checks for marker: if present, exits silently (no color override)
+3. Cleared by `wezterm-preflight-status.sh` Tier 2 on non-lifecycle slash commands
+4. `skill-refresh` can also clean stale marker files if needed
+
+This replaces the former signal file mechanism (`lifecycle-signal`) which only suppressed
+the first Stop after postflight (not mid-workflow pauses).
 
 ## User Variables
 
 | Variable | Purpose | Values |
 |----------|---------|--------|
-| `TASK_NUMBER` | Task number for tab title | Numeric string (e.g., "792") |
-| `CLAUDE_STATUS` | Notification state | "needs_input" or empty |
+| `TASK_NUMBER` | Task number for tab title | Numeric string or compact multi-task spec (e.g., "792", "7,22-24,59") |
+| `CLAUDE_STATUS` | Notification/lifecycle state | See lifecycle states below, or empty |
+
+### CLAUDE_STATUS Lifecycle States
+
+Only lifecycle states are used (no artifact-type vocabulary). Dim-to-bold transitions within
+the same hue family indicate workflow progress:
+
+| Value | Trigger | Tab Color | Description |
+|-------|---------|-----------|-------------|
+| `needs_input` | Stop hook (default) | Gray (#3a3a3a) | Claude awaits user input |
+| `researching` | Preflight: research starting | Dim green (#1a3a1a / #607060) | Research in progress |
+| `researched` | Postflight: research done | Bright green (#2a5a2a / #d0d0d0) | Research phase completed |
+| `planning` | Preflight: planning starting | Dim blue (#1a1a3a / #606070) | Planning in progress |
+| `planned` | Postflight: planning done | Bright blue (#2a2a6a / #d0d0d0) | Planning phase completed |
+| `implementing` | Preflight: impl starting | Dim gold (#3a3a1a / #707060) | Implementation in progress |
+| `completed` | Postflight: impl done | Bright gold (#5a5a2a / #d0d0d0) | Implementation completed |
+| `blocked` | Postflight: task blocked | Red (#5a2a2a / #d0d0d0) | Task is blocked |
+| (empty) | User views tab / Tier 2 command | Default (#202020) | Normal inactive tab |
+| (unknown) | Any unrecognized value | Default (#202020) | Safe degradation |
+
+**Color Format**: `{ bg, fg }` — bg is background, fg is foreground text color.
+
+**Dim-to-Bold Pattern**: Each lifecycle phase uses the same hue family:
+- Research: green (dim → bright when researched)
+- Planning: blue (dim → bright when planned)
+- Implementation: gold (dim → bright when completed)
+
+**Safe Degradation**: Unknown `CLAUDE_STATUS` values fall through to default inactive tab styling.
+
+**Clearing**: CLAUDE_STATUS is cleared (reset to empty) when:
+1. The user switches to the tab (via `update-status` handler in wezterm.lua)
+2. The user submits a non-lifecycle slash command (via `wezterm-preflight-status.sh` Tier 2)
 
 ## Configuration
 
@@ -97,7 +170,7 @@ Hooks are registered in `.claude/settings.json`:
       "matcher": "*",
       "hooks": [{
         "type": "command",
-        "command": "bash .claude/hooks/wezterm-notify.sh 2>/dev/null || echo '{}'"
+        "command": "bash .claude/hooks/claude-stop-notify.sh 2>/dev/null || echo '{}'"
       }]
     }],
     "UserPromptSubmit": [{
@@ -109,7 +182,7 @@ Hooks are registered in `.claude/settings.json`:
         },
         {
           "type": "command",
-          "command": "bash .claude/hooks/wezterm-clear-status.sh 2>/dev/null || echo '{}'"
+          "command": "bash .claude/hooks/wezterm-preflight-status.sh 2>/dev/null || echo '{}'"
         }
       ]
     }]
@@ -156,33 +229,23 @@ end
 
 If the global position computation fails (e.g., mux unavailable), the tab number falls back to `tab.tab_index + 1` (per-window index). This ensures tabs always display a number.
 
-### Example
-
-With 3 windows and tabs created in this order:
-- Window A: Tab 1, Tab 4
-- Window B: Tab 2, Tab 5
-- Window C: Tab 3
-
-The display shows:
-- Window A: `1 project`, `4 project`
-- Window B: `2 project`, `5 project`
-- Window C: `3 project`
-
-This matches the TTS announcements: "Tab 1", "Tab 2", etc.
-
 ## Technical Details
 
 ### TTY Access Pattern
 
-Claude Code hooks run with redirected stdio (stdout is a socket to Claude). To emit OSC sequences visible to WezTerm, hooks must write directly to the pane's TTY:
+Claude Code hooks run with redirected stdio (stdout is a socket to Claude). To emit OSC sequences visible to WezTerm, hooks must write directly to the pane's TTY.
+
+The shared `wezterm-utils.sh` provides this abstraction:
 
 ```bash
-# Get TTY path via WezTerm CLI
-PANE_TTY=$(wezterm cli list --format=json | \
-  jq -r ".[] | select(.pane_id == $WEZTERM_PANE) | .tty_name")
+# Source the shared utilities
+source "$SCRIPT_DIR/wezterm-utils.sh"
 
-# Write escape sequence to TTY
-printf '\033]1337;SetUserVar=NAME=base64value\007' > "$PANE_TTY"
+# Get TTY path (returns empty and exits 1 if unavailable)
+PANE_TTY=$(get_pane_tty) || exit_success
+
+# Set a user variable via OSC 1337
+set_user_var "CLAUDE_STATUS" "$STATUS" "$PANE_TTY"
 ```
 
 ### OSC Escape Sequence Format
@@ -217,3 +280,4 @@ This separation (task 795) ensures:
 - **WezTerm configuration**: `~/.dotfiles/docs/terminal.md`
 - **Neovim integration**: `~/.config/nvim/lua/neotex/config/README.md`
 - **Hook source files**: `.claude/hooks/wezterm-*.sh`
+- **TTS integration**: `.claude/context/project/neovim/guides/tts-stt-integration.md`

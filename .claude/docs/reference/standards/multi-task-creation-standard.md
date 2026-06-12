@@ -87,7 +87,7 @@ Use AskUserQuestion with multiSelect for item selection.
 
 Cluster related items into coherent task groups when 2+ items are selected. This implements the **Task Minimization Principle** - proactively suggesting consolidation opportunities rather than passively accepting user-provided breakdowns.
 
-**Automatic Topic Clustering** (implemented by `/meta` Stage 3.5 and `/fix-it`):
+**Automatic Task Consolidation** (implemented by `/meta` Stage 3.5 (AnalyzeConsolidation) and `/fix-it`):
 - Extract topic indicators: key terms, component type, affected area, action type
 - Cluster by shared indicators (2+ key terms OR same component_type AND affected_area)
 - Present consolidation options before task creation
@@ -290,6 +290,13 @@ Always show task summary and require explicit confirmation before creating tasks
 
 **Mandatory**: User MUST explicitly select "Yes, create tasks" before any tasks are created.
 
+**Foreground Requirement**: Confirmation MUST execute in the foreground skill layer (not inside a delegated background agent). `AskUserQuestion` called from background agents (spawned via Task tool) does not reliably surface to users. Skills that delegate to agents for task creation must complete all confirmation steps before spawning the agent. The correct pattern:
+1. Skill performs item discovery, proposal, and confirmation via `AskUserQuestion` (foreground)
+2. On user confirmation, skill passes `mode=confirmed` + `confirmed_tasks=[...]` to the agent
+3. Agent creates tasks without any interactive prompts
+
+Reference implementation: `skill-meta` Stage 2.5 (Pre-Confirmation) + `meta-builder-agent` Stage 3D (Confirmed Task Creation).
+
 ### 8. State Updates (Required)
 
 Update state.json and TODO.md atomically with correct dependency information.
@@ -364,7 +371,7 @@ The `/meta` command and `meta-builder-agent` implement all 8 components plus enh
 |-----------|-------------------------|
 | Discovery | Interview Stage 2-3 (GatherDomainInfo, IdentifyUseCases) |
 | Selection | Interview Stage 5 (ReviewAndConfirm with task list) |
-| **Topic Clustering** | **Interview Stage 3.5 (AnalyzeTopics - automatic clustering)** |
+| **Task Consolidation** | **Interview Stage 3.5 (AnalyzeConsolidation - automatic clustering)** |
 | Grouping | Interview Stage 3.5 (automatic) + Stage 3 (user refinement) |
 | Dependencies | Interview Stage 3 Question 5 (dependency interview) |
 | Ordering | Interview Stage 6 (Kahn's algorithm) |
@@ -373,7 +380,7 @@ The `/meta` command and `meta-builder-agent` implement all 8 components plus enh
 | State Updates | Interview Stage 6 (batch insertion with NOT STARTED status) |
 
 **Enhanced Stages** (added for Task Minimization Principle):
-- **Stage 3.5 (AnalyzeTopics)**: Extracts topic indicators, clusters by shared terms/components, presents consolidation picker
+- **Stage 3.5 (AnalyzeConsolidation)**: Extracts topic indicators, clusters by shared terms/components, presents consolidation picker
 
 See `.claude/agents/meta-builder-agent.md` for complete implementation details.
 
@@ -390,7 +397,7 @@ See `.claude/agents/meta-builder-agent.md` for complete implementation details.
 *`/errors` creates tasks automatically without interactive selection (intentional for error triage workflow).
 
 **Enhanced `/meta` Features**:
-- **Automatic Topic Clustering** (Stage 3.5): Proactively analyzes user-provided task breakdown and suggests consolidation opportunities
+- **Automatic Task Consolidation** (Stage 3.5): Proactively analyzes user-provided task breakdown and suggests consolidation opportunities
 
 ## Gaps and Future Enhancements
 

@@ -32,9 +32,18 @@ This directory contains the documentation for the `.claude/` agent system. The s
 │   ├── README.md               # Template overview
 │   ├── command-template.md     # Command template
 │   └── agent-template.md       # Agent template
+├── reference/                   # Reference standards
+│   └── standards/
+│       ├── agent-frontmatter-standard.md  # Agent/skill frontmatter spec
+│       ├── extension-slim-standard.md     # Extension slim format
+│       └── multi-task-creation-standard.md # Multi-task creation pattern
 └── architecture/               # Architecture documentation
     ├── system-overview.md      # Three-layer architecture overview
-    └── extension-system.md     # Extension system architecture
+    ├── extension-system.md     # Extension system architecture
+    ├── architecture-spec.md    # Unified workflow architecture spec
+    ├── dispatch-agent-spec.md  # dispatch_agent() function spec
+    ├── handoff-schema.md       # Orchestrator handoff JSON schema
+    └── orchestrate-state-machine.md # /orchestrate state machine spec
 ```
 
 ---

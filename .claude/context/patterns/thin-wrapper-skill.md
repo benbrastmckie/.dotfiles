@@ -11,7 +11,7 @@
 Thin wrapper skills are the standard pattern for workflow skills. They:
 1. Validate inputs
 2. Prepare delegation context
-3. Invoke a subagent via Task tool
+3. Invoke a subagent via Agent tool
 4. Validate and propagate the return
 
 They do NOT:
@@ -27,14 +27,14 @@ They do NOT:
 ---
 name: skill-{name}
 description: {One-line description}
-allowed-tools: Task
+allowed-tools: Agent
 context: fork
 agent: {agent-name}
 ---
 ```
 
 **Key fields**:
-- `allowed-tools: Task` - Only tool needed for delegation
+- `allowed-tools: Agent` - Only tool needed for delegation
 - `context: fork` - Do NOT load context eagerly; subagent loads context
 - `agent: {name}` - Target subagent to invoke
 
@@ -81,10 +81,10 @@ session_id="sess_$(date +%s)_$(od -An -N3 -tx1 /dev/urandom | tr -d ' ')"
 
 ### 3. Invoke Subagent
 
-**CRITICAL**: Use the **Task** tool to spawn the subagent.
+**CRITICAL**: Use the **Agent** tool to spawn the subagent.
 
 ```
-Tool: Task (NOT Skill)
+Tool: Agent (NOT Skill, NOT Plan)
 Parameters:
   - subagent_type: "{agent-name}" (from frontmatter)
   - prompt: [Include task_context, delegation_context]
@@ -96,7 +96,7 @@ Agents live in `.claude/agents/`, not `.claude/skills/`.
 
 ### 3b. Self-Execution Fallback
 
-If the skill executor performed work inline (without spawning a subagent via Task tool), it MUST write a `.return-meta.json` file before proceeding to postflight. This ensures postflight stages can read metadata regardless of execution path.
+If the skill executor performed work inline (without spawning a subagent via Agent tool), it MUST write a `.return-meta.json` file before proceeding to postflight. This ensures postflight stages can read metadata regardless of execution path.
 
 **Why this is needed**: The postflight stages (status update, artifact linking, git commit) depend on reading `.return-meta.json`. When work is done by a subagent, the subagent writes this file. When work is done inline, the skill executor must write it manually using the schema from `return-metadata-file.md`.
 
@@ -104,12 +104,12 @@ If the skill executor performed work inline (without spawning a subagent via Tas
 ```markdown
 ### Stage 5b: Self-Execution Fallback
 
-**CRITICAL**: If you performed the work above WITHOUT using the Task tool (i.e., you read files,
+**CRITICAL**: If you performed the work above WITHOUT using the Agent tool (i.e., you read files,
 wrote artifacts, or updated metadata directly instead of spawning a subagent), you MUST write a
 `.return-meta.json` file now before proceeding to postflight. Use the schema from
 `return-metadata-file.md` with the appropriate status value for this operation.
 
-If you DID use the Task tool (Stage 5), skip this stage -- the subagent already wrote the metadata.
+If you DID use the Agent tool (Stage 5), skip this stage -- the subagent already wrote the metadata.
 ```
 
 ### 4. Return Validation
@@ -133,7 +133,7 @@ Return validated result to caller without modification.
 ---
 name: skill-{extension}-research
 description: Research {extension} patterns and conventions.
-allowed-tools: Task
+allowed-tools: Agent
 context: fork
 agent: {extension}-research-agent
 ---
@@ -155,7 +155,7 @@ Extract task_number. Validate task exists.
 Generate session_id. Prepare delegation context.
 
 ### 3. Invoke Subagent
-Use Task tool with subagent_type: {extension}-research-agent
+Use Agent tool with subagent_type: {extension}-research-agent
 
 ### 4. Return Validation
 Validate return matches subagent-return.md schema.
@@ -178,13 +178,13 @@ Used by: skill-researcher, skill-planner, skill-implementer, skill-reviser, skil
 ---
 name: skill-implementer
 description: Execute implementation tasks.
-allowed-tools: Task, Bash, Edit, Read, Write
+allowed-tools: Agent, Bash, Edit, Read, Write
 ---
 ```
 
-The skill body explicitly calls the Task tool with `subagent_type`:
+The skill body explicitly calls the Agent tool with `subagent_type`:
 ```
-Tool: Task
+Tool: Agent
 Parameters:
   subagent_type: "general-implementation-agent"
   prompt: [full structured context JSON: session_id, delegation_depth, memory_context, etc.]
@@ -202,7 +202,7 @@ Used by: skill-lean-research, skill-present-research, and similar extension skil
 ---
 name: skill-{ext}-research
 description: Research {ext} patterns. Invoke for {ext} research tasks.
-allowed-tools: Task
+allowed-tools: Agent
 context: fork
 agent: {ext}-research-agent
 ---

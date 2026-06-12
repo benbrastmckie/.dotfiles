@@ -61,7 +61,7 @@ session_id="sess_$(date +%s)_$(od -An -N3 -tx1 /dev/urandom | tr -d ' ')"
 1. Determine target skill by language
 2. Prepare delegation context (session_id, depth, path)
 3. Invoke skill
-4. Skill invokes agent via Task tool
+4. Skill invokes agent via Agent tool
 5. Agent creates artifacts
 6. Return structured result (JSON or metadata file)
 

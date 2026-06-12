@@ -1,7 +1,7 @@
 # Multi-Task Operations Pattern
 
 **Created**: 2026-04-02
-**Purpose**: Define how workflow commands parse multi-task arguments, dispatch parallel agents, and produce consolidated output
+**Purpose**: Define how workflow commands parse multi-task arguments, dispatch parallel skills, and produce consolidated output
 **Audience**: Command developers implementing multi-task support in /research, /plan, /implement
 
 ---
@@ -142,10 +142,10 @@ When `parse_task_args()` produces more than one task number, the command enters 
 │  MULTI-TASK:                                            │
 │  4. Validate all tasks (existence + status)             │
 │  5. Generate batch session ID                           │
-│  6. Invoke batch skill with validated task list         │
-│  7. Batch skill spawns one agent per task (parallel)    │
-│  8. Collect results from all agents                     │
-│  9. Batch git commit                                    │
+│  6. Route each task to appropriate skill                │
+│  7. Invoke all skills in parallel (one per task)        │
+│  8. Collect results from all skills                     │
+│  9. Batch git commit (cleanup; may be empty)            │
 │  10. Consolidated output                                │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -222,20 +222,17 @@ Invalid tasks are reported as warnings but do not block valid tasks from proceed
 
 ---
 
-## 6. Parallel Agent Spawning
+## 6. Parallel Skill Dispatch
 
-### Architecture: Batch Skill Dispatch (Option B)
+### Architecture: Orchestrator-Loop Skill Invocation
 
-Multi-task dispatch uses the batch skill pattern, consistent with the team-orchestration model where a single skill entry point orchestrates multiple agents.
+Multi-task dispatch uses parallel Skill tool calls from the command's orchestrator loop. Each task maps to the appropriate skill for that task type, and all skills are invoked in a single message for parallel execution.
 
 ```
-Command -> Skill(batch dispatch) -> [Task(agent, task 7), Task(agent, task 22), ...]
+Command -> [Skill(skill-researcher, task 7), Skill(skill-planner, task 22), ...]
 ```
 
-This is preferred over multiple Skill calls from the command because:
-- Commands invoke exactly one skill (consistent with existing architecture)
-- Centralized result collection and batch commit
-- Consistent with team-mode precedent (single skill orchestrates multiple agents)
+This keeps dispatch logic co-located with each command's validation and routing rules, avoiding an extra indirection layer. Each skill runs the full single-task lifecycle (preflight, agent delegation, postflight) independently.
 
 ### Batch Session ID
 
@@ -245,7 +242,7 @@ Generate a single session ID for the entire batch operation:
 batch_session_id="sess_$(date +%s)_$(od -An -N3 -tx1 /dev/urandom | tr -d ' ')"
 ```
 
-Each spawned agent receives a derived per-task session ID:
+Each invoked skill receives a derived per-task session ID:
 
 ```
 Per-task session: {batch_session_id}_{task_num}
@@ -253,43 +250,34 @@ Per-task session: {batch_session_id}_{task_num}
 
 ### Spawning Pattern
 
-The batch skill spawns one agent per validated task using parallel Task tool calls:
+The orchestrator invokes one skill per validated task using parallel Skill tool calls. Routing is per task_type using the same extension manifest lookup used for single-task dispatch:
 
 ```
 # All invoked in a single message (parallel execution)
 For each task_num in validated_tasks:
-  Tool: Task
+  Tool: Skill
   Parameters:
-    subagent_type: "{agent_type}"  # e.g., "general-research-agent"
-    prompt: |
-      Execute {command} for task {task_num}.
-      Session: {batch_session_id}_{task_num}
-      Arguments: {remaining_args}
-      [Full delegation context for task_num]
-    description: "{command} task {task_num}"
+    skill: "{skill_name}"  # e.g., "skill-researcher" (routed per task_type)
+    args: "task_number={task_num} session_id={batch_session_id}_{task_num} {remaining_args}"
 ```
 
-Each spawned agent runs the full single-task lifecycle independently:
+Each invoked skill runs the full single-task lifecycle independently:
 - Preflight status update (researching/planning/implementing)
-- Agent execution (research/plan/implement)
+- Agent delegation and execution
 - Postflight status update
 - Artifact creation
+- Per-skill git commit (may occur before the batch commit at Step 4)
 
 ### Result Collection
 
-After all parallel agents complete, the batch skill collects results:
+After all parallel skills complete, the orchestrator collects their text return values. Each skill returns a brief text summary; the orchestrator reads `.return-meta.json` files in each task directory for structured data if needed:
 
-```json
-{
-  "batch_session_id": "sess_...",
-  "command": "research",
-  "results": [
-    {"task": 7, "status": "succeeded", "new_status": "researched", "artifact": "specs/007_.../reports/01_....md"},
-    {"task": 22, "status": "succeeded", "new_status": "researched", "artifact": "specs/022_.../reports/01_....md"},
-    {"task": 23, "status": "failed", "error": "Agent timeout", "new_status": "researching"},
-    {"task": 24, "status": "succeeded", "new_status": "researched", "artifact": "specs/024_.../reports/01_....md"}
-  ]
-}
+```
+Skill results (text summaries):
+  task 7:  "Research completed: specs/007_.../reports/01_....md [RESEARCHED]"
+  task 22: "Research completed: specs/022_.../reports/01_....md [RESEARCHED]"
+  task 23: "Research failed: Agent timeout. Status: researching"
+  task 24: "Research completed: specs/024_.../reports/01_....md [RESEARCHED]"
 ```
 
 ---
@@ -325,7 +313,9 @@ Multi-task and team mode are orthogonal features:
 
 ## 8. Batch Git Commit Format
 
-After all agents complete, the batch skill produces a single git commit covering all successful tasks. This avoids per-agent commits that could conflict.
+After all skills complete, the orchestrator produces a single batch git commit covering all successful tasks.
+
+**Note on per-skill commits**: Each invoked skill runs its own postflight, which may produce an individual commit before the batch commit executes. The batch commit at Step 4 is a cleanup/consolidation step that captures any remaining unstaged changes. If per-skill postflight already committed all changes, the batch commit may be empty (which fails gracefully with no effect).
 
 ### Full Success
 
@@ -378,7 +368,7 @@ Failed tasks remain in their "in progress" status and are NOT included in the co
 
 ## 9. Consolidated Output Format
 
-The batch skill produces a consolidated output displayed to the user after all agents complete.
+The orchestrator produces a consolidated output displayed to the user after all skills complete.
 
 ```markdown
 ## Batch {Command} Results
@@ -450,12 +440,12 @@ If agent for task 23 fails:
 
 ### Concurrent State Safety
 
-Multiple agents writing to state.json concurrently is safe because:
-- Each agent writes to a specific `project_number` entry in `active_projects`
+Multiple skills writing to state.json concurrently is safe because:
+- Each skill writes to a specific `project_number` entry in `active_projects`
 - jq operations are scoped: `select(.project_number == $num)`
-- No agent modifies another task's fields
+- No skill modifies another task's fields
 
-**Risk**: Rapid sequential writes to state.json could cause read-modify-write races. Mitigation: the batch skill collects all results and performs a single consolidated state update after all agents complete.
+**Known limitation**: Rapid concurrent writes to state.json could cause read-modify-write races in edge cases. Scoped jq writes reduce this risk substantially. A future enhancement may add a consolidated state update after all skills complete if races are observed in practice.
 
 ---
 
@@ -485,8 +475,9 @@ Tasks 351-353 apply this pattern to each workflow command. This section summariz
 2. **Add multi-task dispatch branch**
    - Batch validation of all tasks
    - Generate batch session ID
-   - Invoke batch skill with task list and remaining_args
-   - After batch skill returns: produce batch commit and consolidated output
+   - Route each task to appropriate skill (per task_type extension lookup)
+   - Invoke all skills in a single message (parallel Skill tool calls, one per task)
+   - After all skills return: produce batch commit and consolidated output
 
 3. **No changes to single-task flow**
    - Existing GATE IN, DELEGATE, GATE OUT, COMMIT remain unchanged
@@ -494,29 +485,97 @@ Tasks 351-353 apply this pattern to each workflow command. This section summariz
 
 ### Per-Command Specifics
 
-| Command | Status Validation | Agent Type | Action Verb |
-|---------|------------------|------------|-------------|
-| `/research` | not_started, researched | research agent (by language) | "complete research" |
-| `/plan` | researched | planner agent | "create implementation plan" |
-| `/implement` | planned, implementing | implementation agent (by language) | "complete implementation" |
+| Command | Status Validation | Skill Invoked | Action Verb |
+|---------|------------------|---------------|-------------|
+| `/research` | not_started, researched | skill-researcher (or extension research skill) | "complete research" |
+| `/plan` | researched | skill-planner (or extension plan skill) | "create implementation plan" |
+| `/implement` | planned, implementing | skill-implementer (or extension implement skill) | "complete implementation" |
 
 ### Batch Dispatch Architecture
 
-Multi-task dispatch is handled by the orchestrator loop built into each command file (`/research`, `/plan`, `/implement`), not by a separate `skill-batch-dispatch` skill. Each command's MULTI-TASK DISPATCH section implements:
+Multi-task dispatch is handled by the orchestrator loop built into each command file (`/research`, `/plan`, `/implement`), not by a separate batch skill. Each command's MULTI-TASK DISPATCH section implements:
 
 - Task type extraction per task (from state.json)
-- Agent routing per task (using existing task-type-based routing from extension manifests)
-- Parallel Task tool spawning (one agent per task)
-- Result collection
+- Skill routing per task (using existing task-type-based routing from extension manifests)
+- Parallel Skill tool calls (one skill per task, all invoked in a single message)
+- Result collection from skill text returns (`.return-meta.json` for structured data)
 - Consolidated status update and batch git commit
 
-This approach keeps dispatch logic co-located with each command's validation and routing rules, avoiding an additional indirection layer.
+This approach keeps dispatch logic co-located with each command's validation and routing rules, avoiding an additional indirection layer. It is consistent with Section 6, which describes the same orchestrator-loop architecture.
+
+---
+
+## 13. Orchestrate-Specific Behavior
+
+### Why Wave Dispatch Instead of Pure Parallel
+
+`/research`, `/plan`, and `/implement` operate on a **single lifecycle phase**: each command performs one well-defined step for each task. Since one task's research does not depend on another task's research completing (they are independent state machines), pure parallel dispatch is safe.
+
+`/orchestrate` is different: it drives tasks through their **entire lifecycle** (research -> plan -> implement -> complete). When task B depends on task A, B must not begin orchestration until A has completed -- if B requires A's output, starting B before A finishes produces incorrect results.
+
+This requires **wave-based dispatch**: tasks are grouped into topological waves based on their intra-batch dependency graph, waves execute sequentially, and tasks within each wave run in parallel.
+
+### Intra-Batch Dependency Resolution
+
+Only dependencies between tasks **within the current batch** affect wave assignment. External dependencies (on tasks not in the batch) are ignored for ordering purposes -- those are assumed to be already completed or irrelevant to the current run.
+
+```
+Example: /orchestrate 42, 43, 44, 45
+  state.json dependencies:
+    43 depends on [42, 10]  (10 is outside batch -- ignored)
+    44 depends on [43]
+    45 depends on [42]
+
+  Intra-batch dependency graph:
+    42: no deps         -> Wave 0
+    43: depends on 42   -> Wave 1
+    44: depends on 43   -> Wave 2
+    45: depends on 42   -> Wave 1
+
+  Execution:
+    Wave 0: [42]          (parallel -- 1 task)
+    Wave 1: [43, 45]      (parallel -- both depend only on Wave 0)
+    Wave 2: [44]          (parallel -- depends on Wave 1)
+```
+
+### Failed Predecessor Handling
+
+A failed task in Wave N causes its **direct dependents** to be skipped in Wave N+1 (and transitively in later waves). Failure does NOT propagate sideways -- other tasks in Wave N that succeeded do NOT become failed.
+
+The failed predecessor rule is applied at wave dispatch time:
+1. Before dispatching Wave N+1, check each task in the wave for failed predecessors.
+2. If any predecessor is in the failed or skipped set, move that task to `skipped_tasks` with reason "predecessor {N} failed/skipped".
+3. Dispatch only the remaining (non-skipped) tasks in the wave.
+
+This ensures a clean failure boundary: only the dependency chain of the failed task is affected.
+
+### Focus Prompt Compatibility
+
+The optional focus prompt (e.g., `/orchestrate 42, 43 focus on the auth layer`) applies uniformly to all tasks in the batch. Each `skill-orchestrate` invocation receives the same `focus_prompt` value. Per-task focus prompts are not supported; run separate `/orchestrate` commands for different focus areas.
+
+### `--team` Flag Not Supported
+
+`/orchestrate` does not support the `--team` flag. Team mode adds vertical parallelism (multiple agents per task), which conflicts with the wave orchestration model where each task's lifecycle must complete fully before dependents begin. Mixing team parallelism with wave sequencing would require complex state tracking beyond the current design scope.
+
+### Dispatch Model Comparison
+
+| Property | `/research`, `/plan`, `/implement` | `/orchestrate` |
+|----------|------------------------------------|----------------|
+| Scope per task | Single lifecycle phase | Full lifecycle (all phases) |
+| Dispatch model | Pure parallel (all tasks at once) | Wave dispatch (topological order) |
+| Dependency awareness | None (each phase is independent) | Yes (intra-batch dependency graph) |
+| Failed task impact | No cross-task impact | Blocks direct dependents in later waves |
+| Team mode support | Yes (`--team` flag) | No |
+| Batch session ID | Single ID, per-task suffix | Single ID, per-task suffix |
+| Per-task skill | Routed by task_type | Always `skill-orchestrate` |
+| Parallelism | All validated tasks simultaneously | Tasks within each wave simultaneously |
 
 ---
 
 ## See Also
 
 - `checkpoint-execution.md` -- Three-checkpoint command flow (GATE IN, DELEGATE, GATE OUT)
-- `team-orchestration.md` -- Wave-based parallel agent spawning (precedent for parallel Task calls)
+- `team-orchestration.md` -- Wave-based parallel agent spawning (precedent for parallel Skill/Task calls)
 - `skill-lifecycle.md` -- Self-contained skill lifecycle management
 - `routing.md` -- `parse_ranges()` function and task-type-based routing tables
+- `.claude/commands/orchestrate.md` -- Full orchestrate command implementation with MULTI-TASK DISPATCH section

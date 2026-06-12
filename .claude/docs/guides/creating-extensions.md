@@ -412,7 +412,7 @@ Create `skills/skill-your-domain-research/SKILL.md`:
 ---
 name: skill-your-domain-research
 description: Conduct [Your Domain] research. Invoke for your-domain research tasks.
-allowed-tools: Task, Bash, Edit, Read, Write
+allowed-tools: Agent, Bash, Edit, Read, Write
 ---
 
 # Your Domain Research Skill
@@ -434,7 +434,7 @@ Invoked by the orchestrator when:
 4. Create postflight marker file
 
 ### DELEGATE
-5. Invoke `your-domain-research-agent` via Task tool with delegation context
+5. Invoke `your-domain-research-agent` via Agent tool with delegation context
 
 ### GATE OUT (Postflight)
 6. Read metadata file from agent
@@ -456,7 +456,7 @@ Create `skills/skill-your-domain-implementation/SKILL.md`:
 ---
 name: skill-your-domain-implementation
 description: Implement [Your Domain] changes from plans. Invoke for your-domain implementation.
-allowed-tools: Task, Bash, Edit, Read, Write
+allowed-tools: Agent, Bash, Edit, Read, Write
 ---
 
 # Your Domain Implementation Skill
@@ -478,7 +478,7 @@ Invoked by the orchestrator when:
 4. Create postflight marker file
 
 ### DELEGATE
-5. Invoke `your-domain-implementation-agent` via Task tool with delegation context
+5. Invoke `your-domain-implementation-agent` via Agent tool with delegation context
 
 ### GATE OUT (Postflight)
 6. Read metadata file from agent
@@ -644,6 +644,143 @@ Verify:
 - All copied files are removed
 - CLAUDE.md section is removed
 - Index entries are removed
+
+---
+
+## Lifecycle Hooks
+
+Extensions can declare **lifecycle hook scripts** in `manifest.json` under a top-level `hooks` object. These hooks are invoked by `skill-base.sh` at specific points in the skill execution lifecycle, before and after agent delegation.
+
+### Hooks vs. provides.hooks
+
+**Important distinction**: Two different `hooks` concepts exist in manifests:
+
+| Field | Purpose | Example |
+|-------|---------|---------|
+| `"hooks": {}` (top-level) | Lifecycle hook scripts called by skill-base.sh | `{"preflight": "scripts/my-check.sh"}` |
+| `"provides": { "hooks": [] }` | File-copy targets deployed to `.claude/hooks/` | `["log-session.sh", "post-command.sh"]` |
+
+Top-level `hooks` are NOT copied anywhere — they are called in-place from the extension directory.
+
+### Hook Schema
+
+Add a `hooks` object to your manifest:
+
+```json
+{
+  "name": "your-domain",
+  ...
+  "hooks": {
+    "preflight": "scripts/your-domain-preflight.sh",
+    "context_injection": "scripts/your-domain-context.sh",
+    "verification": "scripts/your-domain-verify.sh",
+    "postflight": "scripts/your-domain-postflight.sh"
+  }
+}
+```
+
+All hooks are optional. Missing keys (or `"hooks": {}`) are silently skipped.
+
+### Hook Execution Contract
+
+Hook scripts receive 5 positional arguments:
+
+| Arg | Variable | Example |
+|-----|----------|---------|
+| `$1` | `task_number` | `42` |
+| `$2` | `task_type` | `"your-domain"` |
+| `$3` | `task_dir` | `"specs/042_my-task"` |
+| `$4` | `session_id` | `"sess_1234_abc"` |
+| `$5` | `operation` | `"research"` or `"implement"` |
+
+**Exit codes**:
+- Exit 0: success (hook output printed to stdout)
+- Exit non-zero: warning logged (non-blocking, skill continues)
+
+Scripts MUST be executable (`chmod +x`).
+
+### Lifecycle Stage Mapping
+
+| Hook | Called From | When |
+|------|-------------|------|
+| `preflight` | `skill_preflight_update()` | After status is set to "in_progress" |
+| `context_injection` | `skill_context_injection()` | Before agent delegation |
+| `verification` | `skill_validate_artifact()` | After agent returns, artifact validated |
+| `postflight` | `skill_postflight_update()` | After status is set to completed |
+
+### Example: Preflight Validation Hook
+
+```bash
+#!/usr/bin/env bash
+# scripts/your-domain-preflight.sh
+
+set -euo pipefail
+
+TASK_NUMBER="${1:-}"
+TASK_TYPE="${2:-}"
+TASK_DIR="${3:-}"
+SESSION_ID="${4:-}"
+OPERATION="${5:-}"
+
+# Validate toolchain availability (warn but do not fail)
+if ! command -v your-tool &>/dev/null; then
+  echo "[your-domain-preflight] WARNING: 'your-tool' not found" >&2
+fi
+
+echo "[your-domain-preflight] Preflight OK"
+exit 0
+```
+
+### Example: Context Injection Hook
+
+```bash
+#!/usr/bin/env bash
+# scripts/your-domain-context.sh
+
+set -euo pipefail
+
+TASK_NUMBER="${1:-}"
+TASK_TYPE="${2:-}"
+TASK_DIR="${3:-}"
+SESSION_ID="${4:-}"
+OPERATION="${5:-}"
+
+echo "[your-domain-context] Domain context:"
+
+if command -v your-tool &>/dev/null; then
+  version=$(your-tool --version 2>/dev/null | head -1 || echo "unknown")
+  echo "[your-domain-context]   Tool version: $version"
+fi
+
+exit 0
+```
+
+### Adding Hooks to Your Extension
+
+1. Create `scripts/` directory in your extension:
+   ```bash
+   mkdir -p .claude/extensions/your-domain/scripts
+   ```
+
+2. Create and make executable:
+   ```bash
+   touch .claude/extensions/your-domain/scripts/your-domain-preflight.sh
+   chmod +x .claude/extensions/your-domain/scripts/your-domain-preflight.sh
+   ```
+
+3. Update `manifest.json`:
+   ```json
+   {
+     "hooks": {
+       "preflight": "scripts/your-domain-preflight.sh"
+     }
+   }
+   ```
+
+4. Verify with jq:
+   ```bash
+   jq '.hooks' .claude/extensions/your-domain/manifest.json
+   ```
 
 ---
 

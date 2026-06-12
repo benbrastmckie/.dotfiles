@@ -76,7 +76,7 @@ Dependencies are validated immediately:
 
 Optional follow-up asks about external dependencies on existing tasks in TODO.md.
 
-### Stage 3.5: AnalyzeTopics (Topic Clustering)
+### Stage 3.5: AnalyzeConsolidation (Task Consolidation)
 
 Executes only when the user provided 2+ tasks with shared topic indicators. Implements the **Task Minimization Principle**: fewer, well-scoped tasks are better than many fragmented ones.
 

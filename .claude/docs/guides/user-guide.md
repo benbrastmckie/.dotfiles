@@ -4,7 +4,7 @@
 
 A comprehensive guide to using the `.claude/` task management system commands for project development.
 
-**Last Updated**: 2026-01-28
+**Last Updated**: 2026-05-22
 
 ---
 
@@ -22,12 +22,16 @@ A comprehensive guide to using the `.claude/` task management system commands fo
    - [/review](#review-command)
    - [/refresh](#refresh-command)
    - [/errors](#errors-command)
-4. [Utility Commands](#utility-commands)
+4. [Automation Commands](#automation-commands)
+   - [/orchestrate](#orchestrate-command)
+   - [/spawn](#spawn-command)
+   - [/merge](#merge-command)
+5. [Utility Commands](#utility-commands)
    - [/meta](#meta-command)
    - [/fix-it](#fix-it-command)
    - [/convert](#convert-command) (requires `filetypes` extension)
-5. [Quick Reference](#quick-reference)
-6. [Troubleshooting](#troubleshooting)
+6. [Quick Reference](#quick-reference)
+7. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -386,6 +390,82 @@ Analyze error patterns and create fix plans.
 
 ---
 
+## Automation Commands
+
+Commands for autonomous task execution, blocker resolution, and repository management.
+
+### /orchestrate Command
+
+Drive a task autonomously through its full lifecycle without user confirmation between phases.
+
+```
+/orchestrate N
+```
+
+**Arguments**:
+- `N` - Task number (required)
+
+**Behavior**: Runs the complete lifecycle (research -> plan -> implement -> complete) as a state machine, advancing through each phase automatically. No confirmation gates between stages -- the agent makes all decisions.
+
+**State Machine**: The orchestrator tracks progress through 10 states (init, researching, researched, planning, planned, implementing, implemented, completing, completed, failed). If interrupted, re-running `/orchestrate N` resumes from the last successful state.
+
+**When to use**:
+- Well-defined tasks where you trust the agent to make research, planning, and implementation decisions
+- Tasks where you want hands-off execution
+
+**When NOT to use**:
+- Complex tasks requiring human judgment at each stage
+- Tasks where you want to review the plan before implementation
+
+**Example**:
+```
+/orchestrate 123    # Runs research -> plan -> implement automatically
+```
+
+---
+
+### /spawn Command
+
+Analyze blockers and spawn new tasks to overcome them.
+
+```
+/spawn N [blocker description]
+```
+
+**Arguments**:
+- `N` - Blocked task number (required)
+- `blocker description` - Optional description of what is blocking the task
+
+**Behavior**: Analyzes the blocked task, identifies what is preventing progress, and creates minimal new tasks to resolve the blocker. The new tasks are added as dependencies of the blocked task.
+
+**Example**:
+```
+/spawn 45 "Missing type definitions for the API module"
+```
+
+Creates new tasks (e.g., Task 46: "Create API type definitions") and updates task 45's dependencies.
+
+---
+
+### /merge Command
+
+Create a pull request or merge request for the current branch.
+
+```
+/merge
+```
+
+**Behavior**: Analyzes the current branch's changes relative to the main branch and creates a GitHub PR (or GitLab MR) with an auto-generated title and description. Uses `gh pr create` for GitHub repositories.
+
+**Prerequisites**: The current branch must have commits ahead of the main branch. A GitHub remote must be configured.
+
+**Example**:
+```
+/merge    # Creates a PR for the current branch
+```
+
+---
+
 ## Utility Commands
 
 Specialized utilities for specific tasks.
@@ -503,6 +583,9 @@ Convert documents between formats.
 | `/errors` | `/errors [--fix N]` | Analyze errors |
 | `/meta` | `/meta [PROMPT] \| --analyze` | System builder |
 | `/fix-it` | `/fix-it [PATH...]` | Extract tags to tasks |
+| `/orchestrate` | `/orchestrate N` | Drive task through full lifecycle autonomously |
+| `/spawn` | `/spawn N [blocker]` | Spawn tasks to unblock a blocked task |
+| `/merge` | `/merge` | Create pull/merge request for current branch |
 | `/tag` | `/tag [--patch|--minor|--major]` | Create semantic version tag (user-only) |
 | `/convert` | `/convert SOURCE [OUTPUT]` | Convert documents (requires `filetypes` extension) |
 

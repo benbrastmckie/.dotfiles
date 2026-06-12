@@ -277,7 +277,7 @@ Creates: Agent only (skill routes to it)
 
 | Skill | Agent |
 |-------|-------|
-| skill-orchestrator | (routing only) |
+| skill-orchestrate | (autonomous loop) |
 | skill-status-sync | (direct execution) |
 | skill-git-workflow | (direct execution) |
 | skill-researcher | general-research-agent |

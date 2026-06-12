@@ -1,6 +1,6 @@
 ---
 description: Execute implementation with resume support
-allowed-tools: Skill, Bash(jq:*), Bash(git:*), Read, Edit, Glob
+allowed-tools: Skill, Agent, Bash(jq:*), Bash(git:*), Read, Edit, Glob
 argument-hint: TASK_NUMBERS [--team [--team-size N]] [--force] [--fast|--hard] [--haiku|--sonnet|--opus]
 model: opus
 ---
@@ -173,25 +173,25 @@ if validated_tasks is empty:
 batch_session_id="sess_$(date +%s)_$(od -An -N3 -tx1 /dev/urandom | tr -d ' ')"
 ```
 
-#### Step 3: Dispatch Agents
+#### Step 3: Dispatch Skills
 
-For each validated task, spawn an independent implementation agent using the orchestrator's built-in batch loop:
+For each validated task, invoke the appropriate implementation skill using parallel Skill tool calls from the orchestrator's built-in batch loop:
 
 - Extract task type per task (from state.json)
-- Route per task using existing task-type-based routing from extension manifests
-- Spawn one agent per task via parallel Task tool calls
-- Per-task lifecycle: preflight status update, agent execution, postflight status update
-- Collect results from all agents
+- Route per task using existing task-type-based routing from extension manifests (or default `skill-implementer`)
+- Invoke all skills in a single message (parallel execution, one skill per task)
+- Each skill runs the full single-task implementation lifecycle independently (preflight, agent delegation, postflight)
+- Collect text results from all skills; read `.return-meta.json` in each task directory for structured data if needed
 
-**Note**: Batch dispatch is handled directly by this command's orchestrator loop, not by a separate skill.
+**Note**: Batch dispatch is handled directly by this command's orchestrator loop via parallel Skill tool calls, not by a separate batch skill.
 
-**--force flag**: When `--force` is present in `remaining_args`, it is passed to each spawned agent, which bypasses status validation in its single-task GATE IN.
+**--force flag**: When `--force` is present in `remaining_args`, it is passed to each invoked skill, which passes it through to its agent to bypass status validation in single-task GATE IN.
 
-**--team flag**: When `--team` is present in `remaining_args`, each task gets team mode (multiple agents per task). Total agents = `N_tasks * team_size`. Cost warning applies.
+**--team flag**: When `--team` is present in `remaining_args`, each task routes to `skill-team-implement` (multiple agents per task). Total agents = `N_tasks * team_size`. Cost warning applies.
 
 #### Step 4: Batch Git Commit
 
-After the batch skill returns results, produce a single git commit.
+After all skills return results, produce a single git commit. Per-skill postflight may have already committed individual task changes; this batch commit captures any remaining unstaged changes and may be empty (which fails gracefully).
 
 **Full success**:
 ```bash
@@ -333,7 +333,7 @@ Skipped: {count}
    - `--opus` -> `model_flag = "opus"` (use Opus model)
 
    If multiple are provided, last one wins.
-   If none: `model_flag = null` (use agent default, currently opus for all agents)
+   If none: `model_flag = null` (use agent's frontmatter default: opus for planner/meta-builder/reviser; sonnet for general-purpose agents)
 
 5. **Validate Team Size**
    ```bash
@@ -440,7 +440,7 @@ If `model_flag` is set, pass the `model` parameter to override the agent's defau
 - `model_flag="haiku"` -> pass `model: haiku`
 - `model_flag="sonnet"` -> pass `model: sonnet`
 - `model_flag="opus"` -> pass `model: opus`
-- `model_flag=null` -> omit `model` parameter (use agent default, currently opus for all agents)
+- `model_flag=null` -> omit `model` parameter (use agent's frontmatter default: opus for planner/meta-builder/reviser; sonnet for general-purpose agents)
 
 If `effort_flag` is set, pass it as prompt context to the skill/agent for reasoning depth guidance.
 
@@ -533,7 +533,7 @@ The skill will spawn the appropriate agent(s) which execute plan phases (in para
 
 7. **Post-Delegation Takeover Detection (Future Work)**
 
-   > **Note**: A future enhancement should detect if the skill performed source-file reads, builds, or codebase exploration after the subagent returned. If the skill's tool-call sequence shows Read/Grep/Glob/Bash operations on non-specs files after the Task tool returned, log a warning: "Skill violated postflight boundary -- source operations detected after delegation." This is not currently enforced automatically but is documented as a desired GATE OUT validation.
+   > **Note**: A future enhancement should detect if the skill performed source-file reads, builds, or codebase exploration after the subagent returned. If the skill's tool-call sequence shows Read/Grep/Glob/Bash operations on non-specs files after the Agent tool returned, log a warning: "Skill violated postflight boundary -- source operations detected after delegation." This is not currently enforced automatically but is documented as a desired GATE OUT validation.
 
 **RETRY** skill if validation fails.
 

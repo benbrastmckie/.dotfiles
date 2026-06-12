@@ -1,7 +1,7 @@
 ---
 name: skill-reviser
 description: Thin wrapper that delegates plan revision to reviser-agent subagent. Invoke for /revise command.
-allowed-tools: Task, Bash, Edit, Read, Write, Glob, Grep
+allowed-tools: Agent, Bash, Edit, Read, Write, Glob, Grep
 ---
 
 # Reviser Skill
@@ -191,7 +191,7 @@ The format content will be included as a delimited section in the Stage 5 prompt
 
 ### Stage 5: Prepare Delegation Context and Invoke Subagent
 
-**CRITICAL**: You MUST use the **Task** tool to spawn the subagent.
+**CRITICAL**: You MUST use the **Agent** tool to spawn the subagent.
 
 Prepare delegation context:
 
@@ -218,7 +218,7 @@ Prepare delegation context:
 
 **Required Tool Invocation**:
 ```
-Tool: Task (NOT Skill)
+Tool: Agent (NOT Skill, NOT Plan)
 Parameters:
   - subagent_type: "reviser-agent"
   - prompt: [Include task_context, delegation_context, existing_plan_path, new_research_paths,
@@ -256,12 +256,12 @@ The subagent will:
 
 ### Stage 5b: Self-Execution Fallback
 
-**CRITICAL**: If you performed the work above WITHOUT using the Task tool (i.e., you read files,
+**CRITICAL**: If you performed the work above WITHOUT using the Agent tool (i.e., you read files,
 wrote artifacts, or updated metadata directly instead of spawning a subagent), you MUST write a
 `.return-meta.json` file now before proceeding to postflight. Use the schema from
 `return-metadata-file.md` with the appropriate status value for this operation.
 
-If you DID use the Task tool, skip this stage -- the subagent already wrote the metadata.
+If you DID use the Agent tool, skip this stage -- the subagent already wrote the metadata.
 
 ---
 
@@ -367,6 +367,22 @@ bash .claude/scripts/link-artifact-todo.sh $task_number '**Plan**' '**Descriptio
 ```
 
 If the script exits non-zero, log a warning but continue (linking errors are non-blocking).
+
+---
+
+### Stage 8a: Lifecycle TTS Notification
+
+Fire TTS and WezTerm tab coloring after artifact linking is complete:
+
+```bash
+lifecycle_script=".claude/scripts/lifecycle-notify.sh"
+if [ -f "$lifecycle_script" ]; then
+    bash "$lifecycle_script" "$STATE_STATUS" &
+fi
+```
+
+Non-blocking: called in background after artifacts are linked. Speaks "Tab N STATUS"
+(e.g., "Tab 3 planned") to announce the lifecycle transition.
 
 ---
 

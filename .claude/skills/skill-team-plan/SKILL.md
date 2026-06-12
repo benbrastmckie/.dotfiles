@@ -1,8 +1,8 @@
 ---
 name: skill-team-plan
 description: Orchestrate multi-agent planning with parallel plan generation. Spawns 2-3 teammates for diverse planning approaches and synthesizes into final plan with trade-off analysis.
-allowed-tools: Task, Bash, Edit, Read, Write
-# This skill uses TeammateTool for team coordination (available when CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)
+allowed-tools: Agent, Bash, Edit, Read, Write
+# This skill uses Agent tool for team coordination (available when CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)
 # Context loaded by lead during synthesis:
 #   - .claude/context/patterns/team-orchestration.md
 #   - .claude/context/formats/team-metadata-extension.md
@@ -288,7 +288,7 @@ Format: Risk analysis with dependency graph and critical path
 
 ---
 
-**Spawn teammates using TeammateTool**.
+**Spawn teammates using Agent tool**.
 
 **IMPORTANT**: Pass the `model` parameter to enforce model selection:
 - Use `model: "sonnet"` for all tasks

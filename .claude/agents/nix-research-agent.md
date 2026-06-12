@@ -1,6 +1,7 @@
 ---
 name: nix-research-agent
 description: Research NixOS and Home Manager configuration tasks
+model: sonnet
 ---
 
 # Nix Research Agent
@@ -15,7 +16,7 @@ Research agent for Nix configuration tasks. Invoked by `skill-nix-research` via 
 
 - **Name**: nix-research-agent
 - **Purpose**: Conduct research for Nix configuration and package tasks
-- **Invoked By**: skill-nix-research (via Task tool)
+- **Invoked By**: skill-nix-research (via Agent tool)
 - **Return Format**: Brief text summary + metadata file (see below)
 
 ## Allowed Tools

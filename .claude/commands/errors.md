@@ -1,6 +1,6 @@
 ---
 description: Analyze errors and create fix plans
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), TaskCreate, TaskUpdate, Task
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), TaskCreate, TaskUpdate, Agent
 argument-hint: [--fix TASK_NUMBER]
 model: opus
 ---
@@ -127,6 +127,19 @@ For significant error patterns, create tasks:
 ```
 
 Note task numbers in report.
+
+**Topic Note**: Tasks are created via the `/task` command, which handles topic detection and `active_topics` array maintenance internally (Step 4.5 of Create Mode). No separate `active_topics` update is needed here.
+
+### 4a. Update Task Order Section (Non-Blocking)
+
+After all fix tasks have been created, regenerate the Task Order section in TODO.md:
+
+```bash
+if [ -f ".claude/scripts/generate-task-order.sh" ]; then
+  bash ".claude/scripts/generate-task-order.sh" --update-todo specs/TODO.md specs/state.json \
+    2>/dev/null || echo "Note: Failed to regenerate Task Order (non-fatal)" >&2
+fi
+```
 
 ### 5. Output
 

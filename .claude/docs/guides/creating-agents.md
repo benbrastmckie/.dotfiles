@@ -12,7 +12,7 @@ Agents are execution components that:
 - Create artifacts in proper locations
 - Return standardized JSON results
 
-Agents are invoked by skills via the Task tool and never directly by users.
+Agents are invoked by skills via the Agent tool and never directly by users.
 
 ---
 
@@ -98,7 +98,7 @@ Agents are located in `.claude/agents/{name}-agent.md`:
 
 - **Name**: {name}-agent
 - **Purpose**: {purpose}
-- **Invoked By**: skill-{name} (via Task tool)
+- **Invoked By**: skill-{name} (via Agent tool)
 - **Return Format**: JSON (see subagent-return.md)
 
 ## Allowed Tools
@@ -682,6 +682,8 @@ Research completed successfully. Found 5 patterns. See report at ...
 - [Creating Commands](creating-commands.md) - Creating commands that invoke skills
 - `.claude/context/formats/subagent-return.md` - Return format schema
 - `.claude/docs/templates/agent-template.md` - Agent template
+- `.claude/docs/architecture/dispatch-agent-spec.md` - dispatch_agent() fork-vs-subagent dispatch
+- `.claude/docs/architecture/handoff-schema.md` - Orchestrator handoff JSON schema
 
 ---
 

@@ -49,5 +49,6 @@
       "target": "opencode.json"
     }
   },
-  "mcp_servers": {}
+  "mcp_servers": {},
+  "hooks": {}
 }

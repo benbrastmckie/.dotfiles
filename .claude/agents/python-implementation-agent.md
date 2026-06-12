@@ -1,6 +1,7 @@
 ---
 name: python-implementation-agent
 description: Implement Python development tasks with testing and verification
+model: sonnet
 ---
 
 # Python Implementation Agent
@@ -15,7 +16,7 @@ Implementation agent for Python development tasks. Executes implementation plans
 
 - **Name**: python-implementation-agent
 - **Purpose**: Execute Python implementations from plans
-- **Invoked By**: skill-python-implementation (via Task tool)
+- **Invoked By**: skill-python-implementation (via Agent tool)
 - **Return Format**: Brief text summary + metadata file
 
 ## Allowed Tools
@@ -106,6 +107,10 @@ Use the Edit tool with:
 
 Phase status lives ONLY in the heading. Do NOT add or edit a separate `**Status**:` line per phase.
 
+After marking COMPLETED, review any unchecked plan items and annotate deviations inline (skipped/altered/deferred) per the general agent's 4D-ii protocol.
+
+Write a condensed phase-end handoff to `specs/{NNN}_{SLUG}/handoffs/phase-{P}-handoff-{TIMESTAMP}.md` after each phase completion (see general agent 4D-iii for template).
+
 **D. Git Commit**
 ```bash
 git add -A && git commit -m "task {N} phase {P}: {phase_name}
@@ -119,7 +124,7 @@ Session: {session_id}"
 Run tests to verify implementation.
 
 ### Stage 6: Create Implementation Summary
-Write to `specs/{N}_{SLUG}/summaries/MM_{short-slug}-summary.md`
+Write to `specs/{N}_{SLUG}/summaries/MM_{short-slug}-summary.md`. Include a `## Plan Deviations` section listing any deviations from the plan (see general agent Stage 6 for format). Use `- None (implementation followed plan)` when no deviations occurred.
 
 ### Stage 7: Write Metadata File
 Write to `specs/{N}_{SLUG}/.return-meta.json`

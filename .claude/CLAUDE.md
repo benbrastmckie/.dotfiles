@@ -85,6 +85,8 @@ When an extension is loaded, its routing entries are merged into the command tab
 
 Extensions can declare dependencies on other extensions via the `dependencies` array in manifest.json. Dependencies are auto-loaded silently when the parent extension is loaded, with circular detection and a depth limit of 5. See `.claude/context/guides/extension-development.md` for details.
 
+Extensions may also declare lifecycle hooks in a top-level `hooks` object in `manifest.json` (distinct from `provides.hooks` which are file-copy targets). Hook scripts run at skill lifecycle stages (preflight, context_injection, verification, postflight) via `skill-base.sh`. See `.claude/docs/guides/creating-extensions.md#lifecycle-hooks` for the hook schema and execution contract.
+
 ## Command Reference
 
 All commands use checkpoint-based execution: GATE IN (preflight) -> DELEGATE (skill/agent) -> GATE OUT (postflight) -> COMMIT.
@@ -105,6 +107,7 @@ All commands use checkpoint-based execution: GATE IN (preflight) -> DELEGATE (sk
 | `/fix-it` | `/fix-it [PATH...]` | Scan for FIX:/NOTE:/TODO:/QUESTION: tags |
 | `/refresh` | `/refresh [--dry-run] [--force]` | Clean orphaned processes and old files |
 | `/tag` | `/tag [--patch|--minor|--major]` | Create semantic version tag (user-only) |
+| `/orchestrate` | `/orchestrate N` | Drive task autonomously through full lifecycle (no confirmation gates) |
 | `/spawn` | `/spawn N [blocker description]` | Spawn new tasks to unblock a blocked task |
 | `/merge` | `/merge` | Create pull/merge request for current branch |
 
@@ -173,20 +176,21 @@ Standard actions: `create`, `complete research`, `create implementation plan`, `
 
 | Skill | Agent | Model | Purpose |
 |-------|-------|-------|---------|
-| skill-researcher | general-research-agent | opus | General web/codebase research |
+| skill-researcher | general-research-agent | sonnet | General web/codebase research |
 | skill-planner | planner-agent | opus | Implementation plan creation |
-| skill-implementer | general-implementation-agent | opus | General file implementation |
+| skill-implementer | general-implementation-agent | sonnet | General file implementation |
 | skill-meta | meta-builder-agent | - | System building and task creation |
 | skill-status-sync | (direct execution) | - | Atomic status updates |
 | skill-refresh | (direct execution) | - | Process and file cleanup |
 | skill-todo | (direct execution) | - | Archive completed tasks with CHANGE_LOG updates |
 | skill-tag | (user-only) | - | Semantic version tagging for deployment |
 | skill-team-research | (team orchestration) | sonnet | Multi-agent parallel research (--team flag) |
+| skill-team-research (internal) | synthesis-agent | sonnet | Multi-output synthesis after teammate completion |
 | skill-team-plan | (team orchestration) | sonnet | Multi-agent parallel planning (--team flag) |
 | skill-team-implement | (team orchestration) | sonnet | Multi-agent parallel implementation (--team flag) |
 | skill-reviser | reviser-agent | opus | Plan revision and description update |
-| skill-spawn | spawn-agent | opus | Analyze blockers and spawn new tasks |
-| skill-orchestrator | (direct execution) | - | Route commands to appropriate workflows |
+| skill-spawn | spawn-agent | sonnet | Analyze blockers and spawn new tasks |
+| skill-orchestrate | (direct execution) | opus | Autonomous lifecycle state machine (/orchestrate command) |
 | skill-git-workflow | (direct execution) | - | Create scoped git commits for task operations |
 | skill-fix-it | (direct execution) | - | Scan for FIX:/TODO:/NOTE: tags and create tasks |
 | skill-project-overview | (direct execution) | - | Interactive repo scan and project-overview.md task creation |
@@ -203,8 +207,9 @@ Standard actions: `create`, `complete research`, `create implementation plan`, `
 | code-reviewer-agent | Code quality assessment and review |
 | reviser-agent | Plan revision with research synthesis |
 | spawn-agent | Blocker analysis and task decomposition |
+| synthesis-agent | Multi-output synthesis for team research and team planning |
 
-**Model Enforcement**: Agents declare preferred models via `model:` frontmatter field. All agents default to Opus. Two independent flag dimensions override behavior at invocation time: effort flags (`--fast`, `--hard`) control reasoning depth, and model flags (`--haiku`, `--sonnet`, `--opus`) select the model family. These flags work on `/research`, `/plan`, and `/implement`. See `.claude/docs/reference/standards/agent-frontmatter-standard.md` for details.
+**Model Enforcement**: Agents declare preferred models via `model:` frontmatter field using a tiered policy: Opus for deep-reasoning agents (planner, meta-builder, reviser, formal/lean/math/logic) AND for orchestrator commands (`/research`, `/plan`, `/implement`) which accumulate large context across sequential sub-agent calls and require the 1M context auto-upgrade; Sonnet for worker agents (research, implementation, review, spawn, domain tasks) which have their own fresh context per invocation. Two independent flag dimensions override behavior at invocation time: effort flags (`--fast`, `--hard`) control reasoning depth, and model flags (`--haiku`, `--sonnet`, `--opus`) select the model family. These flags work on `/research`, `/plan`, and `/implement`. See `.claude/docs/reference/standards/agent-frontmatter-standard.md` for details.
 
 **User-Only Skills**: Skills marked as "user-only" cannot be invoked by agents. These are for human-controlled operations like deployment (`skill-tag`).
 
@@ -218,7 +223,7 @@ Standard actions: `create`, `complete research`, `create implementation plan`, `
 | `--team` | skill-team-plan | 2-3 | Parallel plan generation with trade-offs |
 | `--team` | skill-team-implement | 2-4 | Parallel phase execution with debugger |
 
-**Note**: Team mode uses ~5x tokens compared to single-agent. Default team_size=2 minimizes cost.
+**Note**: Team mode uses ~5x tokens compared to single-agent. Default team_size=3 (Primary + Alternatives + Critic). Use `--fast` for 2 or `--hard` for 4.
 
 ## Rules References
 
@@ -415,10 +420,10 @@ This project includes NixOS and Home Manager configuration support via the nix e
 
 ### Skill-Agent Mapping
 
-| Skill | Agent | Purpose |
-|-------|-------|---------|
-| skill-nix-research | nix-research-agent | NixOS/Home Manager/flakes research with MCP-NixOS |
-| skill-nix-implementation | nix-implementation-agent | Nix configuration implementation with verification |
+| Skill | Agent | Model | Purpose |
+|-------|-------|-------|---------|
+| skill-nix-research | nix-research-agent | sonnet | NixOS/Home Manager/flakes research with MCP-NixOS |
+| skill-nix-implementation | nix-implementation-agent | sonnet | Nix configuration implementation with verification |
 
 ### Key Technologies
 

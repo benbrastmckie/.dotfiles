@@ -65,7 +65,7 @@
             "type": "string"
           },
           "description": "Search keywords for discovery",
-          "examples": [["Task tool", "jq", "state.json"]]
+          "examples": [["Agent tool", "jq", "state.json"]]
         },
         "summary": {
           "type": "string",

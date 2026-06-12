@@ -1,8 +1,8 @@
 ---
 description: <one-line description of what this command does>
-allowed-tools: Read, Edit, Write, Bash(git:*), Bash(jq:*), AskUserQuestion
+allowed-tools: Skill, Agent, Bash(jq:*), Bash(git:*), Read, Edit
 argument-hint: "<required-arg>" [--flag]
-model: opus
+model: sonnet
 ---
 
 # /<command-name> Command
@@ -13,69 +13,97 @@ model: opus
 
 ## Arguments
 
-- `<required-arg>`: <description>
-- `[--flag]`: <description> (optional)
+- `$1` - Task number(s) (required). Supports single task, comma-separated lists, and ranges.
+- Remaining args - Optional focus/prompt (applies to all tasks in multi-task mode)
 
-## Examples
+## Options
 
-```
-/<command-name> "example value"
-/<command-name> "example value" --flag
-```
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--team` | Enable multi-agent parallel execution | false |
+| `--fast` | Low-effort mode | false |
+| `--hard` | High-effort mode | false |
 
-## Checkpoint-Based Execution
+## Execution
 
-All commands follow the four-stage checkpoint pattern:
+### STAGE 0: PARSE TASK NUMBERS
 
-### 1. GATE IN (Preflight)
-
-- Parse arguments from $ARGUMENTS
-- Validate task exists and status allows the operation
-- Generate session ID: `sess_{timestamp}_{random}`
-- Update task status to in-progress variant via `skill-status-sync`
-- Load decision context from state.json
-
-### 2. DELEGATE
-
-Invoke the appropriate skill via the Skill tool:
-
-```
-Skill: skill-<name>
-Arguments: {
-  "task_number": <N>,
-  "session_id": "sess_...",
-  "task_context": { ... }
-}
+```bash
+source .claude/scripts/parse-command-args.sh "$ARGUMENTS"
+# Exports: TASK_NUMBERS, REMAINING_ARGS, TEAM_MODE, TEAM_SIZE,
+#          EFFORT_FLAG, MODEL_FLAG, CLEAN_FLAG, FORCE_FLAG, FOCUS_PROMPT
 ```
 
-The skill prepares delegation context and spawns a subagent through the Task tool. The agent does the real work (research, planning, implementation, etc.) and writes artifacts and a return-metadata file.
+If `len(TASK_NUMBERS) > 1`: dispatch to multi-task batch flow.
+If `len(TASK_NUMBERS) == 1`: fall through to CHECKPOINT 1.
 
-### 3. GATE OUT (Postflight)
+### CHECKPOINT 1: GATE IN
 
-- Read the return-metadata file written by the agent
-- Validate artifacts exist on disk
-- Update task status to completed variant via `skill-status-sync`
-- Invoke `skill-git-workflow` for the commit
+```bash
+source .claude/scripts/command-gate-in.sh "$task_number" "<operation>"
+# Exports: SESSION_ID, TASK_TYPE, TASK_STATUS, PROJECT_NAME, DESCRIPTION, PADDED_NUM
+# Displays: [OPERATION] Task {N}: {project_name}
+# Aborts if task not found or in terminal status
+```
 
-### 4. COMMIT
+**On GATE IN success**: Task validated. **IMMEDIATELY CONTINUE** to STAGE 2.
 
-The git-workflow skill creates a scoped commit following the `task {N}: {action}` convention with the session ID in the commit body.
+### STAGE 2: DELEGATE
 
-## Artifacts
+```bash
+source .claude/scripts/command-route-skill.sh "<operation>" "$TASK_TYPE" "skill-<default>"
+skill_name="$SKILL_NAME"
+```
 
-<List artifact paths this command creates, using the `specs/{NNN}_{SLUG}/...` convention.>
+**Invoke the Skill tool NOW** with:
+```
+skill: "{skill_name}"
+args: "task_number={N} session_id={SESSION_ID} effort_flag={EFFORT_FLAG} model_flag={MODEL_FLAG} clean_flag={CLEAN_FLAG} orchestrator_mode=false"
+```
 
-- `specs/{NNN}_{SLUG}/reports/MM_{short-slug}.md` - research report
-- `specs/{NNN}_{SLUG}/plans/MM_{short-slug}.md` - implementation plan
-- `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md` - execution summary
+**On DELEGATE success**: **IMMEDIATELY CONTINUE** to CHECKPOINT 2.
+
+### CHECKPOINT 2: GATE OUT
+
+```bash
+bash .claude/scripts/command-gate-out.sh "$task_number" "<operation>" "$SESSION_ID"
+# Reads .return-meta.json; applies defensive status correction if needed
+# Runs validate-artifact.sh --fix (non-blocking)
+```
+
+**On GATE OUT success**: **IMMEDIATELY CONTINUE** to CHECKPOINT 3.
+
+### CHECKPOINT 3: COMMIT
+
+```bash
+git add -A
+git commit -m "$(cat <<'EOF'
+task {N}: <action>
+
+Session: {SESSION_ID}
+
+EOF
+)"
+```
+
+Commit failure is non-blocking (log and continue).
+
+## Output
+
+```
+<Operation> completed for Task #{N}
+
+Artifact: specs/{NNN}_{SLUG}/<type>/MM_{short-slug}.md
+
+Status: [<STATUS>]
+Next: /<next-command> {N}
+```
 
 ## Error Handling
 
-On failure:
-- Keep task in current status (do not regress)
-- Log error to `specs/errors.json` with session_id
-- Return partial metadata with `status: "partial"` if progress was made
-- The next invocation can resume from the partial progress marker
+- **GATE IN Failure**: Task not found or invalid status -- return error with guidance
+- **DELEGATE Failure**: Keep in-progress status, log error; timeout preserves partial progress
+- **GATE OUT Failure**: Missing artifacts -- log warning, continue with available
 
 ## Related Documentation
 

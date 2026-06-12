@@ -72,6 +72,8 @@ fi
 
 CLAUDE_CONFIG="$HOME/.claude.json"
 
+mkdir -p specs/tmp
+
 echo "Configuration:"
 echo "  Project path: $PROJECT_PATH"
 echo "  Claude config: $CLAUDE_CONFIG"
@@ -110,7 +112,7 @@ if $REMOVE; then
     fi
 
     # Remove lean-lsp using jq
-    TMP_FILE=$(mktemp)
+    TMP_FILE=$(mktemp -p specs/tmp tmp.XXXXXXXXXX)
     jq 'del(.mcpServers."lean-lsp")' "$CLAUDE_CONFIG" > "$TMP_FILE"
     mv "$TMP_FILE" "$CLAUDE_CONFIG"
 
@@ -172,7 +174,7 @@ if jq -e '.mcpServers."lean-lsp"' "$CLAUDE_CONFIG" > /dev/null 2>&1; then
     fi
 
     # Update the project path
-    TMP_FILE=$(mktemp)
+    TMP_FILE=$(mktemp -p specs/tmp tmp.XXXXXXXXXX)
     jq --arg path "$PROJECT_PATH" '.mcpServers."lean-lsp".env.LEAN_PROJECT_PATH = $path' "$CLAUDE_CONFIG" > "$TMP_FILE"
     mv "$TMP_FILE" "$CLAUDE_CONFIG"
 
@@ -194,7 +196,7 @@ fi
 # Add lean-lsp to existing config
 echo "Adding lean-lsp to existing configuration..."
 
-TMP_FILE=$(mktemp)
+TMP_FILE=$(mktemp -p specs/tmp tmp.XXXXXXXXXX)
 LEAN_CONFIG=$(generate_lean_lsp_config)
 
 # Use jq to add the server, preserving existing content

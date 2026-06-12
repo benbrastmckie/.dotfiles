@@ -1,8 +1,8 @@
 ---
 name: skill-team-research
 description: Orchestrate multi-agent research with wave-based parallel execution. Spawns 2-4 teammates for diverse investigation angles and synthesizes findings.
-allowed-tools: Task, Bash, Edit, Read, Write
-# This skill uses TeammateTool for team coordination (available when CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)
+allowed-tools: Agent, Bash, Edit, Read, Write
+# This skill uses Agent tool for team coordination (available when CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)
 # Context loaded by lead during synthesis:
 #   - .claude/context/patterns/team-orchestration.md
 #   - .claude/context/formats/team-metadata-extension.md
@@ -309,12 +309,12 @@ Format: Same as Teammate A
 
 ---
 
-**Spawn teammates using TeammateTool**.
+**Spawn teammates using Agent tool**.
 
 **IMPORTANT**: Pass the `model` parameter to enforce model selection:
 - Use `model: "${teammate_model}"` (from Stage 5b: model_flag if provided, otherwise "sonnet" as default)
 
-The `model_preference_line` in prompts serves as secondary guidance only. The `model` parameter on TeammateTool is the enforced selection.
+The `model_preference_line` in prompts serves as secondary guidance only. The `model` parameter on Agent tool is the enforced selection.
 
 **Synthesis uses base number without letter**: After all teammates complete, the synthesis report uses `{run_padded}_{slug}.md` (e.g., `01_team-research.md`).
 

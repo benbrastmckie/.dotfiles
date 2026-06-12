@@ -1,7 +1,7 @@
 ---
 name: skill-meta
 description: Interactive system builder. Invoke for /meta command to create tasks for .claude/ system changes.
-allowed-tools: Task, Bash, Edit, Read, Write
+allowed-tools: Agent, Bash, Edit, Read, Write
 agent: meta-builder-agent
 ---
 
@@ -82,13 +82,13 @@ Prepare delegation context:
 
 ### 3. Invoke Subagent
 
-**CRITICAL**: You MUST use the **Task** tool to spawn the subagent.
+**CRITICAL**: You MUST use the **Agent** tool to spawn the subagent.
 
 The `agent` field in this skill's frontmatter specifies the target: `meta-builder-agent`
 
 **Required Tool Invocation**:
 ```
-Tool: Task (NOT Skill)
+Tool: Agent (NOT Skill, NOT Plan)
 Parameters:
   - subagent_type: "meta-builder-agent"
   - prompt: [Include mode, prompt if provided, delegation_context]

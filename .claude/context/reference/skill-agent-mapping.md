@@ -31,7 +31,7 @@ These skills execute directly without agent delegation:
 | skill-status-sync | Atomic status updates to state.json/TODO.md |
 | skill-refresh | Process and file cleanup |
 | skill-todo | Archive completed tasks, sync metrics |
-| skill-orchestrator | Route commands to appropriate workflows based on task type and status |
+| skill-orchestrate | Autonomous lifecycle state machine — drives research/plan/implement loop (/orchestrate command) |
 | skill-git-workflow | Create scoped git commits for task operations |
 | skill-fix-it | Scan codebase for tagged comments and create structured tasks |
 
@@ -55,7 +55,7 @@ When `--team` flag is passed to commands, routing overrides to team skills which
 
 **Graceful Degradation**: If team mode unavailable, falls back to single-agent mode.
 
-**Cost Note**: Team mode uses ~5x tokens compared to single-agent. Default team_size=2 minimizes cost.
+**Cost Note**: Team mode uses ~5x tokens compared to single-agent. Default team_size=3 (Primary + Alternatives + Critic). Use `--fast` for 2 or `--hard` for 4.
 
 ## Task-Type-Based Routing
 

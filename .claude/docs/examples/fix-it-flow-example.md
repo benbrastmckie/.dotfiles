@@ -578,7 +578,7 @@ Exits gracefully without creating tasks or git commits.
 ```
 User runs: /fix-it src/ --dry-run
   → skill-fix-it (thin wrapper)
-    → fix-it-agent (subagent via Task tool)
+    → fix-it-agent (subagent via Agent tool)
       → Returns JSON metadata to skill
     → skill reads metadata, displays preview
 User reviews preview

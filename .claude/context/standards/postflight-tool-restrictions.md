@@ -8,7 +8,7 @@
 
 ## Overview
 
-Skills that delegate to subagents via the Task tool must maintain a clean separation between agent work and postflight operations. The postflight phase exists solely for:
+Skills that delegate to subagents via the Agent tool must maintain a clean separation between agent work and postflight operations. The postflight phase exists solely for:
 - State management (updating state.json and TODO.md)
 - Artifact linking (recording paths in state.json)
 - Git commits

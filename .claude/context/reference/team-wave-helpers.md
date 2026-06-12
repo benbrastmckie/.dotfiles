@@ -382,13 +382,13 @@ language_config = {
   }
 }
 
-# Model Selection (ENFORCED via TeammateTool parameter)
+# Model Selection (ENFORCED via Agent tool parameter)
 #
 # default_model specifies the Claude model for teammates:
 # - "sonnet": Balanced model (Sonnet 4.6), used for most tasks
 #
 # ENFORCEMENT:
-# - Pass `model: $default_model` when spawning teammates via TeammateTool
+# - Pass `model: $default_model` when spawning teammates via Agent tool
 # - The model preference in prompts is secondary guidance only
 # - Model selection is enforced at the tool level
 ```

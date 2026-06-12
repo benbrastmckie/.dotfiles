@@ -25,7 +25,7 @@ The agent system implements a three-layer delegation pattern separating concerns
                     ┌─────────────────┐
      Layer 2:       │     Skills      │  Thin wrappers with validation
      (Skills)       │ (skill-researcher,│  Prepare delegation context
-                    │  etc.)          │  Invoke agents via Task tool
+                    │  etc.)          │  Invoke agents via Agent tool
                     └────────┬────────┘
                               │
                               ▼
@@ -48,7 +48,7 @@ The agent system implements a three-layer delegation pattern separating concerns
 |--------|---------|-------|-------|
 | **Location** | `.claude/commands/` | `.claude/skills/skill-*/SKILL.md` | `.claude/agents/*.md` |
 | **User-facing** | Yes | No | No |
-| **Invocation** | `/command` syntax | Via Command routing | Via Task tool from Skill |
+| **Invocation** | `/command` syntax | Via Command routing | Via Agent tool from Skill |
 | **Context loading** | None | Minimal | Full (lazy loading) |
 | **Input validation** | Basic parsing | Delegation validation | Execution validation |
 | **Execution** | Route only | Validate + delegate | Full workflow |
@@ -95,7 +95,7 @@ routing:
 **Key characteristics**:
 - Validate inputs before delegation
 - Prepare delegation context (session_id, depth, path)
-- Invoke agent via **Task tool** (not Skill tool)
+- Invoke agent via **Agent tool** (not Skill tool)
 - Handle preflight/postflight status updates internally
 - Perform git commit after agent completion
 - Return brief text summary (agent writes JSON to metadata file)
@@ -105,18 +105,18 @@ routing:
 ---
 name: skill-{name}
 description: {description}
-allowed-tools: Task, Bash, Edit, Read, Write
+allowed-tools: Agent, Bash, Edit, Read, Write
 ---
 ```
 
 **Note on delegation patterns**: Skills use one of two delegation approaches:
-- **Core skills** (skill-researcher, skill-planner, skill-implementer, etc.): Use Task tool with explicit `subagent_type` for structured delegation. These do NOT use `context: fork` or `agent:` frontmatter because they inject structured context (session_id, delegation_depth, memory_context) directly.
+- **Core skills** (skill-researcher, skill-planner, skill-implementer, etc.): Use Agent tool with explicit `subagent_type` for structured delegation. These do NOT use `context: fork` or `agent:` frontmatter because they inject structured context (session_id, delegation_depth, memory_context) directly.
 - **Extension skills** (skill-{ext}-research, skill-{ext}-implementation, etc.): May optionally use `context: fork` + `agent:` frontmatter for simpler delegation when structured context injection is not needed. This is the standard thin-wrapper pattern documented in the template.
 - **skill-meta**: Uses `agent:` frontmatter (but not `context: fork`) as a hybrid pattern.
 
-In all cases, delegation happens via the **Task tool** (not the Skill tool). See @.claude/context/patterns/fork-patterns.md for the full decision matrix.
+In all cases, delegation happens via the **Agent tool** (not the Skill tool). See @.claude/context/patterns/fork-patterns.md for the full decision matrix.
 
-**Critical**: Skills delegate via Task tool, not Skill tool. Agents live in `.claude/agents/`, not `.claude/skills/`.
+**Critical**: Skills delegate via Agent tool, not Skill tool. Agents live in `.claude/agents/`, not `.claude/skills/`.
 
 **Reference**: @.claude/context/patterns/thin-wrapper-skill.md
 
@@ -172,9 +172,9 @@ Skills implement three distinct architecture patterns based on their execution n
 **Used by**: skill-researcher, skill-planner, skill-implementer, skill-meta (core skills; extensions add more)
 
 **Characteristics**:
-- Frontmatter: `allowed-tools: Task, Bash, Edit, Read, Write`
+- Frontmatter: `allowed-tools: Agent, Bash, Edit, Read, Write`
 - 11-stage execution flow with preflight/postflight inline
-- Invoke subagent via Task tool with explicit subagent_type
+- Invoke subagent via Agent tool with explicit subagent_type
 - Handle all lifecycle operations (status updates, git commit)
 - Create postflight marker file to prevent premature termination
 - Return brief text summary (agent writes JSON to metadata file)
@@ -185,7 +185,7 @@ Stage 1:  Input Validation
 Stage 2:  Preflight Status Update      [RESEARCHING]
 Stage 3:  Create Postflight Marker
 Stage 4:  Prepare Delegation Context
-Stage 5:  Invoke Subagent (Task tool)
+Stage 5:  Invoke Subagent (Agent tool)
 Stage 6:  Parse Subagent Return (read metadata file)
 Stage 7:  Update Task Status           [RESEARCHED]
 Stage 8:  Link Artifacts
@@ -203,7 +203,7 @@ Stage 11: Return Brief Summary
 **Used by**: skill-status-sync, skill-refresh, skill-git-workflow (3 skills)
 
 **Characteristics**:
-- Frontmatter: `allowed-tools: Bash, Edit, Read` (no Task tool)
+- Frontmatter: `allowed-tools: Bash, Edit, Read` (no Agent tool)
 - Execute work inline without spawning subagent
 - No postflight marker needed (work is atomic)
 - Return JSON or text directly
@@ -223,10 +223,10 @@ allowed-tools: Bash, Edit, Read
 
 ### Pattern C: Orchestrator/Routing Skills
 
-**Used by**: skill-orchestrator (1 skill)
+**Used by**: skill-orchestrate (1 skill)
 
 **Characteristics**:
-- Frontmatter: `allowed-tools: Read, Glob, Grep, Task`
+- Frontmatter: `allowed-tools: Read, Glob, Grep, Agent`
 - Central routing intelligence
 - Dispatches to other skills/agents based on task language
 - Provides context preparation and routing logic
@@ -284,7 +284,7 @@ User: "/research 259"
           │
           ▼
 ┌───────────────────┐
-│ 4. Skill invokes  │  Task tool with subagent_type: general-research-agent
+│ 4. Skill invokes  │  Agent tool with subagent_type: general-research-agent
 │    agent via Task │  Pass: task_context, delegation_context
 └─────────┬─────────┘
           │
@@ -404,10 +404,11 @@ Complete mapping of all commands to their skill and agent paths:
 | `/implement` | Task-type-based | Extension or skill-implementer | Extension or general-implementation-agent | A |
 | `/revise` | Single | skill-planner (new version) | planner-agent | A |
 | `/meta` | Single | skill-meta | meta-builder-agent | A |
-| `/review` | Direct | skill-orchestrator | (inline execution) | C |
-| `/errors` | Direct | skill-orchestrator | (inline execution) | C |
-| `/todo` | Direct | skill-orchestrator | (inline execution) | C |
-| `/task` | Direct | skill-orchestrator | (inline execution) | C |
+| `/review` | Direct | (direct execution) | (inline execution) | B |
+| `/errors` | Direct | (direct execution) | (inline execution) | B |
+| `/todo` | Direct | skill-todo | (no agent) | B |
+| `/task` | Direct | skill-meta | meta-builder-agent | A |
+| `/orchestrate` | Autonomous | skill-orchestrate | (dispatches multiple) | C |
 | `/refresh` | Direct | skill-refresh | (no agent) | B |
 
 **Note**: Additional commands (/convert) available via extensions in `.claude/extensions/`.

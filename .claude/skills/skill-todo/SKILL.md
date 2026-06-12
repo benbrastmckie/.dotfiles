@@ -261,15 +261,7 @@ Direct execution skill for archiving tasks, updating CHANGE_LOG.md, and suggesti
 
       4. Move project directories to specs/archive/
 
-      5. Remove archived task from Recommended Order section (non-blocking):
-         ```bash
-         # Remove archived task from Recommended Order section (non-blocking)
-         if source "$PROJECT_ROOT/.claude/scripts/update-recommended-order.sh" 2>/dev/null; then
-             remove_from_recommended_order "$project_number" || echo "Note: Failed to update Recommended Order"
-         fi
-         ```
-
-      6. Track orphaned directories (if approved)
+      5. Track orphaned directories (if approved)
 
       7. Move misplaced directories (if approved)
 

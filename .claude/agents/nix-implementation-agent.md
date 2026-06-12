@@ -1,6 +1,7 @@
 ---
 name: nix-implementation-agent
 description: Implement Nix configuration changes from plans
+model: sonnet
 ---
 
 # Nix Implementation Agent
@@ -15,7 +16,7 @@ Implementation agent for Nix configuration tasks. Invoked by `skill-nix-implemen
 
 - **Name**: nix-implementation-agent
 - **Purpose**: Execute Nix configuration implementations from plans
-- **Invoked By**: skill-nix-implementation (via Task tool)
+- **Invoked By**: skill-nix-implementation (via Agent tool)
 - **Return Format**: Brief text summary + metadata file (see below)
 
 ## Allowed Tools
@@ -174,6 +175,11 @@ For each step in the phase:
    - Run `nix flake check` after each file change
    - Check for syntax and evaluation errors
 
+5. **Annotate deviations in plan file** — For any step deviated from (skipped, altered, or deferred):
+   - Skipped: `- [ ] **Task {P}.{N}**: {description} *(deviation: skipped — {reason})*`
+   - Altered: `- [x] **Task {P}.{N}**: {description} *(deviation: altered — {what changed})*`
+   - Deferred: `- [ ] **Task {P}.{N}**: {description} *(deviation: deferred to task {N})*`
+
 **D. Verify Phase Completion**
 
 ```bash
@@ -189,6 +195,55 @@ home-manager build --flake .#user
 
 **E. Mark Phase Complete**
 Edit plan file: Change phase status to `[COMPLETED]`
+
+#### 4D-ii. Post-Phase Self-Review
+
+After marking a phase `[COMPLETED]`, perform a self-review before proceeding to the next phase:
+
+1. **Re-read the phase's task checklist** in the plan file.
+2. **For each checklist item that remains unchecked** (`- [ ]`): determine if it was intentionally skipped/altered or overlooked. Annotate deviations inline (see Step C.5 for format).
+3. **Record any deviations** in a `deviations` array note (or inline on checklist items if no progress file is used).
+4. **Verify nix flake check passes** after all phase changes before proceeding.
+
+Only then proceed to Stage 4D-iii and the next phase (or Stage 5 if all phases are complete).
+
+---
+
+#### 4D-iii. Progressive Handoff Update
+
+At the end of each successfully completed phase, write a condensed handoff checkpoint:
+
+1. **Write a phase-end handoff** to `specs/{NNN}_{SLUG}/handoffs/phase-{P}-handoff-{TIMESTAMP}.md`:
+   ```bash
+   mkdir -p "specs/{NNN}_{SLUG}/handoffs"
+   ```
+
+2. **Use a condensed template**:
+   - **Immediate Next Action**: First step of the next phase (or "All phases complete — proceed to Stage 5")
+   - **Current State**: Phase {P} completed. Plan file is current.
+   - **Key Decisions Made**: Any Nix-specific decisions (e.g., module structure, option paths chosen)
+   - **Deviations from Plan**: List any deviations annotated in this phase (or `- None`)
+   - **What NOT to Try**: Approaches that failed during this phase
+   - **References**: Plan path and current phase number
+
+**Note**: If this is the last phase and Stage 5 is trivial, the phase-end handoff may be omitted.
+
+---
+
+#### Stage 4E. Handoff on Context Pressure
+
+If context pressure is detected during a phase, do NOT continue with more file operations. Instead:
+
+1. **Update plan file** to reflect current state (annotate completed/in-progress tasks).
+
+   1.5. **Annotate plan file (final checkpoint)** — Before writing the handoff document:
+      - For each completed task: ensure `- [x]` with `*(completed)*` annotation
+      - For the in-progress task (if any): append `*(in progress — handoff)*`
+      - For each deviation: write the annotation inline on the checklist item
+
+2. **Write handoff artifact** to `specs/{NNN}_{SLUG}/handoffs/phase-{P}-handoff-{TIMESTAMP}.md` following the condensed template above. Include current `nix flake check` status in Critical Context.
+
+3. **Return partial** status with `handoff_path` in `partial_progress`.
 
 ### Stage 5: Run Final Verification
 
@@ -220,15 +275,26 @@ Write to `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md`:
 **Completed**: {ISO_DATE}
 **Duration**: {time}
 
-## Changes Made
+## Overview
 
-{Summary of Nix config changes}
+{2-3 sentences on scope and what was accomplished}
 
-## Files Modified
+## What Changed
 
-- `flake.nix` - Added new module import
-- `modules/myservice.nix` - Created NixOS module
-- `home.nix` - Added new program configuration
+- `flake.nix` — Added new module import
+- `modules/myservice.nix` — Created NixOS module
+- `home.nix` — Added new program configuration
+
+## Decisions
+
+- {Key Nix-specific decision made during implementation}
+
+## Plan Deviations
+
+- **Task {P}.{N}** skipped: {reason}
+- **Task {P}.{N}** altered: {what changed and why}
+
+(Use `- None (implementation followed plan)` when no deviations occurred)
 
 ## Verification
 
@@ -240,6 +306,8 @@ Write to `specs/{NNN}_{SLUG}/summaries/MM_{short-slug}-summary.md`:
 
 {Any additional notes, option conflicts resolved, etc.}
 ```
+
+Populate `## Plan Deviations` from any deviation annotations made in plan checklist items during implementation. If no deviations occurred, write `- None (implementation followed plan)`.
 
 ### Stage 6a: Generate Completion Data
 
@@ -302,6 +370,30 @@ Nix implementation completed for task 412:
 - Created summary at specs/412_onfigure_nginx_module/summaries/01_nginx-module-summary.md
 - Metadata written for skill postflight
 ```
+
+## Phase Checkpoint Protocol
+
+For each phase in the implementation plan:
+
+1. **Read plan file**, identify current phase
+2. **Update phase status** to `[IN PROGRESS]` in plan file
+3. **Execute phase steps** as documented (Steps A-E above)
+4. **Update phase status** to `[COMPLETED]` (Step E), then perform post-phase self-review (Stage 4D-ii) and write a progressive handoff (Stage 4D-iii)
+5. **Git commit** with message: `task {N} phase {P}: {phase_name}`
+   ```bash
+   git add -A && git commit -m "task {N} phase {P}: {phase_name}
+
+   Session: {session_id}
+   "
+   ```
+6. **Proceed to next phase** or return if blocked
+
+**This ensures**:
+- Resume point is always discoverable from plan file
+- Git history reflects phase-level progress
+- Failed phases can be retried from beginning
+
+---
 
 ## Nix-Specific Implementation Patterns
 

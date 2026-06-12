@@ -300,7 +300,7 @@ Create skill wrappers in `.claude/skills/`:
 ---
 name: skill-your-domain-research
 description: Conduct [Your Domain] research. Invoke for your-domain research tasks.
-allowed-tools: Task, Bash, Edit, Read, Write
+allowed-tools: Agent, Bash, Edit, Read, Write
 ---
 
 # Your Domain Research Skill
@@ -310,7 +310,7 @@ Thin wrapper that delegates to `your-domain-research-agent`.
 ## Execution Flow
 1. Validate task exists and task_type matches
 2. Update status to "researching"
-3. Invoke your-domain-research-agent via Task tool
+3. Invoke your-domain-research-agent via Agent tool
 4. Update status to "researched"
 5. Git commit
 ```
@@ -320,7 +320,7 @@ Thin wrapper that delegates to `your-domain-research-agent`.
 ---
 name: skill-your-domain-implementation
 description: Implement [Your Domain] changes from plans. Invoke for your-domain implementation.
-allowed-tools: Task, Bash, Edit, Read, Write
+allowed-tools: Agent, Bash, Edit, Read, Write
 ---
 
 # Your Domain Implementation Skill
@@ -330,7 +330,7 @@ Thin wrapper that delegates to `your-domain-implementation-agent`.
 ## Execution Flow
 1. Validate task exists and plan exists
 2. Update status to "implementing"
-3. Invoke your-domain-implementation-agent via Task tool
+3. Invoke your-domain-implementation-agent via Agent tool
 4. Update status to "completed"
 5. Git commit
 ```

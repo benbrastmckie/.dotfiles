@@ -1,6 +1,7 @@
 {
   "_NOTE": "Managed by Home Manager via ~/.dotfiles/config/claude/settings.json. Edit the source, then run 'home-manager switch'. Runtime changes persist until next rebuild.",
   "env": {
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-6[1m]",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "1",
     "CLAUDE_CODE_FORK_SUBAGENT": "1"
@@ -53,7 +54,7 @@
   },
   "skipDangerousModePermissionPrompt": true,
   "voiceEnabled": true,
-  "voiceMode": "tap",
+  "voiceMode": "hold",
   "recapEnabled": false,
   "awaySummaryEnabled": false,
   "autoMemoryEnabled": false,

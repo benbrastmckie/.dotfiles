@@ -332,6 +332,14 @@ Analyzes code for potential issues and suggests improvements.
 - [Creating Skills](../guides/creating-skills.md) - Step-by-step skill creation
 - [Creating Agents](../guides/creating-agents.md) - Step-by-step agent creation
 
+### Architecture
+- [System Overview](../architecture/system-overview.md) - High-level system architecture
+- [Extension System](../architecture/extension-system.md) - Extension loader, merger, and state
+- [Architecture Spec](../architecture/architecture-spec.md) - Unified workflow architecture (shared scripts, skill base)
+- [Dispatch Agent Spec](../architecture/dispatch-agent-spec.md) - dispatch_agent() fork-vs-subagent function
+- [Handoff Schema](../architecture/handoff-schema.md) - Orchestrator handoff JSON schema
+- [Orchestrate State Machine](../architecture/orchestrate-state-machine.md) - /orchestrate state machine
+
 ### Standards
 - **Return Format**: `.claude/context/formats/subagent-return.md`
 - **Skill Template**: `.claude/context/templates/thin-wrapper-skill.md`

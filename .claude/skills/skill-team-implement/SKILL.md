@@ -1,8 +1,8 @@
 ---
 name: skill-team-implement
 description: Orchestrate multi-agent implementation with parallel phase execution. Spawns teammates for independent phases and coordinates dependent phases. Includes debugger teammate for error recovery.
-allowed-tools: Task, Bash, Edit, Read, Write, Glob
-# This skill uses TeammateTool for team coordination (available when CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)
+allowed-tools: Agent, Bash, Edit, Read, Write, Glob
+# This skill uses Agent tool for team coordination (available when CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)
 # Context loaded by lead during coordination:
 #   - .claude/context/patterns/team-orchestration.md
 #   - .claude/context/formats/team-metadata-extension.md

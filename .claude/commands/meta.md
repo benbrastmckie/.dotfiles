@@ -195,7 +195,7 @@ model: opus
 ---
 name: {skill-name}
 description: {when to invoke}
-allowed-tools: Task
+allowed-tools: Agent
 context: fork
 agent: {agent-name}
 ---

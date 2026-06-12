@@ -174,11 +174,12 @@ When $ARGUMENTS contains a description (no flags).
 
    **CRITICAL**: Both state.json AND TODO.md frontmatter MUST have matching next_project_number values.
 
-   **Part C - Update Recommended Order section** (non-blocking):
+   **Part C - Update Task Order section** (non-blocking):
    ```bash
-   # Update Recommended Order section (non-blocking)
-   if source "$PROJECT_ROOT/.claude/scripts/update-recommended-order.sh" 2>/dev/null; then
-       add_to_recommended_order "$next_num" || echo "Note: Failed to update Recommended Order"
+   # Update Task Order section (non-blocking)
+   if [ -f ".claude/scripts/generate-task-order.sh" ]; then
+     bash ".claude/scripts/generate-task-order.sh" --update-todo specs/TODO.md specs/state.json \
+       2>/dev/null || echo "Note: Failed to regenerate Task Order section (non-fatal)" >&2
    fi
    ```
 
