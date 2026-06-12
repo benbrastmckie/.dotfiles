@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 60. Add Nix build resource limits to prevent OOM during rebuilds
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+
+**Description**: Add Nix build resource limits to prevent OOM during rebuilds: set nix.settings.max-jobs and nix.settings.cores in configuration.nix (24-core Ryzen AI 9 HX 370, 30GB RAM; onnxruntime builds currently exhaust memory via 24 parallel jobs x 24 cores). Choose values that balance build speed against the ~1-2GB/compile-unit cost of heavy C++ packages, and consider a --max-jobs override in update.sh.
+
+---
+
 ### 52. Add sleep inhibition during active Claude Code/Opencode sessions
 - **Status**: [PLANNED]
 - **Task Type**: nix
