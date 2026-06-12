@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 62. Replace piper-tts with lighter-weight TTS to drop onnxruntime
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+
+**Description**: Replace piper-tts with a lighter-weight TTS to drop the onnxruntime dependency from the system closure. piper-tts (configuration.nix:635) pulls python3.13-onnxruntime -> onnxruntime, one of the heaviest compiles in nixpkgs. Research alternatives: espeak-ng alone (already installed), flite, svox pico, festival, or keeping piper via upstream prebuilt binaries that bypass the nix build. Also handle the second onnxruntime consumer: markitdown (home.nix:401) depends on it via magika - evaluate removing markitdown, running it on-demand via nix shell, or overriding magika out. Clean up packages/piper-voices.nix and the home.nix .local/share/piper link if piper is dropped.
+
+---
+
 ### 61. Pin nixpkgs flake input to stable channel for binary cache hits
 - **Status**: [NOT STARTED]
 - **Task Type**: nix
