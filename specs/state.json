@@ -1,6 +1,15 @@
 {
-  "next_project_number": 64,
+  "next_project_number": 65,
   "active_projects": [
+    {
+      "project_number": 64,
+      "project_name": "clean_regenerable_caches_reclaim_disk_space",
+      "status": "not_started",
+      "task_type": "general",
+      "description": "Clean regenerable caches and reclaim disk space (root filesystem at 94%, 28GB free). Targets: ~/.local/share/Trash (4.2GB), ~/.cache/loogle (7.4GB), ~/.cache/pip (3GB), ~/.cache/nix (2.1GB), ~/.cache/uv (2GB), ~/.npm (8.5GB), ~/.local/share/memory-monitor logs (1.8GB), and audit ~/.local/share/opencode (11GB, mostly storage/) and ~/.local/share/protonmail (14GB local mail cache) for safe pruning. Roughly 25-30GB recoverable without touching personal files. Consider adding periodic cache cleanup (e.g. systemd-tmpfiles or a cleanup script) so these do not regrow unbounded",
+      "created": "2026-06-12T23:55:07Z",
+      "last_updated": "2026-06-12T23:55:07Z"
+    },
     {
       "project_number": 63,
       "project_name": "user_level_nix_gc_expire_home_manager_generations",

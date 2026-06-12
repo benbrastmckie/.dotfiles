@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 64. Clean regenerable caches and reclaim disk space
+- **Status**: [NOT STARTED]
+- **Task Type**: general
+
+**Description**: Clean regenerable caches and reclaim disk space (root filesystem at 94%, 28GB free). Targets: ~/.local/share/Trash (4.2GB), ~/.cache/loogle (7.4GB), ~/.cache/pip (3GB), ~/.cache/nix (2.1GB), ~/.cache/uv (2GB), ~/.npm (8.5GB), ~/.local/share/memory-monitor logs (1.8GB), and audit ~/.local/share/opencode (11GB, mostly storage/) and ~/.local/share/protonmail (14GB local mail cache) for safe pruning. Roughly 25-30GB recoverable without touching personal files. Consider adding periodic cache cleanup (e.g. systemd-tmpfiles or a cleanup script) so these do not regrow unbounded.
+
+---
+
 ### 63. Enable user-level Nix GC and expire old home-manager generations
 - **Status**: [NOT STARTED]
 - **Task Type**: nix
