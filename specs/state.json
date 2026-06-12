@@ -1,6 +1,15 @@
 {
-  "next_project_number": 63,
+  "next_project_number": 64,
   "active_projects": [
+    {
+      "project_number": 63,
+      "project_name": "user_level_nix_gc_expire_home_manager_generations",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Enable automatic user-level Nix garbage collection and expire old home-manager generations. 62 home-manager generations spanning Mar 13 - Jun 11 act as GC roots pinning ~3 months of unstable closures in the 99GB /nix/store; the root-level nix.gc.automatic (weekly, 30d) never touches user profiles. Add nix.gc automatic settings to home.nix (home-manager equivalent of the system GC), run a one-time home-manager expire-generations \"-30 days\" plus user and root nix-collect-garbage to reclaim space, and verify store size afterward",
+      "created": "2026-06-12T23:54:45Z",
+      "last_updated": "2026-06-12T23:54:45Z"
+    },
     {
       "project_number": 62,
       "project_name": "replace_piper_tts_lightweight_drop_onnxruntime",

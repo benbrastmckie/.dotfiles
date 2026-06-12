@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 63. Enable user-level Nix GC and expire old home-manager generations
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+
+**Description**: Enable automatic user-level Nix garbage collection and expire old home-manager generations. 62 home-manager generations spanning Mar 13 - Jun 11 act as GC roots pinning ~3 months of unstable closures in the 99GB /nix/store; the root-level nix.gc.automatic (weekly, 30d) never touches user profiles. Add nix.gc automatic settings to home.nix (home-manager equivalent of the system GC), run a one-time home-manager expire-generations "-30 days" plus user and root nix-collect-garbage to reclaim space, and verify store size afterward.
+
+---
+
 ### 62. Replace piper-tts with lighter-weight TTS to drop onnxruntime
 - **Status**: [NOT STARTED]
 - **Task Type**: nix
