@@ -129,6 +129,9 @@
     };
 
     # Mutter settings
+    "org/gnome/mutter" = {
+      focus-change-on-pointer-rest = false;
+    };
     "org/gnome/mutter/keybindings" = {
       toggle-tiled-left = [ "<Shift><Control>h" ];
       toggle-tiled-right = [ "<Shift><Control>l" ];
@@ -167,6 +170,11 @@
       command = "whisper-dictate";
       name = "Dictation";
     };
+  };
+
+  services.unclutter = {
+    enable = true;
+    timeout = 3;
   };
 
   home.stateVersion = "24.11"; # Please read the comment before changing.
@@ -367,6 +375,8 @@
       pynvim
       numpy
       pandas
+      datasets
+      huggingface-hub
       torch  # PyTorch for machine learning and AI
       moviepy
 
