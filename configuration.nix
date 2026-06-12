@@ -493,7 +493,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       wl-clipboard         # Clipboard utility for Wayland compositors
       xdg-utils            # Standard desktop integration utilities
       qt6.qtwayland        # Wayland support for Qt6 applications
-      libsForQt5.qt5.qtwayland  # Wayland support for Qt5 applications
+      qt5.qtwayland             # Wayland support for Qt5 applications
       swaybg               # Simple wallpaper utility for Wayland
 
       # Niri essential packages (for dual-session with GNOME)
