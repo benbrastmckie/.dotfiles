@@ -375,7 +375,7 @@
               wl-clipboard         # Clipboard utility for Wayland
               xdg-utils            # Desktop integration utilities
               qt6.qtwayland        # Wayland support for Qt6
-              libsForQt5.qt5.qtwayland  # Wayland support for Qt5
+              qt5.qtwayland             # Wayland support for Qt5
               swaybg               # Wallpaper utility for Wayland
               
               # GNOME tools (useful for both GNOME and niri)
