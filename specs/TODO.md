@@ -2,6 +2,14 @@
 
 ## Active Tasks
 
+### 61. Pin nixpkgs flake input to stable channel for binary cache hits
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+
+**Description**: Pin nixpkgs flake input to a stable release channel (nixos-26.05) to maximize binary cache hits and stop source-building heavy packages. The flake currently tracks nixos-unstable and update.sh runs nix flake update on every rebuild, outrunning Hydra and causing local compiles (29 packages on last update). Evaluate which inputs should stay on unstable (e.g. nix-ai-tools follows nixpkgs-unstable), align home-manager release-26.05 with the new pin, and consider making update.sh flake updates opt-in rather than automatic.
+
+---
+
 ### 60. Add Nix build resource limits to prevent OOM during rebuilds
 - **Status**: [NOT STARTED]
 - **Task Type**: nix
