@@ -1,6 +1,15 @@
 {
-  "next_project_number": 61,
+  "next_project_number": 62,
   "active_projects": [
+    {
+      "project_number": 61,
+      "project_name": "pin_nixpkgs_stable_channel_binary_cache_hits",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Pin nixpkgs flake input to a stable release channel (nixos-26.05) to maximize binary cache hits and stop source-building heavy packages. The flake currently tracks nixos-unstable and update.sh runs nix flake update on every rebuild, outrunning Hydra and causing local compiles (29 packages on last update). Evaluate which inputs should stay on unstable (e.g. nix-ai-tools follows nixpkgs-unstable), align home-manager release-26.05 with the new pin, and consider making update.sh flake updates opt-in rather than automatic",
+      "created": "2026-06-12T23:53:57Z",
+      "last_updated": "2026-06-12T23:53:57Z"
+    },
     {
       "project_number": 60,
       "project_name": "add_nix_build_resource_limits_prevent_oom",
