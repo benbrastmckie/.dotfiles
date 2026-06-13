@@ -1,14 +1,8 @@
 {
-  "status": "researched",
-  "summary": "svox (pkgs.svox / pico2wave) confirmed in nixpkgs with zero onnxruntime deps; markitdown must be removed (magika import unconditional); 5 tts-notify.sh copies identified with exact speak() replacement pattern; all doc files inventoried",
-  "artifacts": [
-    {
-      "path": "specs/062_replace_piper_with_svox_pico_drop_onnxruntime/reports/01_replace-piper-svox-pico.md",
-      "type": "report",
-      "summary": "Full research covering all 9 questions: package verification, pico2wave syntax, dependency analysis, markitdown decision, tts-notify.sh interface contract and diffs, doc file inventory with exact line numbers"
-    }
-  ],
+  "status": "planned",
+  "summary": "5-phase plan: Nix config changes, hook script updates (5 files), documentation updates (9 files), build verification, onnxruntime closure verification",
+  "artifacts": [{"path": "specs/062_replace_piper_with_svox_pico_drop_onnxruntime/plans/01_implementation-plan.md", "type": "plan", "summary": "Implementation plan with 5 phases (2.5h) to replace piper-tts with svox pico and eliminate onnxruntime from system closure"}],
   "blockers": [],
   "continuation_context": null,
-  "next_action_hint": "plan"
+  "next_action_hint": "implement"
 }
