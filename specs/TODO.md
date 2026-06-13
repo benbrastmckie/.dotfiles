@@ -3,9 +3,10 @@
 ## Active Tasks
 
 ### 65. Migrate python312 pins to default python3 (3.13)
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Research**: [specs/065_migrate_python312_pins_to_default_python3/reports/01_python312-to-python3-migration.md]
+- **Plan**: [specs/065_migrate_python312_pins_to_default_python3/plans/01_implementation-plan.md]
 
 **Description**: Migrate explicit python312 pins to the default python3 (currently 3.13.13 on the nixpkgs pin) for binary cache coverage: Hydra fully caches only the default python3Packages set, so the pinned 3.12 env can source-build heavy packages like torch (same failure class as onnxruntime). Change home.nix:352 python312.withPackages to python3.withPackages (env includes torch, jupyter, scipy stack, custom vosk package, z3-solver, cvc5, pynvim) and evaluate migrating the Discord bot pin at configuration.nix:10 (check the bot library against Python 3.13 PEP 594 stdlib removals: cgi, telnetlib, etc.). Verify custom vosk package and z3-solver/cvc5 bindings build on 3.13. Build-only verification; sequence after tasks 60/61 land so cache hits and memory guardrails are in place for the full env rebuild.
 
