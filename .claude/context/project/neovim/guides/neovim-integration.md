@@ -108,13 +108,12 @@ For comprehensive TTS/STT documentation including software dependencies, model s
 - **Event-specific messages**: Different messages for Stop, permission prompts, idle prompts, and questions
 - **Cooldown**: 10-second minimum between notifications
 - **Background execution**: Non-blocking with 10s timeout
-- **Graceful fallback**: Silently skips if Piper/audio not available
+- **Graceful fallback**: Silently skips if pico2wave/audio not available
 
 ### Configuration
 
 Environment variables (set in shell or `.bashrc`):
 ```bash
-export PIPER_MODEL="$HOME/.local/share/piper/en_US-lessac-medium.onnx"
 export TTS_COOLDOWN=10           # seconds between notifications
 export TTS_ENABLED=1             # set to 0 to disable
 ```
@@ -232,14 +231,14 @@ Should show both normal-mode and terminal-mode mappings.
 echo $TTS_ENABLED  # should be 1
 ```
 
-**Check Piper is installed**:
+**Check pico2wave is installed**:
 ```bash
-which piper
+which pico2wave
 ```
 
-**Check model exists**:
+**Test pico2wave**:
 ```bash
-ls -la ~/.local/share/piper/en_US-lessac-medium.onnx
+pico2wave -w /tmp/test.wav "test" && echo "works"
 ```
 
 **Check logs**:
