@@ -143,12 +143,12 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 3: Documentation Updates [NOT STARTED]
+### Phase 3: Documentation Updates [COMPLETED]
 
 **Goal**: Update all copies of tts-stt-integration.md (5 files) and neovim-integration.md (4 files) to replace piper/espeak-ng references with svox/pico2wave.
 
 **Tasks**:
-- [ ] Update tts-stt-integration.md (Group A, 3 files -- identical content):
+- [x] Update tts-stt-integration.md (Group A, 3 files -- identical content):
   - Requirements: `piper-tts` -> `svox (pico2wave)`; remove `espeak-ng` line
   - Dependency table: `piper-tts | Neural text-to-speech` -> `svox (pico2wave) | Lightweight text-to-speech`; remove espeak-ng row
   - Remove "Piper Voice Model" download instructions section entirely
@@ -156,13 +156,13 @@ Phases within the same wave can execute in parallel.
   - Add note: pico2wave uses bundled language data, no manual model download
   - Troubleshooting: `which piper` -> `which pico2wave`; remove model path check
   - Uninstall: remove `~/.local/share/piper/` step
-- [ ] Update tts-stt-integration.md (Groups B and C, 2 files -- variants with same piper content)
+- [x] Update tts-stt-integration.md (Groups B and C, 2 files -- variants with same piper content)
   - Apply equivalent changes as Group A, respecting structural differences
-- [ ] Update neovim-integration.md (Group A, 3 files -- identical):
+- [x] Update neovim-integration.md (Group A, 3 files -- identical):
   - Remove `export PIPER_MODEL=...` line
   - Replace `which piper` -> `which pico2wave`
   - Replace model path check with `pico2wave -w /tmp/test.wav "test" && echo "works"`
-- [ ] Update neovim-integration.md (Group B, 1 file -- variant):
+- [x] Update neovim-integration.md (Group B, 1 file -- variant):
   - Apply equivalent changes, respecting different line numbers
 
 **Timing**: 40 minutes
