@@ -101,7 +101,7 @@ Phases within the same wave can execute in parallel (waves 3 and 4 are independe
 
 ---
 
-### Phase 2: Eval Verification [IN PROGRESS]
+### Phase 2: Eval Verification [COMPLETED]
 
 **Goal**: Confirm both NixOS and home-manager closures evaluate cleanly on python3 (3.13), with no residual python3.12 paths.
 
@@ -110,7 +110,7 @@ Phases within the same wave can execute in parallel (waves 3 and 4 are independe
 - [x] Run `nix eval .#homeConfigurations.benjamin.activationPackage.drvPath` -- must succeed (home closure evaluates), or use alternate attribute path if homeConfigurations is structured differently
 - [x] Run `nix eval --raw .#nixosConfigurations.hamsa.pkgs.python3.version` -- confirm output starts with `3.13`
 - [x] Grep the derivation requisites for python3.12 paths: `nix-store -qR $(nix eval --raw .#nixosConfigurations.hamsa.config.system.build.toplevel.drvPath) 2>/dev/null | grep python3.12` should return empty (no 3.12 remains). If nix-store -qR fails on a .drv path, use `nix derivation show` or skip this sub-check as non-blocking. *(Result: 350 python3.12-*.drv bootstrap build-deps in NixOS closure — all are nixpkgs-internal build tools, 0 runtime paths; home closure has 0 python3.12 entries)*
-- [ ] Git commit: `task 65 phase 2: eval verification` with session ID in body
+- [x] Git commit: `task 65 phase 2: eval verification` with session ID in body
 
 **Timing**: 30 minutes
 
@@ -125,15 +125,15 @@ Phases within the same wave can execute in parallel (waves 3 and 4 are independe
 
 ---
 
-### Phase 3: Cache Coverage Check [NOT STARTED]
+### Phase 3: Cache Coverage Check [COMPLETED]
 
 **Goal**: Verify that heavy python3 packages (torch, scipy, numpy, matplotlib) resolve as substitutable from cache.nixos.org rather than requiring local builds.
 
 **Tasks**:
-- [ ] For each of torch, scipy, numpy, matplotlib: evaluate the store path via `nix eval --raw` on `python3Packages.{pkg}`, then check `nix path-info --store https://cache.nixos.org {path}` for substitutability
-- [ ] Record results: which packages have cache hits vs misses
-- [ ] If any critical package (torch) misses cache, document as a known issue (non-blocking -- task 61 stable channel pin will improve this)
-- [ ] This phase is informational only -- cache misses do not block the migration
+- [x] For each of torch, scipy, numpy, matplotlib: evaluate the store path via `nix eval --raw` on `python3Packages.{pkg}`, then check `nix path-info --store https://cache.nixos.org {path}` for substitutability
+- [x] Record results: which packages have cache hits vs misses *(all 4 CACHED: torch 2.12.0, scipy 1.17.1, numpy 2.4.4, matplotlib 3.10.9)*
+- [x] If any critical package (torch) misses cache, document as a known issue (non-blocking -- task 61 stable channel pin will improve this) *(N/A — torch is cached)*
+- [x] This phase is informational only -- cache misses do not block the migration
 
 **Timing**: 20 minutes
 
@@ -147,15 +147,15 @@ Phases within the same wave can execute in parallel (waves 3 and 4 are independe
 
 ---
 
-### Phase 4: Build Verification [NOT STARTED]
+### Phase 4: Build Verification [COMPLETED]
 
 **Goal**: Run `nix flake check` to validate the flake evaluates cleanly. Delegate actual system/home builds to the user.
 
 **Tasks**:
-- [ ] Run `nix flake check` from the repository root -- must exit 0
-- [ ] Document that the user must run `nixos-rebuild build --flake .#hamsa` and `home-manager build --flake .#benjamin` themselves to verify the full build
-- [ ] Git commit: `task 65 phase 4: build verification` with session ID in body
-- [ ] NEVER run `nixos-rebuild switch`, `nixos-rebuild build`, `home-manager switch`, or `home-manager build`
+- [x] Run `nix flake check` from the repository root -- must exit 0 *(all checks passed)*
+- [x] Document that the user must run `nixos-rebuild build --flake .#hamsa` and `home-manager build --flake .#benjamin` themselves to verify the full build
+- [x] Git commit: `task 65 phase 4: build verification` with session ID in body
+- [x] NEVER run `nixos-rebuild switch`, `nixos-rebuild build`, `home-manager switch`, or `home-manager build`
 
 **Timing**: 20 minutes
 
