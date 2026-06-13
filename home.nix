@@ -349,7 +349,7 @@
     # Required for running mcp-hub JavaScript tools
     # MCP-Hub is now managed by the home module
     nodejs    # Required runtime dependency
-    (python312.withPackages(p: (with p; [
+    (python3.withPackages(p: (with p; [
       z3-solver  # Renamed from z3 in nixos-unstable
       setuptools
       pyinstrument

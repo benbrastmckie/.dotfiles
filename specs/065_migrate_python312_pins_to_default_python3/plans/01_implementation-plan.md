@@ -73,16 +73,16 @@ Phases within the same wave can execute in parallel (waves 3 and 4 are independe
 
 ---
 
-### Phase 1: Pin Migrations [NOT STARTED]
+### Phase 1: Pin Migrations [IN PROGRESS]
 
 **Goal**: Apply all four code edits to migrate from python312 to python3.
 
 **Tasks**:
-- [ ] Edit `home.nix:352` -- change `python312.withPackages` to `python3.withPackages`
-- [ ] Edit `configuration.nix:10` -- change `pkgs.python312.withPackages` to `pkgs.python3.withPackages`
-- [ ] Edit `packages/python-cvc5.nix:14-15` -- replace cp312 wheel URL with cp313 URL and update sha256 hash
-- [ ] Edit `flake.nix:123-125` -- remove the three-line `python312 = prev.python312.override { ... }` block
-- [ ] Update the comment on `configuration.nix:8` from "Python 3.12" to "Python 3" (if present)
+- [x] Edit `home.nix:352` -- change `python312.withPackages` to `python3.withPackages`
+- [x] Edit `configuration.nix:10` -- change `pkgs.python312.withPackages` to `pkgs.python3.withPackages`
+- [x] Edit `packages/python-cvc5.nix:14-15` -- replace cp312 wheel URL with cp313 URL and update sha256 hash
+- [x] Edit `flake.nix:123-125` -- remove the three-line `python312 = prev.python312.override { ... }` block
+- [x] Update the comment on `configuration.nix:8` from "Python 3.12" to "Python 3" (if present)
 - [ ] Git commit: `task 65 phase 1: pin migrations` with session ID in body
 
 **Timing**: 30 minutes

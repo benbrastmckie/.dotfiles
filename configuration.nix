@@ -5,9 +5,9 @@
 { config, lib, pkgs, lectic, ... }:
 let
   # Discord Bot Python environment (Task 53)
-  # Dedicated Python 3.12 environment for the Nextcord bot service
+  # Dedicated Python 3 environment for the Nextcord bot service
   # (nextcord: Discord library, aiohttp: local HTTP API, anyio: structured concurrency)
-  discordBotPython = pkgs.python312.withPackages (p: with p; [
+  discordBotPython = pkgs.python3.withPackages (p: with p; [
     nextcord
     aiohttp
     anyio
