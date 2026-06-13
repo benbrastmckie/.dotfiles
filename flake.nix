@@ -120,9 +120,6 @@
         python3 = prev.python3.override {
           packageOverrides = customPythonPackages;
         };
-        python312 = prev.python312.override {
-          packageOverrides = customPythonPackages;
-        };
       };
 
     # Note: MCPHub is now handled via official flake input instead of custom overlay

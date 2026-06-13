@@ -11,8 +11,8 @@ buildPythonPackage rec {
   format = "wheel";
 
   src = fetchurl {
-    url = "https://files.pythonhosted.org/packages/99/f5/7843b57f53001606bb0acc53af13900303814a9e7a29d798390840073c32/cvc5-1.3.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl";
-    sha256 = "sha256-ekGx71KvDFuLewqP9nAAFoC3WPt5/nVwNNvp+hhhJlk=";
+    url = "https://files.pythonhosted.org/packages/a8/0f/81d6872063607f1e1a8f3367d0ee3771a5570738aa63b7952173db159199/cvc5-1.3.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl";
+    sha256 = "sha256-vV7AmnMTQsFGCNC8mfPg1k2tt/9ogSbS6k3eJpfk2yc=";
   };
 
   nativeBuildInputs = [ autoPatchelfHook ];
