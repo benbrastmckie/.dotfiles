@@ -19,7 +19,7 @@
 ---
 
 ### 62. Replace piper-tts with svox pico and drop onnxruntime
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Report**: [specs/062_replace_piper_with_svox_pico_drop_onnxruntime/reports/01_replace-piper-svox-pico.md]
 - **Plan**: [specs/062_replace_piper_with_svox_pico_drop_onnxruntime/plans/01_implementation-plan.md]
 - **Task Type**: nix

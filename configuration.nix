@@ -632,7 +632,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       ffmpeg
 
       # Text-to-Speech and Speech-to-Text
-      svox                 # SVOX Pico text-to-speech engine (pico2wave command)
+      picotts               # SVOX Pico text-to-speech engine (pico2wave command)
       pulseaudio           # PulseAudio client tools (parecord for audio recording)
       # vosk is installed via home-manager Python environment
 

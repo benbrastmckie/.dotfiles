@@ -187,16 +187,16 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Build Verification [NOT STARTED]
+### Phase 4: Build Verification [PARTIAL]
 
 **Goal**: Verify the Nix configuration builds successfully after all changes. Provide a smoke test command for the user to run post-switch.
 
 **Tasks**:
-- [ ] Run `nix flake check` in `~/.dotfiles` to verify flake syntax and evaluation
-- [ ] Run `nixos-rebuild build --flake /home/benjamin/.dotfiles#default` to verify the system configuration builds (do NOT switch)
-- [ ] Run `home-manager build --flake /home/benjamin/.dotfiles#benjamin` to verify the home configuration builds
+- [x] Run `nix flake check` in `~/.dotfiles` to verify flake syntax and evaluation *(passed; also surfaced svox→picotts rename, fixed in configuration.nix)*
+- [ ] Run `nixos-rebuild build --flake /home/benjamin/.dotfiles#hamsa` to verify the system configuration builds (do NOT switch) *(deviation: user requested to run all rebuilds themselves)*
+- [ ] Run `home-manager build --flake /home/benjamin/.dotfiles#benjamin` to verify the home configuration builds *(deviation: user-run)*
 - [ ] If any build fails, diagnose and fix the issue in Phase 1 files, then re-verify
-- [ ] Document smoke test command for user to run after switching: `pico2wave -w /tmp/test-tts.wav "Hello from pico2wave" && paplay /tmp/test-tts.wav; rm -f /tmp/test-tts.wav`
+- [x] Document smoke test command for user to run after switching: `pico2wave -w /tmp/test-tts.wav "Hello from pico2wave" && paplay /tmp/test-tts.wav; rm -f /tmp/test-tts.wav`
 
 **Timing**: 20 minutes
 
@@ -212,15 +212,15 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 5: Closure Verification (onnxruntime elimination) [NOT STARTED]
+### Phase 5: Closure Verification (onnxruntime elimination) [COMPLETED]
 
 **Goal**: Verify that onnxruntime is no longer present in the new system closure, confirming the primary objective of the task.
 
 **Tasks**:
-- [ ] Run `nix why-depends` against the built system configuration to check for onnxruntime: `nix why-depends /home/benjamin/.dotfiles#nixosConfigurations.default.config.system.build.toplevel nixpkgs#onnxruntime 2>&1` -- expected result: no dependency path found
-- [ ] Run `nix why-depends` against the built home-manager configuration for onnxruntime
-- [ ] If onnxruntime is still found, trace the dependency chain and identify the remaining consumer; fix if possible, document if not
-- [ ] Create separate commits: one for ~/.dotfiles changes, one for ~/.config/nvim changes (different git repos)
+- [x] Verified via eval-only derivation graph check (stronger than post-build why-depends; covers build-time deps): `nix-store -q --requisites $(nix eval --raw .#nixosConfigurations.hamsa.config.system.build.toplevel.drvPath) | grep -iE 'onnxruntime|piper'` returned zero matches
+- [x] Same check against homeConfigurations.benjamin.activationPackage.drvPath with pattern `onnxruntime|piper|magika|markitdown` returned zero matches
+- [x] No remaining onnxruntime consumers found
+- [x] Separate commits created: 3 phase commits in ~/.dotfiles, 2 commits in ~/.config/nvim
 
 **Timing**: 20 minutes
 
