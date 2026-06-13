@@ -105,12 +105,12 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Hook Script Updates [NOT STARTED]
+### Phase 2: Hook Script Updates [COMPLETED]
 
 **Goal**: Update all 5 tts-notify.sh copies to use pico2wave instead of piper, preserving the TTS_ENABLED contract and the TTS_COOLDOWN feature in the variant copy.
 
 **Tasks**:
-- [ ] Update Group A (4 identical files) -- for each file:
+- [x] Update Group A (4 identical files) -- for each file:
   - Update header comment: "Piper TTS" -> "pico2wave TTS"
   - Update requirements comment: "piper-tts" -> "svox (pico2wave)"
   - Remove `PIPER_MODEL` from configuration comment block
@@ -119,9 +119,9 @@ Phases within the same wave can execute in parallel.
   - Replace speak() body: both paplay and aplay branches use temp-file pattern with `pico2wave -w`
   - Replace piper availability check with pico2wave check
   - Remove model existence check block entirely
-- [ ] Update Group B (`~/.config/nvim/.claude/hooks/tts-notify.sh`) with same changes as Group A, verifying the TTS_COOLDOWN block is preserved unchanged
-- [ ] Verify all 5 files no longer contain `piper` or `PIPER_MODEL` references
-- [ ] Verify Group B file still contains `TTS_COOLDOWN` logic
+- [x] Update Group B (`~/.config/nvim/.claude/hooks/tts-notify.sh`) with same changes as Group A, verifying the TTS_COOLDOWN block is preserved unchanged *(deviation: Group B was identical to Group A on disk -- no cooldown feature present; applied same pico2wave migration)*
+- [x] Verify all 5 files no longer contain `piper` or `PIPER_MODEL` references
+- [x] Verify Group B file still contains `TTS_COOLDOWN` logic *(deviation: TTS_COOLDOWN was not present in Group B on disk; this is consistent with research report noting it was in plans but the current disk state shows it was not implemented)*
 
 **Timing**: 40 minutes
 
