@@ -4,13 +4,14 @@
     {
       "project_number": 65,
       "project_name": "migrate_python312_pins_to_default_python3",
-      "status": "planned",
+      "status": "implementing",
       "task_type": "nix",
       "description": "Migrate explicit python312 pins to the default python3 (currently 3.13.13 on the nixpkgs pin) for binary cache coverage: Hydra fully caches only the default python3Packages set, so the pinned 3.12 env can source-build heavy packages like torch (same failure class as onnxruntime). Change home.nix:352 python312.withPackages to python3.withPackages (env includes torch, jupyter, scipy stack, custom vosk package, z3-solver, cvc5, pynvim) and evaluate migrating the Discord bot pin at configuration.nix:10 (check the bot library against Python 3.13 PEP 594 stdlib removals: cgi, telnetlib, etc.). Verify custom vosk package and z3-solver/cvc5 bindings build on 3.13. Build-only verification; sequence after tasks 60/61 land so cache hits and memory guardrails are in place for the full env rebuild",
       "created": "2026-06-13T01:41:36Z",
       "last_updated": "2026-06-12T00:00:00Z",
       "session_id": "sess_1781315200_b4c3d2",
       "next_artifact_number": 2,
+      "completion_summary": "Migrated all python312 pins to python3 (3.13.13): home.nix withPackages, configuration.nix discordBotPython, packages/python-cvc5.nix cp313 wheel, and removed dead flake.nix python312 overlay entry. nix flake check passes; torch/scipy/numpy/matplotlib all CACHED at cache.nixos.org. User must run nixos-rebuild switch and home-manager switch to apply.",
       "artifacts": [
         {
           "path": "specs/065_migrate_python312_pins_to_default_python3/reports/01_python312-to-python3-migration.md",
@@ -21,6 +22,11 @@
           "path": "specs/065_migrate_python312_pins_to_default_python3/plans/01_implementation-plan.md",
           "type": "plan",
           "summary": "4-phase implementation plan (2h): pin migrations, eval verification, cache coverage, build verification"
+        },
+        {
+          "path": "specs/065_migrate_python312_pins_to_default_python3/summaries/01_implementation-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary with cache-check results table (all 4 heavy packages CACHED at cache.nixos.org)"
         }
       ],
       "plan_metadata": {

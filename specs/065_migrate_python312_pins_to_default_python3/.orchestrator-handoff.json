@@ -1,14 +1,16 @@
 {
-  "status": "planned",
-  "summary": "4-phase plan: pin migrations (4 edits), eval verification, cache coverage check, build verification (nix flake check only; user runs rebuilds)",
+  "status": "implemented",
+  "summary": "Migrated all python312 pins to python3 (3.13.13): 4 files edited, nix flake check passes, all 4 heavy packages (torch/scipy/numpy/matplotlib) CACHED at cache.nixos.org — no source builds expected on rebuild",
   "artifacts": [
     {
-      "path": "specs/065_migrate_python312_pins_to_default_python3/plans/01_implementation-plan.md",
-      "type": "plan",
-      "summary": "Implementation plan with 4 phases (2h total) to migrate python312 to python3 across home.nix, configuration.nix, python-cvc5.nix, and flake.nix"
+      "path": "specs/065_migrate_python312_pins_to_default_python3/summaries/01_implementation-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary with per-package cache-check results table and next-steps rebuild instructions"
     }
   ],
   "blockers": [],
   "continuation_context": null,
-  "next_action_hint": "implement"
+  "next_action_hint": "complete",
+  "phases_completed": 4,
+  "phases_total": 4
 }
