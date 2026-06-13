@@ -96,7 +96,6 @@
       kooha = import ./packages/kooha.nix prev.kooha final.gst_all_1; # Screen recorder with full GStreamer plugin support
 
       # TTS/STT Models
-      piper-voice-en-us-lessac-medium = final.callPackage ./packages/piper-voices.nix {}; # Piper TTS voice model
       vosk-model-small-en-us = final.callPackage ./packages/vosk-models.nix {}; # Vosk STT language model
 
       # Add other packages that benefit from using unstable below

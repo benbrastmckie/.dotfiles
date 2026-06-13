@@ -632,8 +632,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       ffmpeg
 
       # Text-to-Speech and Speech-to-Text
-      piper-tts            # Fast, local neural text-to-speech with natural voice quality
-      espeak-ng            # Text-to-speech synthesizer (dependency for piper-tts)
+      svox                 # SVOX Pico text-to-speech engine (pico2wave command)
       pulseaudio           # PulseAudio client tools (parecord for audio recording)
       # vosk is installed via home-manager Python environment
 
