@@ -1,13 +1,13 @@
 #!/bin/bash
 # TTS notification hook for Claude Code events
-# Announces WezTerm tab number via Piper TTS for lifecycle transitions
+# Announces WezTerm tab number via pico2wave TTS for lifecycle transitions
 # and interactive prompts requiring user input.
 #
 # Integration:
 #   Notification hook (permission_prompt, elicitation_dialog): called with no args
 #   Lifecycle transitions: called by update-task-status.sh postflight with --lifecycle STATUS
 #
-# Requirements: piper-tts, aplay or paplay (alsa-utils), wezterm
+# Requirements: svox (pico2wave), aplay or paplay (alsa-utils), wezterm
 #
 # Supported Modes:
 #   Interactive (no args) - speaks "Tab N" for permission_prompt/elicitation_dialog
@@ -17,13 +17,11 @@
 #   researching, researched, planning, planned, implementing, completed, blocked
 #
 # Configuration:
-#   PIPER_MODEL - Path to piper voice model (default: ~/.local/share/piper/en_US-lessac-medium.onnx)
 #   TTS_ENABLED - Set to "0" to disable (default: 1)
 
 set -uo pipefail
 
 # Configuration with defaults
-PIPER_MODEL="${PIPER_MODEL:-$HOME/.local/share/piper/en_US-lessac-medium.onnx}"
 TTS_ENABLED="${TTS_ENABLED:-1}"
 
 # Log file
@@ -71,15 +69,15 @@ get_tab_prefix() {
     echo "$tab_prefix"
 }
 
-# Helper: speak a message via piper
+# Helper: speak a message via pico2wave
 speak() {
     local message="$1"
+    local temp_wav="specs/tmp/claude-tts-$$.wav"
+    mkdir -p specs/tmp
     if command -v paplay &>/dev/null; then
-        local temp_wav="specs/tmp/claude-tts-$$.wav"
-        mkdir -p specs/tmp
-        (timeout 10s bash -c "echo '${message}' | piper --model '${PIPER_MODEL}' --output_file '${temp_wav}' 2>/dev/null && paplay '${temp_wav}' 2>/dev/null; rm -f '${temp_wav}'" &) || true
+        (timeout 10s bash -c "pico2wave -w '${temp_wav}' '${message}' 2>/dev/null && paplay '${temp_wav}' 2>/dev/null; rm -f '${temp_wav}'" &) || true
     elif command -v aplay &>/dev/null; then
-        (timeout 10s bash -c "echo '${message}' | piper --model '${PIPER_MODEL}' --output_file - 2>/dev/null | aplay -q 2>/dev/null" &) || true
+        (timeout 10s bash -c "pico2wave -w '${temp_wav}' '${message}' 2>/dev/null && aplay -q '${temp_wav}' 2>/dev/null; rm -f '${temp_wav}'" &) || true
     else
         log "No audio player found (aplay or paplay) - skipping TTS"
         return 1
@@ -92,15 +90,9 @@ if [[ "$TTS_ENABLED" != "1" ]]; then
     exit_success
 fi
 
-# Check if piper is available
-if ! command -v piper &>/dev/null; then
-    log "piper command not found - skipping TTS notification"
-    exit_success
-fi
-
-# Check if model exists
-if [[ ! -f "$PIPER_MODEL" ]]; then
-    log "Piper model not found at $PIPER_MODEL - skipping TTS notification"
+# Check if pico2wave is available
+if ! command -v pico2wave &>/dev/null; then
+    log "pico2wave command not found - skipping TTS notification"
     exit_success
 fi
 
