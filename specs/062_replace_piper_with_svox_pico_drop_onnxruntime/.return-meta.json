@@ -1,0 +1,21 @@
+{
+  "status": "planned",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/062_replace_piper_with_svox_pico_drop_onnxruntime/plans/01_implementation-plan.md",
+      "summary": "5-phase implementation plan to replace piper-tts with svox pico and drop onnxruntime"
+    }
+  ],
+  "next_steps": "Run /implement 62 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1749744000_plan62",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 5,
+    "estimated_hours": 2.5,
+    "dependency_waves": [[1], [2], [3, 4], [5]]
+  },
+  "memory_candidates": []
+}
