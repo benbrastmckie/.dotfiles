@@ -1,7 +1,7 @@
 # Implementation Plan: Replace piper-tts with svox pico and drop onnxruntime
 
 - **Task**: 62 - Replace piper-tts with svox pico and drop onnxruntime
-- **Status**: [NOT STARTED]
+- **Status**: [IN PROGRESS]
 - **Effort**: 2.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/062_replace_piper_with_svox_pico_drop_onnxruntime/reports/01_replace-piper-svox-pico.md
@@ -76,16 +76,16 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: Nix Configuration Changes [NOT STARTED]
+### Phase 1: Nix Configuration Changes [COMPLETED]
 
 **Goal**: Remove piper-tts, espeak-ng, piper-voices.nix, and markitdown from the Nix configuration; add svox; clean up flake overlay and home.nix symlink.
 
 **Tasks**:
-- [ ] Edit `configuration.nix` lines 635-636: replace `piper-tts` and `espeak-ng` with `svox` (with comment `# SVOX Pico text-to-speech engine (pico2wave command)`)
-- [ ] Edit `home.nix` line 401: remove `markitdown` from Python packages; add comment `# markitdown removed - depends on magika->onnxruntime; use: nix shell nixpkgs#python3Packages.markitdown`
-- [ ] Edit `home.nix` line 1199: remove the `.local/share/piper` symlink line entirely
-- [ ] Edit `flake.nix` line 99: remove the `piper-voice-en-us-lessac-medium` overlay entry
-- [ ] Delete file `packages/piper-voices.nix`
+- [x] Edit `configuration.nix` lines 635-636: replace `piper-tts` and `espeak-ng` with `svox` (with comment `# SVOX Pico text-to-speech engine (pico2wave command)`)
+- [x] Edit `home.nix` line 401: remove `markitdown` from Python packages; add comment `# markitdown removed - depends on magika->onnxruntime; use: nix shell nixpkgs#python3Packages.markitdown`
+- [x] Edit `home.nix` line 1199: remove the `.local/share/piper` symlink line entirely
+- [x] Edit `flake.nix` line 99: remove the `piper-voice-en-us-lessac-medium` overlay entry
+- [x] Delete file `packages/piper-voices.nix`
 
 **Timing**: 20 minutes
 

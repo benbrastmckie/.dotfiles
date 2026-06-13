@@ -398,7 +398,7 @@
       python-docx          # Create/modify Word documents
       vosk                 # Offline speech recognition (custom package)
       pymupdf              # PDF manipulation library
-      markitdown           # Document to markdown converter (nixpkgs)
+      # markitdown removed - depends on magika->onnxruntime; use: nix shell nixpkgs#python3Packages.markitdown
     ]) ++ [
       p.scikit-learn  # Machine learning (hyphen requires dotted form outside with block)
     ]))
@@ -1196,7 +1196,6 @@
     ".config/config-files/latexmkrc".text = builtins.readFile ./config/latexmkrc;
 
     # TTS/STT Models - declaratively managed
-    ".local/share/piper".source = pkgs.piper-voice-en-us-lessac-medium;
     ".local/share/vosk/vosk-model-small-en-us-0.15".source = pkgs.vosk-model-small-en-us;
 
     # # Building this configuration will create a copy of 'dotfiles/screenrc' in
