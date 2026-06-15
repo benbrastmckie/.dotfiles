@@ -99,11 +99,11 @@ The postflight phase **MUST NOT** perform any work that belongs in the agent, in
 - Extract status, artifacts, summary
 
 ### Stage 7: Update Task Status (Postflight)
-- jq update state.json to "researched"
-- Edit TODO.md status marker
+- Call `update-task-status.sh postflight` (updates state.json and regenerates TODO.md)
 
 ### Stage 8: Link Artifacts
 - jq add artifact to state.json
+- Call `generate-todo.sh` to reflect artifact links in TODO.md
 
 ### Stage 9: Git Commit
 - git add/commit

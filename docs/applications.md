@@ -40,6 +40,30 @@ Use `~/.dotfiles/packages/test-mcphub.sh` to verify installation and troubleshoo
 - Previous approach (`QT_QPA_PLATFORM=xcb`) broke in GNOME 49, which ignores `_MOTIF_WM_HINTS` for XWayland windows
 - Original package excluded to prevent conflicts with the wrapper
 
+## Chat (Zulip)
+
+CLI and TUI tools for Zulip team chat.
+
+**Packages**: `zulip` (Python SDK + `zulip-send` CLI), `zulip-term` (interactive TUI)
+**Config**: `~/.zuliprc` (seeded via activation script; fill in API key after first rebuild)
+
+**Setup**:
+1. Run `home-manager switch` to seed `~/.zuliprc`
+2. Get your API key from Zulip web UI: **Personal Settings > Account & Privacy > API key**
+3. Edit `~/.zuliprc` with your real `key` and `site` values
+
+**Usage**:
+```bash
+# Send to a stream
+zulip-send --stream "general" --subject "topic" --message "Hello"
+
+# Direct message
+zulip-send --user someone@example.com --message "Hey"
+
+# Interactive TUI
+zulip-term
+```
+
 ## Terminal Configuration
 
 Multiple terminal emulators configured:

@@ -6,15 +6,15 @@ paths: specs/**/*
 
 ## File Synchronization
 
-TODO.md and state.json MUST stay synchronized. Any update to one requires updating the other.
+TODO.md is generated from state.json. Agents update state.json only; `generate-todo.sh` handles TODO.md synchronization. Never edit TODO.md directly for status or artifact changes.
 
 ### Canonical Sources
-- **state.json**: Machine-readable source of truth
+- **state.json**: Machine-readable source of truth and sole authoritative state
   - next_project_number
   - active_projects array with status, task_type
   - Faster to query (12ms vs 100ms for TODO.md parsing)
 
-- **TODO.md**: User-facing source of truth
+- **TODO.md**: User-facing rendered view (generated from state.json)
   - Human-readable task list with descriptions
   - Status markers in brackets: [STATUS]
   - Single `## Tasks` section (new tasks prepended at top)
@@ -33,31 +33,30 @@ Any status -> [BLOCKED] (with reason)
 Any status -> [ABANDONED] (moves to archive)
 Any non-terminal -> [EXPANDED] (when divided into subtasks)
 [IMPLEMENTING] -> [PARTIAL] (on timeout/error)
+[IMPLEMENTING] -> [PR READY] (implementation complete, awaiting PR submission)
+[PR READY] -> [IMPLEMENTING] (if issues found during PR review)
+[PR READY] -> [COMPLETED] (after /merge PR submission)
 ```
 
 ### Restrictions
 - Cannot transition from terminal states (completed, abandoned, expanded)
 - Cannot mark COMPLETED without all phases done
 
-## Two-Phase Update Pattern
+## State-First Update Pattern
 
 When updating task status:
 
-### Phase 1: Prepare
-```
-1. Read current state.json
-2. Read current TODO.md
-3. Validate task exists in both
-4. Prepare updated content in memory
-5. Validate updates are consistent
-```
+1. **Write state.json** via `jq` (machine state is the sole source of truth)
+2. **Regenerate TODO.md** by calling `bash .claude/scripts/generate-todo.sh`
 
-### Phase 2: Commit
-```
-1. Write state.json (machine state first)
-2. Write TODO.md (user-facing second)
-3. Verify both writes succeeded
-4. If either fails: log error, preserve original state
+`update-task-status.sh` performs both steps automatically. Agents must not Edit TODO.md directly for status or artifact changes — `generate-todo.sh` handles all TODO.md rendering from state.json.
+
+```bash
+# Full state-first update (preferred)
+bash .claude/scripts/update-task-status.sh postflight "$task_number" implement "$session_id"
+
+# Manual regeneration after state.json update
+bash .claude/scripts/generate-todo.sh
 ```
 
 ## Error Handling

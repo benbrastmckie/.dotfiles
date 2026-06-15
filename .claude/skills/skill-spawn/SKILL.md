@@ -58,21 +58,54 @@ description=$(echo "$task_data" | jq -r '.description // ""')
 parent_topic=$(echo "$task_data" | jq -r '.topic // ""')  # Inherited by spawned tasks
 ```
 
+**Mode B Fallback Picker**: If `parent_topic` is empty, the parent task has no topic. Show a full Mode A interactive picker to let the user assign one now (which will also be inherited by spawned tasks):
+
+```bash
+if [[ -z "$parent_topic" ]]; then
+  # Get existing active topics from state.json
+  mapfile -t existing_topics < <(bash .claude/scripts/manage-topics.sh list)
+  # Show Mode A picker (existing topics + "New topic..." + "Skip (no topic)")
+fi
+```
+
+AskUserQuestion:
+```json
+{
+  "question": "Assign a topic to this task (will be inherited by spawned tasks)?",
+  "header": "Topic",
+  "multiSelect": false,
+  "options": ["<existing-topic-1>", "<existing-topic-2>", "New topic...", "Skip (no topic)"]
+}
+```
+
+- If user selects an existing topic → `parent_topic="$selected"`
+- If user selects "New topic..." → show free-text follow-up and capture as `parent_topic`
+- If user selects "Skip (no topic)" → `parent_topic=""` (no topic assigned)
+
 ---
 
 ### Stage 2: Preflight Status Update
 
-Update parent task status to "blocked" BEFORE invoking subagent.
+Determine spawn type and preserve original status before updating.
 
-**Update state.json**:
+**Spawn type detection**:
+- If `status` is `blocked`, `implementing`, or `partial` -> Blocker-driven spawn
+- If `status` is any other non-terminal state -> Holistic decomposition
+
+**Note**: `[BLOCKED]` means "has unmet dependencies", not "encountered an error". The parent task transitions to `blocked` because it now depends on spawned subtasks.
+
+**Update state.json** (preserve `previous_status`):
 ```bash
 padded_num=$(printf "%03d" "$task_number")
+previous_status=$(echo "$task_data" | jq -r '.status')
 
 jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
    --arg status "blocked" \
+   --arg prev "$previous_status" \
    --arg sid "$session_id" \
   '(.active_projects[] | select(.project_number == '$task_number')) |= . + {
     status: $status,
+    previous_status: $prev,
     last_updated: $ts,
     session_id: $sid
   }' specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
@@ -80,14 +113,9 @@ jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
 
 ---
 
-### Stage 3: Update TODO.md Parent Status
+### Stage 3: (Removed — state.json is authoritative for status)
 
-Use Edit tool to change status marker to `[BLOCKED]` if not already blocked.
-
-```markdown
-old_string: - **Status**: [{current_status}]
-new_string: - **Status**: [BLOCKED]
-```
+The state.json update in Stage 2 already sets status to "blocked". TODO.md will be regenerated via generate-todo.sh in Stage 14b after all task writes complete.
 
 ---
 
@@ -124,6 +152,15 @@ if [ -d "specs/${padded_num}_${project_name}/plans" ]; then
 fi
 ```
 
+Determine analysis mode for the agent:
+
+```bash
+analysis_mode="holistic"
+if [ "$status" = "blocked" ] || [ "$status" = "implementing" ] || [ "$status" = "partial" ] || [ -n "$blocker_prompt" ]; then
+    analysis_mode="blocker"
+fi
+```
+
 Prepare delegation context for the subagent:
 
 ```json
@@ -143,6 +180,7 @@ Prepare delegation context for the subagent:
   },
   "blocker_prompt": "{optional user description}",
   "plan_path": "{path to latest plan or null}",
+  "analysis_mode": "blocker" | "holistic",
   "metadata_file_path": "specs/{NNN}_{SLUG}/.return-meta.json"
 }
 ```
@@ -199,10 +237,19 @@ spawn_file="specs/${padded_num}_${project_name}/.spawn-return.json"
 
 if [ -f "$spawn_file" ] && jq empty "$spawn_file" 2>/dev/null; then
     new_tasks=$(jq -r '.new_tasks' "$spawn_file")
+    task_count=$(jq '.new_tasks | length' "$spawn_file")
+
+    if [ "$task_count" -eq 0 ]; then
+        echo "Spawn cancelled: no tasks selected."
+        # Cleanup and restore parent status if needed
+        rm -f "specs/${padded_num}_${project_name}/.postflight-pending"
+        rm -f "specs/${padded_num}_${project_name}/.spawn-return.json"
+        exit 0
+    fi
+
     dependency_order=$(jq -r '.dependency_order' "$spawn_file")
     analysis_summary=$(jq -r '.analysis_summary' "$spawn_file")
     report_path=$(jq -r '.report_path' "$spawn_file")
-    task_count=$(jq '.new_tasks | length' "$spawn_file")
 else
     echo "Error: Invalid or missing spawn return file"
     exit 1
@@ -329,24 +376,9 @@ jq --argjson next "$((next_num + task_count))" \
 
 ---
 
-### Stage 12: Update TODO.md with New Task Entries
+### Stage 12: (Removed — state.json is authoritative for task entries)
 
-Insert new task entries after the Tasks header, in topological order:
-
-```markdown
-### {NEW_TASK_NUM}. {Title}
-- **Effort**: {estimate}
-- **Status**: [RESEARCHED]
-- **Task Type**: {task_type}
-- **Dependencies**: Task #{dep1}, Task #{dep2}  OR  None
-- **Parent Task**: #{parent_task_number}
-- **Started**: {timestamp}
-- **Research**: [02_spawn-analysis.md]({parent_dir}/reports/02_spawn-analysis.md)
-
-**Description**: {full description}
-```
-
-Use Edit tool to insert each task entry at the top of the Tasks section (after `## Tasks` header).
+The state.json updates in Stage 11 already write all task data. TODO.md will be regenerated via generate-todo.sh in Stage 14b after all task writes complete.
 
 ---
 
@@ -371,51 +403,36 @@ jq --argjson new_deps "$new_task_nums" \
 
 ---
 
-### Stage 14: Update Parent Task Dependencies in TODO.md
+### Stage 14: (Removed — state.json is authoritative for dependencies)
 
-Edit the parent task entry to add/update the Dependencies line:
-
-```markdown
-# If no Dependencies line exists, add after Status line:
-old_string: - **Status**: [BLOCKED]
-new_string: - **Status**: [BLOCKED]
-- **Dependencies**: Task #242, Task #243
-
-# If Dependencies line exists, update it:
-old_string: - **Dependencies**: None
-new_string: - **Dependencies**: Task #242, Task #243
-```
-
-Use Edit tool to update the parent task entry.
+The state.json update in Stage 13 already writes the dependencies array. TODO.md will be regenerated via generate-todo.sh in Stage 14b after all task writes complete.
 
 ---
 
-### Stage 14a: Update active_topics (Non-Blocking)
+### Stage 14a: Assign Topics via manage-topics.sh (Non-Blocking)
 
-If the parent task has a topic, ensure it is present in the `active_topics` array:
+For each new task created in Stage 11, assign the inherited `parent_topic` via `manage-topics.sh set`. The `set` subcommand updates both the task's `topic` field and the `active_topics` array atomically (must be called AFTER the task entry exists in state.json from Stage 11):
 
 ```bash
-# Append inherited parent topic to active_topics if not already present
+# Call set for each new task (parent_topic already written to each task entry in Stage 11)
 if [[ -n "$parent_topic" ]]; then
-  jq --arg t "$parent_topic" '
-    if ((.active_topics // []) | index($t)) == null
-    then .active_topics = ((.active_topics // []) + [$t])
-    else . end' \
-    specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
+  for idx in $(echo "$dependency_order" | jq -r '.[]'); do
+    new_task_num=${task_num_map[$idx]}
+    bash .claude/scripts/manage-topics.sh set "$new_task_num" "$parent_topic" \
+      2>/dev/null || echo "Warning: manage-topics.sh set failed for task $new_task_num (non-fatal)" >&2
+  done
 fi
 ```
 
 ---
 
-### Stage 14b: Update Task Order Section (Non-Blocking)
+### Stage 14b: Regenerate TODO.md (Non-Blocking)
 
-After all new tasks have been written to state.json and TODO.md, regenerate the Task Order section:
+After all state.json writes are complete (parent status blocked, new tasks, parent dependencies), regenerate the entire TODO.md from state.json. This single call replaces all direct TODO.md writes:
 
 ```bash
-if [ -f ".claude/scripts/generate-task-order.sh" ]; then
-  bash ".claude/scripts/generate-task-order.sh" --update-todo specs/TODO.md specs/state.json \
-    2>/dev/null || echo "Note: Failed to regenerate Task Order (non-fatal)" >&2
-fi
+bash .claude/scripts/generate-todo.sh \
+  2>/dev/null || echo "Note: Failed to regenerate TODO.md (non-fatal)" >&2
 ```
 
 ---
@@ -477,6 +494,13 @@ If subagent didn't write spawn return file:
 1. Keep status as "blocked"
 2. Do not cleanup postflight marker
 3. Report error to user
+
+### Empty Task Selection (Cancelled Spawn)
+If user selected no tasks in holistic mode:
+1. `task_count` will be 0
+2. Exit gracefully with informative message
+3. Cleanup temporary files
+4. Parent task remains `[BLOCKED]` (it still has the dependency intent)
 
 ### Invalid Dependency Graph
 If dependency_order contains cycles or invalid indices:

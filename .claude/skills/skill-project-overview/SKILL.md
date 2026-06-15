@@ -357,40 +357,70 @@ This report provides all information needed to generate `.claude/context/repo/pr
 Run `/plan {N}` to create an implementation plan, then `/implement {N}` to generate the file.
 ```
 
+#### 5.2.5: Assign Topic (Mode A Interactive Picker)
+
+Before writing the task to state.json, offer an interactive topic picker:
+
+```bash
+# Get existing active topics from state.json
+mapfile -t existing_topics < <(bash .claude/scripts/manage-topics.sh list)
+
+# Build options: existing topics + "New topic..." + "Skip (no topic)"
+```
+
+Show picker via AskUserQuestion:
+```json
+{
+  "question": "Assign a topic to this task?",
+  "header": "Topic",
+  "multiSelect": false,
+  "options": ["<existing-topic-1>", "<existing-topic-2>", "New topic...", "Skip (no topic)"]
+}
+```
+
+- If user selects an existing topic → `topic="$selected"`
+- If user selects "New topic..." → show free-text follow-up:
+  ```json
+  {"question": "Enter new topic name (lowercase, kebab-case, e.g. 'agent-system'):"}
+  ```
+  Capture result as `topic`. Validate: non-empty, no spaces.
+- If user selects "Skip (no topic)" → `topic=""`
+
 #### 5.3: Update state.json
 
 Add new task to active_projects:
 ```bash
 jq --argjson num "$next_num" \
    --arg name "$task_slug" \
+   --arg topic "$topic" \
    '.active_projects += [{
      "project_number": $num,
      "project_name": $name,
      "status": "researched",
      "task_type": "meta",
+     "topic": (if ($topic == "" | not) then $topic else null end),
      "next_artifact_number": 2
-   }] | .next_project_number = ($num + 1)' \
+   } | if .topic == null then del(.topic) else . end] | .next_project_number = ($num + 1)' \
    specs/state.json > specs/state.json.tmp && mv specs/state.json.tmp specs/state.json
 ```
 
-#### 5.4: Update TODO.md
-
-Prepend new task entry to the Tasks section in TODO.md:
-
-```markdown
-### {N}. Generate project-overview.md [RESEARCHED]
-- **Description**: Generate project-overview.md for this repository based on automated scan and user interview findings
-- **Type**: meta
-- **Priority**: Medium
-- **Created**: {ISO_DATE}
-- **Research**: [specs/{NNN}_{SLUG}/reports/01_project-overview-scan.md]
+After the state.json write, assign topic via manage-topics.sh (non-blocking):
+```bash
+if [[ -n "$topic" ]]; then
+  bash .claude/scripts/manage-topics.sh set "$next_num" "$topic" \
+    2>/dev/null || echo "Warning: manage-topics.sh set failed (non-fatal)" >&2
+fi
 ```
 
-#### 5.5: Link Artifact
+#### 5.4: (Removed — state.json is authoritative for task entries)
 
-Use the link-artifact-todo.sh script if available:
+The state.json update in Section 5.3 already writes the task data. TODO.md will be regenerated via generate-todo.sh in Section 5.5.
+
+#### 5.5: Regenerate TODO.md
+
+Regenerate TODO.md from state.json to reflect the newly linked artifact:
 ```bash
-.claude/scripts/link-artifact-todo.sh "$next_num" "Research" "specs/${padded_num}_${task_slug}/reports/01_project-overview-scan.md"
+bash .claude/scripts/generate-todo.sh || echo "WARNING: generate-todo.sh failed (non-fatal)" >&2
 ```
 
 #### 5.6: Git Commit

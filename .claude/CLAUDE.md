@@ -42,7 +42,8 @@ Task management and agent orchestration for project development. For comprehensi
 - `[NOT STARTED]` - Initial state
 - `[RESEARCHING]` -> `[RESEARCHED]` - Research phase
 - `[PLANNING]` -> `[PLANNED]` - Planning phase
-- `[IMPLEMENTING]` -> `[COMPLETED]` - Implementation phase
+- `[IMPLEMENTING]` -> `[PR READY]` -> `[COMPLETED]` - Implementation + PR phase
+- `[PR READY]` -> `[IMPLEMENTING]` - If PR review finds issues (re-dispatch)
 - `[BLOCKED]`, `[ABANDONED]`, `[PARTIAL]`, `[EXPANDED]` - Terminal/exception states
 
 ### Artifact Paths
@@ -95,9 +96,9 @@ All commands use checkpoint-based execution: GATE IN (preflight) -> DELEGATE (sk
 |---------|-------|-------------|
 | `/task` | `/task "Description"` | Create task |
 | `/task` | `/task --recover N`, `--expand N`, `--sync`, `--abandon N` | Manage tasks |
-| `/research` | `/research N[,N-N] [focus] [--team] [--clean] [--fast\|--hard] [--haiku\|--sonnet\|--opus]` | Research task(s), route by task type |
-| `/plan` | `/plan N[,N-N] [--team] [--clean] [--fast\|--hard] [--haiku\|--sonnet\|--opus]` | Create implementation plan(s) |
-| `/implement` | `/implement N[,N-N] [--team] [--force] [--clean] [--fast\|--hard] [--haiku\|--sonnet\|--opus]` | Execute plan(s), resume from incomplete phase |
+| `/research` | `/research N[,N-N] [focus] [--team] [--clean] [--lit] [--fast\|--hard] [--haiku\|--sonnet\|--opus]` | Research task(s), route by task type |
+| `/plan` | `/plan N[,N-N] [--team] [--clean] [--lit] [--fast\|--hard] [--haiku\|--sonnet\|--opus]` | Create implementation plan(s) |
+| `/implement` | `/implement N[,N-N] [--team] [--force] [--clean] [--lit] [--fast\|--hard] [--haiku\|--sonnet\|--opus]` | Execute plan(s), resume from incomplete phase |
 | `/revise` | `/revise N` | Create new plan version |
 | `/review` | `/review` | Analyze codebase |
 | `/project-overview` | `/project-overview` | Interactive repo scan and project-overview.md generation |
@@ -107,9 +108,9 @@ All commands use checkpoint-based execution: GATE IN (preflight) -> DELEGATE (sk
 | `/fix-it` | `/fix-it [PATH...]` | Scan for FIX:/NOTE:/TODO:/QUESTION: tags |
 | `/refresh` | `/refresh [--dry-run] [--force]` | Clean orphaned processes and old files |
 | `/tag` | `/tag [--patch|--minor|--major]` | Create semantic version tag (user-only) |
-| `/orchestrate` | `/orchestrate N` | Drive task autonomously through full lifecycle (no confirmation gates) |
+| `/orchestrate` | `/orchestrate N [--lit]` | Drive task autonomously through full lifecycle (no confirmation gates) |
 | `/spawn` | `/spawn N [blocker description]` | Spawn new tasks to unblock a blocked task |
-| `/merge` | `/merge` | Create pull/merge request for current branch |
+| `/merge` | `/merge` | Create pull/merge request for current branch (user-only) |
 
 **Multi-task syntax**: `/research`, `/plan`, and `/implement` accept multiple task numbers using commas and ranges (e.g., `/research 7, 22-24, 59`). Each task is processed by a separate agent in parallel. Flags like `--team` and `--force` apply to all tasks. See `.claude/context/patterns/multi-task-operations.md` for the full specification.
 
@@ -120,12 +121,13 @@ All commands use checkpoint-based execution: GATE IN (preflight) -> DELEGATE (sk
 
 ## State Synchronization
 
-TODO.md and state.json must stay synchronized. Update state.json first (machine state), then TODO.md (user-facing).
+TODO.md is generated from state.json. Update state.json first, then call `bash .claude/scripts/generate-todo.sh` to regenerate TODO.md. The `update-task-status.sh` script calls `generate-todo.sh` internally, so explicit calls are only needed after manual state.json edits.
 
 ### state.json Structure
 ```json
 {
   "next_project_number": 1,
+  "default_task_type": null,
   "active_projects": [{
     "project_number": 1,
     "project_name": "task_slug",
@@ -140,6 +142,8 @@ TODO.md and state.json must stay synchronized. Update state.json first (machine 
   }
 }
 ```
+
+**`default_task_type`** (optional, null by default): When set to a non-null string, overrides the keyword table in `/task` step 4 for all new tasks in this project. Meta keywords ("meta", "agent", "command", "skill") always resolve to `meta` regardless of this field. Precedence: meta keywords > `default_task_type` > keyword table > `general`.
 
 ### Completion Workflow
 - Non-meta tasks: `completion_summary` + optional `roadmap_items` -> /todo annotates ROADMAP.md
@@ -191,6 +195,10 @@ Standard actions: `create`, `complete research`, `create implementation plan`, `
 | skill-reviser | reviser-agent | opus | Plan revision and description update |
 | skill-spawn | spawn-agent | sonnet | Analyze blockers and spawn new tasks |
 | skill-orchestrate | (direct execution) | opus | Autonomous lifecycle state machine (/orchestrate command) |
+| skill-orchestrate-hard | (direct execution) | opus | Hard-mode orchestration: per-phase dispatch, adversarial verification, churn detection |
+| skill-researcher-hard | general-research-hard-agent | sonnet | Hard-mode research: adversarial verification (H4), reference grounding (H3) |
+| skill-planner-hard | planner-hard-agent | opus | Hard-mode planning: phase sizing (H8), postmortem constraints, wave declarations |
+| skill-implementer-hard | general-implementation-hard-agent | sonnet | Hard-mode implementation: anti-analysis (H2), wrap-up discipline (H9), territory (H7) |
 | skill-git-workflow | (direct execution) | - | Create scoped git commits for task operations |
 | skill-fix-it | (direct execution) | - | Scan for FIX:/TODO:/NOTE: tags and create tasks |
 | skill-project-overview | (direct execution) | - | Interactive repo scan and project-overview.md task creation |
@@ -208,6 +216,9 @@ Standard actions: `create`, `complete research`, `create implementation plan`, `
 | reviser-agent | Plan revision with research synthesis |
 | spawn-agent | Blocker analysis and task decomposition |
 | synthesis-agent | Multi-output synthesis for team research and team planning |
+| general-research-hard-agent | Hard-mode research with adversarial self-verification and reference grounding |
+| planner-hard-agent | Hard-mode planning with phase sizing constraints and postmortem rules |
+| general-implementation-hard-agent | Hard-mode implementation with anti-analysis contracts and per-phase focus |
 
 **Model Enforcement**: Agents declare preferred models via `model:` frontmatter field using a tiered policy: Opus for deep-reasoning agents (planner, meta-builder, reviser, formal/lean/math/logic) AND for orchestrator commands (`/research`, `/plan`, `/implement`) which accumulate large context across sequential sub-agent calls and require the 1M context auto-upgrade; Sonnet for worker agents (research, implementation, review, spawn, domain tasks) which have their own fresh context per invocation. Two independent flag dimensions override behavior at invocation time: effort flags (`--fast`, `--hard`) control reasoning depth, and model flags (`--haiku`, `--sonnet`, `--opus`) select the model family. These flags work on `/research`, `/plan`, and `/implement`. See `.claude/docs/reference/standards/agent-frontmatter-standard.md` for details.
 
@@ -224,6 +235,117 @@ Standard actions: `create`, `complete research`, `create implementation plan`, `
 | `--team` | skill-team-implement | 2-4 | Parallel phase execution with debugger |
 
 **Note**: Team mode uses ~5x tokens compared to single-agent. Default team_size=3 (Primary + Alternatives + Critic). Use `--fast` for 2 or `--hard` for 4.
+
+## Hard Mode (`--hard`)
+
+Hard mode encodes behavioral contracts distilled from high-complexity task orchestration (BimodalLogic task-273 baseline: 9 H-techniques, measured outcome: 0 lines -> 2,400+ lines across 13 dispatches).
+
+### What Hard Mode Does
+
+Hard mode activates a set of behavioral contracts and routing changes:
+- **Anti-analysis (H2)**: Strict read budget, forbidden analysis-only outputs, defect bar enforcement
+- **Reference grounding (H3)**: Source-to-implementation mapping with tier selection (literature/docs/code)
+- **Adversarial verification (H4)**: Research output verified before plan dispatch
+- **Divergence audit (H5)**: Three-strikes on any target triggers dedicated audit dispatch
+- **Convergence policing (H6)**: Churn detection with per-target counters
+- **Territory contracts (H7)**: Parallel dispatch with explicit file ownership
+- **Phase sizing (H8)**: Each phase bounded to one agent run (~100-500 lines output)
+- **Wrap-up discipline (H9)**: Orchestrator handoff JSON + incremental commits at every green milestone
+
+### When to Use `--hard`
+
+Use `--hard` when one or more of the following apply:
+
+1. **2+ plan versions exist** for the same task without convergence
+2. **Previous dispatches produced analysis-only output** with no file writes (analysis-paralysis signal)
+3. **Task involves formal verification** (lean4, z3) requiring faithful transcription of mathematical sources
+4. **Task involves literature-based implementation** (paper to code, spec to implementation)
+5. **Task has been in [IMPLEMENTING] for 3+ dispatch cycles** without phase completion
+6. **Task description contains "deflection" or "stuck"** indicators in /errors output
+
+### Cost Impact
+
+| Mode | Cost Multiplier |
+|------|----------------|
+| Standard | 1x |
+| `--hard` | ~3-5x |
+| `--team` | ~5x |
+| `--hard --team` | ~15-25x |
+
+### Composability
+
+- `--hard` works with `--team`: team skills inject hard-mode contracts into each teammate
+- `--hard` works with model flags: `--hard --opus` uses Opus model with hard-mode contracts
+- `--hard` works with extension routing: extensions declare `routing_hard` in their manifest
+- Graceful fallback: commands without hard variants silently use standard behavior
+
+### Routing Mechanism
+
+`--hard` is resolved by `command-route-skill.sh` as a 4th `effort_flag` argument:
+1. Check `routing_hard.$operation.$task_type` in extension manifests
+2. If not found: construct candidate by appending `-hard` to the resolved skill name
+3. If candidate skill exists (`.claude/skills/${skill}-hard/SKILL.md`): use it
+4. If not: fall back to standard skill with stderr note `[route] No hard variant for $skill; using standard skill`
+
+### Per-Invocation Only
+
+`--hard` is a per-invocation flag only. There is no sticky hard mode or `effort_mode` field
+in state.json. Each invocation of `/research`, `/plan`, `/implement`, or `/orchestrate` must
+explicitly pass `--hard` to activate hard mode.
+
+## Literature Mode (`--lit`)
+
+Literature mode injects reference files from `specs/literature/` as `<literature-context>` into
+agent prompts. Use this when a task involves implementing from a paper, specification, or
+reference document.
+
+### What `--lit` Does
+
+When `--lit` is passed to `/research`, `/plan`, `/implement`, or `/orchestrate`:
+- `literature-retrieve.sh` reads all `.md` and `.txt` files from `specs/literature/`
+- Files are included up to TOKEN_BUDGET=4000 tokens (MAX_FILES=10)
+- A `<literature-context>` block is injected after `<memory-context>` (if any) and before
+  task-specific instructions
+- If `specs/literature/` does not exist or is empty, the flag is silently ignored (no error)
+
+### specs/literature/ Directory Convention
+
+The `specs/literature/` directory is user-maintained and not task-scoped:
+- Place paper summaries, specification documents, algorithm descriptions, or reference PDFs
+  (converted to .md/.txt) here
+- All files in the directory are available to any task when `--lit` is active
+- The directory is not created automatically — create it before using `--lit`
+- Suitable content: academic paper summaries, RFC/spec excerpts, algorithm pseudocode,
+  mathematical definitions the agent should treat as ground truth
+
+### When to Use `--lit`
+
+- Task requires implementing from a paper or formal specification
+- Agent needs stable reference material beyond what is in memory
+- Using `--hard` with H3 reference grounding tier "literature"
+- Task description mentions "paper to code", "spec to implementation", or cites a specific document
+
+### Relationship to `--clean`
+
+The two flags are independent:
+
+| Flag combination | Memory retrieval | Literature injection |
+|------------------|-----------------|---------------------|
+| (neither)        | active          | inactive            |
+| `--clean`        | suppressed      | inactive            |
+| `--lit`          | active          | active              |
+| `--clean --lit`  | suppressed      | active              |
+
+### Composability
+
+- `--lit` works with `--team`, `--hard`, `--fast`, and model flags
+- `--lit` is threaded through all dispatch contexts in skill-orchestrate
+- Per-invocation only: no sticky state in state.json
+
+### Per-Invocation Only
+
+`--lit` has no persistent state. Each invocation of `/research`, `/plan`, `/implement`, or
+`/orchestrate` must explicitly pass `--lit` to activate literature injection.
 
 ## Rules References
 
@@ -395,6 +517,10 @@ Knowledge capture and retrieval via the memory vault. Supports text, file, direc
 ### Memory-Augmented Research
 
 Memory retrieval is automatic: when the memory extension is loaded, `/research`, `/plan`, and `/implement` preflight stages call `memory-retrieve.sh` to inject relevant memories as `<memory-context>` into the agent context. The `--clean` flag on these commands suppresses auto-retrieval.
+
+### Literature-Augmented Research
+
+The `--lit` flag is the complementary context-injection mechanism to memory retrieval. While `--clean` suppresses memory retrieval, `--lit` adds literature file injection from `specs/literature/`. The two flags are independent and combinable: `--clean --lit` suppresses memory but still injects literature; `--lit` alone injects both memory (if available) and literature. See the "Literature Mode (`--lit`)" section in CLAUDE.md for full details on `specs/literature/` conventions, token budget, and composability with other flags.
 
 ### Memory Lifecycle
 

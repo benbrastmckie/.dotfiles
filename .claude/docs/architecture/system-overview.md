@@ -248,10 +248,9 @@ The system maintains dual state files that stay synchronized:
 | `specs/TODO.md` | User-facing task list | Markdown |
 | `specs/state.json` | Machine-readable state | JSON |
 
-Updates use two-phase commit:
-1. Write state.json first
-2. Write TODO.md second
-3. Rollback both on any failure
+Updates use the state-first pipeline:
+1. Write state.json (sole source of truth)
+2. Regenerate TODO.md via `generate-todo.sh`
 
 ---
 

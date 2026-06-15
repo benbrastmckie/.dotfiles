@@ -332,7 +332,10 @@ jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --arg desc "$new_description" \
   mv specs/tmp/state.json specs/state.json
 ```
 
-Then use Edit tool to update the description in TODO.md.
+Then call `generate-todo.sh` to regenerate TODO.md with the updated description:
+```bash
+bash .claude/scripts/generate-todo.sh
+```
 
 **On partial/failed**: Keep status unchanged (do not call the script).
 
@@ -360,13 +363,13 @@ if [ -n "$artifact_path" ]; then
 fi
 ```
 
-**Update TODO.md**: Link artifact using the automated script:
+**Update TODO.md**: Regenerate from state.json (state.json artifact update was done in the previous step):
 
 ```bash
-bash .claude/scripts/link-artifact-todo.sh $task_number '**Plan**' '**Description**' "$artifact_path"
+bash .claude/scripts/generate-todo.sh || echo "WARNING: generate-todo.sh failed (non-fatal)" >&2
 ```
 
-If the script exits non-zero, log a warning but continue (linking errors are non-blocking).
+If the script exits non-zero, log a warning but continue (regeneration errors are non-blocking).
 
 ---
 

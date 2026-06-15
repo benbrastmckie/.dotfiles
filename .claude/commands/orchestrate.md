@@ -26,6 +26,12 @@ Implements fire-and-forget state machine: research -> plan -> implement -> compl
 - Terminates automatically on success, MAX_CYCLES exceeded, or unrecoverable blocker
 - In multi-task mode, failure in one task does not block other tasks in the same wave, but DOES block dependent tasks in later waves
 
+## Options
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--lit` | Literature mode: pass lit_flag=true to skill for paper/spec-based tasks | false |
+
 ## Anti-Bypass Constraint
 
 **PROHIBITION**: All lifecycle phases (research, plan, implement) MUST be executed by delegating
@@ -195,7 +201,7 @@ Invoke a single `skill-orchestrate` instance with all task context:
 Tool: Skill
 Parameters:
   skill: "skill-orchestrate"
-  args: "multi_task_mode=true task_numbers={task_numbers_json} waves={waves_json} dependency_graph={dep_graph_json} session_id={batch_session_id} focus_prompt={focus_prompt}"
+  args: "multi_task_mode=true task_numbers={task_numbers_json} waves={waves_json} dependency_graph={dep_graph_json} session_id={batch_session_id} focus_prompt={focus_prompt} lit_flag={LIT_FLAG}"
 ```
 
 The delegation context passed to the skill must include:
@@ -206,7 +212,8 @@ The delegation context passed to the skill must include:
   "task_numbers": [42, 43, 44],
   "waves": [[42], [43, 44]],
   "dependency_graph": {"42": [], "43": [42], "44": [42]},
-  "focus_prompt": "{focus_prompt}"
+  "focus_prompt": "{focus_prompt}",
+  "lit_flag": "{LIT_FLAG}"
 }
 ```
 
@@ -320,7 +327,7 @@ Invoke `skill-orchestrate` via the Skill tool:
 
 ```
 skill: "skill-orchestrate"
-args: "task_number={N} session_id={SESSION_ID} orchestrator_mode=true"
+args: "task_number={N} session_id={SESSION_ID} orchestrator_mode=true lit_flag={LIT_FLAG}"
 ```
 
 The delegation context passed to the skill must include:
@@ -336,7 +343,8 @@ The delegation context passed to the skill must include:
     "task_type": "{TASK_TYPE}"
   },
   "orchestrator_mode": true,
-  "focus_prompt": "{FOCUS_PROMPT}"
+  "focus_prompt": "{FOCUS_PROMPT}",
+  "lit_flag": "{LIT_FLAG}"
 }
 ```
 

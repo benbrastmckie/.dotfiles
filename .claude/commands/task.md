@@ -1,6 +1,6 @@
 ---
 description: Create, recover, divide, sync, or abandon tasks
-allowed-tools: Read(specs/*), Edit(specs/TODO.md), Bash(jq:*), Bash(git:*), Bash(mv:*), Bash(date:*), Bash(sed:*), AskUserQuestion
+allowed-tools: Read(specs/*), Bash(jq:*), Bash(git:*), Bash(mv:*), Bash(date:*), Bash(bash:*), AskUserQuestion
 argument-hint: "description" | --recover N | --expand N | --sync | --abandon N | --review N
 model: opus
 ---
@@ -109,26 +109,45 @@ When $ARGUMENTS contains a description (no flags).
    - **Implement**: (default for unrecognized patterns)
 
 4. **Detect task_type** from keywords:
-   - "meta", "agent", "command", "skill" → meta
-   - "lean", "lean4", "mathlib", "theorem", "proof" → lean4
-   - "latex", "tex", "document", "typeset" → latex
-   - "typst" → typst
-   - "python", "pytest", "pip" → python
-   - "z3", "smt", "solver", "constraint" → z3
-   - "nix", "nixos", "home-manager", "flake" → nix
-   - "web", "astro", "tailwind", "cloudflare" → web
-   - "epidemiology", "epi", "cohort", "case-control", "strobe" → epi:study
-   - "formal", "logic", "math", "physics", "modal", "kripke" → formal
-   - "deck", "slide", "presentation", "pitch deck" → founder:deck
-   - "spreadsheet", "sheet", "excel" → founder:sheet
-   - "finance", "financial", "revenue", "burn rate" → founder:finance
-   - "market size", "tam", "sam", "som" → founder:market
-   - "competitive", "competitor" → founder:analyze
-   - "strategy", "strategic", "roadmap" → founder:strategy
-   - "legal", "contract", "agreement" → founder:legal
-   - "project plan", "timeline", "milestone" → founder:project
-   - "founder", "go-to-market", "gtm" → founder
-   - Otherwise → general
+
+   First, check for a project-level default:
+   ```bash
+   default_type=$(jq -r '.default_task_type // empty' specs/state.json)
+   ```
+
+   Then apply precedence rules:
+   - **Meta keywords always win (unconditional)**: "meta", "agent", "command", "skill" → meta
+   - **Project default** (if `default_type` is non-empty and no meta keyword matched): use `default_type`
+   - **Keyword table** (if no meta keyword and no project default):
+     - "lean", "lean4", "mathlib", "theorem", "proof" → lean4
+     - "latex", "tex", "document", "typeset" → latex
+     - "typst" → typst
+     - "python", "pytest", "pip" → python
+     - "z3", "smt", "solver", "constraint" → z3
+     - "nix", "nixos", "home-manager", "flake" → nix
+     - "web", "astro", "tailwind", "cloudflare" → web
+     - "epidemiology", "epi", "cohort", "case-control", "strobe" → epi:study
+     - "formal", "logic", "math", "physics", "modal", "kripke" → formal
+     - "deck", "slide", "presentation", "pitch deck" → founder:deck
+     - "spreadsheet", "sheet", "excel" → founder:sheet
+     - "finance", "financial", "revenue", "burn rate" → founder:finance
+     - "market size", "tam", "sam", "som" → founder:market
+     - "competitive", "competitor" → founder:analyze
+     - "strategy", "strategic", "roadmap" → founder:strategy
+     - "legal", "contract", "agreement" → founder:legal
+     - "project plan", "timeline", "milestone" → founder:project
+     - "founder", "go-to-market", "gtm" → founder
+     - Otherwise → general
+
+4.5. **Assign topic** to this task:
+
+   Follow @.claude/context/patterns/topic-assignment-pattern.md (Mode A: Interactive).
+   Capture the selected topic in `$topic`.
+
+   After topic selection:
+   ```bash
+   bash .claude/scripts/manage-topics.sh set "$next_num" "$topic"
+   ```
 
 5. **Create slug** from description:
    - Lowercase, replace spaces with underscores
@@ -137,50 +156,28 @@ When $ARGUMENTS contains a description (no flags).
 
 6. **Update state.json** (via jq):
    ```bash
+   # Include topic field only if not null/skipped
+   # Build topic from step 4.5 result
    jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+     --arg topic "$topic" \
      '.next_project_number = {NEW_NUMBER} |
       .active_projects = [{
         "project_number": {N},
         "project_name": "slug",
         "status": "not_started",
         "task_type": "detected",
+        "topic": (if ($topic == "" | not) then $topic else null end),
         "created": $ts,
         "last_updated": $ts
-      }] + .active_projects' \
+      } | if .topic == null then del(.topic) else . end] + .active_projects' \
      specs/state.json > specs/tmp/state.json && \
      mv specs/tmp/state.json specs/state.json
     ```
 
-7. **Update TODO.md** (TWO parts - frontmatter AND entry):
-
-   **Part A - Update frontmatter** (increment next_project_number):
+7. **Regenerate TODO.md** from state.json (handles frontmatter, task entries, and Task Order):
    ```bash
-   # Find and update next_project_number in YAML frontmatter
-   sed -i 's/^next_project_number: [0-9]*/next_project_number: {NEW_NUMBER}/' \
-     specs/TODO.md
-   ```
-
-   **Part B - Add task entry** by prepending to `## Tasks` section:
-   ```markdown
-   ### {N}. {Title}
-   - **Effort**: {estimate}
-   - **Status**: [NOT STARTED]
-   - **Task Type**: {task_type}
-
-   **Description**: {description}
-   ```
-
-   **Insertion**: Use sed or Edit to insert the new task entry immediately after the `## Tasks` line, so new tasks appear at the top of the list.
-
-   **CRITICAL**: Both state.json AND TODO.md frontmatter MUST have matching next_project_number values.
-
-   **Part C - Update Task Order section** (non-blocking):
-   ```bash
-   # Update Task Order section (non-blocking)
-   if [ -f ".claude/scripts/generate-task-order.sh" ]; then
-     bash ".claude/scripts/generate-task-order.sh" --update-todo specs/TODO.md specs/state.json \
-       2>/dev/null || echo "Note: Failed to regenerate Task Order section (non-fatal)" >&2
-   fi
+   bash .claude/scripts/generate-todo.sh \
+     2>/dev/null || echo "Note: Failed to regenerate TODO.md (non-fatal)" >&2
    ```
 
 8. **Git commit**:
@@ -201,6 +198,10 @@ When $ARGUMENTS contains a description (no flags).
 ## Recover Mode (--recover)
 
 Parse task ranges after --recover (e.g., "343-345", "337, 343"):
+
+<!-- NOTE: command-gate-in.sh does NOT apply here. gate-in reads active_projects only;
+     recover mode looks up tasks from specs/archive/state.json (completed_projects).
+     The inline archive lookup below is intentional. -->
 
 1. For each task number in range:
    **Lookup task in archive via jq**:
@@ -245,7 +246,11 @@ Parse task ranges after --recover (e.g., "343-345", "337, 343"):
    ```
    Note: Recovered directories always use 3-digit padding regardless of source format.
 
-   **Update TODO.md**: Prepend recovered task entry to `## Tasks` section
+   **Regenerate TODO.md** from state.json:
+   ```bash
+   bash .claude/scripts/generate-todo.sh \
+     2>/dev/null || echo "Note: Failed to regenerate TODO.md (non-fatal)" >&2
+   ```
 
 2. Git commit: "task: recover tasks {ranges}"
 
@@ -253,23 +258,53 @@ Parse task ranges after --recover (e.g., "343-345", "337, 343"):
 
 Parse task number and optional prompt:
 
-1. **Lookup task via jq**:
+1. **Lookup task via gate-in**:
    ```bash
-   task_data=$(jq -r --arg num "$task_number" \
-     '.active_projects[] | select(.project_number == ($num | tonumber))' \
-     specs/state.json)
-
-   if [ -z "$task_data" ]; then
-     echo "Error: Task $task_number not found"
-     exit 1
-   fi
-
-   description=$(echo "$task_data" | jq -r '.description // ""')
+   # Note: command-gate-in.sh reads active_projects only (not archive).
+   # This is correct for expand mode which operates on active tasks.
+   source .claude/scripts/command-gate-in.sh "$task_number" "expand"
+   # Exports: SESSION_ID, TASK_TYPE, TASK_STATUS, PROJECT_NAME, DESCRIPTION, PADDED_NUM
+   # gate_in exits with error if task not found or in terminal status
    ```
 
-2. Analyze description for natural breakpoints
+2. Analyze description for natural breakpoints (use DESCRIPTION exported by gate-in)
 
-3. **Create 2-5 subtasks** using the Create Task jq pattern for each
+2.5. **Read parent topic** for inheritance:
+   ```bash
+   parent_topic=$(jq -r --arg num "$task_number" \
+     '.active_projects[] | select(.project_number == ($num | tonumber)) | .topic // ""' \
+     specs/state.json)
+   ```
+
+   **Mode B Fallback Picker**: If `parent_topic` is empty, show a full Mode A interactive picker:
+   ```bash
+   if [[ -z "$parent_topic" ]]; then
+     mapfile -t existing_topics < <(bash .claude/scripts/manage-topics.sh list)
+     # Show AskUserQuestion picker (existing topics + "New topic..." + "Skip (no topic)")
+   fi
+   ```
+   AskUserQuestion:
+   ```json
+   {
+     "question": "Assign a topic to subtasks (parent has none)?",
+     "header": "Topic",
+     "multiSelect": false,
+     "options": ["<existing-topic-1>", "<existing-topic-2>", "New topic...", "Skip (no topic)"]
+   }
+   ```
+   - If user selects an existing topic → `parent_topic="$selected"`
+   - If user selects "New topic..." → free-text follow-up, capture as `parent_topic`
+   - If user selects "Skip (no topic)" → `parent_topic=""` (no topic assigned)
+
+3. **Create 2-5 subtasks** using the Create Task jq pattern for each, inheriting parent topic:
+   ```bash
+   # Include "topic": parent_topic in each subtask jq entry (if parent has a topic)
+   # After each subtask entry is written to state.json, call manage-topics.sh set:
+   if [[ -n "$parent_topic" ]]; then
+     bash .claude/scripts/manage-topics.sh set "$subtask_num" "$parent_topic" \
+       2>/dev/null || echo "Warning: manage-topics.sh set failed (non-fatal)" >&2
+   fi
+   ```
 
 4. **Update original task** to reference subtasks and set status to expanded:
    ```bash
@@ -281,37 +316,66 @@ Parse task number and optional prompt:
       }' specs/state.json > specs/tmp/state.json && \
       mv specs/tmp/state.json specs/state.json
 
-    **Also update TODO.md**: Change task status to `[EXPANDED]`
+5. **Regenerate TODO.md** from state.json after all subtask state.json writes complete:
+   ```bash
+   bash .claude/scripts/generate-todo.sh \
+     2>/dev/null || echo "Note: Failed to regenerate TODO.md (non-fatal)" >&2
+   ```
 
-5. Git commit: "task {N}: expand into subtasks"
+6. Git commit: "task {N}: expand into subtasks"
 
 ## Sync Mode (--sync)
 
-1. **Read state.json task list via jq**:
+state.json is the authoritative source of truth. Sync validates integrity and regenerates TODO.md.
+
+1. **Validate state.json integrity**:
    ```bash
    state_tasks=$(jq -r '.active_projects[].project_number' specs/state.json | sort -n)
    state_next=$(jq -r '.next_project_number' specs/state.json)
+   # Verify state.json is valid JSON
+   jq empty specs/state.json || { echo "Error: state.json is invalid JSON"; exit 1; }
    ```
 
-2. **Read TODO.md task list via grep**:
+2. **Identify orphan TODO.md tasks** not in state.json (warn user only, do not auto-add):
    ```bash
    todo_tasks=$(grep -o "^### [0-9]\+\." specs/TODO.md | sed 's/[^0-9]//g' | sort -n)
-   todo_next=$(grep "^next_project_number:" specs/TODO.md | awk '{print $2}')
+   # Warn about tasks in TODO.md but not in state.json (orphans)
+   for task_num in $todo_tasks; do
+     if ! jq -e --argjson n "$task_num" '.active_projects[] | select(.project_number == $n)' specs/state.json > /dev/null 2>&1; then
+       echo "Warning: Task $task_num in TODO.md not found in state.json (orphan)"
+     fi
+   done
    ```
 
-3. **Compare entries for consistency**:
-   - Tasks in state.json but not TODO.md → Add to TODO.md
-   - Tasks in TODO.md but not state.json → Add to state.json or mark as orphaned
-   - next_project_number mismatch → Use higher value
+3. **Regenerate TODO.md from state.json** (single authoritative operation):
+   ```bash
+   bash .claude/scripts/generate-todo.sh \
+     2>/dev/null || echo "Warning: generate-todo.sh failed (non-fatal)" >&2
+   ```
 
-4. **Use git blame to determine "latest wins"** for conflicting data
+6.5. **Topic backfill** for tasks missing the `topic` field:
 
-5. **Sync discrepancies**:
-   - Use jq to update state.json
-   - Use Edit to update TODO.md
-   - Ensure next_project_number matches in both files
+   Detect active tasks without a topic:
+   ```bash
+   missing_topics=$(jq -r '.active_projects[] |
+     select(.status == "completed" | not) |
+     select(.status == "abandoned" | not) |
+     select(.status == "expanded" | not) |
+     select(.topic == null or .topic == "") |
+     "\(.project_number)|\(.project_name)"
+   ' specs/state.json)
+   ```
 
-6. Git commit: "sync: reconcile TODO.md and state.json"
+   If any tasks need backfill, follow @.claude/context/patterns/topic-assignment-pattern.md
+   (Mode A: Interactive, per-task backfill variant). Loop over detected tasks with header
+   "Topic Backfill ({i} of {total})".
+
+   After each topic selection:
+   ```bash
+   bash .claude/scripts/manage-topics.sh set "$task_num" "$topic"
+   ```
+
+7. Git commit: "sync: reconcile TODO.md and state.json"
 
 ## Review Mode (--review)
 
@@ -492,6 +556,39 @@ For each incomplete phase, extract:
 - Empty selection → Exit without creating tasks (no separate "none" option needed)
 - "Select all" selected → Create all suggested tasks
 
+### Step 7.5: Read Parent Topic for Inheritance
+
+Before creating follow-up tasks, read the parent task's topic:
+```bash
+parent_topic=$(jq -r --arg num "$task_number" \
+  '.active_projects[] | select(.project_number == ($num | tonumber)) | .topic // ""' \
+  specs/state.json)
+```
+
+### Step 7.6: Fallback Topic Picker
+
+If `parent_topic` is empty, the parent task has no topic. Show a full Mode A interactive picker:
+```bash
+if [[ -z "$parent_topic" ]]; then
+  mapfile -t existing_topics < <(bash .claude/scripts/manage-topics.sh list)
+  # Show AskUserQuestion picker (existing topics + "New topic..." + "Skip (no topic)")
+fi
+```
+
+AskUserQuestion:
+```json
+{
+  "question": "Assign a topic to follow-up tasks (parent has none)?",
+  "header": "Topic",
+  "multiSelect": false,
+  "options": ["<existing-topic-1>", "<existing-topic-2>", "New topic...", "Skip (no topic)"]
+}
+```
+
+- If user selects an existing topic → `parent_topic="$selected"`
+- If user selects "New topic..." → free-text follow-up, capture as `parent_topic`
+- If user selects "Skip (no topic)" → `parent_topic=""` (no topic assigned)
+
 ### Step 8: Create Selected Follow-up Tasks
 
 For each selected task, use the Create Task jq pattern:
@@ -503,24 +600,36 @@ next_num=$(jq -r '.next_project_number' specs/state.json)
 # Create follow-up task
 description="Complete phase {P} of task {parent_N}: {phase_name}. Goal: {phase_goal}. (Follow-up from task #{parent_N})"
 
-# Update state.json
+# Update state.json (inherit parent topic if available)
 jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   --arg desc "$description" \
+  --arg topic "$parent_topic" \
   '.next_project_number = ($next_num + 1) |
    .active_projects = [{
      "project_number": '$next_num',
      "project_name": "followup_{parent_N}_phase_{P}",
      "status": "not_started",
      "task_type": "'{task_type}'",
+     "topic": (if ($topic == "" | not) then $topic else null end),
      "description": $desc,
      "parent_task": '{parent_N}',
      "created": $ts,
      "last_updated": $ts
-   }] + .active_projects' \
+   } | if .topic == null then del(.topic) else . end] + .active_projects' \
      specs/state.json > specs/tmp/state.json && \
      mv specs/tmp/state.json specs/state.json
 
-# Update TODO.md (add entry and update frontmatter)
+# After state.json write, assign topic via manage-topics.sh (non-blocking)
+if [[ -n "$parent_topic" ]]; then
+  bash .claude/scripts/manage-topics.sh set "$next_num" "$parent_topic" \
+    2>/dev/null || echo "Warning: manage-topics.sh set failed for task $next_num (non-fatal)" >&2
+fi
+```
+
+After all follow-up task state.json writes complete, **regenerate TODO.md**:
+```bash
+bash .claude/scripts/generate-todo.sh \
+  2>/dev/null || echo "Note: Failed to regenerate TODO.md (non-fatal)" >&2
 ```
 
 ### Step 9: Output Results
@@ -575,16 +684,22 @@ This mode implements the multi-task creation pattern. See `.claude/docs/referenc
 Parse task ranges:
 
 1. For each task:
-   **Lookup and validate task via jq**:
+   **Lookup and validate task via gate-in**:
    ```bash
-   task_data=$(jq -r --arg num "$task_number" \
-     '.active_projects[] | select(.project_number == ($num | tonumber))' \
-     specs/state.json)
+   # Note: command-gate-in.sh reads active_projects only (not archive).
+   # This is correct for abandon mode which operates on active tasks.
+   # gate_in also guards against abandoning already-terminal tasks.
+   source .claude/scripts/command-gate-in.sh "$task_number" "abandon"
+   # Exports: SESSION_ID, TASK_TYPE, TASK_STATUS, PROJECT_NAME, DESCRIPTION, PADDED_NUM
+   # gate_in exits with error if task not found or already in terminal status
+   slug="$PROJECT_NAME"
+   ```
 
-   if [ -z "$task_data" ]; then
-     echo "Error: Task $task_number not found in active projects"
-     exit 1
-   fi
+   **Read full task JSON for archive operation** (gate-in validated existence; read blob for jq insert):
+   ```bash
+   task_data=$(jq -c --argjson num "$task_number" \
+     '.active_projects[] | select(.project_number == $num)' \
+     specs/state.json)
    ```
 
    **Move to archive via jq** (two-step to avoid jq escaping bug - see `jq-escaping-workarounds.md`):
@@ -602,12 +717,15 @@ Parse task ranges:
       mv specs/tmp/state.json specs/state.json
     ```
 
-    **Update TODO.md**: Remove the task entry (abandoned tasks should not appear in TODO.md)
+   **Regenerate TODO.md** from state.json (abandoned task no longer in active_projects, so it will not be rendered):
+   ```bash
+   bash .claude/scripts/generate-todo.sh \
+     2>/dev/null || echo "Note: Failed to regenerate TODO.md (non-fatal)" >&2
+   ```
 
    **Move task directory to archive** (handle both legacy unpadded and new padded formats):
    ```bash
-   slug=$(echo "$task_data" | jq -r '.project_name')
-   PADDED_NUM=$(printf "%03d" "$task_number")
+   # slug and PADDED_NUM are already exported by gate-in above
    # Check padded format first (new), then unpadded (legacy)
    if [ -d "specs/${PADDED_NUM}_${slug}" ]; then
      mv "specs/${PADDED_NUM}_${slug}" "specs/archive/${PADDED_NUM}_${slug}"

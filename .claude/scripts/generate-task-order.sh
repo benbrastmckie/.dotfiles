@@ -493,6 +493,7 @@ _print_topic_node() {
   _globally_visited["$task_num"]=1
 
   # Print this task's active successors (tasks that depend on this task, indented below)
+  # Skip successors that belong to a different topic -- they'll appear under their own heading
   local deps="${task_successors[$task_num]:-}"
   if [[ -n "$deps" ]]; then
     local sorted_deps
@@ -501,6 +502,10 @@ _print_topic_node() {
     for dep in "${dep_array[@]}"; do
       [[ -z "$dep" ]] && continue
       if [[ -n "${task_status[$dep]+x}" ]]; then
+        local dep_topic="${task_topic[$dep]:-}"
+        if [[ -n "$_current_section_topic" && -n "$dep_topic" && "$dep_topic" != "$_current_section_topic" ]]; then
+          continue
+        fi
         _print_topic_node "$dep" $((depth + 1))
       fi
     done
@@ -612,6 +617,7 @@ format_status() {
     abandoned)    echo "ABANDONED" ;;
     partial)      echo "PARTIAL" ;;
     expanded)     echo "EXPANDED" ;;
+    pr_ready)     echo "PR READY" ;;
     *)            echo "$(echo "$raw" | tr '[:lower:]' '[:upper:]')" ;;
   esac
 }

@@ -1,6 +1,6 @@
 ---
-description: Create a pull/merge request for the current branch (GitHub PR or GitLab MR)
-allowed-tools: Bash(git:*), Bash(gh:*), Bash(glab:*)
+description: Create a pull/merge request for the current branch (GitHub PR or GitLab MR) (user-only)
+allowed-tools: Bash(git:*), Bash(gh:*), Bash(glab:*), AskUserQuestion
 argument-hint: [--draft] [--assignee USER] [--label LABEL] [--reviewer USER]
 model: opus
 ---
@@ -8,6 +8,8 @@ model: opus
 # /merge Command
 
 Create a pull request (GitHub) or merge request (GitLab) for the current branch. Automatically detects the platform from the git remote URL, validates that you are not on `main`, pushes the branch to origin with upstream tracking, and creates the PR/MR via the appropriate CLI.
+
+**User Only**: YES - Agents MUST NOT invoke this command autonomously. PR/MR creation is a user-controlled decision.
 
 ## Syntax
 
@@ -146,7 +148,50 @@ Recovery:
 
 ---
 
-### STEP 4: Push to Origin
+### STEP 4: User Approval
+
+**EXECUTE NOW**: Gather commit information and present a summary for user approval before pushing.
+
+```bash
+commit_count=$(git rev-list --count $target..HEAD 2>/dev/null || echo "unknown")
+commit_log=$(git log --oneline $target..HEAD 2>/dev/null | head -20)
+```
+
+Display the merge summary:
+```
+Merge Summary
+=============
+
+Platform: {GitHub|GitLab}
+Branch:   {current_branch} -> {target}
+Draft:    {yes|no}
+Commits:  {commit_count}
+
+{commit_log}
+```
+
+**Ask user** for approval via AskUserQuestion:
+```json
+{
+  "question": "Proceed with pushing branch and creating {PR_type}?",
+  "header": "Confirm Merge",
+  "multiSelect": false,
+  "options": [
+    {"label": "Yes, push and create {PR_type}", "description": "Push {current_branch} to origin and create {PR_type} targeting {target}"},
+    {"label": "Submit as draft", "description": "Create as draft {PR_type} (not ready for review)"},
+    {"label": "Cancel", "description": "Abort without pushing or creating {PR_type}"}
+  ]
+}
+```
+
+**Response handling**:
+- **"Yes, push and create {PR_type}"**: **IMMEDIATELY CONTINUE** to STEP 5.
+- **"Submit as draft"**: Set `draft=true`, then **IMMEDIATELY CONTINUE** to STEP 5.
+- **"Cancel"**: Display "Merge cancelled. No changes were pushed." and **STOP**.
+
+---
+
+### STEP 5: Push to Origin
 
 **EXECUTE NOW**: Push the current branch to origin with upstream tracking.
 
@@ -171,11 +216,11 @@ Recovery:
 ```
 **STOP** - execution cannot proceed without successful push.
 
-**If push succeeds**: **IMMEDIATELY CONTINUE** to STEP 5.
+**If push succeeds**: **IMMEDIATELY CONTINUE** to STEP 6.
 
 ---
 
-### STEP 5: Create PR/MR
+### STEP 6: Create PR/MR
 
 **EXECUTE NOW**: Create the pull/merge request via the appropriate CLI.
 
@@ -262,11 +307,11 @@ Recovery:
 ```
 **STOP** - PR/MR creation failed.
 
-**If PR/MR creation succeeds**: Extract the URL from the output and **IMMEDIATELY CONTINUE** to STEP 6.
+**If PR/MR creation succeeds**: Extract the URL from the output and **IMMEDIATELY CONTINUE** to STEP 7.
 
 ---
 
-### STEP 6: Report Results
+### STEP 7: Report Results
 
 **EXECUTE NOW**: Display the pull/merge request information.
 
@@ -426,6 +471,10 @@ For self-hosted instances, ensure:
 1. The CLI is configured with your instance URL
 2. Your remote URL uses the instance domain
 3. Authentication is configured for the instance
+
+## Agent Restrictions
+
+**Agents MUST NOT invoke /merge autonomously**. PR/MR creation timing and targeting are user-controlled decisions. This command requires explicit user invocation.
 
 ## Related Commands
 

@@ -142,6 +142,22 @@ fi
 
 If `memory_context` is non-empty, it will be injected into the Stage 5 prompt alongside the format specification from Stage 4b. If empty, no memory block is injected.
 
+```bash
+# Literature context injection (independent of clean_flag)
+lit_context=""
+if [ "$lit_flag" = "true" ]; then
+  lit_context=$(bash .claude/scripts/literature-retrieve.sh "$description" "$task_type" 2>/dev/null) || lit_context=""
+fi
+
+# lit_context will be empty string if:
+# - lit_flag is not "true" (skipped)
+# - specs/literature/ directory does not exist
+# - no .md or .txt files found in specs/literature/
+# - script exited with error
+```
+
+**Note**: `lit_flag` is independent of `clean_flag`. Using `--clean --lit` suppresses memory retrieval but still injects literature context. Literature context is gated solely on `lit_flag == "true"`.
+
 ---
 
 ### Stage 4: Prepare Delegation Context
@@ -223,6 +239,14 @@ Place this section AFTER the delegation context JSON and BEFORE any other instru
 ```
 
 Place the memory context block AFTER the format specification and BEFORE the task-specific instructions. Do NOT inject an empty `<memory-context>` block when no memories were retrieved.
+
+**Literature Context Injection**: If `lit_context` from Stage 4a is non-empty, include it in the prompt as a separate block:
+
+```
+{lit_context from Stage 4a -- already wrapped in <literature-context> tags}
+```
+
+Place the literature context block AFTER the memory context block (if any) and BEFORE the task-specific instructions. Do NOT inject an empty `<literature-context>` block when no literature was retrieved.
 
 **DO NOT** use `Skill(general-research-agent)` - this will FAIL.
 
@@ -352,13 +376,13 @@ if [ -n "$artifact_path" ]; then
 fi
 ```
 
-**Link artifact in TODO.md**: Use the `link-artifact-todo.sh` script (REQUIRED -- do NOT manually edit artifact links in TODO.md):
+**Regenerate TODO.md** from state.json (state.json artifact update was done in the step above):
 
 ```bash
-bash .claude/scripts/link-artifact-todo.sh $task_number '**Research**' '**Plan**' "$artifact_path"
+bash .claude/scripts/generate-todo.sh || echo "WARNING: generate-todo.sh failed (non-fatal)" >&2
 ```
 
-The script produces bracket-only `[path]` format. Never use markdown `[name](path)` format for artifact links. If the script exits non-zero, log a warning but continue (linking errors are non-blocking).
+This regenerates TODO.md from state.json with correct bracket-only `[path]` format artifact links. Never use markdown `[name](path)` format for artifact links. If the script exits non-zero, log a warning but continue (regeneration errors are non-blocking).
 
 ---
 

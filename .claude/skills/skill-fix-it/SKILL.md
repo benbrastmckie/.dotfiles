@@ -448,6 +448,42 @@ current=$(cat specs/state.json)
 # Step 2: Use jq with slurpfile
 ```
 
+**Topic Auto-Inference and Confirm (Mode C Suggest-Wrap)**: Before writing each task entry, infer topic from file path and description, then ask user to confirm:
+
+```bash
+# Infer topic from source file paths for this task
+inferred_topic=""
+for tag_path in "${task_file_paths[@]}"; do
+  if [[ "$tag_path" == .claude/* || "$tag_path" == specs/* ]]; then
+    inferred_topic="agent-system"; break
+  elif [[ "$tag_path" == lua/* || "$tag_path" == after/* ]]; then
+    inferred_topic="neovim"; break
+  elif [[ "$tag_path" == home/* || "$tag_path" == modules/* ]]; then
+    inferred_topic="nix-config"; break
+  fi
+done
+```
+
+If `inferred_topic` is non-empty, show Mode C confirm via AskUserQuestion:
+```json
+{
+  "question": "Topic for this task?",
+  "header": "Topic Confirm",
+  "multiSelect": false,
+  "options": [
+    {"label": "Accept: {inferred_topic}", "description": "Use auto-inferred topic"},
+    {"label": "Override...", "description": "Enter a different topic name"},
+    {"label": "Skip (no topic)", "description": "Create task without a topic"}
+  ]
+}
+```
+
+- If user selects "Accept: {inferred_topic}" → `topic="$inferred_topic"`
+- If user selects "Override..." → show free-text follow-up: `{"question": "Enter topic name (lowercase, kebab-case):"}` and capture result as `topic`
+- If user selects "Skip (no topic)" → `topic=""`
+
+If `inferred_topic` is empty, skip confirm entirely and set `topic=""`.
+
 **For fix-it task when has_note_dependency is TRUE**, include dependencies array:
 ```json
 {
@@ -455,71 +491,50 @@ current=$(cat specs/state.json)
   "project_name": "{slug}",
   "status": "not_started",
   "task_type": "{task_type}",
+  "topic": "{auto-inferred topic}",
   "dependencies": [learn_it_task_num]
 }
 ```
 
-**For all other tasks**, no dependencies field needed.
-
-#### 9.2: Update TODO.md
-
-Prepend new task entry to `## Tasks` section (new tasks at top):
-
-**Standard format (no dependency)**:
-```markdown
-### {N}. {Title}
-- **Effort**: {estimate}
-- **Status**: [NOT STARTED]
-- **Task Type**: {task_type}
-- **Started**: {timestamp}
-
-**Description**: {description}
-
----
+**For all other tasks**:
+```json
+{
+  "project_number": {N},
+  "project_name": "{slug}",
+  "status": "not_started",
+  "task_type": "{task_type}",
+  "topic": "{auto-inferred topic}"
+}
 ```
 
-**Fix-it task format when has_note_dependency is TRUE**:
-```markdown
-### {N}. {Title}
-- **Effort**: {estimate}
-- **Status**: [NOT STARTED]
-- **Task Type**: {task_type}
-- **Dependencies**: {learn_it_task_num}
-- **Started**: {timestamp}
+Note: Omit `"topic"` field if topic cannot be inferred (empty string from heuristic).
 
-**Description**: {description}
+#### 9.2: (Removed — state.json is authoritative for task entries)
 
----
-```
+The state.json update in Step 9.1 already writes the task data. TODO.md will be regenerated via generate-todo.sh in Step 9.4 after all state.json writes complete.
 
-### Step 9.3: Update active_topics (Non-Blocking)
+### Step 9.3: Assign Topics via manage-topics.sh (Non-Blocking)
 
-After all tasks have been written to state.json, append any new inferred topics to the `active_topics` array:
+After each task has been written to state.json, assign the confirmed topic via `manage-topics.sh set`. The `set` subcommand also calls `add` internally, so no standalone `add` call is needed:
 
 ```bash
-# Collect unique topics inferred for all created tasks
-# For each unique inferred topic, append to active_topics if not already present
-for topic in "${new_topics[@]}"; do
-  [[ -z "$topic" ]] && continue
-  jq --arg t "$topic" '
-    if ((.active_topics // []) | index($t)) == null
-    then .active_topics = ((.active_topics // []) + [$t])
-    else . end' \
-    specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
-done
-```
-
-Where `new_topics` is the array of topic values auto-inferred during Step 9.1. Topics already in `active_topics` are skipped (idempotent). Topics that are empty/null are skipped via the `[[ -z "$topic" ]]` guard.
-
-### Step 9.4: Update Task Order Section (Non-Blocking)
-
-After all tasks have been written to state.json and TODO.md, regenerate the Task Order section:
-
-```bash
-if [ -f ".claude/scripts/generate-task-order.sh" ]; then
-  bash ".claude/scripts/generate-task-order.sh" --update-todo specs/TODO.md specs/state.json \
-    2>/dev/null || echo "Note: Failed to regenerate Task Order (non-fatal)" >&2
+# For each task created, call set AFTER the task entry exists in state.json
+# topic is the value from Mode C confirm in Step 9.1 (may be "" if user skipped)
+if [[ -n "$topic" ]]; then
+  bash .claude/scripts/manage-topics.sh set "$task_num" "$topic" \
+    2>/dev/null || echo "Warning: manage-topics.sh set failed for task $task_num (non-fatal)" >&2
 fi
+```
+
+The `manage-topics.sh set` call updates both the task entry's `topic` field and the `active_topics` array atomically. Topics that are empty/null are skipped via the `[[ -n "$topic" ]]` guard.
+
+### Step 9.4: Regenerate TODO.md (Non-Blocking)
+
+After all tasks have been written to state.json, regenerate the entire TODO.md from state.json:
+
+```bash
+bash .claude/scripts/generate-todo.sh \
+  2>/dev/null || echo "Note: Failed to regenerate TODO.md (non-fatal)" >&2
 ```
 
 ### Step 10: Display Results
@@ -533,12 +548,12 @@ Show summary of created tasks:
 
 ### Created Tasks
 
-| # | Type | Title | Language |
-|---|------|-------|----------|
-| {N} | fix-it | Fix issues from FIX:/NOTE: tags | {lang} |
-| {N+1} | learn-it | Update context files from NOTE: tags | meta |
-| {N+2} | todo | {title} | {lang} |
-| {N+3} | research | Research: {question title} | {lang} |
+| # | Type | Title | Language | Topic |
+|---|------|-------|----------|-------|
+| {N} | fix-it | Fix issues from FIX:/NOTE: tags | {lang} | {topic} |
+| {N+1} | learn-it | Update context files from NOTE: tags | meta | agent-system |
+| {N+2} | todo | {title} | {lang} | {topic} |
+| {N+3} | research | Research: {question title} | {lang} | {topic} |
 
 ---
 

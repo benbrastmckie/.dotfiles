@@ -6,7 +6,7 @@
 # Operations:
 #   A. Move task entry from state.json active_projects to archive/state.json completed_projects
 #   B. Remove task entry from state.json active_projects
-#   C. Remove task entry from TODO.md
+#   C. Regenerate TODO.md from state.json (task no longer in active_projects, so not rendered)
 #   D. Move task directory from specs/ to specs/archive/
 #
 # Handles both padded (015_slug) and unpadded (15_slug) directory formats.
@@ -107,51 +107,16 @@ jq --argjson num "$task_number" \
 
 echo "Removed task $task_number from active_projects"
 
-# --- C. Update TODO.md (remove completed/abandoned entry) ---
+# --- C. Regenerate TODO.md from state.json ---
+# Task is no longer in active_projects, so generate-todo.sh will not render it.
 # This is a best-effort step -- warn on failure but don't abort
-if [ -f "$TODO_FILE" ]; then
-  # Remove the task block from TODO.md (format: "### N. Title" through next "---" separator)
-  # Use line-by-line removal for robustness with multi-line descriptions
-  python3 - "$TODO_FILE" "$task_number" <<'PYEOF' 2>/dev/null || true
-import sys, re
-
-todo_path = sys.argv[1]
-task_num = sys.argv[2]
-
-with open(todo_path, 'r') as f:
-    content = f.read()
-
-# Line-by-line block removal anchored on "^### N. " (literal dot + space)
-# Handles: multi-line descriptions, last task without trailing "---", partial number matches
-lines = content.split('\n')
-start_pattern = re.compile(r'^### ' + re.escape(task_num) + r'\. ')
-in_block = False
-output_lines = []
-i = 0
-while i < len(lines):
-    line = lines[i]
-    if not in_block and start_pattern.match(line):
-        in_block = True
-        i += 1
-        continue
-    if in_block:
-        if line.strip() == '---':
-            in_block = False  # consume the separator line
-            i += 1
-            continue
-        i += 1
-        continue
-    output_lines.append(line)
-    i += 1
-new_content = '\n'.join(output_lines)
-
-if new_content != content:
-    with open(todo_path, 'w') as f:
-        f.write(new_content)
-    print(f"Removed task {task_num} block from TODO.md")
-else:
-    print(f"Note: task {task_num} block not found in TODO.md (skipped)", file=sys.stderr)
-PYEOF
+GENERATE_TODO="$SCRIPT_DIR/generate-todo.sh"
+if [ -f "$GENERATE_TODO" ]; then
+  bash "$GENERATE_TODO" 2>/dev/null \
+    || echo "Warning: generate-todo.sh failed (non-fatal)" >&2
+  echo "Regenerated TODO.md after archiving task $task_number"
+else
+  echo "Note: generate-todo.sh not found -- skipping TODO.md regeneration" >&2
 fi
 
 # --- D. Move project directory to archive ---

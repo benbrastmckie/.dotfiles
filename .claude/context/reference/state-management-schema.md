@@ -253,6 +253,7 @@ The vault system manages task number cycling when `next_project_number` exceeds 
 | [PLANNING] | planning |
 | [PLANNED] | planned |
 | [IMPLEMENTING] | implementing |
+| [PR READY] | pr_ready |
 | [COMPLETED] | completed |
 | [BLOCKED] | blocked |
 | [ABANDONED] | abandoned |

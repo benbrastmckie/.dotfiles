@@ -81,7 +81,7 @@ session_id="sess_$(date +%s)_$(od -An -N3 -tx1 /dev/urandom | tr -d ' ')"
 
 ### 3. Invoke Subagent
 
-**CRITICAL**: Use the **Agent** tool to spawn the subagent.
+**CRITICAL**: Use the **Task** tool to spawn the subagent.
 
 ```
 Tool: Agent (NOT Skill, NOT Plan)
@@ -239,11 +239,15 @@ Extension skills follow the standard thin wrapper pattern, delegating to extensi
 ## Postflight Boundary Restrictions
 
 After the subagent returns, thin wrapper skills MUST NOT perform implementation work. See @.claude/context/standards/postflight-tool-restrictions.md for:
-- Allowed tools (Read metadata, jq state updates, Edit TODO.md, git commit)
+- Allowed tools (Read metadata, jq state updates to state.json, call `generate-todo.sh`, git commit)
 - Prohibited tools (Edit source files, build commands, MCP tools)
 - MUST NOT section template to include in skills
 
 ---
+
+## Context Discipline
+
+Thin wrapper structure ensures delegation-first control flow. For the complementary *context discipline* pattern -- governing what leads read into their own context window, including synthesis delegation and context budgets -- see `patterns/context-protective-lead.md`.
 
 ## Related Documentation
 

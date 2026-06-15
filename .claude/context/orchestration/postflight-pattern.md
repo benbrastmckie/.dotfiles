@@ -177,7 +177,7 @@ for artifact_path in $(echo "$artifacts_json" | jq -r '.[].path'); do
   if ! grep -q "$artifact_path" specs/TODO.md; then
     echo "WARNING: Artifact not linked in TODO.md: $artifact_path"
     echo "This is the same issue that caused Task 326 manual fixes"
-    echo "Manual fix: Edit TODO.md to add artifact link"
+    echo "Manual fix: Add artifact to state.json and call generate-todo.sh"
   else
     echo "✓ Verified artifact link in TODO.md: $artifact_path"
   fi

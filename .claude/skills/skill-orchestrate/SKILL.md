@@ -33,6 +33,7 @@ source .claude/scripts/skill-base.sh
 multi_task_mode=$(echo "$delegation_context" | jq -r '.multi_task_mode // false')
 session_id=$(echo "$delegation_context" | jq -r '.session_id')
 focus_prompt=$(echo "$delegation_context" | jq -r '.focus_prompt // ""')
+lit_flag=$(echo "$delegation_context" | jq -r '.lit_flag // "false"')
 
 if [ "$multi_task_mode" = "true" ]; then
   echo "[orchestrate] Multi-task mode detected — branching to MT-1"
@@ -55,6 +56,7 @@ source .claude/scripts/skill-base.sh
 task_number=$(echo "$delegation_context" | jq -r '.task_context.task_number')
 session_id=$(echo "$delegation_context" | jq -r '.session_id')
 focus_prompt=$(echo "$delegation_context" | jq -r '.focus_prompt // ""')
+lit_flag=$(echo "$delegation_context" | jq -r '.lit_flag // "false"')
 
 # Read task state without blocking on terminal states (orchestrate handles them gracefully)
 PADDED_NUM=$(printf "%03d" "$task_number")
@@ -200,7 +202,7 @@ Dispatch research via named subagent (resolved by task type in Stage 1b).
 ```
 dispatch_instructions = dispatch_agent "$RESEARCH_AGENT" \
   "Research task $task_number: $DESCRIPTION${focus_prompt:+. User focus: $focus_prompt}" \
-  '{"task_number": N, "task_type": "T", "session_id": "S", "orchestrator_mode": false}' \
+  '{"task_number": N, "task_type": "T", "session_id": "S", "orchestrator_mode": false, "lit_flag": "'$lit_flag'"}' \
   "false"
 ```
 
@@ -227,7 +229,7 @@ research_artifacts=$(jq -c '[.active_projects[] | select(.project_number == N) |
 
 dispatch_instructions = dispatch_agent "planner-agent" \
   "Create implementation plan for task $task_number${focus_prompt:+. User focus: $focus_prompt}" \
-  '{"task_number": N, "task_type": "T", "session_id": "S", "research_artifacts": [...], "orchestrator_mode": false}' \
+  '{"task_number": N, "task_type": "T", "session_id": "S", "research_artifacts": [...], "orchestrator_mode": false, "lit_flag": "'$lit_flag'"}' \
   "false"
 ```
 
@@ -251,7 +253,7 @@ plan_path=$(ls -1 "${TASK_DIR}/plans/"*.md 2>/dev/null | sort -V | tail -1)
 dispatch_instructions = dispatch_agent "$IMPLEMENT_AGENT" \
   "Implement task $task_number following the plan${focus_prompt:+. User focus: $focus_prompt}" \
   '{"task_number": N, "task_type": "T", "session_id": "S", "orchestrator_mode": true,
-    "plan_path": "$plan_path"}' \
+    "plan_path": "$plan_path", "lit_flag": "'$lit_flag'"}' \
   "false"
 ```
 
@@ -279,7 +281,8 @@ dispatch_instructions = dispatch_agent "$IMPLEMENT_AGENT" \
   "Resume implementation for task $task_number from continuation handoff${focus_prompt:+. User focus: $focus_prompt}" \
   '{"task_number": N, ..., "orchestrator_mode": true,
     "plan_path": "$plan_path",
-    "continuation_context": {continuation_context_object}}' \
+    "continuation_context": {continuation_context_object},
+    "lit_flag": "'$lit_flag'"}' \
   "false"
 ```
 
@@ -912,7 +915,8 @@ for task_num in "${research_tasks[@]}"; do
     --argjson num "$task_num" \
     --arg task_type "$task_type" \
     --arg session_id "${session_id}_${task_num}" \
-    '{"task_number": $num, "task_type": $task_type, "session_id": $session_id, "orchestrator_mode": false}')
+    --arg lit_flag "$lit_flag" \
+    '{"task_number": $num, "task_type": $task_type, "session_id": $session_id, "orchestrator_mode": false, "lit_flag": $lit_flag}')
   
   # Invoke Agent tool: subagent_type=$r_agent
   # Dispatch: dispatch_agent "$r_agent" "Research task $task_num: $description" "$dispatch_context" "false"
@@ -933,8 +937,9 @@ for task_num in "${plan_tasks[@]}"; do
     --arg task_type "$task_type" \
     --arg session_id "${session_id}_${task_num}" \
     --argjson research_artifacts "[$research_artifacts]" \
+    --arg lit_flag "$lit_flag" \
     '{"task_number": $num, "task_type": $task_type, "session_id": $session_id,
-      "research_artifacts": $research_artifacts, "orchestrator_mode": false}')
+      "research_artifacts": $research_artifacts, "orchestrator_mode": false, "lit_flag": $lit_flag}')
   
   # Invoke Agent tool: subagent_type=planner-agent
   echo "[orchestrate-mt] Dispatching planning for task $task_num -> planner-agent"
@@ -961,8 +966,10 @@ for task_num in "${implement_tasks[@]}"; do
     --arg session_id "${session_id}_${task_num}" \
     --arg plan_path "${plan_path:-}" \
     --argjson continuation "$continuation" \
+    --arg lit_flag "$lit_flag" \
     '{"task_number": $num, "task_type": $task_type, "session_id": $session_id,
-      "orchestrator_mode": true, "plan_path": $plan_path, "continuation_context": $continuation}')
+      "orchestrator_mode": true, "plan_path": $plan_path, "continuation_context": $continuation,
+      "lit_flag": $lit_flag}')
   
   # Invoke Agent tool: subagent_type=$i_agent
   echo "[orchestrate-mt] Dispatching implement for task $task_num -> $i_agent"

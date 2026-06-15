@@ -66,8 +66,8 @@ if [[ "$operation" != "preflight" && "$operation" != "postflight" ]]; then
   exit 1
 fi
 
-if [[ "$target_status" != "research" && "$target_status" != "plan" && "$target_status" != "implement" ]]; then
-  echo "Error: target_status must be 'research', 'plan', or 'implement', got '$target_status'" >&2
+if [[ "$target_status" != "research" && "$target_status" != "plan" && "$target_status" != "implement" && "$target_status" != "pr_ready" ]]; then
+  echo "Error: target_status must be 'research', 'plan', 'implement', or 'pr_ready', got '$target_status'" >&2
   exit 1
 fi
 
@@ -93,6 +93,8 @@ map_status() {
     postflight:research)  STATE_STATUS="researched";    TODO_STATUS="RESEARCHED" ;;
     postflight:plan)      STATE_STATUS="planned";       TODO_STATUS="PLANNED" ;;
     postflight:implement) STATE_STATUS="completed";     TODO_STATUS="COMPLETED" ;;
+    preflight:pr_ready)  STATE_STATUS="pr_ready";      TODO_STATUS="PR READY" ;;
+    postflight:pr_ready) STATE_STATUS="completed";     TODO_STATUS="COMPLETED" ;;
     *)
       echo "Error: unknown operation:target_status combination '${op}:${target}'" >&2
       exit 1

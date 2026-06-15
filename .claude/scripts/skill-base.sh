@@ -360,9 +360,8 @@ skill_link_artifacts() {
        --arg summary "$artifact_summary" \
       '(.active_projects[] | select(.project_number == '"$task_number"')).artifacts += [{"path": $path, "type": $type, "summary": $summary}]' \
       specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
-    # Link in TODO.md
-    bash .claude/scripts/link-artifact-todo.sh "$task_number" "$field_name" "$next_field" "$artifact_path" 2>/dev/null || \
-      echo "WARNING: link-artifact-todo.sh exited non-zero (non-blocking)"
+    # Regenerate TODO.md from state.json (replaces link-artifact-todo.sh call)
+    bash .claude/scripts/generate-todo.sh || echo "WARNING: generate-todo.sh failed (non-fatal)"
   fi
 }
 

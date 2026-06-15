@@ -1,8 +1,8 @@
-# Command Lifecycle and Two-Phase Status Update Pattern
+# Command Lifecycle and State-First Status Update Pattern
 
 ## Overview
 
-This document describes the lifecycle of workflow commands (`/research`, `/plan`, `/revise`, `/implement`, `/task`) and the two-phase status update pattern that all workflow subagents follow.
+This document describes the lifecycle of workflow commands (`/research`, `/plan`, `/revise`, `/implement`, `/task`) and the state-first status update pattern that all workflow commands follow.
 
 **Note**: `/task` follows a different pattern since it creates tasks rather than modifying them. See "Task Creation Pattern" section below.
 
@@ -51,13 +51,13 @@ All workflow commands follow a standardized 8-stage lifecycle:
 - Create git commit
 - Return standardized result
 
-## Two-Phase Status Update Pattern
+## State-First Status Update Pattern
 
-All workflow subagents (researcher, planner, implementer) follow a **two-phase status update pattern** to provide visibility into work progress and ensure atomic state transitions.
+All workflow commands follow a **state-first status update pattern**: update state.json first, then call `generate-todo.sh` to regenerate TODO.md. Commands call `update-task-status.sh` which performs both operations automatically.
 
-### Phase 1: Preflight Status Update
+### Preflight Status Update
 
-**When:** Before executing main workflow (Stage 0 or Step 0 in subagent)  
+**When:** Before delegating to subagent  
 **Purpose:** Signal that work has started  
 **Status Markers:**
 - `/research`: [RESEARCHING]
@@ -69,27 +69,24 @@ All workflow subagents (researcher, planner, implementer) follow a **two-phase s
 1. Validate task exists and is valid for operation
 2. Verify task not [COMPLETED] or [ABANDONED]
 3. Verify task is in valid starting status
-4. Generate timestamp (ISO 8601 date: YYYY-MM-DD)
-5. Invoke status-sync-manager with:
-   - task_number
-   - new_status: "researching" | "planning" | "revising" | "implementing"
-   - timestamp
-   - session_id
-   - delegation_depth
-   - delegation_path
-6. Validate status update succeeded
-7. **Abort if status update fails** (critical error)
+4. Generate session_id for tracking
+5. Call `update-task-status.sh preflight`:
+   ```bash
+   bash .claude/scripts/update-task-status.sh preflight "$task_number" "{command}" "$session_id"
+   ```
+   This updates state.json and calls `generate-todo.sh` automatically.
+6. Validate exit code (non-zero = failure)
+7. **Abort if preflight fails** (critical error)
 
 **Error Handling:**
-- If status update fails: Return status "failed" with error
+- If preflight fails: Return status "failed" with error
 - Error type: "status_update_failed"
-- Recommendation: "Check status-sync-manager logs and retry"
 - Work is NOT performed if preflight fails
 
-### Phase 2: Postflight Status Update
+### Postflight Status Update
 
-**When:** After completing main workflow (Stage 7 or Step 7 in subagent)  
-**Purpose:** Signal that work has completed  
+**When:** After subagent completes work  
+**Purpose:** Signal that work has completed and link artifacts  
 **Status Markers:**
 - `/research`: [RESEARCHED]
 - `/plan`: [PLANNED]
@@ -98,24 +95,22 @@ All workflow subagents (researcher, planner, implementer) follow a **two-phase s
 
 **Process:**
 1. Validate artifacts created successfully
-2. Generate timestamp (ISO 8601 date: YYYY-MM-DD)
-3. Invoke status-sync-manager with:
-   - task_number
-   - new_status: "researched" | "planned" | "revised" | "completed"
-   - timestamp
-   - session_id
-   - validated_artifacts
-   - delegation_depth
-   - delegation_path
-4. Validate status update succeeded
-5. **Log warning if status update fails** (non-critical - work already done)
-6. Invoke git-workflow-manager to create commit
-7. Return standardized result
+2. Call `update-task-status.sh postflight`:
+   ```bash
+   bash .claude/scripts/update-task-status.sh postflight "$task_number" "{command}" "$session_id"
+   ```
+3. Add artifacts to state.json, then call `generate-todo.sh`:
+   ```bash
+   bash .claude/scripts/generate-todo.sh
+   ```
+4. Log warning if update fails (non-critical - work already done)
+5. Create git commit
+6. Return standardized result
 
 **Error Handling:**
 - If status update fails: Log error (non-critical)
 - Work artifacts already created
-- Manual recovery: Update TODO.md and state.json manually
+- Manual recovery: Update state.json and call `generate-todo.sh`
 
 ## Status Transitions
 
@@ -155,16 +150,16 @@ All workflow subagents (researcher, planner, implementer) follow a **two-phase s
  Starting    (Step 0)        (Step 7)
 ```
 
-## Benefits of Two-Phase Pattern
+## Benefits of State-First Pattern
 
 ### User Visibility
 - Users can see when work starts (in-progress markers)
 - Users can see when work completes (completion markers)
-- Clear progress tracking in TODO.md and state.json
+- Clear progress tracking in TODO.md (rendered from state.json) and state.json
 
-### Atomic Updates
-- status-sync-manager ensures atomic updates across TODO.md and state.json
-- Both files updated together or neither updated
+### Consistent Updates
+- `update-task-status.sh` ensures state.json is updated first
+- `generate-todo.sh` renders TODO.md from state.json after each state change
 - No partial state updates
 
 ### Error Recovery
@@ -188,30 +183,29 @@ All workflow subagents implement a `<step_0_preflight>` or `<stage_1_preflight>`
   <action>Preflight: Validate task and update status to [COMMAND-ING]</action>
   <process>
     1. Parse task_number from delegation context or prompt string
-    2. Validate task exists in specs/TODO.md
+    2. Validate task exists in specs/state.json
     3. Extract task description and current status
     4. Verify task not [COMPLETED] or [ABANDONED]
     5. Verify task is in valid starting status
-    6. Generate timestamp: $(date -I)
-    7. Invoke status-sync-manager to mark [COMMAND-ING]:
-       a. Prepare delegation context
-       b. Invoke status-sync-manager with timeout (60s)
-       c. Validate return status == "completed"
-       d. Verify files_updated includes ["TODO.md", "state.json"]
-       e. If status update fails: Abort with error
-    8. Log preflight completion
+    6. Generate session_id for tracking
+    7. Call update-task-status.sh to mark [COMMAND-ING]:
+       ```bash
+       bash .claude/scripts/update-task-status.sh preflight "$task_number" "{command}" "$session_id"
+       ```
+       This updates state.json and calls generate-todo.sh automatically.
+    8. Validate exit code (non-zero = failure, abort)
+    9. Log preflight completion
   </process>
   <validation>
     - Task exists and is valid for operation
-    - Status updated to [COMMAND-ING] atomically
-    - Timestamp added to TODO.md and state.json
+    - Status updated to [COMMAND-ING] in state.json
+    - TODO.md regenerated by generate-todo.sh
   </validation>
   <error_handling>
     If status update fails:
       Return status "failed" with error:
       - type: "status_update_failed"
       - message: "Failed to update status to [COMMAND-ING]"
-      - recommendation: "Check status-sync-manager logs and retry"
   </error_handling>
   <output>Task validated, status updated to [COMMAND-ING]</output>
 </step_0_preflight>
@@ -219,27 +213,22 @@ All workflow subagents implement a `<step_0_preflight>` or `<stage_1_preflight>`
 
 ### Postflight Status Update (Step 7)
 
-All workflow subagents implement a `<step_7>` section for postflight:
+Commands implement a postflight stage after the subagent completes:
 
 ```xml
 <step_7>
   <action>Execute Stage 7 (Postflight) - Update status and create git commit</action>
   <process>
-    STAGE 7: POSTFLIGHT (Subagent owns this stage)
+    STAGE 7: POSTFLIGHT (Command owns this stage)
     
-    STEP 7.1: INVOKE status-sync-manager
-      PREPARE delegation context:
-      - task_number
-      - new_status: "researched" | "planned" | "revised" | "completed"
-      - timestamp
-      - session_id
-      - validated_artifacts
-      - delegation_depth
-      - delegation_path
-      
-      INVOKE status-sync-manager with timeout (60s)
-      VALIDATE return status == "completed"
-      VERIFY files_updated includes ["TODO.md", "state.json"]
+    STEP 7.1: CALL update-task-status.sh
+      ```bash
+      bash .claude/scripts/update-task-status.sh postflight "$task_number" "{command}" "$session_id"
+      ```
+      Then add artifacts to state.json and call generate-todo.sh:
+      ```bash
+      bash .claude/scripts/generate-todo.sh
+      ```
     
     STEP 7.2: INVOKE git-workflow-manager
       PREPARE delegation context with scope_files
@@ -297,7 +286,7 @@ jq '.next_project_number = (.next_project_number + 1) |
 
 ### Key Differences from Workflow Commands
 
-1. **No Two-Phase Status Update**: Task creation is atomic (single file update operation)
+1. **No State-First Status Update**: Task creation writes state.json and regenerates TODO.md in one pass
 2. **No Preflight/Postflight**: Task doesn't exist yet, so no status to update
 3. **No Git Commit**: Task creation doesn't create artifacts (only TODO.md + state.json updates)
 4. **Inline Implementation**: No delegation to subagent (executable pseudocode in command file)
@@ -307,10 +296,10 @@ jq '.next_project_number = (.next_project_number + 1) |
 
 /task ensures atomic updates by:
 - Reading state.json to get next_project_number
-- Updating TODO.md first (using Edit tool)
-- Updating state.json second (using jq)
-- Verifying both updates succeeded
-- If state.json update fails: Manual rollback required (documented in error message)
+- Writing state.json via jq (add new task to active_projects, increment next_project_number)
+- Calling `generate-todo.sh` to regenerate TODO.md from state.json
+- Verifying both operations succeeded
+- If state.json update fails: Manual recovery required (documented in error message)
 
 ### Validation
 
@@ -437,14 +426,14 @@ When testing workflow commands, verify:
    - Postflight failure logs warning but doesn't fail command
    - Clear error messages with recovery instructions
 
-4. **Atomic Updates:**
-   - Both TODO.md and state.json updated together
-   - No partial updates (both files or neither)
-   - Rollback on failure
+4. **State-First Updates:**
+   - state.json is updated first (sole source of truth)
+   - `generate-todo.sh` regenerates TODO.md from state.json
+   - No direct Edit-tool writes to TODO.md
 
 ## Maintenance Notes
 
-- All workflow subagents MUST implement two-phase status updates
+- All workflow commands MUST implement state-first status updates via `update-task-status.sh`
 - Preflight is CRITICAL (abort on failure)
 - Postflight is NON-CRITICAL (log warning on failure)
 - Follow researcher.md as reference implementation

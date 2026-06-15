@@ -39,6 +39,32 @@ Direct execution skill for archiving tasks, updating CHANGE_LOG.md, and suggesti
     </process>
   </stage>
   
+  <stage id="2.5" name="TopicRevision">
+    <action>Optional: backfill topics on active tasks missing the topic field</action>
+    <process>
+      Detect active tasks without a topic:
+      ```bash
+      missing=$(jq -r '.active_projects[] |
+        select(.status == "completed" | not) |
+        select(.status == "abandoned" | not) |
+        select(.status == "expanded" | not) |
+        select(.topic == null or .topic == "") |
+        "\(.project_number)|\(.project_name)"' specs/state.json)
+      ```
+
+      If no tasks need backfill, skip this stage.
+
+      For each task needing a topic, follow the topic assignment pattern from
+      @.claude/context/patterns/topic-assignment-pattern.md (Mode A, per-task backfill).
+      Use header "Topic Backfill ({i} of {total})".
+
+      After each selection:
+      ```bash
+      bash .claude/scripts/manage-topics.sh set "$task_num" "$topic"
+      ```
+    </process>
+  </stage>
+
   <stage id="3" name="DetectOrphans">
     <action>Detect orphaned directories and TODO.md orphans</action>
     <process>

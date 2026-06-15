@@ -183,7 +183,7 @@ When combined (`/research 7, 22 --team`), each task is routed to the team skill,
 ## Postflight Boundary Restrictions
 
 After agent delegation completes, skills must respect postflight boundary restrictions:
-- **Allowed**: Read metadata, jq state updates, Edit TODO.md/state.json, git commit
+- **Allowed**: Read metadata, jq state updates to state.json, call `generate-todo.sh`, git commit
 - **Prohibited**: Edit source files, build/test commands, MCP tools, analysis
 
 All agent-delegating skills must include a MUST NOT section. See @.claude/context/standards/postflight-tool-restrictions.md for complete rules.

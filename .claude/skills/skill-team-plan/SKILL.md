@@ -468,13 +468,13 @@ jq --arg path "specs/${padded_num}_${project_name}/plans/${run_padded}_implement
   specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
 ```
 
-**Update TODO.md**: Link artifact using the automated script:
+**Update TODO.md**: Regenerate from state.json (state.json artifact update was done in the previous step):
 
 ```bash
-bash .claude/scripts/link-artifact-todo.sh $task_number '**Plan**' '**Description**' "$artifact_path"
+bash .claude/scripts/generate-todo.sh || echo "WARNING: generate-todo.sh failed (non-fatal)" >&2
 ```
 
-If the script exits non-zero, log a warning but continue (linking errors are non-blocking).
+If the script exits non-zero, log a warning but continue (regeneration errors are non-blocking).
 
 ---
 

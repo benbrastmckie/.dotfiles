@@ -7,7 +7,7 @@
 #
 # 3-tier logic:
 #   Tier 1 (SET): Workflow command with task number(s)
-#     1a: /research|plan|implement|revise|spawn + task spec (multi-task: N, N-N, N)
+#     1a: /research|plan|implement|revise|spawn|orchestrate + task spec (multi-task: N, N-N, N)
 #     1b: /task --recover|expand|abandon|review + task spec
 #     1c: /errors --fix N
 #   Tier 2 (CLEAR): Any slash command without task number
@@ -43,7 +43,7 @@ SHOULD_SET=0
 SHOULD_CLEAR=0
 
 # Tier 1a: research, plan, implement, revise, spawn + task spec (supports multi-task syntax)
-if [[ "$PROMPT" =~ ^[[:space:]]*/?(research|plan|implement|revise|spawn)[[:space:]]+([0-9][0-9,' '-]*) ]]; then
+if [[ "$PROMPT" =~ ^[[:space:]]*/?(research|plan|implement|revise|spawn|orchestrate)[[:space:]]+([0-9][0-9,' '-]*) ]]; then
     TASK_SPEC="${BASH_REMATCH[2]}"
     TASK_SPEC="${TASK_SPEC%%--*}"       # strip from first "--" (removes flags like --team)
     while [[ "$TASK_SPEC" =~ [[:space:],]$ ]]; do
