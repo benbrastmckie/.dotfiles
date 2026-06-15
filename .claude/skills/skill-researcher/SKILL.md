@@ -116,7 +116,29 @@ if [ "$artifact_number" = "null" ] || [ -z "$artifact_number" ]; then
   artifact_number=$((count + 1))
 fi
 
+# Reconciliation: scan all task subdirs for max artifact number on disk
+# Handles legacy tasks where next_artifact_number may be behind actual files
+padded_num=$(printf "%03d" "$task_number")
+max_on_disk=$(find "specs/${padded_num}_${project_name}" -name "[0-9][0-9]_*.md" 2>/dev/null \
+  | sed 's|.*/\([0-9][0-9]\)_.*|\1|' | sort -n | tail -1)
+max_on_disk=${max_on_disk:-0}
+# Strip leading zeros to avoid octal interpretation
+max_on_disk=$((10#$max_on_disk))
+if [ "$artifact_number" -le "$max_on_disk" ]; then
+  artifact_number=$((max_on_disk + 1))
+  # If reconciliation advanced the number, also sync state.json so subsequent operations stay in sync
+  jq --argjson num "$task_number" --argjson new_num "$artifact_number" \
+    '(.active_projects[] | select(.project_number == $num)).next_artifact_number = $new_num' \
+    specs/state.json > specs/tmp/state.json && mv specs/tmp/state.json specs/state.json
+fi
+
 artifact_padded=$(printf "%02d" "$artifact_number")
+
+# Collision check: ensure no existing file uses this prefix in reports/
+while ls "specs/${padded_num}_${project_name}/reports/${artifact_padded}_"*.md 2>/dev/null | grep -q .; do
+  artifact_number=$((artifact_number + 1))
+  artifact_padded=$(printf "%02d" "$artifact_number")
+done
 ```
 
 ---

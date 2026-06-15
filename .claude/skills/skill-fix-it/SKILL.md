@@ -491,10 +491,14 @@ If `inferred_topic` is empty, skip confirm entirely and set `topic=""`.
   "project_name": "{slug}",
   "status": "not_started",
   "task_type": "{task_type}",
+  "title": "{title}",
+  "description": "{description}",
   "topic": "{auto-inferred topic}",
   "dependencies": [learn_it_task_num]
 }
 ```
+
+Note: Pass `--arg title "$title"` and `--arg desc "$description"` to the jq call.
 
 **For all other tasks**:
 ```json
@@ -503,9 +507,13 @@ If `inferred_topic` is empty, skip confirm entirely and set `topic=""`.
   "project_name": "{slug}",
   "status": "not_started",
   "task_type": "{task_type}",
+  "title": "{title}",
+  "description": "{description}",
   "topic": "{auto-inferred topic}"
 }
 ```
+
+Note: Pass `--arg title "$title"` and `--arg desc "$description"` to the jq call.
 
 Note: Omit `"topic"` field if topic cannot be inferred (empty string from heuristic).
 

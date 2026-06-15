@@ -398,6 +398,8 @@ jq --argjson num "$next_num" \
      "project_name": $name,
      "status": "researched",
      "task_type": "meta",
+     "title": "Generate project-overview.md",
+     "description": "Generate .claude/context/repo/project-overview.md from repository scan findings and user interview",
      "topic": (if ($topic == "" | not) then $topic else null end),
      "next_artifact_number": 2
    } | if .topic == null then del(.topic) else . end] | .next_project_number = ($num + 1)' \

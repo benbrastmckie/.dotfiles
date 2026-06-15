@@ -88,6 +88,8 @@ Extensions can declare dependencies on other extensions via the `dependencies` a
 
 Extensions may also declare lifecycle hooks in a top-level `hooks` object in `manifest.json` (distinct from `provides.hooks` which are file-copy targets). Hook scripts run at skill lifecycle stages (preflight, context_injection, verification, postflight) via `skill-base.sh`. See `.claude/docs/guides/creating-extensions.md#lifecycle-hooks` for the hook schema and execution contract.
 
+Extensions can register `keyword_overrides` in their manifest.json to automatically detect their task type from keywords in the task description during `/task` creation. See `.claude/context/guides/extension-development.md` for the keyword_overrides schema.
+
 ## Command Reference
 
 All commands use checkpoint-based execution: GATE IN (preflight) -> DELEGATE (skill/agent) -> GATE OUT (postflight) -> COMMIT.
@@ -111,6 +113,13 @@ All commands use checkpoint-based execution: GATE IN (preflight) -> DELEGATE (sk
 | `/orchestrate` | `/orchestrate N [--lit]` | Drive task autonomously through full lifecycle (no confirmation gates) |
 | `/spawn` | `/spawn N [blocker description]` | Spawn new tasks to unblock a blocked task |
 | `/merge` | `/merge` | Create pull/merge request for current branch (user-only) |
+| `/literature` | `/literature` | Show specs/literature/ status and index health |
+| `/literature` | `/literature --scan` | Scan for unprocessed PDFs/DJVUs |
+| `/literature` | `/literature --convert [FILE]` | Convert PDF/DJVU to markdown with chunking |
+| `/literature` | `/literature --validate` | Validate index.json against filesystem |
+| `/literature` | `/literature --index FILE` | Add/update index entry for existing markdown file |
+| `/literature` | `/literature --search "QUERY"` | Search Zotero library and Literature/ index by keyword |
+| `/literature` | `/literature --task N` | Extract task N description as search query |
 
 **Multi-task syntax**: `/research`, `/plan`, and `/implement` accept multiple task numbers using commas and ranges (e.g., `/research 7, 22-24, 59`). Each task is processed by a separate agent in parallel. Flags like `--team` and `--force` apply to all tasks. See `.claude/context/patterns/multi-task-operations.md` for the full specification.
 
@@ -143,7 +152,7 @@ TODO.md is generated from state.json. Update state.json first, then call `bash .
 }
 ```
 
-**`default_task_type`** (optional, null by default): When set to a non-null string, overrides the keyword table in `/task` step 4 for all new tasks in this project. Meta keywords ("meta", "agent", "command", "skill") always resolve to `meta` regardless of this field. Precedence: meta keywords > `default_task_type` > keyword table > `general`.
+**`default_task_type`** (optional, null by default): When set to a non-null string, overrides the keyword table in `/task` step 4 for all new tasks in this project. Meta keywords ("meta", "agent", "command", "skill") always resolve to `meta` regardless of this field. Precedence: meta keywords > extension `keyword_overrides` > `default_task_type` > keyword table > `general`.
 
 ### Completion Workflow
 - Non-meta tasks: `completion_summary` + optional `roadmap_items` -> /todo annotates ROADMAP.md
@@ -202,6 +211,7 @@ Standard actions: `create`, `complete research`, `create implementation plan`, `
 | skill-git-workflow | (direct execution) | - | Create scoped git commits for task operations |
 | skill-fix-it | (direct execution) | - | Scan for FIX:/TODO:/NOTE: tags and create tasks |
 | skill-project-overview | (direct execution) | - | Interactive repo scan and project-overview.md task creation |
+| skill-literature | (direct execution) | - | Manage specs/literature/ — scan, convert PDFs/DJVUs, maintain index.json, search/import from Zotero |
 | /review | (direct execution) | - | Codebase analysis; code-reviewer-agent available for future skill integration |
 
 ### Agents

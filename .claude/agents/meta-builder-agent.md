@@ -693,11 +693,15 @@ for position, task_idx in enumerate(sorted_indices):
   "project_name": "task_slug",
   "status": "not_started",
   "task_type": "meta",
+  "title": "{task.title}",
+  "description": "{task.description}",
   "topic": "agent-system",
   "dependencies": [35, 34],
   "artifacts": []
 }
 ```
+
+Note: Pass `--arg title "$task_title"` and `--arg desc "$task_description"` to the jq call, where `$task_title` and `$task_description` come from `task_list[].title` and `task_list[].description` populated during the interview (Stage 3A).
 
 Note: Include `"topic"` field only if a topic was inferred or assigned; omit if null/skipped.
 

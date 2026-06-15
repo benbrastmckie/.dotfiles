@@ -119,23 +119,38 @@ next_num=$(jq -r --argjson num "$task_number" \
 
 # Plan uses (current - 1) to stay in the same round as research
 # If next_artifact_number is 1 (no research yet), use 1
-if [ "$next_num" -le 1 ]; then
+if [ "$next_num" = "null" ] || [ -z "$next_num" ]; then
+  padded_num=$(printf "%03d" "$task_number")
+  count=$(ls "specs/${padded_num}_${project_name}/plans/"*[0-9][0-9]*.md 2>/dev/null | wc -l)
+  artifact_number=$((count + 1))
+elif [ "$next_num" -le 1 ]; then
   artifact_number=1
 else
   artifact_number=$((next_num - 1))
 fi
 
-# Fallback for legacy tasks: count existing plan artifacts
-if [ "$next_num" = "null" ] || [ -z "$next_num" ]; then
-  padded_num=$(printf "%03d" "$task_number")
-  count=$(ls "specs/${padded_num}_${project_name}/plans/"*[0-9][0-9]*.md 2>/dev/null | wc -l)
-  artifact_number=$((count + 1))
+# Reconciliation: scan all task subdirs for max artifact number on disk
+# Handles legacy tasks where next_artifact_number may be behind actual files
+padded_num=$(printf "%03d" "$task_number")
+max_on_disk=$(find "specs/${padded_num}_${project_name}" -name "[0-9][0-9]_*.md" 2>/dev/null \
+  | sed 's|.*/\([0-9][0-9]\)_.*|\1|' | sort -n | tail -1)
+max_on_disk=${max_on_disk:-0}
+# Strip leading zeros to avoid octal interpretation
+max_on_disk=$((10#$max_on_disk))
+if [ "$artifact_number" -le "$max_on_disk" ]; then
+  artifact_number=$((max_on_disk + 1))
 fi
 
 artifact_padded=$(printf "%02d" "$artifact_number")
+
+# Collision check: ensure no existing file uses this prefix in plans/
+while ls "specs/${padded_num}_${project_name}/plans/${artifact_padded}_"*.md 2>/dev/null | grep -q .; do
+  artifact_number=$((artifact_number + 1))
+  artifact_padded=$(printf "%02d" "$artifact_number")
+done
 ```
 
-**Note**: Plan does NOT increment `next_artifact_number` in state.json. Only research advances the sequence. Plan uses `(current - 1)` to share the same round number as the preceding research.
+**Note**: Plan does NOT increment `next_artifact_number` in state.json. Only research (and revision) advances the sequence. Plan uses `(current - 1)` to share the same round number as the preceding research.
 
 ---
 

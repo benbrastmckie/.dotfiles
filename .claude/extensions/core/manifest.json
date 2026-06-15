@@ -92,6 +92,7 @@
       "install-systemd-timer.sh",
       "issue-grouping.sh",
       "link-artifact-todo.sh",
+      "literature-retrieve.sh",
       "manage-topics.sh",
       "memory-harvest.sh",
       "memory-retrieve.sh",
