@@ -58,6 +58,12 @@ Files are organized by application and deployment pattern:
 |------|-------------|-------------|
 | `rclone.conf` | `~/.config/rclone/rclone.conf` | Rclone cloud storage sync configuration (seed file; copied via activation script, not symlinked, so rclone can write token refreshes) |
 
+## Chat
+
+| File | Deployed To | Description |
+|------|-------------|-------------|
+| *(activation script)* | `~/.zuliprc` | Zulip API client configuration (seed file; created via activation script, not symlinked, so user can fill in API key) |
+
 ## System Information
 
 | File | Deployed To | Description |
@@ -68,7 +74,7 @@ Files are organized by application and deployment pattern:
 
 - All configurations are declaratively managed through `home.nix`
 - Changes to these files require running `home-manager switch` to take effect
-- Most configs are deployed as symlinks; `claude/` and `rclone.conf` use activation scripts that copy instead of symlink so the applications can write to them at runtime
+- Most configs are deployed as symlinks; `claude/`, `rclone.conf`, and `.zuliprc` use activation scripts that copy/seed instead of symlink so the applications can write to them at runtime
 - Some configs are also copied to `~/.config/config-files/` for version control backup
 - See `home.nix` for complete deployment mappings
 

@@ -191,6 +191,7 @@
     loogle       # Lean 4 Mathlib search tool (wrapper script)
     stylua       # Lua formatter for Neovim
     wezterm      # GPU-accelerated terminal emulator
+    zulip-term   # Terminal UI client for Zulip chat
     espeak-ng    # Text-to-speech for notifications
     slidev       # Presentation slides from Markdown (sli.dev)
     # sioyek is installed via configuration.nix (Wayland wrapper, CSD disabled)
@@ -350,6 +351,7 @@
     # MCP-Hub is now managed by the home module
     nodejs    # Required runtime dependency
     (python3.withPackages(p: (with p; [
+      zulip      # Zulip API client and zulip-send CLI
       z3-solver  # Renamed from z3 in nixos-unstable
       setuptools
       pyinstrument
@@ -721,6 +723,13 @@
     chmod u+w /home/benjamin/.claude/keybindings.json
   '';
 
+  # Reinstall uv tools after rebuild (Python interpreter path changes break virtualenvs)
+  home.activation.uvTools = config.lib.dag.entryAfter ["writeBoundary"] ''
+    if command -v uv &>/dev/null; then
+      run uv tool install --force lean-lsp-mcp 2>/dev/null || true
+    fi
+  '';
+
   # Copy rclone config as a regular file (not symlink) so rclone can write token refreshes.
   # Only seeds the config if it doesn't already exist, to preserve refreshed tokens.
   home.activation.rcloneConfig = config.lib.dag.entryAfter ["writeBoundary"] ''
@@ -729,6 +738,19 @@
       rm -f /home/benjamin/.config/rclone/rclone.conf
       cp ${./config/rclone.conf} /home/benjamin/.config/rclone/rclone.conf
       chmod u+w /home/benjamin/.config/rclone/rclone.conf
+    fi
+  '';
+
+  # Seed ~/.zuliprc template if it doesn't exist (not symlink, so user can fill in API key).
+  home.activation.zulipConfig = config.lib.dag.entryAfter ["writeBoundary"] ''
+    if [ ! -f /home/benjamin/.zuliprc ]; then
+      cat > /home/benjamin/.zuliprc << 'ZULIPEOF'
+[api]
+email=benjamin@logos-labs.ai
+key=REPLACE_WITH_ZULIP_API_KEY
+site=REPLACE_WITH_ZULIP_SITE_URL
+ZULIPEOF
+      chmod 600 /home/benjamin/.zuliprc
     fi
   '';
 
@@ -883,6 +905,7 @@
   systemd.user.sessionVariables = {
     GMAIL_CLIENT_ID = "REDACTED_CLIENT_ID";
     SASL_PATH = "${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2";
+    LITERATURE_DIR = "/home/benjamin/Projects/Literature";
   };
 
   # Enable systemd integration
@@ -1627,6 +1650,8 @@
     XCURSOR_SIZE = "24";
     # Library path for CVC5 C++ dependencies
     LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
+    # Centralized literature repository for all projects (Claude Code --lit flag)
+    LITERATURE_DIR = "/home/benjamin/Projects/Literature";
   };
 
   # programs.pylint.enable = true;
