@@ -74,8 +74,6 @@ No ROADMAP.md found.
 
 Phases within the same wave can execute in parallel.
 
-REDACTED_DISCORD_TOKEN
-
 ---
 
 ### Phase 1: Project Scaffolding and Configuration [COMPLETED]
