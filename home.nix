@@ -730,17 +730,6 @@
     fi
   '';
 
-  # Copy rclone config as a regular file (not symlink) so rclone can write token refreshes.
-  # Only seeds the config if it doesn't already exist, to preserve refreshed tokens.
-  home.activation.rcloneConfig = config.lib.dag.entryAfter ["writeBoundary"] ''
-    mkdir -p /home/benjamin/.config/rclone
-    if [ ! -f /home/benjamin/.config/rclone/rclone.conf ] || [ -L /home/benjamin/.config/rclone/rclone.conf ]; then
-      rm -f /home/benjamin/.config/rclone/rclone.conf
-      cp ${./config/rclone.conf} /home/benjamin/.config/rclone/rclone.conf
-      chmod u+w /home/benjamin/.config/rclone/rclone.conf
-    fi
-  '';
-
   # Seed ~/.zuliprc template if it doesn't exist (not symlink, so user can fill in API key).
   home.activation.zulipConfig = config.lib.dag.entryAfter ["writeBoundary"] ''
     if [ ! -f /home/benjamin/.zuliprc ]; then
@@ -1146,9 +1135,6 @@ ZULIPEOF
     ".config/alacritty/alacritty.toml".source = ./config/alacritty.toml;
     ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
     ".config/himalaya/config.toml".source = ./config/himalaya-config.toml;
-    # NOTE: rclone.conf is managed via activation script (not symlink)
-    # so that rclone can write token refreshes and config updates.
-    # See home.activation.rcloneConfig below.
     # NOTE: .claude/{settings,keybindings}.json managed via activation script (not symlink)
     # so that Claude Code can write runtime changes. Source: config/claude/
     # See home.activation.claudeSettings below.
