@@ -406,7 +406,7 @@
               isNormalUser = true;
               description = "Benjamin";
               extraGroups = [ "networkmanager" "wheel" "audio" "video" "input" ];
-              initialPassword = "nixos";  # Change after first boot
+              hashedInitialPassword = "$6$f2PeXbxhEnBAOWaK$M7TR7eFN2ICFm1y9qwcSHgWeYMRLICTtBOfC5njquaWXsYcIawkHvkHZJzzO3acoaa7/7iKdeZiwiK/LQfnpX0";
             };
             
             # Auto-launch Calamares installer on boot
