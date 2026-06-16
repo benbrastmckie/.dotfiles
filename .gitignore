@@ -31,4 +31,7 @@ Thumbs.db
 .direnv/
 EOF < /dev/null
 
+# Secrets
+config/rclone.conf
+
 **/.claude/settings.local.json
