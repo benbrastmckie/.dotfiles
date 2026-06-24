@@ -11,8 +11,9 @@ next_project_number: 67
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,50,52,60,61,62,63,64,65 | -- | nix-infrastructure, maintenance, packaging, ... |
-| 2 | 66 | 62,65 | nix-infrastructure |
+| 1 | 15,19,23,41,42,43,46,60,61,62,63,64 | -- | nix-infrastructure, maintenance, packaging, ... |
+| 2 | 65 | 60,61,63,64 | packaging |
+| 3 | 66 | 62,65 | nix-infrastructure |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -32,8 +33,6 @@ next_project_number: 67
 ### Maintenance
 
 15 [RESEARCHED] — configure_timezone_location_based
-50 [RESEARCHED] — fix_sleep_inhibitor_pgrep_self_matching
-52 [PLANNED] — sleep_inhibition_claude_opencode
 63 [NOT STARTED] — Enable automatic user-level Nix garbage collection and expire old
 64 [NOT STARTED] — Clean regenerable caches and reclaim disk space (root filesystem 
 
@@ -50,7 +49,7 @@ next_project_number: 67
 - **Status**: [BLOCKED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
-- **Dependencies**: Task 62, Task 65
+- **Dependencies**: Task 62, Task 65, Task 63, Task 64
 - **Research**: [066_review_refactor_nixos_configuration/reports/01_team-research.md]
 - **Plan**: [066_review_refactor_nixos_configuration/plans/01_refactor-nixos-config.md]
 - **Summary**: [066_review_refactor_nixos_configuration/summaries/01_refactor-nixos-config-summary.md]
@@ -63,7 +62,7 @@ next_project_number: 67
 - **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: packaging
-- **Dependencies**: None
+- **Dependencies**: Task 60, Task 61, Task 63, Task 64
 - **Research**: [065_migrate_python312_pins_to_default_python3/reports/01_python312-to-python3-migration.md]
 - **Plan**: [065_migrate_python312_pins_to_default_python3/plans/01_implementation-plan.md]
 - **Summary**: [065_migrate_python312_pins_to_default_python3/summaries/01_implementation-summary.md]
@@ -123,7 +122,7 @@ next_project_number: 67
 ---
 
 ### 52. Sleep inhibition claude opencode
-- **Status**: [PLANNED]
+- **Status**: [ABANDONED]
 - **Task Type**: nix
 - **Topic**: maintenance
 - **Dependencies**: None
@@ -133,7 +132,7 @@ next_project_number: 67
 ---
 
 ### 50. Fix sleep inhibitor pgrep self matching
-- **Status**: [RESEARCHED]
+- **Status**: [ABANDONED]
 - **Task Type**: nix
 - **Topic**: maintenance
 - **Dependencies**: None
