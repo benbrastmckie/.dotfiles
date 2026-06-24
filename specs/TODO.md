@@ -19,8 +19,8 @@ next_project_number: 67
 
 ### Nix Infrastructure
 
-60 [NOT STARTED] — Add Nix build resource limits to prevent OOM during rebuilds: set
-61 [NOT STARTED] — Pin nixpkgs flake input to a stable release channel (nixos-26.05)
+60 [PLANNED] — Add Nix build resource limits to prevent OOM during rebuilds: set
+61 [PLANNED] — Pin nixpkgs flake input to a stable release channel (nixos-26.05)
 66 [BLOCKED] — Systematically review all aspects of my current NixOS configurati
 
 ### Packaging
@@ -33,8 +33,8 @@ next_project_number: 67
 ### Maintenance
 
 15 [RESEARCHED] — configure_timezone_location_based
-63 [NOT STARTED] — Enable automatic user-level Nix garbage collection and expire old
-64 [NOT STARTED] — Clean regenerable caches and reclaim disk space (root filesystem 
+63 [PLANNED] — Enable automatic user-level Nix garbage collection and expire old
+64 [PLANNED] — Clean regenerable caches and reclaim disk space (root filesystem 
 
 ### Services
 
@@ -72,20 +72,24 @@ next_project_number: 67
 ---
 
 ### 64. Clean regenerable caches reclaim disk space
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: general
 - **Topic**: maintenance
 - **Dependencies**: None
+- **Plan**: [064_clean_regenerable_caches_reclaim_disk_space/plans/01_cache-cleanup.md]
+- **Research**: [064_clean_regenerable_caches_reclaim_disk_space/reports/01_cache-cleanup.md]
 
 **Description**: Clean regenerable caches and reclaim disk space (root filesystem at 94%, 28GB free). Targets: ~/.local/share/Trash (4.2GB), ~/.cache/loogle (7.4GB), ~/.cache/pip (3GB), ~/.cache/nix (2.1GB), ~/.cache/uv (2GB), ~/.npm (8.5GB), ~/.local/share/memory-monitor logs (1.8GB), and audit ~/.local/share/opencode (11GB, mostly storage/) and ~/.local/share/protonmail (14GB local mail cache) for safe pruning. Roughly 25-30GB recoverable without touching personal files. Consider adding periodic cache cleanup (e.g. systemd-tmpfiles or a cleanup script) so these do not regrow unbounded
 
 ---
 
 ### 63. User level nix gc expire home manager generations
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: maintenance
 - **Dependencies**: None
+- **Plan**: [063_user_level_nix_gc_expire_home_manager_generations/plans/01_user-nix-gc.md]
+- **Research**: [063_user_level_nix_gc_expire_home_manager_generations/reports/01_user-nix-gc.md]
 
 **Description**: Enable automatic user-level Nix garbage collection and expire old home-manager generations. 62 home-manager generations spanning Mar 13 - Jun 11 act as GC roots pinning ~3 months of unstable closures in the 99GB /nix/store; the root-level nix.gc.automatic (weekly, 30d) never touches user profiles. Add nix.gc automatic settings to home.nix (home-manager equivalent of the system GC), run a one-time home-manager expire-generations "-30 days" plus user and root nix-collect-garbage to reclaim space, and verify store size afterward
 
@@ -102,20 +106,24 @@ next_project_number: 67
 ---
 
 ### 61. Pin nixpkgs stable channel binary cache hits
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
+- **Plan**: [061_pin_nixpkgs_stable_channel_binary_cache_hits/plans/01_pin-nixpkgs-stable.md]
+- **Research**: [061_pin_nixpkgs_stable_channel_binary_cache_hits/reports/01_pin-nixpkgs-stable.md]
 
 **Description**: Pin nixpkgs flake input to a stable release channel (nixos-26.05) to maximize binary cache hits and stop source-building heavy packages. The flake currently tracks nixos-unstable and update.sh runs nix flake update on every rebuild, outrunning Hydra and causing local compiles (29 packages on last update). Evaluate which inputs should stay on unstable (e.g. nix-ai-tools follows nixpkgs-unstable), align home-manager release-26.05 with the new pin, and consider making update.sh flake updates opt-in rather than automatic
 
 ---
 
 ### 60. Add nix build resource limits prevent oom
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
+- **Plan**: [060_add_nix_build_resource_limits_prevent_oom/plans/01_build-resource-limits.md]
+- **Research**: [060_add_nix_build_resource_limits_prevent_oom/reports/01_build-resource-limits.md]
 
 **Description**: Add Nix build resource limits to prevent OOM during rebuilds: set nix.settings.max-jobs and nix.settings.cores in configuration.nix (24-core Ryzen AI 9 HX 370, 30GB RAM; onnxruntime builds currently exhaust memory via 24 parallel jobs x 24 cores). Choose values that balance build speed against the ~1-2GB/compile-unit cost of heavy C++ packages, and consider a --max-jobs override in update.sh
 

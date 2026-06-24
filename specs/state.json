@@ -103,22 +103,48 @@
     {
       "project_number": 64,
       "project_name": "clean_regenerable_caches_reclaim_disk_space",
-      "status": "not_started",
+      "status": "planned",
       "task_type": "general",
       "description": "Clean regenerable caches and reclaim disk space (root filesystem at 94%, 28GB free). Targets: ~/.local/share/Trash (4.2GB), ~/.cache/loogle (7.4GB), ~/.cache/pip (3GB), ~/.cache/nix (2.1GB), ~/.cache/uv (2GB), ~/.npm (8.5GB), ~/.local/share/memory-monitor logs (1.8GB), and audit ~/.local/share/opencode (11GB, mostly storage/) and ~/.local/share/protonmail (14GB local mail cache) for safe pruning. Roughly 25-30GB recoverable without touching personal files. Consider adding periodic cache cleanup (e.g. systemd-tmpfiles or a cleanup script) so these do not regrow unbounded",
       "created": "2026-06-12T23:55:07Z",
       "last_updated": "2026-06-12T23:55:07Z",
-      "topic": "maintenance"
+      "topic": "maintenance",
+      "updated_at": "2026-06-24T18:02:48Z",
+      "artifacts": [
+        {
+          "type": "plan",
+          "path": "specs/064_clean_regenerable_caches_reclaim_disk_space/plans/01_cache-cleanup.md",
+          "summary": "7-phase plan: safe-now/gated/declarative/optional cleanup; coordinates nix.gc with task 63"
+        },
+        {
+          "type": "report",
+          "path": "specs/064_clean_regenerable_caches_reclaim_disk_space/reports/01_cache-cleanup.md",
+          "summary": "~14.7GB safe-now (pip/uv/npm/logs); ~9.4GB deferred (loogle/nix live); systemd.user timer for automation"
+        }
+      ]
     },
     {
       "project_number": 63,
       "project_name": "user_level_nix_gc_expire_home_manager_generations",
-      "status": "not_started",
+      "status": "planned",
       "task_type": "nix",
       "description": "Enable automatic user-level Nix garbage collection and expire old home-manager generations. 62 home-manager generations spanning Mar 13 - Jun 11 act as GC roots pinning ~3 months of unstable closures in the 99GB /nix/store; the root-level nix.gc.automatic (weekly, 30d) never touches user profiles. Add nix.gc automatic settings to home.nix (home-manager equivalent of the system GC), run a one-time home-manager expire-generations \"-30 days\" plus user and root nix-collect-garbage to reclaim space, and verify store size afterward",
       "created": "2026-06-12T23:54:45Z",
       "last_updated": "2026-06-12T23:54:45Z",
-      "topic": "maintenance"
+      "topic": "maintenance",
+      "updated_at": "2026-06-24T18:01:49Z",
+      "artifacts": [
+        {
+          "type": "plan",
+          "path": "specs/063_user_level_nix_gc_expire_home_manager_generations/plans/01_user-nix-gc.md",
+          "summary": "6-phase plan: services.home-manager.autoExpire in home.nix; one-time GC sequence gated (expire before gc)"
+        },
+        {
+          "type": "report",
+          "path": "specs/063_user_level_nix_gc_expire_home_manager_generations/reports/01_user-nix-gc.md",
+          "summary": "Use services.home-manager.autoExpire; expire-generations before nix-collect-garbage"
+        }
+      ]
     },
     {
       "project_number": 62,
@@ -133,22 +159,48 @@
     {
       "project_number": 61,
       "project_name": "pin_nixpkgs_stable_channel_binary_cache_hits",
-      "status": "not_started",
+      "status": "planned",
       "task_type": "nix",
       "description": "Pin nixpkgs flake input to a stable release channel (nixos-26.05) to maximize binary cache hits and stop source-building heavy packages. The flake currently tracks nixos-unstable and update.sh runs nix flake update on every rebuild, outrunning Hydra and causing local compiles (29 packages on last update). Evaluate which inputs should stay on unstable (e.g. nix-ai-tools follows nixpkgs-unstable), align home-manager release-26.05 with the new pin, and consider making update.sh flake updates opt-in rather than automatic",
       "created": "2026-06-12T23:53:57Z",
       "last_updated": "2026-06-12T23:53:57Z",
-      "topic": "nix-infrastructure"
+      "topic": "nix-infrastructure",
+      "updated_at": "2026-06-24T17:59:25Z",
+      "artifacts": [
+        {
+          "type": "plan",
+          "path": "specs/061_pin_nixpkgs_stable_channel_binary_cache_hits/plans/01_pin-nixpkgs-stable.md",
+          "summary": "4-phase plan: flake.nix->nixos-26.05 + update.sh opt-in; rebuild gated on 63/64+disk+lean"
+        },
+        {
+          "type": "report",
+          "path": "specs/061_pin_nixpkgs_stable_channel_binary_cache_hits/reports/01_pin-nixpkgs-stable.md",
+          "summary": "Pin nixpkgs to nixos-26.05; keep nix-ai-tools on unstable; update.sh --update flag"
+        }
+      ]
     },
     {
       "project_number": 60,
       "project_name": "add_nix_build_resource_limits_prevent_oom",
-      "status": "not_started",
+      "status": "planned",
       "task_type": "nix",
       "description": "Add Nix build resource limits to prevent OOM during rebuilds: set nix.settings.max-jobs and nix.settings.cores in configuration.nix (24-core Ryzen AI 9 HX 370, 30GB RAM; onnxruntime builds currently exhaust memory via 24 parallel jobs x 24 cores). Choose values that balance build speed against the ~1-2GB/compile-unit cost of heavy C++ packages, and consider a --max-jobs override in update.sh",
       "created": "2026-06-12T23:53:19Z",
       "last_updated": "2026-06-12T23:53:19Z",
-      "topic": "nix-infrastructure"
+      "topic": "nix-infrastructure",
+      "updated_at": "2026-06-24T17:58:20Z",
+      "artifacts": [
+        {
+          "type": "plan",
+          "path": "specs/060_add_nix_build_resource_limits_prevent_oom/plans/01_build-resource-limits.md",
+          "summary": "3-phase plan: nix.settings max-jobs/cores + update.sh override; verification gated"
+        },
+        {
+          "type": "report",
+          "path": "specs/060_add_nix_build_resource_limits_prevent_oom/reports/01_build-resource-limits.md",
+          "summary": "Build resource limits research: max-jobs=2, cores=6"
+        }
+      ]
     },
     {
       "project_number": 52,

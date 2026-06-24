@@ -1,0 +1,21 @@
+{
+  "status": "planned",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/061_pin_nixpkgs_stable_channel_binary_cache_hits/plans/01_pin-nixpkgs-stable.md",
+      "summary": "4-phase plan to pin nixpkgs to nixos-26.05 and make update.sh opt-in, with a gated deferred rebuild phase"
+    }
+  ],
+  "next_steps": "Run /implement 61 to execute Phases 1-3 (text-only edits); Phase 4 rebuild stays gated on Tasks 63/64 and Lean-build completion",
+  "metadata": {
+    "session_id": "sess_planner_task61",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 4,
+    "estimated_hours": 1.75,
+    "dependency_waves": [[1, 2], [3], [4]]
+  },
+  "memory_candidates": []
+}
