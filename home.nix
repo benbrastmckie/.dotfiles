@@ -4,178 +4,34 @@
   # Import our custom modules
   imports = [
     # ./home-modules/mcp-hub.nix  # Disabled - using lazy.nvim approach
+
+    # Core modules
+    ./modules/home/core/git.nix
+    ./modules/home/core/neovim.nix
+    ./modules/home/core/shell.nix
+    ./modules/home/core/xdg.nix
+
+    # Desktop modules
+    ./modules/home/desktop/gnome.nix
+    ./modules/home/desktop/waybar.nix
+    ./modules/home/desktop/mako.nix
+    ./modules/home/desktop/kanshi.nix
+    ./modules/home/desktop/swaylock.nix
+
+    # Email modules
+    ./modules/home/email/mbsync.nix
+    ./modules/home/email/protonmail.nix
+    ./modules/home/email/notmuch.nix
+    ./modules/home/email/aerc.nix
   ];
 
   # Note: Python packages overlay (including cvc5) is defined in flake.nix
 
-  # manage.
   home.username = "benjamin";
   home.homeDirectory = "/home/benjamin";
 
-  programs.git = {
-    enable = true;
-    settings.user.name = "benbrastmckie";
-    settings.user.email = "benbrastmckie@gmail.com";
-    signing.format = null;
-  };
-
-  programs.neovim = {
-    enable = true;
-    package = pkgs-unstable.neovim-unwrapped;  # Use neovim-unwrapped directly from unstable
-    withRuby = false;
-    withPython3 = false;
-
-    # By default, programs.neovim writes provider config (python3_host_prog,
-    # ruby_host_prog, etc.) to ~/.config/nvim/init.lua as a Home Manager-managed
-    # symlink, overwriting any user-managed init.lua. sideloadInitLua = true
-    # routes that same config through --cmd wrapper args on the neovim binary
-    # instead, leaving ~/.config/nvim/ entirely unmanaged by Home Manager.
-    # See docs/neovim.md.
-    sideloadInitLua = true;
-
-    # jsregexp is required by LuaSnip and must be on neovim's runtime path.
-    # Keeping it here (rather than home.packages) scopes it to neovim only.
-    extraPackages = [
-      pkgs.luajitPackages.jsregexp
-      # pkgs.tree-sitter-grammars.tree-sitter-latex  # Add latex grammar for tree-sitter
-    ];
-
-    # Note: MCP-Hub is managed via lazy.nvim in NeoVim config
-  };
-
   # Fish shell configuration is managed through home.file below
   # OMF has been removed - fish greeting disabled in config.fish
-
-  # GNOME settings via dconf
-  dconf.settings = {
-    # GNOME Shell extensions
-    "org/gnome/shell" = {
-      enabled-extensions = [
-        "activate-window-by-title@lucaswerkmeister.de"
-        "unite@hardpixel.eu"
-      ];
-    };
-
-    # Unite extension settings
-    "org/gnome/shell/extensions/unite" = {
-      desktop-name-text = "Hamsa";
-      extend-left-box = true;
-      hide-window-titlebars = "always";
-      reduce-panel-spacing = true;
-      show-window-buttons = "never";
-      show-window-title = "never";
-      window-buttons-theme = "auto";
-    };
-
-    # Interface preferences
-    "org/gnome/desktop/interface" = {
-      color-scheme = "prefer-dark";
-      toolkit-accessibility = false;
-    };
-
-    # Power management and sleep settings
-    "org/gnome/desktop/session" = {
-      idle-delay = 300;  # 5 minutes - when screen dims/blanks
-    };
-
-    "org/gnome/settings-daemon/plugins/power" = {
-      sleep-inactive-ac-timeout = 3600;     # 60 minutes on AC power
-      sleep-inactive-battery-timeout = 900; # 15 minutes on battery
-      idle-dim = true;                      # Dim screen before blanking
-    };
-
-    # Desktop background
-    "org/gnome/desktop/background" = {
-      picture-uri = "file:///etc/wallpapers/riverside.jpg";
-      picture-uri-dark = "file:///etc/wallpapers/riverside.jpg";
-      picture-options = "zoom";
-    };
-
-    # Lock screen background
-    "org/gnome/desktop/screensaver" = {
-      picture-uri = "file:///etc/wallpapers/riverside.jpg";
-      picture-options = "zoom";
-    };
-
-    # Mouse and touchpad
-    "org/gnome/desktop/peripherals/mouse" = {
-      speed = 0.34188034188034178;
-    };
-    "org/gnome/desktop/peripherals/touchpad" = {
-      speed = 0.48717948717948723;
-      two-finger-scrolling-enabled = true;
-    };
-
-    # Window manager preferences
-    "org/gnome/desktop/wm/preferences" = {
-      focus-mode = "sloppy";
-    };
-
-    # Window manager keybindings (vim-style)
-    "org/gnome/desktop/wm/keybindings" = {
-      close = [ "<Super>q" ];
-      cycle-windows = [ "<Super>space" ];
-      cycle-windows-backward = [ "<Shift><Super>space" ];
-      maximize = [ "<Shift><Control>k" ];
-      move-to-monitor-down = [ "<Shift><Super>j" ];
-      move-to-monitor-left = [ "<Shift><Super>h" ];
-      move-to-monitor-right = [ "<Shift><Super>l" ];
-      move-to-monitor-up = [ "<Shift><Super>k" ];
-      move-to-workspace-left = [ "<Shift><Alt>h" ];
-      move-to-workspace-right = [ "<Shift><Alt>l" ];
-      switch-to-workspace-left = [ "<Super>h" ];
-      switch-to-workspace-right = [ "<Super>l" ];
-      unmaximize = [ "<Shift><Control>j" ];
-    };
-
-    # Mutter settings
-    "org/gnome/mutter" = {
-      focus-change-on-pointer-rest = false;
-    };
-    "org/gnome/mutter/keybindings" = {
-      toggle-tiled-left = [ "<Shift><Control>h" ];
-      toggle-tiled-right = [ "<Shift><Control>l" ];
-    };
-
-    # Media keys
-    "org/gnome/settings-daemon/plugins/media-keys" = {
-      control-center = [ "<Super>backslash" ];
-      custom-keybindings = [
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
-        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
-      ];
-      home = [ "<Super>f" ];
-      screensaver = [ "<Super>grave" ];
-      www = [ "<Super>b" ];
-    };
-
-    # Custom keybindings - WezTerm terminal
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
-      binding = "<Super>t";
-      command = "wezterm";
-      name = "Terminal";
-    };
-
-    # Custom keybindings - Zotero
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
-      binding = "<Super>z";
-      command = "zotero";
-      name = "Zotero";
-    };
-
-    # Custom keybindings - Whisper dictation
-    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
-      binding = "<Super>d";
-      command = "whisper-dictate";
-      name = "Dictation";
-    };
-  };
-
-  services.unclutter = {
-    enable = true;
-    timeout = 3;
-  };
 
   home.stateVersion = "24.11"; # Please read the comment before changing.
   # home.stateVersion = "24.05"; # Please read the comment before changing.
@@ -183,21 +39,21 @@
 
   # home.packages allows you to install Nix packages into your environment.
   home.packages = with pkgs; [
-    claude-code  # Using overlaid unstable package
+    claude-code # Using overlaid unstable package
     claude-squad # Terminal app for managing multiple AI agents
-    gemini-cli   # Google Gemini AI CLI tool
-    gh           # GitHub CLI (required by claude-squad)
-    lectic       # Formal logic and proof tool
-    loogle       # Lean 4 Mathlib search tool (wrapper script)
-    stylua       # Lua formatter for Neovim
-    wezterm      # GPU-accelerated terminal emulator
-    zulip-term   # Terminal UI client for Zulip chat
-    espeak-ng    # Text-to-speech for notifications
-    slidev       # Presentation slides from Markdown (sli.dev)
+    gemini-cli # Google Gemini AI CLI tool
+    gh # GitHub CLI (required by claude-squad)
+    lectic # Formal logic and proof tool
+    loogle # Lean 4 Mathlib search tool (wrapper script)
+    stylua # Lua formatter for Neovim
+    wezterm # GPU-accelerated terminal emulator
+    zulip-term # Terminal UI client for Zulip chat
+    espeak-ng # Text-to-speech for notifications
+    slidev # Presentation slides from Markdown (sli.dev)
     # sioyek is installed via configuration.nix (Wayland wrapper, CSD disabled)
 
     # GNOME Shell Extensions
-    gnomeExtensions.activate-window-by-title  # For cross-window WezTerm tab navigation
+    gnomeExtensions.activate-window-by-title # For cross-window WezTerm tab navigation
 
     # Sioyek theme toggle script - toggles between Gruvbox (light) and Nord (dark)
     (pkgs.writeShellScriptBin "sioyek-theme-toggle" ''
@@ -225,67 +81,67 @@
     '')
 
     # Web Development & API Tools
-    httpie       # User-friendly HTTP client (better than curl for APIs)
-    fx           # Interactive JSON viewer
+    httpie # User-friendly HTTP client (better than curl for APIs)
+    fx # Interactive JSON viewer
 
     # Git Enhancement Tools
-    glab         # GitLab CLI
-    delta        # Better git diff viewer
+    glab # GitLab CLI
+    delta # Better git diff viewer
 
     # System Monitoring
-    btop         # Modern, beautiful system monitor
-    htop         # Interactive process viewer
-    bandwhich    # Network bandwidth monitor
+    btop # Modern, beautiful system monitor
+    htop # Interactive process viewer
+    bandwhich # Network bandwidth monitor
 
     # Documentation Tools
-    vale         # Prose linting for documentation
-    marksman     # Markdown language server (LSP)
-    mdl          # Markdown linter
-    prettier     # Code formatter (JS/TS/JSON/MD/YAML/CSS)
+    vale # Prose linting for documentation
+    marksman # Markdown language server (LSP)
+    mdl # Markdown linter
+    prettier # Code formatter (JS/TS/JSON/MD/YAML/CSS)
 
     # Image Optimization
-    imagemagick  # Image manipulation
-    optipng      # PNG optimizer
-    jpegoptim    # JPEG optimizer
+    imagemagick # Image manipulation
+    optipng # PNG optimizer
+    jpegoptim # JPEG optimizer
 
     # Email Testing Tools
-    swaks        # Swiss Army Knife for SMTP testing
-    mailutils    # Email utilities
+    swaks # Swiss Army Knife for SMTP testing
+    mailutils # Email utilities
     # protonmail-bridge is now managed by services.protonmail-bridge
 
     # Video recording/editing
     obs-studio
     # Dictation tools
-    whisper-cpp  # Fast offline speech-to-text (renamed from openai-whisper-cpp)
-    ydotool      # Universal input tool (works with GNOME/Wayland)
-    libnotify    # Desktop notifications
+    whisper-cpp # Fast offline speech-to-text (renamed from openai-whisper-cpp)
+    ydotool # Universal input tool (works with GNOME/Wayland)
+    libnotify # Desktop notifications
 
     # Screenshot and annotation tools (for Niri)
-    satty        # Screenshot annotation tool
-    grim         # Wayland screenshot utility
-    slurp        # Region selection tool for Wayland
-    inotify-tools  # Filesystem event monitoring (used by screenshot-path-copy service)
-    
+    satty # Screenshot annotation tool
+    grim # Wayland screenshot utility
+    slurp # Region selection tool for Wayland
+    inotify-tools # Filesystem event monitoring (used by screenshot-path-copy service)
+
     # OAuth2 token refresh script
     (pkgs.writeShellScriptBin "refresh-gmail-oauth2" ''
       #!/bin/bash
-      
+
       # Check if refresh token exists
       if ! secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-refresh-token >/dev/null 2>&1; then
         echo "No refresh token found. Please run: himalaya account configure gmail"
         exit 1
       fi
-      
+
       # Get current tokens
       CLIENT_ID="$GMAIL_CLIENT_ID"
       CLIENT_SECRET=$(secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-client-secret 2>/dev/null)
       REFRESH_TOKEN=$(secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-refresh-token 2>/dev/null)
-      
+
       if [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_SECRET" ] || [ -z "$REFRESH_TOKEN" ]; then
         echo "Missing OAuth2 credentials. Please reconfigure: himalaya account configure gmail"
         exit 1
       fi
-      
+
       # Refresh the access token
       RESPONSE=$(curl -s -X POST https://www.googleapis.com/oauth2/v4/token \
         -H "Content-Type: application/x-www-form-urlencoded" \
@@ -293,16 +149,16 @@
         -d "client_secret=$CLIENT_SECRET" \
         -d "refresh_token=$REFRESH_TOKEN" \
         -d "grant_type=refresh_token")
-      
+
       # Parse the new access token
       NEW_ACCESS_TOKEN=$(echo "$RESPONSE" | ${pkgs.jq}/bin/jq -r '.access_token // empty')
-      
+
       if [ -n "$NEW_ACCESS_TOKEN" ] && [ "$NEW_ACCESS_TOKEN" != "null" ]; then
         # Store the new access token
         echo "$NEW_ACCESS_TOKEN" | secret-tool store --label="Gmail OAuth2 Access Token (auto-refreshed)" \
           service himalaya-cli username gmail-smtp-oauth2-access-token
         echo "OAuth2 access token refreshed successfully"
-        
+
         # Also update refresh token if provided
         NEW_REFRESH_TOKEN=$(echo "$RESPONSE" | ${pkgs.jq}/bin/jq -r '.refresh_token // empty')
         if [ -n "$NEW_REFRESH_TOKEN" ] && [ "$NEW_REFRESH_TOKEN" != "null" ]; then
@@ -310,7 +166,7 @@
             service himalaya-cli username gmail-smtp-oauth2-refresh-token
           echo "OAuth2 refresh token updated"
         fi
-        
+
         exit 0
       else
         echo "Failed to refresh OAuth2 token. Response: $RESPONSE"
@@ -318,12 +174,12 @@
         exit 1
       fi
     '')
-    
+
     # Himalaya email client with full feature set
     (pkgs-unstable.himalaya.overrideAttrs (oldAttrs: {
-      cargoBuildFlags = (oldAttrs.cargoBuildFlags or []) ++ [ "--features=oauth2,keyring" ];
-    }))     # Himalaya with OAuth2 support
-    
+      cargoBuildFlags = (oldAttrs.cargoBuildFlags or [ ]) ++ [ "--features=oauth2,keyring" ];
+    })) # Himalaya with OAuth2 support
+
     # Custom cyrus-sasl with XOAUTH2 plugin built-in and mbsync with proper linking
     (let
       cyrus-sasl-with-xoauth2 = pkgs.cyrus_sasl.overrideAttrs (oldAttrs: {
@@ -338,21 +194,21 @@
         cyrus_sasl = cyrus-sasl-with-xoauth2;
       };
     in mbsync-with-xoauth2)
-    
-    pkgs.cyrus-sasl-xoauth2   # Keep for reference
-    msmtp        # For sending emails via SMTP
-    pass         # Password manager for storing OAuth2 tokens
-    gnupg        # Required for pass to work
-    w3m          # Terminal web browser for viewing HTML emails
-    curl         # For OAuth2 token refresh
-    jq           # For parsing JSON responses
+
+    pkgs.cyrus-sasl-xoauth2 # Keep for reference
+    msmtp # For sending emails via SMTP
+    pass # Password manager for storing OAuth2 tokens
+    gnupg # Required for pass to work
+    w3m # Terminal web browser for viewing HTML emails
+    curl # For OAuth2 token refresh
+    jq # For parsing JSON responses
     # Note: libsecret is already installed system-wide in configuration.nix
     # Required for running mcp-hub JavaScript tools
     # MCP-Hub is now managed by the home module
-    nodejs    # Required runtime dependency
-    (python3.withPackages(p: (with p; [
-      zulip      # Zulip API client and zulip-send CLI
-      z3-solver  # Renamed from z3 in nixos-unstable
+    nodejs # Required runtime dependency
+    (python3.withPackages (p: (with p; [
+      zulip # Zulip API client and zulip-send CLI
+      z3-solver # Renamed from z3 in nixos-unstable
       setuptools
       pyinstrument
       build
@@ -379,7 +235,7 @@
       pandas
       datasets
       huggingface-hub
-      torch  # PyTorch for machine learning and AI
+      torch # PyTorch for machine learning and AI
       moviepy
 
       # Scientific computing stack (added for R/Quarto interop)
@@ -394,22 +250,22 @@
       # Jupyter Notebooks
       # jupytext               # DISABLED: 1.18.1 has 2 failing tests (async/sync ContentsManager mismatch). Re-enable once fixed upstream.
       ipython
-      google-generativeai  # Google Gemini API client (pip: google-genai)
+      google-generativeai # Google Gemini API client (pip: google-genai)
       # pymupdf4llm          # LLM-optimized PDF extraction (custom package) - TEMPORARILY DISABLED: requires PyMuPDF 1.26.6, nixpkgs has 1.24.10
       # pdf2docx           # Convert PDF to DOCX - DISABLED: pulls python-docx 1.2.0 -> behave -> cucumber-expressions 18.1.0 -> uv_build<0.10.0 (nixpkgs has 0.10.0). Re-enable once fixed upstream.
-      python-docx          # Create/modify Word documents
-      vosk                 # Offline speech recognition (custom package)
-      pymupdf              # PDF manipulation library
+      python-docx # Create/modify Word documents
+      vosk # Offline speech recognition (custom package)
+      pymupdf # PDF manipulation library
       # markitdown removed - depends on magika->onnxruntime; use: nix shell nixpkgs#python3Packages.markitdown
     ]) ++ [
-      p.scikit-learn  # Machine learning (hyphen requires dotted form outside with block)
+      p.scikit-learn # Machine learning (hyphen requires dotted form outside with block)
     ]))
 
     # Clipboard history manager (for niri session)
     wl-clipboard
     cliphist
 
-    nerd-fonts.roboto-mono  # Nerd Fonts with Roboto Mono (nixos-unstable uses new nerd-fonts structure)
+    nerd-fonts.roboto-mono # Nerd Fonts with Roboto Mono (nixos-unstable uses new nerd-fonts structure)
     jetbrains-mono
 
     # Whisper dictation script for Wayland
@@ -694,7 +550,7 @@
   ];
 
   # Create mail directory for Himalaya with proper structure
-  home.activation.createMailDir = config.lib.dag.entryAfter ["writeBoundary"] ''
+  home.activation.createMailDir = config.lib.dag.entryAfter [ "writeBoundary" ] ''
     mkdir -p /home/benjamin/Mail/Gmail/INBOX/{cur,new,tmp}
     mkdir -p "/home/benjamin/Mail/Gmail/Sent"/{cur,new,tmp}
     mkdir -p "/home/benjamin/Mail/Gmail/Drafts"/{cur,new,tmp}
@@ -711,26 +567,6 @@
     mkdir -p "/home/benjamin/Mail/Logos/Trash"/{cur,new,tmp}
     mkdir -p "/home/benjamin/Mail/Logos/Archive"/{cur,new,tmp}
   '';
-
-  # Copy claude config files as regular files (not symlinks) so Claude Code can write to them
-  home.activation.claudeSettings = config.lib.dag.entryAfter ["writeBoundary"] ''
-    mkdir -p /home/benjamin/.claude
-    rm -f /home/benjamin/.claude/settings.json
-    cp ${./config/claude/settings.json} /home/benjamin/.claude/settings.json
-    chmod u+w /home/benjamin/.claude/settings.json
-    rm -f /home/benjamin/.claude/keybindings.json
-    cp ${./config/claude/keybindings.json} /home/benjamin/.claude/keybindings.json
-    chmod u+w /home/benjamin/.claude/keybindings.json
-  '';
-
-  # Reinstall uv tools after rebuild (Python interpreter path changes break virtualenvs)
-  home.activation.uvTools = config.lib.dag.entryAfter ["writeBoundary"] ''
-    if command -v uv &>/dev/null; then
-      run uv tool install --force lean-lsp-mcp 2>/dev/null || true
-    fi
-  '';
-
-  home.file.".zuliprc".source = ./config/zuliprc;
 
   # Systemd user services for ydotool daemon (required for dictation)
   systemd.user.services.screenshot-path-copy = {
@@ -792,9 +628,9 @@
       Requires = [ "gmail-oauth2-refresh.service" ];
     };
     Timer = {
-      OnCalendar = "*:0/45";  # Every 45 minutes
+      OnCalendar = "*:0/45"; # Every 45 minutes
       Persistent = true;
-      RandomizedDelaySec = 300;  # Random delay up to 5 minutes
+      RandomizedDelaySec = 300; # Random delay up to 5 minutes
     };
     Install = {
       WantedBy = [ "timers.target" ];
@@ -848,34 +684,7 @@
 
   # DISABLED: pgrep -f 'claude' self-matches inhibitor script, memory-tracker,
   # earlyoom, etc., causing sleep to be permanently blocked. See task 50.
-  # systemd.user.services.claude-sleep-inhibitor = {
-  #   Unit = {
-  #     Description = "Inhibit sleep while Claude Code is active";
-  #     After = [ "default.target" ];
-  #   };
-  #   Service = {
-  #     Type = "simple";
-  #     ExecStart = let
-  #       script = pkgs.writeShellScript "claude-sleep-inhibitor" ''
-  #         while true; do
-  #           if ${pkgs.procps}/bin/pgrep -f 'claude' > /dev/null; then
-  #             ${pkgs.systemd}/bin/systemd-inhibit --what=sleep:idle \
-  #               --why="Claude Code is running" \
-  #               --who="claude-sleep-inhibitor" \
-  #               ${pkgs.bash}/bin/bash -c 'while ${pkgs.procps}/bin/pgrep -f "claude" > /dev/null; do ${pkgs.coreutils}/bin/sleep 30; done' \
-  #               || ${pkgs.coreutils}/bin/sleep 5
-  #           fi
-  #           ${pkgs.coreutils}/bin/sleep 30
-  #         done
-  #       '';
-  #     in "${script}";
-  #     Restart = "always";
-  #     RestartSec = 10;
-  #   };
-  #   Install = {
-  #     WantedBy = [ "default.target" ];
-  #   };
-  # };
+  # systemd.user.services.claude-sleep-inhibitor = { ... };
 
   # Weekly cleanup of regenerable package-manager caches (pip/uv/npm) so they
   # don't regrow unbounded. Nix store GC is handled by nix.gc (configuration.nix)
@@ -887,17 +696,19 @@
     };
     Service = {
       Type = "oneshot";
-      ExecStart = let
-        script = pkgs.writeShellScript "cache-cleanup" ''
-          export PATH="${config.home.homeDirectory}/.nix-profile/bin:/run/current-system/sw/bin:$PATH"
-          echo "cache-cleanup: starting"
-          command -v pip >/dev/null 2>&1 && pip cache purge || true
-          command -v uv  >/dev/null 2>&1 && uv cache clean || true
-          command -v npm >/dev/null 2>&1 && npm cache clean --force || true
-          ${pkgs.coreutils}/bin/rm -rf "${config.home.homeDirectory}/.npm/_npx" || true
-          echo "cache-cleanup: done"
-        '';
-      in "${script}";
+      ExecStart =
+        let
+          script = pkgs.writeShellScript "cache-cleanup" ''
+            export PATH="${config.home.homeDirectory}/.nix-profile/bin:/run/current-system/sw/bin:$PATH"
+            echo "cache-cleanup: starting"
+            command -v pip >/dev/null 2>&1 && pip cache purge || true
+            command -v uv  >/dev/null 2>&1 && uv cache clean || true
+            command -v npm >/dev/null 2>&1 && npm cache clean --force || true
+            ${pkgs.coreutils}/bin/rm -rf "${config.home.homeDirectory}/.npm/_npx" || true
+            echo "cache-cleanup: done"
+          '';
+        in
+        "${script}";
     };
   };
 
@@ -938,743 +749,4 @@
 
   # Enable systemd integration
   systemd.user.startServices = "sd-switch";
-
-  # Home Manager is pretty good at managing dotfiles. The primary way to manage
-  # plain files is through 'home.file'.
-  # Configure cursor theme properly
-  home.pointerCursor = {
-    name = "Adwaita";
-    package = pkgs.adwaita-icon-theme;
-    size = 24;
-    x11.enable = true;
-    gtk.enable = true;
-  };
-
-  # Enable XDG base directories
-  xdg.enable = true;
-
-  # Sioyek PDF viewer - custom desktop entry in ~/.local/share/applications
-  # This location is fully respected by GNOME Files (unlike ~/.nix-profile/share/applications)
-  # Uses the Wayland-wrapped binary from configuration.nix (QT_WAYLAND_DISABLE_WINDOWDECORATION=1)
-  xdg.dataFile."applications/sioyek.desktop".text = ''
-    [Desktop Entry]
-    Type=Application
-    Name=Sioyek
-    GenericName=PDF Viewer
-    Comment=PDF viewer for reading research papers and technical books
-    Exec=/run/current-system/sw/bin/sioyek --reuse-window %f
-    Icon=sioyek-icon-linux
-    Terminal=false
-    Categories=Office;Viewer;
-    MimeType=application/pdf;
-  '';
-
-  # MIME type associations - browser defaults only, PDF managed via GNOME
-  xdg.mimeApps = {
-    enable = true;
-    defaultApplications = {
-      "text/html" = "brave-browser.desktop";
-      "x-scheme-handler/http" = "brave-browser.desktop";
-      "x-scheme-handler/https" = "brave-browser.desktop";
-      "x-scheme-handler/about" = "brave-browser.desktop";
-      "x-scheme-handler/unknown" = "brave-browser.desktop";
-    };
-  };
-
-  # Configure WezTerm through home-manager
-  # programs.wezterm = {
-  #   enable = true;
-  #   extraConfig = builtins.readFile ./config/wezterm.lua;
-  # };
-
-  home.file = {
-    ".config/fastfetch/config.jsonc".source = ./config/fastfetch.jsonc;
-    ".config/opencode/opencode.json".source = ./config/opencode.json;
-    ".config/sioyek/prefs_user.config".source = ./config/sioyek/prefs_user.config;
-    ".config/sioyek/keys_user.config".source = ./config/sioyek/keys_user.config;
-    # Niri config - ENABLED (dual-session with GNOME)
-    ".config/niri/config.kdl".source = ./config/config.kdl;
-    # WezTerm config is now managed by programs.wezterm above
-    # ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
-
-
-    # mbsync configuration for IMAP synchronization with XOAUTH2
-    ".mbsyncrc".text = ''
-      # Gmail IMAP account with XOAUTH2 support
-      IMAPAccount gmail
-      Host imap.gmail.com
-      Port 993
-      User benbrastmckie@gmail.com
-      AuthMechs XOAUTH2
-      PassCmd "secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-access-token"
-      TLSType IMAPS
-
-      # Gmail remote store
-      IMAPStore gmail-remote
-      Account gmail
-
-      # Gmail local store - MAILDIR++ FORMAT
-      MaildirStore gmail-local
-      Inbox ~/Mail/Gmail/
-      SubFolders Maildir++
-
-      # Inbox channel - emails go to root cur/new directories
-      Channel gmail-inbox
-      Far :gmail-remote:INBOX
-      Near :gmail-local:
-      Create Both
-      Expunge Both
-      SyncState *
-
-      # Quick inbox channel - syncs only the 50 most recent emails
-      Channel gmail-inbox-quick
-      Far :gmail-remote:INBOX
-      Near :gmail-local:
-      Create Both
-      Expunge Both
-      SyncState *
-      MaxMessages 50
-      ExpireUnread yes
-
-      # Subfolders - Maildir++ adds dot prefix automatically
-      Channel gmail-sent
-      Far :gmail-remote:"[Gmail]/Sent Mail"
-      Near :gmail-local:Sent
-      Create Both
-      Expunge Both
-      SyncState *
-
-      Channel gmail-drafts
-      Far :gmail-remote:"[Gmail]/Drafts"
-      Near :gmail-local:Drafts
-      Create Both
-      Expunge Both
-      SyncState *
-
-      Channel gmail-trash
-      Far :gmail-remote:"[Gmail]/Trash"
-      Near :gmail-local:Trash
-      Create Both
-      Expunge Both
-      SyncState *
-
-      Channel gmail-all
-      Far :gmail-remote:"[Gmail]/All Mail"
-      Near :gmail-local:All_Mail
-      Create Both
-      Expunge Both
-      SyncState *
-
-      Channel gmail-spam
-      Far :gmail-remote:"[Gmail]/Spam"
-      Near :gmail-local:Spam
-      Create Both
-      Expunge Both
-      SyncState *
-
-      Channel gmail-folders
-      Far :gmail-remote:
-      Near :gmail-local:
-      Patterns * ![Gmail]* !INBOX !Sent !Drafts !Trash !All_Mail !Spam
-      Create Both
-      Expunge Both
-      Remove Both
-      SyncState *
-
-      # Group all channels together
-      Group gmail
-      Channel gmail-inbox
-      Channel gmail-sent
-      Channel gmail-drafts
-      Channel gmail-trash
-      Channel gmail-all
-      Channel gmail-spam
-      Channel gmail-folders
-
-      # Logos Labs IMAP account (via Protonmail Bridge)
-      IMAPAccount logos
-      Host 127.0.0.1
-      Port 1143
-      User benjamin@logos-labs.ai
-      PassCmd "secret-tool lookup service protonmail-bridge username benjamin@logos-labs.ai"
-      TLSType None
-      AuthMechs LOGIN
-
-      IMAPStore logos-remote
-      Account logos
-
-      MaildirStore logos-local
-      Inbox ~/Mail/Logos/
-      SubFolders Maildir++
-
-      Channel logos-inbox
-      Far :logos-remote:INBOX
-      Near :logos-local:
-      Create Both
-      Expunge Both
-      SyncState *
-
-      Channel logos-sent
-      Far :logos-remote:Sent
-      Near :logos-local:Sent
-      Create Both
-      Expunge Both
-      SyncState *
-
-      Channel logos-drafts
-      Far :logos-remote:Drafts
-      Near :logos-local:Drafts
-      Create Both
-      Expunge Both
-      SyncState *
-
-      Channel logos-trash
-      Far :logos-remote:Trash
-      Near :logos-local:Trash
-      Create Both
-      Expunge Both
-      SyncState *
-
-      Channel logos-archive
-      Far :logos-remote:Archive
-      Near :logos-local:Archive
-      Create Both
-      Expunge Both
-      SyncState *
-
-      Channel logos-labels
-      Far :logos-remote:
-      Near :logos-local:
-      Patterns "Labels/*"
-      Create Both
-      Expunge Both
-      Remove Both
-      SyncState *
-
-      Channel logos-folders
-      Far :logos-remote:
-      Near :logos-local:
-      Patterns "Folders/*"
-      Create Both
-      Expunge Both
-      Remove Both
-      SyncState *
-
-      Group logos
-      Channel logos-inbox
-      Channel logos-sent
-      Channel logos-drafts
-      Channel logos-trash
-      Channel logos-archive
-      Channel logos-labels
-      Channel logos-folders
-    '';
-
-    # Active configuration files
-    ".config/fish/config.fish".source = ./config/config.fish;
-    ".config/kitty/kitty.conf".source = ./config/kitty.conf;
-    ".config/zathura/zathurarc".source = ./config/zathurarc;
-    ".config/alacritty/alacritty.toml".source = ./config/alacritty.toml;
-    ".config/wezterm/wezterm.lua".source = ./config/wezterm.lua;
-    ".config/himalaya/config.toml".source = ./config/himalaya-config.toml;
-    # NOTE: .claude/{settings,keybindings}.json managed via activation script (not symlink)
-    # so that Claude Code can write runtime changes. Source: config/claude/
-    # See home.activation.claudeSettings below.
-
-    # aerc email client accounts configuration
-    ".config/aerc/accounts.conf".text = ''
-      [gmail]
-      source = notmuch://~/Mail
-      query-map = ~/.config/aerc/querymap-gmail
-      default = INBOX
-      from = Benjamin Brast-McKie <benbrastmckie@gmail.com>
-      copy-to = Sent
-      archive = All_Mail
-      outgoing = smtps://benbrastmckie@gmail.com@smtp.gmail.com:465
-      outgoing-cred-cmd = secret-tool lookup service gmail-app-password username benbrastmckie@gmail.com
-
-      [logos]
-      source = notmuch://~/Mail
-      query-map = ~/.config/aerc/querymap-logos
-      default = INBOX
-      from = Benjamin Brast-McKie <benjamin@logos-labs.ai>
-      copy-to = Sent
-      archive = Archive
-      outgoing = smtp://benjamin@logos-labs.ai@127.0.0.1:1025
-      outgoing-cred-cmd = secret-tool lookup service protonmail-bridge username benjamin@logos-labs.ai
-    '';
-
-    # aerc query map for Gmail virtual folders
-    ".config/aerc/querymap-gmail".text = ''
-      INBOX=tag:inbox AND tag:gmail
-      Sent=folder:Gmail/.Sent
-      Drafts=folder:Gmail/.Drafts
-      Trash=folder:Gmail/.Trash
-      All_Mail=folder:Gmail/.All_Mail
-      Spam=folder:Gmail/.Spam
-      Unread=tag:unread AND tag:gmail
-      Flagged=tag:flagged AND tag:gmail
-    '';
-
-    # aerc query map for Logos virtual folders
-    ".config/aerc/querymap-logos".text = ''
-      INBOX=tag:inbox AND tag:logos
-      Sent=folder:Logos/.Sent
-      Drafts=folder:Logos/.Drafts
-      Trash=folder:Logos/.Trash
-      Archive=folder:Logos/.Archive
-      Unread=tag:unread AND tag:logos
-      Flagged=tag:flagged AND tag:logos
-    '';
-    ".tmux.conf".source = ./config/.tmux.conf;
-    ".latexmkrc".source = ./config/latexmkrc;
-
-    # Config-files directory (actual file copies for version control)
-    ".config/config-files/config.fish".text = builtins.readFile ./config/config.fish;
-    ".config/config-files/kitty.conf".text = builtins.readFile ./config/kitty.conf;
-    ".config/config-files/zathurarc".text = builtins.readFile ./config/zathurarc;
-    ".config/config-files/alacritty.toml".text = builtins.readFile ./config/alacritty.toml;
-    ".config/config-files/wezterm.lua".text = builtins.readFile ./config/wezterm.lua;
-    ".config/config-files/.tmux.conf".text = builtins.readFile ./config/.tmux.conf;
-    ".config/config-files/latexmkrc".text = builtins.readFile ./config/latexmkrc;
-
-    # TTS/STT Models - declaratively managed
-    ".local/share/vosk/vosk-model-small-en-us-0.15".source = pkgs.vosk-model-small-en-us;
-
-    # # Building this configuration will create a copy of 'dotfiles/screenrc' in
-    # # the Nix store. Activating the configuration will then make '~/.screenrc' a
-    # # symlink to the Nix store copy. All files must at least be staged in git.
-
-    # # You can also set the file content immediately.
-    # ".gradle/gradle.properties".text = ''
-    #   org.gradle.console=verbose
-    #   org.gradle.daemon.idletimeout=3600000
-    # '';
-  };
-
-  # Niri session services - only active when using niri session
-  programs.waybar = {
-    enable = true;
-    settings = {
-      mainBar = {
-        layer = "top";
-        position = "top";
-        height = 32;
-        modules-left = ["niri/workspaces" "niri/window"];
-        modules-center = ["clock"];
-        modules-right = ["idle_inhibitor" "tray" "bluetooth" "pulseaudio" "network" "battery"];
-
-        "niri/workspaces" = {
-          format = "{icon}";
-          format-icons = {
-            "1:web" = "";
-            "2:code" = "";
-            "3:term" = "";
-            "4:docs" = "";
-            "5:media" = "";
-            "6:chat" = "";
-            "7:misc" = "";
-            "8:extra" = "";
-            "9:bg" = "";
-            default = "";
-          };
-        };
-
-        "niri/window" = {
-          max-length = 50;
-        };
-
-        clock = {
-          format = "{:%H:%M}";
-          format-alt = "{:%Y-%m-%d %H:%M}";
-          tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
-        };
-
-        battery = {
-          format = "{icon} {capacity}%";
-          format-charging = " {capacity}%";
-          format-plugged = " {capacity}%";
-          format-icons = ["" "" "" "" ""];
-          states = {
-            warning = 30;
-            critical = 15;
-          };
-        };
-
-        network = {
-          format-wifi = " {essid} ({signalStrength}%)";
-          format-ethernet = " {ifname}";
-          format-disconnected = " Disconnected";
-          tooltip-format = "{ifname}: {ipaddr}/{cidr}";
-          on-click = "gnome-control-center wifi";
-        };
-
-        pulseaudio = {
-          format = "{icon} {volume}%";
-          format-muted = " Muted";
-          format-icons = {
-            default = ["" "" ""];
-            headphone = "";
-            headset = "";
-          };
-          on-click = "gnome-control-center sound";
-        };
-
-        bluetooth = {
-          format = " {status}";
-          format-connected = " {device_alias}";
-          format-disabled = "";
-          tooltip-format = "{controller_alias}\t{controller_address}";
-          on-click = "gnome-control-center bluetooth";
-        };
-
-        idle_inhibitor = {
-          format = "{icon}";
-          format-icons = {
-            activated = "";
-            deactivated = "";
-          };
-          tooltip-format-activated = "Idle inhibitor: ON";
-          tooltip-format-deactivated = "Idle inhibitor: OFF";
-        };
-
-        tray = {
-          spacing = 10;
-        };
-      };
-    };
-  };
-
-  services.mako = {
-    enable = true;
-    settings = {
-      default-timeout = 5000;
-      background-color = "#2e3440";
-      text-color = "#eceff4";
-      border-color = "#5e81ac";
-      border-size = 2;
-      icons = true;
-      max-icon-size = 64;
-    };
-  };
-
-  # Kanshi - dynamic monitor configuration for Niri
-  # Note: Uses niri.service target so it only runs in Niri session
-  services.kanshi = {
-    enable = true;
-    systemdTarget = "niri.service";
-    settings = [
-      {
-        profile.name = "undocked";
-        profile.outputs = [
-          {
-            criteria = "eDP-1";
-            status = "enable";
-            mode = "2560x1600@120Hz";
-            scale = 1.25;
-          }
-        ];
-      }
-      # Add docked profiles when external monitors are available
-      # Example:
-      # {
-      #   profile.name = "docked-home";
-      #   profile.outputs = [
-      #     { criteria = "eDP-1"; status = "disable"; }
-      #     { criteria = "DP-1"; status = "enable"; mode = "3840x2160@60Hz"; scale = 1.5; }
-      #   ];
-      # }
-    ];
-  };
-
-  # ProtonMail Bridge systemd service for local IMAP/SMTP
-  services.protonmail-bridge = {
-    enable = true;
-    logLevel = "info";
-  };
-
-  # ==========================================================================
-  # Email Client Configuration: notmuch + aerc
-  # ==========================================================================
-  # Provides a terminal-based email workflow with:
-  #   - notmuch: Xapian-based full-text search and tag-based organization
-  #   - aerc: Modern TUI email client with vim keybindings
-  # Works alongside existing himalaya/mbsync configuration.
-  # See: specs/045_add_terminal_email_client_to_nixos
-  # ==========================================================================
-
-  # notmuch - email indexer and search
-  programs.notmuch = {
-    enable = true;
-    # Required: primary email for notmuch
-    extraConfig = {
-      user = {
-        name = "Benjamin Brast-McKie";
-        primary_email = "benbrastmckie@gmail.com";
-        other_email = "benjamin@logos-labs.ai";
-      };
-      database = {
-        path = "/home/benjamin/Mail";
-      };
-    };
-    hooks = {
-      preNew = "mbsync -a";
-      postNew = ''
-        # Tag new mail
-        notmuch tag +inbox +unread -- tag:new
-        notmuch tag -new -- tag:new
-        # Auto-tag by folder
-        notmuch tag +sent -inbox -- folder:Gmail/.Sent OR folder:Logos/.Sent
-        notmuch tag +trash -inbox -- folder:Gmail/.Trash OR folder:Logos/.Trash
-        notmuch tag +spam -inbox -- folder:Gmail/.Spam
-        # Tag by account
-        notmuch tag +gmail -- folder:/Gmail/
-        notmuch tag +logos -- folder:/Logos/
-      '';
-    };
-    new = {
-      tags = [ "new" ];
-      ignore = [ ".mbsyncstate" ".strstrings" ".lock" "dovecot*" ];
-    };
-    search = {
-      excludeTags = [ "deleted" "spam" "trash" ];
-    };
-    maildir = {
-      synchronizeFlags = true;
-    };
-  };
-
-  # aerc - terminal email client with notmuch backend
-  programs.aerc = {
-    enable = true;
-    extraConfig = {
-      general = {
-        unsafe-accounts-conf = true;
-        pgp-provider = "gpg";
-        default-save-path = "~/Downloads";
-      };
-      ui = {
-        index-columns = "date<20,name<20,flags>4,subject<*";
-        column-separator = "  ";
-        timestamp-format = "2006-01-02 15:04";
-        this-day-time-format = "15:04";
-        this-week-time-format = "Mon 15:04";
-        this-year-time-format = "Jan 02";
-        sidebar-width = 20;
-        empty-message = "(no messages)";
-        empty-dirlist = "(no folders)";
-        mouse-enabled = false;
-        new-message-bell = true;
-        styleset-name = "default";
-      };
-      viewer = {
-        pager = "less -R";
-        alternatives = "text/plain,text/html";
-        show-headers = false;
-        header-layout = "From|To,Cc|Bcc,Date,Subject";
-      };
-      compose = {
-        editor = "nvim";
-        header-layout = "To|From,Subject";
-        address-book-cmd = "";
-        reply-to-self = false;
-      };
-      filters = {
-        "text/plain" = "colorize";
-        "text/calendar" = "calendar";
-        "message/delivery-status" = "colorize";
-        "message/rfc822" = "colorize";
-        "text/html" = "w3m -I UTF-8 -T text/html -o display_link_number=1";
-      };
-      openers = {
-        "text/html" = "xdg-open";
-        "application/pdf" = "zathura";
-        "image/*" = "imv";
-      };
-    };
-    extraBinds = {
-      # Global bindings
-      global = {
-        "<C-p>" = ":prev-tab<Enter>";
-        "<C-n>" = ":next-tab<Enter>";
-        "<C-t>" = ":term<Enter>";
-        "?" = ":help keys<Enter>";
-      };
-
-      # Message list bindings
-      messages = {
-        q = ":quit<Enter>";
-
-        # Vim navigation
-        j = ":next<Enter>";
-        k = ":prev<Enter>";
-        J = ":next-folder<Enter>";
-        K = ":prev-folder<Enter>";
-        g = ":select 0<Enter>";
-        G = ":select -1<Enter>";
-        "<C-d>" = ":next 50%<Enter>";
-        "<C-u>" = ":prev 50%<Enter>";
-        "<C-f>" = ":next 100%<Enter>";
-        "<C-b>" = ":prev 100%<Enter>";
-
-        # Actions
-        "<Enter>" = ":view<Enter>";
-        d = ":prompt 'Delete message?' 'delete-message'<Enter>";
-        D = ":delete<Enter>";
-        a = ":archive flat<Enter>";
-        A = ":unmark -a<Enter>:mark -a<Enter>:archive flat<Enter>";
-
-        # Compose
-        c = ":compose<Enter>";
-        r = ":reply<Enter>";
-        R = ":reply -a<Enter>";
-        f = ":forward<Enter>";
-
-        # Tags
-        t = ":modify-tags ";
-        T = ":toggle-tag ";
-        "*" = ":toggle-tag flagged<Enter>";
-
-        # Search and filter
-        "/" = ":search ";
-        n = ":next-result<Enter>";
-        N = ":prev-result<Enter>";
-        v = ":filter ";
-        V = ":clear<Enter>";
-
-        # Selection
-        x = ":toggle-select<Enter>:next<Enter>";
-        X = ":toggle-select<Enter>:prev<Enter>";
-        "<Space>" = ":toggle-select<Enter>";
-
-        # Sync
-        "$" = ":exec mbsync -a && notmuch new<Enter>";
-        u = ":check-mail<Enter>";
-
-        # Marks
-        m = ":mark ";
-        M = ":unmark -a<Enter>";
-      };
-
-      # Message view bindings (Drafts folder)
-      "messages:folder=Drafts" = {
-        "<Enter>" = ":recall<Enter>";
-      };
-
-      view = {
-        q = ":close<Enter>";
-
-        # Navigation
-        j = ":next-part<Enter>";
-        k = ":prev-part<Enter>";
-        J = ":next<Enter>";
-        K = ":prev<Enter>";
-
-        # Actions
-        r = ":reply<Enter>";
-        R = ":reply -a<Enter>";
-        f = ":forward<Enter>";
-        d = ":prompt 'Delete message?' 'delete-message'<Enter>";
-        a = ":archive flat<Enter>";
-
-        # Attachments
-        o = ":open<Enter>";
-        s = ":save<Enter>";
-        S = ":save -a<Enter>";
-
-        # Toggle
-        h = ":toggle-headers<Enter>";
-        H = ":toggle-key-passthrough<Enter>";
-
-        # Pager
-        "<Space>" = ":page-down<Enter>";
-        "<C-d>" = ":page-down<Enter>";
-        "<C-u>" = ":page-up<Enter>";
-      };
-
-      # Compose bindings
-      compose = {
-        "$ex" = "<C-x>";
-        "<C-k>" = ":prev-field<Enter>";
-        "<C-j>" = ":next-field<Enter>";
-        "<C-p>" = ":prev-tab<Enter>";
-        "<C-n>" = ":next-tab<Enter>";
-      };
-
-      "compose::editor" = {
-        "$noinherit" = "true";
-        "$ex" = "<C-x>";
-        "<C-k>" = ":prev-field<Enter>";
-        "<C-j>" = ":next-field<Enter>";
-        "<C-p>" = ":prev-tab<Enter>";
-        "<C-n>" = ":next-tab<Enter>";
-      };
-
-      "compose::review" = {
-        y = ":send<Enter>";
-        n = ":abort<Enter>";
-        p = ":postpone<Enter>";
-        q = ":abort<Enter>";
-        e = ":edit<Enter>";
-        a = ":attach<space>";
-        d = ":detach<space>";
-      };
-
-      # Terminal bindings
-      terminal = {
-        "$noinherit" = "true";
-        "$ex" = "<C-x>";
-        "<C-p>" = ":prev-tab<Enter>";
-        "<C-n>" = ":next-tab<Enter>";
-      };
-    };
-  };
-
-  programs.swaylock = {
-    enable = true;
-    settings = {
-      color = "2e3440";
-      font-size = 24;
-      indicator-idle-visible = false;
-      indicator-radius = 100;
-      line-color = "5e81ac";
-    };
-  };
-
-  # swayidle - DISABLED (using spawn-at-startup in config.kdl instead)
-  # Reason: systemd service tries to start in GNOME session where the
-  # ext-idle-notify-v1 protocol doesn't exist, causing "Display doesn't
-  # support idle protocol" error. Using spawn-at-startup ensures swayidle
-  # only runs in niri session.
-  # services.swayidle = {
-  #   enable = true;
-  #   events = [
-  #     { event = "before-sleep"; command = "${pkgs.swaylock}/bin/swaylock -f"; }
-  #     { event = "lock"; command = "${pkgs.swaylock}/bin/swaylock -f"; }
-  #   ];
-  #   timeouts = [
-  #     { timeout = 300; command = "${pkgs.swaylock}/bin/swaylock -f"; }
-  #     { timeout = 600; command = "${pkgs.systemd}/bin/systemctl suspend"; }
-  #   ];
-  # };
-
-  home.sessionVariables = {
-    EDITOR = "nvim";
-    # Prefer Wayland over X11
-    NIXOS_OZONE_WL = "1";
-    # MCP_HUB_PATH is now managed by the MCP-Hub module
-    SASL_PATH = "${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2";
-    # Cursor settings for WezTerm and other applications
-    XCURSOR_THEME = "Adwaita";
-    XCURSOR_SIZE = "24";
-    # Library path for CVC5 C++ dependencies
-    LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
-    # Centralized literature repository for all projects (Claude Code --lit flag)
-    LITERATURE_DIR = "/home/benjamin/Projects/Literature";
-  };
-
-  # programs.pylint.enable = true;
-
-  # Let Home Manager install and manage itself.
-  programs.home-manager.enable = true;
 }
