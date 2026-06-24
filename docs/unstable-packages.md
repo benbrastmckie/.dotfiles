@@ -2,9 +2,15 @@
 
 This document explains the approach used for managing packages from the unstable channel within the NixOS configuration.
 
+> **Note**: The root-level `unstable-packages.nix` file has been deleted (task 66, Phase 1).
+> Unstable package management now lives entirely in `flake.nix` (overlay inline, pending
+> Phase 2 extraction to `overlays/unstable-packages.nix`).
+
 ## Approach
 
-The configuration uses a centralized overlay in `flake.nix` to selectively pull packages from the unstable channel while keeping the rest of the system on the stable channel. This approach:
+The configuration uses a centralized overlay (`unstablePackagesOverlay`) defined in `flake.nix`
+(planned: `overlays/unstable-packages.nix` after task 66 Phase 2) to selectively pull packages
+from the unstable channel while keeping the rest of the system on the stable channel. This approach:
 
 1. Makes it explicit which packages are being pulled from unstable
 2. Keeps the configuration clean and maintainable
@@ -18,22 +24,30 @@ The configuration uses a centralized overlay in `flake.nix` to selectively pull 
 
 ## Current Unstable Packages
 
-The following packages are currently pulled from the unstable channel:
+The following packages are currently pulled from the unstable channel (in `flake.nix` →
+`unstablePackagesOverlay`):
 
-| Package          | Reason for using unstable |
-|------------------|---------------------------|
-| neovim-unwrapped | Get latest editor features and bug fixes |
-| niri             | Window manager under active development |
-| gemini-cli       | Google Gemini AI CLI tool |
-| goose-cli        | Block's open source AI coding agent |
+| Package              | Reason for using unstable |
+|----------------------|---------------------------|
+| neovim-unwrapped     | Get latest editor features and bug fixes |
+| niri                 | Window manager under active development |
+| gemini-cli           | Google Gemini AI CLI tool |
+| claude-code          | Custom build (packages/claude-code.nix) |
+| opencode             | Custom build (packages/opencode.nix) |
+| loogle               | Custom Lean 4 Mathlib search wrapper |
+| aristotle            | Custom AI theorem prover wrapper |
+| slidev               | Custom presentation tool wrapper |
+| kooha                | Screen recorder with full GStreamer support |
+| vosk-model-small-en-us | Vosk STT language model |
 
-**Note**: `claude-code` was previously managed via unstable packages but has been migrated to a custom NPX wrapper approach for zero-maintenance automatic updates. See `packages/claude-code.nix` and the NPX Wrapper Pattern section in `CLAUDE.md` for details.
+**Note**: `claude-code` and `opencode` are custom packages (not pulled from nixpkgs-unstable
+directly) — they live in `packages/` as callPackage derivations overlaid via `unstablePackagesOverlay`.
 
 ## Adding New Unstable Packages
 
 To add a new package to be pulled from unstable:
 
-1. Add it to the `unstablePackagesOverlay` in `flake.nix`
+1. Add it to the `unstablePackagesOverlay` in `flake.nix` (after Phase 2: `overlays/unstable-packages.nix`)
 2. Include a comment explaining why the package benefits from using the unstable version
 3. Use the package as normal with `pkgs.package-name` throughout your configuration
 
@@ -43,7 +57,7 @@ To add a new package to be pulled from unstable:
 unstablePackagesOverlay = final: prev: {
   # Development tools
   neovim-unwrapped = pkgs-unstable.neovim-unwrapped; # Get latest Neovim features and bug fixes
-  
+
   # Add your package here
   your-package = pkgs-unstable.your-package; # Reason for using unstable
 };
