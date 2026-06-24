@@ -32,7 +32,9 @@
       ],
       "dependencies": [
         62,
-        65
+        65,
+        63,
+        64
       ],
       "blockers": "Structural phases 2-6,9 gated on tasks 62 and 65 (both [implementing]) — they edit configuration.nix:635, home.nix:352, flake.nix python overlay which the refactor relocates. Phases 0,1,7,8 complete on branch task-66-refactor-nixos. Resume from Phase 2 after 62+65 complete."
     },
@@ -90,7 +92,13 @@
           }
         ]
       },
-      "topic": "packaging"
+      "topic": "packaging",
+      "dependencies": [
+        60,
+        61,
+        63,
+        64
+      ]
     },
     {
       "project_number": 64,
@@ -145,7 +153,7 @@
     {
       "project_number": 52,
       "project_name": "sleep_inhibition_claude_opencode",
-      "status": "planned",
+      "status": "abandoned",
       "task_type": "nix",
       "created": "2026-05-04T19:44:46Z",
       "last_updated": "2026-05-14T20:48:08Z",
@@ -163,12 +171,14 @@
           "summary": "Implementation plan with 4 phases (3.5h total) to fix pgrep self-match bug, add opencode detection, re-enable the sleep inhibitor service, and document toggle interface"
         }
       ],
-      "topic": "maintenance"
+      "topic": "maintenance",
+      "completion_summary": "Abandoned: sleep inhibitor is functioning properly; no change needed.",
+      "abandoned_at": "2026-06-24T17:35:22Z"
     },
     {
       "project_number": 50,
       "project_name": "fix_sleep_inhibitor_pgrep_self_matching",
-      "status": "researched",
+      "status": "abandoned",
       "task_type": "nix",
       "created": "2026-04-20T04:11:54Z",
       "last_updated": "2026-05-14T21:48:39Z",
@@ -182,7 +192,9 @@
       ],
       "researched": "2026-05-14T21:48:58Z",
       "next_artifact_number": 2,
-      "topic": "maintenance"
+      "topic": "maintenance",
+      "completion_summary": "Abandoned: sleep inhibitor is functioning properly; no change needed.",
+      "abandoned_at": "2026-06-24T17:35:22Z"
     },
     {
       "project_number": 46,
