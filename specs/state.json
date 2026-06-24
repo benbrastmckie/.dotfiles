@@ -4,7 +4,7 @@
     {
       "project_number": 66,
       "project_name": "review_refactor_nixos_configuration",
-      "status": "implementing",
+      "status": "blocked",
       "task_type": "nix",
       "description": "Systematically review all aspects of my current NixOS configuration, researching best practices online as of June 2026 in order to design a careful refactor that improves organization, documentation, and modularity, producing a maintainable and high performance configuration",
       "topic": "nixos-config",
@@ -29,7 +29,12 @@
           "type": "summary",
           "summary": "Partial implementation: Phases 0/1/7/8 complete; Phases 2-6/9 blocked on tasks 62 and 65 completing"
         }
-      ]
+      ],
+      "dependencies": [
+        62,
+        65
+      ],
+      "blockers": "Structural phases 2-6,9 gated on tasks 62 and 65 (both [implementing]) — they edit configuration.nix:635, home.nix:352, flake.nix python overlay which the refactor relocates. Phases 0,1,7,8 complete on branch task-66-refactor-nixos. Resume from Phase 2 after 62+65 complete."
     },
     {
       "project_number": 65,
