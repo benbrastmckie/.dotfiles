@@ -42,6 +42,7 @@
       "tag.md",
       "task.md",
       "todo.md",
+      "zulip.md",
       "project-overview.md"
     ],
     "rules": [
@@ -71,6 +72,7 @@
       "skill-team-plan",
       "skill-team-research",
       "skill-todo",
+      "skill-zulip",
       "skill-project-overview"
     ],
     "scripts": [
@@ -91,7 +93,6 @@
       "install-extension.sh",
       "install-systemd-timer.sh",
       "issue-grouping.sh",
-      "link-artifact-todo.sh",
       "literature-retrieve.sh",
       "manage-topics.sh",
       "memory-harvest.sh",
@@ -99,10 +100,6 @@
       "migrate-directory-padding.sh",
       "orphan-detection.sh",
       "parse-command-args.sh",
-      "postflight-implement.sh",
-      "postflight-plan.sh",
-      "postflight-research.sh",
-      "postflight-workflow.sh",
       "rename-session.sh",
       "roadmap-integration.sh",
       "roadmap-sync.sh",

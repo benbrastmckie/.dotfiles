@@ -41,7 +41,6 @@ This directory contains the documentation for the `.claude/` agent system. The s
     ├── system-overview.md      # Three-layer architecture overview
     ├── extension-system.md     # Extension system architecture
     ├── architecture-spec.md    # Unified workflow architecture spec
-    ├── dispatch-agent-spec.md  # dispatch_agent() function spec
     ├── handoff-schema.md       # Orchestrator handoff JSON schema
     └── orchestrate-state-machine.md # /orchestrate state machine spec
 ```

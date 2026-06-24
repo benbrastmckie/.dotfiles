@@ -2,7 +2,7 @@
 
 **Status**: Current architecture — designed by Task 592, implemented by Task 596.
 
-**See Also**: `architecture-spec.md` (Component 3), `dispatch-agent-spec.md`, `handoff-schema.md`
+**See Also**: `architecture-spec.md` (Component 3), `handoff-schema.md`
 
 ---
 
@@ -116,30 +116,33 @@ When a dispatch returns with non-empty `blockers` in the orchestrator handoff:
 Step 1: DETECT
   Read .orchestrator-handoff.json
   blockers = jq -c '.blockers // []' handoff.json
-  if [ "$(echo "$blockers" | jq 'length')" -gt 0 ]; then
-    escalate=true
-  fi
+  If blockers array is non-empty: escalate=true
 
-Step 2: RESEARCH FORK (cache-warm, no subagent_type)
+Step 2: RESEARCH FORK (subagent_type: "fork")
   blocker_desc = jq -r '.[0].description' blockers
-  dispatch_agent "" "$blocker_research_prompt" "" "true"
-  # is_blocker_escalation=true → fork (no subagent_type)
-  # Parent cache prefix inherited → ~90% token savings
+  Invoke Agent tool:
+    subagent_type: "fork"
+    prompt: "Research this blocker for task $N: $blocker_desc. Find root cause and solution path."
+    context: { task_number, session_id, blocker, orchestrator_mode: false }
   Read .orchestrator-handoff.json → research findings
 
 Step 3: READ FINDINGS
-  findings = jq -r '.summary' research_handoff.json
-  artifact = jq -r '.artifacts[0].path' research_handoff.json
+  findings = jq -r '.summary' .orchestrator-handoff.json
+  artifact = jq -r '.artifacts[0].path' .orchestrator-handoff.json
 
 Step 4: REVISE PLAN
-  dispatch_agent "reviser-agent" "$revise_prompt" "$context_with_findings" "false"
-  # Normal named subagent dispatch
-  # Reviser reads current plan + research findings, writes new plan version
+  Invoke Agent tool:
+    subagent_type: "reviser-agent"
+    prompt: "Revise plan for task $N to address blocker: $blocker_desc. Findings: $findings"
+    context: { task_number, session_id, research_findings, plan_path, orchestrator_mode: false }
+  Reviser reads current plan + research findings, writes new plan version
 
 Step 5: RE-DISPATCH IMPLEMENT
-  dispatch_agent "general-implementation-agent" "$implement_prompt" "$context" "false"
-  # orchestrator_mode=true in context
-  # Fresh implementation with revised plan
+  Invoke Agent tool:
+    subagent_type: $IMPLEMENT_AGENT  (resolved by task_type in Stage 1b)
+    prompt: "Implement task $N following the revised plan."
+    context: { task_number, session_id, orchestrator_mode: true, plan_path }
+  Fresh implementation with revised plan
 ```
 
 ---
@@ -232,4 +235,133 @@ Cycle 2: BLOCKER ESCALATION
           handoff: {status: "implemented", ...}
 
 EXIT: Task 593 completed successfully.
+```
+
+---
+
+## MT Mode: Multi-Task Orchestration
+
+MT mode drives multiple tasks through their full lifecycle (research -> plan -> implement -> completed) using a lifecycle-cycling loop with dependency-aware gating and parallel dispatch.
+
+### Lifecycle-Cycling Loop (Stage MT-3)
+
+```
+┌──────────────────────────────────────────────────┐
+│         MT Lifecycle-Cycling While Loop          │
+│                                                  │
+│  ┌─────────────────────────────────────────┐     │
+│  │ 1. Refresh statuses from state.json     │     │
+│  │    for every task in task_numbers[]     │     │
+│  └──────────────────┬──────────────────────┘     │
+│                     │                            │
+│  ┌──────────────────▼──────────────────────┐     │
+│  │ 2. All-terminal check                   │     │
+│  │    all tasks in {completed, abandoned,  │     │─── YES ──► EXIT (success)
+│  │    expanded, failed_tasks}?             │     │
+│  └──────────────────┬──────────────────────┘     │
+│                     │ NO                         │
+│  ┌──────────────────▼──────────────────────┐     │
+│  │ 3. Build eligible_tasks[]               │     │
+│  │    Filter each task:                    │     │
+│  │    (a) not terminal                     │     │
+│  │    (b) not in-flight (researching,      │     │
+│  │        planning)                        │     │
+│  │    (c) all predecessors terminal        │     │
+│  └──────────────────┬──────────────────────┘     │
+│                     │                            │
+│  ┌──────────────────▼──────────────────────┐     │
+│  │ 4. No-eligible circuit breaker          │     │
+│  │    eligible_tasks[] is empty?           │     │─── YES ──► EXIT (partial)
+│  └──────────────────┬──────────────────────┘     │
+│                     │ NO                         │
+│  ┌──────────────────▼──────────────────────┐     │
+│  │ 5. Phase-aware dispatch (Stage MT-4)    │     │
+│  │    Group eligible_tasks by needed phase:│     │
+│  │    research_tasks / plan_tasks /        │     │
+│  │    implement_tasks                      │     │
+│  │    ─────────────────────────────────    │     │
+│  │    Issue ALL Agent calls in ONE message │     │
+│  │    (concurrent parallel execution)      │     │
+│  └──────────────────┬──────────────────────┘     │
+│                     │                            │
+│  ┌──────────────────▼──────────────────────┐     │
+│  │ 6. Read handoffs for every dispatched   │     │
+│  │    task (after ALL Agents complete)     │     │
+│  └──────────────────┬──────────────────────┘     │
+│                     │                            │
+│  ┌──────────────────▼──────────────────────┐     │
+│  │ 7. Per-task postflight                  │     │
+│  │    skill_postflight_update + artifact   │     │
+│  │    linking + multi-state update         │     │
+│  └──────────────────┬──────────────────────┘     │
+│                     │                            │
+│  ┌──────────────────▼──────────────────────┐     │
+│  │ 8. cycle_count++                        │     │
+│  │    MAX_CYCLES_MT guard                  │     │─── HIT ──► EXIT (partial)
+│  └──────────────────┬──────────────────────┘     │
+│                     │                            │
+│                     └──────────────────────────► │
+│                        (back to step 1)          │
+└──────────────────────────────────────────────────┘
+```
+
+### Dependency Gating Model
+
+Tasks progress through lifecycle phases independently. A task becomes eligible when:
+1. Its current status is not terminal (`completed`, `abandoned`, `expanded`) and not in `failed_tasks`
+2. It is not in an in-flight state from a prior cycle (`researching`, `planning`)
+3. All of its predecessors in the dependency graph are in a terminal state
+
+If a predecessor is `failed`, the dependent task is immediately moved to `failed_tasks` with status `blocked`.
+
+If a predecessor is still in-progress (e.g., `researched`, `planned`), the dependent task waits until the next cycle when the predecessor reaches terminal state.
+
+### Exit Conditions
+
+| Condition | Exit Status | Description |
+|-----------|-------------|-------------|
+| All tasks terminal | `completed` (if 0 failed) or `partial` | Normal completion |
+| No eligible tasks | `partial` | Deadlock or all blocked |
+| MAX_CYCLES_MT hit | `partial` | Cycle budget exhausted |
+
+`MAX_CYCLES_MT = min(task_count * 5, 25)`
+
+### MT Example Flow: 2 Independent Tasks
+
+```
+Initial: Task A (not_started), Task B (not_started)
+         Dependency graph: {} (no dependencies between A and B)
+
+--- Cycle 1 ---
+Refresh: A=not_started, B=not_started
+All-terminal: NO
+Eligible: [A, B]  (both not_started, no dependencies)
+Dispatch: research A + research B  (ONE message, 2 Agent calls)
+After agents complete: read handoffs for A and B
+Postflight: A -> researched, B -> researched
+cycle_count: 1
+
+--- Cycle 2 ---
+Refresh: A=researched, B=researched
+All-terminal: NO
+Eligible: [A, B]  (researched is not terminal, not in-flight)
+Dispatch: plan A + plan B  (ONE message, 2 Agent calls)
+After agents complete: read handoffs for A and B
+Postflight: A -> planned, B -> planned
+cycle_count: 2
+
+--- Cycle 3 ---
+Refresh: A=planned, B=planned
+All-terminal: NO
+Eligible: [A, B]  (planned -> implement)
+Dispatch: implement A + implement B  (ONE message, 2 Agent calls)
+After agents complete: read handoffs for A and B
+Postflight: A -> completed, B -> completed
+cycle_count: 3
+
+--- Cycle 4 ---
+Refresh: A=completed, B=completed
+All-terminal: YES -- break
+
+EXIT: All 2 tasks completed. Cycles used: 3/10.
 ```

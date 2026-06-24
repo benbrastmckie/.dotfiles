@@ -199,7 +199,7 @@ The skill body after refactoring:
 # → append to state.json entry (append semantics)
 
 # skill_link_artifacts "$task_number" "$artifact_path"
-# → jq state.json update + link-artifact-todo.sh
+# → jq state.json update + generate-todo.sh
 
 # skill_cleanup "$padded_num" "$project_name"
 # → rm -f .postflight-pending .postflight-loop-guard .return-meta.json

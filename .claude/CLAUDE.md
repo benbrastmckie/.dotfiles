@@ -120,6 +120,8 @@ All commands use checkpoint-based execution: GATE IN (preflight) -> DELEGATE (sk
 | `/literature` | `/literature --index FILE` | Add/update index entry for existing markdown file |
 | `/literature` | `/literature --search "QUERY"` | Search Zotero library and Literature/ index by keyword |
 | `/literature` | `/literature --task N` | Extract task N description as search query |
+| `/cite` | `/cite N` | Verify citation claims in task N artifacts against Literature/ and Zotero |
+| `/cite` | `/cite N --gaps` | Also flag citations found but lacking a local PDF |
 
 **Multi-task syntax**: `/research`, `/plan`, and `/implement` accept multiple task numbers using commas and ranges (e.g., `/research 7, 22-24, 59`). Each task is processed by a separate agent in parallel. Flags like `--team` and `--force` apply to all tasks. See `.claude/context/patterns/multi-task-operations.md` for the full specification.
 
@@ -317,6 +319,29 @@ When `--lit` is passed to `/research`, `/plan`, `/implement`, or `/orchestrate`:
 - A `<literature-context>` block is injected after `<memory-context>` (if any) and before
   task-specific instructions
 - If `specs/literature/` does not exist or is empty, the flag is silently ignored (no error)
+
+### Interactive Sub-Index Setup Detection
+
+When `--lit` is used and `specs/literature-index.json` does not exist, the skill automatically
+detects this and offers an interactive setup flow instead of silently skipping:
+
+1. **No global index**: If `~/Projects/Literature/index.json` (or `$LITERATURE_DIR/index.json`)
+   does not exist, an informative message is shown and `--lit` is ignored for this invocation.
+
+2. **Global index exists, sub-index missing**: An `AskUserQuestion` prompt appears with three
+   choices:
+   - **Skip**: Continue without literature context (`--lit` ignored this time)
+   - **Create setup task**: Creates a task (`populate_literature_sub_index`) in TODO.md and
+     continues with the original command (no literature context this invocation). Run
+     `/orchestrate N` later to populate the sub-index.
+   - **Create task and run now**: Creates the task AND forks an inline agent to immediately
+     populate `specs/literature-index.json` by scanning the global index for relevant entries.
+     After the fork completes, the original command resumes with the newly populated literature
+     context.
+
+The sub-index creation helper is `.claude/scripts/literature-create-setup-task.sh`.
+The interactive detection block lives in Stage 4a of each skill that supports `--lit`
+(skill-researcher, skill-planner, skill-implementer, and their `--hard` variants).
 
 ### specs/literature/ Directory Convention
 

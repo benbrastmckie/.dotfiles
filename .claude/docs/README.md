@@ -200,7 +200,6 @@ Context files are discovered via `.claude/context/index.json`:
 - [System Overview](docs/architecture/system-overview.md) - Architecture details
 - [Extension System](docs/architecture/extension-system.md) - Extension architecture
 - [Architecture Spec](docs/architecture/architecture-spec.md) - Unified workflow architecture spec
-- [Dispatch Agent Spec](docs/architecture/dispatch-agent-spec.md) - dispatch_agent() function spec
 - [Handoff Schema](docs/architecture/handoff-schema.md) - Orchestrator handoff JSON schema
 - [Orchestrate State Machine](docs/architecture/orchestrate-state-machine.md) - /orchestrate state machine spec
 - [docs/README.md](docs/README.md) - Full documentation index

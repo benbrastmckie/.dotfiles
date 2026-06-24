@@ -6,8 +6,7 @@
 **Written by**: Skills when `orchestrator_mode: true` in delegation context
 **Read by**: `skill-orchestrate` state machine loop
 
-**See Also**: `architecture-spec.md` (Component 5), `orchestrate-state-machine.md`,
-`dispatch-agent-spec.md`
+**See Also**: `architecture-spec.md` (Component 5), `orchestrate-state-machine.md`
 
 ---
 
@@ -71,7 +70,9 @@ the successor agent reads markdown prose.
     "handoff_path": "specs/NNN_slug/handoffs/phase-N-handoff-TIMESTAMP.md",
     "phases_completed": 2,
     "phases_total": 4
-  }
+  },
+
+  "plan_markers_verified": true
 }
 ```
 
@@ -132,6 +133,22 @@ Points to the continuation handoff file written by the agent. The orchestrator r
 
 **Note**: `continuation_context` and `blockers` can both be present (partial completion with
 identified blockers). The orchestrator handles blockers first via escalation.
+
+### `plan_markers_verified` (optional, boolean)
+Set to `true` when Stage 5a of the implementation agent completed successfully — i.e., all
+phase headings in the plan file carry `[COMPLETED]` after the final verification and repair pass.
+
+**Semantics**:
+- `true`: Stage 5a ran and confirmed (or repaired) all phase headings to `[COMPLETED]`
+- `false` or absent: Stage 5a was skipped, ran but found unresolvable stale markers, or the
+  agent did not implement Stage 5a (pre-task-764 behavior)
+
+**Orchestrator behavior**: When `status = "implemented"` and `plan_markers_verified` is absent
+or `false`, the orchestrator logs a warning:
+```
+[orchestrate] WARNING: plan_markers_verified absent or false — stale markers may remain in plan file
+```
+This warning does not block the next lifecycle phase but is recorded for audit purposes.
 
 ---
 
@@ -295,7 +312,8 @@ during its state machine loop. It reads ONLY the 400-token handoff object.
     "Command files now source shared scripts via 'source .claude/scripts/NAME.sh'",
     "Existing update-task-status.sh and validate-artifact.sh left unchanged"
   ],
-  "dead_ends": []
+  "dead_ends": [],
+  "plan_markers_verified": true
 }
 ```
 

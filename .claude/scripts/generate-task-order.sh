@@ -180,6 +180,64 @@ build_graph() {
   done
 }
 
+# ============================================================================
+# Transitive Reduction
+# ============================================================================
+
+# _is_reachable_via: BFS from start through task_deps, return 0 if target found
+_is_reachable_via() {
+  local start="$1"
+  local target="$2"
+  local -a queue=("$start")
+  local -A seen=()
+  seen["$start"]=1
+
+  while [[ ${#queue[@]} -gt 0 ]]; do
+    local current="${queue[0]}"
+    queue=("${queue[@]:1}")
+
+    local current_deps="${task_deps[$current]:-}"
+    [[ -z "$current_deps" ]] && continue
+    read -ra cd_array <<< "$current_deps"
+    for d in "${cd_array[@]}"; do
+      [[ -z "$d" ]] && continue
+      [[ "$d" == "$target" ]] && return 0
+      if [[ -z "${seen[$d]+x}" ]]; then
+        seen["$d"]=1
+        queue+=("$d")
+      fi
+    done
+  done
+
+  return 1
+}
+
+# transitive_reduce: remove redundant edges from task_deps
+# An edge T->D is redundant if D is reachable from T through another dep.
+transitive_reduce() {
+  for tn in "${all_task_nums[@]}"; do
+    local deps="${task_deps[$tn]:-}"
+    [[ -z "$deps" ]] && continue
+    read -ra dep_array <<< "$deps"
+    [[ ${#dep_array[@]} -le 1 ]] && continue
+
+    local -a keep=()
+    for dep in "${dep_array[@]}"; do
+      local redundant=0
+      for other in "${dep_array[@]}"; do
+        [[ "$other" == "$dep" ]] && continue
+        if _is_reachable_via "$other" "$dep"; then
+          redundant=1
+          break
+        fi
+      done
+      [[ "$redundant" -eq 0 ]] && keep+=("$dep")
+    done
+
+    task_deps["$tn"]="${keep[*]}"
+  done
+}
+
 # build_successors_map: inverts task_deps to build task_successors
 # For each task T with deps D1 D2..., add T as a successor of each Di.
 build_successors_map() {
@@ -826,6 +884,9 @@ if [[ ${#all_task_nums[@]} -eq 0 ]]; then
   echo "INFO: No active non-terminal tasks found in $STATE_FILE" >&2
   exit 0
 fi
+
+# Transitive reduction: remove redundant dependency edges
+transitive_reduce
 
 # Build successors map (inverse of task_deps: dep -> tasks that depend on it)
 build_successors_map

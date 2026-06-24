@@ -3,9 +3,8 @@
 #
 # Updates task status atomically across:
 #   1. state.json (status field, timestamps, session_id)
-#   2. TODO.md task entry (- **Status**: [STATUS])
-#   3. TODO.md Task Order section (**{N}** [STATUS])
-#   4. Plan file (optional, via update-plan-status.sh)
+#   2. TODO.md (regenerated from state.json via generate-todo.sh)
+#   3. Plan file (optional, via update-plan-status.sh)
 #
 # Usage:
 #   .claude/scripts/update-task-status.sh <operation> <task_number> <target_status> <session_id> [--dry-run]
@@ -20,7 +19,6 @@
 #   0 - Success or no-op (already at target status)
 #   1 - Validation error (bad arguments)
 #   2 - state.json update failed
-#   3 - TODO.md update failed
 
 set -euo pipefail
 
@@ -28,12 +26,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 STATE_FILE="$PROJECT_ROOT/specs/state.json"
-TODO_FILE="$PROJECT_ROOT/specs/TODO.md"
 TMP_DIR="$PROJECT_ROOT/specs/tmp"
 
 # --- Cleanup trap ---
 cleanup() {
-  rm -f "$TMP_DIR/state.json.tmp" "$TMP_DIR/todo.md.tmp" 2>/dev/null || true
+  rm -f "$TMP_DIR/state.json.tmp" 2>/dev/null || true
 }
 trap cleanup EXIT
 
@@ -182,98 +179,21 @@ if ! update_state_json; then
 fi
 
 # ============================================================
-# PHASE 2: Update TODO.md task entry status
+# PHASE 2: Regenerate TODO.md from state.json
 # ============================================================
-update_todo_task_entry() {
-  if [[ ! -f "$TODO_FILE" ]]; then
-    echo "Warning: TODO.md not found at $TODO_FILE, skipping task entry update" >&2
-    return 1
-  fi
-
-  # Find the task entry heading line number: ### {N}. ...
-  local heading_line
-  heading_line=$(grep -n "^### ${task_number}\." "$TODO_FILE" | head -1 | cut -d: -f1)
-
-  if [[ -z "$heading_line" ]]; then
-    echo "Warning: task $task_number entry not found in TODO.md Tasks section" >&2
-    return 0
-  fi
-
-  # Find the Status line within the next 10 lines after the heading
-  # Tolerant pattern: matches both canonical "- **Status**:" and space-indented " **Status**:"
-  # Some task entries use space-indented format without leading dash
-  local status_line
-  status_line=$(sed -n "$((heading_line+1)),$((heading_line+10))p" "$TODO_FILE" \
-    | grep -n -E '^\s*-?\s*\*\*Status\*\*: \[' | head -1 | cut -d: -f1)
-
-  if [[ -z "$status_line" ]]; then
-    echo "Warning: no Status line found for task $task_number in TODO.md" >&2
-    return 0
-  fi
-
-  # Calculate actual line number in file
-  local actual_line=$((heading_line + status_line))
-
-  # Check if already at target
-  local current_todo_status
-  current_todo_status=$(sed -n "${actual_line}p" "$TODO_FILE" | sed 's/.*\[\([^]]*\)\].*/\1/')
-
-  if [[ "$current_todo_status" == "$TODO_STATUS" ]]; then
-    if [[ "$DRY_RUN" == "true" ]]; then
-      echo "[dry-run] TODO.md task entry: already at [$TODO_STATUS] -- skip"
-    fi
-    return 0
-  fi
-
+regenerate_todo() {
   if [[ "$DRY_RUN" == "true" ]]; then
-    echo "[dry-run] TODO.md task entry (line $actual_line): [$current_todo_status] -> [$TODO_STATUS]"
+    echo "[dry-run] TODO.md: regenerate from state.json via generate-todo.sh"
     return 0
   fi
 
-  # Replace the status on that specific line
-  sed -i "${actual_line}s/\[${current_todo_status}\]/[${TODO_STATUS}]/" "$TODO_FILE"
+  "$SCRIPT_DIR/generate-todo.sh" || {
+    echo "Warning: generate-todo.sh failed (state.json was updated successfully)" >&2
+  }
 }
 
 # ============================================================
-# PHASE 3: Update TODO.md Task Order section
-# ============================================================
-update_todo_task_order() {
-  if [[ ! -f "$TODO_FILE" ]]; then
-    echo "Warning: TODO.md not found, skipping Task Order update" >&2
-    return 1
-  fi
-
-  # Find the line matching **{N}** with a status marker in Task Order
-  local order_line
-  order_line=$(grep -n -E "^- \*\*${task_number}\*\* \[" "$TODO_FILE" | head -1 | cut -d: -f1)
-
-  if [[ -z "$order_line" ]]; then
-    echo "Warning: task $task_number not found in TODO.md Task Order section" >&2
-    return 0
-  fi
-
-  # Check if already at target
-  local current_order_status
-  current_order_status=$(sed -n "${order_line}p" "$TODO_FILE" | sed 's/.*\[\([^]]*\)\].*/\1/')
-
-  if [[ "$current_order_status" == "$TODO_STATUS" ]]; then
-    if [[ "$DRY_RUN" == "true" ]]; then
-      echo "[dry-run] TODO.md Task Order: already at [$TODO_STATUS] -- skip"
-    fi
-    return 0
-  fi
-
-  if [[ "$DRY_RUN" == "true" ]]; then
-    echo "[dry-run] TODO.md Task Order (line $order_line): [$current_order_status] -> [$TODO_STATUS]"
-    return 0
-  fi
-
-  # Replace the status on that specific line
-  sed -i "${order_line}s/\[${current_order_status}\]/[${TODO_STATUS}]/" "$TODO_FILE"
-}
-
-# ============================================================
-# PHASE 4: Plan file status (optional, implement only)
+# PHASE 3: Plan file status (optional, implement only)
 # ============================================================
 update_plan_file() {
   # Only update plan file for implement operations
@@ -306,6 +226,9 @@ update_plan_file() {
 
   if [[ "$DRY_RUN" == "true" ]]; then
     echo "[dry-run] Plan file: status -> [$plan_status] (via update-plan-status.sh)"
+    if [[ "$operation" == "preflight" ]]; then
+      echo "[dry-run] Phase status: first [NOT STARTED] phase -> [IN PROGRESS] (via update-phase-status.sh)"
+    fi
     return 0
   fi
 
@@ -314,27 +237,42 @@ update_plan_file() {
   "$plan_script" "$task_number" "$project_name" "$plan_status" 2>/dev/null || {
     echo "Warning: plan file update failed (non-fatal)" >&2
   }
+
+  # Auto-advance the first NOT STARTED phase to IN PROGRESS on implement preflight
+  if [[ "$operation" == "preflight" ]]; then
+    local phase_script="$SCRIPT_DIR/update-phase-status.sh"
+    if [[ -x "$phase_script" ]]; then
+      # Resolve plan directory (padded with unpadded fallback)
+      local padded_num
+      padded_num=$(printf "%03d" "$task_number")
+      local plan_dir="$PROJECT_ROOT/specs/${padded_num}_${project_name}/plans"
+      if [[ ! -d "$plan_dir" ]]; then
+        plan_dir="$PROJECT_ROOT/specs/${task_number}_${project_name}/plans"
+      fi
+
+      if [[ -d "$plan_dir" ]]; then
+        local plan_file
+        plan_file=$(ls -t "$plan_dir"/*.md 2>/dev/null | head -1 || echo "")
+        if [[ -n "$plan_file" ]]; then
+          local first_phase
+          first_phase=$(grep -m1 "^### Phase [0-9]*:.*\[NOT STARTED\]" "$plan_file" \
+            | sed 's/^### Phase \([0-9]*\):.*/\1/' || echo "")
+          if [[ -n "$first_phase" ]]; then
+            "$phase_script" "$task_number" "$project_name" "$first_phase" "IN_PROGRESS" 2>/dev/null || {
+              echo "Warning: phase status update failed (non-fatal)" >&2
+            }
+          fi
+        fi
+      fi
+    fi
+  fi
 }
 
-# Execute TODO.md updates
-todo_failed=false
-
-if ! update_todo_task_entry; then
-  todo_failed=true
-fi
-
-if ! update_todo_task_order; then
-  todo_failed=true
-fi
+# Execute TODO.md regeneration
+regenerate_todo
 
 # Execute plan file update
 update_plan_file
-
-# Report result
-if [[ "$todo_failed" == "true" && "$DRY_RUN" != "true" ]]; then
-  echo "Warning: TODO.md updates had issues (state.json was updated successfully)" >&2
-  exit 3
-fi
 
 if [[ "$DRY_RUN" != "true" ]]; then
   echo "OK: task $task_number status -> $STATE_STATUS"

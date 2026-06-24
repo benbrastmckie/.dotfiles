@@ -59,7 +59,7 @@ Validate required inputs based on operation type:
 
 **For postflight_update**:
 - `task_number` - Must be provided and exist
-- `target_status` - Must be a final variant (researched, planned, implemented, partial)
+- `target_status` - Must be a final variant (researched, planned, completed, partial)
 - `artifacts` - Array of {path, type} to link
 - `session_id` - Must be provided
 
@@ -161,7 +161,7 @@ jq --arg path "{artifact_path}" \
 |------------|---------|
 | researched | [RESEARCHED] |
 | planned | [PLANNED] |
-| implemented | [IMPLEMENTED] |
+| completed | [COMPLETED] |
 | partial | [PARTIAL] |
 
 **Return**: JSON object with target_status and artifacts_linked fields.
