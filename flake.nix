@@ -448,21 +448,5 @@
         };
       };
     };
-    homeConfigurations = {
-      benjamin = home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
-        modules = [
-          ./home.nix
-          # Note: overlays are already applied to pkgs (defined in nixpkgsConfig)
-        ];
-        extraSpecialArgs = {
-          inherit username;
-          inherit name;
-          inherit pkgs-unstable;
-          inherit nix-ai-tools;
-          lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
-        };
-      };
-    };
   };
 }
