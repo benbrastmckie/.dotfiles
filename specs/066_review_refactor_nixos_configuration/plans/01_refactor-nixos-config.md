@@ -1,7 +1,7 @@
 # Implementation Plan: Review and Refactor NixOS Configuration
 
 - **Task**: 66 - Review and Refactor NixOS Configuration
-- **Status**: [IN PROGRESS]
+- **Status**: [COMPLETED]
 - **Effort**: 20 hours
 - **Dependencies**: GATED — implementation must land AFTER tasks 62 (TTS swap, edits configuration.nix:635) and 65 (python pins, edits home.nix:352 + flake.nix python overlay) complete, and after tasks 60/61/63 settle their `nix.*` settings. Task 64 (cache cleanup, imperative) is independent. Planning is unblocked; the quick-win phase (Phase 1) is independently safe and may proceed before the full gate clears.
 - **Research Inputs**: reports/01_team-research.md (synthesis of 4-teammate wave; teammate-a migration map and teammate-c safeguards consulted)
@@ -133,7 +133,7 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 2: Extract Overlays into overlays/*.nix [NOT STARTED]
+### Phase 2: Extract Overlays into overlays/*.nix [BLOCKED]
 
 **Goal**: Move the 3 inlined overlays (~120L) out of the flake `let` block into dedicated files; flake imports them.
 
@@ -156,7 +156,7 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 3: flake.nix Cleanup — mkHost + USB Installer + garuda [NOT STARTED]
+### Phase 3: flake.nix Cleanup — mkHost + USB Installer + garuda [BLOCKED]
 
 **Goal**: Add `lib/mkHost.nix` to dedupe the 4× host definitions, extract the ~200L inline USB-installer module, and add the missing `hosts/garuda/default.nix`. Centralize `extraSpecialArgs` in mkHost so both HM paths share one definition.
 
@@ -180,7 +180,7 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 4a: Split configuration.nix — Core System Modules (part 1) [NOT STARTED]
+### Phase 4a: Split configuration.nix — Core System Modules (part 1) [BLOCKED]
 
 **Goal**: Extract the first half of `configuration.nix` into `modules/system/*.nix` using teammate A's migration table. Leave the rest in place; `configuration.nix` still imports remaining inline content.
 
@@ -202,7 +202,7 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 4b: Split configuration.nix — Core System Modules (part 2) + thin import list [NOT STARTED]
+### Phase 4b: Split configuration.nix — Core System Modules (part 2) + thin import list [BLOCKED]
 
 **Goal**: Extract the remaining `configuration.nix` content into modules (incl. `optional/`), collapsing `configuration.nix` to a ~50-line import list.
 
@@ -224,7 +224,7 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 5a: Split home.nix — Core + Desktop + Email Modules [NOT STARTED]
+### Phase 5a: Split home.nix — Core + Desktop + Email Modules [BLOCKED]
 
 **Goal**: Extract the non-script halves of `home.nix` into `modules/home/*.nix` per teammate A's table.
 
@@ -247,7 +247,7 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 5b: Split home.nix — Scripts (writeShellApplication) + Services + Packages + thin import list [NOT STARTED]
+### Phase 5b: Split home.nix — Scripts (writeShellApplication) + Services + Packages + thin import list [BLOCKED]
 
 **Goal**: Convert the 6 inline `writeShellScriptBin` scripts to `pkgs.writeShellApplication` modules, extract systemd user services and the package lists, and collapse `home.nix` to a ~50-line import list. Equivalence between the two home-manager profiles is verified at the end.
 
@@ -272,7 +272,7 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 6: Username Hygiene [NOT STARTED]
+### Phase 6: Username Hygiene [BLOCKED]
 
 **Goal**: Replace hardcoded `"benjamin"` / `/home/benjamin` literals with `config.home.username` / `config.home.homeDirectory` in home modules (and parameterize where system modules reference the username).
 
@@ -339,7 +339,7 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 9: Final Behavioral-Equivalence Audit + Merge Prep [NOT STARTED]
+### Phase 9: Final Behavioral-Equivalence Audit + Merge Prep [BLOCKED]
 
 **Goal**: Whole-tree confirmation that the refactor is a no-op from the system's perspective across all hosts, then prepare the branch for merge.
 
