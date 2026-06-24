@@ -4,7 +4,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    lean4.url = "github:leanprover/lean4";
+    lean4 = {
+      url = "github:leanprover/lean4";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # Niri input - ENABLED (dual-session with GNOME)
     niri = {
       url = "github:YaLTeR/niri";
@@ -12,6 +15,7 @@
     };
     lectic = {
       url = "github:gleachkr/lectic";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-ai-tools = {
       url = "github:numtide/nix-ai-tools";
@@ -413,7 +417,7 @@
               isNormalUser = true;
               description = "Benjamin";
               extraGroups = [ "networkmanager" "wheel" "audio" "video" "input" ];
-              hashedInitialPassword = "$6$f2PeXbxhEnBAOWaK$M7TR7eFN2ICFm1y9qwcSHgWeYMRLICTtBOfC5njquaWXsYcIawkHvkHZJzzO3acoaa7/7iKdeZiwiK/LQfnpX0";
+              initialHashedPassword = "$6$f2PeXbxhEnBAOWaK$M7TR7eFN2ICFm1y9qwcSHgWeYMRLICTtBOfC5njquaWXsYcIawkHvkHZJzzO3acoaa7/7iKdeZiwiK/LQfnpX0";
             };
             
             # Auto-launch Calamares installer on boot

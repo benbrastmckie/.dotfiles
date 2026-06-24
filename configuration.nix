@@ -490,7 +490,7 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       nautilus              # File manager (required by portal)
 
       # Wayland essentials (kept for future niri testing)
-      wl-clipboard         # Clipboard utility for Wayland compositors
+      # wl-clipboard is managed by home-manager (home.packages)
       xdg-utils            # Standard desktop integration utilities
       qt6.qtwayland        # Wayland support for Qt6 applications
       qt5.qtwayland             # Wayland support for Qt5 applications
@@ -552,9 +552,9 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       lazygit              # Terminal UI for git commands
       tree-sitter          # Parsing library for code highlighting and navigation
       lua-language-server  # Language server for Lua development
-      stylua               # Opinionated Lua code formatter
+      # stylua is managed by home-manager (home.packages)
       tree                 # Display directory structure in a tree-like format
-      cvc5                 # Modern SMT solver
+      # cvc5 is managed by home-manager (python environment via overlay)
       opencode             # AI coding agent for terminal
       aristotle            # AI theorem prover with Lean
       lsof                 # Tool to list open files
@@ -594,11 +594,11 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
 
       # Editors
       obsidian             # Markdown-based knowledge base and note-taking app
-      neovim               # Highly configurable text editor (Vim-fork)
+      # neovim is managed by home-manager (programs.neovim.enable)
       zed-editor           # Modern code editor with GPU-accelerated rendering
       neovim-remote        # Tool for controlling Neovim processes
       vscodium             # Open source build of VS Code without Microsoft telemetry
-      lectic               # Custom editor or tool (appears to be a local package)
+      # lectic is managed by home-manager (home.packages)
 
       # PDF and Document Tools
       zotero               # Reference management software

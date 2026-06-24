@@ -1,4 +1,4 @@
-{ config, pkgs, pkgs-unstable, lectic, nix-ai-tools, ... }:
+{ config, pkgs, pkgs-unstable, lectic, ... }:
 
 {
   # Import our custom modules
@@ -1610,7 +1610,7 @@
     # Prefer Wayland over X11
     NIXOS_OZONE_WL = "1";
     # MCP_HUB_PATH is now managed by the MCP-Hub module
-    SASL_PATH = "/nix/store/ja75va5vkxrmm0y95gdzk04kxa0pmw1s-cyrus-sasl-xoauth2-0.2/lib/sasl2:/nix/store/f4spmcr74xb2zwin34n8973jj7ppn4bv-cyrus-sasl-2.1.28-bin/lib/sasl2";
+    SASL_PATH = "${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2";
     # Cursor settings for WezTerm and other applications
     XCURSOR_THEME = "Adwaita";
     XCURSOR_SIZE = "24";

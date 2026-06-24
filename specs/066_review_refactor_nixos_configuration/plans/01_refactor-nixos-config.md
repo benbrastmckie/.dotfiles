@@ -1,7 +1,7 @@
 # Implementation Plan: Review and Refactor NixOS Configuration
 
 - **Task**: 66 - Review and Refactor NixOS Configuration
-- **Status**: [NOT STARTED]
+- **Status**: [IN PROGRESS]
 - **Effort**: 20 hours
 - **Dependencies**: GATED — implementation must land AFTER tasks 62 (TTS swap, edits configuration.nix:635) and 65 (python pins, edits home.nix:352 + flake.nix python overlay) complete, and after tasks 60/61/63 settle their `nix.*` settings. Task 64 (cache cleanup, imperative) is independent. Planning is unblocked; the quick-win phase (Phase 1) is independently safe and may proceed before the full gate clears.
 - **Research Inputs**: reports/01_team-research.md (synthesis of 4-teammate wave; teammate-a migration map and teammate-c safeguards consulted)
@@ -81,17 +81,17 @@ No ROADMAP.md consulted for this plan (roadmap_flag is false). The roadmap file 
 
 Phases are largely sequential because each structural phase rebases the working tree and must pass a closure-diff before the next begins. Phase 1 (quick wins) is the only phase safe to run ahead of the full sequencing gate.
 
-### Phase 0: Branch, Baseline, and Equivalence Harness [NOT STARTED]
+### Phase 0: Branch, Baseline, and Equivalence Harness [COMPLETED]
 
 **Goal**: Establish the dedicated branch, capture the pre-refactor closure baseline, and define the reusable behavioral-equivalence procedure that every later phase reuses.
 
 **Tasks**:
-- [ ] Confirm tasks 62 and 65 are complete and 60/61/63 have settled their `nix.*` settings (check specs/state.json); abort if still [IMPLEMENTING] (Phase 1 may still proceed independently).
-- [ ] Create dedicated branch `task-66-refactor-nixos` from current master.
-- [ ] Record baseline: `PRE=$(nixos-rebuild build --flake .#nandi --no-link --print-out-paths)`; save the path to a scratch note.
-- [ ] Verify `nix flake check` passes on the unmodified tree (establish green baseline).
-- [ ] Write a short equivalence-check snippet (build `.#nandi`, run `nix store diff-closures $PRE $POST` and `nvd diff $PRE $POST`) to reuse per phase; document the acceptance criterion "empty/expected-only diff = phase safe".
-- [ ] Re-verify the teammate-A line references against current files (line numbers may have shifted after 62/65).
+- [x] Confirm tasks 62 and 65 are complete and 60/61/63 have settled their `nix.*` settings (check specs/state.json); abort if still [IMPLEMENTING] (Phase 1 may still proceed independently). *(deviation: tasks 62 and 65 are still [implementing]; Phase 1 proceeds independently per plan; structural phases 2+ gated)*
+- [x] Create dedicated branch `task-66-refactor-nixos` from current master.
+- [x] Record baseline: `nix eval .#nixosConfigurations.nandi.config.system.build.toplevel` → `/nix/store/wrx0z1klfvax2b4c3hj8amlvv95kw2zr-nixos-system-nandi-26.11.20260616.567a49d.drv`; home-manager baseline → `/nix/store/334nly6g09am503dsa95j8ma1gcigid3-home-manager-generation.drv`.
+- [x] Verify `nix flake check` passes on the unmodified tree (establish green baseline). *(deviation: `nix flake check` has a pre-existing failure on `usb-installer` — `hashedInitialPassword` is not a valid NixOS option; nandi/hamsa/homeConfigurations.benjamin all evaluate successfully; this pre-existing defect is fixed in Phase 1)*
+- [x] Write a short equivalence-check snippet (build `.#nandi`, run `nix store diff-closures $PRE $POST`) to reuse per phase; acceptance criterion "empty/expected-only diff = phase safe".
+- [x] Re-verify the teammate-A line references against current files (line numbers may have shifted after 62/65). *(completed: SASL_PATH is at line 1613, nix-ai-tools only in signature line 1, duplicate packages confirmed at configuration.nix:555-601)*
 
 **Timing**: 1 hour
 
@@ -105,17 +105,18 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 1: Quick-Win Safe Fixes [NOT STARTED]
+### Phase 1: Quick-Win Safe Fixes [COMPLETED]
 
 **Goal**: Apply the independently-safe critical fixes that require no structural moves. Safest phase; can run ahead of the full sequencing gate.
 
 **Tasks**:
-- [ ] Fix `SASL_PATH` at `home.nix:1613` — replace the hardcoded store hash with `"${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2"` (the correct dynamic form already at home.nix:882).
-- [ ] Delete dead `unstable-packages.nix` (root); grep-confirm no importer first.
-- [ ] Remove duplicate packages from `environment.systemPackages`: `stylua`, `cvc5`, `lectic`, `wl-clipboard` (kept in `home.packages`).
-- [ ] Remove `neovim` from `environment.systemPackages` (managed by `programs.neovim.enable`).
-- [ ] Add `follows = "nixpkgs"` to flake inputs `lean4`, `lectic`, `utils`.
-- [ ] Remove dead `nix-ai-tools` argument from `home.nix` arg list (grep all consumers first; keep the flake input itself if referenced elsewhere).
+- [x] Fix `SASL_PATH` at `home.nix:1613` — replaced hardcoded store hash with `"${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2"` (matching the correct dynamic form already at home.nix:882/systemd.user.sessionVariables).
+- [x] Delete dead `unstable-packages.nix` (root); grep-confirmed no importer — deleted.
+- [x] Remove duplicate packages from `environment.systemPackages`: `stylua`, `cvc5`, `lectic`, `wl-clipboard` (kept in `home.packages`) — replaced with comments noting home-manager ownership.
+- [x] Remove `neovim` from `environment.systemPackages` (managed by `programs.neovim.enable`) — commented out with note.
+- [x] Add `follows = "nixpkgs"` to flake inputs `lean4` and `lectic`. *(deviation: `utils` (flake-utils) does not have a nixpkgs input — only has `systems` input — so no follows added for utils; lean4 and lectic both confirmed to have nixpkgs inputs via lock file)*
+- [x] Remove dead `nix-ai-tools` argument from `home.nix` arg list — verified only appears in line 1 signature and is never used in the file body; removed from `{ ... }:` signature; kept flake input and inheritance since it's passed via extraSpecialArgs to all hosts.
+- [x] **Bonus**: Fixed pre-existing `hashedInitialPassword` → `initialHashedPassword` in usb-installer inline module (caused `nix flake check` to fail on baseline).
 
 **Timing**: 1.5 hours
 
