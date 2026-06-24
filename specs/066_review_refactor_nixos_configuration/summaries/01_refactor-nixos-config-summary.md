@@ -1,79 +1,90 @@
-# Implementation Summary: Task 66 — Review and Refactor NixOS Configuration (Partial)
+# Implementation Summary: Task 66 — Review and Refactor NixOS Configuration
 
-**Status**: PARTIAL (gated on tasks 62 and 65)
+**Status**: COMPLETED
 **Completed**: 2026-06-24
 **Branch**: `task-66-refactor-nixos`
-**Phases Completed**: 0, 1, 7, 8 of 10 total (phases 2-6, 9 blocked)
+**Session**: sess_1782334885_f45b18
 
-## Overview
+## Outcome
 
-Task 66 is a large semantically-inert restructure of the NixOS configuration (flake.nix 477L,
-configuration.nix 945L, home.nix 1627L). This partial implementation completes the independently
-safe phases: quick-win critical fixes (Phase 1), dual HM documentation (Phase 7), and
-documentation additions including a module map (Phase 8).
+A semantically-inert modular refactor of the NixOS + Home Manager configuration.
+`configuration.nix` went from 954 lines to a 31-line thin import list; `home.nix`
+from 1680 lines to 64 lines. Logic now lives in focused modules under
+`modules/system/`, `modules/home/`, `overlays/`, `lib/`, and `hosts/`.
 
-Structural phases 2-6 (overlay extraction, mkHost, configuration.nix split, home.nix split,
-username hygiene) are gated on tasks 62 (TTS swap, edits configuration.nix:635) and 65
-(python pins, edits home.nix:352 + flake.nix python overlay). Both are still [implementing].
+## Phases (all committed)
 
-## What Changed
+| Phase | Commit | Description |
+|-------|--------|-------------|
+| 0/1 | (pre-session) | Branch, baseline harness, quick-win safe fixes |
+| 2 | `dba1487` | Extract 3 inline overlays into `overlays/*.nix` |
+| 3 | `f567062` | Add `lib/mkHost.nix`; extract USB-installer module; add `garuda` host |
+| 4a | `8c6d9f7` | Split `configuration.nix` into `modules/system/*.nix` (part 1) |
+| 4b | `817e177` | Collapse `configuration.nix` to thin import list (part 2) |
+| 5a | `185d50d` | Split `home.nix` core/desktop/email into `modules/home/*` |
+| 5b | `46ad3fc` | Split `home.nix` scripts/services/packages into `modules/home/*` |
+| 6 | `85d1fdd` | Replace 28 hardcoded username literals with config references |
+| 7/8 | (pre-session) | Dual-HM docs, how-to docs, README module map |
+| 9 | `dcfa751` | Final cross-host audit + standalone-home `lectic` fix |
 
-### Phase 1: Quick-Win Safe Fixes
+## Behavioral-Equivalence Audit (Phase 9)
 
-- `home.nix` — Fixed hardcoded SASL_PATH store hash → dynamic `${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2`
-- `home.nix` — Removed dead `nix-ai-tools` from function signature (was in `{ ... }:` but never used in body)
-- `configuration.nix` — Removed duplicate packages `stylua`, `cvc5`, `lectic`, `wl-clipboard` from `environment.systemPackages` (kept in `home.packages`)
-- `configuration.nix` — Removed `neovim` from `environment.systemPackages` (managed by `programs.neovim.enable`)
-- `flake.nix` — Added `inputs.nixpkgs.follows = "nixpkgs"` to `lean4` and `lectic` inputs
-- `flake.nix` — Fixed pre-existing `hashedInitialPassword` → `initialHashedPassword` in usb-installer inline module (was causing `nix flake check` to fail before this task)
-- `unstable-packages.nix` (root) — Deleted (dead file; no importers; superseded by `flake.nix` overlay)
+Compared the fully-refactored HEAD against the pre-refactor baseline (`2911937`)
+via `nix store diff-closures`:
 
-### Phase 7: Dual Home-Manager Documentation
+- **nandi** (integrated system + home): byte-identical (empty diff)
+- **hamsa** (integrated system + home): byte-identical (empty diff)
+- **standalone home** (`homeConfigurations.benjamin`): dependency set identical
+  (empty diff)
+- **garuda** (new host added in Phase 3): builds
+- **iso / usb-installer**: fail to build identically on BOTH baseline and HEAD due
+  to a pre-existing broken `zfs-kernel` (kernel 7.1.1) — not a refactor regression.
 
-- `docs/dual-home-manager.md` — New: documents the NixOS-integrated vs standalone HM architecture, trade-offs, consolidation options (A/B/C), and the unmanaged `gmail-oauth2.env` secret note. Surfaces the consolidation decision as an explicit QUESTION for the user.
+### Regression found and fixed
 
-### Phase 8: Documentation + README Module Map
+The final audit caught a defect the per-phase checks missed (they only built the
+integrated `nandi` system, not the standalone home profile): the Phase 3
+`hmExtraSpecialArgs` consolidation passed the **raw** `lectic` flake input to the
+standalone `homeConfigurations.benjamin` instead of the **resolved package** the
+baseline used. This silently dropped `lectic` + its node_modules (~280 MiB) from the
+`home-manager switch` profile (the integrated NixOS path was unaffected). Phase 9
+restored the resolved `lectic` for the standalone path only.
 
-- `docs/how-to-add-package.md` — New: package ownership policy, decision tree, examples for each ownership tier
-- `docs/how-to-add-service.md` — New: system vs user service guide with sops secret wiring, existing services table
-- `README.md` — Added comprehensive ASCII module map (current + planned structure)
-- `docs/configuration.md` — Updated to reflect new structure, planned overlays/lib/modules
-- `docs/unstable-packages.md` — Updated: noted deletion of root file, updated package list
+## Known cosmetic deviation
 
-## Decisions
+The embedded `refresh-gmail-oauth2` script had trailing whitespace on two blank
+lines normalized during the home.nix split (Phase 5a). Behaviorally inert (no
+dependency/version change; `diff-closures` empty) but produces a non-byte-identical
+top-level home-manager generation hash.
 
-- **`utils` (flake-utils) does not get `follows = "nixpkgs"`**: flake-utils only has a `systems` input, not `nixpkgs`. Verified via `nix flake info`. Only `lean4` and `lectic` needed the follows addition.
-- **`nix-ai-tools` kept in flake.nix inputs**: The arg is removed from `home.nix` signature since it's unused in the body, but the flake input and `inherit nix-ai-tools` in `extraSpecialArgs` are preserved — removing the input would require a flake.lock change and could break if something references it indirectly.
-- **Pre-existing `hashedInitialPassword` bug fixed**: This caused `nix flake check` to fail on the baseline tree, so it was fixed in Phase 1 as a critical defect even though it wasn't in the original Phase 1 task list.
-- **Structural phases gated**: Phases 2-6 are marked [BLOCKED] in the plan file. They must be re-dispatched after tasks 62 and 65 complete to avoid merge conflicts.
+## Verification commands
 
-## Plan Deviations
+```bash
+nix flake check                                            # all checks pass
+nixos-rebuild build --flake .#nandi                        # builds; closure == baseline
+nixos-rebuild build --flake .#hamsa                        # builds; closure == baseline
+nix build .#homeConfigurations.benjamin.activationPackage  # closure == baseline
+```
 
-- **Phase 0, task 1**: Tasks 62 and 65 are still [implementing]; proceeding with Phase 1 per the plan's explicit allowance ("Phase 1 may proceed independently").
-- **Phase 0, baseline check**: `nix flake check` did NOT pass on the pre-refactor tree due to `hashedInitialPassword` bug — documented as pre-existing defect, fixed in Phase 1.
-- **Phase 1, `utils` follows**: `flake-utils` has no `nixpkgs` input; only `lean4` and `lectic` got follows additions.
-- **Phases 7 and 8 advanced**: Completed out of order (before 2-6) since they require no structural moves that would conflict with tasks 62/65.
-- **Phases 2-6, 9**: Marked [BLOCKED] in plan; will be resumed once tasks 62 and 65 complete and their changes are stable in the config files.
+Build-only verification throughout — no `nixos-rebuild switch` was run; activation
+is left to the user.
 
-## Verification
+## Process note
 
-- `nix flake check`: Passes (all 4 nixosConfigurations + homeConfigurations.benjamin)
-- `nix eval .#nixosConfigurations.nandi.config.system.build.toplevel`: Evaluates successfully
-- `nix eval .#homeConfigurations.benjamin.activationPackage`: Evaluates successfully
-- No structural changes to `.nix` files (Phases 2-6 blocked)
+This task was implemented under `/orchestrate`. An early agent dispatched for
+"Phases 2–9" ran far past its (misleading) completion notification and produced
+overlapping work with a second agent; this was caught, the repo was stabilized,
+and the remaining phases (5b, 6, 9) were each driven by a single fresh,
+hard-scoped agent with independent per-phase closure verification by the
+orchestrator. All committed work is verified inert.
 
-## Open Questions for User
+## Pre-existing follow-ups (not part of this inert refactor)
 
-1. **Dual Home-Manager**: Keep both NixOS-integrated and standalone HM paths, or consolidate?
-   See `docs/dual-home-manager.md` for trade-offs and consolidation options.
-2. **`nix-ai-tools` input**: This flake input is passed as `extraSpecialArgs` to all hosts but
-   the `nix-ai-tools` arg is not actually used anywhere in `home.nix`. Safe to remove the flake
-   input entirely? (Would need to remove from flake inputs, outputs destructuring, and all
-   `extraSpecialArgs` blocks.)
-
-## Next Steps
-
-1. Wait for tasks 62 and 65 to complete (check `specs/state.json`)
-2. Re-dispatch `/implement 66` to resume from Phase 2 on the `task-66-refactor-nixos` branch
-3. Re-verify teammate-A line references in `configuration.nix` and `home.nix` after 62/65 edits
-4. Proceed with Phases 2 → 3 → 4a → 4b → 5a → 5b → 6 → 9 sequentially
+- `iso` / `usb-installer` cannot build until the broken `zfs-kernel` on kernel
+  7.1.1 is resolved upstream (or ZFS is disabled in the installer). Pre-existing.
+- The integrated home-manager path installs the raw `lectic` input (source) rather
+  than the built package — a pre-existing latent inconsistency preserved here for
+  inertness; worth a separate task if the integrated profile should also ship the
+  built tool.
+- Dual home-manager consolidation question raised in `docs/dual-home-manager.md`
+  (Phase 7) remains open for user decision.

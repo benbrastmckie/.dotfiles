@@ -1,61 +1,10 @@
 {
-  "status": "partial",
-  "summary": "Completed Phases 0 (branch + baseline), 1 (quick-win fixes), 7 (dual HM docs), and 8 (how-to docs + README module map). Phases 2-6 and 9 are blocked on tasks 62 and 65 completing. All quick-win fixes applied: SASL_PATH hardcoded hash fixed, dead unstable-packages.nix deleted, duplicate system packages removed, follows added to lean4/lectic inputs, pre-existing usb-installer hashedInitialPassword bug fixed, nix-ai-tools dead arg removed from home.nix. nix flake check passes.",
-  "phases_completed": 4,
+  "status": "implemented",
+  "summary": "All phases (2-9) complete and committed; refactor verified semantically inert vs baseline 2911937 (nandi/hamsa byte-identical, standalone home dependency-set identical, garuda builds). Standalone-home lectic regression found and fixed in phase 9.",
+  "phases_completed": 10,
   "phases_total": 10,
-  "blockers": [
-    "Task 62 (replace_piper_with_svox_pico_drop_onnxruntime) is still [implementing] — edits configuration.nix:635; structural phases 2+ risk merge conflicts",
-    "Task 65 (migrate_python312_pins_to_default_python3) is still [implementing] — edits home.nix:352 + flake.nix python overlay; structural phases 2+ risk merge conflicts"
-  ],
-  "continuation_context": {
-    "branch": "task-66-refactor-nixos",
-    "phases_completed": ["0 (branch/baseline)", "1 (quick wins)", "7 (dual HM docs)", "8 (how-to docs + README)"],
-    "phases_blocked": ["2 (overlay extraction)", "3 (mkHost + USB installer)", "4a (configuration.nix split part 1)", "4b (configuration.nix split part 2)", "5a (home.nix core/desktop/email split)", "5b (home.nix scripts/services/packages split)", "6 (username hygiene)", "9 (final audit)"],
-    "gate_condition": "Tasks 62 and 65 must reach [completed] status in specs/state.json before dispatching phases 2-6",
-    "resume_from": "Phase 2: Extract Overlays into overlays/*.nix",
-    "key_files_modified": [
-      "flake.nix (follows additions, hashedInitialPassword fix)",
-      "flake.lock (updated after follows changes)",
-      "home.nix (SASL_PATH fix, nix-ai-tools arg removed)",
-      "configuration.nix (duplicate packages removed)",
-      "unstable-packages.nix (deleted)",
-      "docs/dual-home-manager.md (new)",
-      "docs/how-to-add-package.md (new)",
-      "docs/how-to-add-service.md (new)",
-      "README.md (module map added)",
-      "docs/configuration.md (updated)",
-      "docs/unstable-packages.md (updated)"
-    ],
-    "nix_flake_check_status": "passing",
-    "nandi_closure_drv": "/nix/store/h2c3zwkq4ym1nq156ga695zpi4qxbxyn-nixos-system-nandi-26.11.20260616.567a49d.drv",
-    "home_manager_drv": "/nix/store/j7rqmwa968pwq4a5ipbxfh4mb0ahx7s4-home-manager-generation.drv"
-  },
-  "next_action_hint": "Wait for tasks 62 and 65 to complete, then re-dispatch /implement 66 on branch task-66-refactor-nixos. Resume from Phase 2 (overlay extraction). Re-verify line numbers in configuration.nix and home.nix against teammate-A migration table before editing.",
-  "artifacts": [
-    {
-      "type": "plan",
-      "path": "specs/066_review_refactor_nixos_configuration/plans/01_refactor-nixos-config.md",
-      "summary": "Implementation plan with phases 0/1/7/8 marked COMPLETED, phases 2-6/9 marked BLOCKED"
-    },
-    {
-      "type": "summary",
-      "path": "specs/066_review_refactor_nixos_configuration/summaries/01_refactor-nixos-config-summary.md",
-      "summary": "Partial implementation summary documenting what was done and what is blocked"
-    },
-    {
-      "type": "documentation",
-      "path": "docs/dual-home-manager.md",
-      "summary": "New: dual HM architecture documentation with user consolidation question"
-    },
-    {
-      "type": "documentation",
-      "path": "docs/how-to-add-package.md",
-      "summary": "New: package ownership policy and decision tree"
-    },
-    {
-      "type": "documentation",
-      "path": "docs/how-to-add-service.md",
-      "summary": "New: system vs user service guide with sops wiring"
-    }
-  ]
+  "blockers": [],
+  "continuation_context": null,
+  "next_action_hint": "Task complete. Optional: /merge to open PR for branch task-66-refactor-nixos. User must run nixos-rebuild switch to activate.",
+  "last_updated": "2026-06-24T21:58:48Z"
 }
