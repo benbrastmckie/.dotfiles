@@ -7,7 +7,7 @@
       "status": "blocked",
       "task_type": "nix",
       "description": "Systematically review all aspects of my current NixOS configuration, researching best practices online as of June 2026 in order to design a careful refactor that improves organization, documentation, and modularity, producing a maintainable and high performance configuration",
-      "topic": "nixos-config",
+      "topic": "refactoring",
       "created": "2026-06-24T16:37:06Z",
       "last_updated": "2026-06-24T17:15:00Z",
       "session_id": "sess_1782320100_53ad1b",
@@ -89,7 +89,8 @@
             "integrated_date": "2026-06-12"
           }
         ]
-      }
+      },
+      "topic": "packaging"
     },
     {
       "project_number": 64,
@@ -98,7 +99,8 @@
       "task_type": "general",
       "description": "Clean regenerable caches and reclaim disk space (root filesystem at 94%, 28GB free). Targets: ~/.local/share/Trash (4.2GB), ~/.cache/loogle (7.4GB), ~/.cache/pip (3GB), ~/.cache/nix (2.1GB), ~/.cache/uv (2GB), ~/.npm (8.5GB), ~/.local/share/memory-monitor logs (1.8GB), and audit ~/.local/share/opencode (11GB, mostly storage/) and ~/.local/share/protonmail (14GB local mail cache) for safe pruning. Roughly 25-30GB recoverable without touching personal files. Consider adding periodic cache cleanup (e.g. systemd-tmpfiles or a cleanup script) so these do not regrow unbounded",
       "created": "2026-06-12T23:55:07Z",
-      "last_updated": "2026-06-12T23:55:07Z"
+      "last_updated": "2026-06-12T23:55:07Z",
+      "topic": "disk-maintenance"
     },
     {
       "project_number": 63,
@@ -107,7 +109,8 @@
       "task_type": "nix",
       "description": "Enable automatic user-level Nix garbage collection and expire old home-manager generations. 62 home-manager generations spanning Mar 13 - Jun 11 act as GC roots pinning ~3 months of unstable closures in the 99GB /nix/store; the root-level nix.gc.automatic (weekly, 30d) never touches user profiles. Add nix.gc automatic settings to home.nix (home-manager equivalent of the system GC), run a one-time home-manager expire-generations \"-30 days\" plus user and root nix-collect-garbage to reclaim space, and verify store size afterward",
       "created": "2026-06-12T23:54:45Z",
-      "last_updated": "2026-06-12T23:54:45Z"
+      "last_updated": "2026-06-12T23:54:45Z",
+      "topic": "disk-maintenance"
     },
     {
       "project_number": 62,
@@ -116,7 +119,8 @@
       "task_type": "nix",
       "description": "Replace piper-tts with svox pico (pico2wave) and drop onnxruntime from the system closure. DECISION: use pico. Nix changes: swap piper-tts for the svox pico package in configuration.nix:635, remove packages/piper-voices.nix and its flake.nix overlay entry (line 99), remove the home.nix:1199 .local/share/piper link, and handle the second onnxruntime consumer markitdown (home.nix:401, via magika) - remove it or run on-demand via nix shell. Agent system changes: update all 5 copies of tts-notify.sh to use pico2wave instead of piper (~/.config/nvim/.claude/hooks/, ~/.config/nvim/.claude/extensions/core/hooks/, ~/.config/nvim/.opencode/hooks/, ~/.config/nvim/.opencode/extensions/core/hooks/, ~/.dotfiles/.claude/hooks/) - replace the piper --model pipeline and PIPER_MODEL env var with pico2wave, keep the TTS_ENABLED toggle contract so which-key.lua <leader> TTS toggle keeps working unchanged. Update tts-stt-integration.md and neovim-integration.md guides in both repos to document pico. settings.json hook registrations need no change. Note: spans two git repos (.dotfiles and .config/nvim)",
       "created": "2026-06-12T23:54:17Z",
-      "last_updated": "2026-06-13T01:05:26Z"
+      "last_updated": "2026-06-13T01:05:26Z",
+      "topic": "tts"
     },
     {
       "project_number": 61,
@@ -125,7 +129,8 @@
       "task_type": "nix",
       "description": "Pin nixpkgs flake input to a stable release channel (nixos-26.05) to maximize binary cache hits and stop source-building heavy packages. The flake currently tracks nixos-unstable and update.sh runs nix flake update on every rebuild, outrunning Hydra and causing local compiles (29 packages on last update). Evaluate which inputs should stay on unstable (e.g. nix-ai-tools follows nixpkgs-unstable), align home-manager release-26.05 with the new pin, and consider making update.sh flake updates opt-in rather than automatic",
       "created": "2026-06-12T23:53:57Z",
-      "last_updated": "2026-06-12T23:53:57Z"
+      "last_updated": "2026-06-12T23:53:57Z",
+      "topic": "packaging"
     },
     {
       "project_number": 60,
@@ -134,7 +139,8 @@
       "task_type": "nix",
       "description": "Add Nix build resource limits to prevent OOM during rebuilds: set nix.settings.max-jobs and nix.settings.cores in configuration.nix (24-core Ryzen AI 9 HX 370, 30GB RAM; onnxruntime builds currently exhaust memory via 24 parallel jobs x 24 cores). Choose values that balance build speed against the ~1-2GB/compile-unit cost of heavy C++ packages, and consider a --max-jobs override in update.sh",
       "created": "2026-06-12T23:53:19Z",
-      "last_updated": "2026-06-12T23:53:19Z"
+      "last_updated": "2026-06-12T23:53:19Z",
+      "topic": "build-performance"
     },
     {
       "project_number": 52,
@@ -156,7 +162,8 @@
           "type": "plan",
           "summary": "Implementation plan with 4 phases (3.5h total) to fix pgrep self-match bug, add opencode detection, re-enable the sleep inhibitor service, and document toggle interface"
         }
-      ]
+      ],
+      "topic": "power-management"
     },
     {
       "project_number": 50,
@@ -174,7 +181,8 @@
         }
       ],
       "researched": "2026-05-14T21:48:58Z",
-      "next_artifact_number": 2
+      "next_artifact_number": 2,
+      "topic": "power-management"
     },
     {
       "project_number": 46,
@@ -192,7 +200,8 @@
           "path": "specs/046_investigate_fix_gmail_oauth2_token_expiry/reports/01_gmail-oauth2-token-expiry.md",
           "summary": "Comprehensive analysis of Gmail OAuth2 token expiry causes and solutions"
         }
-      ]
+      ],
+      "topic": "authentication"
     },
     {
       "project_number": 43,
@@ -208,7 +217,8 @@
           "path": "specs/43_install_forgejo_self_hosted_git/reports/research-001.md",
           "summary": "Research on NixOS Forgejo configuration with SQLite, Nginx reverse proxy, HTTPS/ACME, and GitLab migration"
         }
-      ]
+      ],
+      "topic": "services"
     },
     {
       "project_number": 42,
@@ -217,7 +227,8 @@
       "language": "nix",
       "created": "2026-02-24T20:00:00Z",
       "last_updated": "2026-02-24T20:00:00Z",
-      "blocked_reason": "Upstream nixpkgs: jupytext 1.18.1 has 2 failing tests in async/sync ContentsManager sync check. Uncomment jupytext in home.nix when fixed."
+      "blocked_reason": "Upstream nixpkgs: jupytext 1.18.1 has 2 failing tests in async/sync ContentsManager sync check. Uncomment jupytext in home.nix when fixed.",
+      "topic": "packaging"
     },
     {
       "project_number": 41,
@@ -226,7 +237,8 @@
       "language": "nix",
       "created": "2026-02-24T20:00:00Z",
       "last_updated": "2026-02-24T20:00:00Z",
-      "blocked_reason": "Upstream nixpkgs: cucumber-expressions 18.1.0 requires uv_build<0.10.0, nixpkgs ships 0.10.0. Chain: pdf2docx -> python-docx 1.2.0 -> behave -> cucumber-expressions. Uncomment pdf2docx in home.nix when fixed."
+      "blocked_reason": "Upstream nixpkgs: cucumber-expressions 18.1.0 requires uv_build<0.10.0, nixpkgs ships 0.10.0. Chain: pdf2docx -> python-docx 1.2.0 -> behave -> cucumber-expressions. Uncomment pdf2docx in home.nix when fixed.",
+      "topic": "packaging"
     },
     {
       "project_number": 23,
@@ -249,7 +261,8 @@
           "summary": "2-phase plan: add cheese to home.packages, then build and verify installation"
         }
       ],
-      "planned": "2026-02-11T17:58:57Z"
+      "planned": "2026-02-11T17:58:57Z",
+      "topic": "multimedia"
     },
     {
       "project_number": 19,
@@ -266,7 +279,8 @@
           "type": "research",
           "summary": "Research report covering all three MCP servers (Astro Docs, Context7, Playwright) with installation requirements, configuration details, and NixOS-specific considerations"
         }
-      ]
+      ],
+      "topic": "dev-tools"
     },
     {
       "project_number": 15,
@@ -282,7 +296,8 @@
           "path": "specs/15_configure_timezone_location_based/reports/research-001.md",
           "summary": "Research report on NixOS timezone configuration with automatic geolocation detection and California default fallback"
         }
-      ]
+      ],
+      "topic": "system-config"
     }
   ],
   "repository_health": {
