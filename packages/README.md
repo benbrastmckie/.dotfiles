@@ -213,19 +213,6 @@ model = vosk.Model(os.path.expanduser("~/.local/share/vosk/vosk-model-small-en-u
 **Related**:
 - Research: `/home/benjamin/Projects/ProofChecker/specs/761_tts_stt_integration_for_claude_code_and_neovim/reports/research-001.md`
 
-### piper-voices.nix
-Declarative Piper TTS voice model package for reproducible installations. Downloads the en_US-lessac-medium voice model (medium quality, ~45MB) and JSON config from HuggingFace.
-
-**Implementation**: Uses `fetchurl` to download both the ONNX model and JSON config, then installs them to the Nix store. Home-manager symlinks to `~/.local/share/piper/`.
-
-**Adding more voices**: Create additional derivations or modify this file to download other voices from https://huggingface.co/rhasspy/piper-voices.
-
-**Update Process**:
-1. Check for new voice models on HuggingFace
-2. Update URL and rebuild to get new hash
-3. Update hash in the file
-4. Rebuild: `home-manager switch --flake .#benjamin`
-
 ### vosk-models.nix
 Declarative Vosk STT language model package for reproducible installations. Downloads the small English US model (~50MB) from alphacephei.com.
 

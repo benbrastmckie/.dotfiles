@@ -11,21 +11,14 @@ next_project_number: 68
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,62,67 | -- | nix-infrastructure, maintenance, packaging, ... |
-| 2 | 66 | 62 | nix-infrastructure |
+| 1 | 15,19,23,41,42,43,46,66,67 | -- | nix-infrastructure, maintenance, packaging, ... |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Nix Infrastructure
 
+66 [IMPLEMENTING] — Systematically review all aspects of my current NixOS configurati
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
-66 [BLOCKED] — Systematically review all aspects of my current NixOS configurati
-
-### Packaging
-
-41 [BLOCKED] — reenable_pdf2docx_nixpkgs_fix
-42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
-62 [IMPLEMENTING] — Replace piper-tts with svox pico (pico2wave) and drop onnxruntime
 
 ### Services
 
@@ -33,6 +26,11 @@ next_project_number: 68
 23 [PLANNED] — install_simple_webcam_recording_software
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
+
+### Packaging
+
+41 [BLOCKED] — reenable_pdf2docx_nixpkgs_fix
+42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
 
 ### Maintenance
 
@@ -51,7 +49,7 @@ next_project_number: 68
 ---
 
 ### 66. Review refactor nixos configuration
-- **Status**: [BLOCKED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: Task 62, Task 65, Task 63, Task 64
@@ -101,7 +99,7 @@ next_project_number: 68
 ---
 
 ### 62. Replace piper with svox pico drop onnxruntime
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: packaging
 - **Dependencies**: None

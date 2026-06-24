@@ -172,7 +172,7 @@ First run downloads ~484 MB and builds cache. Subsequent runs are instant. See [
 
 ### Text-to-Speech & Speech-to-Text
 Offline TTS and STT tools for AI assistant integration with declaratively managed models:
-- **Piper TTS**: Natural neural text-to-speech (models auto-installed via Nix)
+- **SVOX Pico TTS**: Lightweight offline text-to-speech via `pico2wave` (no onnxruntime dependency)
 - **Vosk STT**: Lightweight offline speech recognition (models auto-installed via Nix)
 - **Use cases**: Claude Code notifications, Neovim voice input, WezTerm integration
 
