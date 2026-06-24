@@ -15,12 +15,12 @@
     {
       "project_number": 66,
       "project_name": "review_refactor_nixos_configuration",
-      "status": "blocked",
+      "status": "implementing",
       "task_type": "nix",
       "description": "Systematically review all aspects of my current NixOS configuration, researching best practices online as of June 2026 in order to design a careful refactor that improves organization, documentation, and modularity, producing a maintainable and high performance configuration",
       "topic": "nix-infrastructure",
       "created": "2026-06-24T16:37:06Z",
-      "last_updated": "2026-06-24T17:15:00Z",
+      "last_updated": "2026-06-24T20:51:12Z",
       "session_id": "sess_1782320100_53ad1b",
       "researched": "2026-06-24T16:46:41Z",
       "next_artifact_number": 2,
@@ -47,7 +47,7 @@
         63,
         64
       ],
-      "blockers": "Structural phases 2-6,9 gated on tasks 62 and 65 (both [implementing]) — they edit configuration.nix:635, home.nix:352, flake.nix python overlay which the refactor relocates. Phases 0,1,7,8 complete on branch task-66-refactor-nixos. Resume from Phase 2 after 62+65 complete."
+      "blockers": "UNBLOCKED: deps 62/63/64/65 all complete. Phases 0,1,7,8 done; ready to resume from Phase 2 (overlay extraction). Not resumed this session per user request."
     },
     {
       "project_number": 65,
@@ -162,12 +162,13 @@
     {
       "project_number": 62,
       "project_name": "replace_piper_with_svox_pico_drop_onnxruntime",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "nix",
       "description": "Replace piper-tts with svox pico (pico2wave) and drop onnxruntime from the system closure. DECISION: use pico. Nix changes: swap piper-tts for the svox pico package in configuration.nix:635, remove packages/piper-voices.nix and its flake.nix overlay entry (line 99), remove the home.nix:1199 .local/share/piper link, and handle the second onnxruntime consumer markitdown (home.nix:401, via magika) - remove it or run on-demand via nix shell. Agent system changes: update all 5 copies of tts-notify.sh to use pico2wave instead of piper (~/.config/nvim/.claude/hooks/, ~/.config/nvim/.claude/extensions/core/hooks/, ~/.config/nvim/.opencode/hooks/, ~/.config/nvim/.opencode/extensions/core/hooks/, ~/.dotfiles/.claude/hooks/) - replace the piper --model pipeline and PIPER_MODEL env var with pico2wave, keep the TTS_ENABLED toggle contract so which-key.lua <leader> TTS toggle keeps working unchanged. Update tts-stt-integration.md and neovim-integration.md guides in both repos to document pico. settings.json hook registrations need no change. Note: spans two git repos (.dotfiles and .config/nvim)",
       "created": "2026-06-12T23:54:17Z",
-      "last_updated": "2026-06-13T01:05:26Z",
-      "topic": "packaging"
+      "last_updated": "2026-06-24T20:51:12Z",
+      "topic": "packaging",
+      "completion_summary": "Replaced piper-tts with SVOX Pico (pico2wave); dropped onnxruntime from the closure (picotts in configuration.nix, deleted packages/piper-voices.nix + flake overlay, removed home.nix piper link, markitdown/magika onnxruntime removed). All 5 scoped tts-notify.sh hooks on pico2wave with TTS_ENABLED preserved. Live on the switched system. Updated .dotfiles-owned docs (README, applications.md, packages/README). Doc residue (non-blocking): replicated neovim guide text in the .config/nvim repo (synced from the nvim extension) still says Piper; ~/.dotfiles/.opencode/hooks/tts-notify.sh (divergent, outside the original 5-script scope) still on piper."
     },
     {
       "project_number": 61,
