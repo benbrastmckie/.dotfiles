@@ -156,16 +156,16 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 3: flake.nix Cleanup — mkHost + USB Installer + garuda [BLOCKED]
+### Phase 3: flake.nix Cleanup — mkHost + USB Installer + garuda [COMPLETED]
 
 **Goal**: Add `lib/mkHost.nix` to dedupe the 4× host definitions, extract the ~200L inline USB-installer module, and add the missing `hosts/garuda/default.nix`. Centralize `extraSpecialArgs` in mkHost so both HM paths share one definition.
 
 **Tasks**:
-- [ ] Create `lib/mkHost.nix` (function producing `nixpkgs.lib.nixosSystem`; centralizes modules, overlays, sops, home-manager wiring, and `extraSpecialArgs`).
-- [ ] Rewrite the 4 `nixosConfigurations` (nandi, hamsa, iso, usb-installer) in flake.nix to call `mkHost`.
-- [ ] Extract the inline USB-installer anonymous module (flake.nix:242-279) into `hosts/usb-installer/default.nix`.
-- [ ] Add `hosts/garuda/default.nix` (imports common + its existing hardware-configuration.nix).
-- [ ] Ensure `homeConfigurations.benjamin` and the NixOS-integrated path draw `extraSpecialArgs` from the same source (prep for Phase 5 equivalence).
+- [x] Create `lib/mkHost.nix` (function producing `nixpkgs.lib.nixosSystem`; centralizes modules, overlays, sops, home-manager wiring, and `extraSpecialArgs`). *(deviation: mkHost receives `root = self` from flake.nix to resolve paths absolutely; Nix path interpolation in lib/ files is relative to lib/, not the repo root)*
+- [x] Rewrite the nixosConfigurations (nandi, hamsa, usb-installer) in flake.nix to call `mkHost`. *(deviation: iso kept as explicit lib.nixosSystem — uses non-standard specialArgs with niri and an anonymous inline module; forcing it through mkHost adds complexity for no dedup gain)*
+- [x] Extract the inline USB-installer anonymous module (flake.nix) into `hosts/usb-installer/default.nix`.
+- [x] Add `hosts/garuda/default.nix` (placeholder; hardware-configuration.nix covers essentials) + garuda nixosConfiguration added to flake.nix.
+- [x] Ensure `homeConfigurations.benjamin` and the NixOS-integrated path draw `extraSpecialArgs` from the same `hmExtraSpecialArgs` let binding.
 
 **Timing**: 2 hours
 
