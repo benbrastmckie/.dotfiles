@@ -2,7 +2,10 @@
   description = "system config";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Pinned to the stable release channel for near-100% binary cache hits
+    # (Hydra fully builds the stable channel). nixpkgs-unstable stays on
+    # unstable to feed pkgs-unstable + nix-ai-tools. See task 61.
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     lean4 = {
       url = "github:leanprover/lean4";

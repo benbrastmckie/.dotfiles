@@ -19,8 +19,8 @@ next_project_number: 68
 
 ### Nix Infrastructure
 
-60 [PLANNED] — Add Nix build resource limits to prevent OOM during rebuilds: set
-61 [PLANNED] — Pin nixpkgs flake input to a stable release channel (nixos-26.05)
+60 [IMPLEMENTING] — Add Nix build resource limits to prevent OOM during rebuilds: set
+61 [IMPLEMENTING] — Pin nixpkgs flake input to a stable release channel (nixos-26.05)
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
 66 [BLOCKED] — Systematically review all aspects of my current NixOS configurati
 
@@ -34,8 +34,8 @@ next_project_number: 68
 ### Maintenance
 
 15 [RESEARCHED] — configure_timezone_location_based
-63 [PLANNED] — Enable automatic user-level Nix garbage collection and expire old
-64 [PLANNED] — Clean regenerable caches and reclaim disk space (root filesystem 
+63 [IMPLEMENTING] — Enable automatic user-level Nix garbage collection and expire old
+64 [IMPLEMENTING] — Clean regenerable caches and reclaim disk space (root filesystem 
 
 ### Services
 
@@ -83,7 +83,7 @@ next_project_number: 68
 ---
 
 ### 64. Clean regenerable caches reclaim disk space
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: general
 - **Topic**: maintenance
 - **Dependencies**: None
@@ -95,7 +95,7 @@ next_project_number: 68
 ---
 
 ### 63. User level nix gc expire home manager generations
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: maintenance
 - **Dependencies**: None
@@ -117,7 +117,7 @@ next_project_number: 68
 ---
 
 ### 61. Pin nixpkgs stable channel binary cache hits
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
@@ -129,7 +129,7 @@ next_project_number: 68
 ---
 
 ### 60. Add nix build resource limits prevent oom
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
