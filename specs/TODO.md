@@ -1,5 +1,5 @@
 ---
-next_project_number: 67
+next_project_number: 68
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 67
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,60,61,62,63,64 | -- | nix-infrastructure, maintenance, packaging, ... |
+| 1 | 15,19,23,41,42,43,46,60,61,62,63,64,67 | -- | nix-infrastructure, maintenance, packaging, ... |
 | 2 | 65 | 60,61,63,64 | packaging |
 | 3 | 66 | 62,65 | nix-infrastructure |
 
@@ -21,6 +21,7 @@ next_project_number: 67
 
 60 [PLANNED] — Add Nix build resource limits to prevent OOM during rebuilds: set
 61 [PLANNED] — Pin nixpkgs flake input to a stable release channel (nixos-26.05)
+67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
 66 [BLOCKED] — Systematically review all aspects of my current NixOS configurati
 
 ### Packaging
@@ -44,6 +45,16 @@ next_project_number: 67
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
 
 ## Tasks
+
+### 67. Migrate r env back to stable nixpkgs
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nix-infrastructure
+- **Dependencies**: None
+
+**Description**: Migrate R environment back to stable nixpkgs once nixos-26.05 fixes r-V8. The R wrapper in configuration.nix (rWrapper with survival/tidyverse/gtsummary/mice/languageserver/styler/lintr etc.) is currently sourced from pkgs-unstable as a workaround: stable nixpkgs-26.05 ships r-V8 8.0.1 which expects ICU 78 but stable provides ICU 76.1, with no standalone v8 package to bridge it, causing a link failure (undefined icu_78 symbols) that cascades through gt -> gtsummary -> R-wrapper -> system-path and breaks the whole hamsa build. The fix gate is upstream: nixpkgs-26.05 must align r-V8/nodejs-slim libv8/ICU (version bump or backport). Test procedure: after a ./update.sh --update advances the 26.05 pin, flip two lines in configuration.nix back (pkgs-unstable.rWrapper -> rWrapper, pkgs-unstable.rPackages -> rPackages) and run nixos-rebuild build --flake .#hamsa; if r-V8 builds, migrate back and keep it, otherwise revert the flip and wait for the next stable advance. Restores the binary-cache-hit benefit of the task 61 stable pin for the heavy R+texlive stack. Follow-up of task 61.
+
+---
 
 ### 66. Review refactor nixos configuration
 - **Status**: [BLOCKED]

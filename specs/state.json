@@ -1,6 +1,17 @@
 {
-  "next_project_number": 67,
+  "next_project_number": 68,
   "active_projects": [
+    {
+      "project_number": 67,
+      "project_name": "migrate_r_env_back_to_stable_nixpkgs",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Migrate R environment back to stable nixpkgs once nixos-26.05 fixes r-V8. The R wrapper in configuration.nix (rWrapper with survival/tidyverse/gtsummary/mice/languageserver/styler/lintr etc.) is currently sourced from pkgs-unstable as a workaround: stable nixpkgs-26.05 ships r-V8 8.0.1 which expects ICU 78 but stable provides ICU 76.1, with no standalone v8 package to bridge it, causing a link failure (undefined icu_78 symbols) that cascades through gt -> gtsummary -> R-wrapper -> system-path and breaks the whole hamsa build. The fix gate is upstream: nixpkgs-26.05 must align r-V8/nodejs-slim libv8/ICU (version bump or backport). Test procedure: after a ./update.sh --update advances the 26.05 pin, flip two lines in configuration.nix back (pkgs-unstable.rWrapper -> rWrapper, pkgs-unstable.rPackages -> rPackages) and run nixos-rebuild build --flake .#hamsa; if r-V8 builds, migrate back and keep it, otherwise revert the flip and wait for the next stable advance. Restores the binary-cache-hit benefit of the task 61 stable pin for the heavy R+texlive stack. Follow-up of task 61.",
+      "topic": "nix-infrastructure",
+      "parent_task": 61,
+      "created": "2026-06-24T20:27:37Z",
+      "last_updated": "2026-06-24T20:27:37Z"
+    },
     {
       "project_number": 66,
       "project_name": "review_refactor_nixos_configuration",
@@ -372,6 +383,7 @@
     "status": "healthy"
   },
   "active_topics": [
-    "nixos-config"
+    "nixos-config",
+    "nix-infrastructure"
   ]
 }
