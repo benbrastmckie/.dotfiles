@@ -730,18 +730,7 @@
     fi
   '';
 
-  # Seed ~/.zuliprc template if it doesn't exist (not symlink, so user can fill in API key).
-  home.activation.zulipConfig = config.lib.dag.entryAfter ["writeBoundary"] ''
-    if [ ! -f /home/benjamin/.zuliprc ]; then
-      cat > /home/benjamin/.zuliprc << 'ZULIPEOF'
-[api]
-email=benjamin@logos-labs.ai
-key=REPLACE_WITH_ZULIP_API_KEY
-site=REPLACE_WITH_ZULIP_SITE_URL
-ZULIPEOF
-      chmod 600 /home/benjamin/.zuliprc
-    fi
-  '';
+  home.file.".zuliprc".source = ./config/zuliprc;
 
   # Systemd user services for ydotool daemon (required for dictation)
   systemd.user.services.screenshot-path-copy = {

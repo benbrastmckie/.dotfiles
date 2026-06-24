@@ -33,5 +33,6 @@ EOF < /dev/null
 
 # Secrets
 config/rclone.conf
+config/zuliprc
 
 **/.claude/settings.local.json
