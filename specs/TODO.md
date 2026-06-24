@@ -11,16 +11,13 @@ next_project_number: 68
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,60,61,62,63,64,67 | -- | nix-infrastructure, maintenance, packaging, ... |
-| 2 | 65 | 60,61,63,64 | packaging |
-| 3 | 66 | 62,65 | nix-infrastructure |
+| 1 | 15,19,23,41,42,43,46,62,67 | -- | nix-infrastructure, maintenance, packaging, ... |
+| 2 | 66 | 62 | nix-infrastructure |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Nix Infrastructure
 
-60 [IMPLEMENTING] — Add Nix build resource limits to prevent OOM during rebuilds: set
-61 [IMPLEMENTING] — Pin nixpkgs flake input to a stable release channel (nixos-26.05)
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
 66 [BLOCKED] — Systematically review all aspects of my current NixOS configurati
 
@@ -29,13 +26,6 @@ next_project_number: 68
 41 [BLOCKED] — reenable_pdf2docx_nixpkgs_fix
 42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
 62 [IMPLEMENTING] — Replace piper-tts with svox pico (pico2wave) and drop onnxruntime
-65 [IMPLEMENTING] — Migrate explicit python312 pins to the default python3 (currently
-
-### Maintenance
-
-15 [RESEARCHED] — configure_timezone_location_based
-63 [IMPLEMENTING] — Enable automatic user-level Nix garbage collection and expire old
-64 [IMPLEMENTING] — Clean regenerable caches and reclaim disk space (root filesystem 
 
 ### Services
 
@@ -43,6 +33,10 @@ next_project_number: 68
 23 [PLANNED] — install_simple_webcam_recording_software
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
+
+### Maintenance
+
+15 [RESEARCHED] — configure_timezone_location_based
 
 ## Tasks
 
@@ -70,7 +64,7 @@ next_project_number: 68
 ---
 
 ### 65. Migrate python312 pins to default python3
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: packaging
 - **Dependencies**: Task 60, Task 61, Task 63, Task 64
@@ -83,7 +77,7 @@ next_project_number: 68
 ---
 
 ### 64. Clean regenerable caches reclaim disk space
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: general
 - **Topic**: maintenance
 - **Dependencies**: None
@@ -95,7 +89,7 @@ next_project_number: 68
 ---
 
 ### 63. User level nix gc expire home manager generations
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: maintenance
 - **Dependencies**: None
@@ -117,7 +111,7 @@ next_project_number: 68
 ---
 
 ### 61. Pin nixpkgs stable channel binary cache hits
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
@@ -129,7 +123,7 @@ next_project_number: 68
 ---
 
 ### 60. Add nix build resource limits prevent oom
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
