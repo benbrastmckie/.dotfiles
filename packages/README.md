@@ -258,18 +258,16 @@ The script checks:
 
 The system includes TTS and STT tools for Claude Code and Neovim integration.
 
-### TTS: Piper (System Package)
-Fast, local neural text-to-speech with natural voice quality. Available in nixpkgs as `piper-tts`.
-
-**Model Management**: Voice models are declaratively managed via Nix (see `piper-voices.nix`). The US English (Lessac, medium quality) voice is automatically symlinked to `~/.local/share/piper/` after `home-manager switch`.
+### TTS: SVOX Pico (System Package)
+Lightweight, fully offline text-to-speech. Available in nixpkgs as `picotts`
+(provides `pico2wave`). Replaced Piper TTS (task 62) to drop the `onnxruntime`
+dependency; models are bundled, so no separate voice-model package is needed.
 
 **Test**:
 ```bash
-echo "Hello, this is a test." | piper --model ~/.local/share/piper/en_US-lessac-medium.onnx --output_file test.wav
+pico2wave -w test.wav "Hello, this is a test."
 aplay test.wav
 ```
-
-**Available voices**: https://huggingface.co/rhasspy/piper-voices/tree/main
 
 ### STT: Vosk (Custom Package)
 See `python-vosk.nix` section above for installation and setup.
