@@ -13,7 +13,7 @@
     # Library path for CVC5 C++ dependencies
     LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
     # Centralized literature repository for all projects (Claude Code --lit flag)
-    LITERATURE_DIR = "/home/benjamin/Projects/Literature";
+    LITERATURE_DIR = "${config.home.homeDirectory}/Projects/Literature";
   };
 
   home.file = {

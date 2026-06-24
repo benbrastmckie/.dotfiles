@@ -1,6 +1,6 @@
 # Discord bot infrastructure — sops secrets, opencode-serve, and discord-bot systemd services.
 # See: specs/053_nixos_discord_bot_prerequisites/
-{ config, pkgs, ... }:
+{ config, pkgs, username, ... }:
 let
   # Discord Bot Python environment (Task 53)
   # Dedicated Python 3 environment for the Nextcord bot service
@@ -23,23 +23,23 @@ in
 
   sops = {
     defaultSopsFile = ../../../secrets/secrets.yaml;
-    age.keyFile = "/home/benjamin/.config/sops/age/keys.txt";
+    age.keyFile = "${config.users.users.${username}.home}/.config/sops/age/keys.txt";
 
     secrets = {
       "discord_bot_token" = {
-        owner = config.users.users.benjamin.name;
+        owner = config.users.users.${username}.name;
       };
       "opencode_server_password" = {
-        owner = config.users.users.benjamin.name;
+        owner = config.users.users.${username}.name;
       };
       "discord_channel_id" = {
-        owner = config.users.users.benjamin.name;
+        owner = config.users.users.${username}.name;
       };
       "link_api_token" = {
-        owner = config.users.users.benjamin.name;
+        owner = config.users.users.${username}.name;
       };
       "ollama_api_key" = {
-        owner = config.users.users.benjamin.name;
+        owner = config.users.users.${username}.name;
       };
     };
   };
@@ -65,8 +65,8 @@ in
           "ollama_api_key:${config.sops.secrets."ollama_api_key".path}"
         ];
         # Working directory where .opencode/ config lives
-        WorkingDirectory = "/home/benjamin/.dotfiles";
-        User = config.users.users.benjamin.name;
+        WorkingDirectory = "${config.users.users.${username}.home}/.dotfiles";
+        User = config.users.users.${username}.name;
         Group = "users";
       };
     };
@@ -102,10 +102,10 @@ in
           "WHITELISTED_USER_IDS="
           "LINK_API_TOKEN=%d/link_api_token"
           "LOG_LEVEL=info"
-          "PYTHONPATH=/home/benjamin/.dotfiles/opencode-discord-bot"
+          "PYTHONPATH=${config.users.users.${username}.home}/.dotfiles/opencode-discord-bot"
         ];
-        WorkingDirectory = "/home/benjamin/.dotfiles";
-        User = config.users.users.benjamin.name;
+        WorkingDirectory = "${config.users.users.${username}.home}/.dotfiles";
+        User = config.users.users.${username}.name;
         Group = "users";
       };
     };
