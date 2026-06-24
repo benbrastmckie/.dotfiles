@@ -199,7 +199,12 @@
         extraSpecialArgs = {
           inherit username;
           inherit name;
-        } // hmExtraSpecialArgs;
+        } // hmExtraSpecialArgs // {
+          # Standalone home installs the BUILT lectic package (home.packages gets the
+          # derivation), matching pre-refactor behavior. The NixOS-integrated path keeps
+          # the raw lectic input via hmExtraSpecialArgs, so do not unify these.
+          lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
+        };
       };
     };
   };
