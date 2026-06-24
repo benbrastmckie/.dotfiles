@@ -202,14 +202,14 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 4b: Split configuration.nix — Core System Modules (part 2) + thin import list [BLOCKED]
+### Phase 4b: Split configuration.nix — Core System Modules (part 2) + thin import list [COMPLETED]
 
 **Goal**: Extract the remaining `configuration.nix` content into modules (incl. `optional/`), collapsing `configuration.nix` to a ~50-line import list.
 
 **Tasks**:
-- [ ] Create `modules/system/users.nix` (441-484, users only), `nix.nix` (734-780), `display.nix` (713-732 fonts + GDM bits), `packages.nix` (486-697), shell module for programs.fish (700-711).
-- [ ] Create `modules/system/optional/discord-bot.nix` (sops secrets + discord-bot + opencode-serve systemd services, configuration.nix:799-940) and `optional/usb-installer.nix` if not already covered by Phase 3.
-- [ ] Collapse `configuration.nix` to a thin import list referencing `modules/system/` (core always-on) and host-opted `optional/`.
+- [x] Create `modules/system/users.nix`, `nix.nix`, `display.nix`, `packages.nix`, `shell.nix`.
+- [x] Create `modules/system/optional/discord-bot.nix` (sops secrets + discord-bot + opencode-serve systemd services). *(deviation: disable-speaker-amp moved to audio.nix; NetworkManager/avahi timeouts moved to networking.nix; geoclue/automatic-timezoned moved to locale.nix; systemd.oomd moved to power.nix — each timeout lives next to the service it tunes)*
+- [x] Collapsed `configuration.nix` to a ~25-line import list (stateVersion + imports).
 
 **Timing**: 2 hours
 

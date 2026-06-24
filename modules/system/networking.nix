@@ -1,4 +1,4 @@
-# Networking, firewall, and security configuration.
+# Networking, firewall, security, and related service timeout configuration.
 { ... }:
 {
   # NOTE: networking.hostName is set per-host in flake.nix (via mkHost)
@@ -21,5 +21,29 @@
     enable = true;
     allowedTCPPorts = [ 80 443 ]; # HTTP/HTTPS
     allowedUDPPorts = [ ];
+  };
+
+  # ==========================================================================
+  # Service Timeout and Reliability Configuration
+  # ==========================================================================
+  # Reduce shutdown timeout cascade during NetworkManager deadlocks
+  # See: specs/reports/019_system_freeze_shutdown_analysis.md
+  # ==========================================================================
+  systemd.services = {
+    # NetworkManager timeout configuration
+    NetworkManager = {
+      serviceConfig = {
+        TimeoutStopSec = "30s"; # Reduce from 2min to force faster kill on deadlock
+        # Watchdog removed - was causing crashes when NM became temporarily unresponsive
+        # Restart = "on-failure";  # Disabled - let systemd handle failures normally
+      };
+    };
+
+    # Reduce timeout for services that wait on NetworkManager
+    avahi-daemon = {
+      serviceConfig = {
+        TimeoutStopSec = "20s"; # Reduce from 90s
+      };
+    };
   };
 }
