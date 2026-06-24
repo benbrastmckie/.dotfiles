@@ -1,0 +1,8 @@
+{
+  "status": "partial",
+  "metadata": {
+    "cycles_used": 1,
+    "final_state": "blocked",
+    "reason": "gated on tasks 62 and 65"
+  }
+}

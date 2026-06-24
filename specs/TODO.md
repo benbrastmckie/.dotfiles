@@ -11,13 +11,14 @@ next_project_number: 67
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,50,52,60,61,62,63,64,65,66 | -- | nixos-config |
+| 1 | 15,19,23,41,42,43,46,50,52,60,61,62,63,64,65 | -- | -- |
+| 2 | 66 | 62,65 | nixos-config |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Nixos Config
 
-66 [IMPLEMENTING] — Systematically review all aspects of my current NixOS configurati
+66 [BLOCKED] — Systematically review all aspects of my current NixOS configurati
 
 ### Uncategorized
 
@@ -33,17 +34,19 @@ next_project_number: 67
 60 [NOT STARTED] — Add Nix build resource limits to prevent OOM during rebuilds: set
 61 [NOT STARTED] — Pin nixpkgs flake input to a stable release channel (nixos-26.05)
 62 [IMPLEMENTING] — Replace piper-tts with svox pico (pico2wave) and drop onnxruntime
+  └─ 66 [BLOCKED] — (nixos-config: Systematically review all aspects of my ) (see above)
 63 [NOT STARTED] — Enable automatic user-level Nix garbage collection and expire old
 64 [NOT STARTED] — Clean regenerable caches and reclaim disk space (root filesystem 
 65 [IMPLEMENTING] — Migrate explicit python312 pins to the default python3 (currently
+  └─ 66 [BLOCKED] — (nixos-config: Systematically review all aspects of my ) (see above)
 
 ## Tasks
 
 ### 66. Review refactor nixos configuration
-- **Status**: [IMPLEMENTING]
+- **Status**: [BLOCKED]
 - **Task Type**: nix
 - **Topic**: nixos-config
-- **Dependencies**: None
+- **Dependencies**: Task 62, Task 65
 - **Research**: [066_review_refactor_nixos_configuration/reports/01_team-research.md]
 - **Plan**: [066_review_refactor_nixos_configuration/plans/01_refactor-nixos-config.md]
 - **Summary**: [066_review_refactor_nixos_configuration/summaries/01_refactor-nixos-config-summary.md]
