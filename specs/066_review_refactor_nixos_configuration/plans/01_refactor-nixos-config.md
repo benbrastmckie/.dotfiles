@@ -180,14 +180,14 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 4a: Split configuration.nix — Core System Modules (part 1) [BLOCKED]
+### Phase 4a: Split configuration.nix — Core System Modules (part 1) [COMPLETED]
 
 **Goal**: Extract the first half of `configuration.nix` into `modules/system/*.nix` using teammate A's migration table. Leave the rest in place; `configuration.nix` still imports remaining inline content.
 
 **Tasks**:
-- [ ] Create `modules/system/boot.nix` (configuration.nix:22-78), `networking.nix` (85-99), `locale.nix` (102-138), `desktop.nix` (156-264).
-- [ ] Create `modules/system/services.nix` (273-290), `audio.nix` (292-316 + 813-848), `power.nix` (318-401 + 433-438).
-- [ ] Add `imports = [ ./modules/system/... ]` to configuration.nix; delete the migrated inline blocks.
+- [x] Create `modules/system/boot.nix`, `networking.nix`, `locale.nix`, `desktop.nix`.
+- [x] Create `modules/system/services.nix`, `audio.nix`, `power.nix`. *(deviation: audio.nix placed in 4a since it was self-contained; plan originally assigned it to 4a anyway)*
+- [x] Add `imports = [ ./modules/system/... ]` to configuration.nix; deleted the migrated inline blocks.
 
 **Timing**: 2 hours
 
