@@ -143,6 +143,13 @@
     username = "benjamin";
     name = "Ben";
   in {
+    # Two home-manager paths exist in parallel:
+    #   1. NixOS-integrated (below): manages /etc/profiles/per-user/<user>/
+    #      Updated by: sudo nixos-rebuild switch --flake .#<host>
+    #   2. Standalone homeConfigurations (bottom of file): manages ~/.nix-profile/
+    #      Updated by: home-manager switch --flake .#benjamin
+    # Both evaluate home.nix with the same overlays. update.sh runs both
+    # in sequence to keep them in sync. ~/.nix-profile/ takes PATH priority.
     nixosConfigurations = {
       nandi = lib.nixosSystem {
         inherit system;
@@ -444,6 +451,24 @@
           inherit name;
           inherit pkgs-unstable;
           inherit niri;
+          lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
+        };
+      };
+    };
+    # Standalone home-manager: manages ~/.nix-profile/
+    # Enables quick home-only rebuilds without sudo (home-manager switch --flake .#benjamin).
+    # Must stay in sync with the NixOS-integrated home-manager above — update.sh runs both.
+    homeConfigurations = {
+      benjamin = home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
+        modules = [
+          ./home.nix
+        ];
+        extraSpecialArgs = {
+          inherit username;
+          inherit name;
+          inherit pkgs-unstable;
+          inherit nix-ai-tools;
           lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
         };
       };
