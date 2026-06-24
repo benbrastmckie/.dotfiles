@@ -294,14 +294,14 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 7: Document Dual Home-Manager Decision (Question for User) [NOT STARTED]
+### Phase 7: Document Dual Home-Manager Decision (Question for User) [COMPLETED]
 
 **Goal**: Do NOT change the dual HM path. Record the trade-offs and surface the consolidation decision to the user as an explicit open question.
 
 **Tasks**:
-- [ ] Write `docs/dual-home-manager.md` documenting the two paths (NixOS-integrated vs standalone `homeConfigurations.benjamin`), how `update.sh` runs both, the two GC roots / doubled eval cost, and the previously-divergent `extraSpecialArgs` (now centralized via mkHost).
-- [ ] List options: (a) keep both, (b) drop standalone, (c) drop integrated — with consequences each.
-- [ ] Mark as a QUESTION for the user in the doc and the task summary; make no functional change.
+- [x] Write `docs/dual-home-manager.md` documenting the two paths (NixOS-integrated vs standalone `homeConfigurations.benjamin`), how `update.sh` runs both, the two GC roots / doubled eval cost, and the previously-divergent `extraSpecialArgs` (now centralized via mkHost). *(deviation: mkHost is planned for Phase 3, not yet implemented; doc notes extraSpecialArgs alignment done in Phase 1)*
+- [x] List options: (a) keep both, (b) drop standalone, (c) drop integrated — with consequences each.
+- [x] Mark as a QUESTION for the user in the doc and the task summary; make no functional change.
 
 **Timing**: 1 hour
 
@@ -315,15 +315,15 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 8: Documentation + README Module Map [NOT STARTED]
+### Phase 8: Documentation + README Module Map [COMPLETED]
 
 **Goal**: Add the how-to docs and a module map, and refresh docs made stale by the split.
 
 **Tasks**:
-- [ ] Write `docs/how-to-add-package.md` (where a package goes: system vs home vs programs.X.enable vs custom derivation — the ownership policy).
-- [ ] Write `docs/how-to-add-service.md` (system service vs home systemd user service; sops secret wiring).
-- [ ] Add a module map to `README.md` (the `modules/system/`, `modules/home/`, `hosts/`, `overlays/`, `lib/` layout).
-- [ ] Update stale docs: `docs/configuration.md` (now points at modules), `docs/unstable-packages.md` (now points at `overlays/unstable-packages.nix`); audit other docs/*.md for references to the old flat files.
+- [x] Write `docs/how-to-add-package.md` (where a package goes: system vs home vs programs.X.enable vs custom derivation — the ownership policy). Created with full decision tree and ownership policy table.
+- [x] Write `docs/how-to-add-service.md` (system service vs home systemd user service; sops secret wiring). Created with decision tree, system and user service patterns, sops integration.
+- [x] Add a module map to `README.md` (the `modules/system/`, `modules/home/`, `hosts/`, `overlays/`, `lib/` layout). Added comprehensive ASCII tree showing current and planned structure.
+- [x] Update stale docs: `docs/configuration.md` — updated to reflect new file structure including planned overlays/lib/modules; `docs/unstable-packages.md` — noted deletion of root unstable-packages.nix and updated package list. *(deviation: references to `modules/system/` and `modules/home/` in docs are marked as "planned" since Phases 4-5 are gated on tasks 62/65)*
 
 **Timing**: 1.5 hours
 

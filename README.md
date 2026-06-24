@@ -17,9 +17,72 @@ These dotfiles provide a complete NixOS setup with:
 ### Core Configuration Files
 
 - [`configuration.nix`](configuration.nix): System-wide NixOS configuration
-- [`home.nix`](home.nix): Home Manager user environment configuration  
-- [`flake.nix`](flake.nix): Nix flake with inputs and system definitions
-- [`unstable-packages.nix`](unstable-packages.nix): Packages from nixpkgs unstable
+- [`home.nix`](home.nix): Home Manager user environment configuration
+- [`flake.nix`](flake.nix): Nix flake with inputs, overlays, and host definitions
+
+### Module Map
+
+```
+.
+├── flake.nix                      # Inputs + overlays + nixosConfigurations + homeConfigurations
+├── configuration.nix              # System NixOS config (boot, hardware, services, packages)
+├── home.nix                       # User Home Manager config (apps, dotfiles, user services)
+│
+├── hosts/                         # Per-host hardware configurations
+│   ├── nandi/hardware-configuration.nix   # Primary workstation (AMD Ryzen AI 300)
+│   ├── hamsa/hardware-configuration.nix   # Secondary machine
+│   ├── garuda/hardware-configuration.nix  # Laptop
+│   └── usb-installer/hardware-configuration.nix
+│
+├── packages/                      # Custom derivations (not in nixpkgs)
+│   ├── claude-code.nix            # Claude Code AI assistant (NPX wrapper)
+│   ├── opencode.nix               # OpenCode AI coding agent (custom build)
+│   ├── loogle.nix                 # Lean 4 Mathlib search tool
+│   ├── aristotle.nix              # AI theorem prover wrapper
+│   ├── slidev.nix                 # Presentation slides from Markdown
+│   ├── kooha.nix                  # Screen recorder (GStreamer override)
+│   ├── vosk-models.nix            # Vosk STT language models
+│   ├── python-cvc5.nix            # CVC5 Python bindings
+│   ├── pymupdf4llm.nix            # PyMuPDF4LLM Python package
+│   └── python-vosk.nix            # Vosk Python package
+│
+├── overlays/                      # (planned: task 66 Phase 2)
+│   ├── claude-squad.nix           # claude-squad Go package build
+│   ├── unstable-packages.nix      # Packages from nixpkgs-unstable
+│   └── python-packages.nix        # Custom python3 packageOverrides
+│
+├── lib/                           # (planned: task 66 Phase 3)
+│   └── mkHost.nix                 # Helper to deduplicate host definitions
+│
+├── modules/
+│   ├── opencode.nix               # OpenCode Home Manager module (standalone)
+│   └── system/                    # (planned: task 66 Phases 4a/4b)
+│       ├── boot.nix
+│       ├── networking.nix
+│       ├── locale.nix
+│       ├── desktop.nix
+│       ├── services.nix
+│       ├── audio.nix
+│       ├── power.nix
+│       ├── users.nix
+│       ├── nix.nix
+│       ├── display.nix
+│       ├── packages.nix
+│       ├── shell.nix
+│       └── optional/
+│           └── discord-bot.nix
+│
+├── home-modules/
+│   └── mcp-hub.nix                # MCP-Hub Home Manager module (disabled; lazy.nvim used)
+│
+├── config/                        # Application configuration files
+├── docs/                          # Documentation
+├── secrets/                       # sops-encrypted secrets (secrets.yaml + .sops.yaml)
+└── wallpapers/                    # Desktop wallpapers
+```
+
+> **Note**: Directories marked "(planned: task 66)" contain planned targets that will be
+> created once tasks 62 and 65 complete (the implementation gate for Phases 2-6).
 
 ### Directory Organization
 

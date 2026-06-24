@@ -1,5 +1,29 @@
 # NixOS Configuration Details
 
+## File Structure
+
+The configuration spans three primary files and several support directories:
+
+```
+.
+├── flake.nix              # Inputs, overlays, host definitions, homeConfigurations
+├── configuration.nix      # System-level NixOS options (packages, services, boot, users)
+├── home.nix               # Home Manager options (user packages, dotfiles, user services)
+├── hosts/                 # Per-host hardware-configuration.nix files
+│   ├── nandi/             # Primary workstation
+│   ├── hamsa/             # Secondary machine
+│   ├── garuda/            # Laptop
+│   └── usb-installer/     # USB installer image
+├── packages/              # Custom derivations (claude-code, opencode, loogle, etc.)
+├── overlays/              # (planned) Extracted overlays (claude-squad, unstable, python)
+├── lib/                   # (planned) mkHost helper function
+└── modules/               # Stub scaffold (opencode.nix; home-modules/ stubs)
+```
+
+> **Task 66 status**: Phases 2-6 (structural split into `modules/system/`, `modules/home/`,
+> `lib/mkHost.nix`, `overlays/`) are gated on tasks 62 and 65 completing first.
+> Phase 1 quick wins are complete (SASL_PATH fix, duplicate package removal, follows additions).
+
 ## configuration.nix
 
 The main system configuration file that defines:
@@ -22,12 +46,12 @@ Key sections include:
 
 The Nix flake that orchestrates the entire configuration:
 
-- Defines inputs (nixpkgs, home-manager, etc.)
-- Specifies system outputs
-- Manages flake inputs and versions
-- Configures both NixOS and Home Manager
+- Defines inputs (nixpkgs, home-manager, lean4, lectic, niri, sops-nix, utils)
+- Specifies system outputs (`nixosConfigurations`, `homeConfigurations`)
+- Manages flake inputs and versions (flake.lock)
+- Configures both NixOS and Home Manager for all hosts
 
-### Package Overlays
+### Package Overlays (inlined in flake.nix, pending Phase 2 extraction)
 
 The flake configuration uses overlays to extend and customize nixpkgs:
 
@@ -37,17 +61,16 @@ The flake configuration uses overlays to extend and customize nixpkgs:
 - Creates `cs` alias for `claude-squad` command
 
 **Unstable Packages Overlay** (`unstablePackagesOverlay`):
-- Provides access to nixpkgs-unstable packages
+- Provides access to nixpkgs-unstable packages and custom derivations
 - Used for rapidly-updating development tools
-- Currently includes: niri (window manager), claude-code (custom NPX wrapper)
+- See [`unstable-packages.md`](unstable-packages.md) for the full list
 
 **Python Packages Overlay** (`pythonPackagesOverlay`):
-- Extends Python 3.12 with custom packages
-- Currently provides CVC5 SMT solver bindings (v1.3.1)
-- Packages not available in standard nixpkgs
+- Extends `python3` with custom packages via `packageOverrides`
+- Currently provides: `cvc5`, `pymupdf4llm`, `vosk`, patched `httplib2`/`pymupdf`
 - Enables declarative Python package management via overlays
 
-All overlays are applied via the `nixpkgsConfig` in the flake, making customized packages available throughout the system.
+All overlays are applied via `nixpkgsConfig` in the flake, making customized packages available throughout the system.
 
 ## home.nix
 
