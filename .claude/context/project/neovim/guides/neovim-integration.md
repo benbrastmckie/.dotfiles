@@ -72,7 +72,7 @@ If the hook is missing or fails:
 
 ### Overview
 
-The `tts-notify.sh` hook announces Claude Code events using Piper TTS. It triggers on both Stop events (Claude finished) and Notification events (Claude needs input).
+The `tts-notify.sh` hook announces Claude Code events using SVOX Pico TTS (pico2wave). It triggers on both Stop events (Claude finished) and Notification events (Claude needs input).
 
 For comprehensive TTS/STT documentation including software dependencies, model setup, and workflow examples, see the [TTS/STT Integration Guide](tts-stt-integration.md).
 
@@ -292,7 +292,7 @@ Stop hook fires
          +-->  Check cooldown (10s)
          +-->  Get WezTerm tab number
          +-->  Generate message: "Tab 5"
-         +-->  Speak with Piper (background, 10s timeout)
+         +-->  Speak with pico2wave (background, 10s timeout)
 ```
 
 ### Notification Hook Flow
@@ -309,7 +309,7 @@ Notification hook fires (permission_prompt, idle_prompt, elicitation_dialog)
          +-->  Check cooldown (10s)
          +-->  Get WezTerm tab number
          +-->  Generate message: "Tab 5 needs permission" / "Tab 5 needs input" / "Tab 5 has a question"
-         +-->  Speak with Piper (background, 10s timeout)
+         +-->  Speak with pico2wave (background, 10s timeout)
 ```
 
 ## Related Files
