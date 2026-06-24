@@ -1,0 +1,29 @@
+{
+  "status": "planned",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/063_user_level_nix_gc_expire_home_manager_generations/plans/01_user-nix-gc.md",
+      "summary": "6-phase plan: declarative services.home-manager.autoExpire edit (safe now) plus gated one-time reclamation (expire-before-GC) and activation, with before/after store-size verification"
+    }
+  ],
+  "next_steps": "Run /implement 63 to execute the plan. Phases 1-2 (baseline capture + home.nix edit) are safe now; Phases 3-6 (reclamation, switch, verification) are GATED until the Lean build completes.",
+  "metadata": {
+    "session_id": "sess_1782323967_b6ef1e",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 6,
+    "estimated_hours": 2.5,
+    "dependency_waves": [[1], [2], [3], [4], [5], [6]]
+  },
+  "memory_candidates": [
+    {
+      "content": "On NixOS, the root-level nix.gc timer runs nix-collect-garbage as root and only scans /nix/var/nix/profiles and per-user/root; it never touches a user's home-manager generations under ~/.local/state/nix/profiles/. To reclaim that space, add services.home-manager.autoExpire (enable, timestamp=\"-30 days\", frequency, store.cleanup=true, store.options) in home.nix, which runs `home-manager expire-generations` THEN `nix-collect-garbage` on a weekly user timer. For one-time manual reclamation the order is mandatory: expire-generations FIRST (removes generation symlinks acting as GC roots), then nix-collect-garbage; reversing it makes the GC a no-op for HM closures. The active generation is always protected via ~/.local/state/home-manager/gcroots/current-home.",
+      "category": "PATTERN",
+      "source_artifact": "specs/063_user_level_nix_gc_expire_home_manager_generations/plans/01_user-nix-gc.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["nix-gc", "home-manager", "autoExpire", "expire-generations", "nix-collect-garbage", "garbage-collection"]
+    }
+  ]
+}

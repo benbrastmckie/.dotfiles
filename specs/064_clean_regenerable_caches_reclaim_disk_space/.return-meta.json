@@ -1,0 +1,15 @@
+{
+  "status": "planned",
+  "agent_type": "planner-agent",
+  "task_number": 64,
+  "delegation_path": ["orchestrator", "plan", "planner-agent"],
+  "artifact_number": 1,
+  "artifact_path": "specs/064_clean_regenerable_caches_reclaim_disk_space/plans/01_cache-cleanup.md",
+  "research_inputs": ["specs/064_clean_regenerable_caches_reclaim_disk_space/reports/01_cache-cleanup.md"],
+  "phase_count": 7,
+  "estimated_hours": 3,
+  "dependency_waves": [[1, 2], [5], [3], [4], [6]],
+  "memory_candidates": [],
+  "next_steps": "Run /implement 64 to execute the plan (Phases 1-2 + 5 now; Phases 3-4 gated until Lean sessions close). Do NOT mark task 64 complete until the full cleanup has run post-Lean.",
+  "notes": "Planning only. No deletions, no cache commands, no nix.gc/home.nix edits performed. Task 63 overlap documented in Phase 5: 64 owns regenerable-cache timer; 63 owns home-manager autoExpire + manual GC."
+}

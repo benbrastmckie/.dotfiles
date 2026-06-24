@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "agent_type": "planner-agent",
+  "task_number": 60,
+  "status": "planned",
+  "session_id": "sess_planner_task60",
+  "delegation_path": ["orchestrator", "plan", "planner-agent"],
+  "artifacts": [
+    "specs/060_add_nix_build_resource_limits_prevent_oom/plans/01_build-resource-limits.md"
+  ],
+  "phase_count": 3,
+  "estimated_hours": 0.75,
+  "dependency_waves": [
+    {"wave": 1, "phases": [1, 2]},
+    {"wave": 2, "phases": [3]}
+  ],
+  "memory_candidates": [],
+  "next_steps": "Run /implement 60 to execute the plan"
+}
