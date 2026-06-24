@@ -1,7 +1,7 @@
 # Notmuch email indexer and full-text search configuration.
 # Works alongside mbsync for offline IMAP synchronisation.
 # See: specs/045_add_terminal_email_client_to_nixos
-{ ... }:
+{ config, ... }:
 {
   programs.notmuch = {
     enable = true;
@@ -13,7 +13,7 @@
         other_email = "benjamin@logos-labs.ai";
       };
       database = {
-        path = "/home/benjamin/Mail";
+        path = "${config.home.homeDirectory}/Mail";
       };
     };
     hooks = {
