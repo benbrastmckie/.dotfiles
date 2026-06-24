@@ -1,5 +1,5 @@
 ---
-next_project_number: 68
+next_project_number: 70
 ---
 
 # TODO
@@ -11,13 +11,15 @@ next_project_number: 68
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67 | -- | nix-infrastructure, maintenance, packaging, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,69 | -- | nix-infrastructure, maintenance, packaging, ... |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Nix Infrastructure
 
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
+68 [NOT STARTED] — The iso and usb-installer nixosConfigurations fail to build becau
+69 [NOT STARTED] — Consolidate the dual home-manager setup so there is a single sour
 
 ### Services
 
@@ -36,6 +38,26 @@ next_project_number: 68
 15 [RESEARCHED] — configure_timezone_location_based
 
 ## Tasks
+
+### 69. Consolidate dual home manager config
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nix-infrastructure
+- **Dependencies**: None
+
+**Description**: Consolidate the dual home-manager setup so there is a single source of truth. Both the NixOS-integrated path (home-manager.users.benjamin via lib/mkHost.nix) and the standalone path (homeConfigurations.benjamin) import home.nix but pass subtly different extraSpecialArgs - notably lectic as the raw flake input (integrated) vs the resolved package (standalone). This asymmetry caused the lectic regression caught in task 66 phase 9. Decide the intended behavior (likely: both should ship the built lectic package), unify the specialArgs, and document in docs/dual-home-manager.md. See the open question recorded there.
+
+---
+
+### 68. Fix broken zfs kernel installer builds
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nix-infrastructure
+- **Dependencies**: None
+
+**Description**: The iso and usb-installer nixosConfigurations fail to build because zfs-kernel is broken on the current kernel (7.1.1): installation-cd-minimal.nix pulls in ZFS via supportedFilesystems. Restore buildable installer images by one of: disabling ZFS in the installer (boot.supportedFilesystems exclude zfs), pinning a kernel that ZFS supports for the installer only, or waiting for upstream zfs compatibility then bumping. Pre-existing issue surfaced during task 66 final audit; affects both pre- and post-refactor trees equally (not a regression).
+
+---
 
 ### 67. Migrate r env back to stable nixpkgs
 - **Status**: [NOT STARTED]
