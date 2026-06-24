@@ -877,6 +877,59 @@
   #   };
   # };
 
+  # Weekly cleanup of regenerable package-manager caches (pip/uv/npm) so they
+  # don't regrow unbounded. Nix store GC is handled by nix.gc (configuration.nix)
+  # and home-manager generation expiry by services.home-manager.autoExpire below.
+  # See task 64. (systemd.user.tmpfiles.rules avoided due to HM issue #8125.)
+  systemd.user.services.cache-cleanup = {
+    Unit = {
+      Description = "Purge regenerable package-manager caches (pip/uv/npm)";
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = let
+        script = pkgs.writeShellScript "cache-cleanup" ''
+          export PATH="${config.home.homeDirectory}/.nix-profile/bin:/run/current-system/sw/bin:$PATH"
+          echo "cache-cleanup: starting"
+          command -v pip >/dev/null 2>&1 && pip cache purge || true
+          command -v uv  >/dev/null 2>&1 && uv cache clean || true
+          command -v npm >/dev/null 2>&1 && npm cache clean --force || true
+          ${pkgs.coreutils}/bin/rm -rf "${config.home.homeDirectory}/.npm/_npx" || true
+          echo "cache-cleanup: done"
+        '';
+      in "${script}";
+    };
+  };
+
+  systemd.user.timers.cache-cleanup = {
+    Unit = {
+      Description = "Weekly timer for regenerable cache cleanup";
+      Requires = [ "cache-cleanup.service" ];
+    };
+    Timer = {
+      OnCalendar = "weekly";
+      Persistent = true;
+      RandomizedDelaySec = 3600;
+    };
+    Install = {
+      WantedBy = [ "timers.target" ];
+    };
+  };
+
+  # Automatic user-level home-manager generation expiry + store GC. The
+  # system-level nix.gc (configuration.nix) only collects root profiles and
+  # never touches user HM generations, which were pinning months of old
+  # closures in the store. See task 63.
+  services.home-manager.autoExpire = {
+    enable = true;
+    timestamp = "-30 days";
+    frequency = "weekly";
+    store = {
+      cleanup = true;
+      options = "--delete-older-than 30d";
+    };
+  };
+
   # Add systemd user session variables for broader availability
   systemd.user.sessionVariables = {
     SASL_PATH = "${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2";

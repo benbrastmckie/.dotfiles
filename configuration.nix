@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, lib, pkgs, lectic, ... }:
+{ config, lib, pkgs, pkgs-unstable, lectic, ... }:
 let
   # Discord Bot Python environment (Task 53)
   # Dedicated Python 3 environment for the Nextcord bot service
@@ -565,8 +565,12 @@ services.blueman.enable = lib.mkIf (!config.services.desktopManager.gnome.enable
       cloc                 # Tools to check the size of a repo
       # R environment with all packages composed via wrapper
       # (flat rPackages.* entries don't expose packages to R's library path)
-      (rWrapper.override {
-        packages = with rPackages; [
+      # Sourced from pkgs-unstable: stable nixpkgs-26.05 ships a broken r-V8
+      # (8.0.1 expects ICU 78 but stable provides 76.1, with no standalone v8
+      # package to bridge it), which fails to link and breaks gt -> gtsummary.
+      # Unstable's r-V8 8.2.0 is version-matched and builds cleanly. See task 61.
+      (pkgs-unstable.rWrapper.override {
+        packages = with pkgs-unstable.rPackages; [
           # P0: Core statistical packages
           survival
           MASS
@@ -736,6 +740,11 @@ nix = {
   settings = {
     experimental-features = [ "nix-command" "flakes" ];
     auto-optimise-store = true;  # Optimize the Nix store automatically
+    # Resource limits to prevent OOM on heavy C++ builds (24-core / 30GB box).
+    # max-jobs * cores caps concurrent compile units at 12, within the ~26GB
+    # build budget (~2GB/unit for onnxruntime-class packages). See task 60.
+    max-jobs = 2;
+    cores = 6;
   };
   gc = {
     automatic = true;
