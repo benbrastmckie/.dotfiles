@@ -40,6 +40,42 @@
   # Enable automatic timezone detection (will override the default above)
   services.automatic-timezoned.enable = true;
 
+  # ==========================================================================
+  # automatic-timezoned Service Restart Configuration
+  # ==========================================================================
+  # Problem: automatic-timezoned crashes when geoclue2 shuts down after its
+  # 60-second idle timeout, causing a D-Bus disconnection error.
+  #
+  # Solution: Configure automatic-timezoned to restart on failure with rate
+  # limiting to prevent restart loops.
+  #
+  # See: specs/16_troubleshoot_automatic_timezoned_geoclue2_dbus_timeout
+  # ==========================================================================
+  systemd.services = {
+    geoclue = {
+      serviceConfig = {
+        TimeoutStopSec = "15s"; # Reduce from 90s
+        # Prevent restart loop during normal operation
+        Restart = "on-failure";
+        RestartSec = "60s";
+      };
+    };
+
+    automatic-timezoned = {
+      serviceConfig = {
+        Restart = "on-failure";
+        RestartSec = "30s";
+      };
+      # Prevent restart loop: max 10 restarts per 5 minutes
+      startLimitBurst = 10;
+      startLimitIntervalSec = 300;
+    };
+
+    # Note: automatic-timezoned-geoclue-agent already has Restart = "on-failure"
+    # defined by the NixOS module, which is sufficient for handling D-Bus
+    # disconnections when geoclue2 shuts down. No override needed.
+  };
+
   # QMK keyboard support - creates plugdev group, adds udev rules
   # Using the NixOS QMK module instead of manual udev packages to avoid
   # "Failed to resolve group 'plugdev'" spam from systemd-udevd (every 3-4s).

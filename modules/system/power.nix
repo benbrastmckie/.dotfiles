@@ -130,4 +130,15 @@
     "vm.watermark_scale_factor" = 125; # Better memory reclaim (default: 10)
     "vm.page-cluster" = 0; # Disable readahead for zram (default: 3)
   };
+
+  # ==========================================================================
+  # Memory Management - Disable systemd-oomd (earlyoom preferred)
+  # ==========================================================================
+  # systemd-oomd conflicts with earlyoom. earlyoom is more configurable and
+  # provides desktop notifications. Disabling systemd-oomd to avoid dual OOM
+  # killer confusion.
+  #
+  # See: specs/39_analyze_memory_logs_optimize_system
+  # ==========================================================================
+  systemd.oomd.enable = false;
 }
