@@ -11,7 +11,7 @@ next_project_number: 67
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,50,52,60,61,62,63,64,65 | -- | nix-infrastructure, maintenance, media-apps, ... |
+| 1 | 15,19,23,41,42,43,46,50,52,60,61,62,63,64,65 | -- | nix-infrastructure, maintenance, packaging, ... |
 | 2 | 66 | 62,65 | nix-infrastructure |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -40,12 +40,9 @@ next_project_number: 67
 ### Services
 
 19 [RESEARCHED] — install_setup_mcp_servers_web_development
+23 [PLANNED] — install_simple_webcam_recording_software
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
-
-### Media Apps
-
-23 [PLANNED] — install_simple_webcam_recording_software
 
 ## Tasks
 
@@ -183,7 +180,7 @@ next_project_number: 67
 ### 23. Install simple webcam recording software
 - **Status**: [PLANNED]
 - **Task Type**: general
-- **Topic**: media-apps
+- **Topic**: services
 - **Dependencies**: None
 - **Research**: [23_install_simple_webcam_recording_software/reports/research-001.md]
 - **Plan**: [23_install_simple_webcam_recording_software/plans/implementation-001.md]
