@@ -28,15 +28,11 @@ aristotle --api-key YOUR_API_KEY prove-from-file theorem.lean
 **Documentation**: Visit https://aristotle.harmonic.fun for more information
 
 ### claude-code.nix
-NPX wrapper for Claude Code that automatically uses the latest version from NPM registry. This zero-maintenance approach eliminates the need for manual version updates and hash calculations while providing access to all Claude Code 2.0+ features.
+NPX wrapper for Claude Code that fetches the latest version from NPM on each invocation. Also sets the default Opus model via `ANTHROPIC_DEFAULT_OPUS_MODEL`.
 
-**Implementation**: Uses `writeShellScriptBin` to create a simple wrapper that executes `npx @anthropic-ai/claude-code@latest`
+**Implementation**: Uses `writeShellScriptBin` to create a wrapper that runs `npx @anthropic-ai/claude-code@latest`
 
-**Benefits**:
-- Automatic updates to latest version
-- Zero maintenance required
-- 86% reduction in code complexity compared to traditional Nix packaging
-- Offline support via NPX caching
+**Updating**: To pin a specific version, replace `@latest` with `@X.Y.Z`. After any change, rebuild with `sudo nixos-rebuild switch` (and `home-manager switch` or `./update.sh`). The npx cache (`~/.npm/_npx/`) may serve a stale version — delete it to force a fresh download.
 
 ### marker-pdf.nix
 UV wrapper for marker-pdf that automatically uses the latest version from PyPI. This zero-maintenance approach eliminates the need for manual version updates while providing PDF to markdown conversion capabilities.

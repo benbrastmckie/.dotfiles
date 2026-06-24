@@ -31,11 +31,12 @@ if [ "$1" == "--no-check" ]; then
   SKIP_CHECK="--option allow-import-from-derivation false"
 fi
 
-# Rebuild NixOS configuration
+# Rebuild NixOS configuration (includes NixOS-integrated home-manager -> /etc/profiles/per-user/)
 echo "===> Rebuilding NixOS configuration..."
 sudo nixos-rebuild switch --flake .#$HOSTNAME --option allow-import-from-derivation false
 
-# Rebuild home-manager configuration
+# Rebuild standalone home-manager (-> ~/.nix-profile/, takes PATH priority)
+# Both paths evaluate the same home.nix; running both keeps them in sync.
 echo "===> Rebuilding Home Manager configuration..."
 home-manager switch --flake .#benjamin --option allow-import-from-derivation false
 

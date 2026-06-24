@@ -51,6 +51,11 @@ For detailed installation instructions, see [`docs/installation.md`](docs/instal
 2. Build system: `sudo nixos-rebuild switch --flake .#hostname`
 3. Apply user config: `home-manager switch --flake .#benjamin`
 
+> **Note**: Both commands evaluate `home.nix` — the NixOS rebuild manages
+> `/etc/profiles/per-user/`, while `home-manager switch` manages `~/.nix-profile/`
+> (which takes PATH priority). Run both to keep them in sync, or use `./update.sh`
+> which handles everything.
+
 ### USB Installer
 
 Create a bootable USB installer with your complete configuration:
@@ -114,16 +119,20 @@ For complete application configurations and setup instructions, see [`docs/appli
 
 ## Maintenance
 
-### Updating System
+### Full Update (recommended)
 ```bash
-sudo nixos-rebuild switch --flake .#hostname
+./update.sh          # checkpoints, updates flake inputs, rebuilds NixOS + home-manager
 ```
 
-### Updating Packages
+### Manual Rebuilds
 ```bash
-nix flake update
-./update.sh
+sudo nixos-rebuild switch --flake .#hostname   # system + NixOS-integrated home-manager
+home-manager switch --flake .#benjamin         # standalone home-manager only (no sudo)
 ```
+
+Both commands install `home.nix` packages to separate profile paths. `update.sh` runs
+both in sequence to keep them in sync. For quick home-only changes, `home-manager switch`
+alone is sufficient since `~/.nix-profile/` takes PATH priority.
 
 ## License
 
