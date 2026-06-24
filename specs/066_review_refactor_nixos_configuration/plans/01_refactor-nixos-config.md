@@ -133,15 +133,15 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 2: Extract Overlays into overlays/*.nix [BLOCKED]
+### Phase 2: Extract Overlays into overlays/*.nix [COMPLETED]
 
 **Goal**: Move the 3 inlined overlays (~120L) out of the flake `let` block into dedicated files; flake imports them.
 
 **Tasks**:
-- [ ] Create `overlays/claude-squad.nix` from flake.nix:50-81.
-- [ ] Create `overlays/unstable-packages.nix` from flake.nix:83-103 (supersedes the deleted root file).
-- [ ] Create `overlays/python-packages.nix` from flake.nix:105-123 (coordinate with task 65's python overlay edits — verify final post-65 content).
-- [ ] Rewire `flake.nix` to import the overlay files; remove the inlined definitions.
+- [x] Create `overlays/claude-squad.nix` from flake.nix:50-81.
+- [x] Create `overlays/unstable-packages.nix` from flake.nix:83-103 (supersedes the deleted root file). *(deviation: unstable-packages.nix uses curried form `pkgs-unstable: final: prev:` since it closes over pkgs-unstable; partially applied in flake.nix)*
+- [x] Create `overlays/python-packages.nix` from flake.nix:105-123 (coordinate with task 65's python overlay edits — verify final post-65 content).
+- [x] Rewire `flake.nix` to import the overlay files; remove the inlined definitions.
 
 **Timing**: 1.5 hours
 
