@@ -17,7 +17,7 @@ next_project_number: 67
 
 ### Nixos Config
 
-66 [PLANNED] — Systematically review all aspects of my current NixOS configurati
+66 [IMPLEMENTING] — Systematically review all aspects of my current NixOS configurati
 
 ### Uncategorized
 
@@ -40,12 +40,13 @@ next_project_number: 67
 ## Tasks
 
 ### 66. Review refactor nixos configuration
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
 - **Research**: [066_review_refactor_nixos_configuration/reports/01_team-research.md]
 - **Plan**: [066_review_refactor_nixos_configuration/plans/01_refactor-nixos-config.md]
+- **Summary**: [066_review_refactor_nixos_configuration/summaries/01_refactor-nixos-config-summary.md]
 
 **Description**: Systematically review all aspects of my current NixOS configuration, researching best practices online as of June 2026 in order to design a careful refactor that improves organization, documentation, and modularity, producing a maintainable and high performance configuration
 
