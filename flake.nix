@@ -53,81 +53,11 @@
       };
     };
     
-    # Create an overlay for claude-squad
-    claudeSquadOverlay = final: prev: {
-      claude-squad = final.buildGoModule rec {
-        pname = "claude-squad";
-        version = "1.0.8";
-        
-        src = final.fetchFromGitHub {
-          owner = "smtg-ai";
-          repo = "claude-squad";
-          rev = "v${version}";
-          sha256 = "sha256-mzW9Z+QN4EQ3JLFD3uTDT2/c+ZGLzMqngl3o5TVBZN0=";
-        };
-        
-        vendorHash = "sha256-BduH6Vu+p5iFe1N5svZRsb9QuFlhf7usBjMsOtRn2nQ=";
-        
-        nativeBuildInputs = with final; [ go ];
-        
-        buildInputs = with final; [ tmux gh ];
-        
-        postInstall = ''
-          # Create 'cs' alias
-          ln -s $out/bin/claude-squad $out/bin/cs
-        '';
-        
-        meta = with final.lib; {
-          description = "Terminal app that manages multiple AI terminal agents";
-          homepage = "https://github.com/smtg-ai/claude-squad";
-          license = licenses.agpl3Only;
-          maintainers = [ ];
-          platforms = platforms.linux ++ platforms.darwin;
-        };
-      };
-    };
-
-    # Create an overlay for unstable packages
-    unstablePackagesOverlay = final: prev: {
-      # Window Manager - ENABLED (dual-session with GNOME)
-      niri = pkgs-unstable.niri; # Active development with frequent improvements
-
-      # Applications
-      claude-code = final.callPackage ./packages/claude-code.nix {}; # Latest AI capabilities (custom build)
-      # opencode = pkgs-unstable.opencode; # AI coding agent built for the terminal (sst/opencode)
-      opencode = final.callPackage ./packages/opencode.nix {}; # Latest release (custom build, bypasses nixpkgs lag)
-      gemini-cli = pkgs-unstable.gemini-cli; # Google Gemini AI CLI tool
-      loogle = final.callPackage ./packages/loogle.nix {}; # Lean 4 Mathlib search tool (wrapper)
-      aristotle = final.callPackage ./packages/aristotle.nix {}; # AI theorem prover with Lean
-      slidev = final.callPackage ./packages/slidev.nix {}; # Presentation slides from Markdown
-      kooha = import ./packages/kooha.nix prev.kooha final.gst_all_1; # Screen recorder with full GStreamer plugin support
-
-      # TTS/STT Models
-      vosk-model-small-en-us = final.callPackage ./packages/vosk-models.nix {}; # Vosk STT language model
-
-      # Add other packages that benefit from using unstable below
-      # Format: package-name = pkgs-unstable.package-name; # Reason for using unstable
-    };
-
-    # Create an overlay for custom Python packages
-    pythonPackagesOverlay = final: prev:
-      let
-        customPythonPackages = pySelf: pySuper: {
-          cvc5 = pySelf.callPackage ./packages/python-cvc5.nix { };
-          pymupdf4llm = pySelf.callPackage ./packages/pymupdf4llm.nix { };
-          vosk = pySelf.callPackage ./packages/python-vosk.nix { };
-          httplib2 = pySuper.httplib2.overridePythonAttrs (old: {
-            doCheck = false;
-          });
-          pymupdf = pySuper.pymupdf.overridePythonAttrs (old: {
-            doCheck = false;
-          });
-        };
-      in {
-        python3 = prev.python3.override {
-          packageOverrides = customPythonPackages;
-        };
-      };
+    # Import overlays from dedicated files
+    claudeSquadOverlay = import ./overlays/claude-squad.nix;
+    # unstable-packages overlay is curried: it needs pkgs-unstable partially applied
+    unstablePackagesOverlay = import ./overlays/unstable-packages.nix pkgs-unstable;
+    pythonPackagesOverlay = import ./overlays/python-packages.nix;
 
     # Note: MCPHub is now handled via official flake input instead of custom overlay
 
