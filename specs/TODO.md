@@ -1,19 +1,23 @@
 ---
-next_project_number: 66
+next_project_number: 67
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-06-13. Generated from state.json dependency graph.*
+*Updated 2026-06-24. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,50,52,60,61,62,63,64,65 | -- | -- |
+| 1 | 15,19,23,41,42,43,46,50,52,60,61,62,63,64,65,66 | -- | nixos-config |
 
 **Grouped by Topic** (indented = depends on parent):
+
+### Nixos Config
+
+66 [NOT STARTED] — Systematically review all aspects of my current NixOS configurati
 
 ### Uncategorized
 
@@ -34,6 +38,16 @@ next_project_number: 66
 65 [IMPLEMENTING] — Migrate explicit python312 pins to the default python3 (currently
 
 ## Tasks
+
+### 66. Review refactor nixos configuration
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Systematically review all aspects of my current NixOS configuration, researching best practices online as of June 2026 in order to design a careful refactor that improves organization, documentation, and modularity, producing a maintainable and high performance configuration
+
+---
 
 ### 65. Migrate python312 pins to default python3
 - **Status**: [IMPLEMENTING]

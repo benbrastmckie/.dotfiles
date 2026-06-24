@@ -1,6 +1,16 @@
 {
-  "next_project_number": 66,
+  "next_project_number": 67,
   "active_projects": [
+    {
+      "project_number": 66,
+      "project_name": "review_refactor_nixos_configuration",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Systematically review all aspects of my current NixOS configuration, researching best practices online as of June 2026 in order to design a careful refactor that improves organization, documentation, and modularity, producing a maintainable and high performance configuration",
+      "topic": "nixos-config",
+      "created": "2026-06-24T16:37:06Z",
+      "last_updated": "2026-06-24T16:37:06Z"
+    },
     {
       "project_number": 65,
       "project_name": "migrate_python312_pins_to_default_python3",
@@ -256,5 +266,8 @@
     "fixme_count": 0,
     "build_errors": 0,
     "status": "healthy"
-  }
+  },
+  "active_topics": [
+    "nixos-config"
+  ]
 }
