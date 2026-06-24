@@ -11,13 +11,12 @@ next_project_number: 68
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,66,67 | -- | nix-infrastructure, maintenance, packaging, ... |
+| 1 | 15,19,23,41,42,43,46,67 | -- | nix-infrastructure, maintenance, packaging, ... |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Nix Infrastructure
 
-66 [IMPLEMENTING] — Systematically review all aspects of my current NixOS configurati
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
 
 ### Services
@@ -49,7 +48,7 @@ next_project_number: 68
 ---
 
 ### 66. Review refactor nixos configuration
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: Task 62, Task 65, Task 63, Task 64

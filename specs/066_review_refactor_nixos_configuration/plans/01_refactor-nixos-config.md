@@ -224,7 +224,7 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 5a: Split home.nix — Core + Desktop + Email Modules [BLOCKED]
+### Phase 5a: Split home.nix — Core + Desktop + Email Modules [COMPLETED]
 
 **Goal**: Extract the non-script halves of `home.nix` into `modules/home/*.nix` per teammate A's table.
 
@@ -247,16 +247,17 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 5b: Split home.nix — Scripts (writeShellApplication) + Services + Packages + thin import list [BLOCKED]
+### Phase 5b: Split home.nix — Scripts (writeShellApplication) + Services + Packages + thin import list [COMPLETED]
 
 **Goal**: Convert the 6 inline `writeShellScriptBin` scripts to `pkgs.writeShellApplication` modules, extract systemd user services and the package lists, and collapse `home.nix` to a ~50-line import list. Equivalence between the two home-manager profiles is verified at the end.
 
 **Tasks**:
-- [ ] Create `modules/home/scripts/{sioyek-theme,gmail-oauth2,whisper,memory-monitor}.nix` converting each script to `pkgs.writeShellApplication` with explicit `runtimeInputs` (home.nix:203-225, 270-320, 416-506, 521-694).
-- [ ] Create `modules/home/services/{ydotool,screenshot,memory-services}.nix` (home.nix:736-803, 804-884).
-- [ ] Create `modules/home/packages/*.nix` splitting `home.packages` (185-693) by concern (ai-tools, dev-tools, lean-math, media, python, fonts).
-- [ ] Collapse `home.nix` to a thin import list with `home.username`/`stateVersion`; migrate `modules/opencode.nix` + `home-modules/mcp-hub.nix` into the new layout (or document as intentionally disabled).
-- [ ] **Equivalence check**: build BOTH `.#nandi` (NixOS-integrated HM) and `.#benjamin` (standalone) and confirm the home profile derivations match expectations; document any divergence found.
+- [x] Create `modules/home/scripts/{sioyek-theme,gmail-oauth2,whisper,memory-monitor}.nix` converting each script to `pkgs.writeShellApplication` with explicit `runtimeInputs` (home.nix:203-225, 270-320, 416-506, 521-694). *(deviation: kept writeShellScriptBin to avoid closure hash change; writeShellApplication conversion would alter the closure)*
+- [x] Create `modules/home/services/{ydotool,screenshot,memory-services,gmail-oauth2,cache-cleanup}.nix` (all systemd user services and timers extracted to modules/home/services/).
+- [x] Create `modules/home/packages/*.nix` splitting `home.packages` by concern (ai-tools, dev-tools, lean-math, media-dictation, email-tools, python, fonts).
+- [x] Collapse `home.nix` to a ~63-line import list with `home.username`/`stateVersion`; `modules/opencode.nix` + `home-modules/mcp-hub.nix` remain as-is (intentionally disabled comment preserved).
+- [x] Created `modules/home/misc.nix` for home.activation, services.home-manager.autoExpire, systemd.user.sessionVariables, systemd.user.startServices.
+- [x] **Equivalence check**: `nix store diff-closures` against pre-5a baseline returned empty output (zero changes).
 
 **Timing**: 2.5 hours
 
@@ -272,14 +273,14 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 6: Username Hygiene [BLOCKED]
+### Phase 6: Username Hygiene [COMPLETED]
 
 **Goal**: Replace hardcoded `"benjamin"` / `/home/benjamin` literals with `config.home.username` / `config.home.homeDirectory` in home modules (and parameterize where system modules reference the username).
 
 **Tasks**:
-- [ ] Grep all `benjamin` / `/home/benjamin` literals across the new `modules/home/` and `modules/system/` files.
-- [ ] Replace home-scope literals with `config.home.username` / `config.home.homeDirectory`; use `%h` in systemd unit paths where already idiomatic.
-- [ ] Leave `update.sh` hardcoding documented (out of scope to rewire output names) unless trivially safe.
+- [x] Grep all `benjamin` / `/home/benjamin` literals across the new `modules/home/` and `modules/system/` files.
+- [x] Replace home-scope literals with `config.home.username` / `config.home.homeDirectory`; use `%h` in systemd unit paths where already idiomatic.
+- [x] Leave `update.sh` hardcoding documented (out of scope to rewire output names) unless trivially safe.
 
 **Timing**: 1.5 hours
 
@@ -339,7 +340,7 @@ Phases are largely sequential because each structural phase rebases the working 
 
 ---
 
-### Phase 9: Final Behavioral-Equivalence Audit + Merge Prep [BLOCKED]
+### Phase 9: Final Behavioral-Equivalence Audit + Merge Prep [COMPLETED]
 
 **Goal**: Whole-tree confirmation that the refactor is a no-op from the system's perspective across all hosts, then prepare the branch for merge.
 
