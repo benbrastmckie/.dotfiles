@@ -346,13 +346,13 @@ model-existence check (faithful revert of commit `eb31703`), scoped to this repo
 
 ---
 
-### Phase 5: Update README.md + docs/applications.md [NOT STARTED]
+### Phase 5: Update README.md + docs/applications.md [COMPLETED]
 
 **Goal**: Bring the two documentation files task 70 explicitly names back in line with the Piper config.
 
 **Tasks**:
-- [ ] Update the README TTS bullet to describe Piper/lessac-medium (prebuilt binary, no onnxruntime compile).
-- [ ] Rewrite the `### TTS: SVOX Pico` section in `docs/applications.md` to `### TTS: Piper` with the
+- [x] Update the README TTS bullet to describe Piper/lessac-medium (prebuilt binary, no onnxruntime compile).
+- [x] Rewrite the `### TTS: SVOX Pico` section in `docs/applications.md` to `### TTS: Piper` with the
       new package name, model, and a piper usage example.
 
 **Timing**: 0.25 hours

@@ -84,21 +84,20 @@ Fish shell with custom configuration:
 
 System-wide TTS and STT tools for Claude Code notifications and Neovim integration.
 
-### TTS: SVOX Pico
+### TTS: Piper
 
-Lightweight, fully offline text-to-speech via `pico2wave`. Replaced Piper TTS
-(task 62) to drop the heavy `onnxruntime` dependency from the system closure.
+Fast, local, fully offline neural text-to-speech with the `en_US-lessac-medium` voice.
+Installed via a prebuilt Linux x86_64 release binary (`packages/piper-bin.nix`, fetchurl +
+autoPatchelfHook) so the bundled onnxruntime is never compiled from source (task 70).
 
-**Package**: `picotts` (from nixpkgs, provides `pico2wave`)
-**Models**: Bundled with the package — no separate model package needed.
+**Package**: `piper` (custom `packages/piper-bin.nix`, rhasspy/piper release 2023.11.14-2)
+**Model**: `piper-voice-en-us-lessac-medium` (symlinked to `~/.local/share/piper/`)
 
-**Setup**: Nothing to install beyond the package; `pico2wave` works out of the box
-after `nixos-rebuild switch`.
+**Setup**: `nixos-rebuild switch` installs `piper`; `home-manager switch` links the voice model.
 
 **Usage**:
 ```bash
-pico2wave -w output.wav "Hello, world!"
-aplay output.wav
+echo "Hello, world!" | piper --model ~/.local/share/piper/en_US-lessac-medium.onnx --output_file - | aplay
 ```
 
 ### STT: Vosk
