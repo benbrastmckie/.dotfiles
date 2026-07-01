@@ -1,19 +1,23 @@
 ---
-next_project_number: 70
+next_project_number: 71
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-06-24. Generated from state.json dependency graph.*
+*Updated 2026-07-01. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69 | -- | nix-infrastructure, maintenance, packaging, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,69,70 | -- | nixos-config, nix-infrastructure, maintenance, ... |
 
 **Grouped by Topic** (indented = depends on parent):
+
+### Nixos Config
+
+70 [NOT STARTED] — Restore Piper TTS with the en_US-lessac-medium neural voice via a
 
 ### Nix Infrastructure
 
@@ -38,6 +42,16 @@ next_project_number: 70
 15 [RESEARCHED] — configure_timezone_location_based
 
 ## Tasks
+
+### 70. Restore piper tts prebuilt binary
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Restore Piper TTS with the en_US-lessac-medium neural voice via a prebuilt binary (fetchurl) instead of SVOX Pico (pico2wave), reclaiming the natural voice without compiling onnxruntime. Task 62 (commit fd23e98) had replaced piper-tts with picotts to cut rebuild times because piper-tts pulled in onnxruntime (~500MB heavy compile). Scope: (1) add packages/piper-bin.nix fetching the official rhasspy/piper prebuilt Linux x86_64 release tarball (bundles libonnxruntime, no source build) via fetchurl, following the packages/claude-code.nix pattern; (2) restore packages/piper-voices.nix fetching the en_US-lessac-medium ONNX model + config json from HuggingFace; (3) restore the flake.nix overlay entry and ~/.local/share/piper home.file symlink; (4) swap picotts -> piper-bin in modules/system/packages.nix:159; (5) rewire .claude/hooks/tts-notify.sh from the pico2wave temp-file approach back to the piper stdout pipe (piper --model ... --output_file - | aplay/paplay), restoring PIPER_MODEL env var and model-existence check; (6) update README.md and docs/applications.md. Verify: nixos-rebuild builds with no onnxruntime compilation, pico2wave fully removed, tts-notify.sh speaks a test phrase in the lessac voice.
+
+---
 
 ### 69. Consolidate dual home manager config
 - **Status**: [NOT STARTED]
