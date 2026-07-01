@@ -1,8 +1,9 @@
 {
   "_NOTE": "Managed by Home Manager via ~/.dotfiles/config/claude/settings.json. Edit the source, then run 'home-manager switch'. Runtime changes persist until next rebuild.",
   "env": {
-    "_MODEL_NOTE": "ANTHROPIC_DEFAULT_OPUS_MODEL is the single source of truth for the default Opus model. Do not set it elsewhere (e.g. packages/claude-code.nix wrapper).",
+    "_MODEL_NOTE": "ANTHROPIC_DEFAULT_OPUS_MODEL and ANTHROPIC_DEFAULT_SONNET_MODEL are the single source of truth for the default Opus/Sonnet models. Do not set them elsewhere (e.g. packages/claude-code.nix wrapper).",
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-8[1m]",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-5[1m]",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "1",
     "CLAUDE_CODE_FORK_SUBAGENT": "1",
