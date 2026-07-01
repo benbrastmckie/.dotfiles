@@ -49,6 +49,7 @@
     ".config/config-files/latexmkrc".text = builtins.readFile ../../../config/latexmkrc;
 
     # TTS/STT Models - declaratively managed
+    ".local/share/piper".source = pkgs.piper-voice-en-us-lessac-medium;
     ".local/share/vosk/vosk-model-small-en-us-0.15".source = pkgs.vosk-model-small-en-us;
   };
 

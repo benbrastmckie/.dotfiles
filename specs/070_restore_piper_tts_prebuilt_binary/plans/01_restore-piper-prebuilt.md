@@ -181,17 +181,17 @@ before any consumer references it.
 
 ---
 
-### Phase 2: Restore packages/piper-voices.nix + register + home symlink [NOT STARTED]
+### Phase 2: Restore packages/piper-voices.nix + register + home symlink [COMPLETED]
 
 **Goal**: Make the voice model derivation available as `pkgs.piper-voice-en-us-lessac-medium` and
 symlink it into `~/.local/share/piper` declaratively.
 
 **Tasks**:
-- [ ] Restore `packages/piper-voices.nix` verbatim from git history (report section B1); hashes are
+- [x] Restore `packages/piper-voices.nix` verbatim from git history (report section B1); hashes are
       re-verified unchanged.
-- [ ] Register in `overlays/unstable-packages.nix` next to the new `piper` line:
+- [x] Register in `overlays/unstable-packages.nix` next to the new `piper` line:
       `piper-voice-en-us-lessac-medium = final.callPackage ../packages/piper-voices.nix { };`
-- [ ] Add the `.local/share/piper` symlink to the `home.file` "TTS/STT Models" block in
+- [x] Add the `.local/share/piper` symlink to the `home.file` "TTS/STT Models" block in
       `modules/home/core/shell.nix`.
 
 **Timing**: 0.25 hours

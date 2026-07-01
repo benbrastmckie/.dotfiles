@@ -17,6 +17,7 @@ pkgs-unstable: final: prev: {
 
   # TTS/STT Models
   piper = final.callPackage ../packages/piper-bin.nix { }; # Piper TTS prebuilt binary (no onnxruntime compile)
+  piper-voice-en-us-lessac-medium = final.callPackage ../packages/piper-voices.nix { }; # Piper TTS voice model
   vosk-model-small-en-us = final.callPackage ../packages/vosk-models.nix { }; # Vosk STT language model
 
   # Add other packages that benefit from using unstable below
