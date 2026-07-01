@@ -1,0 +1,16 @@
+{
+  "status": "implemented",
+  "summary": "Restored Piper TTS (en_US-lessac-medium) via a prebuilt binary (packages/piper-bin.nix, fetchurl + autoPatchelfHook, rhasspy/piper 2023.11.14-2) replacing SVOX Pico across packages, overlay, system packages, home symlink, the tts-notify.sh hook, and docs. All 6 plan phases completed and verified: nix flake check passes, nixos-rebuild build --flake .#hamsa and home-manager build --flake .#benjamin both succeed, nix why-depends confirms the toplevel does NOT depend on nixpkgs#onnxruntime, pico2wave/picotts are fully removed from scoped files, and piper synthesis-to-file smoke-tested successfully (valid WAV, real-time factor 0.049). Audible playback (aplay/paplay) was not testable in this non-interactive sandbox; the user should run the audible test after nixos-rebuild switch.",
+  "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/070_restore_piper_tts_prebuilt_binary/summaries/01_restore-piper-prebuilt-summary.md",
+      "summary": "Implementation summary documenting all file changes, decisions, deviations, and verification output (flake check, host build, home-manager build, nix why-depends proof, ldd linkage, synthesis smoke test, hook smoke test)"
+    }
+  ],
+  "blockers": [],
+  "continuation_context": null,
+  "next_action_hint": "complete",
+  "phases_total": 6,
+  "phases_completed": 6
+}

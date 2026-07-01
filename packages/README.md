@@ -226,6 +226,34 @@ Declarative Vosk STT language model package for reproducible installations. Down
 3. Rebuild to get new hash, update hash in the file
 4. Rebuild: `home-manager switch --flake .#benjamin`
 
+### piper-bin.nix
+Prebuilt Linux x86_64 binary for Piper TTS (rhasspy/piper release `2023.11.14-2`), fetched with
+`fetchurl` instead of building nixpkgs' `piper-tts` from source. The release tarball bundles a
+precompiled `libonnxruntime.so.1.14.1`, so `onnxruntime` is never compiled (task 70; task 62
+originally dropped Piper for this reason, but the source-compile is avoidable via a prebuilt
+binary). Upstream repo was archived 2025-10-06; this is the final release.
+
+**Implementation**: `stdenvNoCC.mkDerivation` + `autoPatchelfHook`, flat-installs the tarball's
+own `piper`/`espeak-ng`/`piper_phonemize` binaries and bundled `.so` siblings into `$out/bin/`
+(matches the tarball layout so `espeak-ng-data/` resolves relative to the binary path at
+runtime). Only external runtime dependency beyond glibc is `libstdc++.so.6`
+(`buildInputs = [ stdenv.cc.cc.lib ]`).
+
+**Update Process**:
+1. `nix-prefetch-url --type sha256 <new-release-url>`
+2. `nix hash to-sri --type sha256 <output>`
+3. Update `version`/`url`/`hash` in `piper-bin.nix`
+
+### piper-voices.nix
+Declarative Piper voice model package for the `en_US-lessac-medium` neural voice. Downloads the
+ONNX model and its JSON config from HuggingFace (`rhasspy/piper-voices`).
+
+**Implementation**: Uses two `fetchurl` calls (model + config), copies both into `$out/`.
+Home-manager symlinks to `~/.local/share/piper/`.
+
+**Update Process**: Re-run `nix-prefetch-url --type sha256 <url>` against the model/config URLs
+if HuggingFace content ever changes; update hashes accordingly.
+
 ### neovim.nix
 A wrapper around Neovim unstable that fixes missing maintainers metadata to prevent build errors.
 
@@ -258,14 +286,15 @@ The script checks:
 
 The system includes TTS and STT tools for Claude Code and Neovim integration.
 
-### TTS: SVOX Pico (System Package)
-Lightweight, fully offline text-to-speech. Available in nixpkgs as `picotts`
-(provides `pico2wave`). Replaced Piper TTS (task 62) to drop the `onnxruntime`
-dependency; models are bundled, so no separate voice-model package is needed.
+### TTS: Piper (Custom Package)
+Fast, local neural text-to-speech via a prebuilt Linux x86_64 release binary
+(`piper-bin.nix`, fetchurl + autoPatchelfHook), restoring the natural
+`en_US-lessac-medium` voice without compiling `onnxruntime` from source (task 70;
+see `piper-bin.nix`/`piper-voices.nix` sections above).
 
 **Test**:
 ```bash
-pico2wave -w test.wav "Hello, this is a test."
+echo "Hello, this is a test." | piper --model ~/.local/share/piper/en_US-lessac-medium.onnx --output_file test.wav
 aplay test.wav
 ```
 

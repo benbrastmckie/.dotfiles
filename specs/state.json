@@ -4,12 +4,31 @@
     {
       "project_number": 70,
       "project_name": "restore_piper_tts_prebuilt_binary",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "nix",
       "description": "Restore Piper TTS with the en_US-lessac-medium neural voice via a prebuilt binary (fetchurl) instead of SVOX Pico (pico2wave), reclaiming the natural voice without compiling onnxruntime. Task 62 (commit fd23e98) had replaced piper-tts with picotts to cut rebuild times because piper-tts pulled in onnxruntime (~500MB heavy compile). Scope: (1) add packages/piper-bin.nix fetching the official rhasspy/piper prebuilt Linux x86_64 release tarball (bundles libonnxruntime, no source build) via fetchurl, following the packages/claude-code.nix pattern; (2) restore packages/piper-voices.nix fetching the en_US-lessac-medium ONNX model + config json from HuggingFace; (3) restore the flake.nix overlay entry and ~/.local/share/piper home.file symlink; (4) swap picotts -> piper-bin in modules/system/packages.nix:159; (5) rewire .claude/hooks/tts-notify.sh from the pico2wave temp-file approach back to the piper stdout pipe (piper --model ... --output_file - | aplay/paplay), restoring PIPER_MODEL env var and model-existence check; (6) update README.md and docs/applications.md. Verify: nixos-rebuild builds with no onnxruntime compilation, pico2wave fully removed, tts-notify.sh speaks a test phrase in the lessac voice.",
       "topic": "nixos-config",
       "created": "2026-07-01T00:42:49Z",
-      "last_updated": "2026-07-01T00:42:49Z"
+      "last_updated": "2026-06-30T00:00:00Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/070_restore_piper_tts_prebuilt_binary/reports/01_restore-piper-prebuilt.md",
+          "type": "report",
+          "summary": "Recovered task-62-deleted piper config from git history, live-verified prebuilt binary (rhasspy/piper release 2023.11.14-2) + voice model hashes, and designed piper-bin.nix integration matching repo conventions (opencode.nix/python-cvc5.nix patterns)"
+        },
+        {
+          "path": "specs/070_restore_piper_tts_prebuilt_binary/plans/01_restore-piper-prebuilt.md",
+          "type": "plan",
+          "summary": "Six-phase plan: add packages/piper-bin.nix (prebuilt fetchurl + autoPatchelfHook, no onnxruntime compile) + restore piper-voices.nix, register in unstable-packages overlay, swap picotts->piper and drop espeak-ng, restore ~/.local/share/piper symlink, revert tts-notify.sh to Piper stdout-pipe, update docs, verify"
+        },
+        {
+          "path": "specs/070_restore_piper_tts_prebuilt_binary/summaries/01_restore-piper-prebuilt-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary: all 6 phases complete, no-onnxruntime-compile verified via nix why-depends, pico2wave/picotts removed, piper synthesis-to-file smoke test passed"
+        }
+      ],
+      "completion_summary": "Restored Piper TTS (en_US-lessac-medium) via a prebuilt binary (packages/piper-bin.nix, fetchurl + autoPatchelfHook) replacing SVOX Pico; verified via nix why-depends that onnxruntime is not compiled from source, nixos-rebuild build and home-manager build both succeed, pico2wave/picotts fully removed from scoped files, and piper synthesis-to-file works end-to-end."
     },
     {
       "project_number": 67,

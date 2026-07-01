@@ -390,19 +390,26 @@ model-existence check (faithful revert of commit `eb31703`), scoped to this repo
 
 ---
 
-### Phase 6: Verification (flake check + build, no onnxruntime, smoke test) [NOT STARTED]
+### Phase 6: Verification (flake check + build, no onnxruntime, smoke test) [COMPLETED]
 
 **Goal**: Prove the config evaluates and builds with no onnxruntime source compile, SVOX Pico is fully
 removed, and the voice synthesizes end-to-end through the hook.
 
 **Tasks**:
-- [ ] `nix flake check` passes.
-- [ ] Build the primary host toplevel and confirm no onnxruntime is compiled from source.
-- [ ] Build the standalone home configuration.
-- [ ] Prove `nixpkgs#onnxruntime` is not in the closure as a build target.
-- [ ] Confirm `pico2wave`/`picotts` are fully removed repo-wide.
-- [ ] Smoke test the piper binary and the hook (requires a built/switched system; if only building,
-      run against the `nix build .#piper` result + built voice model).
+- [x] `nix flake check` passes.
+- [x] Build the primary host toplevel and confirm no onnxruntime is compiled from source.
+      *(altered: built `hamsa` instead of `nandi` — the implementation was executed on host
+      `hamsa` per the invoking instructions; `nandi`/`hamsa`/`garuda` share `x86_64-linux` and the
+      package derivation is host-independent)*
+- [x] Build the standalone home configuration.
+- [x] Prove `nixpkgs#onnxruntime` is not in the closure as a build target.
+- [x] Confirm `pico2wave`/`picotts` are fully removed repo-wide (within the scoped files; two
+      out-of-scope files still reference the old config, see summary: `.opencode/hooks/tts-notify.sh`
+      and `.claude/context/project/neovim/guides/*.md`, both explicit non-goals of this plan).
+- [x] Smoke test the piper binary and the hook: `echo ... | piper --model ... --output_file` produced
+      a valid WAV file (synthesis-to-file verified); `tts-notify.sh --lifecycle planned` returned `{}`
+      and invoked the piper pipeline. Audible playback (aplay/paplay) not verified in this
+      non-interactive sandbox — flagged for user's post-switch audible test.
 
 **Timing**: 0.3 hours
 
@@ -449,15 +456,21 @@ If `nix flake check` or the host build fails, do not switch — see Rollback/Con
 
 ## Testing & Validation
 
-- [ ] `nix flake check` passes.
-- [ ] `nixos-rebuild build --flake .#nandi` succeeds with NO onnxruntime source compilation in the log.
-- [ ] `home-manager build --flake .#benjamin` succeeds.
-- [ ] `nix why-depends ... nixpkgs#onnxruntime` finds no source-build dependency.
-- [ ] `grep -rn "pico2wave\|picotts"` across `modules/`, the hook, and the two docs returns nothing.
-- [ ] `nix build .#piper` + `ldd result/bin/piper` shows no unresolved libraries.
+- [x] `nix flake check` passes.
+- [x] `nixos-rebuild build --flake .#hamsa` succeeds with NO onnxruntime source compilation in the log
+      *(altered host: hamsa, not nandi — see Phase 6 note)*.
+- [x] `home-manager build --flake .#benjamin` succeeds.
+- [x] `nix why-depends ... nixpkgs#onnxruntime` finds no source-build dependency (confirmed: "does not
+      depend on").
+- [x] `grep -rn "pico2wave\|picotts"` across `modules/`, the hook, and the two docs returns nothing.
+- [x] `nix build .#piper` (via `nixosConfigurations.hamsa.pkgs.piper`, the top-level flake does not
+      expose a bare `.#piper` package output) + `ldd result/bin/piper` shows no unresolved libraries.
 - [ ] `piper --model ~/.local/share/piper/en_US-lessac-medium.onnx --output_file - <<< "test" | aplay`
-      produces audible lessac-voice output.
-- [ ] `.claude/hooks/tts-notify.sh --lifecycle planned` returns `{}` and (with piper + model present) speaks.
+      produces audible lessac-voice output. *(deviation: skipped — no audio hardware/playback in this
+      non-interactive sandbox; synthesis-to-file verified instead, producing a valid WAV. User should
+      run the audible test after `nixos-rebuild switch`.)*
+- [x] `.claude/hooks/tts-notify.sh --lifecycle planned` returns `{}` and (with piper + model present) speaks
+      (verified via PATH/PIPER_MODEL override pointing at the built artifacts).
 
 ## Artifacts & Outputs
 
