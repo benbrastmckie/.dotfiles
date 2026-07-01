@@ -275,20 +275,20 @@ separate `espeak-ng` (bundled in the tarball).
 
 ---
 
-### Phase 4: Revert .claude/hooks/tts-notify.sh to Piper [NOT STARTED]
+### Phase 4: Revert .claude/hooks/tts-notify.sh to Piper [COMPLETED]
 
 **Goal**: Restore the Piper `speak()` function, `PIPER_MODEL` env var, `piper` availability check, and
 model-existence check (faithful revert of commit `eb31703`), scoped to this repo's hook only.
 
 **Tasks**:
-- [ ] Update header/requirements comments: `pico2wave` -> Piper; add the `PIPER_MODEL` config line to
+- [x] Update header/requirements comments: `pico2wave` -> Piper; add the `PIPER_MODEL` config line to
       the `# Configuration:` block.
-- [ ] Add `PIPER_MODEL="${PIPER_MODEL:-$HOME/.local/share/piper/en_US-lessac-medium.onnx}"` before
+- [x] Add `PIPER_MODEL="${PIPER_MODEL:-$HOME/.local/share/piper/en_US-lessac-medium.onnx}"` before
       the `TTS_ENABLED` line.
-- [ ] Replace the `speak()` body with the Piper form (report section B5) — paplay branch writes a temp
+- [x] Replace the `speak()` body with the Piper form (report section B5) — paplay branch writes a temp
       WAV, aplay branch pipes `--output_file -` to stdout (preserve this asymmetry verbatim).
-- [ ] Replace the `pico2wave` availability check with a `piper` availability check.
-- [ ] Add a model-existence check (`[[ ! -f "$PIPER_MODEL" ]]` -> log + `exit_success`) after the
+- [x] Replace the `pico2wave` availability check with a `piper` availability check.
+- [x] Add a model-existence check (`[[ ! -f "$PIPER_MODEL" ]]` -> log + `exit_success`) after the
       availability check, before the lifecycle/interactive mode blocks.
 
 **Timing**: 0.35 hours
