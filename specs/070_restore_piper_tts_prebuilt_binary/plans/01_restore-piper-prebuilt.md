@@ -242,17 +242,17 @@ symlink it into `~/.local/share/piper` declaratively.
 
 ---
 
-### Phase 3: Swap picotts -> piper in system packages, drop espeak-ng [NOT STARTED]
+### Phase 3: Swap picotts -> piper in system packages, drop espeak-ng [COMPLETED]
 
 **Goal**: Replace the SVOX Pico system package with the restored Piper package; do not reintroduce a
 separate `espeak-ng` (bundled in the tarball).
 
 **Tasks**:
-- [ ] Replace the `picotts` line at `modules/system/packages.nix` (currently line ~159) with the
+- [x] Replace the `picotts` line at `modules/system/packages.nix` (currently line ~159) with the
       `piper` package.
-- [ ] Confirm no separate `espeak-ng` entry is added (deviation from pure task-62 restore — decision 3
+- [x] Confirm no separate `espeak-ng` entry is added (deviation from pure task-62 restore — decision 3
       in the research report).
-- [ ] Leave `pulseaudio` and the vosk comment untouched.
+- [x] Leave `pulseaudio` and the vosk comment untouched.
 
 **Timing**: 0.1 hours
 

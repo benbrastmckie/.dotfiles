@@ -156,7 +156,7 @@
       ffmpeg
 
       # Text-to-Speech and Speech-to-Text
-      picotts # SVOX Pico text-to-speech engine (pico2wave command)
+      piper # Fast, local neural text-to-speech with natural voice quality (prebuilt binary, no onnxruntime compile)
       pulseaudio # PulseAudio client tools (parecord for audio recording)
       # vosk is installed via home-manager Python environment
 
