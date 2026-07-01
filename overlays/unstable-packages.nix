@@ -16,6 +16,7 @@ pkgs-unstable: final: prev: {
   kooha = import ../packages/kooha.nix prev.kooha final.gst_all_1; # Screen recorder with full GStreamer plugin support
 
   # TTS/STT Models
+  piper = final.callPackage ../packages/piper-bin.nix { }; # Piper TTS prebuilt binary (no onnxruntime compile)
   vosk-model-small-en-us = final.callPackage ../packages/vosk-models.nix { }; # Vosk STT language model
 
   # Add other packages that benefit from using unstable below
