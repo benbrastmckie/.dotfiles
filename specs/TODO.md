@@ -1,17 +1,17 @@
 ---
-next_project_number: 71
+next_project_number: 72
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-07-01. Generated from state.json dependency graph.*
+*Updated 2026-07-02. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69 | -- | nix-infrastructure, maintenance, packaging, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,69,71 | -- | nix-infrastructure, maintenance, packaging, ... |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -27,6 +27,7 @@ next_project_number: 71
 23 [PLANNED] — install_simple_webcam_recording_software
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
+71 [RESEARCHED] — Design a streamlined AI-assisted email management workflow across
 
 ### Packaging
 
@@ -38,6 +39,17 @@ next_project_number: 71
 15 [RESEARCHED] — configure_timezone_location_based
 
 ## Tasks
+
+### 71. Design ai email management workflow
+- **Status**: [RESEARCHED]
+- **Task Type**: general
+- **Topic**: services
+- **Dependencies**: None
+- **Research**: [071_design_ai_email_management_workflow/reports/01_ai-email-workflow.md]
+
+**Description**: Design a streamlined AI-assisted email management workflow across the existing dual-account stack (Gmail via OAuth2 + Protonmail via Bridge; Himalaya CLI, aerc TUI, notmuch, mbsync) and the connected Anthropic Gmail connector (gmail.mcp.claude.com). Goal: agents that clean up the inbox (remove junk, unsubscribe noise) and draft responses for review, with the largest task being a safe one-time purge of backlogged mail - delete junk, archive what is worth keeping, delete all else. Key finding from the seed report: the Anthropic Gmail connector is read-only + draft-creation (cannot send/archive/delete), so backlog cleanup must be driven through the local stack (notmuch/Himalaya/mbsync) under a drafts-first, human-approved, guardrailed agent harness with Gmail trash-then-expunge semantics. Follow-up /research 71 should resolve the seven open questions (harness form-factor, approval UX, account scope, backlog scale census, guardrail enforcement, classifier quality, injection hardening) before planning.
+
+---
 
 ### 70. Restore piper tts prebuilt binary
 - **Status**: [COMPLETED]

@@ -1,6 +1,26 @@
 {
-  "next_project_number": 71,
+  "next_project_number": 72,
   "active_projects": [
+    {
+      "project_number": 71,
+      "project_name": "design_ai_email_management_workflow",
+      "status": "researched",
+      "task_type": "general",
+      "description": "Design a streamlined AI-assisted email management workflow across the existing dual-account stack (Gmail via OAuth2 + Protonmail via Bridge; Himalaya CLI, aerc TUI, notmuch, mbsync) and the connected Anthropic Gmail connector (gmail.mcp.claude.com). Goal: agents that clean up the inbox (remove junk, unsubscribe noise) and draft responses for review, with the largest task being a safe one-time purge of backlogged mail - delete junk, archive what is worth keeping, delete all else. Key finding from the seed report: the Anthropic Gmail connector is read-only + draft-creation (cannot send/archive/delete), so backlog cleanup must be driven through the local stack (notmuch/Himalaya/mbsync) under a drafts-first, human-approved, guardrailed agent harness with Gmail trash-then-expunge semantics. Follow-up /research 71 should resolve the seven open questions (harness form-factor, approval UX, account scope, backlog scale census, guardrail enforcement, classifier quality, injection hardening) before planning.",
+      "topic": "services",
+      "created": "2026-07-02T18:58:53Z",
+      "last_updated": "2026-07-02T18:58:53Z",
+      "session_id": "sess_1783018733_e662d5",
+      "researched": "2026-07-02T18:58:53Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/071_design_ai_email_management_workflow/reports/01_ai-email-workflow.md",
+          "type": "research",
+          "summary": "Seed report: current dual-account stack audit (Himalaya/aerc/notmuch/mbsync), two AI access paths (read-only Anthropic Gmail connector vs full-capability local stack), July-2026 best practices, a backlog-cleanup pipeline sketch, and seven open questions for follow-up research"
+        }
+      ]
+    },
     {
       "project_number": 70,
       "project_name": "restore_piper_tts_prebuilt_binary",
