@@ -1,15 +1,32 @@
 {
-  "next_project_number": 72,
+  "next_project_number": 73,
   "active_projects": [
+    {
+      "project_number": 72,
+      "project_name": "email_workflow_infrastructure_prereqs",
+      "status": "planned",
+      "task_type": "general",
+      "topic": "services",
+      "parent_task": 71,
+      "dependencies": [
+        46
+      ],
+      "created": "2026-07-02T20:15:28Z",
+      "last_updated": "2026-07-02T20:15:28Z",
+      "session_id": "sess_1783022365_91ab10",
+      "next_artifact_number": 1,
+      "artifacts": [],
+      "description": "Email workflow INFRASTRUCTURE + PREREQUISITES (child of task 71; .dotfiles-owned mechanism). Reference plan: specs/071_design_ai_email_management_workflow/plans/04_email-workflow-implementation.md (v3). Scope = v3 phases: (0) audit the dormant ~/Mail/.claude prior-art system (5 python scripts: email_list/email_analyze/email_triage/email_filter/email_execute), HARVEST email-preferences.md rule taxonomy+JSON schema and MAX_BATCH_SIZE=50 into a handoff file for the nvim extension task, RETIRE the ~/Mail harness (commands/email.md, skill-email, email-agent.md, 5 py scripts), DISCARD checkbox-approval UX + opus model pin; (1) OAuth gate: resolve/absorb task 46 (Gmail OAuth2 7-day refresh-token expiry, consent screen in Testing mode) — publish OAuth app to Production or declare blocking; (2) nix-declared dry-run-by-default wrapper scripts in modules/home/email/agent-tools.nix (email-census, email-classify, email-archive-confirmed, email-delete-confirmed, email-unsubscribe-extract) requiring explicit --execute + --confirm-manifest <sha256>, consuming a pre-generated manifest; (5) mbsync freeze/thaw + SyncState backup procedure; (9) aerc review querymap entries (Proposed-Delete/Archive/Unsure) in aerc.nix; (11-local) notmuch.nix postNew tag-rule scaffolding for institutionalized junk rules. IMPORTANT: delete mechanism is IMAP-level Himalaya only (never local Maildir/notmuch-tag+Expunge — Gmail label model leaves msgs in All_Mail, 64,316 baseline). Blocks the nvim extension task (needs harvested prefs + wrapper contract) and the ~/Mail purge task (needs wrappers+OAuth ready). Verify: nixos-rebuild/home-manager build with the new wrappers; wrappers refuse to mutate without --execute."
+    },
     {
       "project_number": 71,
       "project_name": "design_ai_email_management_workflow",
-      "status": "planned",
+      "status": "expanded",
       "task_type": "general",
       "description": "Design a streamlined AI-assisted email management workflow across the existing dual-account stack (Gmail via OAuth2 + Protonmail via Bridge; Himalaya CLI, aerc TUI, notmuch, mbsync) and the connected Anthropic Gmail connector (gmail.mcp.claude.com). Goal: agents that clean up the inbox (remove junk, unsubscribe noise) and draft responses for review, with the largest task being a safe one-time purge of backlogged mail - delete junk, archive what is worth keeping, delete all else. Key finding from the seed report: the Anthropic Gmail connector is read-only + draft-creation (cannot send/archive/delete), so backlog cleanup must be driven through the local stack (notmuch/Himalaya/mbsync) under a drafts-first, human-approved, guardrailed agent harness with Gmail trash-then-expunge semantics. Follow-up /research 71 should resolve the seven open questions (harness form-factor, approval UX, account scope, backlog scale census, guardrail enforcement, classifier quality, injection hardening) before planning.",
       "topic": "services",
       "created": "2026-07-02T18:58:53Z",
-      "last_updated": "2026-07-02T20:06:17Z",
+      "last_updated": "2026-07-02T20:15:28Z",
       "session_id": "sess_1783022365_91ab10",
       "researched": "2026-07-02T19:57:36Z",
       "next_artifact_number": 5,
@@ -51,7 +68,25 @@
             "integrated_date": "2026-07-02"
           }
         ]
-      }
+      },
+      "child_tasks": [
+        {
+          "repo": ".dotfiles",
+          "task": 72,
+          "role": "prereq/infrastructure"
+        },
+        {
+          "repo": "~/.config/nvim",
+          "task": 803,
+          "role": "email/ extension (author + doc-lint)"
+        },
+        {
+          "repo": "~/Mail",
+          "task": 29,
+          "role": "backlog purge + ongoing loop"
+        }
+      ],
+      "completion_summary": "Expanded into 3 cross-repo tasks: .dotfiles#72 (nix wrappers/OAuth/mbsync-aerc-notmuch infra), nvim#803 (email/ extension author+doc-lint), Mail#29 (Gmail backlog purge + ongoing loop). Shared reference: plans/04_email-workflow-implementation.md (v3, 14 phases)."
     },
     {
       "project_number": 70,
