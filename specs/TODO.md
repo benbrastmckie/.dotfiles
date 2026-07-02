@@ -45,7 +45,9 @@ next_project_number: 72
 - **Task Type**: general
 - **Topic**: services
 - **Dependencies**: None
-- **Research**: [071_design_ai_email_management_workflow/reports/01_ai-email-workflow.md]
+- **Research**:
+  - [071_design_ai_email_management_workflow/reports/01_ai-email-workflow.md]
+  - [071_design_ai_email_management_workflow/reports/02_team-research.md]
 
 **Description**: Design a streamlined AI-assisted email management workflow across the existing dual-account stack (Gmail via OAuth2 + Protonmail via Bridge; Himalaya CLI, aerc TUI, notmuch, mbsync) and the connected Anthropic Gmail connector (gmail.mcp.claude.com). Goal: agents that clean up the inbox (remove junk, unsubscribe noise) and draft responses for review, with the largest task being a safe one-time purge of backlogged mail - delete junk, archive what is worth keeping, delete all else. Key finding from the seed report: the Anthropic Gmail connector is read-only + draft-creation (cannot send/archive/delete), so backlog cleanup must be driven through the local stack (notmuch/Himalaya/mbsync) under a drafts-first, human-approved, guardrailed agent harness with Gmail trash-then-expunge semantics. Follow-up /research 71 should resolve the seven open questions (harness form-factor, approval UX, account scope, backlog scale census, guardrail enforcement, classifier quality, injection hardening) before planning.
 
