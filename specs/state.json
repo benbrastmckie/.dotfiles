@@ -4,13 +4,13 @@
     {
       "project_number": 71,
       "project_name": "design_ai_email_management_workflow",
-      "status": "researched",
+      "status": "planned",
       "task_type": "general",
       "description": "Design a streamlined AI-assisted email management workflow across the existing dual-account stack (Gmail via OAuth2 + Protonmail via Bridge; Himalaya CLI, aerc TUI, notmuch, mbsync) and the connected Anthropic Gmail connector (gmail.mcp.claude.com). Goal: agents that clean up the inbox (remove junk, unsubscribe noise) and draft responses for review, with the largest task being a safe one-time purge of backlogged mail - delete junk, archive what is worth keeping, delete all else. Key finding from the seed report: the Anthropic Gmail connector is read-only + draft-creation (cannot send/archive/delete), so backlog cleanup must be driven through the local stack (notmuch/Himalaya/mbsync) under a drafts-first, human-approved, guardrailed agent harness with Gmail trash-then-expunge semantics. Follow-up /research 71 should resolve the seven open questions (harness form-factor, approval UX, account scope, backlog scale census, guardrail enforcement, classifier quality, injection hardening) before planning.",
       "topic": "services",
       "created": "2026-07-02T18:58:53Z",
-      "last_updated": "2026-07-02T19:16:59Z",
-      "session_id": "sess_1783019173_bf51f6",
+      "last_updated": "2026-07-02T19:26:23Z",
+      "session_id": "sess_1783020018_c0e652",
       "researched": "2026-07-02T19:16:59Z",
       "next_artifact_number": 3,
       "artifacts": [
@@ -23,8 +23,60 @@
           "path": "specs/071_design_ai_email_management_workflow/reports/02_team-research.md",
           "type": "research",
           "summary": "Team research (4 teammates: tools/security/UX/critic): validated the two-path architecture and live-verified it; surfaced a dormant ~/Mail prior-art agent, a Gmail label-model delete-correctness bug (fixed via Himalaya IMAP-level delete), and the real 64k-message backlog; resolved all 7 seed open questions and raised 2 USER decisions + Phase-0 reconciliation"
+        },
+        {
+          "path": "specs/071_design_ai_email_management_workflow/plans/02_email-workflow-implementation.md",
+          "type": "plan",
+          "summary": "13-phase hard-mode plan (~31h, 8 waves): Phase 0 audit/reconcile dormant ~/Mail prior-art system; Phase 1 OAuth gate (task 46); safety infra (dry-run wrappers + PreToolUse mail-guard hook + Claude Code skill + mbsync freeze/thaw) before any destructive phase; IMAP-level Himalaya delete with single-message dry-run go/no-go; deterministic-first recall-on-keep classifier + sampling for 64k; aerc tagged-view review; Gmail-first backlog purge; dual-write institutionalization; minimal ongoing loop"
         }
-      ]
+      ],
+      "dependencies": [
+        46
+      ],
+      "plan_metadata": {
+        "phases": 13,
+        "total_effort_hours": 31,
+        "complexity": "complex",
+        "research_integrated": true,
+        "plan_version": 2,
+        "dependency_waves": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            5
+          ],
+          [
+            6
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            9
+          ],
+          [
+            10
+          ],
+          [
+            11
+          ],
+          [
+            12
+          ]
+        ]
+      }
     },
     {
       "project_number": 70,
