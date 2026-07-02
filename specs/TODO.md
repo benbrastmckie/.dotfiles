@@ -28,7 +28,7 @@ next_project_number: 73
 23 [PLANNED] — install_simple_webcam_recording_software
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
-  └─ 72 [PLANNED] — Email workflow INFRASTRUCTURE + PREREQUISITES (child of task 71; 
+  └─ 72 [NOT STARTED] — Email workflow INFRASTRUCTURE + PREREQUISITES (child of task 71; 
 
 ### Packaging
 
@@ -42,7 +42,7 @@ next_project_number: 73
 ## Tasks
 
 ### 72. Email workflow infrastructure prereqs
-- **Status**: [PLANNED]
+- **Status**: [NOT STARTED]
 - **Task Type**: general
 - **Topic**: services
 - **Dependencies**: Task 46

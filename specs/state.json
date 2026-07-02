@@ -4,7 +4,7 @@
     {
       "project_number": 72,
       "project_name": "email_workflow_infrastructure_prereqs",
-      "status": "planned",
+      "status": "not_started",
       "task_type": "general",
       "topic": "services",
       "parent_task": 71,
@@ -12,7 +12,7 @@
         46
       ],
       "created": "2026-07-02T20:15:28Z",
-      "last_updated": "2026-07-02T20:15:28Z",
+      "last_updated": "2026-07-02T20:20:44Z",
       "session_id": "sess_1783022365_91ab10",
       "next_artifact_number": 1,
       "artifacts": [],
