@@ -4,15 +4,15 @@
     {
       "project_number": 71,
       "project_name": "design_ai_email_management_workflow",
-      "status": "planned",
+      "status": "researched",
       "task_type": "general",
       "description": "Design a streamlined AI-assisted email management workflow across the existing dual-account stack (Gmail via OAuth2 + Protonmail via Bridge; Himalaya CLI, aerc TUI, notmuch, mbsync) and the connected Anthropic Gmail connector (gmail.mcp.claude.com). Goal: agents that clean up the inbox (remove junk, unsubscribe noise) and draft responses for review, with the largest task being a safe one-time purge of backlogged mail - delete junk, archive what is worth keeping, delete all else. Key finding from the seed report: the Anthropic Gmail connector is read-only + draft-creation (cannot send/archive/delete), so backlog cleanup must be driven through the local stack (notmuch/Himalaya/mbsync) under a drafts-first, human-approved, guardrailed agent harness with Gmail trash-then-expunge semantics. Follow-up /research 71 should resolve the seven open questions (harness form-factor, approval UX, account scope, backlog scale census, guardrail enforcement, classifier quality, injection hardening) before planning.",
       "topic": "services",
       "created": "2026-07-02T18:58:53Z",
-      "last_updated": "2026-07-02T19:26:23Z",
-      "session_id": "sess_1783020018_c0e652",
-      "researched": "2026-07-02T19:16:59Z",
-      "next_artifact_number": 3,
+      "last_updated": "2026-07-02T19:57:36Z",
+      "session_id": "sess_1783021775_ef7877",
+      "researched": "2026-07-02T19:57:36Z",
+      "next_artifact_number": 4,
       "artifacts": [
         {
           "path": "specs/071_design_ai_email_management_workflow/reports/01_ai-email-workflow.md",
@@ -28,6 +28,11 @@
           "path": "specs/071_design_ai_email_management_workflow/plans/02_email-workflow-implementation.md",
           "type": "plan",
           "summary": "13-phase hard-mode plan (~31h, 8 waves): Phase 0 audit/reconcile dormant ~/Mail prior-art system; Phase 1 OAuth gate (task 46); safety infra (dry-run wrappers + PreToolUse mail-guard hook + Claude Code skill + mbsync freeze/thaw) before any destructive phase; IMAP-level Himalaya delete with single-message dry-run go/no-go; deterministic-first recall-on-keep classifier + sampling for 64k; aerc tagged-view review; Gmail-first backlog purge; dual-write institutionalization; minimal ongoing loop"
+        },
+        {
+          "path": "specs/071_design_ai_email_management_workflow/reports/03_team-research.md",
+          "type": "research",
+          "summary": "Round-3 team research (nvim <leader>al loader / extension authoring / reconcile / horizons): the email/ deliverable is a packaging layer authored canonically in ~/.config/nvim/.claude/extensions/email/ (the master library, not .dotfiles) and loaded via the loader; wraps the plan Phase 0/3/4 outputs; harvest ~/Mail preferences+batch-limit then retire its harness; harden the mail-guard hook to deny raw himalaya message delete/move; recommends /revise 71 before Phase 0"
         }
       ],
       "dependencies": [
