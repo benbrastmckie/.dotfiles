@@ -1,0 +1,56 @@
+{
+  "status": "planned",
+  "agent_type": "planner-agent",
+  "session_id": "sess_1783026767_48c09b",
+  "delegation_path": ["orchestrator", "plan", "planner-agent"],
+  "task_number": 72,
+  "task_name": "email_workflow_infrastructure_prereqs",
+  "started_at": "2026-07-02T00:00:00Z",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/072_email_workflow_infrastructure_prereqs/plans/02_email-infra-wrappers.md",
+      "artifact_number": "02",
+      "description": "Implementation plan: nix dry-run wrappers, mail-guard hook, mbsync freeze/thaw, aerc review querymap, notmuch postNew scaffolding, prior-art harvest/retire, and the two cross-repo handoffs"
+    }
+  ],
+  "plan_metadata": {
+    "phases": 11,
+    "total_effort_hours": 18,
+    "complexity": "complex",
+    "research_integrated": true,
+    "plan_version": 1,
+    "dependency_waves": [
+      [1, 2, 3],
+      [4, 8, 10],
+      [5, 7],
+      [6],
+      [9],
+      [11]
+    ],
+    "reports_integrated": [
+      "specs/072_email_workflow_infrastructure_prereqs/reports/01_infrastructure-prereqs-seed.md",
+      "specs/072_email_workflow_infrastructure_prereqs/reports/02_team-research.md"
+    ]
+  },
+  "phase_count": 11,
+  "estimated_hours": 18,
+  "dependency_waves": [
+    [1, 2, 3],
+    [4, 8, 10],
+    [5, 7],
+    [6],
+    [9],
+    [11]
+  ],
+  "memory_candidates": [
+    {
+      "content": "Safety-envelope pattern for agent-driven destructive operations (confirmed-mutation-wrapper): (1) nix writeShellScriptBin wrappers that are dry-run by default, with mutation gated by a positive `--execute` flag plus `--confirm-manifest <sha256-of-approved-manifest-bytes>` recomputed and refused on mismatch; (2) execute mode diffs executed IDs against the human-approved manifest and never re-derives targets; (3) manifests keyed on a STABLE identifier (e.g., RFC Message-ID header), never a tool's ephemeral per-folder id, with a per-ID execution-status companion state file (pending|executed|failed) so the approved bytes stay immutable and re-runs are idempotent after a halt; (4) a PreToolUse Bash hook allowlisting only the wrapper binaries and denying the raw mutation commands, with allowlist/deny kept as isolated data arrays so the pattern is liftable; (5) two-layer enforcement: the hook gates only the agent's top-level Bash calls, the git-tracked wrapper source is layer 2. Reserve extensibility flags (e.g., --account) in the contract before multiple repos consume it. Breadcrumb from task 72 email infrastructure; do not build a generic framework until a second consumer exists.",
+      "category": "PATTERN",
+      "source_artifact": "specs/072_email_workflow_infrastructure_prereqs/plans/02_email-infra-wrappers.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["safety-envelope", "dry-run-wrapper", "manifest-confirmation", "pretooluse-allowlist", "destructive-operations", "idempotent-execute"]
+    }
+  ],
+  "next_steps": "Run /implement 72 to execute the plan"
+}
