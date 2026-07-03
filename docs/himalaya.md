@@ -1,29 +1,49 @@
 # Himalaya Email Client Configuration
 
-This document describes the Himalaya email client setup with dual-account support (Gmail + Protonmail), OAuth2 authentication, and mbsync synchronization.
+This document describes the Himalaya email client setup with dual-account support (Gmail + Protonmail), app-password authentication, and mbsync synchronization.
+
+> **Authentication update (2026-07-02) — Gmail is on an app password, not OAuth2.**
+> As of task 72 Phase 3, Gmail authenticates end-to-end with a **Gmail app password** (both
+> `mbsync` IMAP-in and Himalaya SMTP-out) via the `gmail-app-password` keyring entry — the same
+> credential aerc uses. XOAUTH2 is no longer the active path, and the
+> `gmail-oauth2-refresh.service`/`.timer` are **disabled**
+> (`modules/home/services/gmail-oauth2.nix`).
+>
+> **Why:** the Gmail OAuth consent screen was stuck in Testing mode (7-day refresh-token expiry →
+> repeated `invalid_grant`), and publishing to Production for the restricted `mail.google.com`
+> scope requires a multi-week, paid, annually-renewed **CASA Tier 2** assessment. A consumer Gmail
+> account with 2-Step Verification still accepts IMAP/SMTP app passwords in 2026, so the app
+> password sidesteps OAuth entirely. Full rationale + sources:
+> `specs/072_email_workflow_infrastructure_prereqs/handoffs/oauth-gate.md`.
+>
+> The XOAUTH2 sections below (SASL plugin, `refresh-gmail-oauth2`, systemd units, OAuth config
+> keys) are **retained as the revert path** — not the current setup. To revert, re-enable the unit
+> and re-point the auth blocks to XOAUTH2.
 
 ## Overview
 
 Himalaya is configured as the primary email client with dual-account support:
 
 ### Accounts
-- **Gmail** (benbrastmckie@gmail.com) - Default account with OAuth2 authentication
+- **Gmail** (benbrastmckie@gmail.com) - Default account, app-password authentication
 - **Protonmail** (benjamin@logos-labs.ai) - Secondary account via Protonmail Bridge
 
 ### Components
-- **Himalaya CLI**: Email client with OAuth2 and keyring integration
-- **mbsync (isync)**: IMAP synchronization with XOAUTH2 (Gmail) and LOGIN auth (Protonmail Bridge)
+- **Himalaya CLI**: Email client with keyring integration
+- **mbsync (isync)**: IMAP synchronization with LOGIN auth (Gmail app password, Protonmail Bridge)
 - **Protonmail Bridge**: Local IMAP/SMTP proxy for Protonmail access
-- **OAuth2 Token Management**: Automatic Gmail token refresh via systemd
+- **Keyring**: Gmail app password and Bridge password stored via libsecret
+  (legacy: OAuth2 token refresh via systemd — now disabled)
 
 ## Architecture
 
 ### Email Flow
 
 **Gmail Account**:
-1. **Incoming**: Gmail IMAP (OAuth2) → mbsync → ~/Mail/Gmail/ → Himalaya
-2. **Outgoing**: Himalaya → Gmail SMTP (OAuth2)
-3. **Authentication**: OAuth2 tokens stored in system keyring via libsecret
+1. **Incoming**: Gmail IMAP (app password) → mbsync → ~/Mail/Gmail/ → Himalaya
+2. **Outgoing**: Himalaya → Gmail SMTP (app password)
+3. **Authentication**: Gmail app password stored in system keyring via libsecret
+   (`secret-tool` service `gmail-app-password`, username `benbrastmckie@gmail.com`)
 
 **Protonmail Account**:
 1. **Incoming**: Protonmail → Bridge (localhost:1143) → mbsync → ~/Mail/Logos/ → Himalaya
@@ -186,19 +206,24 @@ message.send.backend.host = "smtp.gmail.com"
 message.send.backend.port = 465
 message.send.backend.login = "benbrastmckie@gmail.com"
 message.send.backend.encryption.type = "tls"
-message.send.backend.auth.type = "oauth2"
-message.send.backend.auth.method = "xoauth2"
-message.send.backend.auth.client-id = "${GMAIL_CLIENT_ID}"
-message.send.backend.auth.auth-url = "https://accounts.google.com/o/oauth2/auth"
-message.send.backend.auth.token-url = "https://www.googleapis.com/oauth2/v3/token"
-message.send.backend.auth.pkce = true
-message.send.backend.auth.redirect-scheme = "http"
-message.send.backend.auth.redirect-host = "localhost"
-message.send.backend.auth.redirect-port = 49152
-message.send.backend.auth.scopes = ["https://mail.google.com/", "https://www.googleapis.com/auth/contacts", "https://www.googleapis.com/auth/calendar", "https://www.googleapis.com/auth/carddav"]
-message.send.backend.auth.client-secret.keyring = "gmail-smtp-oauth2-client-secret"
-message.send.backend.auth.access-token.keyring = "gmail-smtp-oauth2-access-token"
-message.send.backend.auth.refresh-token.keyring = "gmail-smtp-oauth2-refresh-token"
+# Active auth: Gmail app password (same credential mbsync/aerc use).
+message.send.backend.auth.type = "password"
+message.send.backend.auth.command = "secret-tool lookup service gmail-app-password username benbrastmckie@gmail.com"
+
+# Legacy XOAUTH2 send config (retained for revert; not active — see the callout at the top):
+# message.send.backend.auth.type = "oauth2"
+# message.send.backend.auth.method = "xoauth2"
+# message.send.backend.auth.client-id = "${GMAIL_CLIENT_ID}"
+# message.send.backend.auth.auth-url = "https://accounts.google.com/o/oauth2/auth"
+# message.send.backend.auth.token-url = "https://www.googleapis.com/oauth2/v3/token"
+# message.send.backend.auth.pkce = true
+# message.send.backend.auth.redirect-scheme = "http"
+# message.send.backend.auth.redirect-host = "localhost"
+# message.send.backend.auth.redirect-port = 49152
+# message.send.backend.auth.scopes = ["https://mail.google.com/", "https://www.googleapis.com/auth/contacts", "https://www.googleapis.com/auth/calendar", "https://www.googleapis.com/auth/carddav"]
+# message.send.backend.auth.client-secret.keyring = "gmail-smtp-oauth2-client-secret"
+# message.send.backend.auth.access-token.keyring = "gmail-smtp-oauth2-access-token"
+# message.send.backend.auth.refresh-token.keyring = "gmail-smtp-oauth2-refresh-token"
 
 # Folder configuration for Gmail's special folders
 folder.alias.inbox = "INBOX"
@@ -239,13 +264,15 @@ message.send.backend.auth.cmd = "secret-tool lookup service protonmail-bridge us
 
 #### Gmail Account
 ```ini
-# Gmail IMAP account with XOAUTH2 support
+# Gmail IMAP account — app-password auth (same credential himalaya/aerc use).
+# Legacy XOAUTH2 (revert path): AuthMechs XOAUTH2 +
+#   PassCmd "secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-access-token"
 IMAPAccount gmail
 Host imap.gmail.com
 Port 993
 User benbrastmckie@gmail.com
-AuthMechs XOAUTH2
-PassCmd "secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-access-token"
+AuthMechs LOGIN
+PassCmd "secret-tool lookup service gmail-app-password username benbrastmckie@gmail.com"
 TLSType IMAPS
 
 # Gmail remote store
@@ -407,15 +434,19 @@ Channel logos-folders
 ### Initial Setup
 
 #### Gmail Account
-1. **Configure OAuth2 credentials**:
+1. **Create a Gmail app password**: with 2-Step Verification enabled, generate an app password at
+   <https://myaccount.google.com/apppasswords>, then store it in the keyring:
    ```bash
-   himalaya account configure gmail
+   secret-tool store --label="Gmail App Password" \
+     service gmail-app-password \
+     username benbrastmckie@gmail.com
    ```
-   This opens a browser for Gmail OAuth2 authentication and stores credentials in the keyring.
 
-2. **Test authentication**:
+2. **Test authentication** (IMAP LOGIN should return `OK ... authenticated`):
    ```bash
-   refresh-gmail-oauth2
+   pw=$(secret-tool lookup service gmail-app-password username benbrastmckie@gmail.com)
+   printf 'a LOGIN "benbrastmckie@gmail.com" "%s"\nz LOGOUT\n' "$pw" \
+     | openssl s_client -connect imap.gmail.com:993 -quiet -crlf 2>/dev/null | grep '^a '
    ```
 
 3. **Initial sync**:
@@ -423,6 +454,9 @@ Channel logos-folders
    mbsync gmail-inbox
    mbsync gmail
    ```
+
+   *(Legacy XOAUTH2 setup — only if reverting: `himalaya account configure gmail` for the browser
+   OAuth flow, then `refresh-gmail-oauth2`. Not needed on the app-password path.)*
 
 #### Protonmail Account
 1. **Start Protonmail Bridge**:
@@ -500,43 +534,37 @@ ps aux | grep mbsync
 killall mbsync  # If any are stuck
 ```
 
-### Check OAuth2 Token Status
+### Check Gmail app password (active auth)
 ```bash
-# Check if tokens exist in keyring
+# Confirm the app password exists in the keyring
+secret-tool lookup service gmail-app-password username benbrastmckie@gmail.com
+
+# Verify it authenticates IMAP (expect: "a OK ... authenticated (Success)")
+pw=$(secret-tool lookup service gmail-app-password username benbrastmckie@gmail.com)
+printf 'a LOGIN "benbrastmckie@gmail.com" "%s"\nz LOGOUT\n' "$pw" \
+  | openssl s_client -connect imap.gmail.com:993 -quiet -crlf 2>/dev/null | grep '^a '
+```
+
+If IMAP auth fails, regenerate the app password at
+<https://myaccount.google.com/apppasswords> and re-`secret-tool store` it (2-Step Verification
+must be enabled on the account).
+
+### Legacy XOAUTH2 troubleshooting (only if reverted to OAuth2)
+```bash
+# OAuth token status
 secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-access-token
 secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-refresh-token
-```
-
-### Verify Environment Variables
-```bash
-# Check required variables are set
-echo "GMAIL_CLIENT_ID: $GMAIL_CLIENT_ID"
-echo "SASL_PATH: $SASL_PATH"
-```
-
-### Verify XOAUTH2 Support
-```bash
-# Check if mbsync can find XOAUTH2 plugin
+# Env + SASL plugin
+echo "GMAIL_CLIENT_ID: $GMAIL_CLIENT_ID"; echo "SASL_PATH: $SASL_PATH"
 ls -la (string split ':' $SASL_PATH)
-```
-
-### Check Systemd Services
-```bash
-# Check timer status
+# Refresh unit (disabled by default — modules/home/services/gmail-oauth2.nix)
 systemctl --user status gmail-oauth2-refresh.timer
-
-# Check service logs
 journalctl --user -u gmail-oauth2-refresh.service
-```
-
-### Manual Token Refresh
-```bash
-# Force token refresh
 refresh-gmail-oauth2
-
-# Restart systemd timer
-systemctl --user restart gmail-oauth2-refresh.timer
 ```
+Note: on the app-password path there is **no token refresh** and **no `gmail-oauth2-refresh`
+unit** — the app password does not expire, so a degraded/failed `gmail-oauth2-refresh.service` is
+not expected (that unit is disabled).
 
 ### Protonmail Bridge Issues
 
@@ -579,10 +607,14 @@ tail -f ~/.cache/protonmail/bridge/logs/bridge.log
 ## Security Notes
 
 ### Gmail Account
-- **OAuth2 Client ID**: Semi-public identifier, safe to include in version control
-- **Client Secret**: Stored securely in system keyring via libsecret
-- **Access/Refresh Tokens**: Stored securely in system keyring
-- **No passwords**: Uses OAuth2 tokens exclusively, no Gmail password required
+- **App password**: A Gmail app password (not the account password) stored in the system keyring
+  via libsecret (`gmail-app-password`); used by both mbsync (IMAP) and Himalaya SMTP. Requires
+  2-Step Verification on the account. Long-lived and non-expiring; revoke from the Google account
+  page if leaked.
+- **Not committed**: the app password lives only in the keyring — never in version control or a
+  Nix-declared file.
+- *(Legacy OAuth2, retained as revert path: Client ID was semi-public; client secret + access/
+  refresh tokens were keyring-stored. No longer active.)*
 
 ### Protonmail Account
 - **Bridge Password**: Auto-generated by Bridge, stored securely in system keyring

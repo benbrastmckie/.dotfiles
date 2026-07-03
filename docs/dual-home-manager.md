@@ -68,10 +68,15 @@ it removes complexity without changing the system behavior visible to the user.
 
 ## Notes on Unmanaged Secrets
 
-`~/.config/himalaya/gmail-oauth2.env` is not managed by sops-nix or home-manager — it is a
-hand-created file containing Gmail OAuth2 credentials. This is intentional (credentials rotation
-is handled by the `refresh-gmail-oauth2` script, not by Nix). Do not attempt to declare this
-file in `home.file` without a secrets backend.
+The Gmail app password is not managed by sops-nix or home-manager — it is stored by hand in the
+libsecret keyring (`secret-tool` service `gmail-app-password`). This is intentional: it is a
+long-lived secret with no rotation, so no Nix-declared file or refresh job is involved. Do not
+attempt to declare secrets in `home.file` without a secrets backend.
+
+> Legacy (pre-2026-07-02): `~/.config/himalaya/gmail-oauth2.env` held hand-created Gmail OAuth2
+> credentials rotated by the `refresh-gmail-oauth2` script. Gmail now uses the app password (see
+> `docs/himalaya.md`) and the refresh unit is disabled, so that env file is no longer part of the
+> active setup.
 
 ## Related Files
 

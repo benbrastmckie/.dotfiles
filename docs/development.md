@@ -101,7 +101,9 @@ For reference, here's an example of what a Google OAuth2 authorization URL looks
 https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=810486121108-i3d8dloc9hc0rg7g6ee9cj1tl8l1m0i8.apps.googleusercontent.com&state=JG-dxurfv1CAtSGA9Q7afg&code_challenge=vDgC6ctcdQi0ucIfdY3kehoLEA5yzvZn98IATf2TXcY&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A49152&scope=https%3A%2F%2Fmail.google.com%2F+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcontacts+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcarddav
 ```
 
-This can be helpful for understanding the OAuth2 flow for email configuration.
+This can be helpful for understanding the OAuth2 flow in general. Note: Gmail email is no longer
+configured via OAuth2 — it uses a Gmail app password as of 2026-07-02 (see `docs/himalaya.md`).
+The example is retained for reference / the OAuth2 revert path.
 
 ## Host-Specific Configuration
 

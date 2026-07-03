@@ -8,7 +8,7 @@ Nextcord Discord bot that bridges Discord to a headless OpenCode agent server. S
 
 ## Email (Himalaya)
 
-Modern CLI email client with Gmail OAuth2 authentication and mbsync synchronization. 
+Modern CLI email client with Gmail app-password authentication and mbsync synchronization. 
 
 **Complete documentation**: [`docs/himalaya.md`](himalaya.md)
 
