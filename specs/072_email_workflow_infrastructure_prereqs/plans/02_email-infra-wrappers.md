@@ -1,7 +1,7 @@
 # Implementation Plan: Email Workflow Infrastructure & Prerequisites
 
 - **Task**: 72 - Email workflow infrastructure prereqs (.dotfiles mechanism; child of task 71)
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 18 hours
 - **Dependencies**: Task 46 (Gmail OAuth2) — blocking ONLY for the destructive purge (~/Mail #29) and for server-side delete verification via `mbsync gmail`; NOT for this infra build (himalaya/aerc use working app passwords)
 - **Research Inputs**: reports/02_team-research.md (primary), reports/01_infrastructure-prereqs-seed.md (seed; delete-invariant framing corrected by the team report)
@@ -138,7 +138,7 @@ Phases within the same wave can run in parallel (distinct file territory: P1 = l
 verification, P2 = `~/Mail` + handoffs, P3 = OAuth research; P8 = `mbsync.nix`, P10 =
 `notmuch.nix`, while P5/P6 own `agent-tools.nix` and P7 owns `.claude/`).
 
-### Phase 1: Verification baseline (blocking gaps) [NOT STARTED]
+### Phase 1: Verification baseline (blocking gaps) [COMPLETED]
 
 **Goal**: Resolve the team report's currently-false/unverified premises against the live system
 before any wrapper is designed around them.

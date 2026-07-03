@@ -73,18 +73,42 @@ Under maildir++ (`maildirpp = true`), the correct queries are:
 `find ~/Mail/Gmail -name '.mbsyncstate*'` (root `~/Mail/Gmail/.mbsyncstate` plus one per
 `.Folder`: `.Drafts`, `.All_Mail`, `.Sent`, `.Spam`, `.Trash`, `.Drafts`, custom labels, ...).
 
-## 6. Two-hop delete-path test — PENDING (live-mail action, user-gated)
+## 6. Two-hop delete-path test — RUN 2026-07-02 (interactive, user-confirmed)
 
-Deferred: this is the one irreversible live-mail action in Phase 1 (a real delete of one
-disposable message, recoverable from Gmail's 30-day Trash) and is being run interactively with the
-user. Sequence to execute and record:
+Test message (user-selected, obviously junk, recoverable from Gmail 30-day Trash):
+- Envelope id (INBOX): `3008`
+- Message-ID: `750490484.27074584.1771276725900@lor1-app120285.prod.linkedin.com`
+- From: `LinkedIn <notifications-noreply@linkedin.com>` — "Benjamin, last week your posts got 28 views!"
 
-1. `himalaya envelope list --folder INBOX -o json` → pick one disposable id.
-2. `himalaya message delete --folder INBOX <id>` → confirm it lands in `~/Mail/Gmail/.Trash`.
-3. `himalaya folder expunge Trash` → confirm local removal.
-4. `mbsync gmail` → **watch for `invalid_grant`.** If it fails (expected while task 46 is open),
-   record the local half verified and mark **server-side All-Mail removal BLOCKED on task 46**
-   (feeds Phase 3 + the #29 handoff). If it succeeds, confirm the message left `[Gmail]/All Mail`
-   server-side.
+**Step 1 — `himalaya message delete --folder INBOX 3008` → VERIFIED (local move).**
+- exit 0, "Message(s) successfully removed from INBOX!"
+- 3008 no longer in INBOX; local Trash file count 54 → 55; the message now appears in
+  `~/Mail/Gmail/.Trash` (himalaya Trash id 21), maildir file
+  `1771280214.343236_12.hamsa,U=4652:2,S` (flags `S` only).
+- **Confirms the corrected delete invariant's first hop:** himalaya's maildir `delete` is a
+  move-to-Trash, not a purge.
 
-**Result**: _to be recorded after the user runs the test._
+**Step 2 — `himalaya folder expunge Trash` → NOT RUN (design finding + deferred).**
+- **Design finding (feeds Phase 4 contract + #29 handoff):** the moved message carries flags
+  `:2,S` only — it is NOT `\Deleted`-flagged. `himalaya folder expunge` removes only
+  `\Deleted`-flagged messages, and `find ~/Mail/Gmail/.Trash ... | grep ':2,[^:]*T'` = **0**.
+  So `expunge Trash` at this point is a **no-op**; it would neither remove our test message nor
+  anything else. The true two-hop local-removal sequence is therefore
+  **`himalaya message delete --folder Trash <id>` (sets `\Deleted`) → `himalaya folder expunge
+  Trash`** — the wrapper (`email-delete-confirmed --expunge-trash`) must set the Deleted flag
+  before expunging. Recorded for the Phase 6 wrapper and the wrapper contract.
+- Local-removal execution deferred: it is destructive and was left for interactive confirmation;
+  the message remains safely in local Trash (and, because the move never synced, still exists
+  server-side in INBOX — it will reconcile once task 46 is fixed).
+
+**Step 3 — `mbsync gmail` (group-scoped, never `-a`) → server-side reconcile BLOCKED on task 46.**
+- `gmail-oauth2-refresh.service` = **failed (`invalid_grant`)** at test time.
+- `mbsync gmail` returned `[AUTHENTICATIONFAILED] Invalid credentials (Failure)`, exit 1 (the
+  stale/invalid XOAUTH2 access token). No server-side change occurred.
+- **Server-side All-Mail removal verification is BLOCKED on task 46** (as the plan anticipated).
+  Feeds Phase 3 (OAuth gate) and the #29 handoff, which must list this as a #29 precondition —
+  never faked locally.
+
+**Net result:** local delete→Trash hop VERIFIED; local expunge hop characterized (needs an
+explicit `\Deleted`-flag step — new contract requirement) but not executed; server reconcile
+BLOCKED on task 46. The message stays in Trash pending the eventual OAuth fix.
