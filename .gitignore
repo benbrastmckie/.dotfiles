@@ -35,4 +35,7 @@ EOF < /dev/null
 config/rclone.conf
 config/zuliprc
 
-**/.claude/settings.local.json
+# Agent system directories — untracked and scrubbed from git history 2026-07-02.
+# Kept on disk (gitignored), not version-controlled here.
+/.claude/
+/.opencode/
