@@ -178,7 +178,7 @@ before any wrapper is designed around them.
 
 ---
 
-### Phase 2: Prior-art harvest + retire (~/Mail/.claude) [NOT STARTED]
+### Phase 2: Prior-art harvest + retire (~/Mail/.claude) [COMPLETED]
 
 **Goal**: Harvest data-only assets from the dormant `~/Mail/.claude` system into the nvim #803
 handoff, record the not-harvestable gap note, and retire the harness (v3 Phase 0 verdicts).
