@@ -1,0 +1,42 @@
+{
+  "phase": 8,
+  "phase_name": "Phases 5-8 (agent-tools.nix scaffold+mutation, mail-guard hook, mbsync freeze/thaw)",
+  "started_at": "2026-07-02T18:00:00-07:00",
+  "last_updated": "2026-07-02T18:40:00-07:00",
+  "objectives": [
+    { "id": 1, "description": "Phase 5: agent-tools.nix scaffold + 3 read-only wrappers", "status": "done" },
+    { "id": 2, "description": "Phase 6: mutation wrappers + execution-state machinery", "status": "done" },
+    { "id": 3, "description": "Phase 7: mail-guard.sh hook + permissions.deny", "status": "done" },
+    { "id": 4, "description": "Phase 8: mbsync freeze/thaw + SyncState backup", "status": "done" }
+  ],
+  "current_objective": 5,
+  "approaches_tried": [
+    {
+      "approach": "resolve Message-ID -> envelope id via himalaya envelope list filtered by full quoted subject phrase",
+      "result": "failed",
+      "reason": "himalaya's query filter does not match multi-word quoted phrases reliably; switched to single-longest-alnum-token narrowing + raw Message-Id verification via 'message read -p -H Message-Id'"
+    },
+    {
+      "approach": "test email-freeze's running-process detection via `exec -a mbsync sleep 20` or shebang-wrapped bash script invoked through /usr/bin/env",
+      "result": "failed",
+      "reason": "Linux sets /proc/pid/comm from the basename of the execve'd file, not argv[0]; env/bash indirection resets comm. Fixed by writing a script with a direct absolute-path shebang (#!/nix/store/.../bin/bash) named literally 'mbsync' and executing it directly, which yields comm=mbsync."
+    }
+  ],
+  "handoff_count": 0,
+  "deviations": [
+    {
+      "task_id": "5-6",
+      "description": "Plan treats Phase 5 (read-only wrappers) and Phase 6 (mutation wrappers) as separate phases/commits",
+      "type": "altered",
+      "reason": "Both phases target the same new file (agent-tools.nix) and were implemented together in one pass for design coherence (shared mkPreamble/mkMutationPreamble), then verified together; committed as a single phase-5 commit (bcbce0d) with phase-6 markers checked off with no separate commit.",
+      "annotation": "*(deviation: altered — phases 5 and 6 committed together in bcbce0d since they share one file)*"
+    },
+    {
+      "task_id": "7",
+      "description": ".claude/settings.json commit scope",
+      "type": "altered",
+      "reason": "settings.json had pre-existing uncommitted, unrelated hook restructuring (Stop/memory-nudge/wezterm hooks) present in the working tree before this session started (visible in initial git status). Since it's a single JSON file, my Phase 7 edits (Bash PreToolUse matcher + 7 deny entries) could not be isolated from that pre-existing diff without either losing the other uncommitted work or fabricating a synthetic merge. Committed as-is with a note in the commit message.",
+      "annotation": "*(deviation: altered — commit e27c4be necessarily also contains pre-existing unrelated settings.json changes)*"
+    }
+  ]
+}

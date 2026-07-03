@@ -132,3 +132,41 @@ copy-liftable (isolated arrays).
 - **#29** runs the built binaries end-to-end (dry-run → aerc approve → `--execute --confirm-manifest`
   → `mbsync gmail`), relying on §5 constants, §7 delete recipe + fail-safe, and the app-password
   mbsync state (server-side verification is unblocked per `oauth-gate.md` decision).
+
+**Cross-repo ordering is documentation-only** (Critic F6): nothing in this repo, `~/Mail`, or the
+nvim config machine-enforces that #803 or #29 wait on this task or on each other. This document is
+the shared source of truth by convention, not by dependency graph.
+
+---
+
+## 10. AS-BUILT ADDENDUM (Phases 5–11, 2026-07-02)
+
+Everything above was written before implementation (Phase 4) and remains the frozen interface.
+This section records concrete, implementation-verified facts that #803/#29 need but that predate
+the contract's abstract description — it does not change §1–§9, only concretizes them.
+
+- **Manifest filenames** (default `manifest-dir`): candidates land in `candidate-manifest.jsonl`;
+  the approved manifest is `approved-manifest.jsonl`; its mutation companion state file is
+  `approved-manifest.jsonl.state.jsonl` (hop 1: archive, or delete's move-to-Trash). The delete
+  wrapper's `--expunge-trash` hop uses a SEPARATE companion,
+  `approved-manifest.jsonl.expunge-state.jsonl`, so each hop's `--execute --confirm-manifest` is
+  independently idempotent. Override the manifest file itself with `--manifest <path>`.
+- **`resolve_envelope_id`** (Message-ID -> current envelope id, §3): implemented as notmuch
+  `id:` lookup -> file path -> folder name (maildir++ dot-folder stripped; root maps to
+  `INBOX`) -> a `himalaya envelope list -f <folder> -s 5000 "subject <longest-word>"` candidate
+  query, each candidate verified against `himalaya message read <id> -f <folder> -p -H
+  Message-Id` (the `-p`/preview flag is load-bearing: it prevents resolution itself from
+  marking a message Seen as a side effect).
+- **himalaya envelope list JSON schema** (live-verified, v1.2.0): `{id, flags, subject, from:
+  {name, addr}, to: {name, addr}, date, has_attachment}` — no Message-ID field, confirming
+  §3's requirement that envelope ids and Message-IDs must be correlated out-of-band via notmuch.
+- **`mbsync gmail` reconcile**: both mutation wrappers call it automatically after a batch with
+  at least one successful `--execute`; they do NOT call it on a dry-run or a no-op batch (no
+  approved IDs, or all already `executed`).
+- **`--account logos`** (or any non-`gmail` value) is rejected with exit 1 on all five binaries,
+  live-verified.
+- **`$PATH` precondition** (the #803 requirement noted in §9): the binaries are only on `$PATH`
+  after `home-manager switch --flake .#benjamin` activates the generation containing
+  `modules/home/email/agent-tools.nix`. #803's extension should check
+  `command -v email-census` (or equivalent) and fail with an actionable message
+  ("run `home-manager switch`") rather than a raw "command not found".

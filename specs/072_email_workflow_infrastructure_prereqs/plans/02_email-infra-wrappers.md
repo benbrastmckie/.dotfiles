@@ -595,34 +595,46 @@ pre-existing native-keybind question explicitly.
 
 ---
 
-### Phase 11: Handoff assembly, docs, and memory breadcrumb [NOT STARTED]
+### Phase 11: Handoff assembly, docs, and memory breadcrumb [COMPLETED]
 
 **Goal**: Assemble the two final handoffs (nvim #803, ~/Mail #29) from the as-built reality,
 update repo docs, and leave the memory-candidate breadcrumb.
 
 **Tasks**:
-- [ ] Finalize the **nvim #803 handoff** (`handoffs/email-preferences.md` +
+- [x] Finalize the **nvim #803 handoff** (`handoffs/email-preferences.md` +
   `handoffs/wrapper-contract.md`, updated to as-built): harvested data, gap note, the FROZEN
   contract (binary names, verbs, safety flags, Message-ID-keyed manifest schema, reserved
   `--account`, execution-state field), the two-layer enforcement model, the liftable
   allowlist/deny data block, and a `$PATH` precondition check requirement (extension must fail
-  actionably when the wrapper binaries aren't built — Teammate D).
-- [ ] Write the **~/Mail #29 handoff**
+  actionably when the wrapper binaries aren't built — Teammate D). *(completed:
+  wrapper-contract.md §10 "AS-BUILT ADDENDUM" added, appending rather than rewriting the
+  frozen §1-9; email-preferences.md unchanged from Phase 2, already complete)*
+- [x] Write the **~/Mail #29 handoff**
   (`specs/072_email_workflow_infrastructure_prereqs/handoffs/mail-29-runbook.md`): the built
   binaries on `$PATH`, OAuth status (stable, or the declared task-46 block from Phase 3 —
   including whether server-side delete verification completed or remains blocked), the
   freeze/thaw + SyncState-recovery procedure, the aerc review flow (querymaps + confirm
   gestures + the recorded `d/D/a/A`/`$` decisions), the manifest directory + approval
   provenance, and the verified (or partially verified) delete recipe from Phase 1.
-- [ ] State in BOTH handoffs that cross-repo ordering is documentation-only (no machine-enforced
-  dependency; Critic F6).
-- [ ] Update `docs/himalaya.md` (or add a short `docs/email-workflow.md`) describing the wrapper
+  *(completed: new file, all 7 sections present)*
+- [x] State in BOTH handoffs that cross-repo ordering is documentation-only (no machine-enforced
+  dependency; Critic F6). *(completed: wrapper-contract.md §10 preamble and
+  mail-29-runbook.md's header both state it explicitly; email-preferences.md already had it
+  from Phase 2)*
+- [x] Update `docs/himalaya.md` (or add a short `docs/email-workflow.md`) describing the wrapper
   mechanism, dry-run/confirm flow, and the mail-guard hook; fix any `himalaya message list`
-  references to `envelope list`.
-- [ ] Leave the memory-candidate breadcrumb for a future generic `confirmed-mutation-wrapper`
+  references to `envelope list`. *(completed: new `docs/email-workflow.md` covers the
+  mechanism/flow/hook; `docs/himalaya.md`'s two `message list` references fixed to
+  `envelope list`; the one remaining repo-wide match is in
+  `specs/archive/045_.../plans/01_aerc-notmuch-setup.md`, an archived historical artifact
+  intentionally left untouched)*
+- [x] Leave the memory-candidate breadcrumb for a future generic `confirmed-mutation-wrapper`
   pattern (dry-run default + sha256-confirmed manifest + allowlist hook + execution-state
-  replay) — breadcrumb only; do NOT build the framework.
-- [ ] Run the full Testing & Validation checklist; commit per-phase work per git-workflow rules.
+  replay) — breadcrumb only; do NOT build the framework. *(completed: recorded in
+  mail-29-runbook.md §7 and emitted as a memory_candidate in this agent's metadata; no
+  framework built)*
+- [x] Run the full Testing & Validation checklist; commit per-phase work per git-workflow rules.
+  *(completed — see checklist below)*
 
 **Timing**: 1.5 hours
 
@@ -639,29 +651,46 @@ update repo docs, and leave the memory-candidate breadcrumb.
 
 ## Testing & Validation
 
-- [ ] `home-manager build` / `nixos-rebuild build` succeeds with `agent-tools.nix` wired in, and
-  again after each nix-touching phase (5, 6, 8, 9, 10).
-- [ ] notmuch index count matches the Maildir after `notmuch new --no-hooks` (≈ 64,316); the
-  verified census invocation exits 0.
-- [ ] Two-hop delete path tested on ONE disposable message; server-side removal from
+- [x] `home-manager build` / `nixos-rebuild build` succeeds with `agent-tools.nix` wired in, and
+  again after each nix-touching phase (5, 6, 8, 9, 10). *(verified after every nix-touching
+  phase in this dispatch; final `home-manager build --flake .#benjamin` green)*
+- [x] notmuch index count matches the Maildir after `notmuch new --no-hooks` (≈ 64,316); the
+  verified census invocation exits 0. *(index count 67,466 as of this dispatch — grew from
+  Phase 1's baseline as new mail arrived; still consistent with the Maildir; census invocation
+  exits 0, live-verified)*
+- [x] Two-hop delete path tested on ONE disposable message; server-side removal from
   `[Gmail]/All Mail` confirmed, OR explicitly recorded as BLOCKED on task 46 in the #29 handoff.
-- [ ] Each mutation wrapper refuses to mutate without `--execute` + a matching
+  *(inherited from Phase 1, not re-run here per the explicit no-live-mutation constraint on
+  this dispatch: local move-to-Trash hop VERIFIED; INBOX-label removal propagated server-side
+  on app-password; the final \Deleted-flag+expunge hop was deliberately deferred to an
+  interactive/human confirmation, per verification-baseline.md §6/§6a — recorded, not faked)*
+- [x] Each mutation wrapper refuses to mutate without `--execute` + a matching
   `--confirm-manifest <sha256>`; hash mismatch rejected; manifests older than 7 days rejected;
-  `MAX_BATCH_SIZE=50` enforced; `--account` accepts only `gmail`.
-- [ ] Execute mode diffs executed IDs against the approved manifest (never re-derives); the
+  `MAX_BATCH_SIZE=50` enforced; `--account` accepts only `gmail`. *(all five live-verified in
+  Phase 6 against a synthetic manifest built from the Phase 1 disposable test message)*
+- [x] Execute mode diffs executed IDs against the approved manifest (never re-derives); the
   execution-state companion file makes re-runs skip `executed` IDs (idempotent after a halt).
-- [ ] `mail-guard.sh` fed raw `himalaya message delete ...` on stdin returns
+  *(live-verified: seeded state.jsonl with status=executed, confirmed the wrapper printed SKIP
+  and made no himalaya call)*
+- [x] `mail-guard.sh` fed raw `himalaya message delete ...` on stdin returns
   `permissionDecision: deny`; same for `message move`, `folder expunge`, `msmtp`,
   `secret-tool`; fed `email-delete-confirmed ...` returns allow; unrelated commands pass
-  through; `permissions.deny` gained the seven mail entries.
-- [ ] aerc: `Proposed-Delete/Archive/Unsure` views open; confirm keybinds `:exec` wrappers only
+  through; `permissions.deny` gained the seven mail entries. *(all live-verified in Phase 7,
+  plus `himalaya message send` and `rm *Mail*`)*
+- [x] aerc: `Proposed-Delete/Archive/Unsure` views open; confirm keybinds `:exec` wrappers only
   (zero native `:delete-message`/`:archive` in new binds); `d/D/a/A` and `$` decisions recorded;
-  no shadowing of `<leader>me/mS/mf`.
-- [ ] Thaw and freeze scripts contain `mbsync gmail` and no `mbsync -a`; SyncState backup covers
-  every enumerated `.mbsyncstate*` file.
-- [ ] `notmuch.nix` diff is minimal (managed block appended to postNew only).
-- [ ] Both handoff documents exist and state the documentation-only cross-repo ordering; memory
-  breadcrumb emitted.
+  no shadowing of `<leader>me/mS/mf`. *(built binds.conf inspected directly in Phase 9; three
+  new folder-scoped sections present with zero native mutation commands; d/D/a/A/$ verified in
+  the built base [messages] section)*
+- [x] Thaw and freeze scripts contain `mbsync gmail` and no `mbsync -a`; SyncState backup covers
+  every enumerated `.mbsyncstate*` file. *(live-verified: grep of the built thaw binary shows
+  zero `mbsync -a` occurrences; the freeze backup tarball diffed byte-identical against the 8
+  live-enumerated files)*
+- [x] `notmuch.nix` diff is minimal (managed block appended to postNew only). *(git diff
+  confirms append-only)*
+- [x] Both handoff documents exist and state the documentation-only cross-repo ordering; memory
+  breadcrumb emitted. *(wrapper-contract.md + mail-29-runbook.md both present and state it;
+  breadcrumb recorded in mail-29-runbook.md §7 and as a memory_candidate)*
 
 ## Artifacts & Outputs
 

@@ -469,12 +469,12 @@ himalaya account list
 
 # Work with default account (Gmail)
 himalaya folder list
-himalaya message list
+himalaya envelope list          # NOTE: `himalaya message list` does not exist in v1.2.0
 himalaya message read <id>
 
 # Work with specific account
 himalaya folder list -a logos
-himalaya message list -a logos
+himalaya envelope list -a logos
 himalaya message read <id> -a logos
 
 # Send email
