@@ -307,32 +307,41 @@ against and ~/Mail #29 runs against — hardened now, before three repos consume
 
 ---
 
-### Phase 5: agent-tools.nix — module scaffold + read-only wrappers [NOT STARTED]
+### Phase 5: agent-tools.nix — module scaffold + read-only wrappers [COMPLETED]
 
 **Goal**: Create the NEW `modules/home/email/agent-tools.nix` with the shared `let`-bound
 preamble string and the three non-mutating wrappers, and wire it into home-manager.
 
 **Tasks**:
-- [ ] Create `modules/home/email/agent-tools.nix` with a Nix `let`-bound **preamble STRING
+- [x] Create `modules/home/email/agent-tools.nix` with a Nix `let`-bound **preamble STRING
   interpolated** into each `writeShellScriptBin` (NOT a `source`d external lib) — each produced
   binary stays self-contained, which the mail-guard hook's allowlist-by-binary relies on.
   Preamble: arg parsing, `--account gmail` validation (reject anything else), manifest-dir
-  resolution (`EMAIL_MANIFEST_DIR` default per contract), common logging.
-- [ ] `email-census` (read-only): sender census via the Phase-1-verified
+  resolution (`EMAIL_MANIFEST_DIR` default per contract), common logging. *(completed:
+  `mkPreamble`/`mkMutationPreamble` nix functions, interpolated per binary)*
+- [x] `email-census` (read-only): sender census via the Phase-1-verified
   `notmuch address --output=sender --output=count --deduplicate=address -- '*'`, folder/date
-  bucket counts, `himalaya envelope list -o json` sampling (never `message list`).
-- [ ] `email-classify` (local tags only): deterministic rule scaffolding → provisional
+  bucket counts, `himalaya envelope list -o json` sampling (never `message list`). *(completed;
+  live-verified: INBOX 2950, All_Mail 64785, sender census + date buckets + envelope sample all
+  exit 0)*
+- [x] `email-classify` (local tags only): deterministic rule scaffolding → provisional
   `+proposed-{delete,archive,unsure}` notmuch tags; emits a candidate JSONL manifest keyed on
   Message-ID with `confidence`; enforces `MAX_BATCH_SIZE=50`; also provides the
   `--append-approved` mode (writes a Message-ID line into the approved manifest — the
   allowlisted target for the Phase 9 aerc confirm gesture). Never mutates maildir/IMAP state.
-- [ ] `email-unsubscribe-extract` (read-only): per-sender `List-Unsubscribe` header extraction
+  *(completed: tier-1 harvested custom rules + tier-2 keyword-fallback + >=0.90 delete
+  confidence downgrade; live-verified on `folder:Gmail/.Trash --limit 5`, valid JSONL, tags
+  applied and cleaned up)*
+- [x] `email-unsubscribe-extract` (read-only): per-sender `List-Unsubscribe` header extraction
   to a review list; NEVER fetches or POSTs the URLs (reference `planetaryescape/list-unsubscribe`
-  / RFC 8058 in a comment; do not hand-roll one-click semantics here).
-- [ ] Import the module from the home-manager email module set (alongside
-  `mbsync/notmuch/aerc/protonmail.nix`).
-- [ ] `home-manager build` (or `nixos-rebuild build`) passes; each binary's `--help` and dry-run
-  output verified against the contract.
+  / RFC 8058 in a comment; do not hand-roll one-click semantics here). *(completed; live-verified
+  against 8 real List-Unsubscribe/List-Unsubscribe-Post headers including RFC-2822 header
+  folding)*
+- [x] Import the module from the home-manager email module set (alongside
+  `mbsync/notmuch/aerc/protonmail.nix`). *(completed: added to `home.nix` imports list)*
+- [x] `home-manager build` (or `nixos-rebuild build`) passes; each binary's `--help` and dry-run
+  output verified against the contract. *(completed: `home-manager build --flake .#benjamin`
+  green; `--account logos` rejected)*
 
 **Timing**: 2 hours
 
@@ -349,33 +358,45 @@ preamble string and the three non-mutating wrappers, and wire it into home-manag
 
 ---
 
-### Phase 6: agent-tools.nix — mutation wrappers + execution-state machinery [NOT STARTED]
+### Phase 6: agent-tools.nix — mutation wrappers + execution-state machinery [COMPLETED]
 
 **Goal**: Add `email-archive-confirmed` and `email-delete-confirmed` with the full mutation
 preamble: manifest hash verification, staleness/batch checks, Message-ID → envelope-id
 resolution, execution-state companion file, and the mbsync-side `invalid_grant` fail-safe.
 
 **Tasks**:
-- [ ] `mutationPreamble` (interpolated string extending the base preamble): dry-run default with
+- [x] `mutationPreamble` (interpolated string extending the base preamble): dry-run default with
   a loud banner; `--execute` requires `--confirm-manifest <sha256>`; recompute sha256 over the
   raw approved-manifest bytes and refuse on mismatch; refuse manifests older than
   `PLAN_EXPIRY_DAYS=7`; enforce `MAX_BATCH_SIZE=50` per run; initialize/update the
   `<manifest>.state.jsonl` companion (skip `executed` IDs — idempotent re-run; mark `failed`
-  with error text).
-- [ ] Execute mode consumes ONLY the approved manifest and **diffs executed IDs against it**
+  with error text). *(completed: `mkMutationPreamble`; all four refusal paths live-verified —
+  no `--confirm-manifest`, wrong hash, 10-day-stale manifest, 51-ID over-batch)*
+- [x] Execute mode consumes ONLY the approved manifest and **diffs executed IDs against it**
   (never re-derives a target list); per Message-ID, resolve the CURRENT envelope id in the
   relevant folder at run time (notmuch `id:` lookup → file path → folder, then
-  `himalaya envelope list -f <folder>` match), since envelope ids change on move.
-- [ ] `email-archive-confirmed`: for each approved `archive` ID, move to the all-mail folder
-  (`himalaya message move` to `[Gmail].All Mail` alias) — dry-run prints the plan.
-- [ ] `email-delete-confirmed`: for each approved `delete` ID, `himalaya message delete`
+  `himalaya envelope list -f <folder>` match), since envelope ids change on move. *(completed:
+  `resolve_envelope_id`/`resolve_folder_from_path`; live-verified end-to-end against the Phase-1
+  disposable test message — correctly resolved envelope 1014 in folder All_Mail via a
+  subject-narrowed `envelope list` query verified against `message read -p -H Message-Id`,
+  which is preview-mode and never marks Seen)*
+- [x] `email-archive-confirmed`: for each approved `archive` ID, move to the all-mail folder
+  (`himalaya message move` to `[Gmail].All Mail` alias) — dry-run prints the plan. *(completed:
+  `himalaya message move All_Mail <id> -f <folder>`; dry-run "no approved IDs" path
+  live-verified)*
+- [x] `email-delete-confirmed`: for each approved `delete` ID, `himalaya message delete`
   (soft-move to `[Gmail].Trash`); the Trash expunge is a SEPARATE explicit invocation
   (`--expunge-trash`, also requiring `--execute --confirm-manifest`) so move and expunge are
   independently human-gated; after mutation, print the required `mbsync gmail` reconcile step
   with the `invalid_grant` fail-safe (detect in mbsync output → halt, preserve manifest + state
-  file, print resume instructions — per Phase 3 contract).
-- [ ] `home-manager build` passes; refusal paths exercised (no `--execute`; wrong hash; stale
-  manifest; over-batch).
+  file, print resume instructions — per Phase 3 contract). *(completed: hop 1/hop 2 use
+  independent companion state files (`.state.jsonl` / `.expunge-state.jsonl`) so each
+  `--execute --confirm-manifest` invocation is idempotent per hop; `run_mbsync_reconcile`
+  matches both `invalid_grant` and `[AUTHENTICATIONFAILED]`; dry-run plans for both hops
+  live-verified, including hop-2 correctly gating on hop-1's state)*
+- [x] `home-manager build` passes; refusal paths exercised (no `--execute`; wrong hash; stale
+  manifest; over-batch). *(completed: all live-verified above; skip-already-executed also
+  verified by seeding state.jsonl and confirming no himalaya call was made)*
 
 **Timing**: 2 hours
 

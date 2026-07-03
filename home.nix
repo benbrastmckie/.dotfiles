@@ -23,6 +23,7 @@
     ./modules/home/email/protonmail.nix
     ./modules/home/email/notmuch.nix
     ./modules/home/email/aerc.nix
+    ./modules/home/email/agent-tools.nix
 
     # Package modules
     ./modules/home/packages/ai-tools.nix
