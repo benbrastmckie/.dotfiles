@@ -220,7 +220,7 @@ handoff, record the not-harvestable gap note, and retire the harness (v3 Phase 0
 
 ---
 
-### Phase 3: OAuth gate — research + fail-safe spec (re-targeted to mbsync) [NOT STARTED]
+### Phase 3: OAuth gate — research + fail-safe spec (re-targeted to mbsync) [COMPLETED]
 
 **Goal**: Verify OAuth state, research Google's Production-verification requirements for the
 restricted `mail.google.com` scope BEFORE recommending "publish to Production", and specify the
