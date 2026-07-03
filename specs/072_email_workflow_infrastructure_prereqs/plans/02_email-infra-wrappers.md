@@ -557,22 +557,30 @@ pre-existing native-keybind question explicitly.
 
 ---
 
-### Phase 10: notmuch postNew junk-rule scaffolding [NOT STARTED]
+### Phase 10: notmuch postNew junk-rule scaffolding [COMPLETED]
 
 **Goal**: Append the per-sender junk tag-rule scaffolding to the EXISTING `postNew` string in
 `notmuch.nix` (minimal diff, single ownership), with `afew` recorded as considered-and-rejected.
 
 **Tasks**:
-- [ ] Append a clearly-delimited managed block to the existing `postNew` string in
+- [x] Append a clearly-delimited managed block to the existing `postNew` string in
   `modules/home/email/notmuch.nix` (extend, never rewrite):
   `# --- per-sender junk rules (managed: task 72 scaffold; populated via ~/Mail #29) ---`
   with one commented example rule
   (`# notmuch tag +junk -inbox -- from:sender@example.test`) and a pointer to the wrapper
-  contract. No live rules land in this task.
-- [ ] Record `afew` as considered-and-rejected (second config surface; tagging stays in
-  `notmuch.nix` `postNew`) — comment in the file + note in the #803 handoff.
-- [ ] `home-manager build` passes; run `notmuch new --no-hooks` then manually exercise the
-  postNew content once to confirm the block is syntactically sound.
+  contract. No live rules land in this task. *(completed; git diff confirms append-only)*
+- [x] Record `afew` as considered-and-rejected (second config surface; tagging stays in
+  `notmuch.nix` `postNew`) — comment in the file + note in the #803 handoff. *(completed inline;
+  #803 handoff finalized in Phase 11)*
+- [x] `home-manager build` passes; run `notmuch new --no-hooks` then manually exercise the
+  postNew content once to confirm the block is syntactically sound. *(completed with a
+  deliberate deviation: build green and `bash -n` on the built post-new script confirms clean
+  syntax; the FULL hook was NOT executed live because the live index currently has 67,466
+  messages carrying `tag:new` (Phase 1's documented backfill artifact) and 0 carrying
+  `tag:inbox` — running the unmodified pre-existing `notmuch tag +inbox +unread -- tag:new`
+  line would bulk-retag the entire mailbox, which is an explicitly out-of-scope live bulk
+  mutation for this task. The appended block itself is 100% comments (zero executable lines),
+  so its syntactic soundness is additionally trivial by inspection.)*
 
 **Timing**: 1 hour
 

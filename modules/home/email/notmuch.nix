@@ -29,6 +29,15 @@
         # Tag by account
         notmuch tag +gmail -- folder:/Gmail/
         notmuch tag +logos -- folder:/Logos/
+
+        # --- per-sender junk rules (managed: task 72 scaffold; populated via ~/Mail #29) ---
+        # SCAFFOLDING ONLY -- no live rules land in task 72. Real per-sender junk rules are
+        # populated here by ~/Mail #29, sourced from the tag:proposed-*/confirmed-* review
+        # flow (see specs/072_email_workflow_infrastructure_prereqs/handoffs/wrapper-contract.md).
+        # afew was considered and REJECTED as a second config surface for this: tagging stays
+        # in this single postNew string so there is exactly one ownership point.
+        # Example rule (commented out; not live):
+        # notmuch tag +junk -inbox -- from:sender@example.test
       '';
     };
     new = {
