@@ -256,7 +256,7 @@ restricted `mail.google.com` scope BEFORE recommending "publish to Production", 
 
 ---
 
-### Phase 4: Freeze the wrapper contract (the #803/#29 handoff key) [NOT STARTED]
+### Phase 4: Freeze the wrapper contract (the #803/#29 handoff key) [COMPLETED]
 
 **Goal**: Write and freeze the wrapper CONTRACT document that nvim #803 authors its extension
 against and ~/Mail #29 runs against — hardened now, before three repos consume it.
