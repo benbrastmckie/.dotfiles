@@ -367,3 +367,11 @@
 [2026-06-24T14:22:56-07:00] Interactive notification sent: Tab 1
 [2026-06-24T14:25:29-07:00] Interactive notification sent: Tab 1
 [2026-06-30T18:02:14-07:00] Lifecycle notification sent: Tab 8 planned (status=planned)
+[2026-07-02T12:17:34-07:00] pico2wave command not found - skipping TTS notification
+[2026-07-02T13:10:15-07:00] pico2wave command not found - skipping TTS notification
+[2026-07-02T14:51:28-07:00] pico2wave command not found - skipping TTS notification
+[2026-07-02T16:49:41-07:00] pico2wave command not found - skipping TTS notification
+[2026-07-02T17:13:55-07:00] pico2wave command not found - skipping TTS notification
+[2026-07-02T17:16:05-07:00] pico2wave command not found - skipping TTS notification
+[2026-07-02T17:22:49-07:00] pico2wave command not found - skipping TTS notification
+[2026-07-02T17:42:48-07:00] pico2wave command not found - skipping TTS notification
