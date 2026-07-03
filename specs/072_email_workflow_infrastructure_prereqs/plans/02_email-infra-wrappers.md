@@ -412,7 +412,7 @@ resolution, execution-state companion file, and the mbsync-side `invalid_grant` 
 
 ---
 
-### Phase 7: PreToolUse mail-guard hook + permissions.deny entries [NOT STARTED]
+### Phase 7: PreToolUse mail-guard hook + permissions.deny entries [COMPLETED]
 
 **Goal**: Add the agent-side enforcement layer in this repo: a `Bash`-matcher PreToolUse hook
 allowlisting ONLY the 5 wrapper binaries and denying raw mail mutations, plus NEW
@@ -420,7 +420,7 @@ allowlisting ONLY the 5 wrapper binaries and denying raw mail mutations, plus NE
 not preserve).
 
 **Tasks**:
-- [ ] Write `.claude/hooks/mail-guard.sh` (follow the stdin-JSON parsing pattern of
+- [x] Write `.claude/hooks/mail-guard.sh` (follow the stdin-JSON parsing pattern of
   `validate-meta-write.sh`): read `tool_input.command`; ALLOW if it invokes one of
   `email-census|email-classify|email-archive-confirmed|email-delete-confirmed|email-unsubscribe-extract`;
   DENY (`permissionDecision: "deny"` + reason) on `himalaya message (delete|move|send)`,
@@ -428,20 +428,26 @@ not preserve).
   `secret-tool`; non-mail commands pass through (`{}` / allow). Keep the allowlist and deny
   patterns as **clean isolated data arrays** at the top of the script (liftable
   safety-envelope pattern — Teammate D), and append an audit line (command + manifest hash if
-  present) to a task-scoped log.
-- [ ] Register the `Bash` PreToolUse matcher in `.claude/settings.json` alongside the existing
-  `Write` matcher (do not replace it).
-- [ ] ADD `permissions.deny` entries: `Bash(himalaya message delete*)`,
+  present) to a task-scoped log. *(completed: `ALLOWED_BINARIES`/`DENY_PATTERNS` arrays;
+  audit log at `.claude/tmp/mail-guard-audit.log`, tab-separated timestamp/decision/hash/command)*
+- [x] Register the `Bash` PreToolUse matcher in `.claude/settings.json` alongside the existing
+  `Write` matcher (do not replace it). *(completed: Write matcher preserved as first entry,
+  new Bash entry appended)*
+- [x] ADD `permissions.deny` entries: `Bash(himalaya message delete*)`,
   `Bash(himalaya message move*)`, `Bash(himalaya * send*)`, `Bash(himalaya folder expunge*)`,
-  `Bash(msmtp*)`, `Bash(secret-tool*)`, `Bash(rm *Mail*)`.
-- [ ] Document the **two-layer enforcement model** in the hook header and the #803 handoff: the
+  `Bash(msmtp*)`, `Bash(secret-tool*)`, `Bash(rm *Mail*)`. *(completed: all 7 appended after
+  the pre-existing 4 non-mail entries)*
+- [x] Document the **two-layer enforcement model** in the hook header and the #803 handoff: the
   hook gates only the agent's own top-level Bash calls (not wrapper subprocesses); the
   git-tracked nix wrapper source is layer 2. Note that nvim #803 packages the same
-  allowlist/deny DATA for consuming repos — keep the data block copy-liftable.
-- [ ] Test by piping synthetic PreToolUse JSON: raw `himalaya message delete ...` → deny;
+  allowlist/deny DATA for consuming repos — keep the data block copy-liftable. *(completed in
+  hook header comment; #803 handoff finalized in Phase 11)*
+- [x] Test by piping synthetic PreToolUse JSON: raw `himalaya message delete ...` → deny;
   `himalaya message move ...` → deny; `himalaya folder expunge ...` → deny; `msmtp ...` → deny;
   `secret-tool lookup ...` → deny; `email-delete-confirmed --execute ...` → allow;
-  an unrelated `git status` → pass-through.
+  an unrelated `git status` → pass-through. *(completed: all 7 cases + `himalaya message send`
+  and `rm -rf ~/Mail/...` live-verified with correct permissionDecision; `jq . .claude/settings.json`
+  parses)*
 
 **Timing**: 1.5 hours
 
