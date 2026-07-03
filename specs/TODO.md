@@ -6,13 +6,12 @@ next_project_number: 73
 
 ## Task Order
 
-*Updated 2026-07-02. Generated from state.json dependency graph.*
+*Updated 2026-07-03. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
 | 1 | 15,19,23,41,42,43,46,67,68,69 | -- | nix-infrastructure, maintenance, packaging, ... |
-| 2 | 72 | 46 | services |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -28,7 +27,6 @@ next_project_number: 73
 23 [PLANNED] — install_simple_webcam_recording_software
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
-  └─ 72 [PLANNED] — Email workflow INFRASTRUCTURE + PREREQUISITES (child of task 71; 
 
 ### Packaging
 
@@ -42,7 +40,7 @@ next_project_number: 73
 ## Tasks
 
 ### 72. Email workflow infrastructure prereqs
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: general
 - **Topic**: services
 - **Dependencies**: Task 46
@@ -50,6 +48,7 @@ next_project_number: 73
   - [072_email_workflow_infrastructure_prereqs/reports/01_infrastructure-prereqs-seed.md]
   - [072_email_workflow_infrastructure_prereqs/reports/02_team-research.md]
 - **Plan**: [072_email_workflow_infrastructure_prereqs/plans/02_email-infra-wrappers.md]
+- **Summary**: [072_email_workflow_infrastructure_prereqs/summaries/02_email-infra-wrappers-summary.md]
 
 **Description**: Email workflow INFRASTRUCTURE + PREREQUISITES (child of task 71; .dotfiles-owned mechanism). Reference plan: specs/071_design_ai_email_management_workflow/plans/04_email-workflow-implementation.md (v3). Scope = v3 phases: (0) audit the dormant ~/Mail/.claude prior-art system (5 python scripts: email_list/email_analyze/email_triage/email_filter/email_execute), HARVEST email-preferences.md rule taxonomy+JSON schema and MAX_BATCH_SIZE=50 into a handoff file for the nvim extension task, RETIRE the ~/Mail harness (commands/email.md, skill-email, email-agent.md, 5 py scripts), DISCARD checkbox-approval UX + opus model pin; (1) OAuth gate: resolve/absorb task 46 (Gmail OAuth2 7-day refresh-token expiry, consent screen in Testing mode) — publish OAuth app to Production or declare blocking; (2) nix-declared dry-run-by-default wrapper scripts in modules/home/email/agent-tools.nix (email-census, email-classify, email-archive-confirmed, email-delete-confirmed, email-unsubscribe-extract) requiring explicit --execute + --confirm-manifest <sha256>, consuming a pre-generated manifest; (5) mbsync freeze/thaw + SyncState backup procedure; (9) aerc review querymap entries (Proposed-Delete/Archive/Unsure) in aerc.nix; (11-local) notmuch.nix postNew tag-rule scaffolding for institutionalized junk rules. IMPORTANT: delete mechanism is IMAP-level Himalaya only (never local Maildir/notmuch-tag+Expunge — Gmail label model leaves msgs in All_Mail, 64,316 baseline). Blocks the nvim extension task (needs harvested prefs + wrapper contract) and the ~/Mail purge task (needs wrappers+OAuth ready). Verify: nixos-rebuild/home-manager build with the new wrappers; wrappers refuse to mutate without --execute.
 

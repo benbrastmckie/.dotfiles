@@ -1,7 +1,7 @@
 # Implementation Plan: Email Workflow Infrastructure & Prerequisites
 
 - **Task**: 72 - Email workflow infrastructure prereqs (.dotfiles mechanism; child of task 71)
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 18 hours
 - **Dependencies**: Task 46 (Gmail OAuth2) — blocking ONLY for the destructive purge (~/Mail #29) and for server-side delete verification via `mbsync gmail`; NOT for this infra build (himalaya/aerc use working app passwords)
 - **Research Inputs**: reports/02_team-research.md (primary), reports/01_infrastructure-prereqs-seed.md (seed; delete-invariant framing corrected by the team report)
