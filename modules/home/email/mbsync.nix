@@ -1,15 +1,18 @@
 # mbsync IMAP synchronisation configuration for Gmail and Logos Labs mail.
-# Uses XOAUTH2 (Gmail) and Protonmail Bridge (Logos) backends.
+# Gmail authenticates with a Gmail app password (consumer account + 2FA still
+# supports IMAP app passwords in 2026); Logos uses Protonmail Bridge.
+# App-password decision: task 72 Phase 3 (handoffs/oauth-gate.md) — avoids the
+# restricted-scope CASA Tier 2 requirement that XOAUTH2 Production publishing needs.
 { ... }:
 {
   home.file.".mbsyncrc".text = ''
-    # Gmail IMAP account with XOAUTH2 support
+    # Gmail IMAP account — app-password auth (same credential himalaya/aerc use)
     IMAPAccount gmail
     Host imap.gmail.com
     Port 993
     User benbrastmckie@gmail.com
-    AuthMechs XOAUTH2
-    PassCmd "secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-access-token"
+    AuthMechs LOGIN
+    PassCmd "secret-tool lookup service gmail-app-password username benbrastmckie@gmail.com"
     TLSType IMAPS
 
     # Gmail remote store

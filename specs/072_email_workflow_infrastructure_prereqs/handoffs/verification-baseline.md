@@ -112,3 +112,26 @@ Test message (user-selected, obviously junk, recoverable from Gmail 30-day Trash
 **Net result:** local delete→Trash hop VERIFIED; local expunge hop characterized (needs an
 explicit `\Deleted`-flag step — new contract requirement) but not executed; server reconcile
 BLOCKED on task 46. The message stays in Trash pending the eventual OAuth fix.
+
+### 6a. ADDENDUM 2026-07-02 — server reconcile UNBLOCKED (mbsync → app password)
+
+Per the Phase 3 decision (`oauth-gate.md`, Option c), `mbsync` was switched from XOAUTH2 to the
+existing `gmail-app-password`. `mbsync gmail` then ran successfully (auth OK; 1,366 messages
+synced to Near). **Server-side delete propagation for the test message is now VERIFIED** via direct
+IMAP SEARCH on the Message-ID:
+
+| Server mailbox | Result | Meaning |
+|----------------|--------|---------|
+| `INBOX` | not found | ✅ INBOX-label removal propagated server-side |
+| `[Gmail]/All Mail` | found (uid 66418) | ✅ expected — still present until the (deferred) expunge |
+| `[Gmail]/Trash` | not found | move-to-Trash label not applied server-side (local file never `\Deleted`-flagged; consistent with §6 finding) |
+
+So the two-hop path's **sync half is proven end-to-end on app-password**; full All-Mail removal
+still requires the `\Deleted`-flag + expunge step (contract §7), now executable at will.
+
+**Separate pre-existing issue surfaced by the full sync (NOT caused by the auth switch):**
+`mbsync gmail` exits 1 because channel `gmail-spam` fails — `[Gmail]/Spam` returns
+`NO [NONEXISTENT] Unknown Mailbox` (that Gmail label is not exposed to IMAP on this account). The
+`[Gmail]/Trash` `CREATE ... [ALREADYEXISTS]` line is benign. Fix options (task-46 / mbsync scope,
+user's call): enable Spam "Show in IMAP" in Gmail settings, or drop the `gmail-spam` channel from
+the group. Recorded for the #29 runbook.
