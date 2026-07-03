@@ -504,35 +504,44 @@ timer to stop; thaw reconciles with group-scoped `mbsync gmail`, never `mbsync -
 
 ---
 
-### Phase 9: aerc review querymap + wrapper-routed confirm keybinds [NOT STARTED]
+### Phase 9: aerc review querymap + wrapper-routed confirm keybinds [COMPLETED]
 
 **Goal**: Surface the `+proposed-*` buckets as aerc querymap views whose confirm gestures
 `:exec` the wrapper binaries (never aerc's native `:delete-message`/`:archive`), and settle the
 pre-existing native-keybind question explicitly.
 
 **Tasks**:
-- [ ] Add querymap entries to the `querymap-gmail` block in `modules/home/email/aerc.nix`:
+- [x] Add querymap entries to the `querymap-gmail` block in `modules/home/email/aerc.nix`:
   `Proposed-Delete=tag:proposed-delete AND tag:gmail`, `Proposed-Archive=...`,
-  `Proposed-Unsure=...` (preserve all existing entries).
-- [ ] Add per-view confirm/reject keybinds (folder-scoped `messages:folder=Proposed-*`
+  `Proposed-Unsure=...` (preserve all existing entries). *(completed; live-verified in the
+  built querymap-gmail file: all 8 pre-existing entries + 3 new ones present)*
+- [x] Add per-view confirm/reject keybinds (folder-scoped `messages:folder=Proposed-*`
   sections): confirm retags `+confirmed-{delete,archive}` `-proposed-*` AND `:exec`s
   `email-classify --append-approved <...>` to queue the Message-ID into the approved manifest;
   reject rescues to `+proposed-keep`. The gesture MUST NOT perform the mutation inline and MUST
   NOT use native `:delete-message`/`:archive` (they run inside aerc's Go worker and bypass the
-  hook + manifest flow entirely — CONFLICT 4).
-- [ ] **DECIDE the pre-existing `d`/`D`/`a`/`A` scope explicitly** (silence is the gap).
+  hook + manifest flow entirely — CONFLICT 4). *(completed: uses `{{.MessageId}}` templating
+  per aerc-templates(7), matching the documented `:term b4 am {{.MessageId}}` pattern; grep of
+  the built binds.conf's 3 new sections confirms zero `:delete-message`/`:archive`)*
+- [x] **DECIDE the pre-existing `d`/`D`/`a`/`A` scope explicitly** (silence is the gap).
   Recommended default: KEEP them as human-only paths and DOCUMENT that human-operated aerc
   deletes remain outside the agent guardrail by design (the PreToolUse hook can only gate agent
   Bash calls); harden `D` (bare `:delete`) and `A` (bulk archive) with a `:prompt` confirm.
   Record the decision + rationale in the #29 handoff. If the user instead wants them routed
   through wrappers, rebind to `:exec` equivalents — but record the trade-off (loses aerc-native
-  UX).
-- [ ] Note and decide the `$` keybind (`:exec mbsync -a && notmuch new`): another `mbsync -a`
+  UX). *(completed: DECIDED — kept human-only, recorded inline in aerc.nix; carried to the #29
+  handoff in Phase 11; D and A now :prompt-confirm)*
+- [x] Note and decide the `$` keybind (`:exec mbsync -a && notmuch new`): another `mbsync -a`
   blast-radius instance; recommend rebinding to `mbsync gmail && notmuch new --no-hooks` or
-  documenting it as forbidden during freeze. Record the decision.
-- [ ] Keybind-collision check: new bindings are aerc-internal; confirm nothing added here (or in
-  the handoffs) shadows the nvim Himalaya plugin's `<leader>me/mS/mf`.
-- [ ] `home-manager build` passes; existing querymaps/binds preserved.
+  documenting it as forbidden during freeze. Record the decision. *(completed: DECIDED —
+  rebound to `mbsync gmail && notmuch new --no-hooks`, live-verified in the built binds.conf)*
+- [x] Keybind-collision check: new bindings are aerc-internal; confirm nothing added here (or in
+  the handoffs) shadows the nvim Himalaya plugin's `<leader>me/mS/mf`. *(completed: trivially
+  clear — aerc's binds.conf and Neovim's `<leader>` keymaps are disjoint namespaces in separate
+  applications; this task does not touch Neovim config)*
+- [x] `home-manager build` passes; existing querymaps/binds preserved. *(completed: build
+  green; built binds.conf has 10 `[...]` sections — 7 pre-existing + 3 new Proposed-* folder
+  sections; all pre-existing keys preserved)*
 
 **Timing**: 2 hours
 

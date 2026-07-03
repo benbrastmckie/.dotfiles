@@ -76,11 +76,16 @@
         "<C-b>" = ":prev 100%<Enter>";
 
         # Actions
+        # Task 72 Phase 9 decision (recorded in handoffs/mail-29-runbook.md): native d/D/a/A
+        # are KEPT as human-only paths, outside the agent guardrail by design (the PreToolUse
+        # mail-guard hook can only gate the Claude Code agent's own Bash calls, not aerc's Go
+        # worker). D (bare :delete, no confirm) and A (bulk archive) are hardened with a
+        # :prompt confirm below; d already prompted.
         "<Enter>" = ":view<Enter>";
         d = ":prompt 'Delete message?' 'delete-message'<Enter>";
-        D = ":delete<Enter>";
+        D = ":prompt 'Hard delete (bypass the confirm-message prompt)?' 'delete'<Enter>";
         a = ":archive flat<Enter>";
-        A = ":unmark -a<Enter>:mark -a<Enter>:archive flat<Enter>";
+        A = ":unmark -a<Enter>:mark -a<Enter>:prompt 'Archive ALL marked messages?' 'archive flat'<Enter>";
 
         # Compose
         c = ":compose<Enter>";
@@ -106,7 +111,11 @@
         "<Space>" = ":toggle-select<Enter>";
 
         # Sync
-        "$" = ":exec mbsync -a && notmuch new<Enter>";
+        # Task 72 Phase 9 decision: rebound from 'mbsync -a && notmuch new' -- the -a form is
+        # the same freeze-blast-radius hazard as the preNew hook (would also touch the
+        # deferred Logos/Bridge account); notmuch new (no --no-hooks) would re-trigger the
+        # preNew hook's own 'mbsync -a'. Group-scoped + hook-bypassing form only.
+        "$" = ":exec mbsync gmail && notmuch new --no-hooks<Enter>";
         u = ":check-mail<Enter>";
 
         # Marks
@@ -117,6 +126,31 @@
       # Message view bindings (Drafts folder)
       "messages:folder=Drafts" = {
         "<Enter>" = ":recall<Enter>";
+      };
+
+      # Task 72 Phase 9: Proposed-* review views (email-classify's +proposed-* candidates).
+      # Confirm gestures retag +confirmed-{delete,archive} and :exec email-classify
+      # --append-approved {{.MessageId}} to queue the Message-ID into the APPROVED manifest
+      # (wrapper-contract.md §6) -- they NEVER mutate inline and NEVER use aerc's native
+      # :delete-message/:archive (those run in aerc's Go worker and would bypass both the
+      # mail-guard hook and the manifest/approval flow entirely). Reject rescues to
+      # +proposed-keep. d/a deliberately SHADOW the native single-delete/archive keys ONLY
+      # within these three curated views, replacing them with the safe wrapper-routed
+      # gesture; d/D/a/A keep their native (human-only) behavior everywhere else.
+      "messages:folder=Proposed-Delete" = {
+        d = ":modify-tags +confirmed-delete -proposed-delete<Enter>:exec email-classify --append-approved {{.MessageId}}<Enter>";
+        k = ":modify-tags +proposed-keep -proposed-delete<Enter>";
+      };
+
+      "messages:folder=Proposed-Archive" = {
+        a = ":modify-tags +confirmed-archive -proposed-archive<Enter>:exec email-classify --append-approved {{.MessageId}}<Enter>";
+        k = ":modify-tags +proposed-keep -proposed-archive<Enter>";
+      };
+
+      "messages:folder=Proposed-Unsure" = {
+        d = ":modify-tags +confirmed-delete -proposed-unsure<Enter>:exec email-classify --append-approved {{.MessageId}}<Enter>";
+        a = ":modify-tags +confirmed-archive -proposed-unsure<Enter>:exec email-classify --append-approved {{.MessageId}}<Enter>";
+        k = ":modify-tags +proposed-keep -proposed-unsure<Enter>";
       };
 
       view = {
@@ -221,6 +255,9 @@
     Spam=folder:Gmail/.Spam
     Unread=tag:unread AND tag:gmail
     Flagged=tag:flagged AND tag:gmail
+    Proposed-Delete=tag:proposed-delete AND tag:gmail
+    Proposed-Archive=tag:proposed-archive AND tag:gmail
+    Proposed-Unsure=tag:proposed-unsure AND tag:gmail
   '';
 
   # aerc query map for Logos virtual folders
