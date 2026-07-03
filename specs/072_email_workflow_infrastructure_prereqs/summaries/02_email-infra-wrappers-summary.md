@@ -1,7 +1,7 @@
 # Implementation Summary: Task #72
 
 **Task**: 72 - Email workflow infrastructure prereqs (.dotfiles mechanism; child of task 71)
-**Status**: [PARTIAL COMPLETION — Phases 5-11 of 11; Phases 1-4 completed by a prior dispatch]
+**Status**: [COMPLETED] — all 11 phases (Phases 1-4 by prior interactive dispatch; 5-11 this dispatch)
 **Started**: 2026-07-02T18:00:00-07:00
 **Completed**: 2026-07-02T18:50:00-07:00
 **Effort**: ~3 hours (this dispatch)
@@ -99,6 +99,23 @@ performed at any point.
   for the 3 new sections and zero native mutation commands.
 - Files verified: yes — all new/modified files read back from their built nix store outputs
   (not just the source), confirming the interpolated nix strings render correctly.
+
+## Impacts
+
+- The five wrapper binaries are the FROZEN mechanism that unblocks two downstream repos: nvim
+  `#803` (authors the `email/` extension against the contract) and `~/Mail #29` (runs the purge).
+  Both are documentation-only coupled (no machine-enforced dependency).
+- The two-layer guardrail is now live in this repo: the PreToolUse `mail-guard.sh` hook + 7
+  `permissions.deny` entries mean an agent's raw `himalaya message delete|move|send`,
+  `himalaya folder expunge`, `msmtp`, `secret-tool`, and `rm *Mail*` calls are denied at the
+  session boundary; only the audited wrapper binaries pass.
+- Task 46 (Gmail OAuth2) is downgraded from a `#29` blocker to optional: `mbsync` now syncs on
+  the app password, and server-side delete propagation is verified.
+- Activation is required for the wrappers to take effect: they live in `agent-tools.nix` and
+  reach `$PATH` only after `home-manager switch` (nix changes are build-verified, then activated
+  as a separate, human-gated step).
+- No live mailbox was bulk-mutated; the only live-mail change remains the single Phase-1
+  disposable-message delete test.
 
 ## Follow-ups
 
