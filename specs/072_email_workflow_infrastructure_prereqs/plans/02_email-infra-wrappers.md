@@ -463,27 +463,32 @@ not preserve).
 
 ---
 
-### Phase 8: mbsync freeze/thaw + SyncState backup (group-scoped) [NOT STARTED]
+### Phase 8: mbsync freeze/thaw + SyncState backup (group-scoped) [COMPLETED]
 
 **Goal**: Declarative freeze/thaw helpers with the verified corrections: there is no mbsync
 timer to stop; thaw reconciles with group-scoped `mbsync gmail`, never `mbsync -a`.
 
 **Tasks**:
-- [ ] Add `email-freeze` / `email-thaw` as `writeShellScriptBin` helpers in
+- [x] Add `email-freeze` / `email-thaw` as `writeShellScriptBin` helpers in
   `modules/home/email/mbsync.nix` (operator helpers, NOT part of the 5-binary agent contract;
   separate file territory from agent-tools.nix so this phase can run parallel to 5/6).
-- [ ] `email-freeze`: confirm no running sync (`pgrep -x mbsync`); note there is NO
+  *(completed)*
+- [x] `email-freeze`: confirm no running sync (`pgrep -x mbsync`); note there is NO
   `mbsync.timer` (Phase 1 inventory) — instead print/enforce the trigger-path guards: during
   freeze, `notmuch new` must be run with `--no-hooks` (the `preNew` hook is `mbsync -a`) and the
   aerc `$` keybind (`mbsync -a && notmuch new`) must not be used; back up all
   `~/Mail/Gmail/**/.mbsyncstate*` files (Phase 1 enumerated set) to a timestamped tarball under
-  `~/Mail/.syncstate-backups/`.
-- [ ] `email-thaw`: verify/restore path documented; reconcile with a single **`mbsync gmail`**
+  `~/Mail/.syncstate-backups/`. *(completed; live-verified: correctly refuses when a
+  process named `mbsync` is running, backup tarball diffed byte-identical against the 8
+  live-enumerated `.mbsyncstate*` files)*
+- [x] `email-thaw`: verify/restore path documented; reconcile with a single **`mbsync gmail`**
   (group-scoped — NEVER `mbsync -a`, which would touch the deferred Logos/Bridge account);
-  apply the Phase 3 `invalid_grant` fail-safe (halt + preserve + instructions).
-- [ ] Document the interrupted-run recovery procedure (restore SyncState backup, re-run
+  apply the Phase 3 `invalid_grant` fail-safe (halt + preserve + instructions). *(completed;
+  grep of the built binary confirms zero `mbsync -a` occurrences)*
+- [x] Document the interrupted-run recovery procedure (restore SyncState backup, re-run
   `mbsync gmail`, then `notmuch new --no-hooks`) in the script `--help` and the #29 handoff.
-- [ ] `home-manager build` passes.
+  *(completed in script; #29 handoff finalized in Phase 11)*
+- [x] `home-manager build` passes. *(completed)*
 
 **Timing**: 1.5 hours
 
