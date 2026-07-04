@@ -19,6 +19,7 @@
       xwayland-satellite # X11 compatibility layer for Niri (auto-detected since 25.08)
       fuzzel # Lightweight application launcher for Wayland
       wdisplays # GUI monitor configuration tool for wlr-output-management
+      brightnessctl # Laptop backlight control (XF86MonBrightness keys in niri; uses logind SetBrightness, no udev/video-group needed)
 
       # # For use with Niri without Gnome utilities
       # mako                 # Lightweight notification daemon for Wayland

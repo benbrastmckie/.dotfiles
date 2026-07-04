@@ -1,0 +1,16 @@
+{
+  "status": "implemented",
+  "summary": "Added brightnessctl to the niri package group in modules/system/packages.nix and bound XF86MonBrightnessUp/XF86MonBrightnessDown to brightnessctl set 5%+/5%- (with -n 5% floor on down) in config/config.kdl, immediately after the existing wpctl audio binds. No udev rule, video group, or hardware.brightnessctl.enable module was added, matching the plan's rootless logind SetBrightness fallback approach. Verified headlessly: nix flake check passed, nixos-rebuild build --flake .#hamsa succeeded, and brightnessctl was confirmed present in the built system closure (./result/sw/bin/brightnessctl). state.json updated to completed and TODO.md regenerated.",
+  "phases_completed": 3,
+  "phases_total": 3,
+  "artifacts": [
+    {
+      "path": "specs/076_niri_laptop_hardware_keys/summaries/01_niri-hardware-keys-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary detailing the two file changes and verification results (nix flake check, nixos-rebuild build --flake .#hamsa, brightnessctl closure check)."
+    }
+  ],
+  "next_action_hint": "Task complete. Remaining step is a manual, non-agent action: after a live nixos-rebuild switch and niri session login, the user should press the brightness keys to confirm the eDP-1 panel visibly dims/brightens and spot-check that volume/mute keys still work.",
+  "blockers": [],
+  "continuation_context": null
+}

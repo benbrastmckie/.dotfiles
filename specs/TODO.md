@@ -11,9 +11,8 @@ next_project_number: 79
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69,76 | -- | nix-infrastructure, desktop, maintenance, ... |
-| 2 | 77 | 76 | desktop |
-| 3 | 78 | 77 | desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,69,77 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -41,9 +40,8 @@ next_project_number: 79
 
 ### Desktop
 
-76 [PLANNED] — Add laptop hardware-key handling for the niri session. This machi
-  └─ 77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM
-    └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
+77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM
+  └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
 
 ## Tasks
 
@@ -68,12 +66,13 @@ next_project_number: 79
 ---
 
 ### 76. Niri laptop hardware keys
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: desktop
 - **Dependencies**: None
 - **Research**: [076_niri_laptop_hardware_keys/reports/01_niri-hardware-keys.md]
 - **Plan**: [076_niri_laptop_hardware_keys/plans/01_niri-hardware-keys.md]
+- **Summary**: [076_niri_laptop_hardware_keys/summaries/01_niri-hardware-keys-summary.md]
 
 **Description**: Add laptop hardware-key handling for the niri session. This machine is a laptop (primary output eDP-1 at 2560x1600, per modules/home/desktop/kanshi.nix). In the GNOME session gnome-settings-daemon (gsd-media-keys) handles brightness function keys, but niri owns keybindings so gsd will NOT grab them — currently nothing controls display brightness in the niri session: there are no XF86MonBrightnessUp/Down binds in config/config.kdl and brightnessctl is not installed. Fix: add pkgs.brightnessctl and bind XF86MonBrightnessUp and XF86MonBrightnessDown in config/config.kdl (e.g. spawn brightnessctl set 5%+ and brightnessctl set 5%-; consider a small floor to avoid blacking out the panel). Also confirm the existing XF86Audio volume/mute binds (wpctl, config.kdl:181-183) behave correctly in the niri session. GNOME backend unchanged. VERIFY: after switch, brightness up/down keys visibly adjust the laptop panel in the niri session.
 

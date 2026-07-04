@@ -667,14 +667,14 @@
     {
       "project_number": 76,
       "project_name": "niri_laptop_hardware_keys",
-      "status": "planned",
+      "status": "completed",
       "task_type": "nix",
       "topic": "desktop",
       "dependencies": [],
       "description": "Add laptop hardware-key handling for the niri session. This machine is a laptop (primary output eDP-1 at 2560x1600, per modules/home/desktop/kanshi.nix). In the GNOME session gnome-settings-daemon (gsd-media-keys) handles brightness function keys, but niri owns keybindings so gsd will NOT grab them — currently nothing controls display brightness in the niri session: there are no XF86MonBrightnessUp/Down binds in config/config.kdl and brightnessctl is not installed. Fix: add pkgs.brightnessctl and bind XF86MonBrightnessUp and XF86MonBrightnessDown in config/config.kdl (e.g. spawn brightnessctl set 5%+ and brightnessctl set 5%-; consider a small floor to avoid blacking out the panel). Also confirm the existing XF86Audio volume/mute binds (wpctl, config.kdl:181-183) behave correctly in the niri session. GNOME backend unchanged. VERIFY: after switch, brightness up/down keys visibly adjust the laptop panel in the niri session.",
       "created": "2026-07-04T19:07:57Z",
       "researched": "2026-07-04T19:27:10Z",
-      "last_updated": "2026-07-04T19:40:00Z",
+      "last_updated": "2026-07-04T19:47:23Z",
       "session_id": "sess_1783192912_5bb4c0_76",
       "next_artifact_number": 2,
       "artifacts": [
@@ -687,6 +687,11 @@
           "path": "specs/076_niri_laptop_hardware_keys/plans/01_niri-hardware-keys.md",
           "type": "plan",
           "summary": "Two-edit plan (0.75h, 3 phases): add pkgs.brightnessctl to the niri group in modules/system/packages.nix (logind fallback, no udev/video-group), add XF86MonBrightnessUp/Down binds after the wpctl audio binds in config/config.kdl with a -n 5% floor, then headless nix flake check + nixos-rebuild build --flake .#hamsa verification (live keypress test is a manual post-switch user step)"
+        },
+        {
+          "path": "specs/076_niri_laptop_hardware_keys/summaries/01_niri-hardware-keys-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary: brightnessctl package + XF86MonBrightness binds added, flake check and hamsa build verified, brightnessctl confirmed in built closure."
         }
       ],
       "planned": "2026-07-04T19:40:00Z",
@@ -712,7 +717,9 @@
             "integrated_date": "2026-07-04"
           }
         ]
-      }
+      },
+      "implemented": "2026-07-04T19:47:23Z",
+      "completion_summary": "Installed brightnessctl in the niri package group and bound XF86MonBrightnessUp/Down to brightnessctl set 5%+/5%- (with a -n 5% floor) in config/config.kdl, verified via nix flake check and nixos-rebuild build --flake .#hamsa."
     },
     {
       "project_number": 77,

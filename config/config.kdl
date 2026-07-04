@@ -185,6 +185,10 @@ binds {
     XF86AudioNext { spawn "playerctl" "next"; }
     XF86AudioPrev { spawn "playerctl" "previous"; }
 
+    // Brightness controls (niri owns these keys; gsd-media-keys does not grab them here)
+    XF86MonBrightnessUp { spawn "brightnessctl" "set" "5%+"; }
+    XF86MonBrightnessDown { spawn "brightnessctl" "-n" "5%" "set" "5%-"; }
+
     // Window management
     Mod+Q { close-window; }
 

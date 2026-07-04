@@ -1,0 +1,34 @@
+{
+  "status": "implemented",
+  "summary": "Added brightnessctl to the niri package group in modules/system/packages.nix and bound XF86MonBrightnessUp/XF86MonBrightnessDown to brightnessctl in config/config.kdl after the existing wpctl audio binds. No udev rule, video group, or hardware.brightnessctl module was added, per plan (logind SetBrightness fallback). Verified with nix flake check and nixos-rebuild build --flake .#hamsa; brightnessctl confirmed present in the built closure.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "modules/system/packages.nix",
+      "summary": "Added brightnessctl to the Niri essential packages group"
+    },
+    {
+      "type": "implementation",
+      "path": "config/config.kdl",
+      "summary": "Added XF86MonBrightnessUp/Down binds after the existing wpctl audio binds"
+    },
+    {
+      "type": "summary",
+      "path": "specs/076_niri_laptop_hardware_keys/summaries/01_niri-hardware-keys-summary.md",
+      "summary": "Implementation summary with verification results"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Installed brightnessctl in the niri package group and bound XF86MonBrightnessUp/Down to brightnessctl set 5%+/5%- (with a -n 5% floor) in config/config.kdl, verified via nix flake check and nixos-rebuild build --flake .#hamsa."
+  },
+  "metadata": {
+    "session_id": "sess_1783192912_5bb4c0_76",
+    "duration_seconds": 900,
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 3,
+    "phases_total": 3
+  },
+  "next_steps": "Manual user step: after nixos-rebuild switch and logging into the niri session, press brightness keys to confirm the eDP-1 panel visibly dims/brightens, and spot-check volume/mute keys still work."
+}
