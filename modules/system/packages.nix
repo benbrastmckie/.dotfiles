@@ -29,7 +29,6 @@
       # swayidle             # Idle management daemon for Wayland
       # network-manager-applet  # GUI for NetworkManager connections
       # blueman              # Bluetooth management utility
-      # polkit_gnome         # PolicyKit authentication agent for GNOME
       # wl-clipboard-x11     # X11 clipboard compatibility for Wayland
       # clipman              # Clipboard manager for Wayland
       # kanshi               # Dynamic display configuration tool
@@ -216,6 +215,13 @@
         #!/bin/sh
         export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
         exec ${pkgs.sioyek}/bin/sioyek "$@"
+      '')
+
+      # Polkit authentication agent for the niri session (GNOME session uses gnome-shell's own).
+      # libexec is not linked into /run/current-system/sw, so wrap the binary to expose a bin/ path.
+      (writeShellScriptBin "polkit-gnome-authentication-agent-1" ''
+        #!/bin/sh
+        exec ${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1 "$@"
       '')
     ]);
 }
