@@ -1,17 +1,17 @@
 ---
-next_project_number: 73
+next_project_number: 74
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-07-03. Generated from state.json dependency graph.*
+*Updated 2026-07-04. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69 | -- | nix-infrastructure, maintenance, packaging, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,69,73 | -- | nix-infrastructure, desktop, maintenance, ... |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -37,7 +37,21 @@ next_project_number: 73
 
 15 [RESEARCHED] — configure_timezone_location_based
 
+### Desktop
+
+73 [NOT STARTED] — Research (do not implement) how to make GNOME/Mutter focus behavi
+
 ## Tasks
+
+### 73. Gnome wayland focus follows mouse keyboard override
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: desktop
+- **Dependencies**: None
+
+**Description**: Research (do not implement) how to make GNOME/Mutter focus behavior on WAYLAND stop snapping focus back to the window under the mouse pointer. DESIRED BEHAVIOR: moving the mouse onto a window switches focus to it (focus-follows-mouse), BUT after using a keybinding to switch focus to a different window, focus must STAY on the keyboard-selected window and NOT jump back to whatever window the (stationary) mouse happens to be hovering over. SYMPTOM: currently whatever window the mouse hovers over holds focus no matter what; keyboard focus switches are immediately overridden by pointer position. ENVIRONMENT: GNOME on Wayland (XDG_SESSION_TYPE=wayland, Mutter compositor); config is Home Manager dconf in modules/home/desktop/gnome.nix. PRIOR FAILED ATTEMPT (important — the obvious settings are ALREADY set and did NOT fix it): org/gnome/desktop/wm/preferences focus-mode="sloppy" (gnome.nix:66) and org/gnome/mutter focus-change-on-pointer-rest=false (gnome.nix:88). Research MUST go beyond these two keys since they are the failed attempt. Investigate: (1) exact semantics of focus-change-on-pointer-rest and whether =true (wait for pointer to REST before changing focus) actually helps the keyboard-override case, vs =false; (2) difference between focus-mode 'sloppy' vs 'mouse' vs 'click' and how each interacts with keyboard focus commands under Mutter/Wayland specifically; (3) whether Mutter re-evaluates pointer-based focus on any input event / motion vs only on real motion, and if a stationary pointer after a keyboard switch is what re-steals focus; (4) Mutter source / known upstream bugs on GNOME GitLab about keyboard focus being overridden by hover under Wayland; (5) GNOME Shell extensions that alter focus policy (e.g. options to disable focus-follows-mouse re-trigger, focus-on-click hybrids); (6) whether the desired hybrid (hover-to-focus that yields to keyboard until next real mouse motion) is even achievable natively on Wayland or requires an extension / patch; (7) any relevant timeouts or 'raise' interactions (auto-raise, raise-on-click). DELIVERABLE: a research report enumerating candidate approaches with tradeoffs, feasibility on Wayland, and a recommended Home-Manager-expressible fix (dconf keys and/or a specific extension) that the user can then plan/implement. Note the user has already tried and failed at least once, so shallow 'just set focus-mode=sloppy' answers are insufficient.
+
+---
 
 ### 72. Email workflow infrastructure prereqs
 - **Status**: [COMPLETED]
