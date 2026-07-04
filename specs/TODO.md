@@ -1,5 +1,5 @@
 ---
-next_project_number: 81
+next_project_number: 82
 ---
 
 # TODO
@@ -11,10 +11,14 @@ next_project_number: 81
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69,77 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,69,77,81 | -- | nixos-config, nix-infrastructure, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
+
+### Nixos Config
+
+81 [NOT STARTED] — Design and orchestrate a systematic reorganization of the NixOS/H
 
 ### Nix Infrastructure
 
@@ -44,6 +48,16 @@ next_project_number: 81
   └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
 
 ## Tasks
+
+### 81. Reorganize nixos dotfiles repository design
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Design and orchestrate a systematic reorganization of the NixOS/Home Manager dotfiles repository: research and design the ideal target directory layout (modules/, hosts/, lib/, overlays/, packages/, config/, secrets/, wallpapers/, docs/, root files), then decompose the refactor into ordered implementation subtasks, creating each subtask with its own seed research report. A comprehensive repo review has already been completed and is seeded as this task's first research report.
+
+---
 
 ### 80. Verify logos wrapper contract close phase6
 - **Status**: [COMPLETED]
