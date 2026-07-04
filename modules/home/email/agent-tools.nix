@@ -45,7 +45,7 @@ $BINARY_NAME - $VERB
 Safety class: $SAFETY_CLASS
 
 Global flags (wrapper-contract.md §2):
-  --account <gmail>       Reserved; only "gmail" is accepted (default: gmail)
+  --account <gmail|logos> Account to operate on (default: gmail)
   --manifest-dir <path>   Override manifest storage (default: \$EMAIL_MANIFEST_DIR, else
                            ${manifestDirDefault}/ relative to the current working directory —
                            normally the .dotfiles repo root)
@@ -67,11 +67,26 @@ HELPEOF
     done
     set -- "''${ARGS[@]}"
 
-    if [ "$ACCOUNT" != "gmail" ]; then
-      log "ERROR: --account only accepts 'gmail' (got: '$ACCOUNT')"
-      log "Protonmail/Logos are out of scope; the flag is reserved for future multi-account support."
-      exit 1
-    fi
+    case "$ACCOUNT" in
+      gmail)
+        ACCOUNT_FOLDER="Gmail"
+        ACCOUNT_MAILDIR_MARKER="/Mail/Gmail/"
+        ACCOUNT_MBSYNC_GROUP="gmail"
+        ACCOUNT_ARCHIVE_FOLDER="All_Mail"
+        ;;
+      logos)
+        ACCOUNT_FOLDER="Logos"
+        ACCOUNT_MAILDIR_MARKER="/Mail/Logos/"
+        ACCOUNT_MBSYNC_GROUP="logos"
+        ACCOUNT_ARCHIVE_FOLDER="Archive"
+        ;;
+      *)
+        log "ERROR: --account only accepts 'gmail' or 'logos' (got: '$ACCOUNT')"
+        log "See wrapper-contract.md for the supported account set."
+        exit 1
+        ;;
+    esac
+    HIMALAYA_ACCT=(-a "$ACCOUNT")
 
     mkdir -p "$MANIFEST_DIR"
   '';
@@ -398,7 +413,10 @@ in
         "sportsmans.com" "aveneusa" "lokvani.com" "espressoparts.com" "proton.me"
         "coinbase.com" "mithas.org" "reviews.io" "ambrosia.church"
       )
-      CUSTOM_KEEP_SENDERS=( "onanyajoni@gmail.com" )
+      CUSTOM_KEEP_SENDERS=(
+        "onanyajoni@gmail.com"
+        "noae@protonmail.com" "rob.mckie1235@proton.me" "andy.stace@protonmail.com"
+      )
 
       # Tier 2: keyword-fallback ONLY (email-preferences.md §1.4). Header-based signals
       # (List-Unsubscribe, Precedence: bulk, reply-history, VIP allowlist) are the PRIMARY
