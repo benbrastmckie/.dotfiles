@@ -1,0 +1,18 @@
+{
+  "status": "implemented",
+  "summary": "Installed and enabled the mouse-follows-focus GNOME Shell extension (real UUID mouse-follows-focus@crisidev.org verified from the built package) preserving focus-mode=sloppy; nix flake check, home-manager build, and home-manager switch --flake .#benjamin all passed, with dconf changes confirmed live. Phase 5 behavioral verification requires a GNOME Wayland re-login and remains pending user action (not fabricated), and a shell-version-50-vs-declared-49 compatibility risk was flagged for the user to check post-re-login.",
+  "phases_completed": 4,
+  "phases_total": 5,
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/073_gnome_wayland_focus_follows_mouse_keyboard_override/plans/01_mouse-follows-focus-extension.md",
+      "summary": "5-phase implementation plan for the mouse-follows-focus extension fix, now annotated with phase completion status and deviations"
+    },
+    {
+      "type": "summary",
+      "path": "specs/073_gnome_wayland_focus_follows_mouse_keyboard_override/summaries/01_mouse-follows-focus-extension-summary.md",
+      "summary": "Implementation summary: resolved UUID, build/switch verification results, and outstanding manual re-login/behavioral-test step"
+    }
+  ]
+}

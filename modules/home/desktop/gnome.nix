@@ -8,6 +8,7 @@
       enabled-extensions = [
         "activate-window-by-title@lucaswerkmeister.de"
         "unite@hardpixel.eu"
+        "mouse-follows-focus@crisidev.org"
       ];
     };
 

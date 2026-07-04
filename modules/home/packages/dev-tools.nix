@@ -10,6 +10,7 @@
 
     # GNOME Shell Extensions
     gnomeExtensions.activate-window-by-title # For cross-window WezTerm tab navigation
+    gnomeExtensions.mouse-follows-focus-2 # Warp pointer to keyboard-focused window (task 73: focus-follows-mouse vs keyboard fix)
 
     # Web Development & API Tools
     httpie # User-friendly HTTP client (better than curl for APIs)

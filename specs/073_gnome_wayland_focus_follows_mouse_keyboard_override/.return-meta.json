@@ -1,21 +1,34 @@
 {
-  "status": "success",
-  "started_at": "2026-07-03T00:00:00Z",
-  "completed_at": "2026-07-03T00:10:00Z",
-  "summary": "Researched GNOME/Mutter Wayland focus-follows-mouse-vs-keyboard-override bug for task 73. Confirmed prior fix attempt (focus-mode=sloppy, focus-change-on-pointer-rest=false) was insufficient because neither key governs re-focus of an already-stationary pointer after a keyboard switch. Root cause is a long-standing, largely by-design upstream Mutter/GNOME Shell gap (GNOME Shell issue #134, Mutter #318/#2058), not a misconfiguration. Recommended fix: install and enable the mouse-follows-focus GNOME Shell extension (pkgs.gnomeExtensions.mouse-follows-focus) alongside keeping focus-mode=sloppy, which warps the pointer to keyboard-focused windows so Mutter's hover-focus invariant never conflicts with keyboard switches. Documented focus-mode=click as a native no-extension fallback. Confirmed the literal desired hybrid (no cursor movement at all) is not natively achievable on Wayland with current GNOME/Mutter.",
+  "status": "implemented",
+  "summary": "Installed pkgs.gnomeExtensions.mouse-follows-focus-2 (dev-tools.nix) and enabled the verified UUID mouse-follows-focus@crisidev.org in gnome.nix enabled-extensions, preserving focus-mode=sloppy and focus-change-on-pointer-rest=false unchanged. nix flake check, home-manager build, and home-manager switch --flake .#benjamin all succeeded; live dconf confirmed. Phase 5 behavioral verification requires a GNOME Wayland re-login and manual testing by the user, and is reported as pending rather than fabricated. A shell-version mismatch (extension declares up to GNOME Shell 49, installed is 50.1) was flagged as an unresolved risk for the user to check post-re-login.",
   "artifacts": [
     {
-      "type": "report",
-      "path": "specs/073_gnome_wayland_focus_follows_mouse_keyboard_override/reports/01_focus-follows-mouse-keyboard-override.md",
-      "summary": "Research report: root-cause analysis of Mutter/GNOME Shell focus-follows-mouse vs keyboard-focus conflict, ranked candidate fixes, recommended mouse-follows-focus extension approach, and next steps for /plan"
+      "type": "implementation",
+      "path": "modules/home/packages/dev-tools.nix",
+      "summary": "Added gnomeExtensions.mouse-follows-focus-2 package"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/desktop/gnome.nix",
+      "summary": "Enabled verified UUID mouse-follows-focus@crisidev.org in enabled-extensions; focus-mode/focus-change-on-pointer-rest left unchanged"
+    },
+    {
+      "type": "summary",
+      "path": "specs/073_gnome_wayland_focus_follows_mouse_keyboard_override/summaries/01_mouse-follows-focus-extension-summary.md",
+      "summary": "Implementation summary with resolved UUID, build/switch verification, and outstanding manual re-login/behavioral-test step"
     }
   ],
-  "next_steps": "Run /plan 73 to create implementation plan for installing and enabling the mouse-follows-focus GNOME Shell extension in modules/home/desktop/gnome.nix",
+  "completion_data": {
+    "completion_summary": "Installed and enabled the mouse-follows-focus GNOME Shell extension (UUID mouse-follows-focus@crisidev.org, verified from the built package's metadata.json) via home-manager, preserving focus-mode=sloppy; nix flake check, home-manager build, and home-manager switch all passed. Behavioral verification (Phase 5) requires a GNOME Wayland re-login and is pending user action."
+  },
   "metadata": {
-    "session_id": "sess_1783126143_49b28f",
-    "agent_type": "nix-research-agent",
+    "session_id": "sess_1783145896_c3d5ab",
+    "duration_seconds": 3000,
+    "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
-    "findings_count": 7
-  }
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 4,
+    "phases_total": 5
+  },
+  "next_steps": "User must log out and log back in to the GNOME Wayland session for the extension to load, then run gnome-extensions info mouse-follows-focus@crisidev.org to confirm ENABLED state (watch for a shell-version-50-vs-declared-49 rejection), then walk through the plan's Phase 5 manual behavioral test checklist (hover-to-focus, keyboard-switch-sticks, no-snap-back)."
 }
