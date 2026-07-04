@@ -15,6 +15,7 @@
     grim # Wayland screenshot utility
     slurp # Region selection tool for Wayland
     inotify-tools # Filesystem event monitoring (used by screenshot-path-copy service)
+    playerctl # MPRIS media-transport control (for niri XF86Audio Play/Next/Prev binds)
 
     # Clipboard history manager (for niri session)
     wl-clipboard

@@ -162,12 +162,12 @@ binds {
 
     // Quick launchers
     Mod+F { spawn "nautilus"; }  // File manager
-    Mod+C { spawn "code"; }      // VSCode
+    Mod+C { spawn "codium"; }      // VSCodium
     Mod+M { spawn "spotify"; }   // Music
 
     // System controls
-    Mod+Shift+S { spawn "grimshot" "save" "area"; }  // Screenshot area
-    Print { spawn "grimshot" "save" "screen"; }       // Screenshot full
+    Mod+Shift+S { spawn "sh" "-c" "grim -g \"$(slurp)\" - | satty -f -"; }  // Screenshot area (annotate)
+    Print { spawn "sh" "-c" "grim - | satty -f -"; }  // Screenshot full (annotate)
     Mod+Shift+A { spawn "sh" "-c" "grim -g \"$(slurp)\" - | satty -f -"; }  // Screenshot with annotation
     Mod+Shift+X { spawn "swaylock" "-f"; }           // Lock screen
 

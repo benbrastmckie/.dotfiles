@@ -1,0 +1,26 @@
+{
+  "status": "implemented",
+  "summary": "Rewrote the two grimshot-based screenshot binds in config/config.kdl (Mod+Shift+S, Print) to the grim/slurp/satty form matching the working Mod+Shift+A bind, changed Mod+C from spawn \"code\" to spawn \"codium\", and added pkgs.playerctl to modules/home/packages/media-dictation.nix. Edits were re-anchored on bind content (not stale line numbers) since task 74 had just modified the autostart section of the same file. Headless verification (nix flake check, home-manager build --flake .#benjamin) both succeeded; closure inspection confirmed grim, slurp, satty, playerctl present, and codium confirmed present system-wide.",
+  "phases_completed": 3,
+  "phases_total": 3,
+  "artifacts": [
+    {
+      "path": "specs/075_niri_keybinding_dependencies/summaries/01_niri-keybinding-deps-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary with verification details for task 75"
+    },
+    {
+      "path": "config/config.kdl",
+      "type": "implementation",
+      "summary": "Mod+C spawn code->codium; Mod+Shift+S and Print screenshot binds rewritten from grimshot to grim/slurp/satty (matching Mod+Shift+A); task 74's autostart/wallpaper/polkit changes untouched"
+    },
+    {
+      "path": "modules/home/packages/media-dictation.nix",
+      "type": "implementation",
+      "summary": "Added pkgs.playerctl to home.packages for MPRIS media-transport binds"
+    }
+  ],
+  "next_action_hint": "Task complete. Manual post-switch step for the user: after home-manager switch, exercise Mod+Shift+S (area screenshot), Print (full screenshot), Mod+Shift+A (regression check), XF86AudioPlay/Next/Prev (with an MPRIS player active), and Mod+C (VSCodium launch) in a live niri session.",
+  "blockers": [],
+  "continuation_context": null
+}

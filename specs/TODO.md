@@ -11,8 +11,8 @@ next_project_number: 79
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69,75,76 | -- | nix-infrastructure, desktop, maintenance, ... |
-| 2 | 77 | 75,76 | desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,69,76 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 2 | 77 | 76 | desktop |
 | 3 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -41,11 +41,9 @@ next_project_number: 79
 
 ### Desktop
 
-75 [PLANNED] — Make every keybinding in config/config.kdl resolve to an installe
+76 [PLANNED] — Add laptop hardware-key handling for the niri session. This machi
   └─ 77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM
     └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
-76 [PLANNED] — Add laptop hardware-key handling for the niri session. This machi
-  └─ 77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM (see above)
 
 ## Tasks
 
@@ -82,12 +80,13 @@ next_project_number: 79
 ---
 
 ### 75. Niri keybinding dependencies
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: desktop
 - **Dependencies**: None
 - **Research**: [075_niri_keybinding_dependencies/reports/01_niri-keybinding-deps.md]
 - **Plan**: [075_niri_keybinding_dependencies/plans/01_niri-keybinding-deps.md]
+- **Summary**: [075_niri_keybinding_dependencies/summaries/01_niri-keybinding-deps-summary.md]
 
 **Description**: Make every keybinding in config/config.kdl resolve to an installed binary in the niri session (GNOME stack unaffected). (1) grimshot MISSING: Mod+Shift+S (config.kdl:169) and Print (config.kdl:170) spawn 'grimshot', which is in no package list, so full-screen and area screenshots via those keys fail. Fix: add pkgs.sway-contrib.grimshot to packages, OR rewrite both binds to the grim/slurp form already used by Mod+Shift+A (config.kdl:171), which works because grim, slurp, and satty are already present. (2) playerctl MISSING: XF86AudioPlay / XF86AudioNext / XF86AudioPrev (config.kdl:184-186) call playerctl, which is not installed, so media-transport keys fail. Fix: add pkgs.playerctl. (3) Mod+C WRONG BINARY: config.kdl:165 spawns 'code', but only vscodium is installed (its binary is 'codium', not 'code'). Fix: change the bind to spawn 'codium'. Note the XF86Audio volume/mute binds already use wpctl correctly and need no change. VERIFY: after switch, exercise each affected key (area+full screenshot, play/next/prev, Mod+C) in the niri session.
 
