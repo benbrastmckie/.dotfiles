@@ -1,7 +1,7 @@
 # Implementation Plan: Task #73
 
 - **Task**: 73 - GNOME/Wayland focus-follows-mouse overrides keyboard focus switches
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 1.5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/073_gnome_wayland_focus_follows_mouse_keyboard_override/reports/01_focus-follows-mouse-keyboard-override.md
