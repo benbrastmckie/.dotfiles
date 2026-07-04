@@ -129,31 +129,31 @@ Phases within the same wave can execute in parallel.
   - Grep the built/derived script or re-read the edited region to confirm the `case` has `gmail`
     first with the four byte-identical Gmail literals and `HIMALAYA_ACCT` is defined.
 
-### Phase 2: Thread resolver through read-only paths [NOT STARTED]
+### Phase 2: Thread resolver through read-only paths [COMPLETED]
 
 - **Goal:** Make the three read-only binaries (`email-census`, `email-classify`,
   `email-unsubscribe-extract`) account-aware by consuming `ACCOUNT_FOLDER` / `HIMALAYA_ACCT`,
   giving Logos its real, verified folder set while keeping the Gmail branch byte-identical.
 - **Tasks:**
-  - [ ] `email-census` header line **295**: change `echo "=== email-census (account: gmail) ==="`
+  - [x] `email-census` header line **295**: change `echo "=== email-census (account: gmail) ==="`
         to interpolate `$ACCOUNT`.
-  - [ ] `email-census` folder-count block **lines 298-303**: replace the fixed 6-line Gmail list
+  - [x] `email-census` folder-count block **lines 298-303**: replace the fixed 6-line Gmail list
         with the per-account form from research Finding 3 — an `INBOX` row using
         `notmuch count "folder:$ACCOUNT_FOLDER"`, then a `case "$ACCOUNT"` printing the Gmail set
         (`All_Mail`/`Sent`/`Trash`/`Spam`/`Drafts` via the exact existing literal queries — Gmail
         branch byte-identical) vs the Logos set (`Sent`/`Archive`/`Trash`/`Drafts` via
         `folder:Logos/.Sent`, `folder:Logos/.Archive`, `folder:Logos/.Trash`,
         `folder:Logos/.Drafts`). No `All_Mail`/`Spam` rows for Logos.
-  - [ ] `email-census` date-bucket loop **line 313**: change `folder:Gmail and date:...` to
+  - [x] `email-census` date-bucket loop **line 313**: change `folder:Gmail and date:...` to
         `folder:$ACCOUNT_FOLDER and date:...` (rest of the loop is already generic).
-  - [ ] `email-census` himalaya sample **line 319**: splice `"''${HIMALAYA_ACCT[@]}"` into
+  - [x] `email-census` himalaya sample **line 319**: splice `"''${HIMALAYA_ACCT[@]}"` into
         `himalaya envelope list ... -f INBOX -o json -s 10` so the sample is account-scoped.
-  - [ ] `email-classify` default query **line 344**: change `QUERY="folder:Gmail"` to
+  - [x] `email-classify` default query **line 344**: change `QUERY="folder:Gmail"` to
         `QUERY="folder:$ACCOUNT_FOLDER"`; update the help default at **line 334** to name the
         account's INBOX generically (e.g. `default: "folder:<Account>" = INBOX`).
-  - [ ] `email-unsubscribe-extract` default query **line 504**: change `QUERY="folder:Gmail"` to
+  - [x] `email-unsubscribe-extract` default query **line 504**: change `QUERY="folder:Gmail"` to
         `QUERY="folder:$ACCOUNT_FOLDER"`; update the help default at **line 495** likewise.
-  - [ ] Do NOT touch the `CUSTOM_DELETE_DOMAINS`/`CUSTOM_KEEP_SENDERS` tables (lines 396-404),
+  - [x] Do NOT touch the `CUSTOM_DELETE_DOMAINS`/`CUSTOM_KEEP_SENDERS` tables (lines 396-404),
         preserving the uncommitted 401-404 hand-edit verbatim.
 - **Timing:** ~50 min
 - **Depends on:** 1
