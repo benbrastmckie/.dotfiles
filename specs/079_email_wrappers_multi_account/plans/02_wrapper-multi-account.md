@@ -1,7 +1,7 @@
 # Implementation Plan: Task #79
 
 - **Task**: 79 - Extend the five email agent wrapper binaries in `modules/home/email/agent-tools.nix` to support the Logos (Protonmail Bridge) account via real per-account branching (gmail default preserved)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 3.5 hours
 - **Dependencies**: 72 (frozen wrapper contract + Logos backend scaffolding — already merged)
 - **Research Inputs**: specs/079_email_wrappers_multi_account/reports/02_wrapper-multi-account.md
@@ -215,18 +215,18 @@ Phases within the same wave can execute in parallel.
   - Confirm the archive move resolves to `All_Mail` for gmail and `Archive` for logos, and every
     himalaya call in the mutation preamble/binaries now carries `"''${HIMALAYA_ACCT[@]}"`.
 
-### Phase 4: Contract-revision note + final verification [NOT STARTED]
+### Phase 4: Contract-revision note + final verification [COMPLETED]
 
 - **Goal:** Document that the `--account` reservation is now a real `{gmail, logos}` dimension, and
   run the full automated verification gate.
 - **Tasks:**
-  - [ ] Update the in-file header comment block **lines 1-16** to note that `--account` now accepts
+  - [x] Update the in-file header comment block **lines 1-16** to note that `--account` now accepts
         a real second value (`logos`), superseding the "Logos/Bridge is deferred" framing; cite
         the new Logos maildir folder mapping (INBOX bare-root/Sent/Archive/Drafts/Trash) as
         verified against the live system alongside the existing Gmail note (lines 12-14).
-  - [ ] Reword the `mkPreamble` comment at **lines 22-23** if it still frames `--account gmail` as
+  - [x] Reword the `mkPreamble` comment at **lines 22-23** if it still frames `--account gmail` as
         a single-value reservation.
-  - [ ] Add a short addendum to task-72's `wrapper-contract.md`
+  - [x] Add a short addendum to task-72's `wrapper-contract.md`
         (`specs/072_email_workflow_infrastructure_prereqs/handoffs/wrapper-contract.md`, the frozen
         contract the research report identifies) stating: the `--account` dimension is now a real
         enum `{gmail, logos}` rather than a frozen single literal; adding a third account means
@@ -234,7 +234,7 @@ Phases within the same wave can execute in parallel.
         prerequisites (mbsync IMAPAccount + Group, notmuch tag rule, maildir dirs, himalaya
         account, aerc account). Frame the "foundation for future multi-account" concretely as
         "extend one case statement," not "rewrite the wrappers."
-  - [ ] Run the full verification suite (see Testing & Validation).
+  - [x] Run the full verification suite (see Testing & Validation).
 - **Timing:** ~40 min
 - **Depends on:** 1, 2, 3
 - **Files to modify:**
@@ -250,16 +250,16 @@ Phases within the same wave can execute in parallel.
 
 ## Testing & Validation
 
-- [ ] `home-manager build --flake .#benjamin` succeeds after each phase and finally (evaluates the
+- [x] `home-manager build --flake .#benjamin` succeeds after each phase and finally (evaluates the
       whole module; catches bash-in-nix interpolation/quoting mistakes in the `case` block and
       `HIMALAYA_ACCT` splices).
-- [ ] Gmail regression: bare `email-census` (no `--account`) output diffs clean against a
+- [x] Gmail regression: bare `email-census` (no `--account`) output diffs clean against a
       pre-change capture — six census lines, himalaya sample, and date-bucket loop unchanged.
-- [ ] Logos dry-run smoke: `email-census --account logos` prints the five-row Logos folder set
+- [x] Logos dry-run smoke: `email-census --account logos` prints the five-row Logos folder set
       with live counts; `email-classify --account logos --limit 5` classifies against
       `folder:Logos` (dry-run, local-tags-only; safe to run — never touches IMAP/maildir).
-- [ ] Unknown-account rejection: `email-census --account bogus` exits 1 with an actionable error.
-- [ ] `CUSTOM_KEEP_SENDERS` hand-edit (agent-tools.nix:401-404) preserved verbatim after all edits.
+- [x] Unknown-account rejection: `email-census --account bogus` exits 1 with an actionable error.
+- [x] `CUSTOM_KEEP_SENDERS` hand-edit (agent-tools.nix:401-404) preserved verbatim after all edits.
 - [ ] Manual-only (NOT part of the automated gate; performed by the user): any `--execute`
       mutation + `mbsync logos` reconcile against real Logos mail, requiring the Protonmail Bridge
       service running on 127.0.0.1:1143.

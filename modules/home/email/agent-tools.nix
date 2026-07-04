@@ -14,13 +14,24 @@
 # folder-name mapping (`.All_Mail` -> `All_Mail`, root -> `INBOX`), and the two-hop delete
 # path (`message delete` twice: once to move to Trash, once inside Trash to set `\Deleted`,
 # then `folder expunge Trash`).
+#
+# Task 79: `--account` is now a real two-value enum (`gmail` | `logos`), superseding the
+# task-72 framing of Protonmail/Logos as "out of scope, flag reserved for future multi-account
+# support" (see the addendum to wrapper-contract.md). The Logos backend (mbsync Group `logos`,
+# notmuch index, maildir, himalaya + aerc `[logos]` accounts, Protonmail Bridge on
+# 127.0.0.1:1143) was already merged by task 72; task 79 only threads a per-account resolver
+# through this file. Verified against the live system (task 79 research report, Finding 2):
+# Logos's real maildir++ folders are the bare root (`INBOX`), `.Sent`, `.Archive`, `.Drafts`,
+# `.Trash` — there is NO `.All_Mail` and NO `.Spam` for Logos (Proton is folder-based, not
+# Gmail's label model); the non-dot `INBOX`/`Sent`/`Drafts`/`Trash`/`Archive` subdirectories
+# under `~/Mail/Logos/` are stray, always-empty directories and must never be queried.
 { pkgs, ... }:
 let
   manifestDirDefault = "specs/072_email_workflow_infrastructure_prereqs/manifests";
 
   # ---------------------------------------------------------------------------------------
-  # Shared preamble (contract §2): global flags, `--account gmail` reservation, manifest-dir
-  # resolution, logging. Interpolated into ALL five binaries.
+  # Shared preamble (contract §2): global flags, `--account {gmail,logos}` per-account resolver
+  # (task 79), manifest-dir resolution, logging. Interpolated into ALL five binaries.
   # ---------------------------------------------------------------------------------------
   mkPreamble = { name, verb, safetyClass, extraHelp ? "" }: ''
     set -euo pipefail

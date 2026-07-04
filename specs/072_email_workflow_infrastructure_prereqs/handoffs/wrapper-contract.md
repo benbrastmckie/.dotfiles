@@ -170,3 +170,57 @@ the contract's abstract description — it does not change §1–§9, only concr
   `modules/home/email/agent-tools.nix`. #803's extension should check
   `command -v email-census` (or equivalent) and fail with an actionable message
   ("run `home-manager switch`") rather than a raw "command not found".
+
+---
+
+## 11. Task-79 ADDENDUM: `--account` is now a real `{gmail, logos}` enum (2026-07-04)
+
+§2's `--account gmail` reserved-single-value framing (and this document's §10 note that
+`--account logos` is rejected) is **superseded** by task 79. `--account` is now a real
+two-value enum, not a frozen single literal:
+
+- **Accepted values**: `gmail` (default) and `logos`. Any other value is still rejected with
+  exit 1 and an actionable error naming the supported set — the *rejection mechanism* is
+  unchanged, only the accepted set grew from one value to two.
+- **Mechanism**: a single shared `case "$ACCOUNT" in gmail|logos|*)` resolver in `mkPreamble`
+  (`modules/home/email/agent-tools.nix`) sets four variables — `ACCOUNT_FOLDER`,
+  `ACCOUNT_MAILDIR_MARKER`, `ACCOUNT_MBSYNC_GROUP`, `ACCOUNT_ARCHIVE_FOLDER` — plus a
+  `HIMALAYA_ACCT=(-a "$ACCOUNT")` array spliced into every `himalaya` invocation in the file.
+  `gmail` is the first branch and its resolved values are textually identical to the
+  pre-task-79 hardcoded literals, so a bare invocation (no `--account` flag) is byte-for-byte
+  behaviorally unchanged (verified: `email-census` stdout diffed clean against a pre-task-79
+  capture).
+- **Logos folder set** (live-confirmed, task-79 research report Finding 2): the Logos maildir
+  is folder-based, not label-based. Real folders are the bare maildir root (`INBOX`, i.e. bare
+  `folder:Logos`), `.Sent`, `.Archive`, `.Drafts`, `.Trash` — there is **no** `.All_Mail` and
+  **no** `.Spam` for Logos (unlike Gmail's label model). The non-dot `INBOX`/`Sent`/`Drafts`/
+  `Trash`/`Archive` subdirectories under `~/Mail/Logos/` are stray, always-empty directories
+  and must never be queried or used as a move target. Logos "archive" resolves to the real
+  `Archive` folder (`ACCOUNT_ARCHIVE_FOLDER`); Logos "delete" reuses the existing
+  account-agnostic two-hop move-to-Trash + `--expunge-trash` mechanism unchanged, since `Trash`
+  is a real, identically-named folder on both accounts.
+- **Account scoping is exclusively `folder:`-based**, never `tag:<account>` — the notmuch
+  `postNew` account-tag hook (`notmuch.nix`) has never actually run against the live database
+  (`tag:gmail`/`tag:logos`/`tag:inbox` all count 0 today), so a tag-based design would silently
+  return zero results. This is a pre-existing `notmuch.nix` hook-wiring gap, out of task 79's
+  scope, but it is why the wrapper resolver keys off `folder:` exclusively.
+- **All frozen safety invariants are untouched**: dry-run-by-default, `--execute
+  --confirm-manifest <sha256>`, `MAX_BATCH_SIZE=50` (frozen), `PLAN_EXPIRY_DAYS` mtime-preserve,
+  wrapper-only mutation, Himalaya-only delete (never raw `rm`), and **never `mbsync -a`** — the
+  resolver only ever supplies a group-scoped `$ACCOUNT_MBSYNC_GROUP` (`gmail` or `logos`) to a
+  single-group `mbsync <group>` call; no code path constructs `mbsync -a`.
+- **Extending to a third account**: extend exactly the one `case "$ACCOUNT" in ...` statement
+  in `mkPreamble` (add a new branch with that account's four resolver values) plus the
+  account's backend prerequisites (mbsync `IMAPAccount` + `Group`, a notmuch tag rule, maildir
+  directories, a himalaya account, an aerc account). This is "extend one case statement," not
+  "rewrite the wrappers" — the per-site threading work (census block, mutation preamble,
+  archive/delete call sites) is already generic across the resolver variables and needs no
+  further changes for additional accounts.
+- **Manifests remain shared** (not per-account) per task 79's explicit non-goal; the operator
+  is responsible for invoking a mutation binary with the SAME `--account` value used to
+  classify the manifest's rows, since `resolve_envelope_id`'s folder resolution depends on
+  `$ACCOUNT_MAILDIR_MARKER`.
+- **Live mutation against Logos** (`--execute` + `mbsync logos` reconcile) requires the
+  Protonmail Bridge service running on `127.0.0.1:1143` and is a manual user step, exercised
+  only after `home-manager switch --flake .#benjamin`; it is not part of task 79's automated
+  verification gate.
