@@ -1,0 +1,15 @@
+{
+  "status": "planned",
+  "summary": "Authored a 2-phase closure plan for task 80. Research (report 01) already completed all live verification (9/9 contract rows PASS, exact --account <gmail|logos> enum confirmed, live Logos census + read-only/dry-run /email --logos exercise proven), so the plan does NOT re-verify. Phase 1 authors a single self-contained, /spawn-ready closure report at summaries/01_phase6-closure-report.md (doubling as the task summary AND the nvim handoff) with six required sections: status banner, rows-1-9 verdict table with exact enum, wrapper-contracts.md-ready folder-token + mbsync + no-new-binaries table, live exercise results, an explicit WHAT-THE-NVIM-AGENT-MUST-DO checklist, and cross-repo source pointers. Phase 2 verifies the report is non-empty, self-contained (no back-references), and internally consistent. No nix build, no nvim-repo edits, no --execute mutation.",
+  "artifacts": [
+    {
+      "path": "specs/080_verify_logos_wrapper_contract_close_phase6/plans/01_phase6-closure-plan.md",
+      "type": "plan",
+      "summary": "2-phase plan (1h): Phase 1 authors the self-contained /spawn-ready Phase-6 closure report (six sections sourced verbatim from research report 01); Phase 2 verifies self-containment and internal consistency. Deliverable written to summaries/01_phase6-closure-report.md."
+    }
+  ],
+  "blockers": [],
+  "next_action_hint": "Run /implement 80 to author the closure report per the plan, then hand summaries/01_phase6-closure-report.md to /spawn 815 in the nvim repo.",
+  "phases_completed": 0,
+  "phases_total": 2
+}
