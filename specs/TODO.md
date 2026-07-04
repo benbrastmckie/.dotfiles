@@ -18,7 +18,7 @@ next_project_number: 82
 
 ### Nixos Config
 
-81 [NOT STARTED] — Design and orchestrate a systematic reorganization of the NixOS/H
+81 [RESEARCHED] — Design and orchestrate a systematic reorganization of the NixOS/H
 
 ### Nix Infrastructure
 
@@ -50,11 +50,17 @@ next_project_number: 82
 ## Tasks
 
 ### 81. Reorganize nixos dotfiles repository design
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
-- **Research**: [081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md]
+- **Research**:
+  - [081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md]
+  - [081_reorganize_nixos_dotfiles_repository_design/reports/02_teammate-a-findings.md]
+  - [081_reorganize_nixos_dotfiles_repository_design/reports/02_teammate-b-findings.md]
+  - [081_reorganize_nixos_dotfiles_repository_design/reports/02_teammate-c-findings.md]
+  - [081_reorganize_nixos_dotfiles_repository_design/reports/02_teammate-d-findings.md]
+  - [081_reorganize_nixos_dotfiles_repository_design/reports/02_team-research.md]
 
 **Description**: Design and orchestrate a systematic reorganization of the NixOS/Home Manager dotfiles repository: research and design the ideal target directory layout (modules/, hosts/, lib/, overlays/, packages/, config/, secrets/, wallpapers/, docs/, root files), then decompose the refactor into ordered implementation subtasks, creating each subtask with its own seed research report. A comprehensive repo review has already been completed and is seeded as this task's first research report.
 
