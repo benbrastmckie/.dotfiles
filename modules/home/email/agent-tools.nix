@@ -187,7 +187,7 @@ HELPEOF
       # preview mode (-p; never marks the message Seen as a side effect of resolution).
       resolve_folder_from_path() {
         local filepath="$1"
-        local rel="''${filepath#*/Mail/Gmail/}"
+        local rel="''${filepath#*$ACCOUNT_MAILDIR_MARKER}"
         local dir="''${rel%%/*}"
         case "$dir" in
           cur|new|tmp) echo "INBOX" ;;
@@ -216,15 +216,15 @@ HELPEOF
           | awk '{ print length, $0 }' | sort -rn | head -n1 | cut -d' ' -f2- || true)
 
         if [ -n "$subject_word" ]; then
-          candidates=$(himalaya envelope list -f "$folder" -o json -s 5000 "subject $subject_word" 2>/dev/null \
+          candidates=$(himalaya envelope list "''${HIMALAYA_ACCT[@]}" -f "$folder" -o json -s 5000 "subject $subject_word" 2>/dev/null \
             | jq -r '.[].id' 2>/dev/null || true)
         else
-          candidates=$(himalaya envelope list -f "$folder" -o json -s 5000 2>/dev/null \
+          candidates=$(himalaya envelope list "''${HIMALAYA_ACCT[@]}" -f "$folder" -o json -s 5000 2>/dev/null \
             | jq -r '.[].id' 2>/dev/null || true)
         fi
 
         for eid in $candidates; do
-          raw_mid=$(himalaya message read "$eid" -f "$folder" -p -H Message-Id 2>/dev/null \
+          raw_mid=$(himalaya message read "''${HIMALAYA_ACCT[@]}" "$eid" -f "$folder" -p -H Message-Id 2>/dev/null \
             | grep -im1 '^Message-Id:' \
             | sed -E 's/^[Mm]essage-[Ii]d:[[:space:]]*<?//; s/>?[[:space:]]*$//')
           if [ "$raw_mid" = "$message_id" ]; then
@@ -258,20 +258,21 @@ HELPEOF
       }
 
       # --- mbsync auth-failure fail-safe (contract §7, oauth-gate.md §4) -----------------
-      # Sole detection point: the `mbsync gmail` reconcile step. Matches BOTH the legacy
-      # XOAUTH2 failure and the app-password failure so the fail-safe survives either auth
-      # model. Himalaya wrapper calls (local maildir, app-password) never check for this.
+      # Sole detection point: the `mbsync $ACCOUNT_MBSYNC_GROUP` reconcile step. Matches BOTH
+      # the legacy XOAUTH2 failure and the app-password failure so the fail-safe survives
+      # either auth model. Himalaya wrapper calls (local maildir, app-password) never check
+      # for this.
       is_mbsync_auth_failure() {
         printf '%s' "$1" | grep -qE 'invalid_grant|\[AUTHENTICATIONFAILED\] Invalid credentials'
       }
 
       run_mbsync_reconcile() {
         log ""
-        log "Reconciling with 'mbsync gmail' (group-scoped; NEVER mbsync -a — that would also"
-        log "touch the deferred Logos/Bridge account)..."
+        log "Reconciling with 'mbsync $ACCOUNT_MBSYNC_GROUP' (group-scoped; NEVER mbsync -a —"
+        log "that would touch every configured account instead of just $ACCOUNT_MBSYNC_GROUP)..."
         local out status
         set +e
-        out=$(mbsync gmail 2>&1)
+        out=$(mbsync "$ACCOUNT_MBSYNC_GROUP" 2>&1)
         status=$?
         set -e
         echo "$out" >&2
@@ -280,16 +281,18 @@ HELPEOF
             log "AUTH FAILURE detected (invalid_grant or [AUTHENTICATIONFAILED])."
             log "Halting before further mutation. The approved manifest ($MANIFEST_FILE) and"
             log "state file ($STATE_FILE) are preserved untouched by this failure."
-            log "Resume: fix auth, re-run 'mbsync gmail' manually, then re-run this wrapper with"
-            log "--execute --confirm-manifest $ACTUAL_HASH (already-executed IDs are skipped)."
+            log "Resume: fix auth, re-run 'mbsync $ACCOUNT_MBSYNC_GROUP' manually, then re-run"
+            log "this wrapper with --execute --confirm-manifest $ACTUAL_HASH (already-executed"
+            log "IDs are skipped)."
           else
-            log "mbsync gmail exited non-zero for a reason OTHER than an auth failure (exit $status)."
-            log "This may be the known gmail-spam NONEXISTENT-mailbox issue (task-46/mbsync scope;"
-            log "see handoffs/verification-baseline.md §6a) — inspect the output above."
+            log "mbsync $ACCOUNT_MBSYNC_GROUP exited non-zero for a reason OTHER than an auth"
+            log "failure (exit $status). This may be the known gmail-spam NONEXISTENT-mailbox"
+            log "issue (task-46/mbsync scope; see handoffs/verification-baseline.md §6a) —"
+            log "inspect the output above."
           fi
           return 1
         fi
-        log "mbsync gmail: reconcile OK"
+        log "mbsync $ACCOUNT_MBSYNC_GROUP: reconcile OK"
         return 0
       }
     '';
@@ -571,7 +574,8 @@ in
     ''))
 
     # =======================================================================================
-    # email-archive-confirmed (mutation) — move approved 'archive' IDs to All_Mail
+    # email-archive-confirmed (mutation) — move approved 'archive' IDs to the account's archive
+    # folder (ACCOUNT_ARCHIVE_FOLDER: All_Mail for gmail, Archive for logos)
     # =======================================================================================
     (pkgs.writeShellScriptBin "email-archive-confirmed" (mkMutationPreamble {
       name = "email-archive-confirmed";
@@ -604,11 +608,11 @@ in
           continue
         fi
         if [ "$EXECUTE" -eq 0 ]; then
-          log "PLAN: move $mid (envelope $RESOLVED_ENVELOPE_ID in $RESOLVED_FOLDER) -> All_Mail"
+          log "PLAN: move $mid (envelope $RESOLVED_ENVELOPE_ID in $RESOLVED_FOLDER) -> $ACCOUNT_ARCHIVE_FOLDER"
           continue
         fi
-        log "EXECUTE: moving $mid (envelope $RESOLVED_ENVELOPE_ID in $RESOLVED_FOLDER) -> All_Mail"
-        if himalaya message move All_Mail "$RESOLVED_ENVELOPE_ID" -f "$RESOLVED_FOLDER" >&2; then
+        log "EXECUTE: moving $mid (envelope $RESOLVED_ENVELOPE_ID in $RESOLVED_FOLDER) -> $ACCOUNT_ARCHIVE_FOLDER"
+        if himalaya message move "''${HIMALAYA_ACCT[@]}" "$ACCOUNT_ARCHIVE_FOLDER" "$RESOLVED_ENVELOPE_ID" -f "$RESOLVED_FOLDER" >&2; then
           state_set "$mid" "executed"
           executed_any=1
         else
@@ -691,7 +695,7 @@ in
             continue
           fi
           log "EXECUTE: moving $mid (envelope $RESOLVED_ENVELOPE_ID in $RESOLVED_FOLDER) -> Trash"
-          if himalaya message delete "$RESOLVED_ENVELOPE_ID" -f "$RESOLVED_FOLDER" >&2; then
+          if himalaya message delete "''${HIMALAYA_ACCT[@]}" "$RESOLVED_ENVELOPE_ID" -f "$RESOLVED_FOLDER" >&2; then
             state_set "$mid" "executed"
             executed_any=1
           else
@@ -723,7 +727,7 @@ in
             continue
           fi
           log "EXECUTE: flagging \\Deleted $mid (envelope $RESOLVED_ENVELOPE_ID in Trash)"
-          if himalaya message delete "$RESOLVED_ENVELOPE_ID" -f Trash >&2; then
+          if himalaya message delete "''${HIMALAYA_ACCT[@]}" "$RESOLVED_ENVELOPE_ID" -f Trash >&2; then
             state_set "$mid" "executed"
             executed_any=1
             any_flagged=1
@@ -734,7 +738,7 @@ in
 
         if [ "$EXECUTE" -eq 1 ] && [ "$any_flagged" -eq 1 ]; then
           log "EXECUTE: himalaya folder expunge Trash"
-          himalaya folder expunge Trash >&2
+          himalaya folder expunge "''${HIMALAYA_ACCT[@]}" Trash >&2
         fi
       fi
 

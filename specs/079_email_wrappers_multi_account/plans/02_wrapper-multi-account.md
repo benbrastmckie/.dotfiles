@@ -168,21 +168,21 @@ Phases within the same wave can execute in parallel.
   - Confirm lines 401-404 still contain `noae@protonmail.com`, `rob.mckie1235@proton.me`,
     `andy.stace@protonmail.com`.
 
-### Phase 3: Thread resolver through the mutation preamble and mutation binaries [NOT STARTED]
+### Phase 3: Thread resolver through the mutation preamble and mutation binaries [COMPLETED]
 
 - **Goal:** Make the shared mutation infrastructure (`resolve_folder_from_path`,
   `resolve_envelope_id`, `run_mbsync_reconcile`) and the two mutation binaries
   (`email-archive-confirmed`, `email-delete-confirmed`) account-aware, preserving every frozen
   safety invariant untouched.
 - **Tasks:**
-  - [ ] `resolve_folder_from_path` **line 175**: change the hardcoded marker
+  - [x] `resolve_folder_from_path` **line 175**: change the hardcoded marker
         `local rel="''${filepath#*/Mail/Gmail/}"` to use the resolver variable
         `local rel="''${filepath#*$ACCOUNT_MAILDIR_MARKER}"`. The rest of the function
         (`cur|new|tmp -> INBOX`, `.*` strip, fallback) is already account-agnostic — no change.
-  - [ ] `resolve_envelope_id` himalaya calls **lines 204, 207, 212**: splice
+  - [x] `resolve_envelope_id` himalaya calls **lines 204, 207, 212**: splice
         `"''${HIMALAYA_ACCT[@]}"` into each `himalaya envelope list ...` and
         `himalaya message read ...` invocation so resolution runs against the correct account.
-  - [ ] `run_mbsync_reconcile` **lines 255-277**: parameterize the literal group — change
+  - [x] `run_mbsync_reconcile` **lines 255-277**: parameterize the literal group — change
         `out=$(mbsync gmail 2>&1)` (line 259) to `out=$(mbsync "$ACCOUNT_MBSYNC_GROUP" 2>&1)`;
         interpolate `$ACCOUNT_MBSYNC_GROUP` in the log strings that name "gmail" (lines 255, 268,
         271, 277). **Keep the `never mbsync -a` comment verbatim** — it remains true and important
@@ -190,17 +190,17 @@ Phases within the same wave can execute in parallel.
         255-256 comment (Logos is no longer deferred, just still isolated by the group-scoped call)
         — but see Phase 4 for the authoritative contract-doc rewording; a minimal in-line reword
         here is acceptable.
-  - [ ] `email-archive-confirmed` **lines 549, 582, 585, 586**: replace the hardcoded `All_Mail`
+  - [x] `email-archive-confirmed` **lines 549, 582, 585, 586**: replace the hardcoded `All_Mail`
         move target with `$ACCOUNT_ARCHIVE_FOLDER` in the comment (549), the two log lines
         (582, 585), and the call `himalaya message move All_Mail ...` (586); splice
         `"''${HIMALAYA_ACCT[@]}"` into that `himalaya message move` call. Gmail resolves to
         `All_Mail` (unchanged), Logos to `Archive`.
-  - [ ] `email-delete-confirmed` **lines 669, 701, 712**: splice `"''${HIMALAYA_ACCT[@]}"` into the
+  - [x] `email-delete-confirmed` **lines 669, 701, 712**: splice `"''${HIMALAYA_ACCT[@]}"` into the
         hop-1 `himalaya message delete ... -f "$RESOLVED_FOLDER"` (669), the hop-2
         `himalaya message delete ... -f Trash` (701), and `himalaya folder expunge Trash` (712).
         No folder-name parameterization needed: `Trash` is a real, identically-named folder for
         both accounts (Finding 4).
-  - [ ] Leave the dry-run gate, `--execute`/`--confirm-manifest` verification, `MAX_BATCH_SIZE`
+  - [x] Leave the dry-run gate, `--execute`/`--confirm-manifest` verification, `MAX_BATCH_SIZE`
         enforcement, `PLAN_EXPIRY_DAYS`/mtime check, `MANIFEST_DIR`/`STATE_FILE` resolution, and
         the `is_mbsync_auth_failure` matcher entirely unchanged.
 - **Timing:** ~55 min
