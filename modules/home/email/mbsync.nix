@@ -54,35 +54,43 @@
     Channel gmail-sent
     Far :gmail-remote:"[Gmail]/Sent Mail"
     Near :gmail-local:Sent
-    Create Both
+    Create Near
     Expunge Both
     SyncState *
 
     Channel gmail-drafts
     Far :gmail-remote:"[Gmail]/Drafts"
     Near :gmail-local:Drafts
-    Create Both
+    Create Near
     Expunge Both
     SyncState *
 
+    # gmail-trash is defined for manual sync only; it is intentionally NOT a member of
+    # Group gmail below. On this account "[Gmail]/Trash" returns [NONEXISTENT] over IMAP
+    # (Trash system label has "Show in IMAP" off), so including it in the group made the
+    # whole `mbsync gmail` reconcile exit 1.
     Channel gmail-trash
     Far :gmail-remote:"[Gmail]/Trash"
     Near :gmail-local:Trash
-    Create Both
+    Create Near
     Expunge Both
     SyncState *
 
     Channel gmail-all
     Far :gmail-remote:"[Gmail]/All Mail"
     Near :gmail-local:All_Mail
-    Create Both
+    Create Near
     Expunge Both
     SyncState *
 
+    # gmail-spam is defined for manual sync only; it is intentionally NOT a member of
+    # Group gmail below. [Gmail]/Spam is not reliably IMAP-selectable (requires
+    # Settings -> Labels -> Spam -> "Show in IMAP"), so including it in the group made
+    # the whole `mbsync gmail` reconcile exit 1.
     Channel gmail-spam
     Far :gmail-remote:"[Gmail]/Spam"
     Near :gmail-local:Spam
-    Create Both
+    Create Near
     Expunge Both
     SyncState *
 
@@ -95,14 +103,19 @@
     Remove Both
     SyncState *
 
-    # Group all channels together
+    # Group all channels together.
+    # gmail-trash and gmail-spam are intentionally omitted: this account does NOT expose
+    # Gmail's Trash/Spam system labels over IMAP (Settings -> Labels -> "Show in IMAP" is
+    # off), so the server returns [NONEXISTENT] Unknown Mailbox for both "[Gmail]/Trash"
+    # and "[Gmail]/Spam" and the whole `mbsync gmail` group reconcile exits 1. The channel
+    # definitions are kept for manual use if "Show in IMAP" is later enabled for those
+    # labels (a Gmail web-settings toggle). Consequence: local deletions move mail to
+    # ~/Mail/Gmail/.Trash but do NOT propagate to Gmail's server-side trash.
     Group gmail
     Channel gmail-inbox
     Channel gmail-sent
     Channel gmail-drafts
-    Channel gmail-trash
     Channel gmail-all
-    Channel gmail-spam
     Channel gmail-folders
 
     # Logos Labs IMAP account (via Protonmail Bridge)
@@ -280,9 +293,10 @@
         else
           echo "" >&2
           echo "[email-thaw] mbsync gmail exited non-zero for a reason OTHER than an auth failure" >&2
-          echo "[email-thaw] (exit $STATUS). This may be the known gmail-spam NONEXISTENT-mailbox" >&2
-          echo "[email-thaw] issue (task-46/mbsync scope; see verification-baseline.md §6a) --" >&2
-          echo "[email-thaw] inspect the output above." >&2
+          echo "[email-thaw] (exit $STATUS). Note: gmail-trash and gmail-spam are no longer in" >&2
+          echo "[email-thaw] Group gmail (their [Gmail]/Trash and [Gmail]/Spam far boxes are" >&2
+          echo "[email-thaw] [NONEXISTENT] over IMAP unless 'Show in IMAP' is enabled for those" >&2
+          echo "[email-thaw] labels), so this is a NEW failure -- inspect the output above." >&2
           exit 1
         fi
       fi

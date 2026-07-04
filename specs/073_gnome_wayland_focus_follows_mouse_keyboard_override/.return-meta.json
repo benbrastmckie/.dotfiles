@@ -1,0 +1,21 @@
+{
+  "status": "success",
+  "started_at": "2026-07-03T00:00:00Z",
+  "completed_at": "2026-07-03T00:10:00Z",
+  "summary": "Researched GNOME/Mutter Wayland focus-follows-mouse-vs-keyboard-override bug for task 73. Confirmed prior fix attempt (focus-mode=sloppy, focus-change-on-pointer-rest=false) was insufficient because neither key governs re-focus of an already-stationary pointer after a keyboard switch. Root cause is a long-standing, largely by-design upstream Mutter/GNOME Shell gap (GNOME Shell issue #134, Mutter #318/#2058), not a misconfiguration. Recommended fix: install and enable the mouse-follows-focus GNOME Shell extension (pkgs.gnomeExtensions.mouse-follows-focus) alongside keeping focus-mode=sloppy, which warps the pointer to keyboard-focused windows so Mutter's hover-focus invariant never conflicts with keyboard switches. Documented focus-mode=click as a native no-extension fallback. Confirmed the literal desired hybrid (no cursor movement at all) is not natively achievable on Wayland with current GNOME/Mutter.",
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/073_gnome_wayland_focus_follows_mouse_keyboard_override/reports/01_focus-follows-mouse-keyboard-override.md",
+      "summary": "Research report: root-cause analysis of Mutter/GNOME Shell focus-follows-mouse vs keyboard-focus conflict, ranked candidate fixes, recommended mouse-follows-focus extension approach, and next steps for /plan"
+    }
+  ],
+  "next_steps": "Run /plan 73 to create implementation plan for installing and enabling the mouse-follows-focus GNOME Shell extension in modules/home/desktop/gnome.nix",
+  "metadata": {
+    "session_id": "sess_1783126143_49b28f",
+    "agent_type": "nix-research-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
+    "findings_count": 7
+  }
+}
