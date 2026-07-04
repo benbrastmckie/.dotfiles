@@ -1,5 +1,5 @@
 ---
-next_project_number: 74
+next_project_number: 79
 ---
 
 # TODO
@@ -11,7 +11,9 @@ next_project_number: 74
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69 | -- | nix-infrastructure, maintenance, packaging, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,69,74,75,76 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 2 | 77 | 74,75,76 | desktop |
+| 3 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -37,7 +39,67 @@ next_project_number: 74
 
 15 [RESEARCHED] — configure_timezone_location_based
 
+### Desktop
+
+74 [NOT STARTED] — Fix the niri-session runtime services that are configured but nev
+  └─ 77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM
+    └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
+75 [NOT STARTED] — Make every keybinding in config/config.kdl resolve to an installe
+  └─ 77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM (see above)
+76 [NOT STARTED] — Add laptop hardware-key handling for the niri session. This machi
+  └─ 77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM (see above)
+
 ## Tasks
+
+### 78. Niri documentation rewrite
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: desktop
+- **Dependencies**: Task 74, Task 75, Task 76, Task 77
+
+**Description**: Rewrite docs/niri.md to match the actual, settled niri+GNOME-stack configuration after tasks 74-77 land. The current doc is ~60% stale/aspirational: it is dominated by PaperWM material, cross-references archived specs (specs/reports/012_niri_with_gnome_integration.md and specs/plans/010_niri_gnome_portal_integration.md) that no longer drive the config, and its keybinding tables contradict config/config.kdl — e.g. the doc claims Mod+m = maximize and Mod+r = resize mode, but the config binds Mod+M = spotify and Mod+R = switch-preset-column-width; the doc's window-rule examples also use the old match{} block syntax instead of the current top-level window-rule blocks. Fix: (a) trim or clearly quarantine the PaperWM content so it is not presented as the active setup; (b) regenerate the keybinding reference directly from config/config.kdl so it is accurate; (c) remove dead spec cross-references; (d) add a concise 'GNOME-stack hybrid architecture' section documenting the two-layer model — GNOME services/backends (gnome-keyring, polkit-gnome, xdg portals, gnome-settings-daemon, gnome-control-center, Nautilus) vs niri surface tools (waybar, swaybg, mako, swaylock/swayidle, brightnessctl) — and how they compose. Depends on 74-77 so it documents the final state (including whatever reconciliation task 77 decides).
+
+---
+
+### 77. Niri gnome service reconciliation
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: desktop
+- **Dependencies**: Task 74, Task 75, Task 76
+
+**Description**: Verify and reconcile background-service behavior in the niri+GNOME hybrid session, resolving overlaps rather than leaving gaps. Depends on tasks 74-76 being applied so the session reflects its intended final state. (1) xwayland-satellite: pkgs.xwayland-satellite is installed (modules/system/packages.nix:19; the inline comment claims auto-detection since niri 25.08). Confirm it actually auto-spawns and exports DISPLAY in the niri session — run 'echo $DISPLAY' in a niri terminal and launch an X11 app (e.g. zoom-us). If DISPLAY is empty, add an explicit xwayland-satellite spawn and DISPLAY export. (2) NOTIFICATIONS: services.mako (modules/home/desktop/mako.nix) is enabled and is expected to D-Bus-activate on org.freedesktop.Notifications without explicit startup. Confirm with 'notify-send test' in the niri session; if nothing appears, add an explicit mako startup. (3) gsd/swayidle OVERLAP: gnome-settings-daemon is enabled system-wide (services.gnome.gnome-settings-daemon in modules/system/desktop.nix) while swayidle is spawned in config.kdl:261 for idle-lock/suspend/before-sleep. Some gsd helpers (notably gsd-power for lid-close and idle) may partially run under niri and double-act with swayidle/logind (e.g. double-suspend, or fighting over lid events). Confirm there is no double-suspend or conflicting idle/lid behavior; if there is, disable the overlapping gsd component for the niri session or reconcile logind/swayidle timeouts. Document findings inline and adjust configuration as needed.
+
+---
+
+### 76. Niri laptop hardware keys
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: desktop
+- **Dependencies**: None
+
+**Description**: Add laptop hardware-key handling for the niri session. This machine is a laptop (primary output eDP-1 at 2560x1600, per modules/home/desktop/kanshi.nix). In the GNOME session gnome-settings-daemon (gsd-media-keys) handles brightness function keys, but niri owns keybindings so gsd will NOT grab them — currently nothing controls display brightness in the niri session: there are no XF86MonBrightnessUp/Down binds in config/config.kdl and brightnessctl is not installed. Fix: add pkgs.brightnessctl and bind XF86MonBrightnessUp and XF86MonBrightnessDown in config/config.kdl (e.g. spawn brightnessctl set 5%+ and brightnessctl set 5%-; consider a small floor to avoid blacking out the panel). Also confirm the existing XF86Audio volume/mute binds (wpctl, config.kdl:181-183) behave correctly in the niri session. GNOME backend unchanged. VERIFY: after switch, brightness up/down keys visibly adjust the laptop panel in the niri session.
+
+---
+
+### 75. Niri keybinding dependencies
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: desktop
+- **Dependencies**: None
+
+**Description**: Make every keybinding in config/config.kdl resolve to an installed binary in the niri session (GNOME stack unaffected). (1) grimshot MISSING: Mod+Shift+S (config.kdl:169) and Print (config.kdl:170) spawn 'grimshot', which is in no package list, so full-screen and area screenshots via those keys fail. Fix: add pkgs.sway-contrib.grimshot to packages, OR rewrite both binds to the grim/slurp form already used by Mod+Shift+A (config.kdl:171), which works because grim, slurp, and satty are already present. (2) playerctl MISSING: XF86AudioPlay / XF86AudioNext / XF86AudioPrev (config.kdl:184-186) call playerctl, which is not installed, so media-transport keys fail. Fix: add pkgs.playerctl. (3) Mod+C WRONG BINARY: config.kdl:165 spawns 'code', but only vscodium is installed (its binary is 'codium', not 'code'). Fix: change the bind to spawn 'codium'. Note the XF86Audio volume/mute binds already use wpctl correctly and need no change. VERIFY: after switch, exercise each affected key (area+full screenshot, play/next/prev, Mod+C) in the niri session.
+
+---
+
+### 74. Niri session startup services
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: desktop
+- **Dependencies**: None
+
+**Description**: Fix the niri-session runtime services that are configured but never actually started, so a niri login (dual-session with GNOME via GDM) is usable on first try. All three fixes are niri-session-only; GNOME remains the backend. (1) WAYBAR NOT STARTED: modules/home/desktop/waybar.nix defines programs.waybar settings but sets no systemd.enable, and config/config.kdl has no spawn; waybar is not D-Bus-activatable so nothing launches it, yet layout.struts reserves 32px at top (config.kdl:57), producing an empty gap with no bar/tray/clock/battery. Fix: add spawn-at-startup "waybar" to the autostart section of config/config.kdl. Prefer this over programs.waybar.systemd.enable, which binds to graphical-session.target and would also spawn a stray second bar inside the GNOME session. (2) NO POLKIT AGENT: polkit_gnome is commented out at modules/system/packages.nix:32 and never started. In the GNOME session gnome-shell IS the polkit authentication agent, but niri has none, and gnome-keyring is NOT a polkit agent. GUI privilege escalation (mounting disks, some Settings actions, updates) silently fails. Fix: install pkgs.polkit_gnome and spawn-at-startup the agent binary (<polkit_gnome>/libexec/polkit-gnome-authentication-agent-1) in config/config.kdl. (3) WALLPAPER BROKEN: config.kdl:250 runs swaybg -i ~/.wallpapers/current; niri spawns without a shell so ~ is NOT expanded, and ~/.wallpapers/current is created by no module (only /etc/wallpapers/riverside.jpg exists, via modules/system/desktop.nix:33). Fix: point swaybg at the absolute path /etc/wallpapers/riverside.jpg (or wrap the spawn in sh -c so ~ expands). VERIFY: nixos-rebuild + home-manager switch, then log into the niri session and confirm the bar appears, the wallpaper draws, and a privileged GUI action (e.g. mounting a disk in GNOME Disks) shows an authentication dialog.
+
+---
 
 ### 73. Gnome wayland focus follows mouse keyboard override
 - **Status**: [COMPLETED]
