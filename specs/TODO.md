@@ -54,6 +54,7 @@ next_project_number: 82
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
+- **Research**: [081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md]
 
 **Description**: Design and orchestrate a systematic reorganization of the NixOS/Home Manager dotfiles repository: research and design the ideal target directory layout (modules/, hosts/, lib/, overlays/, packages/, config/, secrets/, wallpapers/, docs/, root files), then decompose the refactor into ordered implementation subtasks, creating each subtask with its own seed research report. A comprehensive repo review has already been completed and is seeded as this task's first research report.
 
@@ -80,6 +81,7 @@ next_project_number: 82
 - **Research**:
   - [079_email_wrappers_multi_account/reports/01_nvim-extension-handoff.md]
   - [079_email_wrappers_multi_account/reports/02_wrapper-multi-account.md]
+  - [079_email_wrappers_multi_account/reports/03_nvim-extension-followup-handoff.md]
 - **Plan**: [079_email_wrappers_multi_account/plans/02_wrapper-multi-account.md]
 - **Summary**: [079_email_wrappers_multi_account/summaries/02_wrapper-multi-account-summary.md]
 
@@ -167,6 +169,10 @@ next_project_number: 82
 - **Research**:
   - [072_email_workflow_infrastructure_prereqs/reports/01_infrastructure-prereqs-seed.md]
   - [072_email_workflow_infrastructure_prereqs/reports/02_team-research.md]
+  - [072_email_workflow_infrastructure_prereqs/reports/02_teammate-a-findings.md]
+  - [072_email_workflow_infrastructure_prereqs/reports/02_teammate-b-findings.md]
+  - [072_email_workflow_infrastructure_prereqs/reports/02_teammate-c-findings.md]
+  - [072_email_workflow_infrastructure_prereqs/reports/02_teammate-d-findings.md]
 - **Plan**: [072_email_workflow_infrastructure_prereqs/plans/02_email-infra-wrappers.md]
 - **Summary**: [072_email_workflow_infrastructure_prereqs/summaries/02_email-infra-wrappers-summary.md]
 
@@ -183,7 +189,17 @@ next_project_number: 82
   - [071_design_ai_email_management_workflow/reports/01_ai-email-workflow.md]
   - [071_design_ai_email_management_workflow/reports/02_team-research.md]
   - [071_design_ai_email_management_workflow/reports/03_team-research.md]
-- **Plan**: [071_design_ai_email_management_workflow/plans/04_email-workflow-implementation.md]
+  - [071_design_ai_email_management_workflow/reports/02_teammate-a-findings.md]
+  - [071_design_ai_email_management_workflow/reports/02_teammate-b-findings.md]
+  - [071_design_ai_email_management_workflow/reports/02_teammate-c-findings.md]
+  - [071_design_ai_email_management_workflow/reports/02_teammate-d-findings.md]
+  - [071_design_ai_email_management_workflow/reports/03_teammate-a-findings.md]
+  - [071_design_ai_email_management_workflow/reports/03_teammate-b-findings.md]
+  - [071_design_ai_email_management_workflow/reports/03_teammate-c-findings.md]
+  - [071_design_ai_email_management_workflow/reports/03_teammate-d-findings.md]
+- **Plan**:
+  - [071_design_ai_email_management_workflow/plans/04_email-workflow-implementation.md]
+  - [071_design_ai_email_management_workflow/plans/02_email-workflow-implementation.md]
 
 **Description**: Design a streamlined AI-assisted email management workflow across the existing dual-account stack (Gmail via OAuth2 + Protonmail via Bridge; Himalaya CLI, aerc TUI, notmuch, mbsync) and the connected Anthropic Gmail connector (gmail.mcp.claude.com). Goal: agents that clean up the inbox (remove junk, unsubscribe noise) and draft responses for review, with the largest task being a safe one-time purge of backlogged mail - delete junk, archive what is worth keeping, delete all else. Key finding from the seed report: the Anthropic Gmail connector is read-only + draft-creation (cannot send/archive/delete), so backlog cleanup must be driven through the local stack (notmuch/Himalaya/mbsync) under a drafts-first, human-approved, guardrailed agent harness with Gmail trash-then-expunge semantics. Follow-up /research 71 should resolve the seven open questions (harness form-factor, approval UX, account scope, backlog scale census, guardrail enforcement, classifier quality, injection hardening) before planning.
 
@@ -237,7 +253,12 @@ next_project_number: 82
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: Task 62, Task 65, Task 63, Task 64
-- **Research**: [066_review_refactor_nixos_configuration/reports/01_team-research.md]
+- **Research**:
+  - [066_review_refactor_nixos_configuration/reports/01_team-research.md]
+  - [066_review_refactor_nixos_configuration/reports/01_teammate-a-findings.md]
+  - [066_review_refactor_nixos_configuration/reports/01_teammate-b-findings.md]
+  - [066_review_refactor_nixos_configuration/reports/01_teammate-c-findings.md]
+  - [066_review_refactor_nixos_configuration/reports/01_teammate-d-findings.md]
 - **Plan**: [066_review_refactor_nixos_configuration/plans/01_refactor-nixos-config.md]
 - **Summary**: [066_review_refactor_nixos_configuration/summaries/01_refactor-nixos-config-summary.md]
 
@@ -287,6 +308,8 @@ next_project_number: 82
 - **Task Type**: nix
 - **Topic**: packaging
 - **Dependencies**: None
+- **Research**: [062_replace_piper_with_svox_pico_drop_onnxruntime/reports/01_replace-piper-svox-pico.md]
+- **Plan**: [062_replace_piper_with_svox_pico_drop_onnxruntime/plans/01_implementation-plan.md]
 
 **Description**: Replace piper-tts with svox pico (pico2wave) and drop onnxruntime from the system closure. DECISION: use pico. Nix changes: swap piper-tts for the svox pico package in configuration.nix:635, remove packages/piper-voices.nix and its flake.nix overlay entry (line 99), remove the home.nix:1199 .local/share/piper link, and handle the second onnxruntime consumer markitdown (home.nix:401, via magika) - remove it or run on-demand via nix shell. Agent system changes: update all 5 copies of tts-notify.sh to use pico2wave instead of piper (~/.config/nvim/.claude/hooks/, ~/.config/nvim/.claude/extensions/core/hooks/, ~/.config/nvim/.opencode/hooks/, ~/.config/nvim/.opencode/extensions/core/hooks/, ~/.dotfiles/.claude/hooks/) - replace the piper --model pipeline and PIPER_MODEL env var with pico2wave, keep the TTS_ENABLED toggle contract so which-key.lua <leader> TTS toggle keeps working unchanged. Update tts-stt-integration.md and neovim-integration.md guides in both repos to document pico. settings.json hook registrations need no change. Note: spans two git repos (.dotfiles and .config/nvim)
 

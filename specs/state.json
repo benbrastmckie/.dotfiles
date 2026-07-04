@@ -9,7 +9,14 @@
       "description": "Design and orchestrate a systematic reorganization of the NixOS/Home Manager dotfiles repository: research and design the ideal target directory layout (modules/, hosts/, lib/, overlays/, packages/, config/, secrets/, wallpapers/, docs/, root files), then decompose the refactor into ordered implementation subtasks, creating each subtask with its own seed research report. A comprehensive repo review has already been completed and is seeded as this task's first research report.",
       "topic": "nixos-config",
       "created": "2026-07-04T21:46:17Z",
-      "last_updated": "2026-07-04T21:46:17Z"
+      "last_updated": "2026-07-04T21:46:17Z",
+      "artifacts": [
+        {
+          "path": "specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md",
+          "type": "report",
+          "summary": "repo organization review (backfilled by --sync)"
+        }
+      ]
     },
     {
       "project_number": 80,
@@ -98,6 +105,11 @@
           "path": "specs/079_email_wrappers_multi_account/summaries/02_wrapper-multi-account-summary.md",
           "type": "summary",
           "summary": "Implementation summary: 4 phases, single-file agent-tools.nix per-account branching + wrapper-contract.md §11 contract-revision addendum; home-manager build .#benjamin green; gmail byte-for-byte regression, logos dry-run census/classify, bogus-reject all verified; manual switch+live-test flagged."
+        },
+        {
+          "path": "specs/079_email_wrappers_multi_account/reports/03_nvim-extension-followup-handoff.md",
+          "type": "report",
+          "summary": "nvim extension followup handoff (backfilled by --sync)"
         }
       ],
       "researched": "2026-07-04T20:18:24Z",
@@ -165,6 +177,26 @@
           "path": "specs/072_email_workflow_infrastructure_prereqs/summaries/02_email-infra-wrappers-summary.md",
           "type": "summary",
           "summary": "Implementation summary for Phases 5-11"
+        },
+        {
+          "path": "specs/072_email_workflow_infrastructure_prereqs/reports/02_teammate-a-findings.md",
+          "type": "report",
+          "summary": "teammate a findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/072_email_workflow_infrastructure_prereqs/reports/02_teammate-b-findings.md",
+          "type": "report",
+          "summary": "teammate b findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/072_email_workflow_infrastructure_prereqs/reports/02_teammate-c-findings.md",
+          "type": "report",
+          "summary": "teammate c findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/072_email_workflow_infrastructure_prereqs/reports/02_teammate-d-findings.md",
+          "type": "report",
+          "summary": "teammate d findings (backfilled by --sync)"
         }
       ],
       "description": "Email workflow INFRASTRUCTURE + PREREQUISITES (child of task 71; .dotfiles-owned mechanism). Reference plan: specs/071_design_ai_email_management_workflow/plans/04_email-workflow-implementation.md (v3). Scope = v3 phases: (0) audit the dormant ~/Mail/.claude prior-art system (5 python scripts: email_list/email_analyze/email_triage/email_filter/email_execute), HARVEST email-preferences.md rule taxonomy+JSON schema and MAX_BATCH_SIZE=50 into a handoff file for the nvim extension task, RETIRE the ~/Mail harness (commands/email.md, skill-email, email-agent.md, 5 py scripts), DISCARD checkbox-approval UX + opus model pin; (1) OAuth gate: resolve/absorb task 46 (Gmail OAuth2 7-day refresh-token expiry, consent screen in Testing mode) — publish OAuth app to Production or declare blocking; (2) nix-declared dry-run-by-default wrapper scripts in modules/home/email/agent-tools.nix (email-census, email-classify, email-archive-confirmed, email-delete-confirmed, email-unsubscribe-extract) requiring explicit --execute + --confirm-manifest <sha256>, consuming a pre-generated manifest; (5) mbsync freeze/thaw + SyncState backup procedure; (9) aerc review querymap entries (Proposed-Delete/Archive/Unsure) in aerc.nix; (11-local) notmuch.nix postNew tag-rule scaffolding for institutionalized junk rules. IMPORTANT: delete mechanism is IMAP-level Himalaya only (never local Maildir/notmuch-tag+Expunge — Gmail label model leaves msgs in All_Mail, 64,316 baseline). Blocks the nvim extension task (needs harvested prefs + wrapper contract) and the ~/Mail purge task (needs wrappers+OAuth ready). Verify: nixos-rebuild/home-manager build with the new wrappers; wrappers refuse to mutate without --execute.",
@@ -203,6 +235,51 @@
           "path": "specs/071_design_ai_email_management_workflow/plans/04_email-workflow-implementation.md",
           "type": "plan",
           "summary": "Revised plan v3 (14 phases, ~34h): deliverable retargeted to an email/ Claude Code extension authored canonically in ~/.config/nvim/.claude/extensions/email/ (loader source; OFF by default, installed via <leader>al); new Phase 6 extension packaging (manifest task_type=email, asymmetric routing, keyword_overrides, wrapper-only email-implementation-agent, doc-lint); mail-guard hook hardened to an allowlist denying raw himalaya message delete/move/send + folder expunge; Phase 0 corrected to 5 prior-art scripts with HARVEST/RETIRE/DISCARD verdicts; <leader>m* keybind-collision check. All nix phases, dry-run gate, purge, postmortem, task-46 OAuth gate preserved"
+        },
+        {
+          "path": "specs/071_design_ai_email_management_workflow/reports/02_teammate-a-findings.md",
+          "type": "report",
+          "summary": "teammate a findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/071_design_ai_email_management_workflow/reports/02_teammate-b-findings.md",
+          "type": "report",
+          "summary": "teammate b findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/071_design_ai_email_management_workflow/reports/02_teammate-c-findings.md",
+          "type": "report",
+          "summary": "teammate c findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/071_design_ai_email_management_workflow/reports/02_teammate-d-findings.md",
+          "type": "report",
+          "summary": "teammate d findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/071_design_ai_email_management_workflow/reports/03_teammate-a-findings.md",
+          "type": "report",
+          "summary": "teammate a findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/071_design_ai_email_management_workflow/reports/03_teammate-b-findings.md",
+          "type": "report",
+          "summary": "teammate b findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/071_design_ai_email_management_workflow/reports/03_teammate-c-findings.md",
+          "type": "report",
+          "summary": "teammate c findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/071_design_ai_email_management_workflow/reports/03_teammate-d-findings.md",
+          "type": "report",
+          "summary": "teammate d findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/071_design_ai_email_management_workflow/plans/02_email-workflow-implementation.md",
+          "type": "plan",
+          "summary": "email workflow implementation (backfilled by --sync)"
         }
       ],
       "dependencies": [
@@ -308,6 +385,26 @@
           "path": "specs/066_review_refactor_nixos_configuration/summaries/01_refactor-nixos-config-summary.md",
           "type": "summary",
           "summary": "Partial implementation: Phases 0/1/7/8 complete; Phases 2-6/9 blocked on tasks 62 and 65 completing"
+        },
+        {
+          "path": "specs/066_review_refactor_nixos_configuration/reports/01_teammate-a-findings.md",
+          "type": "report",
+          "summary": "teammate a findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/066_review_refactor_nixos_configuration/reports/01_teammate-b-findings.md",
+          "type": "report",
+          "summary": "teammate b findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/066_review_refactor_nixos_configuration/reports/01_teammate-c-findings.md",
+          "type": "report",
+          "summary": "teammate c findings (backfilled by --sync)"
+        },
+        {
+          "path": "specs/066_review_refactor_nixos_configuration/reports/01_teammate-d-findings.md",
+          "type": "report",
+          "summary": "teammate d findings (backfilled by --sync)"
         }
       ],
       "dependencies": [
@@ -441,7 +538,19 @@
       "created": "2026-06-12T23:54:17Z",
       "last_updated": "2026-06-24T20:51:12Z",
       "topic": "packaging",
-      "completion_summary": "Replaced piper-tts with SVOX Pico (pico2wave); dropped onnxruntime from the closure (picotts in configuration.nix, deleted packages/piper-voices.nix + flake overlay, removed home.nix piper link, markitdown/magika onnxruntime removed). All 5 scoped tts-notify.sh hooks on pico2wave with TTS_ENABLED preserved. Live on the switched system. Updated .dotfiles-owned docs (README, applications.md, packages/README). Doc residue (non-blocking): replicated neovim guide text in the .config/nvim repo (synced from the nvim extension) still says Piper; ~/.dotfiles/.opencode/hooks/tts-notify.sh (divergent, outside the original 5-script scope) still on piper."
+      "completion_summary": "Replaced piper-tts with SVOX Pico (pico2wave); dropped onnxruntime from the closure (picotts in configuration.nix, deleted packages/piper-voices.nix + flake overlay, removed home.nix piper link, markitdown/magika onnxruntime removed). All 5 scoped tts-notify.sh hooks on pico2wave with TTS_ENABLED preserved. Live on the switched system. Updated .dotfiles-owned docs (README, applications.md, packages/README). Doc residue (non-blocking): replicated neovim guide text in the .config/nvim repo (synced from the nvim extension) still says Piper; ~/.dotfiles/.opencode/hooks/tts-notify.sh (divergent, outside the original 5-script scope) still on piper.",
+      "artifacts": [
+        {
+          "path": "specs/062_replace_piper_with_svox_pico_drop_onnxruntime/reports/01_replace-piper-svox-pico.md",
+          "type": "report",
+          "summary": "replace piper svox pico (backfilled by --sync)"
+        },
+        {
+          "path": "specs/062_replace_piper_with_svox_pico_drop_onnxruntime/plans/01_implementation-plan.md",
+          "type": "plan",
+          "summary": "implementation plan (backfilled by --sync)"
+        }
+      ]
     },
     {
       "project_number": 61,
