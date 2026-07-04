@@ -24,7 +24,7 @@
         {
           "path": "specs/072_email_workflow_infrastructure_prereqs/reports/02_team-research.md",
           "type": "research",
-          "summary": "Round-2 team research (4 teammates): live-verified corrections to seed — himalaya maildir backend re-frames delete invariant, empty notmuch index, OAuth invalid_grant call-site on mbsync not himalaya, aerc native-keybind hook bypass; plus Phase 5 mbsync -a bug, manifest Message-ID keying, contract-hardening seams"
+          "summary": "Round-2 team research (4 teammates): live-verified corrections to seed \u2014 himalaya maildir backend re-frames delete invariant, empty notmuch index, OAuth invalid_grant call-site on mbsync not himalaya, aerc native-keybind hook bypass; plus Phase 5 mbsync -a bug, manifest Message-ID keying, contract-hardening seams"
         },
         {
           "path": "specs/072_email_workflow_infrastructure_prereqs/plans/02_email-infra-wrappers.md",
@@ -37,7 +37,7 @@
           "summary": "Implementation summary for Phases 5-11"
         }
       ],
-      "description": "Email workflow INFRASTRUCTURE + PREREQUISITES (child of task 71; .dotfiles-owned mechanism). Reference plan: specs/071_design_ai_email_management_workflow/plans/04_email-workflow-implementation.md (v3). Scope = v3 phases: (0) audit the dormant ~/Mail/.claude prior-art system (5 python scripts: email_list/email_analyze/email_triage/email_filter/email_execute), HARVEST email-preferences.md rule taxonomy+JSON schema and MAX_BATCH_SIZE=50 into a handoff file for the nvim extension task, RETIRE the ~/Mail harness (commands/email.md, skill-email, email-agent.md, 5 py scripts), DISCARD checkbox-approval UX + opus model pin; (1) OAuth gate: resolve/absorb task 46 (Gmail OAuth2 7-day refresh-token expiry, consent screen in Testing mode) — publish OAuth app to Production or declare blocking; (2) nix-declared dry-run-by-default wrapper scripts in modules/home/email/agent-tools.nix (email-census, email-classify, email-archive-confirmed, email-delete-confirmed, email-unsubscribe-extract) requiring explicit --execute + --confirm-manifest <sha256>, consuming a pre-generated manifest; (5) mbsync freeze/thaw + SyncState backup procedure; (9) aerc review querymap entries (Proposed-Delete/Archive/Unsure) in aerc.nix; (11-local) notmuch.nix postNew tag-rule scaffolding for institutionalized junk rules. IMPORTANT: delete mechanism is IMAP-level Himalaya only (never local Maildir/notmuch-tag+Expunge — Gmail label model leaves msgs in All_Mail, 64,316 baseline). Blocks the nvim extension task (needs harvested prefs + wrapper contract) and the ~/Mail purge task (needs wrappers+OAuth ready). Verify: nixos-rebuild/home-manager build with the new wrappers; wrappers refuse to mutate without --execute.",
+      "description": "Email workflow INFRASTRUCTURE + PREREQUISITES (child of task 71; .dotfiles-owned mechanism). Reference plan: specs/071_design_ai_email_management_workflow/plans/04_email-workflow-implementation.md (v3). Scope = v3 phases: (0) audit the dormant ~/Mail/.claude prior-art system (5 python scripts: email_list/email_analyze/email_triage/email_filter/email_execute), HARVEST email-preferences.md rule taxonomy+JSON schema and MAX_BATCH_SIZE=50 into a handoff file for the nvim extension task, RETIRE the ~/Mail harness (commands/email.md, skill-email, email-agent.md, 5 py scripts), DISCARD checkbox-approval UX + opus model pin; (1) OAuth gate: resolve/absorb task 46 (Gmail OAuth2 7-day refresh-token expiry, consent screen in Testing mode) \u2014 publish OAuth app to Production or declare blocking; (2) nix-declared dry-run-by-default wrapper scripts in modules/home/email/agent-tools.nix (email-census, email-classify, email-archive-confirmed, email-delete-confirmed, email-unsubscribe-extract) requiring explicit --execute + --confirm-manifest <sha256>, consuming a pre-generated manifest; (5) mbsync freeze/thaw + SyncState backup procedure; (9) aerc review querymap entries (Proposed-Delete/Archive/Unsure) in aerc.nix; (11-local) notmuch.nix postNew tag-rule scaffolding for institutionalized junk rules. IMPORTANT: delete mechanism is IMAP-level Himalaya only (never local Maildir/notmuch-tag+Expunge \u2014 Gmail label model leaves msgs in All_Mail, 64,316 baseline). Blocks the nvim extension task (needs harvested prefs + wrapper contract) and the ~/Mail purge task (needs wrappers+OAuth ready). Verify: nixos-rebuild/home-manager build with the new wrappers; wrappers refuse to mutate without --execute.",
       "researched": "2026-07-02T20:37:20Z",
       "completion_summary": "Built and live-verified the five nix-declared email agent wrapper binaries (dry-run-by-default, sha256-confirmed manifest mutation gate), a PreToolUse mail-guard allowlist hook, mbsync freeze/thaw helpers, an aerc wrapper-routed review flow, notmuch junk-rule scaffolding, and the two cross-repo handoff documents that nvim #803 and ~/Mail #29 consume."
     },
@@ -571,38 +571,142 @@
           "summary": "Implementation summary: resolved UUID mouse-follows-focus@crisidev.org, build/switch verified, pending user re-login + behavioral test"
         }
       ],
-      "description": "Research (do not implement) how to make GNOME/Mutter focus behavior on WAYLAND stop snapping focus back to the window under the mouse pointer. DESIRED BEHAVIOR: moving the mouse onto a window switches focus to it (focus-follows-mouse), BUT after using a keybinding to switch focus to a different window, focus must STAY on the keyboard-selected window and NOT jump back to whatever window the (stationary) mouse happens to be hovering over. SYMPTOM: currently whatever window the mouse hovers over holds focus no matter what; keyboard focus switches are immediately overridden by pointer position. ENVIRONMENT: GNOME on Wayland (XDG_SESSION_TYPE=wayland, Mutter compositor); config is Home Manager dconf in modules/home/desktop/gnome.nix. PRIOR FAILED ATTEMPT (important — the obvious settings are ALREADY set and did NOT fix it): org/gnome/desktop/wm/preferences focus-mode=\"sloppy\" (gnome.nix:66) and org/gnome/mutter focus-change-on-pointer-rest=false (gnome.nix:88). Research MUST go beyond these two keys since they are the failed attempt. Investigate: (1) exact semantics of focus-change-on-pointer-rest and whether =true (wait for pointer to REST before changing focus) actually helps the keyboard-override case, vs =false; (2) difference between focus-mode 'sloppy' vs 'mouse' vs 'click' and how each interacts with keyboard focus commands under Mutter/Wayland specifically; (3) whether Mutter re-evaluates pointer-based focus on any input event / motion vs only on real motion, and if a stationary pointer after a keyboard switch is what re-steals focus; (4) Mutter source / known upstream bugs on GNOME GitLab about keyboard focus being overridden by hover under Wayland; (5) GNOME Shell extensions that alter focus policy (e.g. options to disable focus-follows-mouse re-trigger, focus-on-click hybrids); (6) whether the desired hybrid (hover-to-focus that yields to keyboard until next real mouse motion) is even achievable natively on Wayland or requires an extension / patch; (7) any relevant timeouts or 'raise' interactions (auto-raise, raise-on-click). DELIVERABLE: a research report enumerating candidate approaches with tradeoffs, feasibility on Wayland, and a recommended Home-Manager-expressible fix (dconf keys and/or a specific extension) that the user can then plan/implement. Note the user has already tried and failed at least once, so shallow 'just set focus-mode=sloppy' answers are insufficient.",
-      "completion_summary": "Installed+enabled mouse-follows-focus GNOME Shell extension (real UUID mouse-follows-focus@crisidev.org, nixpkgs attr gnomeExtensions.mouse-follows-focus-2) in dev-tools.nix + gnome.nix; focus-mode=sloppy preserved, focus-mode=click rejected. nix flake check + home-manager build + switch all passed, dconf confirmed live. PENDING USER: GNOME Wayland re-login to activate, then Phase-5 behavioral test. FLAGGED RISK: extension metadata declares shell-version<=49 but system runs GNOME Shell 50.1 — may fail version validation and not load until updated or validation disabled."
+      "description": "Research (do not implement) how to make GNOME/Mutter focus behavior on WAYLAND stop snapping focus back to the window under the mouse pointer. DESIRED BEHAVIOR: moving the mouse onto a window switches focus to it (focus-follows-mouse), BUT after using a keybinding to switch focus to a different window, focus must STAY on the keyboard-selected window and NOT jump back to whatever window the (stationary) mouse happens to be hovering over. SYMPTOM: currently whatever window the mouse hovers over holds focus no matter what; keyboard focus switches are immediately overridden by pointer position. ENVIRONMENT: GNOME on Wayland (XDG_SESSION_TYPE=wayland, Mutter compositor); config is Home Manager dconf in modules/home/desktop/gnome.nix. PRIOR FAILED ATTEMPT (important \u2014 the obvious settings are ALREADY set and did NOT fix it): org/gnome/desktop/wm/preferences focus-mode=\"sloppy\" (gnome.nix:66) and org/gnome/mutter focus-change-on-pointer-rest=false (gnome.nix:88). Research MUST go beyond these two keys since they are the failed attempt. Investigate: (1) exact semantics of focus-change-on-pointer-rest and whether =true (wait for pointer to REST before changing focus) actually helps the keyboard-override case, vs =false; (2) difference between focus-mode 'sloppy' vs 'mouse' vs 'click' and how each interacts with keyboard focus commands under Mutter/Wayland specifically; (3) whether Mutter re-evaluates pointer-based focus on any input event / motion vs only on real motion, and if a stationary pointer after a keyboard switch is what re-steals focus; (4) Mutter source / known upstream bugs on GNOME GitLab about keyboard focus being overridden by hover under Wayland; (5) GNOME Shell extensions that alter focus policy (e.g. options to disable focus-follows-mouse re-trigger, focus-on-click hybrids); (6) whether the desired hybrid (hover-to-focus that yields to keyboard until next real mouse motion) is even achievable natively on Wayland or requires an extension / patch; (7) any relevant timeouts or 'raise' interactions (auto-raise, raise-on-click). DELIVERABLE: a research report enumerating candidate approaches with tradeoffs, feasibility on Wayland, and a recommended Home-Manager-expressible fix (dconf keys and/or a specific extension) that the user can then plan/implement. Note the user has already tried and failed at least once, so shallow 'just set focus-mode=sloppy' answers are insufficient.",
+      "completion_summary": "Installed+enabled mouse-follows-focus GNOME Shell extension (real UUID mouse-follows-focus@crisidev.org, nixpkgs attr gnomeExtensions.mouse-follows-focus-2) in dev-tools.nix + gnome.nix; focus-mode=sloppy preserved, focus-mode=click rejected. nix flake check + home-manager build + switch all passed, dconf confirmed live. PENDING USER: GNOME Wayland re-login to activate, then Phase-5 behavioral test. FLAGGED RISK: extension metadata declares shell-version<=49 but system runs GNOME Shell 50.1 \u2014 may fail version validation and not load until updated or validation disabled."
     },
     {
       "project_number": 74,
       "project_name": "niri_session_startup_services",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "nix",
       "topic": "desktop",
       "dependencies": [],
       "description": "Fix the niri-session runtime services that are configured but never actually started, so a niri login (dual-session with GNOME via GDM) is usable on first try. All three fixes are niri-session-only; GNOME remains the backend. (1) WAYBAR NOT STARTED: modules/home/desktop/waybar.nix defines programs.waybar settings but sets no systemd.enable, and config/config.kdl has no spawn; waybar is not D-Bus-activatable so nothing launches it, yet layout.struts reserves 32px at top (config.kdl:57), producing an empty gap with no bar/tray/clock/battery. Fix: add spawn-at-startup \"waybar\" to the autostart section of config/config.kdl. Prefer this over programs.waybar.systemd.enable, which binds to graphical-session.target and would also spawn a stray second bar inside the GNOME session. (2) NO POLKIT AGENT: polkit_gnome is commented out at modules/system/packages.nix:32 and never started. In the GNOME session gnome-shell IS the polkit authentication agent, but niri has none, and gnome-keyring is NOT a polkit agent. GUI privilege escalation (mounting disks, some Settings actions, updates) silently fails. Fix: install pkgs.polkit_gnome and spawn-at-startup the agent binary (<polkit_gnome>/libexec/polkit-gnome-authentication-agent-1) in config/config.kdl. (3) WALLPAPER BROKEN: config.kdl:250 runs swaybg -i ~/.wallpapers/current; niri spawns without a shell so ~ is NOT expanded, and ~/.wallpapers/current is created by no module (only /etc/wallpapers/riverside.jpg exists, via modules/system/desktop.nix:33). Fix: point swaybg at the absolute path /etc/wallpapers/riverside.jpg (or wrap the spawn in sh -c so ~ expands). VERIFY: nixos-rebuild + home-manager switch, then log into the niri session and confirm the bar appears, the wallpaper draws, and a privileged GUI action (e.g. mounting a disk in GNOME Disks) shows an authentication dialog.",
-      "created": "2026-07-04T19:07:57Z"
+      "created": "2026-07-04T19:07:57Z",
+      "last_updated": "2026-07-04T19:39:00Z",
+      "researched": "2026-07-04T19:29:59Z",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/074_niri_session_startup_services/reports/01_niri-startup-services.md",
+          "type": "report",
+          "summary": "Grounded all three fixes via live-built home-manager module source, installed niri package systemd units, and bundled niri wiki: spawn-at-startup waybar (graphical-session.target confirmed shared with GNOME via niri.service unit inspection); polkit-gnome writeShellScriptBin wrapper (libexec not linked into /run/current-system/sw, matching existing zathura/sioyek wrapper pattern); absolute /etc/wallpapers/riverside.jpg path (spawn never expands ~, confirmed via wiki, and ~/.wallpapers/current is never created by any module)"
+        },
+        {
+          "path": "specs/074_niri_session_startup_services/plans/01_niri-startup-services.md",
+          "type": "plan",
+          "summary": "4-phase plan (~1h): waybar spawn-at-startup + stale-comment fix; wallpaper absolute path /etc/wallpapers/riverside.jpg; polkit-gnome writeShellScriptBin wrapper in packages.nix + spawn-at-startup line; headless build verification (nix flake check, nixos-rebuild build .#hamsa, home-manager build .#benjamin). switch+niri relogin+visual confirm marked as manual user step."
+        },
+        {
+          "path": "specs/074_niri_session_startup_services/summaries/01_niri-startup-services-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary: waybar autostart, absolute wallpaper path, polkit-gnome wrapper+spawn; nix flake check / nixos-rebuild build .#hamsa / home-manager build .#benjamin all passed"
+        }
+      ],
+      "planned": "2026-07-04T20:05:00Z",
+      "session_id": "sess_1783192912_5bb4c0_74",
+      "completion_summary": "Fixed three niri-session startup gaps: waybar now spawns via spawn-at-startup (bare name, avoiding the shared graphical-session.target risk of programs.waybar.systemd.enable), the swaybg wallpaper path is now the absolute /etc/wallpapers/riverside.jpg (niri never expands ~), and a writeShellScriptBin polkit-gnome-authentication-agent-1 wrapper (mirroring the zathura/sioyek pattern) plus its spawn-at-startup line give the niri session a working polkit auth agent. GNOME session untouched. nix flake check, nixos-rebuild build --flake .#hamsa, and home-manager build --flake .#benjamin all passed headlessly; nixos-rebuild/home-manager switch + niri relogin + visual confirmation remain a manual user step.",
+      "roadmap_items": [],
+      "implemented": "2026-07-04T19:39:00Z"
     },
     {
       "project_number": 75,
       "project_name": "niri_keybinding_dependencies",
-      "status": "not_started",
+      "status": "planned",
       "task_type": "nix",
       "topic": "desktop",
       "dependencies": [],
       "description": "Make every keybinding in config/config.kdl resolve to an installed binary in the niri session (GNOME stack unaffected). (1) grimshot MISSING: Mod+Shift+S (config.kdl:169) and Print (config.kdl:170) spawn 'grimshot', which is in no package list, so full-screen and area screenshots via those keys fail. Fix: add pkgs.sway-contrib.grimshot to packages, OR rewrite both binds to the grim/slurp form already used by Mod+Shift+A (config.kdl:171), which works because grim, slurp, and satty are already present. (2) playerctl MISSING: XF86AudioPlay / XF86AudioNext / XF86AudioPrev (config.kdl:184-186) call playerctl, which is not installed, so media-transport keys fail. Fix: add pkgs.playerctl. (3) Mod+C WRONG BINARY: config.kdl:165 spawns 'code', but only vscodium is installed (its binary is 'codium', not 'code'). Fix: change the bind to spawn 'codium'. Note the XF86Audio volume/mute binds already use wpctl correctly and need no change. VERIFY: after switch, exercise each affected key (area+full screenshot, play/next/prev, Mod+C) in the niri session.",
-      "created": "2026-07-04T19:07:57Z"
+      "created": "2026-07-04T19:07:57Z",
+      "planned": "2026-07-04T19:32:38Z",
+      "last_updated": "2026-07-04T19:32:38Z",
+      "session_id": "sess_1783192912_5bb4c0_75",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/075_niri_keybinding_dependencies/reports/01_niri-keybinding-deps.md",
+          "type": "research",
+          "summary": "Verified all 3 fixes against pinned nixpkgs; recommends grim/slurp/satty rewrite over grimshot, playerctl into media-dictation.nix, code->codium"
+        },
+        {
+          "path": "specs/075_niri_keybinding_dependencies/plans/01_niri-keybinding-deps.md",
+          "type": "plan",
+          "summary": "3-phase, 1h plan: config.kdl bind rewrites (screenshots to grim/slurp/satty, code->codium), add playerctl to media-dictation.nix, headless nix flake check + home-manager build .#benjamin verification"
+        }
+      ],
+      "plan_metadata": {
+        "phases": 3,
+        "total_effort_hours": 1,
+        "complexity": "simple",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [
+          [
+            1,
+            2
+          ],
+          [
+            3
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_niri-keybinding-deps.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-07-04"
+          }
+        ]
+      }
     },
     {
       "project_number": 76,
       "project_name": "niri_laptop_hardware_keys",
-      "status": "not_started",
+      "status": "planned",
       "task_type": "nix",
       "topic": "desktop",
       "dependencies": [],
-      "description": "Add laptop hardware-key handling for the niri session. This machine is a laptop (primary output eDP-1 at 2560x1600, per modules/home/desktop/kanshi.nix). In the GNOME session gnome-settings-daemon (gsd-media-keys) handles brightness function keys, but niri owns keybindings so gsd will NOT grab them — currently nothing controls display brightness in the niri session: there are no XF86MonBrightnessUp/Down binds in config/config.kdl and brightnessctl is not installed. Fix: add pkgs.brightnessctl and bind XF86MonBrightnessUp and XF86MonBrightnessDown in config/config.kdl (e.g. spawn brightnessctl set 5%+ and brightnessctl set 5%-; consider a small floor to avoid blacking out the panel). Also confirm the existing XF86Audio volume/mute binds (wpctl, config.kdl:181-183) behave correctly in the niri session. GNOME backend unchanged. VERIFY: after switch, brightness up/down keys visibly adjust the laptop panel in the niri session.",
-      "created": "2026-07-04T19:07:57Z"
+      "description": "Add laptop hardware-key handling for the niri session. This machine is a laptop (primary output eDP-1 at 2560x1600, per modules/home/desktop/kanshi.nix). In the GNOME session gnome-settings-daemon (gsd-media-keys) handles brightness function keys, but niri owns keybindings so gsd will NOT grab them \u2014 currently nothing controls display brightness in the niri session: there are no XF86MonBrightnessUp/Down binds in config/config.kdl and brightnessctl is not installed. Fix: add pkgs.brightnessctl and bind XF86MonBrightnessUp and XF86MonBrightnessDown in config/config.kdl (e.g. spawn brightnessctl set 5%+ and brightnessctl set 5%-; consider a small floor to avoid blacking out the panel). Also confirm the existing XF86Audio volume/mute binds (wpctl, config.kdl:181-183) behave correctly in the niri session. GNOME backend unchanged. VERIFY: after switch, brightness up/down keys visibly adjust the laptop panel in the niri session.",
+      "created": "2026-07-04T19:07:57Z",
+      "researched": "2026-07-04T19:27:10Z",
+      "last_updated": "2026-07-04T19:40:00Z",
+      "session_id": "sess_1783192912_5bb4c0_76",
+      "next_artifact_number": 2,
+      "artifacts": [
+        {
+          "path": "specs/076_niri_laptop_hardware_keys/reports/01_niri-hardware-keys.md",
+          "type": "research",
+          "summary": "Confirms brightnessctl works via systemd-logind SetBrightness D-Bus fallback (source-verified in brightnessctl.c) requiring no udev rule/video group; recommends package placement in modules/system/packages.nix niri group, exact config.kdl XF86MonBrightnessUp/Down binds with -n 5% floor, and confirms existing wpctl audio binds need no change"
+        },
+        {
+          "path": "specs/076_niri_laptop_hardware_keys/plans/01_niri-hardware-keys.md",
+          "type": "plan",
+          "summary": "Two-edit plan (0.75h, 3 phases): add pkgs.brightnessctl to the niri group in modules/system/packages.nix (logind fallback, no udev/video-group), add XF86MonBrightnessUp/Down binds after the wpctl audio binds in config/config.kdl with a -n 5% floor, then headless nix flake check + nixos-rebuild build --flake .#hamsa verification (live keypress test is a manual post-switch user step)"
+        }
+      ],
+      "planned": "2026-07-04T19:40:00Z",
+      "plan_metadata": {
+        "phases": 3,
+        "total_effort_hours": 1,
+        "complexity": "simple",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [
+          [
+            1,
+            2
+          ],
+          [
+            3
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_niri-hardware-keys.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-07-04"
+          }
+        ]
+      }
     },
     {
       "project_number": 77,
@@ -615,7 +719,7 @@
         75,
         76
       ],
-      "description": "Verify and reconcile background-service behavior in the niri+GNOME hybrid session, resolving overlaps rather than leaving gaps. Depends on tasks 74-76 being applied so the session reflects its intended final state. (1) xwayland-satellite: pkgs.xwayland-satellite is installed (modules/system/packages.nix:19; the inline comment claims auto-detection since niri 25.08). Confirm it actually auto-spawns and exports DISPLAY in the niri session — run 'echo $DISPLAY' in a niri terminal and launch an X11 app (e.g. zoom-us). If DISPLAY is empty, add an explicit xwayland-satellite spawn and DISPLAY export. (2) NOTIFICATIONS: services.mako (modules/home/desktop/mako.nix) is enabled and is expected to D-Bus-activate on org.freedesktop.Notifications without explicit startup. Confirm with 'notify-send test' in the niri session; if nothing appears, add an explicit mako startup. (3) gsd/swayidle OVERLAP: gnome-settings-daemon is enabled system-wide (services.gnome.gnome-settings-daemon in modules/system/desktop.nix) while swayidle is spawned in config.kdl:261 for idle-lock/suspend/before-sleep. Some gsd helpers (notably gsd-power for lid-close and idle) may partially run under niri and double-act with swayidle/logind (e.g. double-suspend, or fighting over lid events). Confirm there is no double-suspend or conflicting idle/lid behavior; if there is, disable the overlapping gsd component for the niri session or reconcile logind/swayidle timeouts. Document findings inline and adjust configuration as needed.",
+      "description": "Verify and reconcile background-service behavior in the niri+GNOME hybrid session, resolving overlaps rather than leaving gaps. Depends on tasks 74-76 being applied so the session reflects its intended final state. (1) xwayland-satellite: pkgs.xwayland-satellite is installed (modules/system/packages.nix:19; the inline comment claims auto-detection since niri 25.08). Confirm it actually auto-spawns and exports DISPLAY in the niri session \u2014 run 'echo $DISPLAY' in a niri terminal and launch an X11 app (e.g. zoom-us). If DISPLAY is empty, add an explicit xwayland-satellite spawn and DISPLAY export. (2) NOTIFICATIONS: services.mako (modules/home/desktop/mako.nix) is enabled and is expected to D-Bus-activate on org.freedesktop.Notifications without explicit startup. Confirm with 'notify-send test' in the niri session; if nothing appears, add an explicit mako startup. (3) gsd/swayidle OVERLAP: gnome-settings-daemon is enabled system-wide (services.gnome.gnome-settings-daemon in modules/system/desktop.nix) while swayidle is spawned in config.kdl:261 for idle-lock/suspend/before-sleep. Some gsd helpers (notably gsd-power for lid-close and idle) may partially run under niri and double-act with swayidle/logind (e.g. double-suspend, or fighting over lid events). Confirm there is no double-suspend or conflicting idle/lid behavior; if there is, disable the overlapping gsd component for the niri session or reconcile logind/swayidle timeouts. Document findings inline and adjust configuration as needed.",
       "created": "2026-07-04T19:07:57Z"
     },
     {
@@ -630,7 +734,7 @@
         76,
         77
       ],
-      "description": "Rewrite docs/niri.md to match the actual, settled niri+GNOME-stack configuration after tasks 74-77 land. The current doc is ~60% stale/aspirational: it is dominated by PaperWM material, cross-references archived specs (specs/reports/012_niri_with_gnome_integration.md and specs/plans/010_niri_gnome_portal_integration.md) that no longer drive the config, and its keybinding tables contradict config/config.kdl — e.g. the doc claims Mod+m = maximize and Mod+r = resize mode, but the config binds Mod+M = spotify and Mod+R = switch-preset-column-width; the doc's window-rule examples also use the old match{} block syntax instead of the current top-level window-rule blocks. Fix: (a) trim or clearly quarantine the PaperWM content so it is not presented as the active setup; (b) regenerate the keybinding reference directly from config/config.kdl so it is accurate; (c) remove dead spec cross-references; (d) add a concise 'GNOME-stack hybrid architecture' section documenting the two-layer model — GNOME services/backends (gnome-keyring, polkit-gnome, xdg portals, gnome-settings-daemon, gnome-control-center, Nautilus) vs niri surface tools (waybar, swaybg, mako, swaylock/swayidle, brightnessctl) — and how they compose. Depends on 74-77 so it documents the final state (including whatever reconciliation task 77 decides).",
+      "description": "Rewrite docs/niri.md to match the actual, settled niri+GNOME-stack configuration after tasks 74-77 land. The current doc is ~60% stale/aspirational: it is dominated by PaperWM material, cross-references archived specs (specs/reports/012_niri_with_gnome_integration.md and specs/plans/010_niri_gnome_portal_integration.md) that no longer drive the config, and its keybinding tables contradict config/config.kdl \u2014 e.g. the doc claims Mod+m = maximize and Mod+r = resize mode, but the config binds Mod+M = spotify and Mod+R = switch-preset-column-width; the doc's window-rule examples also use the old match{} block syntax instead of the current top-level window-rule blocks. Fix: (a) trim or clearly quarantine the PaperWM content so it is not presented as the active setup; (b) regenerate the keybinding reference directly from config/config.kdl so it is accurate; (c) remove dead spec cross-references; (d) add a concise 'GNOME-stack hybrid architecture' section documenting the two-layer model \u2014 GNOME services/backends (gnome-keyring, polkit-gnome, xdg portals, gnome-settings-daemon, gnome-control-center, Nautilus) vs niri surface tools (waybar, swaybg, mako, swaylock/swayidle, brightnessctl) \u2014 and how they compose. Depends on 74-77 so it documents the final state (including whatever reconciliation task 77 decides).",
       "created": "2026-07-04T19:07:57Z"
     }
   ],

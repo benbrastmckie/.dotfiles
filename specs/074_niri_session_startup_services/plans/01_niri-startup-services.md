@@ -1,7 +1,7 @@
 # Implementation Plan: Task #74
 
 - **Task**: 74 - niri_session_startup_services
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 1 hour
 - **Dependencies**: None
 - **Research Inputs**: specs/074_niri_session_startup_services/reports/01_niri-startup-services.md
@@ -183,24 +183,24 @@ spawned by the niri session, giving GUI privilege escalation an authentication d
 
 ---
 
-### Phase 4: Headless build verification [NOT STARTED]
+### Phase 4: Headless build verification [COMPLETED]
 
 **Goal**: Confirm all edits evaluate and build without a graphical login. This is the last step
 the implementer performs.
 
 **Tasks**:
-- [ ] Run `nix flake check` from the repo root and confirm it passes (evaluates the flake,
+- [x] Run `nix flake check` from the repo root and confirm it passes (evaluates the flake,
       including the edited `packages.nix`).
-- [ ] Run `nixos-rebuild build --flake .#hamsa` (current host attr, confirmed via `hostname`) and
+- [x] Run `nixos-rebuild build --flake .#hamsa` (current host attr, confirmed via `hostname`) and
       confirm it completes — this builds the system closure including the new
       `polkit-gnome-authentication-agent-1` wrapper. Do NOT use `switch`.
-- [ ] Run `home-manager build --flake .#benjamin` and confirm it completes — this builds the
+- [x] Run `home-manager build --flake .#benjamin` and confirm it completes — this builds the
       home closure including the edited `config/config.kdl` symlink source. Do NOT use `switch`.
-- [ ] (Optional sanity) After the `nixos-rebuild build` result symlink exists, confirm the wrapper
+- [x] (Optional sanity) After the `nixos-rebuild build` result symlink exists, confirm the wrapper
       path is present in the built system profile
       (e.g. `ls result/sw/bin/polkit-gnome-authentication-agent-1` on the build output, if the
       `result` symlink is available).
-- [ ] Report all three build results in the implementation summary.
+- [x] Report all three build results in the implementation summary.
 
 **Timing**: 15-30 minutes (build time; polkit_gnome is cache-available)
 
@@ -219,11 +219,11 @@ the implementer performs.
 ## Testing & Validation
 
 **Implementer-performed (headless, in Phase 4)**:
-- [ ] `nix flake check` passes.
-- [ ] `nixos-rebuild build --flake .#hamsa` succeeds (host attr `hamsa`; other valid attrs are
+- [x] `nix flake check` passes.
+- [x] `nixos-rebuild build --flake .#hamsa` succeeds (host attr `hamsa`; other valid attrs are
       `nandi` and `garuda` — use whichever matches the machine `hostname` at implement time).
-- [ ] `home-manager build --flake .#benjamin` succeeds.
-- [ ] `grep` checks from Phases 1-3 all pass.
+- [x] `home-manager build --flake .#benjamin` succeeds.
+- [x] `grep` checks from Phases 1-3 all pass.
 
 **MANUAL USER STEP — NOT performed by the implementer**:
 - [ ] `sudo nixos-rebuild switch --flake .#<host>` **then** `home-manager switch --flake .#benjamin`

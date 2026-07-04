@@ -11,8 +11,8 @@ next_project_number: 79
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69,74,75,76 | -- | nix-infrastructure, desktop, maintenance, ... |
-| 2 | 77 | 74,75,76 | desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,69,75,76 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 2 | 77 | 75,76 | desktop |
 | 3 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -41,12 +41,10 @@ next_project_number: 79
 
 ### Desktop
 
-74 [NOT STARTED] — Fix the niri-session runtime services that are configured but nev
+75 [PLANNED] — Make every keybinding in config/config.kdl resolve to an installe
   └─ 77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM
     └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
-75 [NOT STARTED] — Make every keybinding in config/config.kdl resolve to an installe
-  └─ 77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM (see above)
-76 [NOT STARTED] — Add laptop hardware-key handling for the niri session. This machi
+76 [PLANNED] — Add laptop hardware-key handling for the niri session. This machi
   └─ 77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM (see above)
 
 ## Tasks
@@ -72,30 +70,37 @@ next_project_number: 79
 ---
 
 ### 76. Niri laptop hardware keys
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: desktop
 - **Dependencies**: None
+- **Research**: [076_niri_laptop_hardware_keys/reports/01_niri-hardware-keys.md]
+- **Plan**: [076_niri_laptop_hardware_keys/plans/01_niri-hardware-keys.md]
 
 **Description**: Add laptop hardware-key handling for the niri session. This machine is a laptop (primary output eDP-1 at 2560x1600, per modules/home/desktop/kanshi.nix). In the GNOME session gnome-settings-daemon (gsd-media-keys) handles brightness function keys, but niri owns keybindings so gsd will NOT grab them — currently nothing controls display brightness in the niri session: there are no XF86MonBrightnessUp/Down binds in config/config.kdl and brightnessctl is not installed. Fix: add pkgs.brightnessctl and bind XF86MonBrightnessUp and XF86MonBrightnessDown in config/config.kdl (e.g. spawn brightnessctl set 5%+ and brightnessctl set 5%-; consider a small floor to avoid blacking out the panel). Also confirm the existing XF86Audio volume/mute binds (wpctl, config.kdl:181-183) behave correctly in the niri session. GNOME backend unchanged. VERIFY: after switch, brightness up/down keys visibly adjust the laptop panel in the niri session.
 
 ---
 
 ### 75. Niri keybinding dependencies
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: desktop
 - **Dependencies**: None
+- **Research**: [075_niri_keybinding_dependencies/reports/01_niri-keybinding-deps.md]
+- **Plan**: [075_niri_keybinding_dependencies/plans/01_niri-keybinding-deps.md]
 
 **Description**: Make every keybinding in config/config.kdl resolve to an installed binary in the niri session (GNOME stack unaffected). (1) grimshot MISSING: Mod+Shift+S (config.kdl:169) and Print (config.kdl:170) spawn 'grimshot', which is in no package list, so full-screen and area screenshots via those keys fail. Fix: add pkgs.sway-contrib.grimshot to packages, OR rewrite both binds to the grim/slurp form already used by Mod+Shift+A (config.kdl:171), which works because grim, slurp, and satty are already present. (2) playerctl MISSING: XF86AudioPlay / XF86AudioNext / XF86AudioPrev (config.kdl:184-186) call playerctl, which is not installed, so media-transport keys fail. Fix: add pkgs.playerctl. (3) Mod+C WRONG BINARY: config.kdl:165 spawns 'code', but only vscodium is installed (its binary is 'codium', not 'code'). Fix: change the bind to spawn 'codium'. Note the XF86Audio volume/mute binds already use wpctl correctly and need no change. VERIFY: after switch, exercise each affected key (area+full screenshot, play/next/prev, Mod+C) in the niri session.
 
 ---
 
 ### 74. Niri session startup services
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: desktop
 - **Dependencies**: None
+- **Research**: [074_niri_session_startup_services/reports/01_niri-startup-services.md]
+- **Plan**: [074_niri_session_startup_services/plans/01_niri-startup-services.md]
+- **Summary**: [074_niri_session_startup_services/summaries/01_niri-startup-services-summary.md]
 
 **Description**: Fix the niri-session runtime services that are configured but never actually started, so a niri login (dual-session with GNOME via GDM) is usable on first try. All three fixes are niri-session-only; GNOME remains the backend. (1) WAYBAR NOT STARTED: modules/home/desktop/waybar.nix defines programs.waybar settings but sets no systemd.enable, and config/config.kdl has no spawn; waybar is not D-Bus-activatable so nothing launches it, yet layout.struts reserves 32px at top (config.kdl:57), producing an empty gap with no bar/tray/clock/battery. Fix: add spawn-at-startup "waybar" to the autostart section of config/config.kdl. Prefer this over programs.waybar.systemd.enable, which binds to graphical-session.target and would also spawn a stray second bar inside the GNOME session. (2) NO POLKIT AGENT: polkit_gnome is commented out at modules/system/packages.nix:32 and never started. In the GNOME session gnome-shell IS the polkit authentication agent, but niri has none, and gnome-keyring is NOT a polkit agent. GUI privilege escalation (mounting disks, some Settings actions, updates) silently fails. Fix: install pkgs.polkit_gnome and spawn-at-startup the agent binary (<polkit_gnome>/libexec/polkit-gnome-authentication-agent-1) in config/config.kdl. (3) WALLPAPER BROKEN: config.kdl:250 runs swaybg -i ~/.wallpapers/current; niri spawns without a shell so ~ is NOT expanded, and ~/.wallpapers/current is created by no module (only /etc/wallpapers/riverside.jpg exists, via modules/system/desktop.nix:33). Fix: point swaybg at the absolute path /etc/wallpapers/riverside.jpg (or wrap the spawn in sh -c so ~ expands). VERIFY: nixos-rebuild + home-manager switch, then log into the niri session and confirm the bar appears, the wallpaper draws, and a privileged GUI action (e.g. mounting a disk in GNOME Disks) shows an authentication dialog.
 
