@@ -4,7 +4,7 @@
     {
       "project_number": 79,
       "project_name": "email_wrappers_multi_account",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "nix",
       "topic": "services",
       "parent_task": 72,
@@ -12,17 +12,62 @@
         72
       ],
       "created": "2026-07-04T20:07:00Z",
-      "last_updated": "2026-07-04T20:07:00Z",
+      "last_updated": "2026-07-04T20:33:11Z",
       "session_id": "sess_1783195570_68dcc7",
       "description": "Extend the five email agent wrapper binaries in modules/home/email/agent-tools.nix to support the Logos (Protonmail Bridge) account, generalizing the Gmail-only task-72 contract into real per-account branching (foundation for future multi-account). CRITICAL FRAMING — the Logos BACKEND ALREADY EXISTS as deferred task-72 scaffolding; the SOLE gap is the wrapper binaries. Already present: mbsync.nix:121-197 has a full `logos` IMAPAccount (Protonmail Bridge 127.0.0.1:1143, secret-tool service protonmail-bridge) + Group logos (channels logos-inbox/sent/drafts/trash/archive/labels/folders); notmuch.nix:26-31 tags +logos and auto-tags folder:Logos/.Sent and folder:Logos/.Trash (other_email=benjamin@logos-labs.ai); misc.nix:19-24 creates ~/Mail/Logos/{INBOX,Sent,Drafts,Trash,Archive} (physically present); aerc.nix:237 has a [logos] account + querymap-logos virtual folders (INBOX=tag:inbox AND tag:logos, Sent/Drafts/Trash/Archive=folder:Logos/.*); himalaya has a configured `logos` account (Maildir+SMTP, verified via himalaya account list); protonmail.nix enables the protonmail-bridge service. THE GAP: the five wrappers (email-census, email-classify, email-archive-confirmed, email-delete-confirmed, email-unsubscribe-extract) hard-reject --account != gmail (agent-tools.nix:70-72) and hardcode Gmail everywhere (folder:Gmail queries, mbsync gmail reconcile, ~/Mail/Gmail/ maildir path at line 175, himalaya -a gmail, Gmail census folders .All_Mail/.Sent/.Trash/.Spam/.Drafts). SCOPE — real per-account branching in agent-tools.nix ONLY: (1) accept --account logos in the shared preamble gate (keep gmail as default; still reject unknown accounts with the existing actionable error); (2) parameterize the notmuch folder/tag scope — gmail: folder:Gmail + tag:gmail; logos: folder:Logos + tag:logos (note aerc's INBOX view uses `tag:inbox AND tag:logos`), with the default QUERY resolved per account; (3) census counts must use the Logos folder set actually synced locally (INBOX/Sent/Drafts/Trash/Archive per Group logos + misc.nix), NOT Gmail's .All_Mail/.Spam set — Proton is folder-based, not Gmail's label/All-Mail model; implementer MUST verify exact local folder names first via `notmuch search --output=folders folder:Logos` before hardcoding; (4) maildir path resolution ~/Mail/Gmail/ -> ~/Mail/Logos/ (the rel=\"${filepath#*/Mail/Gmail/}\" line 175); (5) mbsync reconcile step in the sync/thaw path: `mbsync gmail` -> `mbsync logos` (the group already exists) for the logos account, preserving the NEVER-`mbsync -a` invariant that keeps the accounts isolated; (6) himalaya envelope list and any himalaya mutation: -a gmail -> -a logos; (7) delete/archive recipe must respect Proton semantics — Proton has a REAL Archive folder and Trash-is-a-real-move (unlike Gmail's label model where IMAP delete leaves the message in All_Mail, the task-72 correctness concern): archive = move to Logos/Archive, delete = move to Logos/Trash (then optional expunge), still IMAP/maildir-level Himalaya, NEVER a raw filesystem rm against Maildir. PRESERVE ALL task-72 SAFETY INVARIANTS unchanged: dry-run-by-default, --execute + --confirm-manifest <sha256> gate, MAX_BATCH_SIZE=50 frozen, PLAN_EXPIRY_DAYS mtime-preserve, wrapper-only mutation. NOTE: the working tree already has a partial hand-edit adding Proton senders (noae@protonmail.com, rob.mckie1235@proton.me, andy.stace@protonmail.com) to CUSTOM_KEEP_SENDERS at agent-tools.nix:402-403 — reconcile/keep it. CONTRACT REVISION: this revises the frozen task-72 wrapper contract (the --account gmail reservation becomes a real per-account dimension) — document the contract change in the task summary. OUT OF SCOPE (handled separately by the user in the ~/.config/nvim email/ extension with another agent; a handoff report is written to this task's reports/01_nvim-extension-handoff.md): the skill-email-cleanup account-selector/routing UX (e.g. /email --logos or --account), Logos-tuned classify preferences, command help text, and the mail-guard.sh PreToolUse allowlist. VERIFY: home-manager build --flake .#benjamin succeeds with the branched wrappers; email-census --account logos runs a dry-run census against the real Logos folders; wrappers still reject unknown accounts; the Gmail (default) path is byte-for-byte behaviorally unchanged.",
-      "next_artifact_number": 2,
+      "next_artifact_number": 3,
       "artifacts": [
         {
           "path": "specs/079_email_wrappers_multi_account/reports/01_nvim-extension-handoff.md",
           "type": "report",
           "summary": "Cross-repo handoff: the nvim email/ extension changes (account selector in commands/email.md, account-aware BASE_QUERY + --account passthrough in skill-email-cleanup, account->channel default in skill-email-sync, per-account --archive semantics; mail-guard.sh needs NO change) that layer on top of task 79 wrapper multi-account support. Includes hard sequencing constraint (79 must land+switch first)."
+        },
+        {
+          "path": "specs/079_email_wrappers_multi_account/reports/02_wrapper-multi-account.md",
+          "type": "report",
+          "summary": "Line-numbered map of every Gmail-hardcoded site in agent-tools.nix; live-confirmed Logos folder tokens (INBOX/Sent/Archive/Drafts/Trash, no All_Mail/Spam); finding that notmuch tag-based account scoping is inert (must use folder: queries); concrete case-statement per-account branching design (ACCOUNT_FOLDER/ACCOUNT_MAILDIR_MARKER/ACCOUNT_MBSYNC_GROUP/ACCOUNT_ARCHIVE_FOLDER + HIMALAYA_ACCT array); Proton archive/delete recipe; safety-invariant preservation; verification plan."
+        },
+        {
+          "path": "specs/079_email_wrappers_multi_account/plans/02_wrapper-multi-account.md",
+          "type": "plan",
+          "summary": "4-phase plan (single-file agent-tools.nix + wrapper-contract.md addendum): P1 per-account case resolver + HIMALAYA_ACCT array replacing the reject gate (gmail byte-identical default); P2 read-only threading (census folder block/date loop, classify+unsubscribe default QUERY, Logos 5-folder set no All_Mail/Spam); P3 mutation threading (maildir marker, resolve_envelope_id, mbsync group never -a, archive target, delete/expunge) with all task-72 safety invariants untouched; P4 contract-revision note + home-manager build .#benjamin verification incl. --account logos dry-run, bogus-reject, gmail byte-for-byte regression. Waves [1],[2,3],[4]. CUSTOM_KEEP_SENDERS hand-edit preserved."
+        },
+        {
+          "path": "specs/079_email_wrappers_multi_account/summaries/02_wrapper-multi-account-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary: 4 phases, single-file agent-tools.nix per-account branching + wrapper-contract.md §11 contract-revision addendum; home-manager build .#benjamin green; gmail byte-for-byte regression, logos dry-run census/classify, bogus-reject all verified; manual switch+live-test flagged."
         }
-      ]
+      ],
+      "researched": "2026-07-04T20:18:24Z",
+      "planned": "2026-07-04T20:22:28Z",
+      "plan_metadata": {
+        "phases": 4,
+        "total_effort_hours": 3.5,
+        "complexity": "moderate",
+        "research_integrated": true,
+        "plan_version": 2,
+        "dependency_waves": [
+          [
+            1
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/02_wrapper-multi-account.md",
+            "integrated_in_plan_version": 2,
+            "integrated_date": "2026-07-04"
+          }
+        ]
+      },
+      "implemented": "2026-07-04T20:33:11Z",
+      "completion_summary": "Extended the five email agent wrapper binaries (agent-tools.nix) to support --account logos (Protonmail Bridge) via a per-account case resolver (ACCOUNT_FOLDER/MAILDIR_MARKER/MBSYNC_GROUP/ARCHIVE_FOLDER + HIMALAYA_ACCT array), gmail kept as byte-for-byte-unchanged default. Logos scoped by folder: queries (account tags are inert) to its real synced set (INBOX/Sent/Archive/Trash/Drafts — no All_Mail/Spam). All task-72 safety invariants preserved (dry-run default, --execute+--confirm-manifest, MAX_BATCH_SIZE=50, never mbsync -a); task-72 --account gmail reservation revised into a real dimension (wrapper-contract.md §11). Verified headlessly: home-manager build --flake .#benjamin green after every phase, bare email-census byte-identical to pre-task baseline, --account logos dry-run census + classify against real Logos folders, --account bogus still rejected. Manual user step remaining: home-manager switch + optional live --execute Logos test (needs Bridge on 127.0.0.1:1143). nvim email/ extension work is separate (handoff report 01)."
     },
     {
       "project_number": 72,
