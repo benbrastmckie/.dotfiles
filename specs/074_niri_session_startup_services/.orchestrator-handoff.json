@@ -1,0 +1,21 @@
+{
+  "status": "implemented",
+  "summary": "Executed all 4 phases of the niri-session startup fix plan. config/config.kdl: added spawn-at-startup \"waybar\", added spawn-at-startup for the new polkit-gnome-authentication-agent-1 absolute path, changed the swaybg -i argument from ~/.wallpapers/current to the absolute /etc/wallpapers/riverside.jpg, and corrected the stale autostart-section comment. modules/system/packages.nix: added a writeShellScriptBin \"polkit-gnome-authentication-agent-1\" wrapper (mirroring the existing zathura/sioyek wrapper pattern, since libexec is not linked into /run/current-system/sw) and removed the obsolete commented polkit_gnome line. GNOME session is unaffected: no programs.waybar.systemd.enable and no home-manager services.polkit-gnome module were used (both bind to the shared graphical-session.target). Headless verification: nix flake check passed (all checks passed!), nixos-rebuild build --flake .#hamsa succeeded (built nixos-system-hamsa-26.05.20260622.3426825, confirmed the polkit wrapper resolves in result/sw/bin/), and home-manager build --flake .#benjamin succeeded. state.json set to completed with completion_summary, TODO.md regenerated, and all changes committed in two scoped commits (task 74 phase 1-3, task 74: complete implementation).",
+  "phases_completed": 4,
+  "phases_total": 4,
+  "artifacts": [
+    {
+      "path": "specs/074_niri_session_startup_services/summaries/01_niri-startup-services-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary: waybar autostart, absolute wallpaper path, polkit-gnome writeShellScriptBin wrapper + spawn-at-startup; nix flake check / nixos-rebuild build .#hamsa / home-manager build .#benjamin all passed headlessly"
+    },
+    {
+      "path": "specs/074_niri_session_startup_services/plans/01_niri-startup-services.md",
+      "type": "plan",
+      "summary": "All 4 phases marked [COMPLETED], checklist items checked, no deviations from plan"
+    }
+  ],
+  "next_action_hint": "Task complete. Remaining work is a MANUAL user step (not implementer-performed): sudo nixos-rebuild switch --flake .#hamsa, then home-manager switch --flake .#benjamin (system profile before home-manager symlink, per the polkit spawn path dependency), then log out and back into the niri session via GDM and visually confirm (a) waybar renders in the 32px top strut, (b) the riverside.jpg wallpaper draws, and (c) a privileged GUI action (e.g. mounting a disk in GNOME Disks) shows a polkit authentication dialog.",
+  "blockers": [],
+  "continuation_context": null
+}
