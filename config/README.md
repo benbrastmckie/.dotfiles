@@ -8,6 +8,67 @@ Files are organized by application and deployment pattern:
 - **Root level files**: Application-specific configs (e.g., `kitty.conf`, `himalaya-config.toml`)
 - **Subdirectories**: Groups of related files (e.g., `sioyek/`)
 
+## Deployment Mechanisms
+
+All deployment logic lives in `modules/home/core/dotfiles.nix`. There are three distinct
+mechanisms in that file; a given file in `config/` is deployed by exactly one (or two, for the
+few files mirrored by both mechanism 1 and mechanism 2) of them. Always check `dotfiles.nix`
+itself for the authoritative, current line numbers — the ranges below are current as of this
+writing but will drift as the file is edited.
+
+### Mechanism 1: `home.file.*.source` store symlinks (`dotfiles.nix:19-40`, plus `:57`)
+
+The majority of `config/` files are deployed via `home.file.<target>.source = ../../../config/<file>;`
+entries. Home Manager places an **immutable symlink** into the Nix store at the target path
+(e.g. `~/.config/kitty/kitty.conf`) when `home-manager switch` runs. Because the target is a
+read-only store symlink, applications cannot write to it; edits must be made in `config/` and
+deployed via a rebuild. This is the default/most common mechanism and covers most rows in the
+tables below (terminal emulators, fish, tmux, zathura, niri, sioyek, opencode, fastfetch,
+himalaya, latexmkrc, and `.zuliprc` at line 57 — see the stale-row fix in the Chat section).
+
+### Mechanism 2: `builtins.readFile` mirrors into `~/.config/config-files/` (`dotfiles.nix:42-49`)
+
+A second, independent mechanism copies exactly **7** of the mechanism-1 files' contents into a
+parallel `~/.config/config-files/` directory using `builtins.readFile`, producing plain
+(non-symlink) text copies rather than store symlinks:
+
+- `config.fish`
+- `kitty.conf`
+- `zathurarc`
+- `alacritty.toml`
+- `wezterm.lua`
+- `.tmux.conf`
+- `latexmkrc`
+
+**Mirror asymmetry**: this is not a mirror of everything mechanism 1 deploys — only these 7 files
+get a `~/.config/config-files/` copy. The other mechanism-1 files (`fastfetch.jsonc`,
+`opencode.json`, the `sioyek/*` files, `config.kdl`, `himalaya-config.toml`, `.zuliprc`) have no
+mechanism-2 mirror. The purpose of the mirror is to keep a version-control-friendly, easily
+diffable plain-text copy alongside the store symlink; it is not itself the canonical deployed
+config for any application.
+
+### Mechanism 3: `home.activation.claudeSettings` copy (`dotfiles.nix:59-68`)
+
+`config/claude/settings.json` and `config/claude/keybindings.json` are deployed by an
+**activation script**, not a symlink. On every `home-manager switch`, the
+`home.activation.claudeSettings` block unconditionally:
+1. `rm -f`s the existing `~/.claude/settings.json` and `~/.claude/keybindings.json`,
+2. `cp`s the current `config/claude/{settings,keybindings}.json` over them, and
+3. `chmod u+w`s the copies.
+
+This produces plain, writable (non-symlink) files at `~/.claude/settings.json` and
+`~/.claude/keybindings.json` so that Claude Code can write runtime changes to them, which a
+read-only store symlink would not allow.
+
+> **WARNING — intended force-overwrite behavior, not a bug**: because step 1 above is an
+> unconditional `rm -f` + `cp` with no diff/merge, **any manual edit made directly to
+> `~/.claude/settings.json` or `~/.claude/keybindings.json` that has not been copied back into
+> `config/claude/` is silently destroyed on the next `home-manager switch`.** This is intended,
+> documented behavior — the source of truth is `config/claude/`, not the deployed runtime files —
+> and is not something this documentation update changes or "fixes". If you edit the runtime
+> files directly, copy your changes into `config/claude/` before the next rebuild or they will be
+> lost.
+
 ## Terminal Emulators
 
 | File | Deployed To | Description |

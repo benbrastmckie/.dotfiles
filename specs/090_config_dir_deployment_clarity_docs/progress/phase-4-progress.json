@@ -1,0 +1,13 @@
+{
+  "phase": 4,
+  "phase_name": "Add cross-reference to dotfiles.nix header comment",
+  "started_at": "2026-07-05T06:58:34Z",
+  "last_updated": "2026-07-05T06:58:34Z",
+  "objectives": [
+    {"id": 1, "description": "Append config/README.md pointer to dotfiles.nix header comment", "status": "done", "files_touched": ["modules/home/core/dotfiles.nix"]}
+  ],
+  "current_objective": 1,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": []
+}

@@ -1,5 +1,7 @@
 # Dotfiles deployment: session variables, home.file sources from config/, and related
 # activation scripts.
+# See config/README.md for the full deployment-mechanism reference (symlinks, config-files
+# mirrors, and the config/claude/ activation-script copy).
 { config, pkgs, ... }:
 {
   home.sessionVariables = {
