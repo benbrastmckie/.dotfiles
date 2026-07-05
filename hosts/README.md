@@ -16,6 +16,10 @@ Hardware configuration for the Hamsa host system (AMD laptop).
 ### [usb-installer/](usb-installer/)
 Generic hardware configuration for the USB installer. This configuration is used to create a bootable USB drive that contains the complete dotfiles setup for reproducing the NixOS environment on any machine.
 
+### [iso/](iso/)
+ISO installer image configuration. Wired directly via `lib.nixosSystem` in `flake.nix` rather
+than through `mkHost`, since an installer image has no `hardware-configuration.nix`.
+
 ## Structure
 
 Each host directory contains:
@@ -76,6 +80,6 @@ sudo nixos-rebuild switch --flake .#$(hostname)
 ./scripts/update.sh
 ```
 
-Available hosts: `garuda`, `nandi`, `hamsa`, `usb-installer`
+Available hosts: `garuda`, `nandi`, `hamsa`, `usb-installer`, `iso`
 
 [← Back to main README](../README.md)

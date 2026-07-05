@@ -135,41 +135,14 @@
             home-manager.users.${username} = import ./home.nix;
             home-manager.extraSpecialArgs = hmExtraSpecialArgs;
           }
-          ({ pkgs, lib, lectic, ... }: {
-            # ISO-specific configurations
-            isoImage.edition = lib.mkForce "nandi";
-            isoImage.compressImage = true;
-            # Enable copy-on-write for the ISO
-            isoImage.squashfsCompression = "zstd";
-            # Make the ISO compatible with most systems
-            nixpkgs.hostPlatform = system;
-            # Configure networking for ISO with NetworkManager only
-            networking = {
-              networkmanager = {
-                enable = true;
-                wifi.backend = "iwd"; # Use iwd backend for better performance
-              };
-              # Explicitly disable wpa_supplicant
-              wireless.enable = false;
-            };
-            # Enable basic system utilities for the live environment
-            environment.systemPackages = with pkgs; [
-              vim
-              git
-              wget
-              curl
-              # Add networking tools that might be helpful during installation
-              iw
-              wirelesstools
-              networkmanager
-            ];
-          })
+          ./hosts/iso/default.nix
         ];
         specialArgs = {
           inherit username;
           inherit name;
           inherit pkgs-unstable;
           inherit niri; # Enabled for dual-session with GNOME
+          inherit system; # Consumed by hosts/iso/default.nix (nixpkgs.hostPlatform)
           lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
         };
       };

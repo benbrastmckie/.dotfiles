@@ -179,7 +179,7 @@ the directory-level doc reflects the current `mkHost` factory and per-host conve
 
 ---
 
-### Phase 3: Extract inline ISO module to hosts/iso/default.nix (OPTIONAL — may be skipped) [NOT STARTED]
+### Phase 3: Extract inline ISO module to hosts/iso/default.nix (OPTIONAL — may be skipped) [COMPLETED]
 
 **Goal**: Move the ISO-specific inline module body from `flake.nix` into `hosts/iso/default.nix`
 for symmetry with `hosts/usb-installer/default.nix`, with zero change to the evaluated config
@@ -187,30 +187,48 @@ for symmetry with `hosts/usb-installer/default.nix`, with zero change to the eva
 complete after Phase 2 and this report stands as the rationale for skipping.
 
 **Tasks**:
-- [ ] Create `hosts/iso/default.nix` containing the extracted module body: a `{ pkgs, lib, ... }:`
+- [x] Create `hosts/iso/default.nix` containing the extracted module body: a `{ pkgs, lib, ... }:`
       function (drop the unused `lectic` arg) with the `isoImage.*` settings,
       `nixpkgs.hostPlatform = pkgs.system;` (NOT `system` — this is the closure fix), the
       `networking` block, and the `environment.systemPackages` list. Include a header comment
       explaining that `iso` is wired explicitly in `flake.nix` (not via `mkHost`) because an
       installer image has no `hardware-configuration.nix`. Mirror the shape/header style of
-      `hosts/usb-installer/default.nix`.
-- [ ] In `flake.nix`, replace the inline anonymous module `({ pkgs, lib, lectic, ... }: {...})`
+      `hosts/usb-installer/default.nix`. *(deviation: altered — the plan's own suggested fix,
+      `nixpkgs.hostPlatform = pkgs.system;`, causes `error: infinite recursion encountered` at
+      `lib/types.nix:892`, because the `pkgs` module arg is itself constructed from
+      `config.nixpkgs.hostPlatform` — assigning `nixpkgs.hostPlatform = pkgs.system;` is a
+      circular fixpoint, not a fix. Verified via `--show-trace`. Used `system` passed through
+      `specialArgs` instead (see next task): the module signature is
+      `{ pkgs, lib, system, ... }:` and the line is `nixpkgs.hostPlatform = system;`, with
+      `system` now sourced from `specialArgs` rather than lexical closure. This still solves the
+      original "undefined variable `system`" problem the plan flagged, without introducing
+      recursion.)*
+- [x] In `flake.nix`, replace the inline anonymous module `({ pkgs, lib, lectic, ... }: {...})`
       inside the `iso` config's `modules` list with a single `./hosts/iso/default.nix` path entry
       at the same list position. Leave everything else in the `iso` block unchanged (the
       `lib.nixosSystem` call, `configuration.nix`, the cd-dvd installer module, the
       `{ networking.hostName = "nixos-iso"; }` entry, `sops-nix`, `{ nixpkgs = nixpkgsConfig; }`,
-      the home-manager block, and `specialArgs`).
-- [ ] Update `hosts/README.md`: add `iso` to the "Available hosts" line (line 49) and add a fifth
+      the home-manager block, and `specialArgs`). *(deviation: altered — added `inherit system;`
+      to the `iso` block's `specialArgs` so the extracted module can consume it as a module arg,
+      per the fix above; this is a one-line additive change to `specialArgs`, not a removal or
+      restructuring of any other `iso` block content)*
+- [x] Update `hosts/README.md`: add `iso` to the "Available hosts" line (line 49) and add a fifth
       entry to the "Hosts" section (lines 5-17), noting `iso` is wired directly via
-      `lib.nixosSystem` in `flake.nix` rather than through `mkHost`.
-- [ ] Stage explicit paths only: `git add hosts/iso/default.nix flake.nix hosts/README.md`
-      (NEVER `git add -A`).
-- [ ] Prove equivalence: run
+      `lib.nixosSystem` in `flake.nix` rather than through `mkHost`. *(completed)*
+- [x] Stage explicit paths only: `git add hosts/iso/default.nix flake.nix hosts/README.md`
+      (NEVER `git add -A`). *(completed — `git diff --staged --stat` confirmed only these three
+      paths)*
+- [x] Prove equivalence: run
       `nix eval --raw .#nixosConfigurations.iso.config.system.build.toplevel.drvPath` and compare to
       the Phase 1 "before" value — they MUST be identical (byte-for-byte config equivalence; no ISO
-      build required).
-- [ ] Run `nix flake check --no-build` — expect unchanged "all checks passed!" with the same two
-      zfs warnings.
+      build required). *(completed with the same read-only `NIXPKGS_ALLOW_BROKEN=1 nix eval
+      --impure --raw ...` workaround from Phase 1 — plain `nix eval --raw` still fails on the
+      pre-existing broken zfs-kernel package, unrelated to this change. "After" value:
+      `/nix/store/3vnp20n5d5w97da6kxgkz00d56li2cpn-nixos-system-nixos-iso-26.05.20260622.3426825.drv`
+      — IDENTICAL to the Phase 1 "before" value. Equivalence proven.)*
+- [x] Run `nix flake check --no-build` — expect unchanged "all checks passed!" with the same two
+      zfs warnings. *(completed — output identical to Phase 1/2 baseline: "all checks passed!"
+      with the same two zfs warnings on iso/usb-installer, no new errors or warnings)*
 
 **Timing**: ~20 minutes
 
