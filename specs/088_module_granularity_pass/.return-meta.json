@@ -1,0 +1,88 @@
+{
+  "status": "implemented",
+  "summary": "Completed the 6-phase pure structural refactor of modules/home/: split email/agent-tools.nix (761 lines) into a 7-file agent-tools/ directory, merged packages/{fonts,lean-math,ai-tools}.nix into packages/misc.nix, co-located the memory system into memory/{monitor,services}.nix, and renamed core/shell.nix to core/dotfiles.nix. Updated modules/home/default.nix (31 -> 29 entries) for every path change. Final nix build succeeded and nix store diff-closures against the Phase 1 baseline was EMPTY, confirming zero closure/behavior change.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "modules/home/email/agent-tools/lib.nix",
+      "summary": "Shared pure-string helpers (manifestDirDefault, mkPreamble, mkMutationPreamble, lower) extracted from the former monolithic agent-tools.nix; plain non-module Nix file"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/email/agent-tools/census.nix",
+      "summary": "email-census binary (read-only sender/folder/date census), split from agent-tools.nix"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/email/agent-tools/classify.nix",
+      "summary": "email-classify binary (local-tags-only classification + candidate manifest), split from agent-tools.nix"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/email/agent-tools/unsubscribe-extract.nix",
+      "summary": "email-unsubscribe-extract binary (read-only List-Unsubscribe header harvest), split from agent-tools.nix"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/email/agent-tools/archive-confirmed.nix",
+      "summary": "email-archive-confirmed mutation binary, split from agent-tools.nix"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/email/agent-tools/delete-confirmed.nix",
+      "summary": "email-delete-confirmed two-hop mutation binary, split from agent-tools.nix"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/email/agent-tools/default.nix",
+      "summary": "Aggregator listing the five agent-tools per-binary modules"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/packages/misc.nix",
+      "summary": "Merge of packages/{fonts,lean-math,ai-tools}.nix with disambiguating header comment against top-level misc.nix"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/misc.nix",
+      "summary": "One-line disambiguating header comment added (sanctioned Non-Goals touch); no logic change"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/memory/monitor.nix",
+      "summary": "Renamed from scripts/memory-monitor.nix via git mv (content unchanged)"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/memory/services.nix",
+      "summary": "Renamed from services/memory-services.nix via git mv (content unchanged)"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/core/dotfiles.nix",
+      "summary": "Renamed from core/shell.nix via git mv, header reworded to fix the misnomer"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/default.nix",
+      "summary": "Aggregator updated for every path change; 31 -> 29 import entries"
+    },
+    {
+      "type": "summary",
+      "path": "specs/088_module_granularity_pass/summaries/01_module-granularity-refactor-summary.md",
+      "summary": "Implementation summary with full verification results and plan deviations"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Completed a pure structural refactor of modules/home/: split the 761-line email/agent-tools.nix into a 7-file directory, merged three tiny package fragments into packages/misc.nix, co-located the memory system into memory/, and renamed core/shell.nix to core/dotfiles.nix, updating the modules/home/default.nix aggregator (31 -> 29 entries) throughout. Verified with an empty nix store diff-closures against a pre-change baseline, confirming zero behavior change."
+  },
+  "metadata": {
+    "session_id": "sess_task88_implement",
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 6,
+    "phases_total": 6
+  },
+  "next_steps": "None required. Task 91 (documentation_sync_reorg_final) will separately update the stale README.md/docs/* references to email/agent-tools.nix, core/shell.nix, etc. that this task intentionally left untouched."
+}

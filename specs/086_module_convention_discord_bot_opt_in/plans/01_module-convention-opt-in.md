@@ -1,7 +1,7 @@
 # Implementation Plan: Task #86
 
 - **Task**: 86 - Adopt the module convention (options + aggregators) and make the Discord bot a real per-host opt-in
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 5 hours
 - **Dependencies**: None (self-contained; Tier 1 of task 81's reorg; blocks tasks 87-91 and unblocks task 69's close-out)
 - **Research Inputs**: specs/086_module_convention_discord_bot_opt_in/reports/01_module-convention-discord-bot-opt-in.md

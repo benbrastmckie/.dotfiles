@@ -1,0 +1,44 @@
+{
+  "status": "implemented",
+  "summary": "Made scripts/update.sh's git checkpoint opt-in behind --checkpoint / UPDATE_CHECKPOINT=1 (default OFF), refusing with a non-zero exit and clear stderr message on a dirty tree when the opt-in is absent, and confining git add -A to that opt-in branch only. Refactored flag parsing to a single for-arg-in loop, fixing a pre-existing bug where --no-check was ignored when --update preceded it. Corrected README.md's checkpoint claim and added a docs/development.md flag cross-reference. All verification passed: bash -n clean, dirty-tree refusal confirmed on the real repo's naturally dirty tree, checkpoint/--update/--no-check flag matrix confirmed in an isolated scratch repo, and nix flake check green.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "scripts/update.sh",
+      "summary": "Opt-in checkpoint gate (--checkpoint / UPDATE_CHECKPOINT=1, default OFF, refuse-on-dirty otherwise) plus for-arg-in-\"$@\" flag parser fixing the --no-check ordering bug."
+    },
+    {
+      "type": "implementation",
+      "path": "README.md",
+      "summary": "Corrected Full Update section's checkpoint claim to reflect the new opt-in default."
+    },
+    {
+      "type": "implementation",
+      "path": "docs/development.md",
+      "summary": "Added flag cross-reference to README's Full Update section."
+    },
+    {
+      "type": "plan",
+      "path": "specs/093_update_sh_auto_commit_opt_in/plans/01_checkpoint-opt-in.md",
+      "summary": "All 3 phases marked [COMPLETED] with per-task deviation annotations for Phase 3's scratch-repo verification method."
+    },
+    {
+      "type": "summary",
+      "path": "specs/093_update_sh_auto_commit_opt_in/summaries/01_checkpoint-opt-in-summary.md",
+      "summary": "Implementation summary with full verification results and deviation rationale."
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Made scripts/update.sh's automatic git checkpoint opt-in (--checkpoint / UPDATE_CHECKPOINT=1, default OFF, refuse-on-dirty-tree otherwise), fixed a pre-existing --no-check flag-ordering bug via a for-arg-in-\"$@\" parser refactor, and corrected README.md + docs/development.md checkpoint documentation."
+  },
+  "metadata": {
+    "session_id": "sess_1783228323_a53c47_93",
+    "duration_seconds": 1200,
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 3,
+    "phases_total": 3
+  },
+  "next_steps": "Task ready for /todo archival; no further action required."
+}

@@ -1,15 +1,50 @@
 {
-  "status": "in_progress",
-  "started_at": "2026-07-05T06:30:58Z",
-  "artifacts": [],
-  "partial_progress": {
-    "stage": "initializing",
-    "details": "Agent started, parsing delegation context"
+  "status": "implemented",
+  "summary": "Unified the lectic extraSpecialArgs resolution across both home-manager paths: lib/mkHost.nix and flake.nix's hmExtraSpecialArgs (previously raw flake-input lectic, consumed by nandi/hamsa/garuda/iso) now resolve to the built lectic-0.0.0 package via the pre-existing lectic.packages.${system}.lectic or ... or lectic expression, matching the standalone path. Removed the now-redundant standalone override and corrected docs/dual-home-manager.md's inaccurate 'intentional divergence' framing. Verified via nix eval (all paths now show lectic-0.0.0, zero NO-NAME entries), nix flake check (green), and successful builds of nandi's toplevel and the standalone home activation package. Committed as 5e104d3.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "lib/mkHost.nix",
+      "summary": "Resolved lectic to the built package in home-manager.extraSpecialArgs (was raw flake input)"
+    },
+    {
+      "type": "implementation",
+      "path": "flake.nix",
+      "summary": "Resolved lectic in hmExtraSpecialArgs (fixes iso config too); removed now-redundant standalone lectic override"
+    },
+    {
+      "type": "documentation",
+      "path": "docs/dual-home-manager.md",
+      "summary": "Corrected the 'intentional divergence, not a bug' paragraph to describe the now-unified lectic resolution"
+    },
+    {
+      "type": "plan",
+      "path": "specs/069_consolidate_dual_home_manager_config/plans/01_unify-lectic-specialargs.md",
+      "summary": "All 4 phases marked COMPLETED with deviation annotations"
+    },
+    {
+      "type": "summary",
+      "path": "specs/069_consolidate_dual_home_manager_config/summaries/01_unify-lectic-specialargs-summary.md",
+      "summary": "Implementation summary with baseline/post-fix verification evidence"
+    },
+    {
+      "type": "handoff",
+      "path": "specs/069_consolidate_dual_home_manager_config/handoffs/phase-2-3-handoff-20260705T063200Z.md",
+      "summary": "Progressive handoff checkpoint after phases 2-3"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Unified lectic specialArgs resolution across NixOS-integrated (lib/mkHost.nix, flake.nix iso config) and standalone home-manager paths so both ship the built lectic-0.0.0 package instead of the raw flake input; corrected docs/dual-home-manager.md accordingly. Verified via nix eval, nix flake check, and representative builds; committed as 5e104d3."
   },
   "metadata": {
     "session_id": "sess_1783228323_a53c47_69",
+    "duration_seconds": 1500,
     "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"]
-  }
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 4,
+    "phases_total": 4,
+    "commit_sha": "5e104d3e2772df5744f61f5119bfef74605121c1"
+  },
+  "next_steps": "Task 87 will extract flake.nix's iso block next; flake.nix is left in a clean committed state for that work. No further action needed for task 69's own scope."
 }

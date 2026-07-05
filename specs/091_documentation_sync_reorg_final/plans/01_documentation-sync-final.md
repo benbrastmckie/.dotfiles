@@ -1,7 +1,7 @@
 # Implementation Plan: Task #91 - Final Documentation Sync (Reorg Capstone)
 
 - **Task**: 91 - Final documentation sync across the NixOS/Home Manager dotfiles repo (task 81 Final tier, blueprint row 10)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 3 hours (doc edits ~1.25h; full-regression build harness + drift check ~1.75h)
 - **Dependencies**: 82, 83, 84, 85, 86, 87, 88, 89, 90 (all `completed`)
 - **Research Inputs**: specs/091_documentation_sync_reorg_final/reports/01_documentation-sync-final.md

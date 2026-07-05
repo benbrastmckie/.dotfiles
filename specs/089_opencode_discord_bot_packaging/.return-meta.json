@@ -1,0 +1,67 @@
+{
+  "status": "implemented",
+  "summary": "Packaged opencode-discord-bot as a buildPythonApplication (packages/opencode-discord-bot.nix, callPackage'd directly in modules/system/optional/discord-bot.nix), fixed SessionStore's read-only-nix-store write hazard via a SESSION_STORE_PATH env var backed by a systemd StateDirectory, repointed discord-bot's ExecStart at the built console script (dropping PYTHONPATH), fixed a stale comment path typo, and untracked root opencode.json. Verified with a successful nixos-rebuild build --flake .#nandi and a byte-for-byte nix eval pre/post comparison of discord-bot's serviceConfig confirming the store-path ExecStart, absent PYTHONPATH, and present SESSION_STORE_PATH/StateDirectory. A live nixos-rebuild switch on nandi is documented as an Outstanding Manual Step (sudo/SSH sandbox-denied here).",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "opencode-discord-bot/opencode_discord_bot/src/config.py",
+      "summary": "Added session_store_path Config field + SESSION_STORE_PATH env read"
+    },
+    {
+      "type": "implementation",
+      "path": "opencode-discord-bot/opencode_discord_bot/src/bot.py",
+      "summary": "Threaded config.session_store_path into SessionStore(path=...)"
+    },
+    {
+      "type": "implementation",
+      "path": "opencode-discord-bot/pyproject.toml",
+      "summary": "New PEP 621 packaging metadata with opencode-discord-bot console-script entry point"
+    },
+    {
+      "type": "implementation",
+      "path": "packages/opencode-discord-bot.nix",
+      "summary": "New buildPythonApplication derivation (first in this repo); header comment documents deferred own-repo extraction"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/system/optional/discord-bot.nix",
+      "summary": "opencodeDiscordBot callPackage binding, repointed ExecStart, dropped PYTHONPATH, added SESSION_STORE_PATH + StateDirectory, fixed comment typo"
+    },
+    {
+      "type": "implementation",
+      "path": ".gitignore",
+      "summary": "Added /opencode.json alongside /.claude/ and /.opencode/"
+    },
+    {
+      "type": "implementation",
+      "path": "packages/README.md",
+      "summary": "New opencode-discord-bot.nix section"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/discord-bot.md",
+      "summary": "Refreshed Python Packaging section, Files table, discord-bot.service block, and Rollback binding name to match the packaged wiring; added future own-repo-extraction note"
+    },
+    {
+      "type": "summary",
+      "path": "specs/089_opencode_discord_bot_packaging/summaries/02_package-via-buildpythonapplication-summary.md",
+      "summary": "Implementation summary with nix eval pre/post evidence, closure delta, and Outstanding Manual Step"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Packaged opencode-discord-bot as a buildPythonApplication callPackage'd directly in discord-bot.nix, fixed the SessionStore read-only-nix-store write hazard via SESSION_STORE_PATH + systemd StateDirectory, repointed the discord-bot ExecStart at the nix-store binary (dropping PYTHONPATH), and untracked root opencode.json. Verified via a successful nandi build and nix eval pre/post evidence; live nixos-rebuild switch on nandi remains an Outstanding Manual Step (sandbox-denied here)."
+  },
+  "metadata": {
+    "session_id": "sess_1751695048_nb89impl",
+    "duration_seconds": 3000,
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "task_number": 89,
+    "task_type": "nix",
+    "phases_completed": 6,
+    "phases_total": 6,
+    "dependency_waves": [[1, 4], [2], [3], [5, 6]]
+  },
+  "next_steps": "Outstanding Manual Step: a human with SSH/sudo to nandi must run `sudo nixos-rebuild switch --flake .#nandi`, confirm via `systemctl cat discord-bot.service` + `journalctl -u discord-bot.service`, and optionally migrate ~/.dotfiles/opencode-discord-bot/data/sessions.json to /var/lib/discord-bot/sessions.json (or accept a clean slate). Note: discord-bot.service is separately crash-looping on hamsa from an unrelated pre-existing asyncio bug, out of scope for this task."
+}

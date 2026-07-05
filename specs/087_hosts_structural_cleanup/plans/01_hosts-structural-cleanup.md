@@ -1,7 +1,7 @@
 # Implementation Plan: Task #87
 
 - **Task**: 87 - hosts/ structural cleanup
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 0.75 hours (Phase 1 ~5 min + Phase 2 ~15 min required; Phase 3 ~20 min optional/skippable)
 - **Dependencies**: Task 86 (module convention + aggregators) — landed at `834943a`
 - **Research Inputs**: specs/087_hosts_structural_cleanup/reports/01_hosts_readme_iso_extraction.md

@@ -1,7 +1,7 @@
 # Implementation Plan: Task #69
 
 - **Task**: 69 - Consolidate dual home-manager config (unify lectic extraSpecialArgs)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 1.5 hours (mostly nix eval/build wait time)
 - **Dependencies**: 86 (completed)
 - **Research Inputs**: reports/01_verify-task-86-fold-in.md
