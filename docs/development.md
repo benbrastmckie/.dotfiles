@@ -70,6 +70,8 @@ The custom ISO includes:
    ```bash
    ~/.dotfiles/scripts/update.sh
    ```
+   See the README's [Full Update](../README.md#full-update-recommended) section for the
+   `--checkpoint`, `--update`, and `--no-check` flags.
 
 4. **Apply home-manager configuration:**
    ```bash

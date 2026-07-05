@@ -121,18 +121,18 @@ replace positional flag checks with a single `for arg in "$@"` loop.
 
 ---
 
-### Phase 2: Update documentation references [NOT STARTED]
+### Phase 2: Update documentation references [COMPLETED]
 
 **Goal**: Correct the one factually-wrong doc reference and add a flag pointer where the task names it.
 
 **Tasks**:
-- [ ] `README.md:188` - Replace the inline comment `# checkpoints, updates flake inputs, rebuilds
+- [x] `README.md:188` - Replace the inline comment `# checkpoints, updates flake inputs, rebuilds
       NixOS + home-manager` so it reflects the new default (no auto-commit) and mentions
       `--checkpoint`, e.g. `# updates flake inputs, rebuilds NixOS + home-manager (pass --checkpoint to auto-commit a dirty tree first; default refuses on a dirty tree)`.
-- [ ] `docs/development.md` (near line 71) - Add a one-line note after the `~/.dotfiles/scripts/update.sh`
+- [x] `docs/development.md` (near line 71) - Add a one-line note after the `~/.dotfiles/scripts/update.sh`
       invocation cross-referencing README's Full Update / Maintenance section for the flag list
       (`--checkpoint`, `--update`, `--no-check`). Do not duplicate full flag semantics inline.
-- [ ] Confirm no other markdown file asserts checkpoint behavior (research audit table already
+- [x] Confirm no other markdown file asserts checkpoint behavior (research audit table already
       established only these two need changes; spot-check none regressed).
 
 **Timing**: 20 minutes

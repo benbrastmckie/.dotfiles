@@ -185,7 +185,7 @@ For complete application configurations and setup instructions, see [`docs/appli
 
 ### Full Update (recommended)
 ```bash
-./scripts/update.sh  # checkpoints, updates flake inputs, rebuilds NixOS + home-manager
+./scripts/update.sh  # updates flake inputs, rebuilds NixOS + home-manager (pass --checkpoint to auto-commit a dirty tree first; default refuses on a dirty tree)
 ```
 
 ### Manual Rebuilds
