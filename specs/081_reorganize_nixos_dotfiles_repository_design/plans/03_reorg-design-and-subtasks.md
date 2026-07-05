@@ -1,7 +1,7 @@
 # Implementation Plan: Reorganization Design + Subtask Orchestration
 
 - **Task**: 81 - reorganize_nixos_dotfiles_repository_design
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 7 hours
 - **Dependencies**: None
 - **Research Inputs**:
@@ -101,7 +101,7 @@ roadmap if items are populated.
 Phases within the same wave are logically independent. If executed by a single agent, the Wave-2
 phases append distinct, non-overlapping sections to the shared design document.
 
-### Phase 1: Author the Canonical Target-Layout Design Document [NOT STARTED]
+### Phase 1: Author the Canonical Target-Layout Design Document [COMPLETED]
 
 **Goal**: Create the single design artifact that all reorganization subtasks will reference,
 capturing the adopted target directory tree, the resolved design-decision table, and the
@@ -141,7 +141,7 @@ explicit Nix-tree-only scope boundary.
 
 ---
 
-### Phase 2: Enumerate the Ordered Subtask Blueprint [NOT STARTED]
+### Phase 2: Enumerate the Ordered Subtask Blueprint [COMPLETED]
 
 **Goal**: Record the ordered ~10-subtask decomposition (the blueprint for later `/task` creation)
 as a section of the design document, preserving the research's three value tiers and per-subtask
@@ -180,7 +180,7 @@ scope, dependencies, suggested task_type, and verification protocol.
 
 ---
 
-### Phase 3: Codify the Migration-Safety Strategy [NOT STARTED]
+### Phase 3: Codify the Migration-Safety Strategy [COMPLETED]
 
 **Goal**: Record the cross-cutting verification and safety protocol every subtask inherits, so it
 is enforced per-subtask rather than left as a one-time note.
@@ -220,7 +220,7 @@ is enforced per-subtask rather than left as a one-time note.
 
 ---
 
-### Phase 4: Resolve or Defer Open Design Decisions [NOT STARTED]
+### Phase 4: Resolve or Defer Open Design Decisions [COMPLETED]
 
 **Goal**: Give every open decision the research flagged an explicit disposition
 (resolve-now / resolve-within-a-named-subtask / defer-as-follow-on), so the task-creation phase
@@ -262,7 +262,7 @@ and future contributors never have to re-litigate them.
 
 ---
 
-### Phase 5: Create Subtasks and Record Numbers [NOT STARTED]
+### Phase 5: Create Subtasks and Record Numbers [COMPLETED]
 
 **Goal**: Mechanically create the 10 reorganization subtasks via `/task`, each seeded from the
 relevant design + report sections, then record their assigned numbers and dependency waves back

@@ -1,5 +1,5 @@
 ---
-next_project_number: 82
+next_project_number: 92
 ---
 
 # TODO
@@ -11,20 +11,34 @@ next_project_number: 82
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69,77,81 | -- | nixos-config, nix-infrastructure, desktop, ... |
-| 2 | 78 | 77 | desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,69,77,82,83,84,85,86 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 2 | 78,87,88,89 | 77,86 | nix-infrastructure, desktop |
+| 3 | 90 | 88 | nix-infrastructure |
+| 4 | 91 | 82,83,84,85,87,89,90 | nix-infrastructure |
 
 **Grouped by Topic** (indented = depends on parent):
-
-### Nixos Config
-
-81 [PLANNED] — Design and orchestrate a systematic reorganization of the NixOS/H
 
 ### Nix Infrastructure
 
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
 68 [NOT STARTED] — The iso and usb-installer nixosConfigurations fail to build becau
 69 [NOT STARTED] — Consolidate the dual home-manager setup so there is a single sour
+82 [NOT STARTED] — Remove dead code and orphaned files from the NixOS/Home Manager d
+  └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do
+83 [NOT STARTED] — Fix git hygiene in the NixOS/Home Manager dotfiles repo (task 81 
+  └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
+84 [NOT STARTED] — Add a `nix flake check` CI gate to the NixOS/Home Manager dotfile
+  └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
+85 [NOT STARTED] — Relocate root shell scripts into a new scripts/ directory in the 
+  └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
+86 [NOT STARTED] — Adopt the module convention (options + aggregators) and make the 
+  └─ 87 [NOT STARTED] — Clean up hosts/ structure and documentation in the NixOS/Home Man
+    └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
+  └─ 88 [NOT STARTED] — Run a module granularity pass over modules/home/ in the NixOS/Hom
+    └─ 90 [NOT STARTED] — Document config/ deployment mechanisms in the NixOS/Home Manager 
+      └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
+  └─ 89 [NOT STARTED] — Package opencode-discord-bot via buildPythonApplication in the Ni
+    └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
 
 ### Services
 
@@ -49,8 +63,108 @@ next_project_number: 82
 
 ## Tasks
 
+### 91. Documentation sync reorg final
+- **Status**: [NOT STARTED]
+- **Task Type**: markdown
+- **Topic**: nix-infrastructure
+- **Dependencies**: Task 82, Task 83, Task 84, Task 85, Task 86, Task 87, Task 88, Task 89, Task 90
+
+**Description**: Perform final documentation sync across the NixOS/Home Manager dotfiles repo (task 81 Final tier, subtask blueprint #10, gated on ALL of subtasks 82-90 landing first, since it documents the tree those subtasks produce). Update root README.md's Module Map to drop the stale '(planned: task 66 Phase 2/3/4)' annotations (task 66 is long completed) and its package list to drop neovim.nix (removed by subtask 82) and add piper-bin.nix/piper-voices.nix. Complete the docs/README.md index to list dual-home-manager.md, email-workflow.md, how-to-add-package.md, how-to-add-service.md, gnome-settings.md, and video-editing.md (all exist on disk but are currently unlisted). Add a new modules/README.md documenting the system/home split, the aggregator convention introduced by subtask 86, and the meaning of optional/. Record one-line 'checked, no action needed' notes for flake.lock health and stateVersion values (Critic-verified non-issues — prevent a future pass from rediscovering these as false positives). Resolve task 69's dual-home-manager documentation closure here (Option A retained, documented) if subtask 86 did not already do so. Establish the 'docs verified against source, not fixed once' convention explicitly so task 78 (niri docs rewrite) can cite it — task 78 should ADOPT but NOT be merged with or made dependent on this reorg's doc convention. Inherited cross-cutting protocol: `git add <specific paths>` before verification. Verification level: full regression — re-run the complete build harness (nix flake check + nandi/hamsa/garuda builds + HM activation) as a final check, plus a manual README-vs-`find` drift check across the whole tree. Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md ("Documentation drift" section), reports/02_team-research.md (Conflicts Resolved #4, Coverage Gap #6/#8/#9, subtask blueprint row 10), and design/target-layout.md §3 (Subtask Blueprint row 10), §5 (gap #6, #8, #9 dispositions), and §5.3 (Roadmap Linkage Note).
+
+---
+
+### 90. Config dir deployment clarity docs
+- **Status**: [NOT STARTED]
+- **Task Type**: markdown
+- **Topic**: nix-infrastructure
+- **Dependencies**: Task 88
+
+**Description**: Document config/ deployment mechanisms in the NixOS/Home Manager dotfiles repo (task 81 Tier 2, optional/low-priority, subtask blueprint #9, depends on subtask 88 [module granularity pass, which renames home/core/shell.nix to dotfiles.nix] so this doc's cross-reference target already exists under its new name). Expand config/README.md to document all three existing deployment mechanisms (home.file.*.source store symlinks; builtins.readFile copies mirrored into ~/.config/config-files/; the activation-script cp for config/claude/{settings,keybindings}.json into ~/.claude/), and explicitly note: (a) the config/ vs Nix `config` module-argument shadowing, and (b) the separate .claude/ (agent-orchestration system, out of scope for task 81) vs config/claude/ (deployed dotfiles, in scope) naming collision — flag it so it is never conflated. Cross-reference from dotfiles.nix's (renamed from shell.nix by subtask 88) header comment. Preserve and explicitly flag (do not fix or silently widen) the pre-existing intended behavior that config/claude/ activation force-overwrites ~/.claude/settings.json / keybindings.json on every switch — any manual edit not round-tripped into config/claude/ is destroyed; this is documented behavior, not a bug this subtask should change. This subtask is explicitly optional/do-only-if-a-slow-week-presents-itself, not required for the reorg's core value. Inherited cross-cutting protocol: `git add <specific paths>` before any verification (doc-only, but still nix-tree-adjacent). Verification level: doc-only — stale-reference grep confirms config/README.md accurately reflects the current three mechanisms and the two callouts above are present. Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md ("config/" section), reports/02_team-research.md (Coverage Gap #3/#4, Design-Question Decision table row 7, subtask blueprint row 9), and design/target-layout.md §1.2 (naming collision), §1.3 (config/README.md), §2 (row 7), §3 (Subtask Blueprint row 9), and §5 (gap #4 disposition).
+
+---
+
+### 89. Opencode discord bot packaging
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nix-infrastructure
+- **Dependencies**: Task 86
+
+**Description**: Package opencode-discord-bot via buildPythonApplication in the NixOS/Home Manager dotfiles repo (task 81 Tier 2, subtask blueprint #8, depends on subtask 86 [module convention + per-host discord-bot opt-in] so the service is already wired as an explicit per-host option before its packaging changes underneath it). Add a pyproject.toml to opencode-discord-bot/ and convert its packaging to buildPythonApplication under packages/ (near-term, low-risk destination — NOT extraction to its own repo, which is a later strategic follow-on once the bot's interface stabilizes, mirroring the email-extension precedent already in this repo; document that follow-on but do not implement it here). Point the systemd unit's ExecStart/PYTHONPATH at the built nix-store path instead of ~/.dotfiles/opencode-discord-bot (modules/system/optional/discord-bot.nix:105). Fix the discord-bot.nix:20 comment path typo (cites opencode-discord-bot/src/bot.py; real path is opencode_discord_bot/src/bot.py). Resolve the untracked-.opencode/-vs-tracked-opencode.json inconsistency (root opencode.json currently points at a now-gitignored .opencode/agent/... path). THIS SUBTASK IS EXPLICITLY BEHAVIOR-CHANGING: the closure gains the packaged bot and its runtime execution path changes from a working-tree PYTHONPATH import to a nix-store path — NOT covered by the standard build-only inertness harness. Inherited cross-cutting protocol: `git add <specific paths>` (never `-A`) before verification. Verification level: RUNTIME + BUILD — build harness PLUS an explicit runtime check (`systemctl cat`/dry-run showing ExecStart/working directory resolves to a /nix/store/... path, not a $HOME path); document the expected closure delta as intentional, not a regression. Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md ("opencode-discord-bot/" section), reports/02_team-research.md (Conflicts Resolved #1, Design-Question Decision table row 8, subtask blueprint row 8), and design/target-layout.md §1.3 (opencode-discord-bot/ pyproject.toml), §2 (row 8), §3 (Subtask Blueprint row 8), and §4.3 (Runtime Verification Requirement).
+
+---
+
+### 88. Module granularity pass
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nix-infrastructure
+- **Dependencies**: Task 86
+
+**Description**: Run a module granularity pass over modules/home/ in the NixOS/Home Manager dotfiles repo (task 81 Tier 2, subtask blueprint #7, depends on subtask 86 [module convention + aggregators] so new/renamed files register in the new aggregators rather than needing a second hand-edit). Split modules/home/email/agent-tools.nix (761 lines, 5 wrapper binaries) into modules/home/email/agent-tools/{default.nix, per-wrapper}.nix — exact split boundaries are NOT prescribed here; finalize them during this subtask's own planning by reading the full file first. Merge tiny fragment files into modules/home/packages/misc.nix: packages/fonts.nix (8 lines), packages/lean-math.nix (8 lines), packages/ai-tools.nix (10 lines). Co-locate the memory system's split files (scripts/memory-monitor.nix + services/memory-services.nix) so they sit together / are named consistently. Rename modules/home/core/shell.nix to modules/home/core/dotfiles.nix (it deploys config/, not shell configuration — misnomer fix); treat further splitting deployment logic out to each owning module as a future direction, not mandatory within this subtask's granularity pass. Inherited cross-cutting protocol: `git add <specific paths>` / use `git mv` for renames (never `-A`) before verification — flake.nix's `root = self` makes this especially important for renames. Verification level: build-only inertness — `nix build .#homeConfigurations.benjamin.activationPackage`; `nix store diff-closures` against the pre-change baseline must be EMPTY (pure structural refactor, no closure change expected). Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md ("modules/" section — size outliers and tiny fragments), reports/02_team-research.md (subtask blueprint row 7, Design-Question Decision table row 11), and design/target-layout.md §1.3 (modules/home/ tree with agent-tools/ split and dotfiles.nix rename), §2 (row 11), and §3 (Subtask Blueprint row 7).
+
+---
+
+### 87. Hosts structural cleanup
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nix-infrastructure
+- **Dependencies**: Task 86
+
+**Description**: Clean up hosts/ structure and documentation in the NixOS/Home Manager dotfiles repo (task 81 Tier 2, subtask blueprint #6, depends on subtask 86 [module convention + aggregators] landing first so the mkHost pattern and per-host wiring convention are settled). Rewrite hosts/README.md's obsolete inline-nixosSystem example (hosts/README.md:28-37) to document the current mkHost factory pattern — this folds into subtask 86's doc edit if not already done there. As an EXPLICITLY OPTIONAL stretch step only, extract the ~60-line ISO inline config block (flake.nix:118-175) to hosts/iso/default.nix for symmetry with other hosts — scope strictly to wiring, do NOT touch task 68's broken zfs-kernel state, and exclude iso/usb-installer from the build-diff harness entirely (they are not reliably buildable regardless of this task's changes; task 68 lineage). Inherited cross-cutting protocol: `git add <specific paths>` (never `-A`) before verification. Verification level: build-only inertness — `nix flake check`; iso/usb-installer build state must remain exactly as (un)buildable as before (no new regression attributable to this subtask). Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md ("hosts/" and "lib/" sections), reports/02_team-research.md (subtask blueprint row 6), and design/target-layout.md §1.3 (hosts/ tree), §3 (Subtask Blueprint row 6), and §4.2 (Baseline Verification Harness, iso/usb-installer exclusion).
+
+---
+
+### 86. Module convention discord bot opt in
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nix-infrastructure
+- **Dependencies**: None
+
+**Description**: Adopt the module convention (options + aggregators) and make the Discord bot a real per-host opt-in in the NixOS/Home Manager dotfiles repo (task 81 Tier 1 — the strategic core, sequence BEFORE task 77's dispatch; subtask blueprint #5; self-contained, no dependencies). Work: (1) amend .claude/rules/nix.md to scope the options-pattern requirement to optional/host-toggled modules only, not a blanket 43-file rewrite (the other ~40 always-on modules remain plain config sets); (2) introduce modules/system/default.nix and modules/home/default.nix aggregators, replacing configuration.nix's and home.nix's flat hand-maintained import lists; (3) convert modules/system/optional/discord-bot.nix to `options.services.discordBot.enable` + `mkIf` and remove it from the shared/default aggregator; (4) wire it explicitly per-host (e.g. hosts/nandi/default.nix sets `services.discordBot.enable = true`) via `extraModules` in flake.nix — explicit wiring, NOT a generic pathExists/readDir auto-discovery layer (Conflicts Resolved #2 in research); (5) delete garuda's empty-body hosts/garuda/default.nix now, re-add only with real content plus explicit flake.nix wiring when garuda actually needs an opt-in module; (6) update docs/discord-bot.md:25. Fold task 69's dual-home-manager Option-A documentation-only resolution in here (or defer to subtask 91/documentation-sync if more natural there). THIS SUBTASK IS EXPLICITLY BEHAVIOR-CHANGING: a host that silently got the Discord bot before will legitimately stop getting it — it is NOT covered by the standard build-only inertness harness. Inherited cross-cutting protocol: `git add <specific paths>` (never `-A`) before verification. Verification level: RUNTIME + BUILD — full harness (`nix flake check` + build nandi/hamsa/garuda + HM activation) PLUS `nixos-rebuild switch` + `systemctl status`/`journalctl` confirming hamsa's closure no longer includes the Discord bot's Python closure and nandi's does; build-only diff cannot observe this class of change. Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md ("modules/" and "hosts/" sections), reports/02_team-research.md (Conflicts Resolved #2, Design-Question Decisions table, subtask blueprint row 5), and design/target-layout.md §1.3, §2 (rows 1,2,10), §3 (Subtask Blueprint row 5), and §4.3 (Runtime Verification Requirement).
+
+---
+
+### 85. Root scripts relocation scripts dir
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nix-infrastructure
+- **Dependencies**: None
+
+**Description**: Relocate root shell scripts into a new scripts/ directory in the NixOS/Home Manager dotfiles repo (task 81 Tier 0, subtask blueprint #4, no dependencies). Move install.sh, update.sh, and build-usb-installer.sh into scripts/ (test-sasl.sh is deleted by subtask 82, not moved here). Update all direct references to these scripts in root README.md, docs/testing.md, and docs/usb-installer.md in the SAME subtask so no doc goes stale. Inherited cross-cutting protocol: use `git mv` or `git add` on the new/old paths (never `git add -A`) before running verification, since flake.nix's `root = self` means the harness only sees git-tracked content — an unstaged move looks like a stale-success or a confusing 'file not found' failure. Verification level: build-only inertness — `grep` across docs shows only `scripts/`-prefixed paths; `./scripts/update.sh` and `./scripts/install.sh` run; `nix flake check` green (these scripts are not consumed by Nix evaluation but doc/README references must be exact). Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md ("Root files" table), reports/02_team-research.md (subtask blueprint row 4, decision table row 5), and design/target-layout.md §1.3 (Target Directory Layout, scripts/ section), §2 (Decision Table row 5), and §3 (Subtask Blueprint row 4).
+
+---
+
+### 84. Nix flake check ci gate
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nix-infrastructure
+- **Dependencies**: None
+
+**Description**: Add a `nix flake check` CI gate to the NixOS/Home Manager dotfiles repo (task 81 Tier 0, subtask blueprint #3 — NEW subtask, no dependencies). Add a GitHub Actions workflow under .github/workflows/ that runs `nix flake check` on push/PR (the repo already has a GitHub remote, free for personal repos), and/or a local pre-commit hook as a complement. This closes the exact gap that let tasks 67 (R env/ICU), 68 (zfs-kernel), and 69 (lectic specialArgs) go undetected until an unrelated task's audit surfaced them — cheap (one workflow file), high ROI, and explicitly first-class Tier-0 so it is in place before the bulk of the remaining reorg subtasks land. Inherited cross-cutting protocol: stage the new workflow file with `git add <specific path>` before verifying locally. Verification level: build-only inertness — workflow runs green on a trivial PR/push; local `nix flake check` still passes. Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/02_team-research.md ("NEW — CI gate" subtask and "CI-gate rationale" in Migration Philosophy), and design/target-layout.md §3 (Subtask Blueprint row 3) and §4.4 (CI-Gate Rationale).
+
+---
+
+### 83. Git hygiene specs tmp nixos repo
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nix-infrastructure
+- **Dependencies**: None
+
+**Description**: Fix git hygiene in the NixOS/Home Manager dotfiles repo (task 81 Tier 0, subtask blueprint #2, no dependencies). Untrack specs/tmp/* contents (specs/tmp/claude-tts-notify.log, specs/tmp/claude-tts-last-notify, specs/tmp/lit.md) via `git rm --cached` and extend .gitignore to cover specs/tmp/ contents — but the specs/tmp/ DIRECTORY ITSELF must continue to exist on disk (Critic correction: .claude/scripts/skill-base.sh's atomic state-write pattern, skill-base.sh:356,362, depends on the directory being present). Note specs/tmp/lit.md is an unrelated mbsync troubleshooting note, not --lit tooling — no decoupling work needed. Fix update.sh's mangled shebang (`#\!/bin/bash` from a heredoc write) and stray `complete\!` text. Inherited cross-cutting protocol: stage changes with `git add <specific paths>` (never `git add -A`) before verification (flake.nix's `root = self`). Scope boundary: this subtask touches specs/tmp/ and .gitignore/update.sh only — it does NOT touch any other content under specs/ or .claude/. Verification level: build-only inertness — `git status --porcelain` clean on specs/tmp/ contents, directory still present, `./update.sh` still executes, `nix flake check` green. Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md ("Git hygiene" section), reports/02_team-research.md (Critic correction on specs/tmp/, subtask blueprint row 2), and design/target-layout.md §3 (Subtask Blueprint row 2) and §4.1 (git-add-before-verify protocol).
+
+---
+
+### 82. Dead code removal nixos repo
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nix-infrastructure
+- **Dependencies**: None
+
+**Description**: Remove dead code and orphaned files from the NixOS/Home Manager dotfiles repo (task 81 Tier 0, subtask blueprint #1, no dependencies). Delete: home-modules/ directory (mcp-hub.nix + its README, plus the commented-out import at home.nix:6 and stale comments at modules/home/core/shell.nix:8 and modules/home/packages/email-tools.nix:38), modules/opencode.nix (dead AND broken — references ../../config/opencode.json above repo root), packages/neovim.nix (unreferenced wrapNeovimUnstable derivation — NOT modules/home/core/neovim.nix, confirmed a different, live file), test-sasl.sh, test-update.md, root TODO.md (superseded by specs/TODO.md), and 5 wallpapers/ scaffolding files (IMPLEMENTATION_COMPLETE.md, README.md, SETUP_INSTRUCTIONS.md, verify-setup.sh, SAVE_IMAGE_HERE.txt). Widen packages/test-mcphub.sh removal to also patch its 3 doc references (docs/packages.md:244, docs/applications.md:26, packages/README.md:260-277) in the SAME subtask — it is doc-referenced, not orphaned (Critic correction). Drop the config/rclone.conf 'verify' step entirely — already untracked/resolved, nothing to do. Inherited cross-cutting protocol: stage each deletion/edit with `git add <specific paths>` (never `git add -A`) before running verification, since flake.nix's `root = self` means the harness only sees git-tracked content. Verification level: build-only inertness — `nix flake check` + `nixos-rebuild build --flake .#nandi/.#hamsa/.#garuda` + `nix build .#homeConfigurations.benjamin.activationPackage`; `git status` shows only deletions + the 3 doc edits; harness green (none of these files are imported anywhere). Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md ("home-modules/", "packages/" sections), reports/02_team-research.md (subtask blueprint row 1), and design/target-layout.md §3 (Subtask Blueprint row 1) and §4 (Migration Safety & Verification).
+
+---
+
 ### 81. Reorganize nixos dotfiles repository design
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
@@ -62,6 +176,7 @@ next_project_number: 82
   - [081_reorganize_nixos_dotfiles_repository_design/reports/02_teammate-d-findings.md]
   - [081_reorganize_nixos_dotfiles_repository_design/reports/02_team-research.md]
 - **Plan**: [081_reorganize_nixos_dotfiles_repository_design/plans/03_reorg-design-and-subtasks.md]
+- **Design**: [081_reorganize_nixos_dotfiles_repository_design/design/target-layout.md]
 
 **Description**: Design and orchestrate a systematic reorganization of the NixOS/Home Manager dotfiles repository: research and design the ideal target directory layout (modules/, hosts/, lib/, overlays/, packages/, config/, secrets/, wallpapers/, docs/, root files), then decompose the refactor into ordered implementation subtasks, creating each subtask with its own seed research report. A comprehensive repo review has already been completed and is seeded as this task's first research report.
 
