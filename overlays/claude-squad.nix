@@ -1,5 +1,6 @@
 # Overlay providing the claude-squad package (terminal multi-agent manager)
 # Source: https://github.com/smtg-ai/claude-squad
+# deadnix: skip
 final: prev: {
   claude-squad = final.buildGoModule rec {
     pname = "claude-squad";

@@ -1,4 +1,5 @@
 # Nix daemon settings, GC, nix-ld, and nixpkgs configuration.
+# deadnix: skip
 { pkgs, lib, ... }:
 {
   # Allow unfree packages

@@ -1,4 +1,5 @@
 # Desktop environment: GNOME, niri, GDM, XDG portal, and dconf configuration.
+# deadnix: skip
 { pkgs, lib, ... }:
 {
   # Enable the X11 windowing system and display manager

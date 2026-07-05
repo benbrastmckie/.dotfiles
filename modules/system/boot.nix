@@ -1,4 +1,5 @@
 # Boot loader, kernel, and low-level hardware configuration.
+# deadnix: skip
 { pkgs, lib, ... }:
 {
   # Bootloader.

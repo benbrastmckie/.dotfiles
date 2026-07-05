@@ -16,6 +16,7 @@
 #
 # Kept (commented, not deleted) so re-enabling XOAUTH2 later is a one-block revert. To restore:
 # uncomment below and re-point mbsync.nix's Gmail store back to AuthMechs XOAUTH2.
+# deadnix: skip
 { config, ... }:
 {
   # systemd.user.services.gmail-oauth2-refresh = {
