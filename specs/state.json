@@ -1,6 +1,17 @@
 {
-  "next_project_number": 103,
+  "next_project_number": 104,
   "active_projects": [
+    {
+      "project_number": 103,
+      "project_name": "extract_discord_bot_to_own_repo",
+      "status": "not_started",
+      "task_type": "nix",
+      "topic": "services",
+      "dependencies": [],
+      "description": "Extract opencode-discord-bot to its own standalone repository consumed as a flake input. Currently the bot's Python source lives in-tree at opencode-discord-bot/ (16 tracked files, PEP 621 pyproject.toml) and is built via packages/opencode-discord-bot.nix using src = ../opencode-discord-bot, then callPackage'd in modules/system/optional/discord-bot.nix. Goal: move the Python source out of .dotfiles into a dedicated git repo that exposes the bot as a flake output (package), and consume it here as a flake input (mirroring the lectic/niri input pattern with inputs.nixpkgs.follows) instead of building from the in-tree path. Keep in .dotfiles: sops secrets (discord_bot_token, discord_channel_id, etc.), the systemd service wiring (opencode-serve + discord-bot, LoadCredential injection, StateDirectory persistence, watchdog), and the thin optional module. Also reconcile host wiring so the bot is cleanly enableable on ANY host and is enabled on hamsa (the primary machine, which is currently running the bot even though only nandi opts in via services.discordBot.enable = true -- resolve this drift). Update docs (docs/discord-bot.md, packages/README.md, modules/README.md, README.md) to reflect the flake-input structure. Verify nix flake check passes and the discord-bot service still builds/runs on hamsa after the switch. Open decision for research/planning: new repo hosting (GitHub remote under the user's account vs local path: input) and whether to keep a thin packages wrapper or consume the flake package directly. Follows task 89 (bot packaging, complete).",
+      "created": "2026-07-05T17:13:46Z",
+      "last_updated": "2026-07-05T17:13:46Z"
+    },
     {
       "project_number": 102,
       "project_name": "gate_ci_on_lint",
@@ -1856,6 +1867,7 @@
   },
   "active_topics": [
     "nixos-config",
-    "nix-infrastructure"
+    "nix-infrastructure",
+    "services"
   ]
 }

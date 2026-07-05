@@ -1,5 +1,5 @@
 ---
-next_project_number: 103
+next_project_number: 104
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 103
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92,103 | -- | nix-infrastructure, services, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -27,6 +27,7 @@ next_project_number: 103
 23 [PLANNED] — install_simple_webcam_recording_software
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
+103 [NOT STARTED] — Extract opencode-discord-bot to its own standalone repository con
 
 ### Packaging
 
@@ -47,6 +48,16 @@ next_project_number: 103
 92 [NOT STARTED] — Fix the Logos (Protonmail Bridge) mbsync group so the email-clean
 
 ## Tasks
+
+### 103. Extract discord bot to own repo
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: services
+- **Dependencies**: None
+
+**Description**: Extract opencode-discord-bot to its own standalone repository consumed as a flake input. Currently the bot's Python source lives in-tree at opencode-discord-bot/ (16 tracked files, PEP 621 pyproject.toml) and is built via packages/opencode-discord-bot.nix using src = ../opencode-discord-bot, then callPackage'd in modules/system/optional/discord-bot.nix. Goal: move the Python source out of .dotfiles into a dedicated git repo that exposes the bot as a flake output (package), and consume it here as a flake input (mirroring the lectic/niri input pattern with inputs.nixpkgs.follows) instead of building from the in-tree path. Keep in .dotfiles: sops secrets (discord_bot_token, discord_channel_id, etc.), the systemd service wiring (opencode-serve + discord-bot, LoadCredential injection, StateDirectory persistence, watchdog), and the thin optional module. Also reconcile host wiring so the bot is cleanly enableable on ANY host and is enabled on hamsa (the primary machine, which is currently running the bot even though only nandi opts in via services.discordBot.enable = true -- resolve this drift). Update docs (docs/discord-bot.md, packages/README.md, modules/README.md, README.md) to reflect the flake-input structure. Verify nix flake check passes and the discord-bot service still builds/runs on hamsa after the switch. Open decision for research/planning: new repo hosting (GitHub remote under the user's account vs local path: input) and whether to keep a thin packages wrapper or consume the flake package directly. Follows task 89 (bot packaging, complete).
+
+---
 
 ### 102. Gate ci on lint
 - **Status**: [COMPLETED]
