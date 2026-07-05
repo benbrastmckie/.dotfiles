@@ -1,15 +1,44 @@
 {
-  "status": "in_progress",
-  "started_at": "2026-07-05T06:38:21Z",
-  "artifacts": [],
-  "partial_progress": {
-    "stage": "phase_1_baseline",
-    "details": "Reviewed hosts/README.md, lib/mkHost.nix, flake.nix, hosts/usb-installer/default.nix; running baseline nix flake check"
+  "status": "implemented",
+  "summary": "Completed all 3 phases of hosts/ structural cleanup: rewrote hosts/README.md's obsolete inline-nixosSystem example to document the mkHost factory pattern (required Phase 2), and extracted the inline ISO module from flake.nix into hosts/iso/default.nix for symmetry with hosts/usb-installer/default.nix (optional Phase 3). Discovered and fixed a genuine bug in the plan's suggested pkgs.system closure fix, which causes infinite recursion; used specialArgs-provided system instead. Verified byte-for-byte drvPath equivalence before/after the ISO extraction, and nix flake check output identical to the pre-change baseline throughout.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "hosts/README.md",
+      "summary": "Rewrote Usage section to document mkHost factory pattern (simple + rich forms); refreshed Structure section; added iso to Hosts list and Available hosts line"
+    },
+    {
+      "type": "implementation",
+      "path": "hosts/iso/default.nix",
+      "summary": "New file: extracted ISO-specific module body from flake.nix, using specialArgs-provided system instead of pkgs.system to avoid infinite recursion"
+    },
+    {
+      "type": "implementation",
+      "path": "flake.nix",
+      "summary": "Replaced inline ISO module function with ./hosts/iso/default.nix path reference; added inherit system; to iso block's specialArgs"
+    },
+    {
+      "type": "summary",
+      "path": "specs/087_hosts_structural_cleanup/summaries/01_hosts-structural-cleanup-summary.md",
+      "summary": "Implementation summary with verification details and plan deviations"
+    },
+    {
+      "type": "handoff",
+      "path": "specs/087_hosts_structural_cleanup/handoffs/phase-3-handoff-20260705T070000Z.md",
+      "summary": "Final progressive handoff confirming all 3 phases complete"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Rewrote hosts/README.md to document the current mkHost factory pattern and extracted the inline ISO module from flake.nix into hosts/iso/default.nix, fixing a latent infinite-recursion bug in the plan's suggested pkgs.system approach along the way; nix flake check output and iso drvPath verified unchanged/identical throughout."
   },
   "metadata": {
     "session_id": "sess_1783228323_a53c47_87",
     "agent_type": "nix-implementation-agent",
+    "duration_seconds": 2400,
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"]
-  }
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 3,
+    "phases_total": 3
+  },
+  "next_steps": "None required; task complete. Optionally run nixos-rebuild build --flake .#<host> on a live host to confirm full build (excluded from this task's scope per task 68 lineage)."
 }
