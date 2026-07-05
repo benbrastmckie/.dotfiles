@@ -1,7 +1,7 @@
 # Implementation Plan: Task #93
 
 - **Task**: 93 - Make scripts/update.sh's automatic git checkpoint commit opt-in instead of default
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 1.5 hours
 - **Dependencies**: None (parent_task 85 already completed)
 - **Research Inputs**: specs/093_update_sh_auto_commit_opt_in/reports/01_update-sh-checkpoint-opt-in.md
@@ -149,26 +149,42 @@ replace positional flag checks with a single `for arg in "$@"` loop.
 
 ---
 
-### Phase 3: Verification [NOT STARTED]
+### Phase 3: Verification [COMPLETED]
 
 **Goal**: Confirm the definition of done via syntax check, dirty-tree dry runs, `--update` path, and flake check.
 
 **Tasks**:
-- [ ] `bash -n scripts/update.sh` - syntax check, expect clean exit.
-- [ ] Create a throwaway dirty file (e.g. `touch /tmp/wip-test && cp /tmp/wip-test ./_wip_test`),
+- [x] `bash -n scripts/update.sh` - syntax check, expect clean exit.
+- [x] Create a throwaway dirty file (e.g. `touch /tmp/wip-test && cp /tmp/wip-test ./_wip_test`),
       run `./scripts/update.sh` with no flags, confirm it **refuses** (non-zero exit, stderr
       message) and creates **no** commit (`git log -1` unchanged, `git status --porcelain` still
-      shows the dirty file). Remove the throwaway file afterward.
-- [ ] With the same dirty file, run `UPDATE_CHECKPOINT=1 ./scripts/update.sh` (or `--checkpoint`)
+      shows the dirty file). Remove the throwaway file afterward. *(deviation: altered — the
+      real repo's tree was already naturally dirty from concurrent unrelated work at test time,
+      so the no-flags refusal was verified directly against that natural dirty state (confirmed
+      HEAD unchanged, non-zero exit, stderr message) rather than an artificial throwaway file in
+      the real repo)*
+- [x] With the same dirty file, run `UPDATE_CHECKPOINT=1 ./scripts/update.sh` (or `--checkpoint`)
       up to the point of confirming a checkpoint commit is created containing only the intended
       file (`git show --stat`); interrupt before the rebuild if a full rebuild is undesirable.
       Alternatively verify the checkpoint branch is reached via a dry echo. Clean up the test commit.
-- [ ] Confirm `--update` still reaches the `nix flake update` path (verify the "Updating flake
-      inputs..." message prints, without necessarily completing the network update).
-- [ ] Confirm flag ordering: `./scripts/update.sh --update --no-check` now honors both flags
+      *(deviation: altered — verified in an isolated scratch git repo
+      (`/tmp/.../scratchpad/update-sh-test`) with the two rebuild invocations and `nix flake
+      update` stubbed to `echo`, rather than against the real dotfiles repo, because the real
+      tree's pre-existing unrelated dirty files meant `--checkpoint`'s `git add -A` would have
+      committed other in-flight tasks' changes; both `--checkpoint` and `UPDATE_CHECKPOINT=1`
+      were confirmed to create a correctly-scoped commit via `git show --stat`, and the scratch
+      repo was deleted afterward)*
+- [x] Confirm `--update` still reaches the `nix flake update` path (verify the "Updating flake
+      inputs..." message prints, without necessarily completing the network update). *(verified
+      in the same scratch repo; "Updating flake inputs..." printed and the stubbed
+      `nix flake update` was reached)*
+- [x] Confirm flag ordering: `./scripts/update.sh --update --no-check` now honors both flags
       (previously `--no-check` was ignored in this order) -- verify via the printed messages.
-- [ ] `nix flake check` - expect green (script is outside flake evaluation; run to confirm no
-      incidental regression).
+      *(verified both orderings, `--update --no-check` and `--no-check --update`, in the scratch
+      repo; both printed "Updating flake inputs..." and "Skipping build checks...")*
+- [x] `nix flake check` - expect green (script is outside flake evaluation; run to confirm no
+      incidental regression). *(ran in the real repo; "all checks passed!", pre-existing
+      unrelated `boot.zfs.forceImportRoot` evaluation warnings only)*
 
 **Timing**: 25 minutes
 
@@ -183,14 +199,14 @@ replace positional flag checks with a single `for arg in "$@"` loop.
 
 ## Testing & Validation
 
-- [ ] `bash -n scripts/update.sh` clean.
-- [ ] Dirty tree + no flags -> refuses, non-zero exit, no commit created.
-- [ ] Dirty tree + `--checkpoint` (or `UPDATE_CHECKPOINT=1`) -> checkpoint commit created, correctly scoped.
-- [ ] `--update` still triggers the `nix flake update` path.
-- [ ] `--update --no-check` (both orderings) honors both flags.
-- [ ] `git add -A` present only inside the explicit opt-in branch.
-- [ ] `nix flake check` green.
-- [ ] `README.md:188` corrected; `docs/development.md` flag cross-reference added.
+- [x] `bash -n scripts/update.sh` clean.
+- [x] Dirty tree + no flags -> refuses, non-zero exit, no commit created.
+- [x] Dirty tree + `--checkpoint` (or `UPDATE_CHECKPOINT=1`) -> checkpoint commit created, correctly scoped.
+- [x] `--update` still triggers the `nix flake update` path.
+- [x] `--update --no-check` (both orderings) honors both flags.
+- [x] `git add -A` present only inside the explicit opt-in branch.
+- [x] `nix flake check` green.
+- [x] `README.md:188` corrected; `docs/development.md` flag cross-reference added.
 
 ## Artifacts & Outputs
 
