@@ -1,15 +1,103 @@
 {
-  "status": "in_progress",
-  "started_at": "2026-07-04T19:30:00Z",
-  "artifacts": [],
-  "partial_progress": {
-    "stage": "initializing",
-    "details": "Agent started, parsing delegation context"
+  "status": "implemented",
+  "summary": "Moved install.sh, update.sh, and build-usb-installer.sh into a new scripts/ directory via git mv (executable bit and history preserved), then updated all 12 live docs (3 explicitly named + 8 additional) to scripts/-prefixed paths. Repo-wide re-grep confirms no bare-name live references remain outside the intentionally-ignored set. Both moved scripts execute and resolve the flake ref correctly, and nix flake check passes green. Note: scripts/update.sh's own pre-existing git-checkpoint logic auto-committed all Phase 1-4 changes as commit 6ba1f4e during verification (side effect of running the script, not a direct agent commit) — see plan Phase 4 deviation note and summary for details.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "scripts/install.sh",
+      "summary": "Moved from repo root (git mv), contents unchanged"
+    },
+    {
+      "type": "implementation",
+      "path": "scripts/update.sh",
+      "summary": "Moved from repo root (git mv), contents unchanged, carries task-83 shebang fix"
+    },
+    {
+      "type": "implementation",
+      "path": "scripts/build-usb-installer.sh",
+      "summary": "Moved from repo root (git mv), contents unchanged"
+    },
+    {
+      "type": "documentation",
+      "path": "README.md",
+      "summary": "3x update.sh refs updated to scripts/update.sh"
+    },
+    {
+      "type": "documentation",
+      "path": "docs/testing.md",
+      "summary": "4x update.sh refs updated to scripts/-prefixed"
+    },
+    {
+      "type": "documentation",
+      "path": "docs/usb-installer.md",
+      "summary": "4x update.sh + 2x build-usb-installer.sh refs updated"
+    },
+    {
+      "type": "documentation",
+      "path": "docs/installation.md",
+      "summary": "3x update.sh refs + install.sh table entry updated"
+    },
+    {
+      "type": "documentation",
+      "path": "docs/dual-home-manager.md",
+      "summary": "7x update.sh prose mentions updated"
+    },
+    {
+      "type": "documentation",
+      "path": "docs/development.md",
+      "summary": "1x update.sh ref updated"
+    },
+    {
+      "type": "documentation",
+      "path": "docs/unstable-packages.md",
+      "summary": "2x update.sh refs updated"
+    },
+    {
+      "type": "documentation",
+      "path": "docs/README.md",
+      "summary": "1x update.sh ref updated"
+    },
+    {
+      "type": "documentation",
+      "path": "packages/README.md",
+      "summary": "1x update.sh ref updated"
+    },
+    {
+      "type": "documentation",
+      "path": "docs/ryzen-ai-300-support-summary.md",
+      "summary": "1x build-usb-installer.sh ref updated"
+    },
+    {
+      "type": "documentation",
+      "path": "hosts/README.md",
+      "summary": "1x update.sh ref updated"
+    },
+    {
+      "type": "documentation",
+      "path": "hosts/nandi/README.md",
+      "summary": "1x update.sh ref updated"
+    },
+    {
+      "type": "plan",
+      "path": "specs/085_root_scripts_relocation_scripts_dir/plans/01_scripts-dir-relocation.md",
+      "summary": "All 4 phases marked COMPLETED, deviation note added for Phase 4 auto-commit"
+    },
+    {
+      "type": "summary",
+      "path": "specs/085_root_scripts_relocation_scripts_dir/summaries/01_scripts-dir-relocation-summary.md",
+      "summary": "Implementation summary with verification and deviation details"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Relocated install.sh, update.sh, and build-usb-installer.sh into scripts/ via git mv, updated all 12 live doc references to scripts/-prefixed paths, verified with repo-wide grep, script execution, and a green nix flake check."
   },
   "metadata": {
     "session_id": "sess_1783217512_f16aa6_85",
     "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"]
-  }
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 4,
+    "phases_total": 4
+  },
+  "next_steps": "Orchestrator should verify against HEAD (commit 6ba1f4e already contains Phase 1-4 script moves and doc edits due to update.sh's own git-checkpoint side effect) rather than creating a duplicate commit for that content. Stage and commit the plan/summary updates (currently staged, uncommitted) as the final task-85 commit."
 }
