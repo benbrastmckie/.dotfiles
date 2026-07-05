@@ -1,11 +1,11 @@
-# buildPythonApplication for the OpenCode Discord bot relay (opencode-discord-bot/).
+# buildPythonApplication for the OpenCode Discord bot relay (packages/opencode-discord-bot/).
 # callPackage'd directly in modules/system/optional/discord-bot.nix -- NOT routed through
 # overlays/python-packages.nix, which is scoped to LIBRARY overrides composed via
 # python3.withPackages. This is a standalone application with its own console-script
 # entry point, so it is wired directly at its single consumption site instead.
 #
-# Future work: own-repo extraction. opencode-discord-bot/ currently lives in-tree
-# (src = ../opencode-discord-bot) as the deliberate near-term choice -- mirroring how most
+# Future work: own-repo extraction. packages/opencode-discord-bot/ currently lives in-tree
+# (src = ./opencode-discord-bot) as the deliberate near-term choice -- mirroring how most
 # packages/*.nix here vendor small sources directly. If the bot's source grows independent
 # release cadence or needs to be reused outside this flake, it could be extracted to its own
 # repository and consumed as a flake input, the same way the email extension documents its
@@ -24,7 +24,7 @@ buildPythonApplication {
   version = "0.1.0";
   pyproject = true;
 
-  src = ../opencode-discord-bot;
+  src = ./opencode-discord-bot;
 
   build-system = [ setuptools ];
   dependencies = [
