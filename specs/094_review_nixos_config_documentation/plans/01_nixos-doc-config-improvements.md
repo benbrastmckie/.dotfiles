@@ -201,25 +201,27 @@ workflow.
 
 ---
 
-### Phase 4: Correct package-inventory docs [NOT STARTED]
+### Phase 4: Correct package-inventory docs [COMPLETED]
 
 **Goal**: Fix `packages/README.md` and `docs/packages.md` so they describe the actual set of packages
 and the actual file locations and Python attribute.
 
 **Tasks**:
-- [ ] `packages/README.md`: delete the `marker-pdf.nix` section (lines ~48-59) and its "UVX/UV Wrapper
+- [x] `packages/README.md`: delete the `marker-pdf.nix` section (lines ~48-59) and its "UVX/UV Wrapper
       Pattern" reference (line ~132) — confirm zero `marker` hits first (`find . -iname "*marker*"`);
       add standalone sections for `opencode.nix`, `kooha.nix`, `slidev.nix` (all real files referenced
       from `overlays/unstable-packages.nix`), following the existing per-file section format; replace all
       5 stale `python312`/`python312Packages` references (lines ~98, 106, 110, 161, 165) with `python3`.
-- [ ] `docs/packages.md`: fix line ~14 to reference `overlays/unstable-packages.nix` instead of the
+- [x] `docs/packages.md`: fix line ~14 to reference `overlays/unstable-packages.nix` instead of the
       deleted root-level `unstable-packages.nix`; replace the `python312.withPackages` reference
-      (line ~39) with `python3.withPackages`.
+      (line ~39) with `python3.withPackages`. *(altered: also fixed a third same-issue stale
+      reference at line ~98, "Add to `unstable-packages.nix`" -> "Add to `overlays/unstable-packages.nix`",
+      not explicitly named in the plan but the same finding.)*
 
 **Tasks (verification of ground truth before editing)**:
-- [ ] Confirm `packages/opencode.nix`, `packages/kooha.nix`, `packages/slidev.nix` exist and read their
+- [x] Confirm `packages/opencode.nix`, `packages/kooha.nix`, `packages/slidev.nix` exist and read their
       headers so the new sections describe them accurately.
-- [ ] Confirm zero `python312` references remain in any `.nix` file (sanity: `grep -rn python312 --include=*.nix .`).
+- [x] Confirm zero `python312` references remain in any `.nix` file (sanity: `grep -rn python312 --include=*.nix .`).
 
 **Timing**: 1 hour
 

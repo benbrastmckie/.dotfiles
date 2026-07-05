@@ -45,18 +45,34 @@ NPX wrapper for Claude Code that fetches the latest version from NPM on each inv
 
 **See**: `docs/discord-bot.md`, `specs/089_opencode_discord_bot_packaging/`
 
-### marker-pdf.nix
-UV wrapper for marker-pdf that automatically uses the latest version from PyPI. This zero-maintenance approach eliminates the need for manual version updates while providing PDF to markdown conversion capabilities.
+### opencode.nix
+`stdenvNoCC.mkDerivation` that fetches a prebuilt `opencode` binary from GitHub releases
+(`anomalyco/opencode`) instead of building from source, allowing version updates independent of
+the nixpkgs packaging lag.
 
-**Implementation**: Uses `writeShellScriptBin` with `uv run` to execute marker-pdf in an isolated environment
+**Implementation**: `fetchurl` downloads the release tarball (`opencode-linux-x64.tar.gz`); a
+custom `unpackPhase` extracts the single binary directly (no wrapper directory in the tarball);
+`installPhase` installs it and wraps it with `makeWrapper` to prepend `ripgrep` to `PATH`.
 
-**Benefits**:
-- Automatic updates to latest version via PyPI
-- Zero maintenance required
-- Isolated environment prevents dependency conflicts
-- Handles complex dependencies (PyTorch, etc.) automatically
+**Updating**: Bump `version`, prefetch the new tarball hash with
+`nix store prefetch-file --hash-type sha256 <release-url>` (no `--unpack` — hash the tarball
+itself), and update the hash in `opencode.nix`.
 
-**Usage**: Available as `marker_pdf` command after home-manager rebuild.
+**Wired via**: `overlays/unstable-packages.nix` (`opencode = final.callPackage ../packages/opencode.nix { };`).
+
+### kooha.nix
+`overrideAttrs` wrapper around nixpkgs' `kooha` (screen recorder) that adds GStreamer plugins
+(`gst-plugins-bad` for AAC audio encoders, `gst-libav` for additional codec support) not included
+in the upstream package's default `buildInputs`.
+
+**Wired via**: `overlays/unstable-packages.nix`
+(`kooha = import ../packages/kooha.nix prev.kooha final.gst_all_1;`).
+
+### slidev.nix
+`writeShellScriptBin` wrapper that runs `npx @slidev/cli@latest`, giving a `slidev` command for
+building Markdown-based presentation slides without pinning a nixpkgs version.
+
+**Wired via**: `overlays/unstable-packages.nix` (`slidev = final.callPackage ../packages/slidev.nix { };`).
 
 ### loogle.nix
 Wrapper script for the Lean 4 Mathlib search tool that provides lazy installation and caching.
@@ -95,7 +111,7 @@ loogle --help                  # Show all options
 See [Development Guide](../docs/development.md#lean-4-development) for detailed usage examples.
 
 ### python-cvc5.nix
-Custom Python package for CVC5 v1.3.1 SMT solver bindings. Nixpkgs does not provide `python312Packages.cvc5`, so this package builds from the PyPI wheel.
+Custom Python package for CVC5 v1.3.1 SMT solver bindings. Nixpkgs does not provide `python3Packages.cvc5`, so this package builds from the PyPI wheel.
 
 **Implementation**: Uses `buildPythonPackage` with `fetchPypi` to download the pre-built manylinux wheel, then uses `autoPatchelfHook` to fix shared library paths for the bundled native C++ extensions.
 
@@ -103,11 +119,12 @@ Custom Python package for CVC5 v1.3.1 SMT solver bindings. Nixpkgs does not prov
 - `autoPatchelfHook`: Automatically fixes shared library paths
 - `stdenv.cc.cc.lib`: Provides `libstdc++.so.6` for C++ bindings
 
-**Usage**: Available in `python312.withPackages` via the `pythonPackagesOverlay` defined in `flake.nix`:
+**Usage**: Available in `python3.withPackages` via the `pythonPackagesOverlay` defined in
+`overlays/python-packages.nix`:
 
 ```nix
 home.packages = with pkgs; [
-  (python312.withPackages(p: with p; [
+  (python3.withPackages(p: with p; [
     cvc5
     # ... other packages
   ]))
@@ -130,7 +147,6 @@ home.packages = with pkgs; [
 Several packages in this directory follow the same zero-maintenance pattern using UV for package management:
 
 - **aristotle.nix**: `uvx --from aristotlelib@latest aristotle`
-- **marker-pdf.nix**: `uv run marker-pdf`
 
 **Benefits of UVX Pattern**:
 - Automatic updates to latest version from PyPI
@@ -158,11 +174,12 @@ Custom Python package for PyMuPDF4LLM v0.2.2, a specialized extension of PyMuPDF
 - `pymupdf`: Python bindings for MuPDF (from nixpkgs)
 - `tabulate`: Pretty-print tabular data (from nixpkgs)
 
-**Usage**: Available in `python312.withPackages` via the `pythonPackagesOverlay` defined in `flake.nix`:
+**Usage**: Available in `python3.withPackages` via the `pythonPackagesOverlay` defined in
+`overlays/python-packages.nix`:
 
 ```nix
 home.packages = with pkgs; [
-  (python312.withPackages(p: with p; [
+  (python3.withPackages(p: with p; [
     pymupdf4llm
     # ... other packages
   ]))

@@ -11,7 +11,7 @@ Main package set from nixpkgs stable channel:
 
 ### Unstable Packages
 
-Packages from nixpkgs unstable channel defined in `unstable-packages.nix`:
+Packages from nixpkgs unstable channel defined in `overlays/unstable-packages.nix`:
 - Latest versions of development tools
 - Packages requiring newer features
 - Applications needing frequent updates
@@ -36,7 +36,7 @@ Custom Python packages are integrated via overlays defined in `flake.nix`:
 - Custom package for CVC5 Python bindings (not available in nixpkgs)
 - Built from PyPI wheel with autoPatchelfHook for native libraries
 - Integrated via `pythonPackagesOverlay` in `flake.nix`
-- Available in `python312.withPackages` alongside standard packages
+- Available in `python3.withPackages` alongside standard packages
 - Requires `LD_LIBRARY_PATH` configuration for C++ dependencies
 
 See [`packages/README.md`](../packages/README.md) for detailed documentation on custom packages.
@@ -95,7 +95,7 @@ home.packages = with pkgs; [
 
 ### Unstable Packages
 
-Add to `unstable-packages.nix` and reference in configurations.
+Add to `overlays/unstable-packages.nix` and reference in configurations.
 
 ## Web Development & Network Tools
 
