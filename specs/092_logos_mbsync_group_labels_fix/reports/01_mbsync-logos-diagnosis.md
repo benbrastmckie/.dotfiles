@@ -94,10 +94,27 @@ Sketch:
 
 ## Secondary issues (non-blocking — note, don't necessarily fix here)
 
-- **Duplicate UID** warnings in `.Trash` / `.Archive` from the maildir moves — mbsync usually
-  self-heals on a clean run once the fatal labels error is gone.
+- **Duplicate UID in `.Trash` (CONFIRMED, blocks the Trash-folder sync).** Two files in
+  `~/Mail/Logos/.Trash/cur/` both carry `U=3`:
+  - `1770669071.1006834_3.hamsa,U=3:2,`
+  - `1770669126.1007943_17.hamsa,U=3:2,S`
+
+  `mbsync logos-trash` exits 1 on `duplicate UID 3 in .Trash`, so the trashed copies never
+  reach the Proton **Trash** folder. It does NOT block the INBOX removal (see below). Fix is
+  maildir UID surgery (rename one file's `U=` token, or reset the folder's `.uidvalidity` /
+  sync-state) — do it deliberately, not ad-hoc. Also seen once: `duplicate UID 1 in .Archive`.
 - One **malformed 144-byte message** in local `Sent` missing a `Date:` header that Proton
   rejects on APPEND. Separate concern; investigate which message and whether to drop/repair it.
+
+## Follow-up finding (2026-07-04, post-cleanup sync attempt)
+
+The **INBOX channel already reconciles correctly**: after the cleanup, `mbsync logos-inbox`
+alone reports `Far: +0 / Near: +0`, exit 0 — i.e. the 20 INBOX→Trash removals DID propagate to
+the Proton server INBOX (the wrapper's internal reconcile runs `logos-inbox` before it dies on
+the labels channel). So the observed end-user impact of this bug is narrower than the exit-1
+suggests: **removals reach the server; only (a) the automatic full-group `mbsync logos` exit
+code and (b) the Trash-folder copy-up are broken.** The group-slimming fix addresses (a); the
+duplicate-UID item above addresses (b).
 
 ## Verification
 

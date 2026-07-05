@@ -1,4 +1,4 @@
-#\!/bin/bash
+#!/bin/bash
 
 set -e
 
@@ -52,4 +52,4 @@ sudo nixos-rebuild switch --flake .#$HOSTNAME --max-jobs "$MAX_JOBS" --option al
 echo "===> Rebuilding Home Manager configuration..."
 home-manager switch --flake .#benjamin --max-jobs "$MAX_JOBS" --option allow-import-from-derivation false
 
-echo "===> Dotfiles update complete\!"
+echo "===> Dotfiles update complete!"

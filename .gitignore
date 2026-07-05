@@ -27,10 +27,6 @@ Thumbs.db
 .direnv/
 .envrc
 
-# Flake
-.direnv/
-EOF < /dev/null
-
 # Secrets
 config/rclone.conf
 config/zuliprc
@@ -39,3 +35,7 @@ config/zuliprc
 # Kept on disk (gitignored), not version-controlled here.
 /.claude/
 /.opencode/
+
+# Task-system scratch space — directory must persist (skill-base.sh atomic-write dependency)
+specs/tmp/*
+!specs/tmp/.gitkeep
