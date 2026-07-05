@@ -1,0 +1,95 @@
+{
+  "task": 91,
+  "task_slug": "documentation_sync_reorg_final",
+  "task_type": "markdown",
+  "phase": "implement",
+  "status": "implemented",
+  "session_id": "sess_1783228323_a53c47_91",
+  "implementation_session_id": "sess_1783228323_a53c47_91_impl",
+  "plan_path": "specs/091_documentation_sync_reorg_final/plans/01_documentation-sync-final.md",
+  "research_inputs": [
+    "specs/091_documentation_sync_reorg_final/reports/01_documentation-sync-final.md"
+  ],
+  "doc_only": true,
+  "next_command": "/implement 91",
+  "plan_metadata": {
+    "phases": 6,
+    "total_effort_hours": 3,
+    "complexity": "medium",
+    "research_integrated": true,
+    "plan_version": 1,
+    "dependency_waves": [[1, 2, 3, 4, 5], [6]],
+    "reports_integrated": [
+      {
+        "path": "specs/091_documentation_sync_reorg_final/reports/01_documentation-sync-final.md",
+        "integrated_in_plan_version": 1,
+        "integrated_date": "2026-07-05"
+      }
+    ],
+    "skeleton": false,
+    "follow_up_tasks": []
+  },
+  "phases": [
+    { "id": 1, "name": "Resync root README.md Module Map", "depends_on": [], "files": ["README.md"], "optional": false },
+    { "id": 2, "name": "docs/README.md index + source-verification convention", "depends_on": [], "files": ["docs/README.md"], "optional": false },
+    { "id": 3, "name": "Create modules/README.md + verified health notes", "depends_on": [], "files": ["modules/README.md"], "optional": false },
+    { "id": 4, "name": "Task 69 dual-home-manager confirming note", "depends_on": [], "files": ["docs/dual-home-manager.md"], "optional": false },
+    { "id": 5, "name": "[OPTIONAL] Single-line drift fixes", "depends_on": [], "files": ["docs/configuration.md", "docs/unstable-packages.md"], "optional": true },
+    { "id": 6, "name": "Full-regression verification + drift check + scoped staging", "depends_on": [1, 2, 3, 4, 5], "files": [], "optional": false }
+  ],
+  "verification": {
+    "level": "full_regression",
+    "commands": [
+      "nix flake check",
+      "nixos-rebuild build --flake .#nandi",
+      "nixos-rebuild build --flake .#hamsa",
+      "nixos-rebuild build --flake .#garuda",
+      "home-manager build --flake .#<user>"
+    ],
+    "manual_drift_check": "README package list vs `find packages -name '*.nix'`; modules/README.md index vs `find modules -type d`; docs/README.md index vs `ls docs/*.md`",
+    "doc_only_invariant": "git diff --staged --name-only must contain zero .nix source files"
+  },
+  "staging_scope": {
+    "policy": "explicit git add <paths> only; NEVER git add -A / git commit -am",
+    "paths": [
+      "README.md",
+      "docs/README.md",
+      "modules/README.md",
+      "docs/dual-home-manager.md",
+      "docs/configuration.md",
+      "docs/unstable-packages.md",
+      "specs/091_documentation_sync_reorg_final/"
+    ],
+    "note": "docs/configuration.md and docs/unstable-packages.md staged only if Phase 5 (optional) ran."
+  },
+  "out_of_scope_followup": {
+    "target": "packages/README.md",
+    "issue": "documents nonexistent marker-pdf.nix; missing sections for kooha.nix, opencode.nix, slidev.nix",
+    "disposition": "explicit follow-up task / /fix-it (research recommendation (b)); NOT fixed in task 91, NOT silently ignored"
+  },
+  "convention_consumers": {
+    "task_78": "cites/ADOPTS the new 'docs verified against source, not fixed once' convention; must NOT be merged with or made dependent on task 81/91 (no dependency-graph change)"
+  },
+  "implementation_result": {
+    "phases_completed": [1, 2, 3, 4, 5, 6],
+    "phases_total": 6,
+    "all_phases_completed": true,
+    "regression": {
+      "nix_flake_check": "passed",
+      "nixos_rebuild_build_nandi": "passed",
+      "nixos_rebuild_build_hamsa": "passed",
+      "nixos_rebuild_build_garuda": "passed",
+      "home_manager_build_benjamin": "passed"
+    },
+    "drift_check": {
+      "readme_package_list_vs_find": "zero drift",
+      "modules_readme_index_vs_find": "zero drift",
+      "docs_readme_index_vs_ls": "zero drift"
+    },
+    "doc_only_invariant_held": true,
+    "additional_followups_recorded": [
+      "packages/README.md marker-pdf.nix/missing-sections drift (unchanged, per out_of_scope_followup)",
+      "docs/configuration.md lines 18-19/22-24 and docs/unstable-packages.md lines 5-7 contain adjacent stale task-66 references not fixed in Phase 5's strict two-line scope (see specs/091_documentation_sync_reorg_final/progress/phase-5-progress.json deviations)"
+    ]
+  }
+}

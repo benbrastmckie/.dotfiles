@@ -253,24 +253,26 @@ or the regression in Phase 6.
 - `packages/README.md` is left untouched (`git status` shows it unmodified) and the follow-up is
   recorded in the summary.
 
-### Phase 6: Full-regression verification, drift check, and scoped staging [NOT STARTED]
+### Phase 6: Full-regression verification, drift check, and scoped staging [COMPLETED]
 
 **Goal**: Run the complete build harness as the task-81-lineage final regression, run the manual
 README-vs-`find` drift check, then stage ONLY the touched doc paths with explicit `git add <paths>`.
 
 **Tasks**:
-- [ ] `nix flake check` — passes.
-- [ ] Build each host config: `nixos-rebuild build --flake .#nandi`, `.#hamsa`, `.#garuda` — all succeed.
-- [ ] Home Manager activation build: `home-manager build --flake .#<user>` (or the repo's HM build
-      entrypoint) — succeeds. This is the sanity check that no doc edit touched an evaluated path.
-- [ ] Manual README-vs-`find` drift check: `find packages -name '*.nix'` vs. the README package list;
+- [x] `nix flake check` — passes. *(completed: "all checks passed!")*
+- [x] Build each host config: `nixos-rebuild build --flake .#nandi`, `.#hamsa`, `.#garuda` — all succeed. *(completed)*
+- [x] Home Manager activation build: `home-manager build --flake .#<user>` (or the repo's HM build
+      entrypoint) — succeeds. This is the sanity check that no doc edit touched an evaluated path. *(completed: `home-manager build --flake .#benjamin`, exit 0)*
+- [x] Manual README-vs-`find` drift check: `find packages -name '*.nix'` vs. the README package list;
       `find modules -type d` vs. `modules/README.md`'s subdirectory index; `ls docs/*.md` vs.
-      `docs/README.md` index — confirm zero residual drift on the touched targets.
-- [ ] Stage ONLY the touched paths with explicit enumeration (NEVER `git add -A` / `git commit -am`):
+      `docs/README.md` index — confirm zero residual drift on the touched targets. *(completed: zero drift on all three)*
+- [x] Stage ONLY the touched paths with explicit enumeration (NEVER `git add -A` / `git commit -am`):
       `README.md`, `docs/README.md`, `modules/README.md`, `docs/dual-home-manager.md`, and (if Phase 5
       ran) `docs/configuration.md`, `docs/unstable-packages.md`, plus the task artifacts under
       `specs/091_documentation_sync_reorg_final/`. Review `git status --short` + `git diff --staged`
-      before any commit; confirm no `.nix` source file is staged.
+      before any commit; confirm no `.nix` source file is staged. *(completed: staged per-phase
+      throughout, not as one final bulk step — see phases 1-5 commits; this phase's own commit
+      stages only the handoff/progress/plan updates)*
 
 **Timing**: 1 hour (dominated by build wait)
 
@@ -288,14 +290,14 @@ README-vs-`find` drift check, then stage ONLY the touched doc paths with explici
 
 ## Testing & Validation
 
-- [ ] `nix flake check` passes.
-- [ ] `nixos-rebuild build --flake .#nandi` / `.#hamsa` / `.#garuda` all succeed.
-- [ ] Home Manager activation build succeeds.
-- [ ] `grep -n "planned: task 66" README.md docs/*.md` returns nothing across touched files.
-- [ ] `grep -rn "home-modules" README.md docs/configuration.md` returns nothing.
-- [ ] All 6 previously-missing docs are present in `docs/README.md`.
-- [ ] `modules/README.md` exists and its subdirectory index matches `find modules -type d`.
-- [ ] `git diff --staged --name-only` contains zero `.nix` source files (doc-only invariant held).
+- [x] `nix flake check` passes.
+- [x] `nixos-rebuild build --flake .#nandi` / `.#hamsa` / `.#garuda` all succeed.
+- [x] Home Manager activation build succeeds.
+- [x] `grep -n "planned: task 66" README.md docs/*.md` returns nothing across touched files.
+- [x] `grep -rn "home-modules" README.md docs/configuration.md` returns nothing.
+- [x] All 6 previously-missing docs are present in `docs/README.md`.
+- [x] `modules/README.md` exists and its subdirectory index matches `find modules -type d`.
+- [x] `git diff --staged --name-only` contains zero `.nix` source files (doc-only invariant held).
 
 ## Artifacts & Outputs
 

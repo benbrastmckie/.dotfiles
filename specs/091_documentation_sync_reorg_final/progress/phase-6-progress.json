@@ -1,0 +1,17 @@
+{
+  "phase": 6,
+  "phase_name": "Full-regression verification, drift check, and scoped staging",
+  "started_at": "2026-07-05T07:35:00Z",
+  "last_updated": "2026-07-05T08:15:00Z",
+  "objectives": [
+    {"id": 1, "description": "nix flake check passes", "status": "done", "files_touched": []},
+    {"id": 2, "description": "Build nandi, hamsa, garuda hosts", "status": "done", "files_touched": []},
+    {"id": 3, "description": "Home Manager activation build (benjamin)", "status": "done", "files_touched": []},
+    {"id": 4, "description": "Manual README-vs-find drift check (packages list, modules dirs, docs index)", "status": "done", "files_touched": []},
+    {"id": 5, "description": "Stage only touched paths per phase with targeted git add; verify git diff --staged is doc-only", "status": "done", "files_touched": ["specs/091_documentation_sync_reorg_final/handoffs/01_orchestrator-handoff.json"]}
+  ],
+  "current_objective": null,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": []
+}
