@@ -1,7 +1,11 @@
 # Discord bot infrastructure — sops secrets, opencode-serve, and discord-bot systemd services.
+# Optional/host-toggled module: opt in explicitly per host via
+# services.discordBot.enable (see hosts/nandi/default.nix + flake.nix extraModules).
 # See: specs/053_nixos_discord_bot_prerequisites/
-{ config, pkgs, username, ... }:
+{ config, lib, pkgs, username, ... }:
 let
+  cfg = config.services.discordBot;
+
   # Discord Bot Python environment (Task 53)
   # Dedicated Python 3 environment for the Nextcord bot service
   # (nextcord: Discord library, aiohttp: local HTTP API, anyio: structured concurrency)
@@ -12,6 +16,8 @@ let
   ]);
 in
 {
+  options.services.discordBot.enable = lib.mkEnableOption "the OpenCode Discord bot relay (discord-bot + opencode-serve services)";
+
   # ==========================================================================
   # Discord Bot Prerequisites (Task 53)
   # ==========================================================================
@@ -20,6 +26,8 @@ in
   # Bot project: ~/.dotfiles/opencode-discord-bot/src/bot.py (Nextcord)
   # See: specs/053_nixos_discord_bot_prerequisites/reports/01_nixos-discord-bot-prerequisites.md
   # ==========================================================================
+
+  config = lib.mkIf cfg.enable {
 
   sops = {
     defaultSopsFile = ../../../secrets/secrets.yaml;
@@ -109,5 +117,6 @@ in
         Group = "users";
       };
     };
+  };
   };
 }
