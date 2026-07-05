@@ -163,21 +163,22 @@ preserve-and-flag force-overwrite warning as part of describing mechanism 3.
 
 ---
 
-### Phase 3: Fix stale .zuliprc row + reconcile Notes prose [NOT STARTED]
+### Phase 3: Fix stale .zuliprc row + reconcile Notes prose [COMPLETED]
 
 **Goal**: Correct the bonus stale-doc finding and remove now-duplicated/contradictory prose so the
 doc is internally consistent.
 
 **Tasks**:
-- [ ] Fix the "Chat" table row for `.zuliprc`: it is mechanism 1 (a plain
+- [x] Fix the "Chat" table row for `.zuliprc`: it is mechanism 1 (a plain
       `home.file.".zuliprc".source` symlink, `dotfiles.nix:57`), NOT an activation script. Replace
       the `*(activation script)*` / "created via activation script, not symlinked" wording with an
-      accurate symlink description (source `config/zuliprc` -> `~/.zuliprc`).
-- [ ] Reconcile the existing "Notes" section against the new sections: update the
+      accurate symlink description (source `config/zuliprc` -> `~/.zuliprc`). *(completed)*
+- [x] Reconcile the existing "Notes" section against the new sections: update the
       "Most configs are deployed as symlinks; `claude/`, `rclone.conf`, and `.zuliprc` use
       activation scripts..." bullet (stale re `.zuliprc`) and the `~/.config/config-files/` bullet
       so they point to / agree with the new `## Deployment Mechanisms` section rather than
-      contradicting it. Do not re-introduce `rclone.conf` as a documented mechanism.
+      contradicting it. Do not re-introduce `rclone.conf` as a documented mechanism. *(completed:
+      rclone.conf left untouched in its own Cloud Storage row, out of scope per Non-Goals)*
 
 **Timing**: 20 min
 

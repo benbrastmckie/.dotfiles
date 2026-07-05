@@ -1,0 +1,14 @@
+{
+  "phase": 3,
+  "phase_name": "Fix stale .zuliprc row + reconcile Notes prose",
+  "started_at": "2026-07-05T07:00:38Z",
+  "last_updated": "2026-07-05T07:00:38Z",
+  "objectives": [
+    {"id": 1, "description": "Fix .zuliprc Chat row to mechanism-1 symlink description", "status": "done", "files_touched": ["config/README.md"]},
+    {"id": 2, "description": "Reconcile Notes bullets with new sections", "status": "done", "files_touched": ["config/README.md"]}
+  ],
+  "current_objective": 2,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": []
+}

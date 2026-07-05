@@ -156,7 +156,7 @@ entirely and is where the CLI actually runs. When in doubt, name the full path.
 
 | File | Deployed To | Description |
 |------|-------------|-------------|
-| *(activation script)* | `~/.zuliprc` | Zulip API client configuration (seed file; created via activation script, not symlinked, so user can fill in API key) |
+| `zuliprc` | `~/.zuliprc` | Zulip API client configuration (mechanism 1: plain `home.file.".zuliprc".source` store symlink, `dotfiles.nix:57` — not an activation script) |
 
 ## System Information
 
@@ -166,10 +166,17 @@ entirely and is where the CLI actually runs. When in doubt, name the full path.
 
 ## Notes
 
-- All configurations are declaratively managed through `home.nix`
+- All configurations are declaratively managed through `modules/home/core/dotfiles.nix` (see
+  `## Deployment Mechanisms` above for the full mechanism reference)
 - Changes to these files require running `home-manager switch` to take effect
-- Most configs are deployed as symlinks; `claude/`, `rclone.conf`, and `.zuliprc` use activation scripts that copy/seed instead of symlink so the applications can write to them at runtime
-- Some configs are also copied to `~/.config/config-files/` for version control backup
+- Most configs are deployed as mechanism-1 symlinks (including `.zuliprc`); only
+  `config/claude/{settings,keybindings}.json` use an activation script (mechanism 3) that copies
+  instead of symlinks, so Claude Code can write to them at runtime — see the force-overwrite
+  WARNING under mechanism 3 above. `rclone.conf` is out of scope for this reference (see
+  `## Cloud Storage` above)
+- 7 of the mechanism-1 configs are also mirrored to `~/.config/config-files/` as plain-text
+  copies for version-control visibility (mechanism 2 — see `## Deployment Mechanisms` above for
+  the exact file list and the mirror asymmetry)
 - See `home.nix` for complete deployment mappings
 
 [← Back to main README](../README.md)
