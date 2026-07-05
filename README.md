@@ -37,43 +37,30 @@ These dotfiles provide a complete NixOS setup with:
 ├── packages/                      # Custom derivations (not in nixpkgs)
 │   ├── claude-code.nix            # Claude Code AI assistant (NPX wrapper)
 │   ├── opencode.nix               # OpenCode AI coding agent (custom build)
+│   ├── opencode-discord-bot.nix   # OpenCode Discord bot relay (buildPythonApplication)
 │   ├── loogle.nix                 # Lean 4 Mathlib search tool
 │   ├── aristotle.nix              # AI theorem prover wrapper
 │   ├── slidev.nix                 # Presentation slides from Markdown
 │   ├── kooha.nix                  # Screen recorder (GStreamer override)
 │   ├── vosk-models.nix            # Vosk STT language models
+│   ├── piper-bin.nix              # Piper TTS engine (prebuilt binary)
+│   ├── piper-voices.nix           # Piper TTS voice models
 │   ├── python-cvc5.nix            # CVC5 Python bindings
 │   ├── pymupdf4llm.nix            # PyMuPDF4LLM Python package
 │   └── python-vosk.nix            # Vosk Python package
 │
-├── overlays/                      # (planned: task 66 Phase 2)
+├── overlays/
 │   ├── claude-squad.nix           # claude-squad Go package build
 │   ├── unstable-packages.nix      # Packages from nixpkgs-unstable
 │   └── python-packages.nix        # Custom python3 packageOverrides
 │
-├── lib/                           # (planned: task 66 Phase 3)
+├── lib/
 │   └── mkHost.nix                 # Helper to deduplicate host definitions
 │
 ├── modules/
-│   ├── opencode.nix               # OpenCode Home Manager module (standalone)
-│   └── system/                    # (planned: task 66 Phases 4a/4b)
-│       ├── boot.nix
-│       ├── networking.nix
-│       ├── locale.nix
-│       ├── desktop.nix
-│       ├── services.nix
-│       ├── audio.nix
-│       ├── power.nix
-│       ├── users.nix
-│       ├── nix.nix
-│       ├── display.nix
-│       ├── packages.nix
-│       ├── shell.nix
-│       └── optional/
-│           └── discord-bot.nix
-│
-├── home-modules/
-│   └── mcp-hub.nix                # MCP-Hub Home Manager module (disabled; lazy.nvim used)
+│   ├── system/                    # Always-on NixOS modules + optional/ (host-toggled)
+│   └── home/                      # Home Manager modules (core/, desktop/, email/, ...)
+│                                   # See modules/README.md for the full breakdown.
 │
 ├── config/                        # Application configuration files
 ├── docs/                          # Documentation
@@ -81,16 +68,13 @@ These dotfiles provide a complete NixOS setup with:
 └── wallpapers/                    # Desktop wallpapers
 ```
 
-> **Note**: Directories marked "(planned: task 66)" contain planned targets that will be
-> created once tasks 62 and 65 complete (the implementation gate for Phases 2-6).
-
 ### Directory Organization
 
 - **[`config/`](config/)** - Application configuration files ([README](config/README.md))
 - **[`docs/`](docs/)** - Detailed documentation for all components ([README](docs/README.md))
-- **[`home-modules/`](home-modules/)** - Custom Home Manager modules ([README](home-modules/README.md))
 - **[`hosts/`](hosts/)** - Host-specific hardware configurations ([README](hosts/README.md))
-- **[`packages/`](packages/)** - Custom package definitions and Neovim configuration ([README](packages/README.md))
+- **[`modules/`](modules/)** - System (NixOS) and Home Manager modules, system/home split ([README](modules/README.md))
+- **[`packages/`](packages/)** - Custom package definitions ([README](packages/README.md))
 
 ### Documentation Files
 

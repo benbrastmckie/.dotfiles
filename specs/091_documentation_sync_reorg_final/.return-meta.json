@@ -1,0 +1,26 @@
+{
+  "status": "in_progress",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/091_documentation_sync_reorg_final/plans/01_documentation-sync-final.md",
+      "summary": "6-phase doc-only capstone plan: resync root README Module Map, complete docs/README index + source-verification convention, create modules/README.md with verified health notes, task-69 confirming note, optional single-line drift fixes, and a full-regression build + drift-check + scoped-staging gate."
+    },
+    {
+      "type": "handoff",
+      "path": "specs/091_documentation_sync_reorg_final/handoffs/01_orchestrator-handoff.json",
+      "summary": "Orchestrator handoff JSON: phase/wave map, full-regression verification commands, explicit doc-only staging scope, and the packages/README.md out-of-scope follow-up disposition."
+    }
+  ],
+  "next_steps": "Run /implement 91 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1783228323_a53c47_91",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 6,
+    "estimated_hours": 3,
+    "dependency_waves": [[1, 2, 3, 4, 5], [6]]
+  },
+  "memory_candidates": []
+}
