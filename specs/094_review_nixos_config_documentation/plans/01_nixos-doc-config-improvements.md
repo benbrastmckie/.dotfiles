@@ -310,17 +310,20 @@ flake still evaluates.
 
 ---
 
-### Phase 7: Create overlays/README.md [NOT STARTED]
+### Phase 7: Create overlays/README.md [COMPLETED]
 
 **Goal**: Close the convention gap where `overlays/` (unlike `hosts/`, `modules/`, `packages/`, `config/`)
 has no README, giving `flake.nix`'s overlay list an authoritative place to point.
 
 **Tasks**:
-- [ ] Read the three overlay files (`overlays/claude-squad.nix`, `overlays/unstable-packages.nix`,
+- [x] Read the three overlay files (`overlays/claude-squad.nix`, `overlays/unstable-packages.nix`,
       `overlays/python-packages.nix`) and their header comments.
-- [ ] Write `overlays/README.md` mirroring `packages/README.md`'s per-file section format: a short intro
+- [x] Write `overlays/README.md` mirroring `packages/README.md`'s per-file section format: a short intro
       plus one section per overlay describing its purpose and what it provides. Do not invent behavior;
-      describe only what the files actually do.
+      describe only what the files actually do. *(altered: also added a missing `overlays/` bullet to
+      root `README.md`'s "Directory Organization" list, matching the sibling `hosts/`/`modules/`/
+      `packages/` entries — this is the exact convention gap this phase closes, so the new README
+      needed a matching pointer from the root README to be discoverable the same way.)*
 
 **Timing**: 30 minutes
 

@@ -74,6 +74,7 @@ These dotfiles provide a complete NixOS setup with:
 - **[`docs/`](docs/)** - Detailed documentation for all components ([README](docs/README.md))
 - **[`hosts/`](hosts/)** - Host-specific hardware configurations ([README](hosts/README.md))
 - **[`modules/`](modules/)** - System (NixOS) and Home Manager modules, system/home split ([README](modules/README.md))
+- **[`overlays/`](overlays/)** - Nix overlays extending nixpkgs ([README](overlays/README.md))
 - **[`packages/`](packages/)** - Custom package definitions ([README](packages/README.md))
 
 ### Documentation Files
