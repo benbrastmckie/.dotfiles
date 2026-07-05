@@ -27,7 +27,7 @@ next_project_number: 104
 23 [PLANNED] — install_simple_webcam_recording_software
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
-103 [NOT STARTED] — Extract opencode-discord-bot to its own standalone repository con
+103 [NOT STARTED] — Reorganize the opencode-discord-bot in-repo (do NOT extract to a 
 
 ### Packaging
 
@@ -49,13 +49,13 @@ next_project_number: 104
 
 ## Tasks
 
-### 103. Extract discord bot to own repo
+### 103. Reorganize discord bot in repo
 - **Status**: [NOT STARTED]
 - **Task Type**: nix
 - **Topic**: services
 - **Dependencies**: None
 
-**Description**: Extract opencode-discord-bot to its own standalone repository consumed as a flake input. Currently the bot's Python source lives in-tree at opencode-discord-bot/ (16 tracked files, PEP 621 pyproject.toml) and is built via packages/opencode-discord-bot.nix using src = ../opencode-discord-bot, then callPackage'd in modules/system/optional/discord-bot.nix. Goal: move the Python source out of .dotfiles into a dedicated git repo that exposes the bot as a flake output (package), and consume it here as a flake input (mirroring the lectic/niri input pattern with inputs.nixpkgs.follows) instead of building from the in-tree path. Keep in .dotfiles: sops secrets (discord_bot_token, discord_channel_id, etc.), the systemd service wiring (opencode-serve + discord-bot, LoadCredential injection, StateDirectory persistence, watchdog), and the thin optional module. Also reconcile host wiring so the bot is cleanly enableable on ANY host and is enabled on hamsa (the primary machine, which is currently running the bot even though only nandi opts in via services.discordBot.enable = true -- resolve this drift). Update docs (docs/discord-bot.md, packages/README.md, modules/README.md, README.md) to reflect the flake-input structure. Verify nix flake check passes and the discord-bot service still builds/runs on hamsa after the switch. Open decision for research/planning: new repo hosting (GitHub remote under the user's account vs local path: input) and whether to keep a thin packages wrapper or consume the flake package directly. Follows task 89 (bot packaging, complete).
+**Description**: Reorganize the opencode-discord-bot in-repo (do NOT extract to a separate repository). Two goals. (1) Fix host-wiring drift: the discord-bot systemd service is currently running on hamsa (the primary machine) even though only hosts/nandi/default.nix opts in via services.discordBot.enable = true. Make services.discordBot.enable cleanly enableable on ANY host and enable it on hamsa so the tracked config matches reality; decide whether nandi should stay enabled. (2) Declutter the repo root: relocate the in-tree Python source from root opencode-discord-bot/ (16 tracked files) to sit next to its derivation (recommended target packages/opencode-discord-bot/, co-located with packages/opencode-discord-bot.nix), updating the derivation's src from ../opencode-discord-bot to the new relative path (e.g. ./opencode-discord-bot), plus .gitignore entries and any references. Note the file/dir naming caveat if using packages/ (packages/opencode-discord-bot.nix file alongside a packages/opencode-discord-bot/ dir); research/plan may pick an alternative co-location target (e.g. a new pkgs/ or apps/ dir) if cleaner. Keep everything else in .dotfiles unchanged: sops secrets, the optional module, systemd wiring (opencode-serve + discord-bot, LoadCredential, StateDirectory, watchdog). Update docs to reflect the new source path and host wiring: docs/discord-bot.md, packages/README.md, modules/README.md, README.md (note the tree diagram at README.md line ~43). Verify nix flake check passes and the discord-bot service still builds/runs on hamsa after nixos-rebuild. Explicitly rejected alternative: extracting to a standalone flake-input repo (adds cross-repo iteration friction and maintenance surface for reuse/versioning benefits this personal, tightly-coupled service does not need). Follows task 89 (bot packaging, complete).
 
 ---
 
