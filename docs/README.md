@@ -10,6 +10,11 @@ This directory contains comprehensive documentation for the NixOS configuration 
 - **[configuration.md](configuration.md)** - Core configuration details
 - **[testing.md](testing.md)** - Testing and validation procedures
 
+### Configuration & Architecture
+- **[dual-home-manager.md](dual-home-manager.md)** - Dual home-manager (NixOS-integrated + standalone) architecture, trade-offs, and current recommendation
+- **[how-to-add-package.md](how-to-add-package.md)** - Step-by-step guide to adding a new custom package
+- **[how-to-add-service.md](how-to-add-service.md)** - Step-by-step guide to adding a new systemd user/system service
+
 ### Package Management
 - **[packages.md](packages.md)** - Package management and custom packages
 - **[unstable-packages.md](unstable-packages.md)** - Managing unstable channel packages
@@ -17,11 +22,14 @@ This directory contains comprehensive documentation for the NixOS configuration 
 ### Applications & Desktop
 - **[applications.md](applications.md)** - Application-specific configurations
 - **[discord-bot.md](discord-bot.md)** - Discord bot infrastructure and secrets management
+- **[email-workflow.md](email-workflow.md)** - Wrapper-only AI-assisted email triage workflow
+- **[gnome-settings.md](gnome-settings.md)** - GNOME desktop settings and configuration
 - **[himalaya.md](himalaya.md)** - Himalaya email client setup and configuration
 - **[neovim.md](neovim.md)** - Neovim configuration, package choice, and sideloadInitLua gotcha
 - **[niri.md](niri.md)** - Niri window manager keybindings and configuration
 - **[terminal.md](terminal.md)** - WezTerm and Kitty terminal configuration
 - **[dictation.md](dictation.md)** - Whisper dictation system setup
+- **[video-editing.md](video-editing.md)** - Video editing tools and workflow
 
 ### Development & Hardware
 - **[development.md](development.md)** - Development notes and workflows
@@ -93,6 +101,19 @@ When a topic outgrows inline comments, create a new `docs/` file:
 1. Add the file to `docs/README.md` under the appropriate category
 2. Add a cross-reference to root `README.md` if the topic is user-facing
 3. Add a `# See docs/X.md.` trailer to the relevant inline comment in the nix file
+
+### Docs verified against source, not fixed once
+
+Documentation drift is expected as the repository evolves -- a doc that was accurate when
+written can silently go stale (deleted files, renamed directories, completed "(planned: ...)"
+markers) without anyone noticing until a verification pass looks. The convention this repo
+follows is: **each verification pass re-checks doc claims directly against the current tree
+(`find`, `ls`, `grep`) rather than trusting the doc's own prior "last verified" state or a
+previous pass's fix list.** A one-time fix is not a durable guarantee; the next capstone/sync
+pass re-verifies from scratch. This convention was established during task 91 (the task-81 reorg
+capstone) and is recorded here so other tasks (e.g. task 78's niri documentation work) can adopt
+the same practice by citing this subsection -- adoption does not require merging with or
+depending on task 81/91, only following the same verify-against-source discipline.
 
 ### Prohibited practices
 

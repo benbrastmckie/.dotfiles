@@ -126,21 +126,22 @@ single gating regression + staging phase and depends on all edit phases.
 - `grep -nE "piper-bin|piper-voices|opencode-discord-bot" README.md` returns 3 hits in the package list.
 - ASCII tree no longer contains `modules/opencode.nix`; contains `modules/system/` + `modules/home/`.
 
-### Phase 2: Complete docs/README.md index + add source-verification convention [NOT STARTED]
+### Phase 2: Complete docs/README.md index + add source-verification convention [COMPLETED]
 
 **Goal**: Add the 6 missing index entries and write the "docs verified against source, not fixed
 once" convention — both edits land in the single file `docs/README.md`, grouped to avoid churn.
 
 **Tasks**:
-- [ ] Add the 6 unlisted-but-existing entries to the "Documentation Files" index, integrated into
+- [x] Add the 6 unlisted-but-existing entries to the "Documentation Files" index, integrated into
       the existing content-adjacent categories (not a catch-all section):
       `dual-home-manager.md`, `how-to-add-package.md`, `how-to-add-service.md` (near
       `configuration.md`); `email-workflow.md` (near `himalaya.md`); `gnome-settings.md` (near
-      `applications.md`/`niri.md`); `video-editing.md` (near `dictation.md`).
-- [ ] Add a fifth sibling subsection to the existing "Documentation Conventions" section stating the
+      `applications.md`/`niri.md`); `video-editing.md` (near `dictation.md`). *(completed: added a
+      new "Configuration & Architecture" category for the first three)*
+- [x] Add a fifth sibling subsection to the existing "Documentation Conventions" section stating the
       "docs verified against source, not fixed once" convention verbatim (this repo is the first
       place it is written down). Phrase it so task 78 can cite/ADOPT it without merging or creating
-      a dependency on task 81/91.
+      a dependency on task 81/91. *(completed)*
 
 **Timing**: 0.5 hours
 
