@@ -35,6 +35,7 @@ config/zuliprc
 # Kept on disk (gitignored), not version-controlled here.
 /.claude/
 /.opencode/
+/opencode.json
 
 # Task-system scratch space — directory must persist (skill-base.sh atomic-write dependency)
 specs/tmp/*
