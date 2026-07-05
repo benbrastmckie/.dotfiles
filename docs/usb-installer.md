@@ -91,7 +91,7 @@ lsblk
 # Verify the size matches your USB drive
 ```
 
-**⚠️ WARNING**: The next steps will erase all data on the USB drive!
+**WARNING**: The next steps will erase all data on the USB drive!
 
 ### Step 3: Write to USB
 
@@ -200,7 +200,7 @@ GNOME Disks provides a user-friendly graphical interface for partitioning.
 
 **Step 2: Select Your Target Disk**
 
-⚠️ **CRITICAL**: Make sure you select the correct disk! Partitioning will erase all data.
+**CRITICAL**: Make sure you select the correct disk! Partitioning will erase all data.
 
 1. In the left sidebar, you'll see all connected disks
 2. Identify your target disk by:
@@ -213,9 +213,9 @@ GNOME Disks provides a user-friendly graphical interface for partitioning.
 
 **Step 3: Create Partition Table (Erases All Data!)**
 
-⚠️ **WARNING**: This step will permanently erase everything on the selected disk!
+**WARNING**: This step will permanently erase everything on the selected disk!
 
-1. Click the **☰** (menu) button in the top-right corner
+1. Click the menu button in the top-right corner
 2. Select **Format Disk...**
 3. In the dialog:
    - **Erase**: Select "Overwrite existing data with zeroes (Slow)" for security, or "Don't overwrite existing data (Quick)" for speed
@@ -236,7 +236,7 @@ You should now see "Free Space" with the full disk capacity.
 3. Click **Create**
 4. **Set boot flag**:
    - Click on the newly created partition (should show "512 MB FAT")
-   - Click the **⚙** (gear) icon below
+   - Click the gear icon below
    - Select **Edit Partition...**
    - Check the box for **ESP** (EFI System Partition)
    - Click **Change**
@@ -285,11 +285,11 @@ Partition 3: ~500 GB   Ext4     storage   (optional)
 
 **Common Mistakes to Avoid:**
 
-- ❌ Forgetting to set the ESP flag on the EFI partition → Boot failure
-- ❌ Making the EFI partition too small (< 512 MB) → Boot issues
-- ❌ Using MBR instead of GPT → Won't boot on UEFI systems
-- ❌ Selecting the wrong disk → Data loss on wrong drive
-- ❌ Creating only one partition → Need separate EFI + root partitions
+- Forgetting to set the ESP flag on the EFI partition → Boot failure
+- Making the EFI partition too small (< 512 MB) → Boot issues
+- Using MBR instead of GPT → Won't boot on UEFI systems
+- Selecting the wrong disk → Data loss on wrong drive
+- Creating only one partition → Need separate EFI + root partitions
 
 **Troubleshooting:**
 
@@ -450,7 +450,7 @@ Save and exit (`:wq` in vim).
 
 **6. Install with your dotfiles configuration:**
 
-> **⚠️ IMPORTANT**: You **must** explicitly specify your hostname (e.g., `.#framework`) rather than using `$(hostname)`. The hostname is set by NixOS configuration, so until the correct config is applied, `$(hostname)` will return the wrong value (e.g., the USB installer's hostname). After installation and reboot, `$(hostname)` and `./scripts/update.sh` will work correctly.
+> **IMPORTANT**: You **must** explicitly specify your hostname (e.g., `.#framework`) rather than using `$(hostname)`. The hostname is set by NixOS configuration, so until the correct config is applied, `$(hostname)` will return the wrong value (e.g., the USB installer's hostname). After installation and reboot, `$(hostname)` and `./scripts/update.sh` will work correctly.
 
 ```bash
 cd ~/.dotfiles
@@ -614,7 +614,7 @@ Make sure you selected the EFI partition (usually the small 512MB FAT32 partitio
 
 **Want to preserve existing data:**
 
-⚠️ **Warning**: Installing NixOS will erase the selected partition. To preserve data:
+**Warning**: Installing NixOS will erase the selected partition. To preserve data:
 1. Back up your data first
 2. Use the "Partition Your Disk" section to create separate partitions
 3. Only select the NixOS partition during installation

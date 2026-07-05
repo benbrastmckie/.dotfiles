@@ -60,7 +60,7 @@ The custom ISO includes:
 
 2. **First system build (specify hostname explicitly):**
 
-   > **⚠️ IMPORTANT**: On first build, explicitly specify your hostname rather than using `$(hostname)`. The hostname is set by NixOS, so `$(hostname)` will be wrong until the correct config is applied.
+   > **IMPORTANT**: On first build, explicitly specify your hostname rather than using `$(hostname)`. The hostname is set by NixOS, so `$(hostname)` will be wrong until the correct config is applied.
 
    ```bash
    sudo nixos-rebuild switch --flake ~/.dotfiles#your-hostname

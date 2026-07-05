@@ -1,6 +1,6 @@
 # WiFi Configuration Guide
 
-## Current Status: ✅ WORKING
+## Current Status: WORKING
 
 The mt7925e WiFi 6E/7 chip works correctly with NetworkManager's default wpa_supplicant backend.
 
@@ -52,7 +52,7 @@ hardware.enableRedistributableFirmware = true;
 
 ## Common Mistakes to Avoid
 
-### ❌ DO NOT: Use lib.mkForce on wireless.enable
+### DO NOT: Use lib.mkForce on wireless.enable
 
 ```nix
 networking.wireless.enable = lib.mkForce false;  # BREAKS WiFi!
@@ -60,7 +60,7 @@ networking.wireless.enable = lib.mkForce false;  # BREAKS WiFi!
 
 **Why it breaks:** NetworkManager's NixOS module needs to set `wireless.enable = true` to configure wpa_supplicant with D-Bus control. Using `lib.mkForce` prevents this, leaving NetworkManager without a WiFi backend.
 
-### ❌ DO NOT: Manually set wireless.enable
+### DO NOT: Manually set wireless.enable
 
 ```nix
 networking.wireless.enable = false;  # NetworkManager can't override this
@@ -68,7 +68,7 @@ networking.wireless.enable = false;  # NetworkManager can't override this
 
 **Why it breaks:** NetworkManager can't override this setting to enable wpa_supplicant.
 
-### ❌ DO NOT: Enable iwd backend
+### DO NOT: Enable iwd backend
 
 ```nix
 networking.networkmanager.wifi.backend = "iwd";  # Doesn't work with mt7925e
@@ -139,13 +139,13 @@ NetworkManager automatically manages `networking.wireless.enable` based on the b
 
 ## Summary
 
-**✅ DO:**
+**DO:**
 - Use NetworkManager with default settings
 - Let NetworkManager manage `wireless.enable` automatically
 - Keep `wifi.backend = "iwd"` commented out
 - Reboot after configuration changes to test WiFi
 
-**❌ DON'T:**
+**DON'T:**
 - Set `networking.wireless.enable` manually
 - Use `lib.mkForce` on `wireless.enable`
 - Enable `wifi.backend = "iwd"`

@@ -27,7 +27,7 @@ Then add your host to `flake.nix` (see Host Configuration section below).
 
 ### 3. System Configuration
 
-> **⚠️ IMPORTANT - First Build**: On the first build, you **must** explicitly specify your hostname (e.g., `.#hamsa`) rather than using `$(hostname)`. The hostname is set by NixOS configuration, so until the correct config is applied, `$(hostname)` will return the wrong value. After the first successful build, `$(hostname)` and `./scripts/update.sh` will work correctly.
+> **IMPORTANT - First Build**: On the first build, you **must** explicitly specify your hostname (e.g., `.#hamsa`) rather than using `$(hostname)`. The hostname is set by NixOS configuration, so until the correct config is applied, `$(hostname)` will return the wrong value. After the first successful build, `$(hostname)` and `./scripts/update.sh` will work correctly.
 
 **First build** (specify hostname explicitly):
 ```bash

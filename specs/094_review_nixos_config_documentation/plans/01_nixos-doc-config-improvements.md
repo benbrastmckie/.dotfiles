@@ -1,7 +1,7 @@
 # Implementation Plan: NixOS Config Documentation and Config Improvements
 
 - **Task**: 94 - Systematically review the NixOS config to improve the documentation (and the config) where relevant
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 5.5 hours (executable phases 1-7); Phase 8 deferred, not executed autonomously
 - **Dependencies**: None (builds on completed tasks 65, 66, 81-91)
 - **Research Inputs**: specs/094_review_nixos_config_documentation/reports/01_nixos-config-doc-review.md
@@ -238,22 +238,29 @@ and the actual file locations and Python attribute.
 
 ---
 
-### Phase 5: Sweep emoji from eligible documentation files [NOT STARTED]
+### Phase 5: Sweep emoji from eligible documentation files [COMPLETED]
 
 **Goal**: Remove emoji glyphs from documentation files to satisfy `docs/README.md`'s "No emojis in
 documentation files" rule, without touching the deferred files.
 
 **Tasks**:
-- [ ] Enumerate emoji occurrences in eligible docs (all of `docs/*.md` EXCEPT `docs/niri.md`,
+- [x] Enumerate emoji occurrences in eligible docs (all of `docs/*.md` EXCEPT `docs/niri.md`,
       `docs/ryzen-ai-300-compatibility.md`, `docs/ryzen-ai-300-support-summary.md`, which are handled/
       deferred in Phase 8). Use the report's scan command:
       `grep -oP '[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]' docs/*.md | sort | uniq -c`.
-- [ ] Remove emoji glyphs (and any now-orphaned leading spaces) from the eligible files:
+      *(Actual hits found only in `docs/usb-installer.md` and `docs/wifi.md`, plus one `⚠` each in
+      `docs/installation.md` and `docs/development.md`. The other listed files —
+      `docs/himalaya.md`, `docs/how-to-add-package.md`, `docs/discord-bot.md`,
+      `docs/how-to-add-service.md`, `docs/gnome-settings.md`, `docs/dictation.md`,
+      `docs/unstable-packages.md` — contained only `→`/`↓` navigation arrows, which the scan
+      range and this task both explicitly exclude from removal; verified no true emoji glyphs
+      present in any of them.)*
+- [x] Remove emoji glyphs (and any now-orphaned leading spaces) from the eligible files:
       `docs/usb-installer.md`, `docs/himalaya.md`, `docs/how-to-add-package.md`, `docs/discord-bot.md`,
       `docs/how-to-add-service.md`, `docs/wifi.md`, `docs/gnome-settings.md`, `docs/dictation.md`,
       `docs/development.md`, `docs/installation.md`, `docs/unstable-packages.md`. Preserve the
       intentional `<-` / navigation arrows called out in the report (not emoji).
-- [ ] Do NOT alter heading meaning or section structure — remove the glyph only.
+- [x] Do NOT alter heading meaning or section structure — remove the glyph only.
 
 **Timing**: 45 minutes
 
@@ -373,13 +380,13 @@ of the deferral; no files are changed.
 
 ## Testing & Validation
 
-- [ ] Phase 1: README CPU annotations agree with both hosts' `hardware-configuration.nix` and with `hosts/README.md`.
-- [ ] Phases 2-4: re-read each edited doc; zero remaining "planned"/"pending Phase 2"/"gated on task"
+- [x] Phase 1: README CPU annotations agree with both hosts' `hardware-configuration.nix` and with `hosts/README.md`.
+- [x] Phases 2-4: re-read each edited doc; zero remaining "planned"/"pending Phase 2"/"gated on task"
       language; every referenced path exists on disk; no `python312` or `marker-pdf` references remain.
-- [ ] Phase 5: emoji scan over eligible docs returns zero glyphs.
-- [ ] Phase 6: `nix flake check` passes (may be slow); no functional line or active `stateVersion` changed.
-- [ ] Phase 7: `overlays/README.md` accurately describes all three overlays.
-- [ ] Phase 8: the three deferred files are unmodified; deferral is recorded in the summary.
+- [x] Phase 5: emoji scan over eligible docs returns zero glyphs.
+- [x] Phase 6: `nix flake check` passes (may be slow); no functional line or active `stateVersion` changed.
+- [x] Phase 7: `overlays/README.md` accurately describes all three overlays.
+- [x] Phase 8: the three deferred files are unmodified; deferral is recorded in the summary.
 
 ## Artifacts & Outputs
 
