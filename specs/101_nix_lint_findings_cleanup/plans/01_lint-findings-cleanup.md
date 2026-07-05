@@ -1,7 +1,7 @@
 # Implementation Plan: Task #101
 
 - **Task**: 101 - Nix lint findings cleanup (clear statix + deadnix findings so the tree is lint-clean)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 6 hours
 - **Dependencies**: task 98 (nix formatter + statix/deadnix lint tooling), completed
 - **Research Inputs**: specs/101_nix_lint_findings_cleanup/reports/01_lint-findings-cleanup.md
@@ -418,19 +418,24 @@ by path (not by editing them), so nixos-generate-config regeneration never reint
 
 ---
 
-### Phase 8: Final normalization and full-tree verification [NOT STARTED]
+### Phase 8: Final normalization and full-tree verification [COMPLETED]
 
 **Goal**: Normalize formatting and confirm the terminal lint-clean state across the whole tree.
 
 **Tasks**:
-- [ ] Run `nix fmt $(git ls-files '*.nix')` (matching task 98's documented invocation to avoid the
-  `./result`-symlink issue) to normalize all edits.
-- [ ] Run `nix flake check` and confirm it is green.
-- [ ] Run `statix check` and confirm zero findings tree-wide (hardware-config excluded via
-  `statix.toml`).
-- [ ] Run `deadnix --exclude 'hosts/*/hardware-configuration.nix' -- .` and confirm zero findings.
-- [ ] Confirm `nix fmt`'s re-indentation did not re-introduce any statix/deadnix finding (this is
-  why the linters run AFTER fmt, not before).
+- [x] Run `nix fmt $(git ls-files '*.nix')` (matching task 98's documented invocation to avoid the
+  `./result`-symlink issue) to normalize all edits. Verified: no diff produced — tree was already
+  fully nixfmt-normalized from the per-phase spot-fmt passes (Phases 3 and 6).
+- [x] Run `nix flake check` and confirm it is green. Verified: `all checks passed!`.
+- [x] Run `statix check` and confirm zero findings tree-wide (hardware-config excluded via
+  `statix.toml`). Verified: exit code 0, empty output (only the harmless "Git tree is dirty"
+  notice from `nix develop`).
+- [x] Run `deadnix --exclude 'hosts/*/hardware-configuration.nix' -- .` and confirm zero findings.
+  Verified (using the working flag order `deadnix --exclude 'glob' .`, see Phase 2/7 deviation
+  notes): exit code 0, empty output.
+- [x] Confirm `nix fmt`'s re-indentation did not re-introduce any statix/deadnix finding (this is
+  why the linters run AFTER fmt, not before). Verified: both linters ran after the final `nix fmt`
+  pass and both report zero findings.
 
 **Timing**: 0.5 hours
 
@@ -440,22 +445,28 @@ by path (not by editing them), so nixos-generate-config regeneration never reint
 - Any `.nix` files whose formatting `nix fmt` normalizes (no semantic change)
 
 **Verification**:
-- `nix flake check` green.
-- `statix check` = zero findings (modulo the documented `statix.toml` exclusion).
+- `nix flake check` green. Verified: `all checks passed!`.
+- `statix check` = zero findings (modulo the documented `statix.toml` exclusion). Verified.
 - `deadnix --exclude 'hosts/*/hardware-configuration.nix' -- .` = zero findings (modulo the
-  documented CLI exclusion).
+  documented CLI exclusion). Verified.
 
 ## Testing & Validation
 
-- [ ] `nix flake check` is green after every file edit and at task completion (baseline confirmed
+- [x] `nix flake check` is green after every file edit and at task completion (baseline confirmed
   green before work started).
-- [ ] `statix check` reports zero findings tree-wide at completion (hardware-config excluded via
+- [x] `statix check` reports zero findings tree-wide at completion (hardware-config excluded via
   `statix.toml`).
-- [ ] `deadnix --exclude 'hosts/*/hardware-configuration.nix' -- .` reports zero findings at completion.
-- [ ] The 8 intentional-convention deadnix bindings still exist and carry `# deadnix: skip` comments.
-- [ ] No `hosts/*/hardware-configuration.nix` file was hand-edited.
-- [ ] Evaluated configuration is unchanged: W20 collapses rely on Nix's `a.b=x; a.c=y;` ->
+- [x] `deadnix --exclude 'hosts/*/hardware-configuration.nix' -- .` reports zero findings at completion.
+- [x] The 8 intentional-convention deadnix bindings still exist and carry `# deadnix: skip` comments.
+- [x] No `hosts/*/hardware-configuration.nix` file was hand-edited. (One deviation during Phase 2:
+  `deadnix --edit` transiently edited these 4 files despite the `--exclude` flag being passed;
+  detected via diff review and reverted to pre-edit content before committing — confirmed by
+  the Phase 2 commit's diff containing none of these 4 files.)
+- [x] Evaluated configuration is unchanged: W20 collapses rely on Nix's `a.b=x; a.c=y;` ->
   `a={b=x;c=y;}` desugaring equivalence, corroborated by green `nix flake check` after each edit.
+  Additionally spot-verified via ~20 targeted `nix eval` calls across Phases 4-6 (home.stateVersion,
+  aerc account-conf text, services/programs desktop options, power-management services) — all
+  match pre-collapse values.
 
 ## Artifacts & Outputs
 
