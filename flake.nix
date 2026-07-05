@@ -84,7 +84,7 @@
     # Both paths receive identical extraSpecialArgs so home.nix evaluates consistently.
     hmExtraSpecialArgs = {
       inherit pkgs-unstable;
-      inherit lectic;
+      lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
       inherit nix-ai-tools;
     };
 
@@ -199,12 +199,10 @@
         extraSpecialArgs = {
           inherit username;
           inherit name;
-        } // hmExtraSpecialArgs // {
-          # Standalone home installs the BUILT lectic package (home.packages gets the
-          # derivation), matching pre-refactor behavior. The NixOS-integrated path keeps
-          # the raw lectic input via hmExtraSpecialArgs, so do not unify these.
-          lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
-        };
+        } // hmExtraSpecialArgs;
+        # Both the NixOS-integrated and standalone paths now resolve lectic to the built
+        # package via hmExtraSpecialArgs (see the shared `lectic = lectic.packages.${system}...`
+        # expression above); no per-path override is needed.
       };
     };
   };

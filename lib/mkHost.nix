@@ -44,7 +44,7 @@ nixpkgs.lib.nixosSystem {
       home-manager.users.${username} = import "${root}/home.nix";
       home-manager.extraSpecialArgs = {
         inherit pkgs-unstable;
-        inherit lectic;
+        lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
         inherit nix-ai-tools;
       };
     }

@@ -28,15 +28,18 @@ standalone profile is effectively the "active" one for interactive shell session
   the NixOS-managed profile root. Both must be included in GC analysis.
 - **Sync risk**: If one path is updated and the other is not, they diverge. `scripts/update.sh` mitigates
   this by running both atomically, but a partial failure can leave them out of sync.
-- **extraSpecialArgs divergence** (intentional): The two paths pass the same set of arg *names*
-  (`{ pkgs-unstable, lectic, nix-ai-tools }` plus `username`/`name`), but `lectic`'s *value*
-  deliberately differs between them. The NixOS-integrated path (`lib/mkHost.nix`'s
-  `home-manager.extraSpecialArgs`) passes the raw `lectic` flake input. The standalone
-  `homeConfigurations.benjamin` path overrides it with the built package
-  (`lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic`), matching
-  pre-refactor behavior for that path. See `flake.nix:199-207`'s inline comment, which states
-  this explicitly and instructs not to unify the two — this is a deliberate divergence, not a
-  bug.
+- **extraSpecialArgs unified (task 69)**: The two paths pass the same set of arg *names*
+  (`{ pkgs-unstable, lectic, nix-ai-tools }` plus `username`/`name`), and as of task 69 `lectic`'s
+  *value* is identical across both: every path resolves `lectic` to the built package via the
+  shared expression `lectic.packages.${system}.lectic or lectic.packages.${system}.default or
+  lectic`. This was previously a real asymmetry, not an intentional design choice — the
+  NixOS-integrated path (`lib/mkHost.nix`'s `home-manager.extraSpecialArgs`, and `flake.nix`'s
+  `hmExtraSpecialArgs` consumed raw by the `iso` config) passed the raw, unbuilt `lectic` flake
+  input straight into `home.packages`, silently installing an inert reference (no `bin/lectic`).
+  This was the same defect class as the `lectic` regression task 66 phase 9 fixed for the
+  standalone path only. Task 69 applied the standalone path's existing resolution expression to
+  the NixOS-integrated and `iso` paths as well, so all home-manager evaluation paths now ship the
+  real `lectic` derivation.
 
 ## QUESTION for User: Which Path to Keep?
 
