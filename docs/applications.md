@@ -23,8 +23,6 @@ MCP-Hub is configured as a standard Neovim plugin using lazy.nvim:
 - Configuration: `~/.config/mcphub/servers.json`
 - Integration with Avante for AI functionality
 
-Use `~/.dotfiles/packages/test-mcphub.sh` to verify installation and troubleshoot issues.
-
 ## PDF Viewers
 
 ### Zathura (GTK-based)

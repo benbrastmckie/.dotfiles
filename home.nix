@@ -3,8 +3,6 @@
 {
   # Import our custom modules
   imports = [
-    # ./home-modules/mcp-hub.nix  # Disabled - using lazy.nvim approach
-
     # Core modules
     ./modules/home/core/git.nix
     ./modules/home/core/neovim.nix

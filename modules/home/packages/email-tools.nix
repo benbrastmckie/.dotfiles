@@ -35,7 +35,5 @@
     curl # For OAuth2 token refresh
     jq # For parsing JSON responses
     # Note: libsecret is already installed system-wide in configuration.nix
-    # Required for running mcp-hub JavaScript tools
-    # MCP-Hub is now managed by the home module
   ];
 }

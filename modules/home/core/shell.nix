@@ -5,7 +5,6 @@
     EDITOR = "nvim";
     # Prefer Wayland over X11
     NIXOS_OZONE_WL = "1";
-    # MCP_HUB_PATH is now managed by the MCP-Hub module
     SASL_PATH = "${pkgs.cyrus-sasl-xoauth2}/lib/sasl2:${pkgs.cyrus_sasl}/lib/sasl2";
     # Cursor settings for WezTerm and other applications
     XCURSOR_THEME = "Adwaita";
