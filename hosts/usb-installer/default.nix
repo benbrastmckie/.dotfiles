@@ -3,16 +3,17 @@
 { pkgs, lib, ... }:
 {
   # USB-specific configurations
-  isoImage.edition = lib.mkForce "nandi-usb";
-  isoImage.compressImage = true;
-  isoImage.squashfsCompression = "zstd -Xcompression-level 19";
+  isoImage = {
+    edition = lib.mkForce "nandi-usb";
+    compressImage = true;
+    squashfsCompression = "zstd -Xcompression-level 19";
+    # Enable copy-on-write for the ISO
+    makeEfiBootable = true;
+    makeUsbBootable = true;
+  };
 
   # Generic hostname for USB
   networking.hostName = lib.mkForce "nandi-usb";
-
-  # Enable copy-on-write for the ISO
-  isoImage.makeEfiBootable = true;
-  isoImage.makeUsbBootable = true;
 
   # Configure networking for installer with NetworkManager
   networking = {

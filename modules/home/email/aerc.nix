@@ -221,52 +221,54 @@ _: {
     };
   };
 
-  # aerc email client accounts configuration
-  home.file.".config/aerc/accounts.conf".text = ''
-    [gmail]
-    source = notmuch://~/Mail
-    query-map = ~/.config/aerc/querymap-gmail
-    default = INBOX
-    from = Benjamin Brast-McKie <benbrastmckie@gmail.com>
-    copy-to = Sent
-    archive = All_Mail
-    outgoing = smtps://benbrastmckie@gmail.com@smtp.gmail.com:465
-    outgoing-cred-cmd = secret-tool lookup service gmail-app-password username benbrastmckie@gmail.com
+  home.file = {
+    # aerc email client accounts configuration
+    ".config/aerc/accounts.conf".text = ''
+      [gmail]
+      source = notmuch://~/Mail
+      query-map = ~/.config/aerc/querymap-gmail
+      default = INBOX
+      from = Benjamin Brast-McKie <benbrastmckie@gmail.com>
+      copy-to = Sent
+      archive = All_Mail
+      outgoing = smtps://benbrastmckie@gmail.com@smtp.gmail.com:465
+      outgoing-cred-cmd = secret-tool lookup service gmail-app-password username benbrastmckie@gmail.com
 
-    [logos]
-    source = notmuch://~/Mail
-    query-map = ~/.config/aerc/querymap-logos
-    default = INBOX
-    from = Benjamin Brast-McKie <benjamin@logos-labs.ai>
-    copy-to = Sent
-    archive = Archive
-    outgoing = smtp://benjamin@logos-labs.ai@127.0.0.1:1025
-    outgoing-cred-cmd = secret-tool lookup service protonmail-bridge username benjamin@logos-labs.ai
-  '';
+      [logos]
+      source = notmuch://~/Mail
+      query-map = ~/.config/aerc/querymap-logos
+      default = INBOX
+      from = Benjamin Brast-McKie <benjamin@logos-labs.ai>
+      copy-to = Sent
+      archive = Archive
+      outgoing = smtp://benjamin@logos-labs.ai@127.0.0.1:1025
+      outgoing-cred-cmd = secret-tool lookup service protonmail-bridge username benjamin@logos-labs.ai
+    '';
 
-  # aerc query map for Gmail virtual folders
-  home.file.".config/aerc/querymap-gmail".text = ''
-    INBOX=tag:inbox AND tag:gmail
-    Sent=folder:Gmail/.Sent
-    Drafts=folder:Gmail/.Drafts
-    Trash=folder:Gmail/.Trash
-    All_Mail=folder:Gmail/.All_Mail
-    Spam=folder:Gmail/.Spam
-    Unread=tag:unread AND tag:gmail
-    Flagged=tag:flagged AND tag:gmail
-    Proposed-Delete=tag:proposed-delete AND tag:gmail
-    Proposed-Archive=tag:proposed-archive AND tag:gmail
-    Proposed-Unsure=tag:proposed-unsure AND tag:gmail
-  '';
+    # aerc query map for Gmail virtual folders
+    ".config/aerc/querymap-gmail".text = ''
+      INBOX=tag:inbox AND tag:gmail
+      Sent=folder:Gmail/.Sent
+      Drafts=folder:Gmail/.Drafts
+      Trash=folder:Gmail/.Trash
+      All_Mail=folder:Gmail/.All_Mail
+      Spam=folder:Gmail/.Spam
+      Unread=tag:unread AND tag:gmail
+      Flagged=tag:flagged AND tag:gmail
+      Proposed-Delete=tag:proposed-delete AND tag:gmail
+      Proposed-Archive=tag:proposed-archive AND tag:gmail
+      Proposed-Unsure=tag:proposed-unsure AND tag:gmail
+    '';
 
-  # aerc query map for Logos virtual folders
-  home.file.".config/aerc/querymap-logos".text = ''
-    INBOX=tag:inbox AND tag:logos
-    Sent=folder:Logos/.Sent
-    Drafts=folder:Logos/.Drafts
-    Trash=folder:Logos/.Trash
-    Archive=folder:Logos/.Archive
-    Unread=tag:unread AND tag:logos
-    Flagged=tag:flagged AND tag:logos
-  '';
+    # aerc query map for Logos virtual folders
+    ".config/aerc/querymap-logos".text = ''
+      INBOX=tag:inbox AND tag:logos
+      Sent=folder:Logos/.Sent
+      Drafts=folder:Logos/.Drafts
+      Trash=folder:Logos/.Trash
+      Archive=folder:Logos/.Archive
+      Unread=tag:unread AND tag:logos
+      Flagged=tag:flagged AND tag:logos
+    '';
+  };
 }

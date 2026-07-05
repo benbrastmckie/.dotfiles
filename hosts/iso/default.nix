@@ -10,10 +10,12 @@
 }:
 {
   # ISO-specific configurations
-  isoImage.edition = lib.mkForce "nandi";
-  isoImage.compressImage = true;
-  # Enable copy-on-write for the ISO
-  isoImage.squashfsCompression = "zstd";
+  isoImage = {
+    edition = lib.mkForce "nandi";
+    compressImage = true;
+    # Enable copy-on-write for the ISO
+    squashfsCompression = "zstd";
+  };
   # Make the ISO compatible with most systems.
   # NOTE: `system` is passed in via specialArgs (see flake.nix's `iso` nixosSystem call) rather
   # than closed over lexically, since this module now lives in its own file. Do NOT use

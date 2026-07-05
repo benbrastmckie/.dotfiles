@@ -39,13 +39,15 @@ nixpkgs.lib.nixosSystem {
 
     home-manager.nixosModules.home-manager
     {
-      home-manager.useGlobalPkgs = true;
-      home-manager.useUserPackages = true;
-      home-manager.users.${username} = import "${root}/home.nix";
-      home-manager.extraSpecialArgs = {
-        inherit pkgs-unstable;
-        lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
-        inherit nix-ai-tools;
+      home-manager = {
+        useGlobalPkgs = true;
+        useUserPackages = true;
+        users.${username} = import "${root}/home.nix";
+        extraSpecialArgs = {
+          inherit pkgs-unstable;
+          lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
+          inherit nix-ai-tools;
+        };
       };
     }
   ]

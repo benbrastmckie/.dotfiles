@@ -215,26 +215,34 @@ W08 useless-parens ×1) mechanically.
 
 ---
 
-### Phase 4: Hand-collapse W20 Tier 1 (tight, low-risk files) [NOT STARTED]
+### Phase 4: Hand-collapse W20 Tier 1 (tight, low-risk files) [COMPLETED]
 
 **Goal**: Collapse the 8 Tier-1 `repeated_keys` findings where occurrences are adjacent/near and
 the diff is small and mechanical.
 
 **Tasks**:
-- [ ] `flake.nix` - collapse `home-manager` (lines ~155-158) into one
+- [x] `flake.nix` - collapse `home-manager` (lines ~155-158) into one
   `home-manager = { useGlobalPkgs = true; useUserPackages = true; users.${username} = import ./home.nix; extraSpecialArgs = hmExtraSpecialArgs; };`.
-- [ ] `lib/mkHost.nix` - collapse the mirroring `home-manager` block (lines ~42-44 + extraSpecialArgs).
-- [ ] `hosts/iso/default.nix` - collapse `isoImage` (edition/compressImage/squashfsCompression).
-- [ ] `hosts/usb-installer/default.nix` - collapse `isoImage`; confirm the nearby
-  `networking.hostName` is a different key and is NOT absorbed.
-- [ ] `home.nix` - collapse `home` (username/homeDirectory/stateVersion); preserve the historical
+- [x] `lib/mkHost.nix` - collapse the mirroring `home-manager` block (lines ~42-44 + extraSpecialArgs).
+- [x] `hosts/iso/default.nix` - collapse `isoImage` (edition/compressImage/squashfsCompression).
+- [x] `hosts/usb-installer/default.nix` - collapse `isoImage`; confirm the nearby
+  `networking.hostName` is a different key and is NOT absorbed. Verified: also folded the two
+  further-down `isoImage.makeEfiBootable`/`makeUsbBootable` assignments into the same collapsed
+  set (statix's "2 occurrences omitted" note covered these), `networking.hostName` left untouched
+  and unmoved.
+- [x] `home.nix` - collapse `home` (username/homeDirectory/stateVersion); preserve the historical
   stateVersion comment block between homeDirectory and stateVersion.
-- [ ] `modules/system/audio.nix` - collapse `services` (blueman/pulseaudio/pipewire).
-- [ ] `modules/system/services.nix` - collapse `services` (printing/avahi/xserver/libinput);
+- [x] `modules/system/audio.nix` - collapse `services` (blueman/pulseaudio/pipewire); `security.rtkit`
+  left as its own separate top-level key (different attrpath, not absorbed).
+- [x] `modules/system/services.nix` - collapse `services` (printing/avahi/xserver/libinput);
   move each per-entry 1-2 line comment inline into the collapsed set without loss.
-- [ ] `modules/home/email/aerc.nix` - collapse the trailing `home.file` block (accounts.conf /
+- [x] `modules/home/email/aerc.nix` - collapse the trailing `home.file` block (accounts.conf /
   querymap-gmail / querymap-logos); leave the earlier `programs.aerc = {...}` block untouched.
-- [ ] Run `nix flake check` after each file (or a small batch).
+- [x] Run `nix flake check` after each file (or a small batch). Verified: `all checks passed!`
+  after all 8 files edited together; spot-checked `nix eval` of
+  `homeConfigurations.benjamin.config.home.file.".config/aerc/accounts.conf".text` and
+  `home.stateVersion` confirm unchanged evaluated values (indented-string dedent unaffected by
+  the uniform extra nesting indentation).
 
 **Timing**: 1.5 hours
 
@@ -246,10 +254,14 @@ the diff is small and mechanical.
   `modules/home/email/aerc.nix` - collapse the flagged repeated key in each
 
 **Verification**:
-- `nix flake check` green after each file.
-- `statix check` reports zero W20 findings for these 8 files.
+- `nix flake check` green after each file. Verified: `all checks passed!`.
+- `statix check` reports zero W20 findings for these 8 files. Verified: remaining W20 findings
+  are only in the 4 hardware-configuration.nix files (Phase 7) plus the Tier 2/3 files
+  (dotfiles.nix, xdg.nix, boot.nix, desktop.nix x2, power.nix — Phases 5/6); none of the 8 Tier-1
+  files appear.
 - Spot-check: `nix eval` of one affected attr (e.g. host toplevel or `home.stateVersion`) is
-  unchanged, or rely on the desugaring-equivalence argument plus green flake check.
+  unchanged, or rely on the desugaring-equivalence argument plus green flake check. Verified:
+  `home.stateVersion` = "24.11", aerc accounts.conf text unchanged.
 
 ---
 
