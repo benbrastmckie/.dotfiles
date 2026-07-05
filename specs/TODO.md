@@ -1,5 +1,5 @@
 ---
-next_project_number: 102
+next_project_number: 103
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 102
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92,102 | -- | nix-infrastructure, desktop, maintenance, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -20,6 +20,7 @@ next_project_number: 102
 
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
 68 [NOT STARTED] — The iso and usb-installer nixosConfigurations fail to build becau
+102 [NOT STARTED] — Gate CI on lint: promote the warn-only statix/deadnix lint steps 
 
 ### Services
 
@@ -47,6 +48,16 @@ next_project_number: 102
 92 [NOT STARTED] — Fix the Logos (Protonmail Bridge) mbsync group so the email-clean
 
 ## Tasks
+
+### 102. Gate ci on lint
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nix-infrastructure
+- **Dependencies**: Task 101
+
+**Description**: Gate CI on lint: promote the warn-only statix/deadnix lint steps (added in task 98) from advisory to CI-blocking now that task 101 made the tree lint-clean (statix + deadnix both zero-finding). Update .github/workflows/ci.yml so the statix check and deadnix --exclude 'hosts/*/hardware-configuration.nix' steps exit non-zero (remove any continue-on-error / warn-only shielding) and gate the workflow, so future lint regressions fail the build. Preserve the existing hardware-configuration.nix path exclusions (statix.toml ignore glob + deadnix --exclude flag). Verify the gated workflow passes on the current clean tree. Follows task 98 (lint tooling), depends on task 101 (lint-clean baseline).
+
+---
 
 ### 101. Nix lint findings cleanup
 - **Status**: [COMPLETED]

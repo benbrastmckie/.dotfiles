@@ -1,6 +1,19 @@
 {
-  "next_project_number": 102,
+  "next_project_number": 103,
   "active_projects": [
+    {
+      "project_number": 102,
+      "project_name": "gate_ci_on_lint",
+      "status": "not_started",
+      "task_type": "nix",
+      "topic": "nix-infrastructure",
+      "dependencies": [
+        101
+      ],
+      "description": "Gate CI on lint: promote the warn-only statix/deadnix lint steps (added in task 98) from advisory to CI-blocking now that task 101 made the tree lint-clean (statix + deadnix both zero-finding). Update .github/workflows/ci.yml so the statix check and deadnix --exclude 'hosts/*/hardware-configuration.nix' steps exit non-zero (remove any continue-on-error / warn-only shielding) and gate the workflow, so future lint regressions fail the build. Preserve the existing hardware-configuration.nix path exclusions (statix.toml ignore glob + deadnix --exclude flag). Verify the gated workflow passes on the current clean tree. Follows task 98 (lint tooling), depends on task 101 (lint-clean baseline).",
+      "created": "2026-07-05T15:31:21Z",
+      "last_updated": "2026-07-05T15:31:21Z"
+    },
     {
       "project_number": 95,
       "project_name": "post_reorg_documentation_sweep",
