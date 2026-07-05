@@ -11,14 +11,10 @@ next_project_number: 102
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92,101 | -- | nixos-config, nix-infrastructure, desktop, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, desktop, maintenance, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
-
-### Nixos Config
-
-101 [NOT STARTED] — Clear the statix and deadnix findings surfaced by the warn-only l
 
 ### Nix Infrastructure
 
@@ -53,7 +49,7 @@ next_project_number: 102
 ## Tasks
 
 ### 101. Nix lint findings cleanup
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None

@@ -1,0 +1,19 @@
+{
+  "status": "implemented",
+  "summary": "Executed all 8 phases of the lint-findings-cleanup plan in order. Phase 1 skip-commented the 8 intentional-convention deadnix bindings (module lib args, overlay final/prev/old, dormant gmail-oauth2 config). Phase 2 removed the 11 safe deadnix bindings via deadnix --edit (a flag-ordering issue transiently touched the 4 hardware-configuration.nix files; detected and reverted before committing). Phase 3 applied the 15 auto-fixable statix findings (W10/W04/W08) via statix fix plus a spot nix fmt pass. Phases 4-6 hand-collapsed all 42 non-excluded W20 repeated-keys findings across Tier 1 (8 tight files), Tier 2 (4 whole-file-wrap files), and Tier 3 (modules/system/desktop.nix's judgment-heavy services/programs merge), with several files needing more sub-key folding than the plan's research table named (documented as deviations). Phase 7 added statix.toml (ignore glob) and a ci.yml deadnix --exclude flag for the 4 auto-generated hardware-configuration.nix files, discovering along the way that deadnix's --exclude flag must precede the positional path directly (no -- separator) to reliably apply. Phase 8 confirmed nix fmt produces no further diff and both linters report zero findings tree-wide. nix flake check stayed green after every phase's edits, verified additionally via ~20 targeted nix eval spot-checks confirming unchanged evaluated configuration across all W20 collapses.",
+  "phases_completed": 8,
+  "phases_total": 8,
+  "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/101_nix_lint_findings_cleanup/summaries/01_lint-findings-cleanup-summary.md",
+      "summary": "Full implementation summary: what changed per phase, decisions, plan deviations, and verification results"
+    },
+    {
+      "type": "plan",
+      "path": "specs/101_nix_lint_findings_cleanup/plans/01_lint-findings-cleanup.md",
+      "summary": "All 8 phases marked [COMPLETED] with per-task [x] annotations, verification notes, and inline deviation documentation"
+    }
+  ],
+  "next_action_hint": "Task 101 is complete and verified (nix flake check green, statix check and deadnix both zero findings tree-wide). No further /implement dispatch needed. Optional future follow-up (out of scope here, noted in the research report): tighten the two CI lint steps from non-blocking `|| true` to hard-gating now that the tree is lint-clean."
+}
