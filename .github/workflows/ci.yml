@@ -17,3 +17,7 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix flake check
+      - name: statix (non-blocking)
+        run: nix develop --command statix check || true
+      - name: deadnix (non-blocking)
+        run: nix develop --command deadnix . || true

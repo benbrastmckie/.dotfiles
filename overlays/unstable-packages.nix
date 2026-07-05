@@ -20,7 +20,9 @@ pkgs-unstable: final: prev: {
   # positional import with prev.X — NOT callPackage — to avoid infinite recursion (kooha pattern).
   zathura = import ../packages/zathura-x11.nix prev.zathura final.writeShellScriptBin;
   sioyek = import ../packages/sioyek-wayland.nix prev.sioyek final.writeShellScriptBin;
-  polkit-gnome-authentication-agent-1 = final.callPackage ../packages/polkit-gnome-agent-wrapper.nix { };
+  polkit-gnome-authentication-agent-1 =
+    final.callPackage ../packages/polkit-gnome-agent-wrapper.nix
+      { };
 
   # TTS/STT Models
   piper = final.callPackage ../packages/piper-bin.nix { }; # Piper TTS prebuilt binary (no onnxruntime compile)

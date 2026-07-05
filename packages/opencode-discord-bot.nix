@@ -11,11 +11,12 @@
 # repository and consumed as a flake input, the same way the email extension documents its
 # wrapper-binary/own-source precedent (see .claude/extensions/email/ and docs/). Not
 # implemented here -- deferred until there is an actual need to version/release it separately.
-{ lib
-, buildPythonApplication
-, setuptools
-, nextcord
-, aiohttp
+{
+  lib,
+  buildPythonApplication,
+  setuptools,
+  nextcord,
+  aiohttp,
 }:
 
 buildPythonApplication {
@@ -26,7 +27,10 @@ buildPythonApplication {
   src = ../opencode-discord-bot;
 
   build-system = [ setuptools ];
-  dependencies = [ nextcord aiohttp ];
+  dependencies = [
+    nextcord
+    aiohttp
+  ];
 
   pythonImportsCheck = [ "opencode_discord_bot" ];
 

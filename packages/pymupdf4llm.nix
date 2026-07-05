@@ -1,6 +1,12 @@
 # pymupdf4llm - LLM-optimized PDF extraction, built from the PyPI wheel.
 # Custom/pinned because it requires PyMuPDF >=1.26.6; nixpkgs currently ships 1.24.10.
-{ lib, buildPythonPackage, fetchPypi, pymupdf, tabulate }:
+{
+  lib,
+  buildPythonPackage,
+  fetchPypi,
+  pymupdf,
+  tabulate,
+}:
 
 buildPythonPackage rec {
   pname = "pymupdf4llm";
@@ -15,7 +21,10 @@ buildPythonPackage rec {
     hash = "sha256-53d9CD9ffH2qgEw0I4BMMJp+CW1oJ3PAHp3UuwYPSlY=";
   };
 
-  propagatedBuildInputs = [ pymupdf tabulate ];
+  propagatedBuildInputs = [
+    pymupdf
+    tabulate
+  ];
 
   pythonImportsCheck = [ "pymupdf4llm" ];
 

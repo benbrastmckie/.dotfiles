@@ -6,7 +6,13 @@
 # local, non-networked TTS). To update (if a fork ships new releases):
 #   nix-prefetch-url --type sha256 <new-url>
 #   nix hash to-sri --type sha256 <output>
-{ lib, stdenvNoCC, fetchurl, autoPatchelfHook, stdenv }:
+{
+  lib,
+  stdenvNoCC,
+  fetchurl,
+  autoPatchelfHook,
+  stdenv,
+}:
 let
   version = "2023.11.14-2";
   src = fetchurl {

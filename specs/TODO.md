@@ -11,14 +11,10 @@ next_project_number: 101
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92,98 | -- | nixos-config, nix-infrastructure, desktop, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, desktop, maintenance, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
-
-### Nixos Config
-
-98 [PLANNED] — Add Nix formatter and lint tooling to the flake (none configured 
 
 ### Nix Infrastructure
 
@@ -79,12 +75,17 @@ next_project_number: 101
 ---
 
 ### 98. Nix formatter lint tooling
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: Task 97
 - **Research_report**: [098_nix_formatter_lint_tooling/reports/01_formatter-lint-tooling.md]
 - **Plan**: [098_nix_formatter_lint_tooling/plans/01_formatter-lint-tooling.md]
+- **Summary**:
+  - [flake.nix]
+  - [.github/workflows/ci.yml]
+  - [47 of 80 tracked .nix files]
+  - [098_nix_formatter_lint_tooling/summaries/01_formatter-lint-tooling-summary.md]
 
 **Description**: Add Nix formatter and lint tooling to the flake (none configured today; CI only runs nix flake check). Standardize on nixfmt (RFC 166 / nixfmt-rfc-style, the official formatter) as the flake formatter output, and add statix + deadnix for linting/dead-code detection. Decide and document whether to gate CI on formatting/lint (needs user confirmation on strictness). Apply an initial format pass. Depends on task 97 as both touch flake.nix. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group D).
 

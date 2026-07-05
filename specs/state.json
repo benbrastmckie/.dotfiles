@@ -120,7 +120,7 @@
     {
       "project_number": 98,
       "project_name": "nix_formatter_lint_tooling",
-      "status": "planned",
+      "status": "completed",
       "task_type": "nix",
       "topic": "nixos-config",
       "dependencies": [
@@ -128,7 +128,7 @@
       ],
       "description": "Add Nix formatter and lint tooling to the flake (none configured today; CI only runs nix flake check). Standardize on nixfmt (RFC 166 / nixfmt-rfc-style, the official formatter) as the flake formatter output, and add statix + deadnix for linting/dead-code detection. Decide and document whether to gate CI on formatting/lint (needs user confirmation on strictness). Apply an initial format pass. Depends on task 97 as both touch flake.nix. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group D).",
       "created": "2026-07-05T09:48:44Z",
-      "last_updated": "2026-07-05T00:00:00Z",
+      "last_updated": "2026-07-05T10:40:50Z",
       "researched": "2026-07-05T10:21:38Z",
       "session_id": "sess_1783245278_b9efc6_98",
       "artifacts": [
@@ -141,6 +141,26 @@
           "type": "plan",
           "path": "specs/098_nix_formatter_lint_tooling/plans/01_formatter-lint-tooling.md",
           "summary": "3-phase plan: add formatter+devShell to flake.nix (pkgs.nixfmt), non-blocking statix/deadnix CI steps, whole-tree nix fmt format pass last"
+        },
+        {
+          "type": "implementation",
+          "path": "flake.nix",
+          "summary": "Added formatter.${system} = pkgs.nixfmt and devShells.${system}.default (nixfmt, statix, deadnix)"
+        },
+        {
+          "type": "implementation",
+          "path": ".github/workflows/ci.yml",
+          "summary": "Added non-blocking statix + deadnix CI steps (|| true); nix flake check remains sole hard gate"
+        },
+        {
+          "type": "implementation",
+          "path": "47 of 80 tracked .nix files",
+          "summary": "Whole-tree nix fmt format pass, verified idempotent"
+        },
+        {
+          "type": "summary",
+          "path": "specs/098_nix_formatter_lint_tooling/summaries/01_formatter-lint-tooling-summary.md",
+          "summary": "Implementation summary with verification and plan deviations"
         }
       ],
       "planned": "2026-07-05T00:00:00Z",
@@ -168,7 +188,9 @@
             "integrated_date": "2026-07-05"
           }
         ]
-      }
+      },
+      "completed": "2026-07-05T10:40:50Z",
+      "completion_summary": "Added nix fmt formatter (pkgs.nixfmt) and a devShell (nixfmt/statix/deadnix) to flake.nix, wired non-blocking statix+deadnix reporting into CI alongside the existing nix flake check hard gate, and applied a whole-tree nixfmt pass reformatting 47 of 80 .nix files. nix flake check and idempotent nixfmt --check both verified green."
     },
     {
       "project_number": 99,

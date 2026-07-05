@@ -48,11 +48,13 @@ nixpkgs.lib.nixosSystem {
         inherit nix-ai-tools;
       };
     }
-  ] ++ extraModules;
+  ]
+  ++ extraModules;
   specialArgs = {
     inherit username;
     inherit name;
     inherit pkgs-unstable;
     lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
-  } // extraSpecialArgs;
+  }
+  // extraSpecialArgs;
 }

@@ -1,17 +1,18 @@
 # Python bindings for Vosk (offline speech recognition), built from the manylinux
 # wheel with autoPatchelfHook for the bundled libvosk.so. Custom because nixpkgs
 # has no Python vosk wheel package.
-{ lib
-, buildPythonPackage
-, fetchPypi
-, autoPatchelfHook
-, stdenv
-, cffi
-, requests
-, tqdm
-, srt
-, websockets
-, pythonOlder
+{
+  lib,
+  buildPythonPackage,
+  fetchPypi,
+  autoPatchelfHook,
+  stdenv,
+  cffi,
+  requests,
+  tqdm,
+  srt,
+  websockets,
+  pythonOlder,
 }:
 
 buildPythonPackage rec {
@@ -37,7 +38,7 @@ buildPythonPackage rec {
   ];
 
   buildInputs = [
-    stdenv.cc.cc.lib  # Provides libstdc++.so.6 for C++ extensions
+    stdenv.cc.cc.lib # Provides libstdc++.so.6 for C++ extensions
   ];
 
   propagatedBuildInputs = [

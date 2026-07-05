@@ -1,4 +1,10 @@
-{ config, pkgs, pkgs-unstable, lectic, ... }:
+{
+  config,
+  pkgs,
+  pkgs-unstable,
+  lectic,
+  ...
+}:
 
 {
   # Import our custom modules (see modules/home/default.nix for the full list)

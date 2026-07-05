@@ -8,7 +8,10 @@
   # Enable useful Nix features
   nix = {
     settings = {
-      experimental-features = [ "nix-command" "flakes" ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
       auto-optimise-store = true; # Optimize the Nix store automatically
       # Resource limits to prevent OOM on heavy C++ builds (24-core / 30GB box).
       # max-jobs * cores caps concurrent compile units at 12, within the ~26GB

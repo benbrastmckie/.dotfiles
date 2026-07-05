@@ -112,7 +112,13 @@
   users.users.benjamin = {
     isNormalUser = true;
     description = "Benjamin";
-    extraGroups = [ "networkmanager" "wheel" "audio" "video" "input" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "audio"
+      "video"
+      "input"
+    ];
     initialHashedPassword = "$6$f2PeXbxhEnBAOWaK$M7TR7eFN2ICFm1y9qwcSHgWeYMRLICTtBOfC5njquaWXsYcIawkHvkHZJzzO3acoaa7/7iKdeZiwiK/LQfnpX0";
   };
 
@@ -137,11 +143,15 @@
   '';
 
   # Allow passwordless sudo for calamares during installation
-  security.sudo.extraRules = [ {
-    users = [ "benjamin" ];
-    commands = [ {
-      command = "${pkgs.calamares-nixos}/bin/calamares";
-      options = [ "NOPASSWD" ];
-    } ];
-  } ];
+  security.sudo.extraRules = [
+    {
+      users = [ "benjamin" ];
+      commands = [
+        {
+          command = "${pkgs.calamares-nixos}/bin/calamares";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
 }

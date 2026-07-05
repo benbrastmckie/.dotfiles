@@ -5,7 +5,7 @@
 
 writeShellScriptBin "loogle" ''
   LOOGLE_DIR="$HOME/.cache/loogle"
-  
+
   # First-time setup
   if [ ! -d "$LOOGLE_DIR" ]; then
     echo "==> First-time setup: Cloning loogle repository..."
@@ -14,7 +14,7 @@ writeShellScriptBin "loogle" ''
     echo "==> Building loogle (this may take a few minutes)..."
     nix develop . --command sh -c "lake exe cache get && lake build loogle"
   fi
-  
+
   # Run loogle
   cd "$LOOGLE_DIR"
   nix develop . --command lake exe loogle "$@"

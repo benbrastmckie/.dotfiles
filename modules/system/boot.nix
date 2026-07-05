@@ -34,12 +34,15 @@
   # Blacklisting matches the nixos-hardware framework-amd-ai-300-series module.
   # See: https://github.com/NixOS/nixos-hardware/tree/master/framework/13-inch/amd-ai-300-series
   # ==========================================================================
-  boot.blacklistedKernelModules = [ "snd_acp70" "snd_acp_pci" ];
+  boot.blacklistedKernelModules = [
+    "snd_acp70"
+    "snd_acp_pci"
+  ];
 
   # Kernel parameters for Ryzen AI 300 suspend/resume and deadlock detection
   boot.kernelParams = [
-    "amd_pstate=active"         # Enable AMD P-state driver for better power management
-    "amdgpu.dcdebugmask=0x10"  # Disable problematic GPU features during suspend
+    "amd_pstate=active" # Enable AMD P-state driver for better power management
+    "amdgpu.dcdebugmask=0x10" # Disable problematic GPU features during suspend
     "rtc_cmos.use_acpi_alarm=1" # Better ACPI wake support
     "hung_task_timeout_secs=60" # Detect deadlocks faster (default: 120s)
   ];

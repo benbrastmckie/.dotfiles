@@ -8,14 +8,16 @@
     };
     Service = {
       Type = "simple";
-      ExecStart = toString (pkgs.writeShellScript "screenshot-path-copy" ''
-        DIR="$HOME/Pictures/Screenshots"
-        mkdir -p "$DIR"
-        ${pkgs.inotify-tools}/bin/inotifywait -m -e close_write --format '%f' "$DIR" | while read -r filename; do
-          filepath="$DIR/$filename"
-          printf '%s' "$filepath" | ${pkgs.wl-clipboard}/bin/wl-copy
-        done
-      '');
+      ExecStart = toString (
+        pkgs.writeShellScript "screenshot-path-copy" ''
+          DIR="$HOME/Pictures/Screenshots"
+          mkdir -p "$DIR"
+          ${pkgs.inotify-tools}/bin/inotifywait -m -e close_write --format '%f' "$DIR" | while read -r filename; do
+            filepath="$DIR/$filename"
+            printf '%s' "$filepath" | ${pkgs.wl-clipboard}/bin/wl-copy
+          done
+        ''
+      );
       Restart = "on-failure";
       RestartSec = 5;
     };

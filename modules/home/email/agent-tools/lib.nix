@@ -38,74 +38,81 @@ let
   # Shared preamble (contract §2): global flags, `--account {gmail,logos}` per-account resolver
   # (task 79), manifest-dir resolution, logging. Interpolated into ALL five binaries.
   # ---------------------------------------------------------------------------------------
-  mkPreamble = { name, verb, safetyClass, extraHelp ? "" }: ''
-    set -euo pipefail
+  mkPreamble =
+    {
+      name,
+      verb,
+      safetyClass,
+      extraHelp ? "",
+    }:
+    ''
+          set -euo pipefail
 
-    BINARY_NAME="${name}"
-    VERB="${verb}"
-    SAFETY_CLASS="${safetyClass}"
+          BINARY_NAME="${name}"
+          VERB="${verb}"
+          SAFETY_CLASS="${safetyClass}"
 
-    # Contract §5 constants (harvested from prior art, email_execute.py:26-27; see
-    # handoffs/email-preferences.md §1.1).
-    MAX_BATCH_SIZE=50
-    PLAN_EXPIRY_DAYS=7
+          # Contract §5 constants (harvested from prior art, email_execute.py:26-27; see
+          # handoffs/email-preferences.md §1.1).
+          MAX_BATCH_SIZE=50
+          PLAN_EXPIRY_DAYS=7
 
-    ACCOUNT="gmail"
-    MANIFEST_DIR="''${EMAIL_MANIFEST_DIR:-${manifestDirDefault}}"
+          ACCOUNT="gmail"
+          MANIFEST_DIR="''${EMAIL_MANIFEST_DIR:-${manifestDirDefault}}"
 
-    log() { echo "[$BINARY_NAME] $*" >&2; }
+          log() { echo "[$BINARY_NAME] $*" >&2; }
 
-    print_help() {
-      cat <<HELPEOF
-$BINARY_NAME - $VERB
-Safety class: $SAFETY_CLASS
+          print_help() {
+            cat <<HELPEOF
+      $BINARY_NAME - $VERB
+      Safety class: $SAFETY_CLASS
 
-Global flags (wrapper-contract.md §2):
-  --account <gmail|logos> Account to operate on (default: gmail)
-  --manifest-dir <path>   Override manifest storage (default: \$EMAIL_MANIFEST_DIR, else
-                           ${manifestDirDefault}/ relative to the current working directory —
-                           normally the .dotfiles repo root)
-  --help                  Show this help
-${extraHelp}
-HELPEOF
-    }
+      Global flags (wrapper-contract.md §2):
+        --account <gmail|logos> Account to operate on (default: gmail)
+        --manifest-dir <path>   Override manifest storage (default: \$EMAIL_MANIFEST_DIR, else
+                                 ${manifestDirDefault}/ relative to the current working directory —
+                                 normally the .dotfiles repo root)
+        --help                  Show this help
+      ${extraHelp}
+      HELPEOF
+          }
 
-    ARGS=()
-    while [ "$#" -gt 0 ]; do
-      case "$1" in
-        --account) ACCOUNT="''${2:-}"; shift 2 ;;
-        --account=*) ACCOUNT="''${1#--account=}"; shift ;;
-        --manifest-dir) MANIFEST_DIR="''${2:-}"; shift 2 ;;
-        --manifest-dir=*) MANIFEST_DIR="''${1#--manifest-dir=}"; shift ;;
-        --help|-h) print_help; exit 0 ;;
-        *) ARGS+=("$1"); shift ;;
-      esac
-    done
-    set -- "''${ARGS[@]}"
+          ARGS=()
+          while [ "$#" -gt 0 ]; do
+            case "$1" in
+              --account) ACCOUNT="''${2:-}"; shift 2 ;;
+              --account=*) ACCOUNT="''${1#--account=}"; shift ;;
+              --manifest-dir) MANIFEST_DIR="''${2:-}"; shift 2 ;;
+              --manifest-dir=*) MANIFEST_DIR="''${1#--manifest-dir=}"; shift ;;
+              --help|-h) print_help; exit 0 ;;
+              *) ARGS+=("$1"); shift ;;
+            esac
+          done
+          set -- "''${ARGS[@]}"
 
-    case "$ACCOUNT" in
-      gmail)
-        ACCOUNT_FOLDER="Gmail"
-        ACCOUNT_MAILDIR_MARKER="/Mail/Gmail/"
-        ACCOUNT_MBSYNC_GROUP="gmail"
-        ACCOUNT_ARCHIVE_FOLDER="All_Mail"
-        ;;
-      logos)
-        ACCOUNT_FOLDER="Logos"
-        ACCOUNT_MAILDIR_MARKER="/Mail/Logos/"
-        ACCOUNT_MBSYNC_GROUP="logos"
-        ACCOUNT_ARCHIVE_FOLDER="Archive"
-        ;;
-      *)
-        log "ERROR: --account only accepts 'gmail' or 'logos' (got: '$ACCOUNT')"
-        log "See wrapper-contract.md for the supported account set."
-        exit 1
-        ;;
-    esac
-    HIMALAYA_ACCT=(-a "$ACCOUNT")
+          case "$ACCOUNT" in
+            gmail)
+              ACCOUNT_FOLDER="Gmail"
+              ACCOUNT_MAILDIR_MARKER="/Mail/Gmail/"
+              ACCOUNT_MBSYNC_GROUP="gmail"
+              ACCOUNT_ARCHIVE_FOLDER="All_Mail"
+              ;;
+            logos)
+              ACCOUNT_FOLDER="Logos"
+              ACCOUNT_MAILDIR_MARKER="/Mail/Logos/"
+              ACCOUNT_MBSYNC_GROUP="logos"
+              ACCOUNT_ARCHIVE_FOLDER="Archive"
+              ;;
+            *)
+              log "ERROR: --account only accepts 'gmail' or 'logos' (got: '$ACCOUNT')"
+              log "See wrapper-contract.md for the supported account set."
+              exit 1
+              ;;
+          esac
+          HIMALAYA_ACCT=(-a "$ACCOUNT")
 
-    mkdir -p "$MANIFEST_DIR"
-  '';
+          mkdir -p "$MANIFEST_DIR"
+    '';
 
   # ---------------------------------------------------------------------------------------
   # Mutation preamble (contract §2, §4, §5, §7). Extends mkPreamble with: dry-run-by-default
@@ -113,11 +120,17 @@ HELPEOF
   # `<manifest>.state.jsonl` companion, Message-ID -> envelope-id resolution, and the mbsync
   # auth-failure fail-safe. Interpolated into the two mutation binaries only.
   # ---------------------------------------------------------------------------------------
-  mkMutationPreamble = { name, verb, extraHelp ? "" }:
+  mkMutationPreamble =
+    {
+      name,
+      verb,
+      extraHelp ? "",
+    }:
     (mkPreamble {
       inherit name verb extraHelp;
       safetyClass = "mutation";
-    }) + ''
+    })
+    + ''
       # --- mutation gate (contract §2, §4, §5) -------------------------------------------
       EXECUTE=0
       CONFIRM_HASH=""
@@ -316,5 +329,10 @@ HELPEOF
   lower = "tr '[:upper:]' '[:lower:]'";
 in
 {
-  inherit manifestDirDefault mkPreamble mkMutationPreamble lower;
+  inherit
+    manifestDirDefault
+    mkPreamble
+    mkMutationPreamble
+    lower
+    ;
 }

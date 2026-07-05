@@ -15,9 +15,18 @@
     ];
     fontconfig = {
       defaultFonts = {
-        serif = [ "Liberation Serif" "Noto Serif" ];
-        sansSerif = [ "Liberation Sans" "Noto Sans" ];
-        monospace = [ "Fira Code" "Liberation Mono" ];
+        serif = [
+          "Liberation Serif"
+          "Noto Serif"
+        ];
+        sansSerif = [
+          "Liberation Sans"
+          "Noto Sans"
+        ];
+        monospace = [
+          "Fira Code"
+          "Liberation Mono"
+        ];
       };
     };
   };

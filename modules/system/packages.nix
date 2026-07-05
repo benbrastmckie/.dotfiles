@@ -2,8 +2,9 @@
 # Packages owned by home-manager are documented inline with ownership comments.
 { pkgs, pkgs-unstable, ... }:
 {
-  environment.systemPackages =
-    (with pkgs; [
+  environment.systemPackages = (
+    with pkgs;
+    [
       # GNOME Tools (useful for both GNOME and niri if re-enabled)
       gnome-control-center # GNOME Settings GUI
       nautilus # File manager (required by portal)
@@ -198,5 +199,6 @@
       # Polkit authentication agent for the niri session (GNOME session uses gnome-shell's own).
       # Custom wrapper (overlay) exposes the libexec binary on PATH under its conventional bin name.
       polkit-gnome-authentication-agent-1
-    ]);
+    ]
+  );
 }

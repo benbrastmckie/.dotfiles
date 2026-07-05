@@ -6,7 +6,13 @@
 #   nix store prefetch-file --hash-type sha256 "https://github.com/anomalyco/opencode/releases/download/v<VERSION>/opencode-linux-x64.tar.gz"
 # (no --unpack flag — hash the tarball itself, not its contents) and update the hash below.
 
-{ lib, stdenvNoCC, fetchurl, makeWrapper, ripgrep }:
+{
+  lib,
+  stdenvNoCC,
+  fetchurl,
+  makeWrapper,
+  ripgrep,
+}:
 
 let
   version = "1.14.33";

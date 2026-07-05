@@ -8,9 +8,19 @@
         layer = "top";
         position = "top";
         height = 32;
-        modules-left = [ "niri/workspaces" "niri/window" ];
+        modules-left = [
+          "niri/workspaces"
+          "niri/window"
+        ];
         modules-center = [ "clock" ];
-        modules-right = [ "idle_inhibitor" "tray" "bluetooth" "pulseaudio" "network" "battery" ];
+        modules-right = [
+          "idle_inhibitor"
+          "tray"
+          "bluetooth"
+          "pulseaudio"
+          "network"
+          "battery"
+        ];
 
         "niri/workspaces" = {
           format = "{icon}";
@@ -42,7 +52,13 @@
           format = "{icon} {capacity}%";
           format-charging = " {capacity}%";
           format-plugged = " {capacity}%";
-          format-icons = [ "" "" "" "" "" ];
+          format-icons = [
+            ""
+            ""
+            ""
+            ""
+            ""
+          ];
           states = {
             warning = 30;
             critical = 15;
@@ -61,7 +77,11 @@
           format = "{icon} {volume}%";
           format-muted = " Muted";
           format-icons = {
-            default = [ "" "" "" ];
+            default = [
+              ""
+              ""
+              ""
+            ];
             headphone = "";
             headset = "";
           };

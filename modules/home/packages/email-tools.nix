@@ -13,19 +13,22 @@
     })) # Himalaya with OAuth2 support
 
     # Custom cyrus-sasl with XOAUTH2 plugin built-in and mbsync with proper linking
-    (let
-      cyrus-sasl-with-xoauth2 = pkgs.cyrus_sasl.overrideAttrs (oldAttrs: {
-        buildInputs = oldAttrs.buildInputs ++ [ pkgs.cyrus-sasl-xoauth2 ];
-        postInstall = (oldAttrs.postInstall or "") + ''
-          # Copy XOAUTH2 plugin to the main SASL plugin directory
-          cp ${pkgs.cyrus-sasl-xoauth2}/lib/sasl2/* $out/lib/sasl2/
-        '';
-      });
+    (
+      let
+        cyrus-sasl-with-xoauth2 = pkgs.cyrus_sasl.overrideAttrs (oldAttrs: {
+          buildInputs = oldAttrs.buildInputs ++ [ pkgs.cyrus-sasl-xoauth2 ];
+          postInstall = (oldAttrs.postInstall or "") + ''
+            # Copy XOAUTH2 plugin to the main SASL plugin directory
+            cp ${pkgs.cyrus-sasl-xoauth2}/lib/sasl2/* $out/lib/sasl2/
+          '';
+        });
 
-      mbsync-with-xoauth2 = pkgs-unstable.isync.override {
-        cyrus_sasl = cyrus-sasl-with-xoauth2;
-      };
-    in mbsync-with-xoauth2)
+        mbsync-with-xoauth2 = pkgs-unstable.isync.override {
+          cyrus_sasl = cyrus-sasl-with-xoauth2;
+        };
+      in
+      mbsync-with-xoauth2
+    )
 
     pkgs.cyrus-sasl-xoauth2 # Keep for reference
     msmtp # For sending emails via SMTP

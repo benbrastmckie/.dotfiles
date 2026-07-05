@@ -19,7 +19,10 @@
   # Firewall
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 80 443 ]; # HTTP/HTTPS
+    allowedTCPPorts = [
+      80
+      443
+    ]; # HTTP/HTTPS
     allowedUDPPorts = [ ];
   };
 

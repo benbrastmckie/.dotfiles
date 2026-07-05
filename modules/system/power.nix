@@ -67,8 +67,10 @@
     freeSwapThreshold = 10; # Also consider swap usage
     enableNotifications = true; # Send desktop notifications when process is killed
     extraArgs = [
-      "--avoid" "^(gnome-shell|Xwayland|niri)$" # Avoid killing desktop essentials
-      "--prefer" "^(lean|lake|claude|node|npm|opencode)$" # Prefer killing memory-heavy processes first
+      "--avoid"
+      "^(gnome-shell|Xwayland|niri)$" # Avoid killing desktop essentials
+      "--prefer"
+      "^(lean|lake|claude|node|npm|opencode)$" # Prefer killing memory-heavy processes first
     ];
   };
 
@@ -88,11 +90,13 @@
   #
   # See: specs/25_configure_swap_space_nixos
   # ==========================================================================
-  swapDevices = [ {
-    device = "/var/lib/swapfile";
-    size = 16 * 1024; # 16GB in MiB
-    discardPolicy = "once"; # TRIM on activation for SSD optimization
-  } ];
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 16 * 1024; # 16GB in MiB
+      discardPolicy = "once"; # TRIM on activation for SSD optimization
+    }
+  ];
 
   # ==========================================================================
   # zram Compressed Swap - Fast In-Memory Swap

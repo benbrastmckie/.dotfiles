@@ -1,5 +1,10 @@
 # Audio (PipeWire), Bluetooth, and sound hardware configuration.
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 {
   # Enable Bluetooth
   hardware.bluetooth = {
@@ -38,7 +43,10 @@
   # EAPD bit 1 (value 2) = amplifier enabled, bit 0 (value 0) = disabled
   systemd.services.disable-speaker-amp = {
     description = "Disable internal speaker amplifier to prevent EMI static";
-    wantedBy = [ "multi-user.target" "post-resume.target" ];
+    wantedBy = [
+      "multi-user.target"
+      "post-resume.target"
+    ];
     after = [ "sound.target" ];
     serviceConfig = {
       Type = "oneshot";

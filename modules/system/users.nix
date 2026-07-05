@@ -5,7 +5,12 @@
   users.users.${username} = {
     isNormalUser = true;
     description = "Benjamin";
-    extraGroups = [ "networkmanager" "wheel" "input" "uinput" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "input"
+      "uinput"
+    ];
   };
 
   # Enable uinput for ydotool (dictation feature)

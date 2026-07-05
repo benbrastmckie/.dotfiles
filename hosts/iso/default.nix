@@ -2,7 +2,12 @@
 # Wired directly into the `iso` nixosSystem call in flake.nix (NOT via mkHost) because an
 # installer image has no hosts/iso/hardware-configuration.nix, which mkHost unconditionally
 # requires. Mirrors the shape of hosts/usb-installer/default.nix.
-{ pkgs, lib, system, ... }:
+{
+  pkgs,
+  lib,
+  system,
+  ...
+}:
 {
   # ISO-specific configurations
   isoImage.edition = lib.mkForce "nandi";

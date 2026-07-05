@@ -17,18 +17,20 @@
 
   # Set GDM login screen background using proper NixOS dconf profiles
   # This ensures the dconf database is properly compiled for GDM
-  programs.dconf.profiles.gdm.databases = [ {
-    settings = {
-      "org/gnome/desktop/background" = {
-        picture-uri = "file:///etc/wallpapers/riverside.jpg";
-        picture-uri-dark = "file:///etc/wallpapers/riverside.jpg"; # Required for dark mode
-        picture-options = "zoom";
+  programs.dconf.profiles.gdm.databases = [
+    {
+      settings = {
+        "org/gnome/desktop/background" = {
+          picture-uri = "file:///etc/wallpapers/riverside.jpg";
+          picture-uri-dark = "file:///etc/wallpapers/riverside.jpg"; # Required for dark mode
+          picture-options = "zoom";
+        };
+        "org/gnome/desktop/screensaver" = {
+          picture-uri = "file:///etc/wallpapers/riverside.jpg";
+        };
       };
-      "org/gnome/desktop/screensaver" = {
-        picture-uri = "file:///etc/wallpapers/riverside.jpg";
-      };
-    };
-  } ];
+    }
+  ];
 
   environment.etc."wallpapers/riverside.jpg".source = ../../wallpapers/riverside.jpg;
 
@@ -80,7 +82,10 @@
 
   # Additional GNOME services that are useful for both environments
   # Nautilus required for GNOME portal FileChooser implementation
-  services.dbus.packages = [ pkgs.dconf pkgs.nautilus ];
+  services.dbus.packages = [
+    pkgs.dconf
+    pkgs.nautilus
+  ];
   programs.dconf.enable = true;
 
   # Enable GNOME Virtual File System
@@ -96,13 +101,19 @@
     ];
     config = {
       common = {
-        default = [ "gnome" "gtk" ];
+        default = [
+          "gnome"
+          "gtk"
+        ];
       };
       # Niri-specific portal configuration - uses GNOME portals
       # This ensures screen sharing, file picker work in niri session
       # See: specs/reports/012_niri_with_gnome_integration.md
       niri = {
-        default = [ "gnome" "gtk" ];
+        default = [
+          "gnome"
+          "gtk"
+        ];
         "org.freedesktop.impl.portal.FileChooser" = [ "gnome" ];
         "org.freedesktop.impl.portal.Screenshot" = [ "gnome" ];
         "org.freedesktop.impl.portal.Screencast" = [ "gnome" ];

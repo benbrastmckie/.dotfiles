@@ -16,7 +16,10 @@ final: prev: {
 
     nativeBuildInputs = with final; [ go ];
 
-    buildInputs = with final; [ tmux gh ];
+    buildInputs = with final; [
+      tmux
+      gh
+    ];
 
     postInstall = ''
       # Create 'cs' alias

@@ -42,10 +42,19 @@
     };
     new = {
       tags = [ "new" ];
-      ignore = [ ".mbsyncstate" ".strstrings" ".lock" "dovecot*" ];
+      ignore = [
+        ".mbsyncstate"
+        ".strstrings"
+        ".lock"
+        "dovecot*"
+      ];
     };
     search = {
-      excludeTags = [ "deleted" "spam" "trash" ];
+      excludeTags = [
+        "deleted"
+        "spam"
+        "trash"
+      ];
     };
     maildir = {
       synchronizeFlags = true;
