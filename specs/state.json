@@ -1,6 +1,16 @@
 {
-  "next_project_number": 94,
+  "next_project_number": 95,
   "active_projects": [
+    {
+      "project_number": 94,
+      "project_name": "review_nixos_config_documentation",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Systematically review my nixos config to improve the documentation (and the config) where relevant",
+      "topic": "nixos-config",
+      "created": "2026-07-05T08:07:06Z",
+      "last_updated": "2026-07-05T08:07:06Z"
+    },
     {
       "project_number": 81,
       "project_name": "reorganize_nixos_dotfiles_repository_design",

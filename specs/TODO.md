@@ -1,5 +1,5 @@
 ---
-next_project_number: 94
+next_project_number: 95
 ---
 
 # TODO
@@ -11,10 +11,14 @@ next_project_number: 94
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92,94 | -- | nixos-config, nix-infrastructure, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
+
+### Nixos Config
+
+94 [NOT STARTED] — Systematically review my nixos config to improve the documentatio
 
 ### Nix Infrastructure
 
@@ -47,6 +51,16 @@ next_project_number: 94
 92 [NOT STARTED] — Fix the Logos (Protonmail Bridge) mbsync group so the email-clean
 
 ## Tasks
+
+### 94. Review nixos config documentation
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Systematically review my nixos config to improve the documentation (and the config) where relevant
+
+---
 
 ### 93. Update sh auto commit opt in
 - **Status**: [COMPLETED]
