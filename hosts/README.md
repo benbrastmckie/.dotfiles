@@ -43,7 +43,7 @@ nixosConfigurations = {
 sudo nixos-rebuild switch --flake .#$(hostname)
 
 # Or use the update script (auto-detects hostname)
-./update.sh
+./scripts/update.sh
 ```
 
 Available hosts: `garuda`, `nandi`, `hamsa`, `usb-installer`

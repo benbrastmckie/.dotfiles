@@ -46,7 +46,7 @@ For creating a portable installer:
 - **System rebuild**: `sudo nixos-rebuild switch --flake .#hostname`
 - **User config**: `home-manager switch --flake .#benjamin`
 - **Update flake**: `nix flake update`
-- **Full update**: `./update.sh`
+- **Full update**: `./scripts/update.sh`
 
 ### USB Installer
 - **Build ISO**: `nix build .#nixosConfigurations.usb-installer.config.system.build.isoImage`

@@ -68,7 +68,7 @@ The custom ISO includes:
 
 3. **Subsequent rebuilds can use the update script:**
    ```bash
-   ~/.dotfiles/update.sh
+   ~/.dotfiles/scripts/update.sh
    ```
 
 4. **Apply home-manager configuration:**

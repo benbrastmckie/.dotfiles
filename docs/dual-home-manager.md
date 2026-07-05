@@ -9,7 +9,7 @@ This flake runs two home-manager instances **in parallel** for the `benjamin` us
 | NixOS-integrated | `home-manager.nixosModules.home-manager` | `sudo nixos-rebuild switch --flake .#<host>` | `/etc/profiles/per-user/benjamin/` |
 | Standalone | `homeConfigurations.benjamin` | `home-manager switch --flake .#benjamin` | `~/.nix-profile/` |
 
-Both paths import `./home.nix` and receive the same `extraSpecialArgs`. `update.sh` runs both in sequence to keep them in sync.
+Both paths import `./home.nix` and receive the same `extraSpecialArgs`. `scripts/update.sh` runs both in sequence to keep them in sync.
 
 ## Why Two Paths Exist
 
@@ -22,11 +22,11 @@ standalone profile is effectively the "active" one for interactive shell session
 
 ## Consequences of the Dual Setup
 
-- **Double evaluation cost**: Every `update.sh` run evaluates `home.nix` twice (once per path),
+- **Double evaluation cost**: Every `scripts/update.sh` run evaluates `home.nix` twice (once per path),
   building two activation derivations and two GC roots.
 - **Two GC roots**: `/nix/var/nix/gcroots/per-user/benjamin/home-manager` (standalone) and
   the NixOS-managed profile root. Both must be included in GC analysis.
-- **Sync risk**: If one path is updated and the other is not, they diverge. `update.sh` mitigates
+- **Sync risk**: If one path is updated and the other is not, they diverge. `scripts/update.sh` mitigates
   this by running both atomically, but a partial failure can leave them out of sync.
 - **extraSpecialArgs divergence** (resolved): Previously the two paths had slightly different
   `extraSpecialArgs`. As of task 66, both paths pass the same set of args:
@@ -46,7 +46,7 @@ standalone profile is effectively the "active" one for interactive shell session
 
 **Pros**: Single source of truth; halves home-manager evaluation overhead; no sync risk.
 **Cons**: Every home change requires `sudo nixos-rebuild switch` (slower, requires root).
-**Action required**: Remove `homeConfigurations.benjamin` from `flake.nix`; update `update.sh`
+**Action required**: Remove `homeConfigurations.benjamin` from `flake.nix`; update `scripts/update.sh`
 to call only `nixos-rebuild switch`.
 
 ### Option C: Drop the NixOS-integrated path
@@ -55,13 +55,13 @@ to call only `nixos-rebuild switch`.
 **Cons**: System NixOS config and user config become decoupled; `nixos-rebuild switch` no longer
 updates the user profile; requires all user services to be managed via standalone home-manager.
 **Action required**: Remove `home-manager.nixosModules.home-manager` from all `nixosConfigurations`;
-update `update.sh` to call only `home-manager switch`.
+update `scripts/update.sh` to call only `home-manager switch`.
 
 ## Current Recommendation
 
 Keep both paths (Option A) until the workflow impact of dropping one is measured. The double
 evaluation cost is negligible on modern hardware (~30 extra seconds per full rebuild). The sync
-risk is low given `update.sh` always runs both.
+risk is low given `scripts/update.sh` always runs both.
 
 If build times become a pain point, Option B (drop standalone) is the cleanest migration:
 it removes complexity without changing the system behavior visible to the user.
@@ -82,4 +82,4 @@ attempt to declare secrets in `home.file` without a secrets backend.
 
 - `flake.nix` — Both home-manager paths are defined here
 - `home.nix` — Shared home configuration imported by both paths
-- `update.sh` — Runs both `nixos-rebuild switch` and `home-manager switch` in sequence
+- `scripts/update.sh` — Runs both `nixos-rebuild switch` and `home-manager switch` in sequence

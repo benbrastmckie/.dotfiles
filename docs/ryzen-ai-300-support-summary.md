@@ -68,7 +68,7 @@ boot.kernelModules = [
 ### 1. Build USB Installer
 ```bash
 cd ~/.dotfiles
-./build-usb-installer.sh
+./scripts/build-usb-installer.sh
 ```
 
 ### 2. Boot and Install

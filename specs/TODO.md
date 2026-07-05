@@ -23,7 +23,7 @@ next_project_number: 93
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
 68 [NOT STARTED] — The iso and usb-installer nixosConfigurations fail to build becau
 69 [NOT STARTED] — Consolidate the dual home-manager setup so there is a single sour
-85 [NOT STARTED] — Relocate root shell scripts into a new scripts/ directory in the 
+85 [PLANNED] — Relocate root shell scripts into a new scripts/ directory in the 
   └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do
 86 [NOT STARTED] — Adopt the module convention (options + aggregators) and make the 
   └─ 87 [NOT STARTED] — Clean up hosts/ structure and documentation in the NixOS/Home Man
@@ -144,10 +144,12 @@ SEED/CROSS-REPO: diagnosis performed in ~/Mail; approved delete manifest + wrapp
 ---
 
 ### 85. Root scripts relocation scripts dir
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
+- **Research**: [085_root_scripts_relocation_scripts_dir/reports/01_scripts-relocation-research.md]
+- **Plan**: [085_root_scripts_relocation_scripts_dir/plans/01_scripts-dir-relocation.md]
 
 **Description**: Relocate root shell scripts into a new scripts/ directory in the NixOS/Home Manager dotfiles repo (task 81 Tier 0, subtask blueprint #4, no dependencies). Move install.sh, update.sh, and build-usb-installer.sh into scripts/ (test-sasl.sh is deleted by subtask 82, not moved here). Update all direct references to these scripts in root README.md, docs/testing.md, and docs/usb-installer.md in the SAME subtask so no doc goes stale. Inherited cross-cutting protocol: use `git mv` or `git add` on the new/old paths (never `git add -A`) before running verification, since flake.nix's `root = self` means the harness only sees git-tracked content — an unstaged move looks like a stale-success or a confusing 'file not found' failure. Verification level: build-only inertness — `grep` across docs shows only `scripts/`-prefixed paths; `./scripts/update.sh` and `./scripts/install.sh` run; `nix flake check` green (these scripts are not consumed by Nix evaluation but doc/README references must be exact). Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md ("Root files" table), reports/02_team-research.md (subtask blueprint row 4, decision table row 5), and design/target-layout.md §1.3 (Target Directory Layout, scripts/ section), §2 (Decision Table row 5), and §3 (Subtask Blueprint row 4).
 

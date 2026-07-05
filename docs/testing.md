@@ -11,7 +11,7 @@ Due to complexities with Nix's evaluation, you might encounter errors when runni
 1. **Use the update script with no-check option:**
    ```bash
    cd ~/.dotfiles
-   ./update.sh --no-check
+   ./scripts/update.sh --no-check
    ```
 
 2. **Apply configuration directly:**
@@ -87,7 +87,7 @@ home.packages = with pkgs; [
 
 ```bash
 cd ~/.dotfiles
-./update.sh
+./scripts/update.sh
 ```
 
 This updates flake inputs, including `nixpkgs-unstable`, and rebuilds the system.
@@ -120,10 +120,10 @@ Always build with the `allow-import-from-derivation false` flag:
 sudo nixos-rebuild switch --flake ~/.dotfiles/ --option allow-import-from-derivation false
 ```
 
-The update.sh script includes this flag:
+The scripts/update.sh script includes this flag:
 
 ```bash
-# In update.sh
+# In scripts/update.sh
 sudo nixos-rebuild switch --flake .#$HOSTNAME --option allow-import-from-derivation false
 home-manager switch --flake .#benjamin --option allow-import-from-derivation false
 ```

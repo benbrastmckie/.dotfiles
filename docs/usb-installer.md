@@ -450,7 +450,7 @@ Save and exit (`:wq` in vim).
 
 **6. Install with your dotfiles configuration:**
 
-> **⚠️ IMPORTANT**: You **must** explicitly specify your hostname (e.g., `.#framework`) rather than using `$(hostname)`. The hostname is set by NixOS configuration, so until the correct config is applied, `$(hostname)` will return the wrong value (e.g., the USB installer's hostname). After installation and reboot, `$(hostname)` and `./update.sh` will work correctly.
+> **⚠️ IMPORTANT**: You **must** explicitly specify your hostname (e.g., `.#framework`) rather than using `$(hostname)`. The hostname is set by NixOS configuration, so until the correct config is applied, `$(hostname)` will return the wrong value (e.g., the USB installer's hostname). After installation and reboot, `$(hostname)` and `./scripts/update.sh` will work correctly.
 
 ```bash
 cd ~/.dotfiles
@@ -490,7 +490,7 @@ git clone https://github.com/yourusername/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 
 # Your system is already installed with the configuration, but you can update if needed
-./update.sh
+./scripts/update.sh
 ```
 
 ## Alternative Methods
@@ -629,7 +629,7 @@ If you installed from a USB created on another machine (e.g., `nandi`), the new 
 **Symptoms:**
 - `hostname` returns wrong name (e.g., `nandi` instead of `hamsa`)
 - `/etc/hostname` shows wrong name
-- `./update.sh` rebuilds wrong configuration
+- `./scripts/update.sh` rebuilds wrong configuration
 - `/boot` partition won't mount (wrong UUID in fstab)
 - Boot fails with "efiSysMountPoint = '/boot' is not a mounted partition"
 
@@ -669,7 +669,7 @@ cd ~/.dotfiles
 nix flake update
 
 # Try building again
-./build-usb-installer.sh
+./scripts/build-usb-installer.sh
 ```
 
 **Common package renames in unstable:**
@@ -752,8 +752,8 @@ users.users.benjamin.openssh.authorizedKeys.keys = [
 
 ```bash
 cd ~/.dotfiles
-./update.sh  # Update system first
-./build-usb-installer.sh  # Build new ISO
+./scripts/update.sh  # Update system first
+./scripts/build-usb-installer.sh  # Build new ISO
 # Then write to USB as described above
 ```
 

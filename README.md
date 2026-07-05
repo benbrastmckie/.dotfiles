@@ -116,7 +116,7 @@ For detailed installation instructions, see [`docs/installation.md`](docs/instal
 
 > **Note**: Both commands evaluate `home.nix` — the NixOS rebuild manages
 > `/etc/profiles/per-user/`, while `home-manager switch` manages `~/.nix-profile/`
-> (which takes PATH priority). Run both to keep them in sync, or use `./update.sh`
+> (which takes PATH priority). Run both to keep them in sync, or use `./scripts/update.sh`
 > which handles everything.
 
 ### USB Installer
@@ -185,7 +185,7 @@ For complete application configurations and setup instructions, see [`docs/appli
 
 ### Full Update (recommended)
 ```bash
-./update.sh          # checkpoints, updates flake inputs, rebuilds NixOS + home-manager
+./scripts/update.sh  # checkpoints, updates flake inputs, rebuilds NixOS + home-manager
 ```
 
 ### Manual Rebuilds
@@ -194,7 +194,7 @@ sudo nixos-rebuild switch --flake .#hostname   # system + NixOS-integrated home-
 home-manager switch --flake .#benjamin         # standalone home-manager only (no sudo)
 ```
 
-Both commands install `home.nix` packages to separate profile paths. `update.sh` runs
+Both commands install `home.nix` packages to separate profile paths. `scripts/update.sh` runs
 both in sequence to keep them in sync. For quick home-only changes, `home-manager switch`
 alone is sufficient since `~/.nix-profile/` takes PATH priority.
 

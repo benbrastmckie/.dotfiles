@@ -1127,15 +1127,28 @@
     {
       "project_number": 85,
       "project_name": "root_scripts_relocation_scripts_dir",
-      "status": "not_started",
+      "status": "planned",
       "task_type": "nix",
       "description": "Relocate root shell scripts into a new scripts/ directory in the NixOS/Home Manager dotfiles repo (task 81 Tier 0, subtask blueprint #4, no dependencies). Move install.sh, update.sh, and build-usb-installer.sh into scripts/ (test-sasl.sh is deleted by subtask 82, not moved here). Update all direct references to these scripts in root README.md, docs/testing.md, and docs/usb-installer.md in the SAME subtask so no doc goes stale. Inherited cross-cutting protocol: use `git mv` or `git add` on the new/old paths (never `git add -A`) before running verification, since flake.nix's `root = self` means the harness only sees git-tracked content — an unstaged move looks like a stale-success or a confusing 'file not found' failure. Verification level: build-only inertness — `grep` across docs shows only `scripts/`-prefixed paths; `./scripts/update.sh` and `./scripts/install.sh` run; `nix flake check` green (these scripts are not consumed by Nix evaluation but doc/README references must be exact). Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md (\"Root files\" table), reports/02_team-research.md (subtask blueprint row 4, decision table row 5), and design/target-layout.md §1.3 (Target Directory Layout, scripts/ section), §2 (Decision Table row 5), and §3 (Subtask Blueprint row 4).",
       "topic": "nix-infrastructure",
       "parent_task": 81,
       "dependencies": [],
       "created": "2026-07-05T01:03:22Z",
-      "last_updated": "2026-07-05T01:03:22Z",
-      "next_artifact_number": 1
+      "last_updated": "2026-07-05T02:51:19Z",
+      "next_artifact_number": 1,
+      "session_id": "sess_1783217512_f16aa6_85",
+      "artifacts": [
+        {
+          "path": "specs/085_root_scripts_relocation_scripts_dir/reports/01_scripts-relocation-research.md",
+          "type": "report",
+          "summary": "Scripts relocation research: full reference inventory + scope gap (8 extra live docs)"
+        },
+        {
+          "path": "specs/085_root_scripts_relocation_scripts_dir/plans/01_scripts-dir-relocation.md",
+          "type": "plan",
+          "summary": "Scripts relocation plan (all live doc refs)"
+        }
+      ]
     },
     {
       "project_number": 86,

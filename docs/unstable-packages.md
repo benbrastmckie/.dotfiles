@@ -86,7 +86,7 @@ This approach bypasses the wrapper that's causing the maintainers attribute erro
 For building the system, use the special flag `--option allow-import-from-derivation false` to bypass attribute errors:
 
 ```bash
-# In update.sh
+# In scripts/update.sh
 sudo nixos-rebuild switch --flake .#hostname --option allow-import-from-derivation false
 home-manager switch --flake .#username --option allow-import-from-derivation false
 ```
@@ -109,7 +109,7 @@ To update all packages to their latest unstable versions:
 
 ```bash
 cd ~/.dotfiles
-./update.sh
+./scripts/update.sh
 ```
 
 This updates flake inputs, including `nixpkgs-unstable`, and rebuilds the system.

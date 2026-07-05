@@ -32,7 +32,7 @@ NPX wrapper for Claude Code that fetches the latest version from NPM on each inv
 
 **Implementation**: Uses `writeShellScriptBin` to create a wrapper that runs `npx @anthropic-ai/claude-code@latest`
 
-**Updating**: To pin a specific version, replace `@latest` with `@X.Y.Z`. After any change, rebuild with `sudo nixos-rebuild switch` (and `home-manager switch` or `./update.sh`). The npx cache (`~/.npm/_npx/`) may serve a stale version — delete it to force a fresh download.
+**Updating**: To pin a specific version, replace `@latest` with `@X.Y.Z`. After any change, rebuild with `sudo nixos-rebuild switch` (and `home-manager switch` or `./scripts/update.sh`). The npx cache (`~/.npm/_npx/`) may serve a stale version — delete it to force a fresh download.
 
 ### marker-pdf.nix
 UV wrapper for marker-pdf that automatically uses the latest version from PyPI. This zero-maintenance approach eliminates the need for manual version updates while providing PDF to markdown conversion capabilities.

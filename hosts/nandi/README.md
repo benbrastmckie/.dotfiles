@@ -21,7 +21,7 @@ Build the Nandi configuration:
 sudo nixos-rebuild switch --flake .#$(hostname)
 
 # Or use the update script
-./update.sh
+./scripts/update.sh
 ```
 
 ## Notes

@@ -27,7 +27,7 @@ Then add your host to `flake.nix` (see Host Configuration section below).
 
 ### 3. System Configuration
 
-> **⚠️ IMPORTANT - First Build**: On the first build, you **must** explicitly specify your hostname (e.g., `.#hamsa`) rather than using `$(hostname)`. The hostname is set by NixOS configuration, so until the correct config is applied, `$(hostname)` will return the wrong value. After the first successful build, `$(hostname)` and `./update.sh` will work correctly.
+> **⚠️ IMPORTANT - First Build**: On the first build, you **must** explicitly specify your hostname (e.g., `.#hamsa`) rather than using `$(hostname)`. The hostname is set by NixOS configuration, so until the correct config is applied, `$(hostname)` will return the wrong value. After the first successful build, `$(hostname)` and `./scripts/update.sh` will work correctly.
 
 **First build** (specify hostname explicitly):
 ```bash
@@ -42,7 +42,7 @@ sudo nixos-rebuild switch --flake .#$(hostname)
 Or use the update script which auto-detects your hostname:
 
 ```bash
-./update.sh
+./scripts/update.sh
 ```
 
 Check available configurations:
@@ -59,8 +59,8 @@ home-manager switch --flake .#benjamin
 
 ### 5. Scripts
 
-- **install.sh**: Automated installation script
-- **update.sh**: Updates flake inputs and rebuilds system
+- **scripts/install.sh**: Automated installation script
+- **scripts/update.sh**: Updates flake inputs and rebuilds system
 
 ## Host Configuration
 
