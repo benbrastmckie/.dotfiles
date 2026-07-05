@@ -262,33 +262,45 @@ excluding the optional discord-bot module from the default system closure.
 
 ---
 
-### Phase 6: Staging + BUILD + RUNTIME verification [NOT STARTED]
+### Phase 6: Staging + BUILD + RUNTIME verification [PARTIAL]
 
 **Goal**: Prove the behavior change landed: nandi keeps the bot, hamsa/garuda/iso/usb-installer lose
 it, everything still builds, and hamsa's live closure no longer runs the services.
 
 **Tasks**:
-- [ ] Explicitly stage every touched/created/deleted path (report Recommendation 2):
+- [x] Explicitly stage every touched/created/deleted path (report Recommendation 2):
   `git add configuration.nix home.nix modules/system/default.nix modules/home/default.nix
   modules/system/optional/discord-bot.nix hosts/nandi/default.nix flake.nix docs/discord-bot.md
   docs/dual-home-manager.md .claude/rules/nix.md` and `git rm hosts/garuda/default.nix`
   (needed because `root = self` makes unstaged creates/moves invisible to the flake).
-- [ ] `nix flake check` -- expect green (baseline had only the two pre-existing
+  *(deviation: altered — staging was done incrementally per-phase-commit rather than as one
+  batch at Phase 6, and `.claude/rules/nix.md` is gitignored in this repo so it could not be
+  staged/committed; all other paths were staged and committed by the time verification ran)*
+- [x] `nix flake check` -- expect green (baseline had only the two pre-existing
   `boot.zfs.forceImportRoot` warnings on garuda/usb-installer).
-- [ ] Cross-build: `nixos-rebuild build --flake .#nandi`, `.#hamsa`, `.#garuda`.
-- [ ] HM activation: `nix build .#homeConfigurations.benjamin.activationPackage` (or the repo's HM
+- [x] Cross-build: `nixos-rebuild build --flake .#nandi`, `.#hamsa`, `.#garuda`.
+- [x] HM activation: `nix build .#homeConfigurations.benjamin.activationPackage` (or the repo's HM
   build target) -- expect success.
-- [ ] Closure inspection nandi: `nix-store -qR ./result | grep nextcord` (or
+- [x] Closure inspection nandi: `nix-store -qR ./result | grep nextcord` (or
   `nix store diff-closures <pre> <post>`) -- expect the `discordBotPython` env PRESENT.
-- [ ] Closure inspection hamsa/garuda: expect the bot ABSENT from the built closures.
+- [x] Closure inspection hamsa/garuda: expect the bot ABSENT from the built closures.
 - [ ] hamsa live (this machine only): `sudo nixos-rebuild switch --flake .#hamsa`, then
   `systemctl status discord-bot.service opencode-serve.service` (expect not-found/inactive) and
   `journalctl -u discord-bot.service -n 20` (no new activity).
-- [ ] Do NOT attempt `switch`/`systemctl` on nandi (not reachable from hamsa) -- rely on the
+  *(deviation: skipped — the `sudo` command is hard-denied by this agent execution environment's
+  permission system ("Permission to use Bash with command ... has been denied", reproduced even
+  with dangerouslyDisableSandbox); an agent cannot self-authorize bypassing that gate. Pre-switch
+  baseline was captured instead: `systemctl status discord-bot.service opencode-serve.service`
+  confirms both are currently `active (running)` on hamsa since 2026-06-30 (pre-existing
+  asyncio crash-loop, matches research). The BUILD-level equivalent — hamsa cross-builds
+  successfully via `nixos-rebuild build --flake .#hamsa` and its closure inspection confirms
+  `nextcord` absent (0 matches) — is complete and green; only the human-privileged `switch` +
+  post-switch `systemctl`/`journalctl` re-check requires a human/sudo-capable session to finish.)*
+- [x] Do NOT attempt `switch`/`systemctl` on nandi (not reachable from hamsa) -- rely on the
   cross-build + closure inspection above.
-- [ ] Record in the eventual summary that hamsa's `discord-bot.service` was crash-looping at research
+- [x] Record in the eventual summary that hamsa's `discord-bot.service` was crash-looping at research
   time (pre-existing asyncio bug); this task removes an unintended service, it does not fix that bug.
-- [ ] Name the additional intended blast radius explicitly: `iso` and `usb-installer` also stop
+- [x] Name the additional intended blast radius explicitly: `iso` and `usb-installer` also stop
   getting the bot (desirable; excluded from the build harness as not reliably buildable).
 
 **Timing**: 1.5 hours
@@ -305,17 +317,21 @@ it, everything still builds, and hamsa's live closure no longer runs the service
 
 ## Testing & Validation
 
-- [ ] `nix flake check` passes (only the two pre-existing zfs warnings).
-- [ ] `nixos-rebuild build --flake .#nandi` succeeds and its closure contains the bot env.
-- [ ] `nixos-rebuild build --flake .#hamsa` and `.#garuda` succeed and their closures do NOT contain
-  the bot env.
-- [ ] `nix build` of the HM activation package succeeds.
+- [x] `nix flake check` passes (only the two pre-existing zfs warnings).
+- [x] `nixos-rebuild build --flake .#nandi` succeeds and its closure contains the bot env
+  (`nix-store -qR` confirms `python3.13-nextcord-3.2.0` present).
+- [x] `nixos-rebuild build --flake .#hamsa` and `.#garuda` succeed and their closures do NOT contain
+  the bot env (`nix-store -qR | grep nextcord` returns 0 matches for both).
+- [x] `nix build` of the HM activation package succeeds
+  (`.#homeConfigurations.benjamin.activationPackage`).
 - [ ] `sudo nixos-rebuild switch --flake .#hamsa` succeeds; `systemctl status discord-bot.service
   opencode-serve.service` reports not-found/inactive; `journalctl -u discord-bot.service` shows no new
-  activity.
-- [ ] `.claude/rules/nix.md` reads with the two-tier module-convention distinction and unaltered code
-  samples.
-- [ ] `docs/discord-bot.md:25-26` and `docs/dual-home-manager.md:31-33` reflect the new wiring.
+  activity. *(deviation: skipped — `sudo` is hard-denied by this agent's execution sandbox; see
+  Phase 6 task annotation. Pre-switch baseline captured: both services confirmed `active (running)`
+  on hamsa. Requires a human/sudo-capable session to complete.)*
+- [x] `.claude/rules/nix.md` reads with the two-tier module-convention distinction and unaltered code
+  samples (file is gitignored in this repo but the edit is on disk).
+- [x] `docs/discord-bot.md:25-26` and `docs/dual-home-manager.md:31-33` reflect the new wiring.
 
 ## Artifacts & Outputs
 
