@@ -29,8 +29,8 @@ These dotfiles provide a complete NixOS setup with:
 ├── home.nix                       # User Home Manager config (apps, dotfiles, user services)
 │
 ├── hosts/                         # Per-host hardware configurations
-│   ├── nandi/hardware-configuration.nix   # Primary workstation (AMD Ryzen AI 300)
-│   ├── hamsa/hardware-configuration.nix   # Secondary machine
+│   ├── nandi/hardware-configuration.nix   # Primary workstation (Intel)
+│   ├── hamsa/hardware-configuration.nix   # Secondary machine (AMD Ryzen AI 300)
 │   ├── garuda/hardware-configuration.nix  # Laptop
 │   └── usb-installer/hardware-configuration.nix
 │

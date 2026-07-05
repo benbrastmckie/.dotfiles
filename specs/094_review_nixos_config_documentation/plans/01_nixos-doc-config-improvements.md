@@ -97,17 +97,18 @@ dependencies.
 
 ---
 
-### Phase 1: Correct hardware/host factual error in root README.md [NOT STARTED]
+### Phase 1: Correct hardware/host factual error in root README.md [COMPLETED]
 
 **Goal**: Fix the confirmed factual bug where the root README module map labels `nandi` as AMD when it
 is Intel, and `hamsa` (the actual AMD host) carries no CPU annotation.
 
 **Tasks**:
-- [ ] Read `README.md` around the "Module Map" ASCII tree (line ~32) and confirm the current text.
-- [ ] Read `hosts/nandi/hardware-configuration.nix` and `hosts/hamsa/hardware-configuration.nix` to
+- [x] Read `README.md` around the "Module Map" ASCII tree (line ~32) and confirm the current text.
+- [x] Read `hosts/nandi/hardware-configuration.nix` and `hosts/hamsa/hardware-configuration.nix` to
       confirm ground truth (`kvm-intel`/`hardware.cpu.intel` for nandi; `kvm-amd`/`hardware.cpu.amd`
-      for hamsa).
-- [ ] Correct the nandi line to drop the false "AMD Ryzen AI 300" label (annotate as Intel, or drop the
+      for hamsa). Confirmed via `hostname` + `/proc/cpuinfo` on this machine (hamsa) that hamsa is
+      the AMD Ryzen AI 9 HX 370 (Ryzen AI 300 series) host.
+- [x] Correct the nandi line to drop the false "AMD Ryzen AI 300" label (annotate as Intel, or drop the
       CPU annotation entirely and point to `hosts/README.md` for hardware details, matching how the
       `garuda` line already has no CPU annotation). If keeping annotations, add the AMD label to the
       `hamsa` line so the map is internally consistent with `hosts/README.md`.
