@@ -1,5 +1,5 @@
 ---
-next_project_number: 92
+next_project_number: 93
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 92
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69,77,82,83,84,85,86 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,69,77,82,83,84,85,86,92 | -- | nix-infrastructure, desktop, maintenance, ... |
 | 2 | 78,87,88,89 | 77,86 | nix-infrastructure, desktop |
 | 3 | 90 | 88 | nix-infrastructure |
 | 4 | 91 | 82,83,84,85,87,89,90 | nix-infrastructure |
@@ -61,7 +61,33 @@ next_project_number: 92
 77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM
   └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
 
+### Email Infrastructure
+
+92 [NOT STARTED] — Fix the Logos (Protonmail Bridge) mbsync group so the email-clean
+
 ## Tasks
+
+### 92. Logos mbsync group labels fix
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: email-infrastructure
+- **Dependencies**: None
+
+**Description**: Fix the Logos (Protonmail Bridge) mbsync group so the email-cleanup wrappers' post-mutation `mbsync logos` reconcile succeeds instead of exiting non-zero.
+
+ROOT CAUSE (diagnosed live from the ~/Mail repo during a `/email --logos --all` run on 2026-07-04): `Group logos` in modules/home/email/mbsync.nix (lines 190-197) chains all 7 logos channels, including `logos-labels` (Patterns "Labels/*") and `logos-folders` (Patterns "Folders/*"). The far (Proton) side exposes a Gmail-import label literally named `benbrastmckie@gmail.com`; under `SubFolders Maildir++` (line 135) a mailbox NAME containing dots cannot be represented, so mbsync aborts that channel with `folder 'Labels/benbrastmckie@gmail.com': SubFolders style Maildir++ does not support dots in mailbox names` and the whole group returns exit 1. The labels/folders channels also drag in the entire Gmail-import label tree (observed `Near: +41797`), irrelevant to an INBOX->Trash cleanup reconcile and making every wrapper mutation's internal reconcile slow/noisy. Local maildir moves still succeed (the 20-message Logos INBOX cleanup landed in .Trash correctly, verified Trash 1764->1784); only the server-side reconcile is affected.
+
+FIX (mirrors the existing precedent in this same file: `Group gmail` at lines 114-119 deliberately omits gmail-trash/gmail-spam because those far-boxes break the group): (1) Slim `Group logos` to the core channels only -- logos-inbox, logos-sent, logos-drafts, logos-trash, logos-archive -- so the wrapper reconcile cannot choke on labels. (2) Add a new `Group logos-full` = core channels PLUS logos-labels + logos-folders for explicit on-demand full sync. (3) Harden logos-labels (and logos-folders) with a negative pattern, e.g. `Patterns "Labels/*" "!Labels/*.*"`, so even `mbsync logos-full` skips dotted label names Maildir++ cannot hold.
+
+SECONDARY (non-blocking; note in plan, do not necessarily fix here): duplicate-UID warnings in .Trash/.Archive from maildir moves (mbsync usually self-heals on a clean run); one malformed 144-byte message in local Sent missing a `Date:` header that Proton rejects on APPEND (`invalid rfc5322 message: Required header field Date not found or empty`).
+
+FILES: modules/home/email/mbsync.nix (Logos section, lines 121-197). The runtime artifact ~/.mbsyncrc is a home-manager /nix/store symlink -- never edit it directly.
+
+VERIFICATION: `home-manager build` evaluates; after `home-manager switch`, `mbsync logos` exits 0 and propagates pending Logos INBOX->Trash deletes to the Proton server; `mbsync logos-full` completes without the dotted-label fatal error.
+
+SEED/CROSS-REPO: diagnosis performed in ~/Mail; approved delete manifest + wrapper state at ~/Mail/specs/email-manifests/logos/. Relates to .dotfiles email-workflow tasks 72/79.
+
+---
 
 ### 91. Documentation sync reorg final
 - **Status**: [NOT STARTED]
