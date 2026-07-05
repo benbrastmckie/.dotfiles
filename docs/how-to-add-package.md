@@ -6,11 +6,12 @@ This guide explains where a new package belongs in the configuration and why.
 
 ```
 Is it a system-level tool needed for all users or system services?
-  YES → environment.systemPackages in configuration.nix (or modules/system/packages.nix after Phase 4b)
+  YES → environment.systemPackages in modules/system/packages.nix
   NO  ↓
 
 Is it a personal productivity or development tool for the benjamin user?
-  YES → home.packages in home.nix (or modules/home/packages/*.nix after Phase 5b)
+  YES → home.packages in modules/home/packages/*.nix (grouped by category: dev-tools, email-tools,
+        media-dictation, misc, python)
   NO  ↓
 
 Is it a program with an official NixOS/Home Manager module?
@@ -42,7 +43,7 @@ Does it need to be a different version than nixpkgs provides?
 ### Add a CLI tool for personal use (e.g., `bat`)
 
 ```nix
-# In home.nix → home.packages
+# In modules/home/packages/misc.nix (or the most fitting category file) → home.packages
 home.packages = with pkgs; [
   bat  # A cat clone with syntax highlighting and Git integration
   # ... existing packages
@@ -52,7 +53,7 @@ home.packages = with pkgs; [
 ### Add a system-wide tool (e.g., an editor available at login shell)
 
 ```nix
-# In configuration.nix → environment.systemPackages
+# In modules/system/packages.nix → environment.systemPackages
 environment.systemPackages = with pkgs; [
   bat  # Available before home-manager activates
 ];
@@ -61,7 +62,7 @@ environment.systemPackages = with pkgs; [
 ### Add a package via its NixOS module
 
 ```nix
-# In configuration.nix
+# In the relevant modules/system/*.nix file (e.g. modules/system/services.nix)
 services.openssh.enable = true;  # Pulls in openssh automatically
 ```
 
@@ -77,7 +78,7 @@ services.openssh.enable = true;  # Pulls in openssh automatically
 ### Add a package from nixpkgs-unstable
 
 ```nix
-# In overlays/unstable-packages.nix (planned Phase 2 artifact)
+# In overlays/unstable-packages.nix
 unstable-packages = final: prev: {
   my-package = pkgs-unstable.my-package;
 };
@@ -94,8 +95,8 @@ because they are already in `home.packages`): `stylua`, `cvc5`, `lectic`, `wl-cl
 
 ## Python Packages
 
-Custom Python packages live in `overlays/python-packages.nix` (planned Phase 2 artifact;
-currently inlined in `flake.nix`). They extend `python3` via `packageOverrides`.
+Custom Python packages live in `overlays/python-packages.nix`, a standalone overlay file wired
+into `flake.nix` as `pythonPackagesOverlay`. They extend `python3` via `packageOverrides`.
 
 To add a new Python package:
 1. If a nixpkgs derivation exists: add to `python3.withPackages` or the overlay.

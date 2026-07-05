@@ -161,24 +161,29 @@ completed reorg so they stop describing implemented artifacts as "planned"/"pend
 
 ---
 
-### Phase 3: Update stale contributor how-to guides [NOT STARTED]
+### Phase 3: Update stale contributor how-to guides [COMPLETED]
 
 **Goal**: Rewrite `docs/how-to-add-package.md` and `docs/how-to-add-service.md` so their decision trees
 and examples point at the current module locations, not the superseded `configuration.nix`/`home.nix`
 workflow.
 
 **Tasks**:
-- [ ] `docs/how-to-add-package.md`: rewrite the decision tree (lines ~9, ~13) so `modules/system/packages.nix`
+- [x] `docs/how-to-add-package.md`: rewrite the decision tree (lines ~9, ~13) so `modules/system/packages.nix`
       and `modules/home/packages/*.nix` are the primary (not parenthetical "after Phase 4b/5b") targets;
       fix line ~80 (`overlays/unstable-packages.nix` is a real file, not a "planned Phase 2 artifact");
       fix line ~97 (`overlays/python-packages.nix` is a real standalone file, not "inlined in flake.nix").
-- [ ] `docs/how-to-add-service.md`: update all examples and the "Current Services in This Config" table
+- [x] `docs/how-to-add-service.md`: update all examples and the "Current Services in This Config" table
       (lines ~104-121) to attribute system services to `modules/system/*.nix` (e.g. `services.nix`,
       `optional/discord-bot.nix`) and user services to `modules/home/services/*.nix`; add a short
       subsection naming the optional/host-toggled module pattern (`options.<path>.enable` + `mkIf`,
       per `modules/README.md` and `.claude/rules/nix.md`), pointing at
       `modules/system/optional/discord-bot.nix` as the worked example (which the guide's own
       "Discord-Bot Style Service" section already demonstrates without naming).
+      *(altered: also corrected two additional factual issues found while verifying ground truth —
+      `services.openssh` is only enabled on the usb-installer host, not an always-on system
+      service; `services.protonmail-bridge` is actually a Home Manager service in
+      `modules/home/email/protonmail.nix`, not a system service. The "Current Services" table now
+      reflects both.)*
 
 **Timing**: 1.5 hours
 
