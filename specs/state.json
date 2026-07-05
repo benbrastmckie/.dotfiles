@@ -4,12 +4,20 @@
     {
       "project_number": 94,
       "project_name": "review_nixos_config_documentation",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "nix",
       "description": "Systematically review my nixos config to improve the documentation (and the config) where relevant",
       "topic": "nixos-config",
       "created": "2026-07-05T08:07:06Z",
-      "last_updated": "2026-07-05T08:07:06Z"
+      "last_updated": "2026-07-05T08:15:27Z",
+      "session_id": "sess_1783238869_c87ed8",
+      "artifacts": [
+        {
+          "path": "specs/094_review_nixos_config_documentation/reports/01_nixos-config-doc-review.md",
+          "type": "report",
+          "summary": "nixos config doc review (backfilled by --sync)"
+        }
+      ]
     },
     {
       "project_number": 81,
@@ -853,6 +861,11 @@
           "path": "specs/069_consolidate_dual_home_manager_config/plans/01_unify-lectic-specialargs.md",
           "type": "plan",
           "summary": ""
+        },
+        {
+          "path": "specs/069_consolidate_dual_home_manager_config/summaries/01_unify-lectic-specialargs-summary.md",
+          "type": "summary",
+          "summary": "unify lectic specialargs summary (backfilled by --sync)"
         }
       ]
     },
@@ -1090,6 +1103,11 @@
           "path": "specs/082_dead_code_removal_nixos_repo/summaries/02_dead-code-removal-summary.md",
           "type": "summary",
           "summary": "Dead code removed; all builds green"
+        },
+        {
+          "path": "specs/082_dead_code_removal_nixos_repo/reports/01_seed.md",
+          "type": "report",
+          "summary": "seed (backfilled by --sync)"
         }
       ]
     },
@@ -1121,6 +1139,11 @@
           "path": "specs/083_git_hygiene_specs_tmp_nixos_repo/summaries/01_git-hygiene-untrack-tmp-summary.md",
           "type": "summary",
           "summary": "Git hygiene implemented: specs/tmp untracked, update.sh fixed"
+        },
+        {
+          "path": "specs/083_git_hygiene_specs_tmp_nixos_repo/reports/01_seed.md",
+          "type": "report",
+          "summary": "seed (backfilled by --sync)"
         }
       ]
     },
@@ -1147,6 +1170,11 @@
           "path": "specs/084_nix_flake_check_ci_gate/summaries/01_ci-flake-check-gate-summary.md",
           "type": "summary",
           "summary": "CI flake-check gate added; local check green"
+        },
+        {
+          "path": "specs/084_nix_flake_check_ci_gate/reports/01_seed.md",
+          "type": "report",
+          "summary": "seed (backfilled by --sync)"
         }
       ]
     },
@@ -1178,6 +1206,11 @@
           "path": "specs/085_root_scripts_relocation_scripts_dir/summaries/01_scripts-dir-relocation-summary.md",
           "type": "summary",
           "summary": "Scripts relocated to scripts/; all doc refs updated; flake check green"
+        },
+        {
+          "path": "specs/085_root_scripts_relocation_scripts_dir/reports/01_seed.md",
+          "type": "report",
+          "summary": "seed (backfilled by --sync)"
         }
       ]
     },
@@ -1204,6 +1237,16 @@
           "path": "specs/086_module_convention_discord_bot_opt_in/plans/01_module-convention-opt-in.md",
           "type": "plan",
           "summary": ""
+        },
+        {
+          "path": "specs/086_module_convention_discord_bot_opt_in/reports/01_seed.md",
+          "type": "report",
+          "summary": "seed (backfilled by --sync)"
+        },
+        {
+          "path": "specs/086_module_convention_discord_bot_opt_in/summaries/01_module-convention-opt-in-summary.md",
+          "type": "summary",
+          "summary": "module convention opt in summary (backfilled by --sync)"
         }
       ],
       "completion_summary": "Module convention (options + aggregators) adopted and Discord bot made per-host opt-in. modules/system/default.nix + modules/home/default.nix aggregators added; discord-bot.nix converted to options.services.discordBot.enable + mkIf; nandi wired via extraModules in flake.nix; empty garuda placeholder removed; docs (discord-bot.md, dual-home-manager.md incl. task 69 fold-in) corrected; .claude/rules/nix.md scoped. All build-level verification green: nix flake check passes, cross-builds succeed for nandi/hamsa/garuda, closure inspection confirms nextcord present in nandi and absent from hamsa/garuda. DEFERRED MANUAL STEP: live `sudo nixos-rebuild switch` + systemctl/journalctl re-check on hamsa could not run (sudo denied in agent sandbox) — a human must run it to activate the closure change on the live machine."
@@ -1233,6 +1276,16 @@
           "path": "specs/087_hosts_structural_cleanup/plans/01_hosts-structural-cleanup.md",
           "type": "plan",
           "summary": ""
+        },
+        {
+          "path": "specs/087_hosts_structural_cleanup/reports/01_hosts_readme_iso_extraction.md",
+          "type": "report",
+          "summary": "hosts readme iso extraction (backfilled by --sync)"
+        },
+        {
+          "path": "specs/087_hosts_structural_cleanup/summaries/01_hosts-structural-cleanup-summary.md",
+          "type": "summary",
+          "summary": "hosts structural cleanup summary (backfilled by --sync)"
         }
       ]
     },
@@ -1261,6 +1314,16 @@
           "path": "specs/088_module_granularity_pass/plans/01_module-granularity-refactor.md",
           "type": "plan",
           "summary": ""
+        },
+        {
+          "path": "specs/088_module_granularity_pass/reports/01_module-granularity-boundaries.md",
+          "type": "report",
+          "summary": "module granularity boundaries (backfilled by --sync)"
+        },
+        {
+          "path": "specs/088_module_granularity_pass/summaries/01_module-granularity-refactor-summary.md",
+          "type": "summary",
+          "summary": "module granularity refactor summary (backfilled by --sync)"
         }
       ]
     },
@@ -1289,6 +1352,16 @@
           "path": "specs/089_opencode_discord_bot_packaging/plans/02_package-via-buildpythonapplication.md",
           "type": "plan",
           "summary": ""
+        },
+        {
+          "path": "specs/089_opencode_discord_bot_packaging/reports/01_seed.md",
+          "type": "report",
+          "summary": "seed (backfilled by --sync)"
+        },
+        {
+          "path": "specs/089_opencode_discord_bot_packaging/summaries/02_package-via-buildpythonapplication-summary.md",
+          "type": "summary",
+          "summary": "package via buildpythonapplication summary (backfilled by --sync)"
         }
       ]
     },
@@ -1317,6 +1390,16 @@
           "path": "specs/090_config_dir_deployment_clarity_docs/plans/01_document-config-deployment.md",
           "type": "plan",
           "summary": ""
+        },
+        {
+          "path": "specs/090_config_dir_deployment_clarity_docs/reports/01_seed.md",
+          "type": "report",
+          "summary": "seed (backfilled by --sync)"
+        },
+        {
+          "path": "specs/090_config_dir_deployment_clarity_docs/summaries/01_document-config-deployment-summary.md",
+          "type": "summary",
+          "summary": "document config deployment summary (backfilled by --sync)"
         }
       ]
     },
@@ -1353,6 +1436,16 @@
           "path": "specs/091_documentation_sync_reorg_final/plans/01_documentation-sync-final.md",
           "type": "plan",
           "summary": ""
+        },
+        {
+          "path": "specs/091_documentation_sync_reorg_final/reports/01_seed.md",
+          "type": "report",
+          "summary": "seed (backfilled by --sync)"
+        },
+        {
+          "path": "specs/091_documentation_sync_reorg_final/summaries/01_documentation-sync-final-summary.md",
+          "type": "summary",
+          "summary": "documentation sync final summary (backfilled by --sync)"
         }
       ]
     },
@@ -1366,7 +1459,14 @@
       "dependencies": [],
       "created": "2026-07-05T01:28:15Z",
       "last_updated": "2026-07-05T01:28:15Z",
-      "next_artifact_number": 1
+      "next_artifact_number": 1,
+      "artifacts": [
+        {
+          "path": "specs/092_logos_mbsync_group_labels_fix/reports/01_mbsync-logos-diagnosis.md",
+          "type": "report",
+          "summary": "mbsync logos diagnosis (backfilled by --sync)"
+        }
+      ]
     },
     {
       "project_number": 93,
@@ -1391,6 +1491,11 @@
           "path": "specs/093_update_sh_auto_commit_opt_in/plans/01_checkpoint-opt-in.md",
           "type": "plan",
           "summary": ""
+        },
+        {
+          "path": "specs/093_update_sh_auto_commit_opt_in/summaries/01_checkpoint-opt-in-summary.md",
+          "type": "summary",
+          "summary": "checkpoint opt in summary (backfilled by --sync)"
         }
       ]
     }

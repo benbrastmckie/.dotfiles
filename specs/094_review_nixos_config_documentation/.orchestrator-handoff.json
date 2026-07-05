@@ -1,0 +1,12 @@
+{
+  "status": "researched",
+  "task_number": 94,
+  "summary": "Audited the NixOS/Home Manager dotfiles repo's config and documentation. Structure itself (flake.nix, lib/mkHost.nix, modules/system + modules/home aggregators, overlays/, packages/) is healthy and well-commented. Main issue: several docs (docs/configuration.md, docs/unstable-packages.md, docs/how-to-add-package.md, docs/how-to-add-service.md, packages/README.md, docs/packages.md) describe the pre-reorg / pre-python3-migration state as still current or still-planned, even though tasks 65/66/81-91 already completed that work -- these would misdirect a contributor into editing the wrong files. Also found a confirmed factual error: root README.md's module map labels nandi as the AMD Ryzen AI 300 host, but hardware-configuration.nix shows nandi is Intel (kvm-intel) and hamsa is the actual AMD host (kvm-amd). Lower-priority findings: repo-wide emoji-convention drift (rule added task 91, corpus not swept), two near-duplicate Ryzen AI 300 docs, and a few small dead/uncommented code fragments in modules/system/packages.nix, modules/system/desktop.nix, and home.nix. All findings are prioritized (high/medium/low) with file:line detail and risk notes in the report.",
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/094_review_nixos_config_documentation/reports/01_nixos-config-doc-review.md"
+    }
+  ],
+  "next_steps": "Run /plan 94 to create an implementation plan from these findings"
+}
