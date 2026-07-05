@@ -129,7 +129,10 @@
           extraModules = [ ./hosts/nandi/default.nix ];
         };
 
-        hamsa = mkHost { hostname = "hamsa"; };
+        hamsa = mkHost {
+          hostname = "hamsa";
+          extraModules = [ ./hosts/hamsa/default.nix ];
+        };
 
         garuda = mkHost { hostname = "garuda"; };
 

@@ -140,20 +140,20 @@ derivation, with the Nix build still green.
 
 ---
 
-### Phase 2: Wire discord bot into hamsa (Goal 1) [NOT STARTED]
+### Phase 2: Wire discord bot into hamsa (Goal 1) [COMPLETED]
 
 **Goal**: Make `services.discordBot.enable` exist and be `true` for hamsa in the tracked config,
 mirroring nandi; keep nandi enabled.
 
 **Tasks**:
-- [ ] Create `hosts/hamsa/default.nix` mirroring `hosts/nandi/default.nix`:
+- [x] Create `hosts/hamsa/default.nix` mirroring `hosts/nandi/default.nix`:
       `imports = [ ../../modules/system/optional/discord-bot.nix ]; services.discordBot.enable = true;`
       with a host-appropriate header comment.
-- [ ] Add `extraModules = [ ./hosts/hamsa/default.nix ];` to the `hamsa = mkHost { ... };` call in
+- [x] Add `extraModules = [ ./hosts/hamsa/default.nix ];` to the `hamsa = mkHost { ... };` call in
       `flake.nix` (currently `flake.nix:132` reads `hamsa = mkHost { hostname = "hamsa"; };`),
       matching nandi's `flake.nix:127-130` shape (multi-line `{ hostname = "hamsa"; extraModules = [...]; }`).
-- [ ] Leave `hosts/nandi/default.nix` and its `flake.nix` entry unchanged (nandi stays enabled).
-- [ ] Make no edits to `modules/system/optional/discord-bot.nix`.
+- [x] Leave `hosts/nandi/default.nix` and its `flake.nix` entry unchanged (nandi stays enabled).
+- [x] Make no edits to `modules/system/optional/discord-bot.nix`.
 
 **Timing**: 30 minutes
 
