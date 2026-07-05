@@ -43,7 +43,7 @@ class DiscordBot(commands.Bot):
         super().__init__(intents=intents)
 
         self.config = config
-        self.session_store = SessionStore()
+        self.session_store = SessionStore(path=config.session_store_path or None)
         self.opencode_client = OpenCodeClient(
             base_url=config.opencode_server_url,
             password=config.opencode_server_password,

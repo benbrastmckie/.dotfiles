@@ -64,6 +64,7 @@ class Config:
         OPENCODE_DISCORD_CLEANUP_MODE - Thread cleanup mode: "archive" (default) or "delete"
         OPENCODE_HEALTH_CHECK_ENABLED - Enable periodic health-check polling (default: true)
         OPENCODE_HEALTH_CHECK_INTERVAL - Health-check polling interval in seconds (default: 300)
+        SESSION_STORE_PATH - session persistence file path (empty = package-relative default)
     """
 
     discord_bot_token: str = ""
@@ -77,6 +78,7 @@ class Config:
     cleanup_mode: str = "archive"
     health_check_enabled: bool = True
     health_check_interval: int = 300
+    session_store_path: str = ""
 
     @classmethod
     def from_env(cls) -> Config:
@@ -155,6 +157,8 @@ class Config:
             )
             health_check_interval = 300
 
+        session_store_path = os.environ.get("SESSION_STORE_PATH", "")
+
         return cls(
             discord_bot_token=discord_bot_token,
             opencode_server_password=opencode_server_password,
@@ -167,4 +171,5 @@ class Config:
             cleanup_mode=cleanup_mode,
             health_check_enabled=health_check_enabled,
             health_check_interval=health_check_interval,
+            session_store_path=session_store_path,
         )
