@@ -16,7 +16,7 @@ Inputs: Phase 1 (`verification-baseline.md`), Phase 2 (`email-preferences.md`), 
 | Binary | Verb | Safety class | Mutates? |
 |--------|------|--------------|----------|
 | `email-census` | report sender/folder/date census | **read-only** | no |
-| `email-classify` | apply provisional `+proposed-*` notmuch tags; emit candidate manifest; `--append-approved` | **local-tags-only** | notmuch tags only (never maildir/IMAP) |
+| `email-classify` | apply provisional `+proposed-*` notmuch tags; emit candidate manifest; `--append-approved`; `--emit-tagged` (read-only tag-derived re-emit, task 820) | **local-tags-only** (default mode); `--emit-tagged` is **read-only** | notmuch tags only (never maildir/IMAP); `--emit-tagged` performs no `notmuch tag` call at all |
 | `email-unsubscribe-extract` | extract `List-Unsubscribe` headers to a review list | **read-only** | no (never fetches/POSTs URLs) |
 | `email-archive-confirmed` | move approved-`archive` IDs to All Mail | **mutation** | yes (maildir move) |
 | `email-delete-confirmed` | move approved-`delete` IDs to Trash; `--expunge-trash` permanently removes | **mutation** | yes (maildir move + expunge) |
@@ -224,3 +224,40 @@ two-value enum, not a frozen single literal:
   Protonmail Bridge service running on `127.0.0.1:1143` and is a manual user step, exercised
   only after `home-manager switch --flake .#benjamin`; it is not part of task 79's automated
   verification gate.
+
+---
+
+## 12. Task-820 ADDENDUM: `email-classify --emit-tagged` (read-only re-emit) (2026-07-05)
+
+Root cause this addendum closes: `email-classify`'s default mode is **not** emit-on-change — it
+unconditionally re-emits and re-tags every message matching `QUERY` on every call, and
+`candidate-manifest.jsonl` is destructively overwritten each run (including by a `--limit 0`
+counting probe). A consumer that wants to re-derive the current candidate set for an
+already-fully-tagged mailbox (e.g. nvim `skill-email-cleanup`'s `--all` mode residual pass) had
+no way to do so without re-running the classifier and risking a rule-table-drift rewrite of a
+prior human decision. `--emit-tagged` closes both gaps.
+
+- **Safety class**: read-only — closer to `email-census`'s `read-only` class than to
+  `email-classify`'s own default `local-tags-only` class. **No `notmuch tag` invocation occurs
+  anywhere in the `--emit-tagged` branch.**
+- **Action derivation**: `proposed_action` is derived **strictly** from the message's existing
+  `+proposed-{delete,archive,unsure,keep}` notmuch tag via a `case` statement. It is **never**
+  recomputed from `classify_one()` and never overwrites the tag. Messages with no `+proposed-*`
+  tag are silently skipped (not emitted).
+- **Display-only confidence/reason**: `classify_one()` is still invoked per message, but solely
+  to populate the manifest's `confidence`/`reason` fields for human review context. These
+  reflect the **current** rule table, not the (possibly stale) rules in effect when the tag was
+  originally applied, and are **not** authoritative — the tag-derived `proposed_action` is
+  authoritative. `reason` is prefixed `tag-derived;` to make this provenance visible in the
+  manifest.
+- **No batch cap**: `--emit-tagged` ignores `--limit`/`MAX_BATCH_SIZE` — it processes the full
+  `QUERY` match unconditionally (there is no mutation risk to bound against, unlike the default
+  mode's tag-rewrite).
+- **Idempotent / non-destructive**: re-running `--emit-tagged` against the same `QUERY` leaves
+  durable tag counts unchanged (read-only) and simply rebuilds `candidate-manifest.jsonl` from
+  current tag state.
+- **Consumer**: nvim #820 (`skill-email-cleanup` `--all` mode) uses this mode for its residual
+  count-probe and residual pass instead of the destructive default mode, eliminating both the
+  overwrite-to-empty race (a `--limit 0` counting call on default mode truncates the manifest)
+  and the silent-rewrite-on-rule-drift risk (default mode's residual pass previously
+  recomputed and re-applied each message's action from the live rule table).

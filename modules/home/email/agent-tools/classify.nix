@@ -23,12 +23,22 @@ in
             --append-approved <mid>  Append ONE already-confirmed Message-ID to the APPROVED
                                       manifest (reads its tag:confirmed-{delete,archive}; the
                                       sole target the aerc confirm gesture is allowed to exec)
+            --emit-tagged            Read-only: rebuild candidate-manifest.jsonl from messages
+                                      matching QUERY that already carry a +proposed-* tag. The
+                                      action is derived ONLY from that tag (never recomputed,
+                                      never re-tagged); classify_one() is invoked solely to
+                                      produce a display confidence/reason
+                                      (reason="tag-derived;..."). No notmuch tag call is made.
+                                      Not subject to --limit/MAX_BATCH_SIZE — the full QUERY
+                                      match is processed. Messages with no +proposed-* tag are
+                                      skipped.
 
           This binary NEVER touches maildir/IMAP state — notmuch tags and manifest files only.
         '';
       }
       + ''
         APPEND_APPROVED=""
+        EMIT_TAGGED=0
         QUERY="folder:$ACCOUNT_FOLDER"
         LIMIT="$MAX_BATCH_SIZE"
         CLS_ARGS=()
@@ -36,6 +46,7 @@ in
           case "$1" in
             --append-approved) APPEND_APPROVED="''${2:-}"; shift 2 ;;
             --append-approved=*) APPEND_APPROVED="''${1#--append-approved=}"; shift ;;
+            --emit-tagged) EMIT_TAGGED=1; shift ;;
             --limit) LIMIT="''${2:-}"; shift 2 ;;
             --limit=*) LIMIT="''${1#--limit=}"; shift ;;
             *) CLS_ARGS+=("$1"); shift ;;
@@ -121,6 +132,51 @@ in
           done
           echo "unsure|0.50|default-unsure"
         }
+
+        # --- Read-only tag-derived emit mode (contract: no mutation, no recompute) ------------
+        # Rebuilds candidate-manifest.jsonl for messages that already carry a durable
+        # +proposed-* tag. The action is read from that tag ONLY; classify_one() (defined
+        # above) is invoked purely for a display confidence/reason and is never consulted for
+        # the action itself. No `notmuch tag` call occurs anywhere in this branch. --limit and
+        # MAX_BATCH_SIZE do not apply here — the full QUERY match is processed.
+        if [ "$EMIT_TAGGED" -eq 1 ]; then
+          : > "$CANDIDATE_FILE.tmp"
+          n=0
+          while IFS= read -r mid; do
+            [ -z "$mid" ] && continue
+            json=$(notmuch show --format=json --body=false "id:$mid" 2>/dev/null \
+              | jq -c 'if (.[0][0][0] | type) == "object" then .[0][0][0] else empty end' 2>/dev/null || true)
+            [ -z "$json" ] && continue
+            tags=$(echo "$json" | jq -r '(.tags // []) | join(",")')
+            case ",$tags," in
+              *,proposed-delete,*) action="delete" ;;
+              *,proposed-archive,*) action="archive" ;;
+              *,proposed-unsure,*) action="unsure" ;;
+              *,proposed-keep,*) action="keep" ;;
+              *) continue ;;
+            esac
+            subject=$(echo "$json" | jq -r '.headers.Subject // ""')
+            from=$(echo "$json" | jq -r '.headers.From // ""')
+            date=$(echo "$json" | jq -r '.headers.Date // ""')
+            sender_lc=$(printf '%s' "$from" | ${lower})
+            result=$(classify_one "$sender_lc")
+            rest="''${result#*|}"
+            confidence="''${rest%%|*}"
+            display_reason="''${rest#*|}"
+
+            jq -nc --arg mid "$mid" --arg sender "$from" --arg subject "$subject" --arg date "$date" \
+              --arg action "$action" --arg reason "tag-derived;$display_reason" \
+              --argjson confidence "$confidence" \
+              '{message_id:$mid, sender:$sender, subject:$subject, date:$date, proposed_action:$action, reason:$reason, confidence:$confidence}' \
+              >> "$CANDIDATE_FILE.tmp"
+            n=$((n + 1))
+          done <<< "$(notmuch search --output=messages "$QUERY" 2>/dev/null | sed 's/^id://')"
+
+          mv "$CANDIDATE_FILE.tmp" "$CANDIDATE_FILE"
+          log "Emitted $n tagged message(s) (read-only, tag-derived action); candidate manifest: $CANDIDATE_FILE"
+          log "Action is tag-derived and authoritative; confidence/reason above are current-rules display values only."
+          exit 0
+        fi
 
         total=$(notmuch search --output=messages "$QUERY" 2>/dev/null | grep -c . || true)
         mids=$(notmuch search --output=messages "$QUERY" 2>/dev/null | sed 's/^id://' | head -n "$LIMIT" || true)
