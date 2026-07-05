@@ -34,14 +34,16 @@
     ./scripts/sioyek-theme.nix
     ./scripts/gmail-oauth2.nix
     ./scripts/whisper.nix
-    ./scripts/memory-monitor.nix
 
     # Service modules (systemd user services and timers)
     ./services/screenshot.nix
     ./services/ydotool.nix
     ./services/gmail-oauth2.nix
-    ./services/memory-services.nix
     ./services/cache-cleanup.nix
+
+    # Memory monitoring (co-located: scripts + systemd services, three-tier system)
+    ./memory/monitor.nix
+    ./memory/services.nix
 
     # Miscellaneous settings (activation, autoExpire, sessionVariables, startServices)
     ./misc.nix

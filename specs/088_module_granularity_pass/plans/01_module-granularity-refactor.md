@@ -204,15 +204,19 @@ registered as a directory import in the aggregator.
 
 ---
 
-### Phase 4: Co-locate memory system into memory/ directory [NOT STARTED]
+### Phase 4: Co-locate memory system into memory/ directory [COMPLETED]
 
 **Goal**: Move the two halves of the memory system into a single `modules/home/memory/` directory.
 
 **Tasks**:
-- [ ] `git mv modules/home/scripts/memory-monitor.nix modules/home/memory/monitor.nix`.
-- [ ] `git mv modules/home/services/memory-services.nix modules/home/memory/services.nix`.
-- [ ] Reword each file's provenance header if it references the old `scripts/`/`services/` path (content otherwise unchanged — service unit names are NOT renamed).
-- [ ] Edit `modules/home/default.nix`: remove `./scripts/memory-monitor.nix` from the Script
+- [x] `git mv modules/home/scripts/memory-monitor.nix modules/home/memory/monitor.nix`.
+- [x] `git mv modules/home/services/memory-services.nix modules/home/memory/services.nix`.
+- [x] Reword each file's provenance header if it references the old `scripts/`/`services/` path (content otherwise unchanged — service unit names are NOT renamed).
+      *(deviation: skipped — neither file's header comment literally referenced the old
+      `scripts/`/`services/` path string (both just said "Memory monitoring scripts" /
+      "Memory monitoring user services"), so there was nothing stale to reword; condition in
+      the task bullet was not met. Left content byte-identical aside from the `git mv`.)*
+- [x] Edit `modules/home/default.nix`: remove `./scripts/memory-monitor.nix` from the Script
       group and `./services/memory-services.nix` from the Service group; add a new
       comment-delimited group with `./memory/monitor.nix` and `./memory/services.nix`.
 
@@ -226,8 +230,11 @@ registered as a directory import in the aggregator.
 - `modules/home/default.nix` - 2 lines removed, 2 added under a new Memory group.
 
 **Verification**:
-- `nix eval .#homeConfigurations.benjamin.activationPackage.name` succeeds.
-- Script and Service groups each still retain their 3 other unrelated entries.
+- [x] `nix eval .#homeConfigurations.benjamin.activationPackage.name` succeeds.
+- [x] Script group retains its 3 other unrelated entries (sioyek-theme, gmail-oauth2, whisper);
+      Service group retains its 4 other unrelated entries (screenshot, ydotool, gmail-oauth2,
+      cache-cleanup) — the plan text said "3" for both groups but the Service group actually had
+      4 non-memory entries pre-change; verified by direct inspection, not a defect.
 
 ---
 
