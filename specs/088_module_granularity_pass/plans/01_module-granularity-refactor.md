@@ -1,7 +1,7 @@
 # Implementation Plan: Task #88 - Module granularity pass over modules/home/
 
 - **Task**: 88 - Module granularity pass over modules/home/
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 2.5 hours
 - **Dependencies**: Task 86 (module convention + aggregators) — landed at commit `add7cae`
 - **Research Inputs**: specs/088_module_granularity_pass/reports/01_module-granularity-boundaries.md
@@ -261,16 +261,19 @@ registered as a directory import in the aggregator.
 
 ---
 
-### Phase 6: Final build and closure-inertness verification [NOT STARTED]
+### Phase 6: Final build and closure-inertness verification [COMPLETED]
 
 **Goal**: Prove the whole refactor is behavior-inert.
 
 **Tasks**:
-- [ ] Confirm all new files are `git add`-ed and all removals staged (`git status --short` — no untracked `.nix` under `modules/home/`).
-- [ ] Self-check the aggregator: `modules/home/default.nix` `imports` list should now have 29 entries (was 31; net −2).
-- [ ] Build: `nix build .#homeConfigurations.benjamin.activationPackage --out-link /tmp/task88-after`.
-- [ ] `nix store diff-closures <baseline-store-path> $(readlink -f /tmp/task88-after)` — output MUST be EMPTY.
-- [ ] If diff is non-empty: stop, diff the generated shell scripts to locate interpolation drift, fix forward (do not discard uncommitted work).
+- [x] Confirm all new files are `git add`-ed and all removals staged (`git status --short` — no untracked `.nix` under `modules/home/`). Confirmed clean; all five phases already committed.
+- [x] Self-check the aggregator: `modules/home/default.nix` `imports` list should now have 29 entries (was 31; net −2). Confirmed via `grep -c '^\s*\./' modules/home/default.nix` -> 29.
+- [x] Build: `nix build .#homeConfigurations.benjamin.activationPackage --out-link /tmp/task88-after`. Store path: `/nix/store/fx21pk2pqqiqk46ai9ig2wvmjrdlk2hd-home-manager-generation`.
+- [x] `nix store diff-closures <baseline-store-path> $(readlink -f /tmp/task88-after)` — output MUST be EMPTY. Confirmed EMPTY (baseline `/nix/store/7zlz05l6ghw72r4sqmsq2hx4ljs2dhh5-home-manager-generation` vs. after `/nix/store/fx21pk2pqqiqk46ai9ig2wvmjrdlk2hd-home-manager-generation`).
+- [x] If diff is non-empty: stop, diff the generated shell scripts to locate interpolation drift, fix forward (do not discard uncommitted work). N/A — diff was empty.
+- [x] (Additional, not required by plan) Ran `nix flake check`: all checks passed (pre-existing,
+      unrelated ZFS `boot.zfs.forceImportRoot` warnings on `hamsa`/`iso`/`usb-installer` hosts —
+      not touched by this task).
 
 **Timing**: 0.5 hours
 
@@ -280,18 +283,26 @@ registered as a directory import in the aggregator.
 - None (verification only).
 
 **Verification**:
-- `nix build` succeeds; `nix store diff-closures` against the Phase 1 baseline is empty.
-- Aggregator entry count is 29.
+- [x] `nix build` succeeds; `nix store diff-closures` against the Phase 1 baseline is empty.
+- [x] Aggregator entry count is 29.
 
 ## Testing & Validation
 
-- [ ] `nix build .#homeConfigurations.benjamin.activationPackage` succeeds after all phases.
-- [ ] `nix store diff-closures <baseline> <after>` is EMPTY (pure structural refactor confirmed).
-- [ ] `nix eval .#homeConfigurations.benjamin.activationPackage.name` succeeds after each of Phases 2-5 (isolates any regression to its phase).
-- [ ] `modules/home/default.nix` `imports` list has exactly 29 entries.
-- [ ] No new untracked `.nix` files under `modules/home/` (all `git add`-ed / `git mv`-ed).
-- [ ] Each new agent-tools file is <= ~290 lines; original 761-line monolith removed.
-- [ ] Top-level `modules/home/misc.nix` unchanged; `README.md`/`docs/*` untouched (task 91 scope).
+- [x] `nix build .#homeConfigurations.benjamin.activationPackage` succeeds after all phases.
+- [x] `nix store diff-closures <baseline> <after>` is EMPTY (pure structural refactor confirmed).
+- [x] `nix eval .#homeConfigurations.benjamin.activationPackage.name` succeeds after each of Phases 2-5 (isolates any regression to its phase).
+- [x] `modules/home/default.nix` `imports` list has exactly 29 entries.
+- [x] No new untracked `.nix` files under `modules/home/` (all `git add`-ed / `git mv`-ed).
+- [x] Each new agent-tools file is <= ~290 lines; original 761-line monolith removed.
+      *(deviation: altered — `lib.nix` is 316 lines, ~9% over the report's ~290-line estimate,
+      because it intentionally keeps all four shared helpers together per the plan's own
+      Non-Goals (no further splitting `mkMutationPreamble`). All five per-binary files are well
+      under the bound: 57/172/72/62/132 lines.)*
+- [x] Top-level `modules/home/misc.nix` unchanged; `README.md`/`docs/*` untouched (task 91 scope).
+      *(deviation: altered — `modules/home/misc.nix` received a one-line disambiguating header
+      comment cross-referencing the new `packages/misc.nix`, which the plan's own Non-Goals
+      section explicitly sanctions as the "only" allowed touch to that file given the deliberate
+      basename collision; no logic changed. `README.md`/`docs/*` were left untouched as required.)*
 
 ## Artifacts & Outputs
 
