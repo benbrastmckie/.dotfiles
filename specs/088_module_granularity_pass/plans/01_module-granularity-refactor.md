@@ -238,14 +238,14 @@ registered as a directory import in the aggregator.
 
 ---
 
-### Phase 5: Rename core/shell.nix to core/dotfiles.nix [NOT STARTED]
+### Phase 5: Rename core/shell.nix to core/dotfiles.nix [COMPLETED]
 
 **Goal**: Fix the `shell.nix` misnomer (it deploys `config/`, not shell config).
 
 **Tasks**:
-- [ ] `git mv modules/home/core/shell.nix modules/home/core/dotfiles.nix`.
-- [ ] Reword the header comment, e.g. `# Dotfiles deployment: session variables, home.file sources from config/, and related activation scripts.` (no logic change).
-- [ ] Edit `modules/home/default.nix`: `./core/shell.nix` -> `./core/dotfiles.nix` (same position in the Core group).
+- [x] `git mv modules/home/core/shell.nix modules/home/core/dotfiles.nix`.
+- [x] Reword the header comment, e.g. `# Dotfiles deployment: session variables, home.file sources from config/, and related activation scripts.` (no logic change).
+- [x] Edit `modules/home/default.nix`: `./core/shell.nix` -> `./core/dotfiles.nix` (same position in the Core group).
 
 **Timing**: 0.25 hours
 
@@ -256,7 +256,8 @@ registered as a directory import in the aggregator.
 - `modules/home/default.nix` - one line in the Core group.
 
 **Verification**:
-- `nix eval .#homeConfigurations.benjamin.activationPackage.name` succeeds.
+- [x] `nix eval .#homeConfigurations.benjamin.activationPackage.name` succeeds.
+- [x] Aggregator entry count confirmed 29 via `grep -c '^\s*\./' modules/home/default.nix`.
 
 ---
 

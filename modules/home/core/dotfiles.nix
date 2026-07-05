@@ -1,4 +1,5 @@
-# Shell configuration: session variables, home.file config sources, and related settings.
+# Dotfiles deployment: session variables, home.file sources from config/, and related
+# activation scripts.
 { config, pkgs, ... }:
 {
   home.sessionVariables = {

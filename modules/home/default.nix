@@ -6,7 +6,7 @@
     # Core modules
     ./core/git.nix
     ./core/neovim.nix
-    ./core/shell.nix
+    ./core/dotfiles.nix
     ./core/xdg.nix
 
     # Desktop modules
