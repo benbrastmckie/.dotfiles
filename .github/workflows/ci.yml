@@ -20,4 +20,7 @@ jobs:
       - name: statix (non-blocking)
         run: nix develop --command statix check || true
       - name: deadnix (non-blocking)
-        run: nix develop --command deadnix . || true
+        # hosts/*/hardware-configuration.nix is auto-generated (nixos-generate-config) and carries
+        # a "Do not modify this file!" header — excluded by path (task 101) since deadnix has no
+        # config-file mechanism (unlike statix.toml above the flake check step).
+        run: nix develop --command deadnix --exclude 'hosts/*/hardware-configuration.nix' . || true

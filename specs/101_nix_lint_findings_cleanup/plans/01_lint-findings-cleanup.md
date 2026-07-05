@@ -369,26 +369,34 @@ without silently destroying the deliberate top-to-bottom feature-walkthrough nar
 
 ---
 
-### Phase 7: Add path-based exclusions for the 4 auto-generated hardware-configuration.nix files [NOT STARTED]
+### Phase 7: Add path-based exclusions for the 4 auto-generated hardware-configuration.nix files [COMPLETED]
 
 **Goal**: Exclude the auto-generated `hosts/*/hardware-configuration.nix` files from both linters
 by path (not by editing them), so nixos-generate-config regeneration never reintroduces churn.
 
 **Tasks**:
-- [ ] Create repo-root `statix.toml` with:
+- [x] Create repo-root `statix.toml` with:
   ```toml
   disabled = []
   ignore = [".direnv", "hosts/*/hardware-configuration.nix"]
   ```
   (verified in research to drop the 12 hardware-config W20 findings to zero with no other effect;
   `statix check` defaults `--config` to the repo root, so no CI change is needed for statix).
-- [ ] Update `.github/workflows/ci.yml`'s deadnix step to
+  Verified: `statix check` now reports zero findings tree-wide.
+- [x] Update `.github/workflows/ci.yml`'s deadnix step to
   `nix develop --command deadnix --exclude 'hosts/*/hardware-configuration.nix' -- . || true`
   (deadnix has no config-file mechanism; the glob must be quoted so the shell does not pre-expand
-  it).
-- [ ] Add a short note (commit message and/or devShell `shellHook` / README) explaining WHY these
+  it). *(deviation: altered — used
+  `deadnix --exclude 'hosts/*/hardware-configuration.nix' . || true` (no `--` separator) instead
+  of the plan's `-- .` form: Phase 2 discovered that `--exclude <glob> -- .` does not reliably
+  apply the exclusion glob in this deadnix version, while `--exclude <glob> .` (positional
+  immediately after the exclude values) does. Verified locally:
+  `deadnix --exclude 'hosts/*/hardware-configuration.nix' . -o json` returns empty output — zero
+  findings.)*
+- [x] Add a short note (commit message and/or devShell `shellHook` / README) explaining WHY these
   4 files are exempt (auto-generated "Do not modify this file!" header) and that the exclusion is
-  path-based so it survives regeneration.
+  path-based so it survives regeneration. Added as a comment block at the top of `statix.toml`
+  and an inline comment above the `ci.yml` deadnix step.
 
 **Timing**: 0.5 hours
 
@@ -400,10 +408,13 @@ by path (not by editing them), so nixos-generate-config regeneration never reint
 - (optional) devShell `shellHook` / README note documenting the exemption rationale
 
 **Verification**:
-- `nix flake check` stays green (config files do not affect evaluation).
+- `nix flake check` stays green (config files do not affect evaluation). Verified: `all checks
+  passed!`.
 - `statix check` with the new `statix.toml` present reports zero findings in any
-  `hardware-configuration.nix` path.
-- `deadnix --exclude 'hosts/*/hardware-configuration.nix' -- .` reports zero findings in those files.
+  `hardware-configuration.nix` path. Verified: `statix check` now reports zero findings
+  tree-wide (exit code 0, no output).
+- `deadnix --exclude 'hosts/*/hardware-configuration.nix' -- .` reports zero findings in those
+  files. Verified (using the working flag order `--exclude 'glob' .`): zero findings tree-wide.
 
 ---
 
