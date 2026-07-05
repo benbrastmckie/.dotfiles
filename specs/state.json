@@ -4,12 +4,12 @@
     {
       "project_number": 81,
       "project_name": "reorganize_nixos_dotfiles_repository_design",
-      "status": "researched",
+      "status": "planned",
       "task_type": "nix",
       "description": "Design and orchestrate a systematic reorganization of the NixOS/Home Manager dotfiles repository: research and design the ideal target directory layout (modules/, hosts/, lib/, overlays/, packages/, config/, secrets/, wallpapers/, docs/, root files), then decompose the refactor into ordered implementation subtasks, creating each subtask with its own seed research report. A comprehensive repo review has already been completed and is seeded as this task's first research report.",
       "topic": "nixos-config",
       "created": "2026-07-04T21:46:17Z",
-      "last_updated": "2026-07-04T22:13:20Z",
+      "last_updated": "2026-07-05T00:39:21Z",
       "artifacts": [
         {
           "path": "specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md",
@@ -40,11 +40,24 @@
           "path": "specs/081_reorganize_nixos_dotfiles_repository_design/reports/02_team-research.md",
           "type": "report",
           "summary": "Synthesized team research: target layout, design decisions, 10-subtask decomposition"
+        },
+        {
+          "path": "specs/081_reorganize_nixos_dotfiles_repository_design/plans/03_reorg-design-and-subtasks.md",
+          "type": "plan",
+          "summary": "Design + orchestration plan for task 81: authors a canonical target-layout design document, enumerates the ordered 10-subtask reorganization blueprint (three tiers), codifies the migration-safety protocol (git-add-before-verify, CI gate, runtime vs build verification), resolves/defers all open design decisions, and creates the 10 subtasks with recorded numbers."
         }
       ],
-      "session_id": "sess_1783203164_d4f885",
+      "session_id": "sess_1783211580_39b8e6",
       "next_artifact_number": 3,
-      "researched": "2026-07-04T22:13:20Z"
+      "researched": "2026-07-04T22:13:20Z",
+      "plan_metadata": {
+        "phases": 5,
+        "total_effort_hours": 7,
+        "complexity": "medium",
+        "research_integrated": true,
+        "plan_version": 1,
+        "proposed_subtask_count": 10
+      }
     },
     {
       "project_number": 80,
