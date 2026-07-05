@@ -134,30 +134,32 @@ writes session state to a writable location instead of `__file__`-relative `data
 
 ---
 
-### Phase 2: Author pyproject.toml + buildPythonApplication derivation [NOT STARTED]
+### Phase 2: Author pyproject.toml + buildPythonApplication derivation [COMPLETED]
 
 **Goal**: Produce the packaging inputs — a PEP 621 `pyproject.toml` with a console-script entry
 point, and a `buildPythonApplication` derivation that builds from the (Phase 1-fixed) source tree.
 
 **Tasks**:
-- [ ] Create `opencode-discord-bot/pyproject.toml`:
+- [x] Create `opencode-discord-bot/pyproject.toml`:
       - `[build-system]` `requires = ["setuptools"]`, `build-backend = "setuptools.build_meta"`
       - `[project]` `name = "opencode-discord-bot"`, `version = "0.1.0"`,
         `requires-python = ">=3.11"`, `dependencies = ["nextcord", "aiohttp"]` (drop `anyio` —
         verified unused)
       - `[project.scripts]` `opencode-discord-bot = "opencode_discord_bot.src.bot:main"`
       - `[tool.setuptools.packages.find]` `where = ["."]`, `include = ["opencode_discord_bot*"]`
-        (so `data/`, with only `.gitkeep`, is not treated as a package)
-- [ ] Create `packages/opencode-discord-bot.nix` in `buildPythonApplication` shape:
+        (so `data/`, with only `.gitkeep`, is not treated as a package) *(completed)*
+- [x] Create `packages/opencode-discord-bot.nix` in `buildPythonApplication` shape:
       - function args `{ lib, buildPythonApplication, setuptools, nextcord, aiohttp }`
       - `pname = "opencode-discord-bot"; version = "0.1.0"; pyproject = true;`
       - `src = ../opencode-discord-bot;` (relative from `packages/`)
       - `build-system = [ setuptools ];` `dependencies = [ nextcord aiohttp ];`
       - `pythonImportsCheck = [ "opencode_discord_bot" ];`
       - `meta` with `description`, `homepage` (repo), `license = lib.licenses.mit` (or match repo
-        convention), `platforms = lib.platforms.linux;`
-- [ ] Do NOT add an entry to `overlays/python-packages.nix` (that overlay is for library overrides
+        convention), `platforms = lib.platforms.linux;` *(completed — also carries the future
+        own-repo-extraction note as a header comment, pulling forward part of Phase 6)*
+- [x] Do NOT add an entry to `overlays/python-packages.nix` (that overlay is for library overrides
       composed via `python3.withPackages`; this app is `callPackage`d directly in Phase 3).
+      *(completed — overlay untouched)*
 
 **Timing**: 1.5 hours
 

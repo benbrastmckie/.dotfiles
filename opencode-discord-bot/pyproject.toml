@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "opencode-discord-bot"
+version = "0.1.0"
+description = "Nextcord Discord bot relay for OpenCode agent management"
+requires-python = ">=3.11"
+dependencies = [
+    "nextcord",
+    "aiohttp",
+]
+
+[project.scripts]
+opencode-discord-bot = "opencode_discord_bot.src.bot:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["opencode_discord_bot*"]
