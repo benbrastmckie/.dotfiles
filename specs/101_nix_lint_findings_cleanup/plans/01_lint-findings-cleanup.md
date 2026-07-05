@@ -138,20 +138,28 @@ serialized because they touch overlapping files (`flake.nix`, `home.nix`, `servi
 
 ---
 
-### Phase 2: Remove the 11 safe deadnix bindings via `deadnix --edit` [NOT STARTED]
+### Phase 2: Remove the 11 safe deadnix bindings via `deadnix --edit` [COMPLETED]
 
 **Goal**: Delete the genuinely-unused bindings deadnix flags, without touching the now-skip-marked
 keep-set or the excluded hardware-config files.
 
 **Tasks**:
-- [ ] Run `deadnix --edit --exclude 'hosts/*/hardware-configuration.nix' -- .` (exclude the 4
+- [x] Run `deadnix --edit --exclude 'hosts/*/hardware-configuration.nix' -- .` (exclude the 4
   auto-generated files so their `pkgs` args are not stripped even before Phase 7's CI flag lands).
-- [ ] Diff-review the edit: expect removal of `flake.nix:45,49,52` (`lean4`, `utils`, `inputs`
+  *(deviation: altered — the `--exclude 'glob' -- .` flag ordering did not actually suppress
+  editing of the 4 hardware-configuration.nix files in this deadnix version; `--edit` stripped
+  their `pkgs` arg too. Detected via post-edit diff review, manually restored all 4 files to
+  their pre-edit content via `git show HEAD:<path> > <path>` before continuing. Confirmed the
+  correct invocation order for exclusion purposes is `deadnix --exclude 'glob' . ...`
+  (positional path immediately after exclude values, flags before positional) — used that order
+  for the read-only verification checks in this phase and will use it again for Phase 7/8.)*
+- [x] Diff-review the edit: expect removal of `flake.nix:45,49,52` (`lean4`, `utils`, `inputs`
   destructured outputs args), `home.nix:2-5` (`config`, `pkgs`, `pkgs-unstable`, `lectic` -> `_:`
   or reduced signature), and the `lib` args in `packages/aristotle.nix`, `packages/claude-code.nix`,
-  `packages/polkit-gnome-agent-wrapper.nix`, `packages/slidev.nix`.
-- [ ] Confirm the removed `flake.nix` args do NOT remove the `lean4`/`utils` flake *inputs* (those
-  stay in `inputs = {...}` and in `flake.lock`); only the dead destructured bindings go.
+  `packages/polkit-gnome-agent-wrapper.nix`, `packages/slidev.nix`. Verified: diff matches exactly.
+- [x] Confirm the removed `flake.nix` args do NOT remove the `lean4`/`utils` flake *inputs* (those
+  stay in `inputs = {...}` and in `flake.lock`); only the dead destructured bindings go. Verified
+  via grep: both `lean4 = { url = ...}` and `utils.url = ...` remain in the `inputs` block.
 
 **Timing**: 0.5 hours
 
@@ -163,9 +171,11 @@ keep-set or the excluded hardware-config files.
 - `packages/aristotle.nix`, `packages/claude-code.nix`, `packages/polkit-gnome-agent-wrapper.nix`, `packages/slidev.nix` - remove unused `lib` arg
 
 **Verification**:
-- `nix flake check` stays green.
+- `nix flake check` stays green. Verified: `all checks passed!`.
 - `deadnix --exclude 'hosts/*/hardware-configuration.nix' -- .` reports zero findings (the 8
   keep-set are skip-marked, the 11 safe ones are removed, the 4 auto-generated are excluded).
+  Verified (using `deadnix --exclude 'hosts/*/hardware-configuration.nix' . -o json`, the working
+  flag order): TOTAL 0.
 
 ---
 

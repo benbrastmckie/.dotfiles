@@ -42,14 +42,12 @@
       nixpkgs,
       nixpkgs-unstable,
       home-manager,
-      lean4,
       niri,
       lectic,
       nix-ai-tools,
-      utils,
       sops-nix,
       ...
-    }@inputs:
+    }:
 
     let
       lib = nixpkgs.lib;

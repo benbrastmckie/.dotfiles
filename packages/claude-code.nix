@@ -4,7 +4,6 @@
 # The npx cache (~/.npm/_npx/) may also need clearing: rm -rf ~/.npm/_npx/
 # Model selection is in config/claude/settings.json (ANTHROPIC_DEFAULT_OPUS_MODEL).
 {
-  lib,
   writeShellScriptBin,
   nodejs,
 }:
