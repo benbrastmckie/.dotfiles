@@ -3,6 +3,9 @@
 # - services.home-manager.autoExpire (HM generation GC)
 # - systemd.user.sessionVariables
 # - systemd.user.startServices
+# NOTE: unrelated to `packages/misc.nix` (package-only fragments: fonts, Lean 4/formal-math
+# tools, AI coding assistants) — the basename collision between the two files is deliberate
+# (see design/target-layout.md); do not confuse the two when editing.
 { config, pkgs, ... }:
 {
   # Create mail directory for Himalaya with proper structure

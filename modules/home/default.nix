@@ -24,13 +24,11 @@
     ./email/agent-tools
 
     # Package modules
-    ./packages/ai-tools.nix
-    ./packages/lean-math.nix
     ./packages/dev-tools.nix
     ./packages/media-dictation.nix
     ./packages/email-tools.nix
     ./packages/python.nix
-    ./packages/fonts.nix
+    ./packages/misc.nix
 
     # Script modules (inline shell scripts)
     ./scripts/sioyek-theme.nix

@@ -171,18 +171,22 @@ registered as a directory import in the aggregator.
 
 ---
 
-### Phase 3: Merge tiny package fragments into packages/misc.nix [NOT STARTED]
+### Phase 3: Merge tiny package fragments into packages/misc.nix [COMPLETED]
 
 **Goal**: Collapse `fonts.nix` + `lean-math.nix` + `ai-tools.nix` into one `packages/misc.nix`.
 
 **Tasks**:
-- [ ] Create `modules/home/packages/misc.nix` with signature `{ pkgs, lectic, ... }:` and a
+- [x] Create `modules/home/packages/misc.nix` with signature `{ pkgs, lectic, ... }:` and a
       `home.packages` list combining all three fragments, using comment sub-groups (Fonts / Lean
       4 and formal-math tools / AI and coding assistant tools) to preserve per-source provenance.
-- [ ] Add a disambiguating header comment cross-referencing the unrelated top-level `../misc.nix`
+- [x] Add a disambiguating header comment cross-referencing the unrelated top-level `../misc.nix`
       (activation/session settings) to prevent future edit confusion.
-- [ ] `git rm modules/home/packages/{fonts,lean-math,ai-tools}.nix`; `git add modules/home/packages/misc.nix`.
-- [ ] Edit `modules/home/default.nix`: remove the three `./packages/{ai-tools,lean-math,fonts}.nix`
+      *(deviation: altered — added a reciprocal disambiguating comment to the top-level
+      `modules/home/misc.nix` header as well, cross-referencing `packages/misc.nix`. This is the
+      one touch to that file explicitly sanctioned by the plan's own Non-Goals section ("only
+      add a disambiguating header comment"), not a scope violation.)*
+- [x] `git rm modules/home/packages/{fonts,lean-math,ai-tools}.nix`; `git add modules/home/packages/misc.nix`.
+- [x] Edit `modules/home/default.nix`: remove the three `./packages/{ai-tools,lean-math,fonts}.nix`
       lines, add one `./packages/misc.nix` line (Package group shrinks 7 -> 5).
 
 **Timing**: 0.25 hours
@@ -195,8 +199,8 @@ registered as a directory import in the aggregator.
 - `modules/home/default.nix` - 3 lines removed, 1 added in the Package group.
 
 **Verification**:
-- `nix eval .#homeConfigurations.benjamin.activationPackage.name` succeeds.
-- `lectic` resolves without a "missing argument" error (confirms the special-arg signature).
+- [x] `nix eval .#homeConfigurations.benjamin.activationPackage.name` succeeds.
+- [x] `lectic` resolves without a "missing argument" error (confirms the special-arg signature).
 
 ---
 
