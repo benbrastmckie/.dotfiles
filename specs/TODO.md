@@ -11,14 +11,10 @@ next_project_number: 95
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92,94 | -- | nixos-config, nix-infrastructure, desktop, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, desktop, maintenance, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
-
-### Nixos Config
-
-94 [PLANNED] — Systematically review my nixos config to improve the documentatio
 
 ### Nix Infrastructure
 
@@ -53,12 +49,13 @@ next_project_number: 95
 ## Tasks
 
 ### 94. Review nixos config documentation
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
 - **Research**: [094_review_nixos_config_documentation/reports/01_nixos-config-doc-review.md]
 - **Plan**: [094_review_nixos_config_documentation/plans/01_nixos-doc-config-improvements.md]
+- **Summary**: [094_review_nixos_config_documentation/summaries/01_nixos-doc-config-improvements-summary.md]
 
 **Description**: Systematically review my nixos config to improve the documentation (and the config) where relevant
 

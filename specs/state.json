@@ -4,12 +4,12 @@
     {
       "project_number": 94,
       "project_name": "review_nixos_config_documentation",
-      "status": "planned",
+      "status": "completed",
       "task_type": "nix",
       "description": "Systematically review my nixos config to improve the documentation (and the config) where relevant",
       "topic": "nixos-config",
       "created": "2026-07-05T08:07:06Z",
-      "last_updated": "2026-07-05T08:19:59Z",
+      "last_updated": "2026-07-05T08:34:25Z",
       "session_id": "sess_1783238869_c87ed8",
       "artifacts": [
         {
@@ -21,8 +21,14 @@
           "path": "specs/094_review_nixos_config_documentation/plans/01_nixos-doc-config-improvements.md",
           "type": "plan",
           "summary": "nixos doc config improvements (backfilled by --sync)"
+        },
+        {
+          "path": "specs/094_review_nixos_config_documentation/summaries/01_nixos-doc-config-improvements-summary.md",
+          "type": "summary",
+          "summary": "nixos doc config improvements summary (backfilled by --sync)"
         }
-      ]
+      ],
+      "completion_summary": "Reviewed the NixOS/Home Manager config and its docs; structure was healthy so fixes centered on documentation accuracy. Executed 7/8 planned phases: corrected a confirmed hardware factual error (nandi is Intel, hamsa is the AMD host) in README.md; de-staled contributor docs (configuration.md, unstable-packages.md, how-to-add-package/service.md) to reflect the completed modules/ reorg and python3 migration; fixed package-inventory docs (removed nonexistent marker-pdf, added opencode/kooha/slidev); added overlays/README.md; swept emoji from eligible docs; and made conservative comment-only .nix cleanups verified by nix flake check (passes). Deferred Phase 8 (Ryzen doc consolidation, niri testing-phase framing, niri.md emoji strip) left for a follow-up task as it needs user confirmation."
     },
     {
       "project_number": 81,
