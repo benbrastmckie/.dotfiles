@@ -1039,14 +1039,14 @@
     {
       "project_number": 82,
       "project_name": "dead_code_removal_nixos_repo",
-      "status": "planned",
+      "status": "completed",
       "task_type": "nix",
       "description": "Remove dead code and orphaned files from the NixOS/Home Manager dotfiles repo (task 81 Tier 0, subtask blueprint #1, no dependencies). Delete: home-modules/ directory (mcp-hub.nix + its README, plus the commented-out import at home.nix:6 and stale comments at modules/home/core/shell.nix:8 and modules/home/packages/email-tools.nix:38), modules/opencode.nix (dead AND broken — references ../../config/opencode.json above repo root), packages/neovim.nix (unreferenced wrapNeovimUnstable derivation — NOT modules/home/core/neovim.nix, confirmed a different, live file), test-sasl.sh, test-update.md, root TODO.md (superseded by specs/TODO.md), and 5 wallpapers/ scaffolding files (IMPLEMENTATION_COMPLETE.md, README.md, SETUP_INSTRUCTIONS.md, verify-setup.sh, SAVE_IMAGE_HERE.txt). Widen packages/test-mcphub.sh removal to also patch its 3 doc references (docs/packages.md:244, docs/applications.md:26, packages/README.md:260-277) in the SAME subtask — it is doc-referenced, not orphaned (Critic correction). Drop the config/rclone.conf 'verify' step entirely — already untracked/resolved, nothing to do. Inherited cross-cutting protocol: stage each deletion/edit with `git add <specific paths>` (never `git add -A`) before running verification, since flake.nix's `root = self` means the harness only sees git-tracked content. Verification level: build-only inertness — `nix flake check` + `nixos-rebuild build --flake .#nandi/.#hamsa/.#garuda` + `nix build .#homeConfigurations.benjamin.activationPackage`; `git status` shows only deletions + the 3 doc edits; harness green (none of these files are imported anywhere). Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md (\"home-modules/\", \"packages/\" sections), reports/02_team-research.md (subtask blueprint row 1), and design/target-layout.md §3 (Subtask Blueprint row 1) and §4 (Migration Safety & Verification).",
       "topic": "nix-infrastructure",
       "parent_task": 81,
       "dependencies": [],
       "created": "2026-07-05T01:03:22Z",
-      "last_updated": "2026-07-05T02:25:35Z",
+      "last_updated": "2026-07-05T02:40:00Z",
       "next_artifact_number": 1,
       "session_id": "sess_1783217512_f16aa6_82",
       "artifacts": [
@@ -1059,6 +1059,11 @@
           "path": "specs/082_dead_code_removal_nixos_repo/plans/02_dead-code-removal-plan.md",
           "type": "plan",
           "summary": "Implementation plan"
+        },
+        {
+          "path": "specs/082_dead_code_removal_nixos_repo/summaries/02_dead-code-removal-summary.md",
+          "type": "summary",
+          "summary": "Dead code removed; all builds green"
         }
       ]
     },

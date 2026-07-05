@@ -11,10 +11,10 @@ next_project_number: 93
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69,77,82,84,85,86,92 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,69,77,84,85,86,92 | -- | nix-infrastructure, desktop, maintenance, ... |
 | 2 | 78,87,88,89 | 77,86 | nix-infrastructure, desktop |
 | 3 | 90 | 88 | nix-infrastructure |
-| 4 | 91 | 82,84,85,87,89,90 | nix-infrastructure |
+| 4 | 91 | 84,85,87,89,90 | nix-infrastructure |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -23,10 +23,8 @@ next_project_number: 93
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
 68 [NOT STARTED] — The iso and usb-installer nixosConfigurations fail to build becau
 69 [NOT STARTED] — Consolidate the dual home-manager setup so there is a single sour
-82 [PLANNED] — Remove dead code and orphaned files from the NixOS/Home Manager d
-  └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do
 84 [PLANNED] — Add a `nix flake check` CI gate to the NixOS/Home Manager dotfile
-  └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
+  └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do
 85 [NOT STARTED] — Relocate root shell scripts into a new scripts/ directory in the 
   └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
 86 [NOT STARTED] — Adopt the module convention (options + aggregators) and make the 
@@ -182,12 +180,13 @@ SEED/CROSS-REPO: diagnosis performed in ~/Mail; approved delete manifest + wrapp
 ---
 
 ### 82. Dead code removal nixos repo
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
 - **Research**: [082_dead_code_removal_nixos_repo/reports/02_dead-code-removal-research.md]
 - **Plan**: [082_dead_code_removal_nixos_repo/plans/02_dead-code-removal-plan.md]
+- **Summary**: [082_dead_code_removal_nixos_repo/summaries/02_dead-code-removal-summary.md]
 
 **Description**: Remove dead code and orphaned files from the NixOS/Home Manager dotfiles repo (task 81 Tier 0, subtask blueprint #1, no dependencies). Delete: home-modules/ directory (mcp-hub.nix + its README, plus the commented-out import at home.nix:6 and stale comments at modules/home/core/shell.nix:8 and modules/home/packages/email-tools.nix:38), modules/opencode.nix (dead AND broken — references ../../config/opencode.json above repo root), packages/neovim.nix (unreferenced wrapNeovimUnstable derivation — NOT modules/home/core/neovim.nix, confirmed a different, live file), test-sasl.sh, test-update.md, root TODO.md (superseded by specs/TODO.md), and 5 wallpapers/ scaffolding files (IMPLEMENTATION_COMPLETE.md, README.md, SETUP_INSTRUCTIONS.md, verify-setup.sh, SAVE_IMAGE_HERE.txt). Widen packages/test-mcphub.sh removal to also patch its 3 doc references (docs/packages.md:244, docs/applications.md:26, packages/README.md:260-277) in the SAME subtask — it is doc-referenced, not orphaned (Critic correction). Drop the config/rclone.conf 'verify' step entirely — already untracked/resolved, nothing to do. Inherited cross-cutting protocol: stage each deletion/edit with `git add <specific paths>` (never `git add -A`) before running verification, since flake.nix's `root = self` means the harness only sees git-tracked content. Verification level: build-only inertness — `nix flake check` + `nixos-rebuild build --flake .#nandi/.#hamsa/.#garuda` + `nix build .#homeConfigurations.benjamin.activationPackage`; `git status` shows only deletions + the 3 doc edits; harness green (none of these files are imported anywhere). Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md ("home-modules/", "packages/" sections), reports/02_team-research.md (subtask blueprint row 1), and design/target-layout.md §3 (Subtask Blueprint row 1) and §4 (Migration Safety & Verification).
 
