@@ -1,12 +1,13 @@
 {
-  "status": "researched",
+  "status": "planned",
   "task_number": 94,
-  "summary": "Audited the NixOS/Home Manager dotfiles repo's config and documentation. Structure itself (flake.nix, lib/mkHost.nix, modules/system + modules/home aggregators, overlays/, packages/) is healthy and well-commented. Main issue: several docs (docs/configuration.md, docs/unstable-packages.md, docs/how-to-add-package.md, docs/how-to-add-service.md, packages/README.md, docs/packages.md) describe the pre-reorg / pre-python3-migration state as still current or still-planned, even though tasks 65/66/81-91 already completed that work -- these would misdirect a contributor into editing the wrong files. Also found a confirmed factual error: root README.md's module map labels nandi as the AMD Ryzen AI 300 host, but hardware-configuration.nix shows nandi is Intel (kvm-intel) and hamsa is the actual AMD host (kvm-amd). Lower-priority findings: repo-wide emoji-convention drift (rule added task 91, corpus not swept), two near-duplicate Ryzen AI 300 docs, and a few small dead/uncommented code fragments in modules/system/packages.nix, modules/system/desktop.nix, and home.nix. All findings are prioritized (high/medium/low) with file:line detail and risk notes in the report.",
+  "summary": "Created a priority-sequenced 8-phase implementation plan from the research findings. High-priority doc-accuracy fixes first: Phase 1 corrects the confirmed nandi/hamsa CPU-vendor factual bug in root README.md; Phase 2 de-stales docs/configuration.md + docs/unstable-packages.md (removes 'planned'/'pending Phase 2' language now that the reorg landed); Phase 3 repoints docs/how-to-add-package.md + docs/how-to-add-service.md at the modules/system + modules/home layout and documents the optional/host-toggled pattern; Phase 4 corrects packages/README.md + docs/packages.md (deletes nonexistent marker-pdf.nix, adds opencode/kooha/slidev, python312->python3, fixes the deleted-file reference). Medium: Phase 5 sweeps emoji from eligible docs (excludes niri.md and the two Ryzen docs). Low/conservative: Phase 6 makes comment-only cleanups in modules/system/{packages,desktop}.nix + home.nix, verified by nix flake check (no functional or stateVersion changes); Phase 7 creates the missing overlays/README.md. Phase 8 is explicitly DEFERRED and not executed autonomously: Ryzen doc consolidation, niri 'testing phase' framing, and the large niri.md emoji strip all require user confirmation. Doc-only vs config changes are kept separate; every phase lists specific files, concrete changes, and a verification step (doc re-read against live config; nix flake check for .nix edits). Phases 1-4, 6, 7 touch disjoint files (parallelizable wave 1); Phase 5 depends on 2,3. Estimated 5.5 hours for executable phases.",
+  "phases_total": 8,
   "artifacts": [
     {
-      "type": "report",
-      "path": "specs/094_review_nixos_config_documentation/reports/01_nixos-config-doc-review.md"
+      "type": "plan",
+      "path": "specs/094_review_nixos_config_documentation/plans/01_nixos-doc-config-improvements.md"
     }
   ],
-  "next_steps": "Run /plan 94 to create an implementation plan from these findings"
+  "next_steps": "Run /implement 94 to execute the plan (Phase 8 items are deferred pending user confirmation)"
 }

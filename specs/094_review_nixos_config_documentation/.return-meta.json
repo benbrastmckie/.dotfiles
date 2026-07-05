@@ -1,19 +1,21 @@
 {
-  "status": "researched",
+  "status": "planned",
   "artifacts": [
     {
-      "type": "report",
-      "path": "specs/094_review_nixos_config_documentation/reports/01_nixos-config-doc-review.md",
-      "summary": "Prioritized audit of NixOS/Home Manager config + docs: stale pre-reorg architecture descriptions in docs/configuration.md, docs/unstable-packages.md, docs/how-to-add-package.md, docs/how-to-add-service.md; a confirmed factual CPU-vendor mislabel (nandi vs hamsa) in root README.md; stale marker-pdf.nix and python312 references in packages/README.md and docs/packages.md; plus lower-priority emoji-convention drift, near-duplicate Ryzen docs, and small dead-comment cleanups in modules/system/{packages,desktop}.nix and home.nix."
+      "type": "plan",
+      "path": "specs/094_review_nixos_config_documentation/plans/01_nixos-doc-config-improvements.md",
+      "summary": "Priority-sequenced 8-phase plan: (1) fix nandi/hamsa CPU-vendor factual bug in root README; (2) de-stale docs/configuration.md + docs/unstable-packages.md; (3) repoint docs/how-to-add-package.md + docs/how-to-add-service.md to the module layout; (4) correct packages/README.md + docs/packages.md (marker-pdf removal, opencode/kooha/slidev additions, python312->python3); (5) emoji sweep of eligible docs; (6) conservative comment-only cleanups in modules/system/{packages,desktop}.nix + home.nix verified by nix flake check; (7) create overlays/README.md; (8) DEFERRED user-confirmation items (Ryzen doc consolidation, niri testing-phase framing, niri.md emoji strip) not executed autonomously."
     }
   ],
-  "next_steps": "Run /plan 94 to create implementation plan",
+  "next_steps": "Run /implement 94 to execute the plan",
+  "memory_candidates": [],
   "metadata": {
     "session_id": "sess_1783238869_c87ed8",
-    "agent_type": "nix-research-agent",
-    "duration_seconds": 2400,
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
-    "findings_count": 14
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 8,
+    "estimated_hours": 5.5,
+    "dependency_waves": [[1, 2, 3, 4, 6, 7], [5]]
   }
 }

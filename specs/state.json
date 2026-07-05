@@ -4,18 +4,23 @@
     {
       "project_number": 94,
       "project_name": "review_nixos_config_documentation",
-      "status": "researched",
+      "status": "planned",
       "task_type": "nix",
       "description": "Systematically review my nixos config to improve the documentation (and the config) where relevant",
       "topic": "nixos-config",
       "created": "2026-07-05T08:07:06Z",
-      "last_updated": "2026-07-05T08:15:27Z",
+      "last_updated": "2026-07-05T08:19:59Z",
       "session_id": "sess_1783238869_c87ed8",
       "artifacts": [
         {
           "path": "specs/094_review_nixos_config_documentation/reports/01_nixos-config-doc-review.md",
           "type": "report",
           "summary": "nixos config doc review (backfilled by --sync)"
+        },
+        {
+          "path": "specs/094_review_nixos_config_documentation/plans/01_nixos-doc-config-improvements.md",
+          "type": "plan",
+          "summary": "nixos doc config improvements (backfilled by --sync)"
         }
       ]
     },

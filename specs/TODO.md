@@ -18,7 +18,7 @@ next_project_number: 95
 
 ### Nixos Config
 
-94 [RESEARCHED] — Systematically review my nixos config to improve the documentatio
+94 [PLANNED] — Systematically review my nixos config to improve the documentatio
 
 ### Nix Infrastructure
 
@@ -53,11 +53,12 @@ next_project_number: 95
 ## Tasks
 
 ### 94. Review nixos config documentation
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
 - **Research**: [094_review_nixos_config_documentation/reports/01_nixos-config-doc-review.md]
+- **Plan**: [094_review_nixos_config_documentation/plans/01_nixos-doc-config-improvements.md]
 
 **Description**: Systematically review my nixos config to improve the documentation (and the config) where relevant
 
