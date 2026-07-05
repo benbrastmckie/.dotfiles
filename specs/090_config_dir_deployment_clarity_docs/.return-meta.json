@@ -1,8 +1,33 @@
 {
-  "status": "in_progress",
+  "status": "implemented",
   "metadata": {
     "session_id": "sess_1783234588_2d9baa",
     "agent_type": "general-implementation-agent",
-    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"]
-  }
+    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
+    "phases_completed": 5,
+    "phases_total": 5
+  },
+  "completion_data": {
+    "completion_summary": "Expanded config/README.md with a Deployment Mechanisms section (all three mechanisms in modules/home/core/dotfiles.nix, with verified current line citations), a Naming Hazards section (config/ vs Nix config-argument shadowing; the three-way .claude/ / config/claude/ / ~/.claude/ collision), a preserve-and-flag WARNING for the intended config/claude/ force-overwrite behavior, and a corrected .zuliprc row; added a config/README.md cross-reference to dotfiles.nix's header comment."
+  },
+  "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/090_config_dir_deployment_clarity_docs/summaries/01_document-config-deployment-summary.md",
+      "summary": "Implementation summary for task 90 documenting all changes, decisions, and plan deviations."
+    }
+  ],
+  "modified_files": [
+    "config/README.md",
+    "modules/home/core/dotfiles.nix"
+  ],
+  "memory_candidates": [
+    {
+      "content": "When adding a header-comment cross-reference to a Nix module during a multi-phase doc task, sequence the header edit BEFORE (or re-verify AFTER) writing any documentation that cites line numbers in that same file — even a 2-line comment insertion shifts every subsequent line number and silently staleness-poisons freshly-written citations. Always do the final line-range cross-check as the very last content step, against the file's actual current state, not the plan's pre-computed estimates.",
+      "category": "TECHNIQUE",
+      "source_artifact": "specs/090_config_dir_deployment_clarity_docs/summaries/01_document-config-deployment-summary.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["line-number drift", "doc-only task", "verification", "stale-reference", "nix header comment"]
+    }
+  ]
 }
