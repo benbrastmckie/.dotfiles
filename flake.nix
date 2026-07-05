@@ -104,14 +104,14 @@
     # Both evaluate home.nix with the same overlays. update.sh runs both
     # in sequence to keep them in sync. ~/.nix-profile/ takes PATH priority.
     nixosConfigurations = {
-      nandi = mkHost { hostname = "nandi"; };
+      nandi = mkHost {
+        hostname = "nandi";
+        extraModules = [ ./hosts/nandi/default.nix ];
+      };
 
       hamsa = mkHost { hostname = "hamsa"; };
 
-      garuda = mkHost {
-        hostname = "garuda";
-        extraModules = [ ./hosts/garuda/default.nix ];
-      };
+      garuda = mkHost { hostname = "garuda"; };
 
       # ISO configuration — uses nixpkgs CD template; kept explicit (not via mkHost)
       # because it needs the installer module and custom iso specialArgs (niri).

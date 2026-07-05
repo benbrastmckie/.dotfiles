@@ -202,19 +202,19 @@ excluding the optional discord-bot module from the default system closure.
 
 ---
 
-### Phase 4: Per-host wiring -- nandi opt-in, garuda placeholder removal [NOT STARTED]
+### Phase 4: Per-host wiring -- nandi opt-in, garuda placeholder removal [COMPLETED]
 
 **Goal**: Opt nandi into the bot explicitly and collapse the now-unneeded garuda wiring.
 
 **Tasks**:
-- [ ] Create `hosts/nandi/default.nix` mirroring the existing garuda `extraModules` shape:
+- [x] Create `hosts/nandi/default.nix` mirroring the existing garuda `extraModules` shape:
   `imports = [ ../../modules/system/optional/discord-bot.nix ]; services.discordBot.enable = true;`.
-- [ ] Edit `flake.nix:107` to add `extraModules = [ ./hosts/nandi/default.nix ];` to the nandi
+- [x] Edit `flake.nix:107` to add `extraModules = [ ./hosts/nandi/default.nix ];` to the nandi
   `mkHost` call.
-- [ ] Leave `hamsa = mkHost { hostname = "hamsa"; };` unchanged -- absence of `extraModules` is what
+- [x] Leave `hamsa = mkHost { hostname = "hamsa"; };` unchanged -- absence of `extraModules` is what
   makes hamsa stop getting the bot.
-- [ ] `git rm hosts/garuda/default.nix` (the empty placeholder).
-- [ ] Collapse `flake.nix:111-114` garuda block to `garuda = mkHost { hostname = "garuda"; };`.
+- [x] `git rm hosts/garuda/default.nix` (the empty placeholder).
+- [x] Collapse `flake.nix:111-114` garuda block to `garuda = mkHost { hostname = "garuda"; };`.
 
 **Timing**: 0.75 hours
 
