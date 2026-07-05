@@ -317,7 +317,7 @@ relative position.
 
 ---
 
-### Phase 6: Hand-collapse W20 Tier 3 - `modules/system/desktop.nix` (judgment-heavy) [NOT STARTED]
+### Phase 6: Hand-collapse W20 Tier 3 - `modules/system/desktop.nix` (judgment-heavy) [COMPLETED]
 
 **Goal**: Collapse the file's `services` (7 non-contiguous occurrences) and `programs` (4
 occurrences) into one merged attrset each, without dragging the unrelated single-use keys
@@ -325,15 +325,27 @@ occurrences) into one merged attrset each, without dragging the unrelated single
 without silently destroying the deliberate top-to-bottom feature-walkthrough narrative.
 
 **Tasks**:
-- [ ] Read the full file and map every `services.*` and `programs.*` occurrence and the comment
-  block attached to each.
-- [ ] Merge all `services.*` assignments under one `services = { ... };` and all `programs.*`
+- [x] Read the full file and map every `services.*` and `programs.*` occurrence and the comment
+  block attached to each. Confirmed 7 `services.*` (xserver, displayManager.gdm,
+  desktopManager.gnome, displayManager.sessionPackages, gnome, dbus.packages, gvfs) and 4
+  `programs.*` (dconf.profiles.gdm.databases, niri, xwayland.enable, dconf.enable) occurrences.
+- [x] Merge all `services.*` assignments under one `services = { ... };` and all `programs.*`
   under one `programs = { ... };`, relocating the non-contiguous chunks while keeping each
-  feature's explanatory comment adjacent to its code.
-- [ ] Leave the interleaved non-repeated keys (`environment.etc`, `hardware.graphics`,
+  feature's explanatory comment adjacent to its code. *(deviation: altered — one comment
+  ("Ensure proper Wayland and GNOME integration") originally covered both a `services.*` line
+  (`displayManager.sessionPackages`) and a `programs.*` line (`xwayland.enable`) as a single
+  shared heading; since the two lines necessarily land in different merged blocks, the comment
+  was duplicated verbatim above each of its two destinations rather than kept once. `displayManager.gdm`
+  and `displayManager.sessionPackages` were left as two separate statements inside the merged
+  `services` set (not further nested under one `displayManager = {...}`) since `displayManager`
+  only occurs twice — below statix's 3-occurrence firing threshold — same reasoning applied to
+  `dconf.profiles.gdm.databases`/`dconf.enable` inside the merged `programs` set.)*
+- [x] Leave the interleaved non-repeated keys (`environment.etc`, `hardware.graphics`,
   `security.polkit`, `xdg.portal`) as their own statements; do not fold them into either merged set.
-- [ ] Keep the Phase 1 `# deadnix: skip` above the `{ pkgs, lib, ... }:` header.
-- [ ] Run `nix fmt` on the file and `nix flake check`.
+  Verified: all 4 remain standalone top-level statements, unmoved into either merged block.
+- [x] Keep the Phase 1 `# deadnix: skip` above the `{ pkgs, lib, ... }:` header. Verified: still
+  present at line 2.
+- [x] Run `nix fmt` on the file and `nix flake check`. Verified: `all checks passed!`.
 
 **Timing**: 1 hour
 
@@ -343,9 +355,17 @@ without silently destroying the deliberate top-to-bottom feature-walkthrough nar
 - `modules/system/desktop.nix` - merge `services` and `programs` repeated keys (its own commit)
 
 **Verification**:
-- `nix flake check` green.
-- `statix check` reports zero W20 findings for `desktop.nix`.
+- `nix flake check` green. Verified: `all checks passed!`.
+- `statix check` reports zero W20 findings for `desktop.nix`. Verified: only the 4
+  hardware-configuration.nix findings remain tree-wide (Phase 7 territory) — desktop.nix is clean.
 - Visual review confirms the feature-walkthrough ordering and every comment are preserved.
+  Verified via `nix eval` spot-checks of 14 desktop-related options/attrs on
+  `nixosConfigurations.nandi` (services.xserver.enable, services.displayManager.gdm.enable,
+  services.desktopManager.gnome.enable, services.displayManager.sessionPackages,
+  services.gnome.localsearch.enable, services.dbus.packages, services.gvfs.enable,
+  programs.dconf.profiles.gdm.databases, programs.niri.enable, programs.xwayland.enable,
+  programs.dconf.enable, hardware.graphics.enable, security.polkit.enable, xdg.portal.enable,
+  environment.etc."accountsservice/users/root".text) — all match expected pre-collapse values.
 
 ---
 
