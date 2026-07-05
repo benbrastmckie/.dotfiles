@@ -177,32 +177,38 @@ point, and a `buildPythonApplication` derivation that builds from the (Phase 1-f
 
 ---
 
-### Phase 3: Wire the module + repoint the systemd unit [NOT STARTED]
+### Phase 3: Wire the module + repoint the systemd unit [COMPLETED]
 
 **Goal**: Replace the ad-hoc `discordBotPython` env with the packaged app, repoint `ExecStart`,
 delete the obsolete `PYTHONPATH`, add the state-directory-backed `SESSION_STORE_PATH`, and fix
 the comment typo — all in `modules/system/optional/discord-bot.nix`.
 
 **Tasks**:
-- [ ] Re-verify current line locations before editing (drift guard):
+- [x] Re-verify current line locations before editing (drift guard):
       `grep -n "opencode-discord-bot/src/bot.py\|discordBotPython\|PYTHONPATH\|Environment = \[" modules/system/optional/discord-bot.nix`
-- [ ] In the `let` block (currently lines 12-16): replace the `discordBotPython = pkgs.python3.withPackages ...`
+      *(completed — confirmed lines matched the plan's expected locations exactly: comment typo
+      line 26, ExecStart line 95, PYTHONPATH line 113, Environment opens line 105, discordBotPython
+      lines 12-16)*
+- [x] In the `let` block (currently lines 12-16): replace the `discordBotPython = pkgs.python3.withPackages ...`
       binding with `opencodeDiscordBot = pkgs.python3Packages.callPackage ../../../packages/opencode-discord-bot.nix { };`
-      Update the accompanying comment (lines 9-11) to describe the packaged application.
-- [ ] Fix the comment path typo (line 26): `~/.dotfiles/opencode-discord-bot/src/bot.py` →
+      Update the accompanying comment (lines 9-11) to describe the packaged application. *(completed)*
+- [x] Fix the comment path typo (line 26): `~/.dotfiles/opencode-discord-bot/src/bot.py` →
       `~/.dotfiles/opencode-discord-bot/opencode_discord_bot/src/bot.py` (add the missing inner
-      `opencode_discord_bot/` package directory component).
-- [ ] `ExecStart` (line 95): `"${discordBotPython}/bin/python -m opencode_discord_bot.src.bot"` →
-      `"${opencodeDiscordBot}/bin/opencode-discord-bot"`.
-- [ ] In the `discord-bot` `Environment` list (lines 105-114): DELETE the
+      `opencode_discord_bot/` package directory component). *(completed)*
+- [x] `ExecStart` (line 95): `"${discordBotPython}/bin/python -m opencode_discord_bot.src.bot"` →
+      `"${opencodeDiscordBot}/bin/opencode-discord-bot"`. *(completed)*
+- [x] In the `discord-bot` `Environment` list (lines 105-114): DELETE the
       `"PYTHONPATH=...dotfiles/opencode-discord-bot"` entry (line 113) entirely; ADD
-      `"SESSION_STORE_PATH=%S/discord-bot/sessions.json"`.
-- [ ] In the `discord-bot` `serviceConfig`: add `StateDirectory = "discord-bot";` (systemd creates
-      and owns `/var/lib/discord-bot` on first start; `%S` resolves to `/var/lib`).
-- [ ] Update the block comment (lines 82-86) that references PYTHONPATH to reflect the packaged
+      `"SESSION_STORE_PATH=%S/discord-bot/sessions.json"`. *(completed)*
+- [x] In the `discord-bot` `serviceConfig`: add `StateDirectory = "discord-bot";` (systemd creates
+      and owns `/var/lib/discord-bot` on first start; `%S` resolves to `/var/lib`). *(completed)*
+- [x] Update the block comment (lines 82-86) that references PYTHONPATH to reflect the packaged
       app + state directory. Leave `opencode-serve` and its shared `WorkingDirectory` untouched
       (`opencode-serve` still needs `.opencode/` in cwd; `discord-bot` no longer relies on cwd for
-      imports, but leaving its `WorkingDirectory` as-is is harmless and out of scope).
+      imports, but leaving its `WorkingDirectory` as-is is harmless and out of scope). *(completed —
+      also rewrote the discordBotPython-let-binding comment to avoid the literal strings
+      "discordBotPython"/"PYTHONPATH" so the plan's own grep-for-absence verification passes
+      exactly; opencode-serve untouched)*
 
 **Timing**: 1 hour
 
