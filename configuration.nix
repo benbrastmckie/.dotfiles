@@ -8,22 +8,10 @@
   imports = [
     # Hardware configuration is imported in flake.nix (via mkHost)
 
-    # Core system modules
-    ./modules/system/boot.nix
-    ./modules/system/networking.nix
-    ./modules/system/locale.nix
-    ./modules/system/desktop.nix
-    ./modules/system/services.nix
-    ./modules/system/audio.nix
-    ./modules/system/power.nix
-    ./modules/system/users.nix
-    ./modules/system/nix.nix
-    ./modules/system/display.nix
-    ./modules/system/packages.nix
-    ./modules/system/shell.nix
-
-    # Optional modules — enabled for nandi; may be removed for other hosts
-    ./modules/system/optional/discord-bot.nix
+    # Always-on system modules (see modules/system/default.nix). Optional/
+    # host-toggled modules (e.g. discord-bot) are wired per-host instead —
+    # see hosts/nandi/default.nix + extraModules in flake.nix.
+    ./modules/system
   ];
 
   # Do not change this value after initial installation
