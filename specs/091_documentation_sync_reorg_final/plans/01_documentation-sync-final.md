@@ -155,33 +155,33 @@ once" convention — both edits land in the single file `docs/README.md`, groupe
 - A "Documentation Conventions" subsection matching `grep -in "verified against source" docs/README.md`
   exists and reads as adopt-but-not-merge for task 78.
 
-### Phase 3: Create modules/README.md (structure + verified health notes) [NOT STARTED]
+### Phase 3: Create modules/README.md (structure + verified health notes) [COMPLETED]
 
 **Goal**: Document the `system/` + `home/` split, the aggregator convention, and `optional/`; record
 the flake.lock and stateVersion verified-non-issue one-liners in a "Verified Health Notes" subsection.
 
 **Tasks**:
-- [ ] Write `modules/README.md` overview of the `system/`+`home/` split (mirrors NixOS-vs-Home-Manager
-      config-vs-user-environment framing already in root `README.md` lines 9-10).
-- [ ] Document the aggregator convention (`default.nix` per subtree, one import per module, grouped/
+- [x] Write `modules/README.md` overview of the `system/`+`home/` split (mirrors NixOS-vs-Home-Manager
+      config-vs-user-environment framing already in root `README.md` lines 9-10). *(completed)*
+- [x] Document the aggregator convention (`default.nix` per subtree, one import per module, grouped/
       commented by category) drawing directly from the header comments already in
       `modules/system/default.nix` and `modules/home/default.nix` — cite them as the live example
-      rather than re-describing from scratch.
-- [ ] Document the always-on vs. optional distinction and `optional/`'s current single-file,
+      rather than re-describing from scratch. *(completed)*
+- [x] Document the always-on vs. optional distinction and `optional/`'s current single-file,
       system-only scope, using `modules/system/optional/discord-bot.nix` as the concrete example
       (`options.services.discordBot.enable` gated under `lib.mkIf`, wired per-host via
       `hosts/nandi/default.nix` + `flake.nix` `extraModules`). Explicitly note there is NO
-      `modules/home/optional/` yet (do not imply parity).
-- [ ] Cross-reference `.claude/rules/nix.md`'s "Optional / Host-Toggled Modules" section rather than
-      duplicating it.
-- [ ] Add a short per-subdirectory index (`system/`: 12 flat files + `optional/`; `home/`: `core/`,
+      `modules/home/optional/` yet (do not imply parity). *(completed)*
+- [x] Cross-reference `.claude/rules/nix.md`'s "Optional / Host-Toggled Modules" section rather than
+      duplicating it. *(completed)*
+- [x] Add a short per-subdirectory index (`system/`: 12 flat files + `optional/`; `home/`: `core/`,
       `desktop/`, `email/` + `email/agent-tools/`, `memory/`, `packages/`, `scripts/`, `services/`,
-      `misc.nix`).
-- [ ] Add a "Verified Health Notes" subsection recording the two one-liners from research §4:
+      `misc.nix`). *(completed)*
+- [x] Add a "Verified Health Notes" subsection recording the two one-liners from research §4:
       (1) flake.lock's multiple nixpkgs/systems/utils pins (26 nodes, lock v7) are expected transitive
       duplication from independently-versioned inputs, not corruption — checked, no action needed;
       (2) `stateVersion` is `24.11` in both `configuration.nix` and `home.nix` (matched, frozen per
-      NixOS/HM convention — never bump to "update") — checked, no action needed.
+      NixOS/HM convention — never bump to "update") — checked, no action needed. *(completed)*
 
 **Timing**: 0.75 hours
 
