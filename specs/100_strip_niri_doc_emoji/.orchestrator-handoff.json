@@ -1,0 +1,20 @@
+{
+  "$schema": "orchestrator-handoff-v1",
+  "phase": "implement",
+  "status": "implemented",
+  "summary": "Stripped all 83 decorative emoji glyphs (8 distinct glyphs) from docs/niri.md via mechanical Rule A/Rule B trims plus the gear-parenthetical special case (lines 86, 942). All 26 structural arrows and both ASCII-art box-drawing diagrams confirmed byte-for-byte intact. Grep verification: zero residual STRIP-glyph hits, no dangling parentheses, change scoped to docs/niri.md only.",
+  "artifacts": [
+    {"type": "summary", "path": "specs/100_strip_niri_doc_emoji/summaries/01_strip-niri-doc-emoji-summary.md"}
+  ],
+  "blockers": [],
+  "next_action_hint": "none",
+  "files_modified": [
+    "docs/niri.md"
+  ],
+  "decisions_made": [
+    "Gear glyph parenthetical special case handled by deleting the whole ' (⚙️)' span (lines 86, 942) to avoid dangling '()'",
+    "All other 7 glyphs handled via two uniform trim rules: Rule A (glyph/run + trailing space deleted) and Rule B (preceding space + glyph deleted at line-final position, used only for line 5's heading trailer)"
+  ],
+  "dead_ends": [],
+  "plan_markers_verified": true
+}

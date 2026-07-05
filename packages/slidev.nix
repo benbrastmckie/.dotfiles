@@ -1,3 +1,5 @@
+# slidev - presentation slides from Markdown, fetched via npx on each invocation.
+# Custom because @slidev/cli is an npm-distributed tool, not packaged in nixpkgs.
 { lib, writeShellScriptBin, nodejs }:
 
 writeShellScriptBin "slidev" ''

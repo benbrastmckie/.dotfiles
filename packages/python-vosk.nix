@@ -1,3 +1,6 @@
+# Python bindings for Vosk (offline speech recognition), built from the manylinux
+# wheel with autoPatchelfHook for the bundled libvosk.so. Custom because nixpkgs
+# has no Python vosk wheel package.
 { lib
 , buildPythonPackage
 , fetchPypi

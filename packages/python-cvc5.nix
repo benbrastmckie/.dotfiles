@@ -1,3 +1,6 @@
+# Python bindings for the CVC5 SMT solver, built from the manylinux wheel with
+# autoPatchelfHook/patchelf rpath fixes for bundled .so files (libstdc++). Custom
+# because nixpkgs has no Python cvc5 wheel package.
 { lib
 , buildPythonPackage
 , fetchurl

@@ -11,16 +11,14 @@ next_project_number: 101
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92,96,98,100 | -- | nixos-config, nix-infrastructure, desktop, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92,98 | -- | nixos-config, nix-infrastructure, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Nixos Config
 
-96 [NOT STARTED] — Fill documentation completeness gaps: add a missing hosts/hamsa/R
-98 [NOT STARTED] — Add Nix formatter and lint tooling to the flake (none configured 
-100 [NOT STARTED] — Strip the ~58 emoji glyphs from docs/niri.md (1035 lines) to conf
+98 [PLANNED] — Add Nix formatter and lint tooling to the flake (none configured 
 
 ### Nix Infrastructure
 
@@ -55,10 +53,13 @@ next_project_number: 101
 ## Tasks
 
 ### 100. Strip niri doc emoji
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
+- **Research**: [100_strip_niri_doc_emoji/reports/01_emoji-strip-inventory.md]
+- **Plan**: [100_strip_niri_doc_emoji/plans/01_strip-niri-doc-emoji.md]
+- **Summary**: [100_strip_niri_doc_emoji/summaries/01_strip-niri-doc-emoji-summary.md]
 
 **Description**: Strip the ~58 emoji glyphs from docs/niri.md (1035 lines) to conform to the emoji convention added in task 91, preserving arrows/structural characters. Purely mechanical, no config verification needed. Carried over from task 94 deferred Phase 8. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group F).
 
@@ -78,10 +79,12 @@ next_project_number: 101
 ---
 
 ### 98. Nix formatter lint tooling
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: Task 97
+- **Research_report**: [098_nix_formatter_lint_tooling/reports/01_formatter-lint-tooling.md]
+- **Plan**: [098_nix_formatter_lint_tooling/plans/01_formatter-lint-tooling.md]
 
 **Description**: Add Nix formatter and lint tooling to the flake (none configured today; CI only runs nix flake check). Standardize on nixfmt (RFC 166 / nixfmt-rfc-style, the official formatter) as the flake formatter output, and add statix + deadnix for linting/dead-code detection. Decide and document whether to gate CI on formatting/lint (needs user confirmation on strictness). Apply an initial format pass. Depends on task 97 as both touch flake.nix. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group D).
 
@@ -100,10 +103,13 @@ next_project_number: 101
 ---
 
 ### 96. Documentation completeness gaps
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: Task 95
+- **Research_report**: [096_documentation_completeness_gaps/reports/01_documentation-completeness-research.md]
+- **Plan**: [096_documentation_completeness_gaps/plans/01_hamsa-readme-pkg-headers.md]
+- **Summary**: [096_documentation_completeness_gaps/summaries/01_hamsa-readme-pkg-headers-summary.md]
 
 **Description**: Fill documentation completeness gaps: add a missing hosts/hamsa/README.md (the daily-driver AMD Ryzen AI 9 HX 370 machine, currently the only host without a README - reuse the corrected wording from task 95 rather than the stale nandi/garuda phrasing), and add header comments to the 9 of 13 packages/*.nix files that lack them. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group B).
 

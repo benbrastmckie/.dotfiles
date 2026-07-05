@@ -30,8 +30,8 @@ Some host directories also carry:
   `extraModules` in `flake.nix`; see `.claude/rules/nix.md`'s Optional/Host-Toggled Modules
   convention). Present on `nandi/` (opts into the Discord bot relay) and `usb-installer/`
   (installer-specific overrides).
-- `README.md` - Per-host notes on hardware details and building. Present on `garuda/` and
-  `nandi/`.
+- `README.md` - Per-host notes on hardware details and building. Present on `garuda/`, `hamsa/`,
+  and `nandi/`.
 
 ## Usage
 

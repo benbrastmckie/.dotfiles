@@ -1,3 +1,5 @@
+# Piper TTS voice model data (en_US-lessac-medium) fetched from Hugging Face.
+# Custom because this is voice-model data, not a buildable nixpkgs package.
 { lib, stdenv, fetchurl }:
 
 stdenv.mkDerivation rec {

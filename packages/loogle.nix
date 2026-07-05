@@ -1,3 +1,6 @@
+# loogle - Lean 4 Mathlib search tool. Self-bootstrapping wrapper: clones and builds
+# nomeata/loogle into ~/.cache/loogle on first run via its own flake, since loogle
+# has no nixpkgs package.
 { writeShellScriptBin }:
 
 writeShellScriptBin "loogle" ''

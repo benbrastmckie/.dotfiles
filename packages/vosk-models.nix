@@ -1,3 +1,5 @@
+# Vosk speech-recognition model data (small English US, ~50MB), fetched and unpacked
+# from alphacephei.com. Custom because this is model data, not a buildable package.
 { lib, stdenv, fetchzip }:
 
 stdenv.mkDerivation rec {
