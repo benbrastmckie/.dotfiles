@@ -28,9 +28,15 @@ standalone profile is effectively the "active" one for interactive shell session
   the NixOS-managed profile root. Both must be included in GC analysis.
 - **Sync risk**: If one path is updated and the other is not, they diverge. `scripts/update.sh` mitigates
   this by running both atomically, but a partial failure can leave them out of sync.
-- **extraSpecialArgs divergence** (resolved): Previously the two paths had slightly different
-  `extraSpecialArgs`. As of task 66, both paths pass the same set of args:
-  `{ pkgs-unstable, lectic, username, name }`.
+- **extraSpecialArgs divergence** (intentional): The two paths pass the same set of arg *names*
+  (`{ pkgs-unstable, lectic, nix-ai-tools }` plus `username`/`name`), but `lectic`'s *value*
+  deliberately differs between them. The NixOS-integrated path (`lib/mkHost.nix`'s
+  `home-manager.extraSpecialArgs`) passes the raw `lectic` flake input. The standalone
+  `homeConfigurations.benjamin` path overrides it with the built package
+  (`lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic`), matching
+  pre-refactor behavior for that path. See `flake.nix:199-207`'s inline comment, which states
+  this explicitly and instructs not to unify the two — this is a deliberate divergence, not a
+  bug.
 
 ## QUESTION for User: Which Path to Keep?
 

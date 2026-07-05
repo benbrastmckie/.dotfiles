@@ -22,8 +22,8 @@ Neovim TUI (opencode --port)  <-->  discord-bot.service  <-->  Discord
 
 | File | Purpose |
 |------|---------|
-| `configuration.nix` | `discordBotPython` env + sops config + both systemd services |
-| `flake.nix` | sops-nix flake input + module import on all 4 hosts |
+| `modules/system/optional/discord-bot.nix` | `discordBotPython` env + sops config + both systemd services |
+| `flake.nix` | sops-nix flake input; `discord-bot.nix` opted in explicitly per-host (see `hosts/nandi/default.nix`), not imported by default |
 | `.sops.yaml` | Age key config + creation rules for `secrets/*.yaml` |
 | `secrets/secrets.yaml` | Encrypted secrets (committed encrypted) |
 | `~/.config/sops/age/keys.txt` | Age private key (**never committed**) |

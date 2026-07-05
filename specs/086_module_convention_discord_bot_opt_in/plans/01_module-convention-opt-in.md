@@ -232,17 +232,17 @@ excluding the optional discord-bot module from the default system closure.
 
 ---
 
-### Phase 5: Documentation corrections (discord-bot.md + task 69 fold-in) [NOT STARTED]
+### Phase 5: Documentation corrections (discord-bot.md + task 69 fold-in) [COMPLETED]
 
 **Goal**: Bring the two drifted doc claims in line with the post-change wiring.
 
 **Tasks**:
-- [ ] `docs/discord-bot.md` line 25: change `configuration.nix` to
+- [x] `docs/discord-bot.md` line 25: change `configuration.nix` to
   `modules/system/optional/discord-bot.nix`.
-- [ ] `docs/discord-bot.md` line 26: replace "sops-nix flake input + module import on all 4 hosts"
+- [x] `docs/discord-bot.md` line 26: replace "sops-nix flake input + module import on all 4 hosts"
   with opt-in language, e.g. "sops-nix flake input; `discord-bot.nix` opted in explicitly per-host
   (see `hosts/nandi/default.nix`), not imported by default."
-- [ ] `docs/dual-home-manager.md:31-33` (task 69 fold-in): rewrite the "extraSpecialArgs divergence
+- [x] `docs/dual-home-manager.md:31-33` (task 69 fold-in): rewrite the "extraSpecialArgs divergence
   (resolved)" paragraph to state the actual, intentional `lectic` divergence between the two HM
   paths (citing `flake.nix:199-207`'s comment), instead of claiming full unification; leave the
   correct Option-A "Current Recommendation" (lines 60-67) unchanged.
