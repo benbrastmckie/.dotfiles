@@ -217,24 +217,30 @@ doc is internally consistent.
 
 ---
 
-### Phase 5: Verify (stale-reference grep) and scoped staging [NOT STARTED]
+### Phase 5: Verify (stale-reference grep) and scoped staging [COMPLETED]
 
 **Goal**: Confirm the doc accurately reflects the three mechanisms and both callouts, then stage
 only the two touched files by explicit path.
 
 **Tasks**:
-- [ ] Run stale-reference greps against `config/README.md`, e.g.:
+- [x] Run stale-reference greps against `config/README.md`, e.g.:
       - `grep -n "config-files" config/README.md` (mechanism 2 documented).
       - `grep -niE "activation" config/README.md` and confirm `.zuliprc`/Chat row no longer claims
         activation deployment; only mechanism-3 / `config/claude/` legitimately mentions activation.
       - `grep -niE "Deployment Mechanisms|Naming Hazards" config/README.md` (required sections present).
       - `grep -niE "\.claude/|config/claude/|~/\.claude/" config/README.md` (all three claude paths named).
-- [ ] Cross-check the three mechanism descriptions against current `dotfiles.nix` line ranges
-      (19-40/57, 42-49, 59-68) to confirm no stale line/behavior claims.
-- [ ] Stage ONLY the touched files with explicit paths:
+      *(completed: all greps pass; zuliprc row explicitly says "not an activation script")*
+- [x] Cross-check the three mechanism descriptions against current `dotfiles.nix` line ranges
+      to confirm no stale line/behavior claims. *(completed: discovered the Phase 4 header-comment
+      addition shifted all subsequent line numbers by +2 versus the plan's original 19-40/57,
+      42-49, 59-68 estimates; corrected README citations to the verified current ranges 21-42/59,
+      45-51, 61-70)*
+- [x] Stage ONLY the touched files with explicit paths:
       `git add config/README.md modules/home/core/dotfiles.nix` — never `git add -A` / `-am`.
-- [ ] Review with `git status --short` and `git diff --staged` before any commit; confirm no
-      unrelated or `.claude/`-tree files are staged.
+      *(completed)*
+- [x] Review with `git status --short` and `git diff --staged` before any commit; confirm no
+      unrelated or `.claude/`-tree files are staged. *(completed: confirmed only config/README.md
+      and modules/home/core/dotfiles.nix touched across all phases)*
 
 **Timing**: 15 min
 
@@ -251,15 +257,15 @@ only the two touched files by explicit path.
 
 ## Testing & Validation
 
-- [ ] `## Deployment Mechanisms` section present in `config/README.md`, naming all three mechanisms
+- [x] `## Deployment Mechanisms` section present in `config/README.md`, naming all three mechanisms
       and citing `modules/home/core/dotfiles.nix`.
-- [ ] The 7 mechanism-2 mirror files are listed; mirror asymmetry stated.
-- [ ] `## Naming Hazards` section present with both callouts (config-argument shadowing; three-way
+- [x] The 7 mechanism-2 mirror files are listed; mirror asymmetry stated.
+- [x] `## Naming Hazards` section present with both callouts (config-argument shadowing; three-way
       claude collision naming all three full paths).
-- [ ] Force-overwrite behavior documented as intended, not fixed or widened.
-- [ ] `.zuliprc` correctly described as a mechanism-1 symlink; no residual activation-script claim.
-- [ ] `dotfiles.nix` header comment contains a `config/README.md` pointer (comment-only diff).
-- [ ] Staging limited to the two touched files via explicit `git add` paths (no `-A`).
+- [x] Force-overwrite behavior documented as intended, not fixed or widened.
+- [x] `.zuliprc` correctly described as a mechanism-1 symlink; no residual activation-script claim.
+- [x] `dotfiles.nix` header comment contains a `config/README.md` pointer (comment-only diff).
+- [x] Staging limited to the two touched files via explicit `git add` paths (no `-A`).
 
 ## Artifacts & Outputs
 

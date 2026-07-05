@@ -16,7 +16,7 @@ few files mirrored by both mechanism 1 and mechanism 2) of them. Always check `d
 itself for the authoritative, current line numbers — the ranges below are current as of this
 writing but will drift as the file is edited.
 
-### Mechanism 1: `home.file.*.source` store symlinks (`dotfiles.nix:19-40`, plus `:57`)
+### Mechanism 1: `home.file.*.source` store symlinks (`dotfiles.nix:21-42`, plus `:59`)
 
 The majority of `config/` files are deployed via `home.file.<target>.source = ../../../config/<file>;`
 entries. Home Manager places an **immutable symlink** into the Nix store at the target path
@@ -24,9 +24,9 @@ entries. Home Manager places an **immutable symlink** into the Nix store at the 
 read-only store symlink, applications cannot write to it; edits must be made in `config/` and
 deployed via a rebuild. This is the default/most common mechanism and covers most rows in the
 tables below (terminal emulators, fish, tmux, zathura, niri, sioyek, opencode, fastfetch,
-himalaya, latexmkrc, and `.zuliprc` at line 57 — see the stale-row fix in the Chat section).
+himalaya, latexmkrc, and `.zuliprc` at line 59 — see the stale-row fix in the Chat section).
 
-### Mechanism 2: `builtins.readFile` mirrors into `~/.config/config-files/` (`dotfiles.nix:42-49`)
+### Mechanism 2: `builtins.readFile` mirrors into `~/.config/config-files/` (`dotfiles.nix:45-51`)
 
 A second, independent mechanism copies exactly **7** of the mechanism-1 files' contents into a
 parallel `~/.config/config-files/` directory using `builtins.readFile`, producing plain
@@ -47,7 +47,7 @@ mechanism-2 mirror. The purpose of the mirror is to keep a version-control-frien
 diffable plain-text copy alongside the store symlink; it is not itself the canonical deployed
 config for any application.
 
-### Mechanism 3: `home.activation.claudeSettings` copy (`dotfiles.nix:59-68`)
+### Mechanism 3: `home.activation.claudeSettings` copy (`dotfiles.nix:61-70`)
 
 `config/claude/settings.json` and `config/claude/keybindings.json` are deployed by an
 **activation script**, not a symlink. On every `home-manager switch`, the
@@ -156,7 +156,7 @@ entirely and is where the CLI actually runs. When in doubt, name the full path.
 
 | File | Deployed To | Description |
 |------|-------------|-------------|
-| `zuliprc` | `~/.zuliprc` | Zulip API client configuration (mechanism 1: plain `home.file.".zuliprc".source` store symlink, `dotfiles.nix:57` — not an activation script) |
+| `zuliprc` | `~/.zuliprc` | Zulip API client configuration (mechanism 1: plain `home.file.".zuliprc".source` store symlink, `dotfiles.nix:59` — not an activation script) |
 
 ## System Information
 
