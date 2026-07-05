@@ -3,8 +3,8 @@
 This document explains the approach used for managing packages from the unstable channel within the NixOS configuration.
 
 > **Note**: The root-level `unstable-packages.nix` file has been deleted (task 66, Phase 1).
-> Unstable package management now lives entirely in `flake.nix` (overlay inline, pending
-> Phase 2 extraction to `overlays/unstable-packages.nix`).
+> Unstable package management now lives in `overlays/unstable-packages.nix`, wired into
+> `flake.nix` as `unstablePackagesOverlay`.
 
 ## Approach
 
@@ -48,7 +48,7 @@ directly) — they live in `packages/` as callPackage derivations overlaid via `
 
 To add a new package to be pulled from unstable:
 
-1. Add it to the `unstablePackagesOverlay` in `flake.nix` (after Phase 2: `overlays/unstable-packages.nix`)
+1. Add it to the `unstablePackagesOverlay` in `overlays/unstable-packages.nix`
 2. Include a comment explaining why the package benefits from using the unstable version
 3. Use the package as normal with `pkgs.package-name` throughout your configuration
 

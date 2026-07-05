@@ -127,20 +127,20 @@ is Intel, and `hamsa` (the actual AMD host) carries no CPU annotation.
 
 ---
 
-### Phase 2: Update stale architecture-status docs [NOT STARTED]
+### Phase 2: Update stale architecture-status docs [COMPLETED]
 
 **Goal**: Bring `docs/configuration.md` and `docs/unstable-packages.md` into agreement with the
 completed reorg so they stop describing implemented artifacts as "planned"/"pending Phase 2".
 
 **Tasks**:
-- [ ] `docs/configuration.md`: remove the `# (planned)` markers on `overlays/` and `lib/` in the File
+- [x] `docs/configuration.md`: remove the `# (planned)` markers on `overlays/` and `lib/` in the File
       Structure ASCII tree (both are fully implemented); delete the stale "Phases 2-6 ... gated on
       tasks 62 and 65" status blockquote (lines ~23-25); fix line ~54's "Package Overlays (inlined in
       flake.nix, pending Phase 2 extraction)" heading (all three overlays are extracted files); rewrite
       the `configuration.nix`/`home.nix` prose sections (lines ~27-43 and ~75-83) to describe them as
       thin import shims pointing at `modules/system/*.nix` and `modules/home/**/*.nix`, mirroring the
       current `modules/README.md`.
-- [ ] `docs/unstable-packages.md`: delete the stale intro note (lines ~5-7) claiming the overlay is
+- [x] `docs/unstable-packages.md`: delete the stale intro note (lines ~5-7) claiming the overlay is
       "inlined in flake.nix ... pending Phase 2 extraction" (contradicted by line 12 in the same file);
       update line ~51's "(after Phase 2: ...)" caveat to reflect that `overlays/unstable-packages.nix`
       already exists.

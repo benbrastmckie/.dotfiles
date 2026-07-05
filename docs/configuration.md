@@ -15,32 +15,25 @@ The configuration spans three primary files and several support directories:
 │   ├── garuda/            # Laptop
 │   └── usb-installer/     # USB installer image
 ├── packages/              # Custom derivations (claude-code, opencode, loogle, etc.)
-├── overlays/              # (planned) Extracted overlays (claude-squad, unstable, python)
-├── lib/                   # (planned) mkHost helper function
+├── overlays/              # Extracted overlays (claude-squad, unstable, python) — see overlays/README.md
+├── lib/                   # mkHost helper function (lib/mkHost.nix)
 └── modules/               # system/ (NixOS) + home/ (Home Manager) — see modules/README.md
 ```
 
-> **Task 66 status**: Phases 2-6 (structural split into `modules/system/`, `modules/home/`,
-> `lib/mkHost.nix`, `overlays/`) are gated on tasks 62 and 65 completing first.
-> Phase 1 quick wins are complete (SASL_PATH fix, duplicate package removal, follows additions).
-
 ## configuration.nix
 
-The main system configuration file that defines:
+A thin import shim: it imports `./modules/system` (the NixOS aggregator, see
+[`modules/README.md`](../modules/README.md)) and sets `system.stateVersion`. All actual system
+configuration — packages, services, boot, hardware, users — lives in `modules/system/*.nix`, not
+in this file. Optional/host-toggled modules (e.g. `modules/system/optional/discord-bot.nix`) are
+wired in per-host instead, via `hosts/<name>/default.nix` + `extraModules` in `flake.nix`.
 
-- System packages and services
-- Boot configuration
-- Hardware settings
-- Network configuration
-- User accounts and permissions
-- System-wide environment variables
-
-Key sections include:
-- Boot loader and kernel configuration
-- Hardware enablement (graphics, sound, etc.)
-- Network services and firewall
-- Desktop environment setup
-- Security and user management
+Key module categories under `modules/system/` include:
+- Boot loader and kernel configuration (`boot.nix`)
+- Hardware enablement — graphics, sound, etc. (`desktop.nix`, `audio.nix`, `power.nix`)
+- Network services and firewall (`networking.nix`)
+- Desktop environment setup (`desktop.nix`, `display.nix`)
+- Security and user management (`users.nix`)
 
 ## flake.nix
 
@@ -51,9 +44,10 @@ The Nix flake that orchestrates the entire configuration:
 - Manages flake inputs and versions (flake.lock)
 - Configures both NixOS and Home Manager for all hosts
 
-### Package Overlays (inlined in flake.nix, pending Phase 2 extraction)
+### Package Overlays (extracted files under overlays/, applied via flake.nix)
 
-The flake configuration uses overlays to extend and customize nixpkgs:
+The flake configuration uses overlays to extend and customize nixpkgs. Each overlay is a
+standalone file under `overlays/` (see [`overlays/README.md`](../overlays/README.md)):
 
 **Claude Squad Overlay** (`claudeSquadOverlay`):
 - Builds Claude Squad from source (GitHub)
@@ -74,13 +68,12 @@ All overlays are applied via `nixpkgsConfig` in the flake, making customized pac
 
 ## home.nix
 
-User-specific configuration managed by Home Manager:
-
-- Application configurations
-- Dotfiles management
-- Shell configuration
-- Package installation for user environment
-- Service management for user sessions
+A thin import shim: it imports `./modules/home` (the Home Manager aggregator, see
+[`modules/README.md`](../modules/README.md)) and sets `home.username`, `home.homeDirectory`, and
+`home.stateVersion`. All actual user-environment configuration — application configs, dotfiles,
+shell configuration, user packages, and user services — lives in `modules/home/**/*.nix`, not in
+this file. The aggregator groups imports by category (Core, Desktop, Email, Packages, Scripts,
+Services, Memory).
 
 ## Terminal Emulator Configurations
 
