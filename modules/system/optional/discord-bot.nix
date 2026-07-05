@@ -1,6 +1,7 @@
 # Discord bot infrastructure — sops secrets, opencode-serve, and discord-bot systemd services.
 # Optional/host-toggled module: opt in explicitly per host via
-# services.discordBot.enable (see hosts/nandi/default.nix + flake.nix extraModules).
+# services.discordBot.enable (see hosts/nandi/default.nix, hosts/hamsa/default.nix +
+# flake.nix extraModules).
 # See: specs/053_nixos_discord_bot_prerequisites/
 {
   config,
@@ -29,7 +30,7 @@ in
   # ==========================================================================
   # sops-nix decryption: injects bot token and OpenCode password into
   # systemd services via LoadCredential (never on disk unencrypted).
-  # Bot project: ~/.dotfiles/opencode-discord-bot/opencode_discord_bot/src/bot.py (Nextcord)
+  # Bot project: ~/.dotfiles/packages/opencode-discord-bot/opencode_discord_bot/src/bot.py (Nextcord)
   # See: specs/053_nixos_discord_bot_prerequisites/reports/01_nixos-discord-bot-prerequisites.md
   # ==========================================================================
 

@@ -41,6 +41,7 @@ These dotfiles provide a complete NixOS setup with:
 │   ├── claude-code.nix            # Claude Code AI assistant (NPX wrapper)
 │   ├── opencode.nix               # OpenCode AI coding agent (custom build)
 │   ├── opencode-discord-bot.nix   # OpenCode Discord bot relay (buildPythonApplication)
+│   ├── opencode-discord-bot/      # Bot source (co-located with the derivation above)
 │   ├── loogle.nix                 # Lean 4 Mathlib search tool
 │   ├── aristotle.nix              # AI theorem prover wrapper
 │   ├── slidev.nix                 # Presentation slides from Markdown

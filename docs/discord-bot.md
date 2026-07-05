@@ -24,8 +24,8 @@ Neovim TUI (opencode --port)  <-->  discord-bot.service  <-->  Discord
 |------|---------|
 | `modules/system/optional/discord-bot.nix` | `opencodeDiscordBot` packaged app + sops config + both systemd services |
 | `packages/opencode-discord-bot.nix` | `buildPythonApplication` derivation for the bot (task 89) |
-| `opencode-discord-bot/pyproject.toml` | PEP 621 packaging metadata + `opencode-discord-bot` console-script entry point |
-| `flake.nix` | sops-nix flake input; `discord-bot.nix` opted in explicitly per-host (see `hosts/nandi/default.nix`), not imported by default |
+| `packages/opencode-discord-bot/pyproject.toml` | PEP 621 packaging metadata + `opencode-discord-bot` console-script entry point |
+| `flake.nix` | sops-nix flake input; `discord-bot.nix` opted in explicitly per-host (see `hosts/nandi/default.nix` and `hosts/hamsa/default.nix`), not imported by default |
 | `.sops.yaml` | Age key config + creation rules for `secrets/*.yaml` |
 | `secrets/secrets.yaml` | Encrypted secrets (committed encrypted) |
 | `~/.config/sops/age/keys.txt` | Age private key (**never committed**) |
@@ -59,8 +59,8 @@ environment. **Prior to task 89**, `discordBotPython` was an ad-hoc
 opencode_discord_bot.src.bot` with `PYTHONPATH` pointed at the working-tree checkout; this is
 recoverable from git history if ever needed.
 
-**Future work: own-repo extraction.** `opencode-discord-bot/` currently lives in-tree
-(`src = ../opencode-discord-bot` in the derivation) as the deliberate near-term choice. If the
+**Future work: own-repo extraction.** `packages/opencode-discord-bot/` currently lives in-tree
+(`src = ./opencode-discord-bot` in the derivation) as the deliberate near-term choice. If the
 bot's source grows an independent release cadence or needs reuse outside this flake, it could be
 extracted to its own repository and consumed as a flake input — mirroring how the email
 extension documents its wrapper-binary/own-source precedent. Not implemented here.
@@ -266,12 +266,14 @@ Before running `nixos-rebuild switch`:
 
 3. **Back up age key**: Store `~/.config/sops/age/keys.txt` securely (password manager, encrypted backup)
 
-4. **Create bot project**: The bot source must exist at `~/.dotfiles/opencode-discord-bot/src/bot.py` before `discord-bot.service` can start (external task 547)
+4. **Bot source**: The packaged bot source lives at `~/.dotfiles/packages/opencode-discord-bot/opencode_discord_bot/src/bot.py` (task 89 packaging; task 103 relocation) — no manual setup needed, it builds via the `packages/opencode-discord-bot.nix` derivation.
 
 5. **Apply**:
    ```bash
    sudo nixos-rebuild switch --flake .#hamsa   # or .#nandi
    ```
+   Both hamsa and nandi opt in via `services.discordBot.enable = true` (see
+   `hosts/hamsa/default.nix` and `hosts/nandi/default.nix`).
 
 ## Verification
 
@@ -305,7 +307,7 @@ journalctl -fu discord-bot
 
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
-| `discord-bot` fails to start | Bot source missing at `~/.dotfiles/opencode-discord-bot/` | Create bot project (task 547) |
+| `discord-bot` fails to start | Packaged build stale or `packages/opencode-discord-bot/` corrupted | Rebuild (`nixos-rebuild switch`); verify `nix flake check` passes |
 | `opencode-serve` fails to start | Missing server password | Run `sops secrets/secrets.yaml` and set password |
 | Both services fail with LoadCredential errors | Age key missing at `~/.config/sops/age/keys.txt` | Generate key with `age-keygen` |
 | `DISCORD_BOT_LINK_TOKEN not set` in Neovim | Fish shell didn't read `/run/secrets/link_api_token` | Ensure `link_api_token` is set in `secrets.yaml` and rebuild; restart fish |
@@ -325,7 +327,8 @@ To remove the Discord bot infrastructure:
 
 ```bash
 # 1. Remove sops-nix flake input from flake.nix and all 4 host module imports
-# 2. Remove opencodeDiscordBot binding (and packages/opencode-discord-bot.nix) from modules/system/optional/discord-bot.nix
+# 2. Remove opencodeDiscordBot binding (and packages/opencode-discord-bot.nix,
+#    packages/opencode-discord-bot/) from modules/system/optional/discord-bot.nix
 # 3. Remove sops config block from modules/system/optional/discord-bot.nix
 # 4. Remove both systemd services from modules/system/optional/discord-bot.nix
 # 5. Remove sops/age from environment.systemPackages
@@ -403,4 +406,4 @@ ss -tlnp | grep opencode
 - **Spec Report 2**: `specs/053_nixos_discord_bot_prerequisites/reports/02_python-discord-bot-best-practices.md`
 - **Implementation Plan**: `specs/053_nixos_discord_bot_prerequisites/plans/02_nixos-discord-bot-prerequisites.md`
 - **Implementation Summary**: `specs/053_nixos_discord_bot_prerequisites/summaries/02_nixos-discord-bot-prerequisites-summary.md`
-- **Bot source**: External task 547 at `~/.dotfiles/opencode-discord-bot/`
+- **Bot source**: `~/.dotfiles/packages/opencode-discord-bot/` (relocated from repo root by task 103)

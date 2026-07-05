@@ -171,27 +171,31 @@ mirroring nandi; keep nandi enabled.
 
 ---
 
-### Phase 3: Update documentation (both goals) [NOT STARTED]
+### Phase 3: Update documentation (both goals) [COMPLETED]
 
 **Goal**: Bring all five docs in line with the new source path and hamsa host wiring.
 
 **Tasks**:
-- [ ] `docs/discord-bot.md` - update prose references to `opencode-discord-bot/`,
+- [x] `docs/discord-bot.md` - update prose references to `opencode-discord-bot/`,
       `../opencode-discord-bot`, `~/.dotfiles/opencode-discord-bot/` to the new
       `packages/opencode-discord-bot/` path (research lists lines 26-27, 36, 53, 62-63, 113, 269,
       308, 328, 406) and reflect that hamsa now runs the bot.
-- [ ] `packages/README.md` - update the `opencode-discord-bot.nix` section (lines ~37-44) to the
+- [x] `packages/README.md` - update the `opencode-discord-bot.nix` section (lines ~37-44) to the
       new `./opencode-discord-bot` src path, and add a one-line note explaining the
       `opencode-discord-bot.nix` file + `opencode-discord-bot/` dir stem pairing (first such
       co-located source dir in `packages/`).
-- [ ] `modules/README.md` - update the host-wiring sentence so it no longer says hamsa does not
+- [x] `modules/README.md` - update the host-wiring sentence so it no longer says hamsa does not
       import the module (hamsa is now wired in alongside nandi).
-- [ ] `README.md` - update the tree diagram (~line 43): add a `packages/opencode-discord-bot/`
+- [x] `README.md` - update the tree diagram (~line 43): add a `packages/opencode-discord-bot/`
       child entry under the `packages/` subtree next to `opencode-discord-bot.nix`.
-- [ ] `hosts/hamsa/README.md` - update the line noting hamsa "does not currently have" a
+- [x] `hosts/hamsa/README.md` - update the line noting hamsa "does not currently have" a
       `default.nix` (now stale after Phase 2).
-- [ ] Completeness check: `git grep -n opencode-discord-bot` across the live tree (exclude
+- [x] Completeness check: `git grep -n opencode-discord-bot` across the live tree (exclude
       historical `specs/**` artifacts) to confirm no stale live references remain.
+      *(deviation: altered — also fixed a stale root-path comment found by the grep in
+      `modules/system/optional/discord-bot.nix` (lines 3, 32); the plan's non-goal only pinned
+      the module's sops/systemd/callPackage structure as unchanged, not its comment text, and
+      the completeness-check verification criterion required zero stale hits.)*
 
 **Timing**: 45 minutes
 
