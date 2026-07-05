@@ -6,7 +6,7 @@ repository at `~/.config/nvim/` that handles plugins, keybindings, and LSP setup
 
 ## Why home-manager manages neovim
 
-`programs.neovim.enable = true` is kept in `home.nix` for two reasons:
+`programs.neovim.enable = true` is kept in `modules/home/core/neovim.nix` for two reasons:
 
 1. **Provider wrapping** -- Home Manager wraps the neovim binary to inject Nix-store
    paths for the Python3 and Ruby providers (`python3_host_prog`, `ruby_host_prog`),
@@ -55,5 +55,5 @@ config repository remains the single source of truth for neovim behavior.
 
 ## Related
 
-- [Neovim module in home.nix](../home.nix) -- `programs.neovim` block with the
+- [Neovim module in modules/home/core/neovim.nix](../modules/home/core/neovim.nix) -- `programs.neovim` block with the
   active configuration values

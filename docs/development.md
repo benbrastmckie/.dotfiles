@@ -114,7 +114,8 @@ For adding new hosts:
 1. Generate hardware configuration on the new machine
 2. Copy to `hosts/[hostname]/hardware-configuration.nix`
 3. Update `flake.nix` to include the new host
-4. Reference host-specific settings in `configuration.nix`
+4. Reference always-on settings in `modules/system/*.nix`; for host-specific overrides, add
+   `hosts/<name>/default.nix` (see `hosts/nandi/default.nix` for the pattern)
 
 ## Lean 4 Development
 

@@ -1,0 +1,69 @@
+{
+  "status": "implemented",
+  "summary": "Fixed all remaining stale configuration.nix/home.nix pointers across 9 documentation files, repointing them to their real modules/system/*.nix and modules/home/**/*.nix targets, and resolved docs/dictation.md's three independent defects (package rename, broken line reference, dead wtype references). Markdown-only change set, verified via consolidated grep sweep across all 8 plan phases.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "README.md",
+      "summary": "Repointed 7 stale configuration.nix/home.nix pointer locations to modules/system/*.nix and modules/home/**/*.nix; left 2 build-mechanics mentions untouched"
+    },
+    {
+      "type": "implementation",
+      "path": "hosts/nandi/README.md",
+      "summary": "Reworded stale configuration.nix pointer to distinguish modules/system/*.nix (always-on) from hosts/nandi/default.nix (host-specific)"
+    },
+    {
+      "type": "implementation",
+      "path": "hosts/garuda/README.md",
+      "summary": "Same correction as nandi, phrased for garuda's lack of an existing default.nix"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/dictation.md",
+      "summary": "Fixed 3 independent defects: whisper-cpp package rename, broken home.nix:183-264 line reference (now modules/home/scripts/whisper.nix lines 6-74), and dead wtype references (Resources link removed, Quick Reference row replaced with verified ydotool type invocation)"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/neovim.md",
+      "summary": "Repointed both home.nix references (prose + link target) to modules/home/core/neovim.nix"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/gnome-settings.md",
+      "summary": "Repointed all 9 stale home.nix references to modules/home/desktop/gnome.nix"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/discord-bot.md",
+      "summary": "Repointed all 7 stale configuration.nix references (6 to modules/system/optional/discord-bot.nix, 1 to modules/system/shell.nix)"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/installation.md",
+      "summary": "Reworded stale new-host configuration.nix step to modules/system/*.nix + hosts/<name>/default.nix pattern"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/development.md",
+      "summary": "Same new-host step correction as installation.md; left borderline ISO-contents line 47 as-is per plan"
+    },
+    {
+      "type": "summary",
+      "path": "specs/095_post_reorg_documentation_sweep/summaries/01_stale-doc-pointer-sweep-summary.md",
+      "summary": "Implementation summary with per-file changes, decisions, plan deviation, and verification results"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Repointed every stale configuration.nix/home.nix reference across 9 files (root README.md, hosts/nandi + hosts/garuda READMEs, docs/dictation.md, docs/neovim.md, docs/gnome-settings.md, docs/discord-bot.md, docs/installation.md, docs/development.md) to their real modules/system/*.nix and modules/home/**/*.nix targets, and fixed docs/dictation.md's three independent defects (openai-whisper-cpp to whisper-cpp rename, broken home.nix:183-264 line reference to modules/home/scripts/whisper.nix lines 6-74, and dead wtype Resources link + Quick Reference row replaced with verified ydotool usage). Markdown-only change set, verified via consolidated grep sweep; legitimate non-stale mentions (README build-mechanics notes, docs/development.md:47, hosts/README.md, modules/README.md, docs/configuration.md) were left untouched."
+  },
+  "metadata": {
+    "session_id": "sess_1783245278_b9efc6_95",
+    "duration_seconds": 390,
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 8,
+    "phases_total": 8
+  },
+  "next_steps": "None required. Task complete; state.json updated to completed status."
+}

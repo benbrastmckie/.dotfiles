@@ -69,7 +69,8 @@ Host-specific configurations are stored in the `hosts/` directory. To add a new 
 1. Create hardware configuration: `nixos-generate-config`
 2. Copy `hardware-configuration.nix` to `hosts/[hostname]/`
 3. Update `flake.nix` to include the new host
-4. Reference host-specific settings in `configuration.nix`
+4. Reference always-on settings in `modules/system/*.nix`; for host-specific overrides, add
+   `hosts/<name>/default.nix` (see `hosts/nandi/default.nix` for the pattern)
 
 ## Troubleshooting
 

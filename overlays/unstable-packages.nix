@@ -15,6 +15,13 @@ pkgs-unstable: final: prev: {
   slidev = final.callPackage ../packages/slidev.nix { }; # Presentation slides from Markdown
   kooha = import ../packages/kooha.nix prev.kooha final.gst_all_1; # Screen recorder with full GStreamer plugin support
 
+  # Custom wrappers extracted from modules/system/packages.nix (task 97).
+  # zathura/sioyek are self-referential (wrapper name == wrapped package name), so use
+  # positional import with prev.X — NOT callPackage — to avoid infinite recursion (kooha pattern).
+  zathura = import ../packages/zathura-x11.nix prev.zathura final.writeShellScriptBin;
+  sioyek = import ../packages/sioyek-wayland.nix prev.sioyek final.writeShellScriptBin;
+  polkit-gnome-authentication-agent-1 = final.callPackage ../packages/polkit-gnome-agent-wrapper.nix { };
+
   # TTS/STT Models
   piper = final.callPackage ../packages/piper-bin.nix { }; # Piper TTS prebuilt binary (no onnxruntime compile)
   piper-voice-en-us-lessac-medium = final.callPackage ../packages/piper-voices.nix { }; # Piper TTS voice model

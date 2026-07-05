@@ -1,0 +1,54 @@
+{
+  "status": "implemented",
+  "summary": "Extracted the 3 inline writeShellScriptBin wrappers (zathura X11, sioyek Wayland-CSD, polkit-gnome agent) from modules/system/packages.nix into packages/*.nix, wired them through overlays/unstable-packages.nix via the kooha.nix prev.X positional-import pattern (avoiding self-referential infinite recursion for zathura/sioyek, callPackage for polkit), and deleted the stale flake.nix:62 MCPHub comment while preserving the accurate line-33 comment. Verified with nix flake check (post Phase 2/3/4), nix eval confirming exactly-once package membership, and a full nixos-rebuild build --flake .#hamsa.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "packages/zathura-x11.nix",
+      "summary": "New self-referential zathura X11-force wrapper (positional-import kooha.nix-style signature)"
+    },
+    {
+      "type": "implementation",
+      "path": "packages/sioyek-wayland.nix",
+      "summary": "New self-referential sioyek Wayland-CSD-disable wrapper (positional-import kooha.nix-style signature)"
+    },
+    {
+      "type": "implementation",
+      "path": "packages/polkit-gnome-agent-wrapper.nix",
+      "summary": "New polkit-gnome-authentication-agent-1 PATH-exposing wrapper (standard callPackage signature)"
+    },
+    {
+      "type": "implementation",
+      "path": "overlays/unstable-packages.nix",
+      "summary": "Wired all 3 wrappers: zathura/sioyek via prev.X positional import, polkit via final.callPackage"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/system/packages.nix",
+      "summary": "Deleted 3 inline writeShellScriptBin blocks; kept bare zathura entry; added bare sioyek and polkit-gnome-authentication-agent-1 entries"
+    },
+    {
+      "type": "implementation",
+      "path": "flake.nix",
+      "summary": "Deleted stale MCPHub 'official flake input' comment (was line 62), collapsed double blank line, preserved accurate line-33 comment"
+    },
+    {
+      "type": "summary",
+      "path": "specs/097_refactor_dead_comment_cleanup/summaries/01_wrapper-extraction-mcphub-fix-summary.md",
+      "summary": "Implementation summary with full verification detail (nix flake check, nix eval, nixos-rebuild build)"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Extracted the 3 inline writeShellScriptBin wrappers (zathura X11, sioyek Wayland-CSD, polkit-gnome agent) from modules/system/packages.nix into packages/*.nix, wired them through overlays/unstable-packages.nix using the kooha.nix prev.X positional-import pattern (avoiding self-referential infinite recursion for zathura/sioyek), and deleted the stale flake.nix:62 MCPHub comment. Verified with nix flake check, nix eval (exactly-once package membership), and a full nixos-rebuild build --flake .#hamsa."
+  },
+  "metadata": {
+    "session_id": "sess_1783245278_b9efc6_97",
+    "duration_seconds": 400,
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 4,
+    "phases_total": 4
+  },
+  "next_steps": "Task 98 (nix formatter/lint tooling) also touches flake.nix and can now proceed without conflict with the MCPHub comment cleanup. No further action required for task 97."
+}

@@ -94,22 +94,15 @@ You can choose at GDM login:
 
 ### Recommended Usage Strategy
 
-**Phase 1: Current - Testing** (You are here!)
-- **Primary**: Use GNOME + PaperWM for daily work
-- **Testing**: Log into niri session to test and learn
-- **Safety**: Always have GNOME as reliable fallback
+Both sessions are permanent, daily-driver-ready options at the GDM login screen, not stages of a
+migration in progress. Niri is the primary Wayland compositor for daily, scrollable-tiling work,
+used alongside GNOME rather than replacing it. Choose per-context:
 
-**Phase 2: Gradual Migration** (When comfortable with niri)
-- **Casual work**: Use niri session
-- **Important meetings**: Use GNOME (guaranteed screen sharing)
-- **Adjustment**: Tweak niri config as needed
-
-**Phase 3: Primary Niri** (When fully comfortable)
-- **Default**: Use niri as primary session
-- **Fallback**: Keep GNOME for emergencies or preference
-- **Flexibility**: Both sessions remain available
-
-**Safety Net**: Both sessions coexist permanently. You can always switch back to GNOME at any time.
+- **Niri**: Default choice for daily/casual work — scrollable tiling, lower overhead.
+- **GNOME + PaperWM**: Use when screen sharing is required (Zoom/Teams/Meet reliability is
+  guaranteed on GNOME; niri's screen-share behavior is not asserted here).
+- **Both sessions coexist permanently** and are switchable anytime at the GDM login screen, with
+  no reconfiguration needed.
 
 ---
 

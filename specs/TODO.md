@@ -11,18 +11,15 @@ next_project_number: 101
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92,95,97,99,100 | -- | nixos-config, nix-infrastructure, desktop, ... |
-| 2 | 78,96,98 | 77,95,97 | nixos-config, desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92,96,98,100 | -- | nixos-config, nix-infrastructure, desktop, ... |
+| 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Nixos Config
 
-95 [NOT STARTED] — Complete the post-reorg documentation sweep: fix all remaining do
-  └─ 96 [NOT STARTED] — Fill documentation completeness gaps: add a missing hosts/hamsa/R
-97 [NOT STARTED] — Small refactor and dead-comment cleanup: extract the 3 inline wri
-  └─ 98 [NOT STARTED] — Add Nix formatter and lint tooling to the flake (none configured 
-99 [NOT STARTED] — Consolidate the two near-duplicate Ryzen AI 300 docs (docs/ryzen-
+96 [NOT STARTED] — Fill documentation completeness gaps: add a missing hosts/hamsa/R
+98 [NOT STARTED] — Add Nix formatter and lint tooling to the flake (none configured 
 100 [NOT STARTED] — Strip the ~58 emoji glyphs from docs/niri.md (1035 lines) to conf
 
 ### Nix Infrastructure
@@ -68,10 +65,13 @@ next_project_number: 101
 ---
 
 ### 99. Ryzen docs niri framing
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
+- **Research_report**: [099_ryzen_docs_niri_framing/reports/01_ryzen-docs-niri-framing-research.md]
+- **Plan**: [099_ryzen_docs_niri_framing/plans/01_ryzen-docs-niri-framing.md]
+- **Summary**: [099_ryzen_docs_niri_framing/summaries/01_ryzen-docs-niri-framing-summary.md]
 
 **Description**: Consolidate the two near-duplicate Ryzen AI 300 docs (docs/ryzen-ai-300-compatibility.md and docs/ryzen-ai-300-support-summary.md) into a single authoritative doc, and re-confirm docs/niri.md 'Recommended Usage Strategy' testing-phase framing against actual daily-driver usage (update if stale). Carried over from task 94 deferred Phase 8 - needs user confirmation on how to consolidate/reframe. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group E) and specs/094_review_nixos_config_documentation/plans/01_nixos-doc-config-improvements.md (Phase 8).
 
@@ -88,10 +88,12 @@ next_project_number: 101
 ---
 
 ### 97. Refactor dead comment cleanup
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
+- **Research_report**: [097_refactor_dead_comment_cleanup/reports/01_wrapper-extraction-mcphub-fix.md]
+- **Plan**: [097_refactor_dead_comment_cleanup/plans/01_wrapper-extraction-mcphub-fix.md]
 
 **Description**: Small refactor and dead-comment cleanup: extract the 3 inline writeShellScriptBin wrappers from modules/system/packages.nix into their own packages/*.nix files for consistency with the rest of the package layout, and fix the confirmed contradictory MCPHub comment pair in flake.nix (lines 33 vs 62). Verify with nix flake check. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group C).
 
@@ -108,10 +110,13 @@ next_project_number: 101
 ---
 
 ### 95. Post reorg documentation sweep
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
+- **Research_report**: [095_post_reorg_documentation_sweep/reports/01_post-reorg-doc-sweep.md]
+- **Plan**: [095_post_reorg_documentation_sweep/plans/01_stale-doc-pointer-sweep.md]
+- **Summary**: [095_post_reorg_documentation_sweep/summaries/01_stale-doc-pointer-sweep-summary.md]
 
 **Description**: Complete the post-reorg documentation sweep: fix all remaining docs that still point contributors at configuration.nix/home.nix for content that now lives in modules/system/* and modules/home/**. Covers root README.md (4 spots), hosts/nandi/README.md, hosts/garuda/README.md, and 6 topic docs (docs/dictation.md, docs/neovim.md, docs/gnome-settings.md, docs/discord-bot.md, docs/installation.md, docs/development.md). Also fix docs/dictation.md stale package name, broken line reference, and dead wtype references that contradict its own text. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group A).
 

@@ -1,0 +1,44 @@
+{
+  "status": "implemented",
+  "summary": "Consolidated docs/ryzen-ai-300-compatibility.md and docs/ryzen-ai-300-support-summary.md into a single docs/ryzen-ai-300.md (preserving updateMicrocode and build-usb-installer.sh, dropping stale sections), deleted both originals, repointed the 3 live inbound links, and reframed docs/niri.md's Recommended Usage Strategy section from stale testing-phase migration framing to permanent dual-session daily-driver framing. All 4 phases completed and verified with zero dangling links.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "docs/ryzen-ai-300.md",
+      "summary": "New consolidated AMD Ryzen AI 300 Series Support doc"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/README.md",
+      "summary": "Collapsed 2 Ryzen doc links into 1 pointing at ryzen-ai-300.md"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/usb-installer.md",
+      "summary": "Repointed line 774 link to ryzen-ai-300.md"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/niri.md",
+      "summary": "Reframed Recommended Usage Strategy section to permanent dual-session daily-driver framing"
+    },
+    {
+      "type": "summary",
+      "path": "specs/099_ryzen_docs_niri_framing/summaries/01_ryzen-docs-niri-framing-summary.md",
+      "summary": "Implementation summary with verification results"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Consolidated docs/ryzen-ai-300-compatibility.md and docs/ryzen-ai-300-support-summary.md into a single docs/ryzen-ai-300.md (preserving updateMicrocode and build-usb-installer.sh, dropping stale git-hash/self-pointer sections), deleted both originals, repointed the 3 live inbound links in docs/README.md and docs/usb-installer.md, and reframed docs/niri.md Recommended Usage Strategy section from stale testing-phase migration framing to permanent dual-session daily-driver framing."
+  },
+  "metadata": {
+    "session_id": "sess_1783245278_b9efc6_99",
+    "duration_seconds": 265,
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 4,
+    "phases_total": 4
+  },
+  "next_steps": "No further action required for task 99. Orchestrator should stage and commit the task-scoped file set (docs/ryzen-ai-300.md, deletion of the two old Ryzen docs, docs/README.md, docs/usb-installer.md, docs/niri.md, specs/099_ryzen_docs_niri_framing/, specs/TODO.md, specs/state.json) since orchestrator_mode suppressed the implementation-agent commit."
+}

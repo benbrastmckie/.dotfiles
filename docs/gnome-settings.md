@@ -1,6 +1,6 @@
 # GNOME Settings Management
 
-GNOME desktop settings are managed declaratively through Home Manager's `dconf.settings` module in `home.nix`.
+GNOME desktop settings are managed declaratively through Home Manager's `dconf.settings` module in `modules/home/desktop/gnome.nix`.
 
 ## Current Configuration
 
@@ -56,8 +56,8 @@ The following settings are managed by Home Manager:
 
 ### Shell Extensions
 - **Unite** (`unite@hardpixel.eu`): Hides window titlebars, reduces panel spacing
-  - Enabled declaratively in `home.nix` via `enabled-extensions` (omitting it causes `home-manager switch` to silently disable it)
-  - Extension settings also managed in `home.nix` under `org/gnome/shell/extensions/unite`
+  - Enabled declaratively in `modules/home/desktop/gnome.nix` via `enabled-extensions` (omitting it causes `home-manager switch` to silently disable it)
+  - Extension settings also managed in `modules/home/desktop/gnome.nix` under `org/gnome/shell/extensions/unite`
 
 ### GNOME 49 / XWayland Decoration Note
 
@@ -67,12 +67,12 @@ GNOME 49 ignores `_MOTIF_WM_HINTS` for XWayland windows, so forcing Qt apps to r
 
 ### Managed vs. Unmanaged Settings
 
-**Managed settings** (defined in `home.nix`):
+**Managed settings** (defined in `modules/home/desktop/gnome.nix`):
 - Written to dconf on every `home-manager switch`
 - Any manual changes via GNOME Settings are overwritten on rebuild
-- Source of truth is `home.nix`
+- Source of truth is `modules/home/desktop/gnome.nix`
 
-**Unmanaged settings** (not in `home.nix`):
+**Unmanaged settings** (not in `modules/home/desktop/gnome.nix`):
 - Remain under manual control via GNOME Settings
 - Home Manager does not touch these
 - Examples: wallpaper, notification settings, app-specific preferences
@@ -83,7 +83,7 @@ GNOME 49 ignores `_MOTIF_WM_HINTS` for XWayland windows, so forcing Qt apps to r
 |--------|------------------|------------------|
 | GNOME Settings GUI | Yes | No (if setting is managed) |
 | `dconf write` | Yes | No (if setting is managed) |
-| Edit `home.nix` + rebuild | Yes | Yes |
+| Edit `modules/home/desktop/gnome.nix` + rebuild | Yes | Yes |
 
 ## Maintenance Workflow
 
@@ -103,7 +103,7 @@ GNOME 49 ignores `_MOTIF_WM_HINTS` for XWayland windows, so forcing Qt apps to r
    dconf read /org/gnome/desktop/wm/preferences/focus-mode
    ```
 
-3. Add to `home.nix`:
+3. Add to `modules/home/desktop/gnome.nix`:
    ```nix
    dconf.settings = {
      "org/gnome/desktop/wm/preferences" = {
@@ -125,7 +125,7 @@ GNOME 49 ignores `_MOTIF_WM_HINTS` for XWayland windows, so forcing Qt apps to r
    ```bash
    dconf read /path/to/setting
    ```
-4. Add to `home.nix` to make permanent
+4. Add to `modules/home/desktop/gnome.nix` to make permanent
 
 ### Viewing All Current Settings
 

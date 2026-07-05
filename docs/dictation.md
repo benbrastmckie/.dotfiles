@@ -15,9 +15,12 @@ System-wide speech-to-text dictation using OpenAI's Whisper model (whisper.cpp).
 
 ## Installation
 
-The dictation tools are already configured in `home.nix`:
+The dictation tools are already configured across three Home Manager modules:
+`modules/home/scripts/whisper.nix` (the `whisper-dictate`/`whisper-download-models` scripts),
+`modules/home/services/ydotool.nix` (the `ydotoold` daemon), and
+`modules/home/packages/media-dictation.nix` (the `whisper-cpp` package):
 
-- `openai-whisper-cpp`: Fast C++ implementation of Whisper
+- `whisper-cpp`: Fast offline speech-to-text (C++ implementation of Whisper)
 - `ydotool`: Universal input tool (works with GNOME on Wayland)
 - `whisper-dictate`: Custom script that ties everything together
 - `whisper-download-models`: Helper to download AI models
@@ -268,7 +271,7 @@ The dictation script uses auto-detection by default.
 
 ### Customizing the Script
 
-The script is defined in `home.nix` (home.nix:183-264). You can:
+The script is defined in `modules/home/scripts/whisper.nix` (lines 6-74). You can:
 
 - Change audio format/quality
 - Add punctuation post-processing
@@ -308,7 +311,6 @@ home-manager switch --flake .#benjamin
 - **Whisper.cpp GitHub**: https://github.com/ggerganov/whisper.cpp
 - **OpenAI Whisper**: https://github.com/openai/whisper
 - **Model Downloads**: https://huggingface.co/ggerganov/whisper.cpp
-- **wtype Documentation**: https://github.com/atx/wtype
 
 ## Quick Reference
 
@@ -318,7 +320,7 @@ home-manager switch --flake .#benjamin
 | `whisper-download-models [size]` | Download AI model |
 | `notify-send "Test" "Message"` | Test notifications |
 | `pw-record test.wav` | Test microphone |
-| `echo "text" \| wtype -` | Test text input |
+| `ydotool type "text"` | Test text input |
 
 **Niri Keybinding**: **Mod+d** (Super+d)
 

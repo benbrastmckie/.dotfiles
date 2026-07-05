@@ -134,6 +134,7 @@
       pandoc # Universal document converter
       quarto # Scientific and technical publishing system
       zathura # Light-weight PDF/document viewer
+      sioyek # PDF viewer with focus on academic paper reading (custom Wayland CSD wrapper via overlay)
       libreoffice # RTF word processor with signature support
       evince # GNOME document viewer (handles PDF, PS, DVI, etc.)
       tinymist # Typst language server with bundled formatter
@@ -194,33 +195,8 @@
       sops # Secrets encryption/decryption (3.12.2)
       age # Encryption backend for sops (age 1.3.1)
 
-
-
-      # Custom zathura (force X11 for consistency)
-      # Note: Zathura uses GTK with server-side decorations, so Unite extension
-      # can hide title bars regardless. This wrapper ensures consistent X11 behavior.
-      (writeShellScriptBin "zathura" ''
-        #!/bin/sh
-        export GDK_BACKEND=x11
-        exec ${pkgs.zathura}/bin/zathura "$@"
-      '')
-
-      # Custom sioyek (disable Qt client-side decorations on Wayland)
-      # Note: GNOME 49 ignores _MOTIF_WM_HINTS for XWayland windows, so forcing
-      # X11 (QT_QPA_PLATFORM=xcb) no longer works. Instead, run as native Wayland
-      # and tell Qt not to render CSD - GNOME doesn't add server-side decorations
-      # to Wayland apps, resulting in a clean decoration-free window.
-      (writeShellScriptBin "sioyek" ''
-        #!/bin/sh
-        export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
-        exec ${pkgs.sioyek}/bin/sioyek "$@"
-      '')
-
       # Polkit authentication agent for the niri session (GNOME session uses gnome-shell's own).
-      # libexec is not linked into /run/current-system/sw, so wrap the binary to expose a bin/ path.
-      (writeShellScriptBin "polkit-gnome-authentication-agent-1" ''
-        #!/bin/sh
-        exec ${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1 "$@"
-      '')
+      # Custom wrapper (overlay) exposes the libexec binary on PATH under its conventional bin name.
+      polkit-gnome-authentication-agent-1
     ]);
 }

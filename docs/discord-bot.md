@@ -164,7 +164,7 @@ creation_rules:
 | `ollama_api_key` | Yes | API key for Ollama LLM provider, used by opencode-serve (decrypted to `/run/secrets/`) |
 | `whitelisted_user_ids` | No | Comma-separated Discord user IDs allowed to use the bot |
 
-> **Note**: `whitelisted_user_ids` exists in the encrypted file but is **not** declared in `sops.secrets` in `configuration.nix`. It is set as an empty-string environment variable directly in the service. To use it, add it to `sops.secrets` + `LoadCredential`.
+> **Note**: `whitelisted_user_ids` exists in the encrypted file but is **not** declared in `sops.secrets` in `modules/system/optional/discord-bot.nix`. It is set as an empty-string environment variable directly in the service. To use it, add it to `sops.secrets` + `LoadCredential`.
 
 **`~/.config/sops/age/keys.txt`** (private key — never committed, never pushed):
 ```
@@ -173,7 +173,7 @@ AGE-SECRET-KEY-1...
 
 ### sops-nix NixOS Configuration
 
-In `configuration.nix`:
+In `modules/system/optional/discord-bot.nix`:
 ```nix
 sops = {
   defaultSopsFile = ./secrets/secrets.yaml;
@@ -230,7 +230,7 @@ sops --rotate secrets/secrets.yaml
 
 **Add a new secret**:
 - Add the key-value to `secrets/secrets.yaml` via `sops secrets/secrets.yaml`
-- Add a corresponding entry in `sops.secrets` in `configuration.nix`
+- Add a corresponding entry in `sops.secrets` in `modules/system/optional/discord-bot.nix`
 - Use `LoadCredential` to inject it into the relevant service
 
 ### Secret Lifecycle
@@ -325,9 +325,9 @@ To remove the Discord bot infrastructure:
 
 ```bash
 # 1. Remove sops-nix flake input from flake.nix and all 4 host module imports
-# 2. Remove opencodeDiscordBot binding (and packages/opencode-discord-bot.nix) from configuration.nix
-# 3. Remove sops config block from configuration.nix
-# 4. Remove both systemd services from configuration.nix
+# 2. Remove opencodeDiscordBot binding (and packages/opencode-discord-bot.nix) from modules/system/optional/discord-bot.nix
+# 3. Remove sops config block from modules/system/optional/discord-bot.nix
+# 4. Remove both systemd services from modules/system/optional/discord-bot.nix
 # 5. Remove sops/age from environment.systemPackages
 # 6. Delete .sops.yaml (optional)
 # 7. Run: nix flake lock
@@ -364,7 +364,7 @@ Thread names update automatically: re-linking an existing session with `<leader>
 The `DISCORD_BOT_LINK_TOKEN` env var is required by the Neovim plugins and must match the bot's `LINK_API_TOKEN`. It is set automatically in fish shell init by reading the sops-nix decrypted secret:
 
 ```fish
-# In programs.fish.interactiveShellInit (configuration.nix):
+# In programs.fish.interactiveShellInit (modules/system/shell.nix):
 if test -r /run/secrets/link_api_token
   set -gx DISCORD_BOT_LINK_TOKEN (cat /run/secrets/link_api_token)
 end

@@ -59,8 +59,6 @@
     unstablePackagesOverlay = import ./overlays/unstable-packages.nix pkgs-unstable;
     pythonPackagesOverlay = import ./overlays/python-packages.nix;
 
-    # Note: MCPHub is now handled via official flake input instead of custom overlay
-
     # Common nixpkgs configuration
     nixpkgsConfig = {
       inherit system;

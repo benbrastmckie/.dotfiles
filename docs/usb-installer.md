@@ -771,5 +771,5 @@ git push origin "usb-installer-v2.1"
 
 - [Installation Guide](installation.md) - General NixOS installation
 - [Configuration Guide](configuration.md) - System configuration details
-- [Ryzen AI 300 Compatibility](ryzen-ai-300-compatibility.md) - Modern hardware support
+- [Ryzen AI 300 Support](ryzen-ai-300.md) - Modern hardware support
 - [Development Notes](development.md) - ISO building and development

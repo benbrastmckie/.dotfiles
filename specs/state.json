@@ -4,12 +4,32 @@
     {
       "project_number": 95,
       "project_name": "post_reorg_documentation_sweep",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "nix",
       "topic": "nixos-config",
       "description": "Complete the post-reorg documentation sweep: fix all remaining docs that still point contributors at configuration.nix/home.nix for content that now lives in modules/system/* and modules/home/**. Covers root README.md (4 spots), hosts/nandi/README.md, hosts/garuda/README.md, and 6 topic docs (docs/dictation.md, docs/neovim.md, docs/gnome-settings.md, docs/discord-bot.md, docs/installation.md, docs/development.md). Also fix docs/dictation.md stale package name, broken line reference, and dead wtype references that contradict its own text. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group A).",
       "created": "2026-07-05T09:48:44Z",
-      "last_updated": "2026-07-05T09:48:44Z"
+      "last_updated": "2026-07-05T10:12:25Z",
+      "session_id": "sess_1783245278_b9efc6_95",
+      "implemented": "2026-07-05T10:12:25Z",
+      "artifacts": [
+        {
+          "type": "research_report",
+          "path": "specs/095_post_reorg_documentation_sweep/reports/01_post-reorg-doc-sweep.md",
+          "summary": "Enumerated every stale configuration.nix/home.nix pointer across 9 files with file:line anchors and corrected modules/system|home targets; found more hits than the backlog named in docs/discord-bot.md (7) and docs/gnome-settings.md (9); grounded docs/dictation.md three independent defects; flagged legitimate non-stale mentions to avoid over-correction."
+        },
+        {
+          "type": "plan",
+          "path": "specs/095_post_reorg_documentation_sweep/plans/01_stale-doc-pointer-sweep.md",
+          "summary": "8-phase plan: one phase per file, each listing exact file:line edits and corrected module targets, with explicit Do-NOT-touch lists. Phase 8 is a grep-based verification sweep. Markdown-only; no nix build. All 8 phases executed."
+        },
+        {
+          "type": "summary",
+          "path": "specs/095_post_reorg_documentation_sweep/summaries/01_stale-doc-pointer-sweep-summary.md",
+          "summary": "Implementation summary with per-file changes, decisions, plan deviation (1 legitimate wtype mention preserved), and verification results"
+        }
+      ],
+      "completion_summary": "Repointed every stale configuration.nix/home.nix reference across 9 files (root README.md, hosts/nandi + hosts/garuda READMEs, docs/dictation.md, docs/neovim.md, docs/gnome-settings.md, docs/discord-bot.md, docs/installation.md, docs/development.md) to their real modules/system/*.nix and modules/home/**/*.nix targets, and fixed docs/dictation.md three independent defects (openai-whisper-cpp to whisper-cpp rename, broken home.nix:183-264 line reference to modules/home/scripts/whisper.nix lines 6-74, and dead wtype Resources link + Quick Reference row replaced with verified ydotool usage). Markdown-only change set, verified via consolidated grep sweep; legitimate non-stale mentions (README build-mechanics notes, docs/development.md:47, hosts/README.md, modules/README.md, docs/configuration.md) were left untouched."
     },
     {
       "project_number": 96,
@@ -27,12 +47,28 @@
     {
       "project_number": 97,
       "project_name": "refactor_dead_comment_cleanup",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "nix",
       "topic": "nixos-config",
       "description": "Small refactor and dead-comment cleanup: extract the 3 inline writeShellScriptBin wrappers from modules/system/packages.nix into their own packages/*.nix files for consistency with the rest of the package layout, and fix the confirmed contradictory MCPHub comment pair in flake.nix (lines 33 vs 62). Verify with nix flake check. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group C).",
       "created": "2026-07-05T09:48:44Z",
-      "last_updated": "2026-07-05T09:48:44Z"
+      "last_updated": "2026-07-05T10:12:16Z",
+      "session_id": "sess_1783245278_b9efc6_97",
+      "artifacts": [
+        {
+          "type": "research_report",
+          "path": "specs/097_refactor_dead_comment_cleanup/reports/01_wrapper-extraction-mcphub-fix.md",
+          "summary": "File:line anchors for the 3 writeShellScriptBin wrapper extractions (zathura, sioyek, polkit-gnome agent) with kooha.nix-style wiring to avoid self-recursion, plus the flake.nix MCPHub comment contradiction fix (line 62 stale, line 33 correct)"
+        },
+        {
+          "type": "plan",
+          "path": "specs/097_refactor_dead_comment_cleanup/plans/01_wrapper-extraction-mcphub-fix.md",
+          "summary": "4-phase extraction plan: create 3 packages/*.nix wrapper files, wire via overlays/unstable-packages.nix (zathura/sioyek prev.X positional import, polkit callPackage), clean up packages.nix list membership, delete stale flake.nix:62 MCPHub comment. Verify with nix flake check + nixos-rebuild build .#hamsa."
+        }
+      ],
+      "researched": "2026-07-05T10:00:16Z",
+      "planned": "2026-07-05T10:30:00Z",
+      "completion_summary": "Extracted the 3 inline writeShellScriptBin wrappers (zathura X11, sioyek Wayland-CSD, polkit-gnome agent) from modules/system/packages.nix into packages/*.nix, wired them through overlays/unstable-packages.nix using the kooha.nix prev.X positional-import pattern (avoiding self-referential infinite recursion for zathura/sioyek), and deleted the stale flake.nix:62 MCPHub comment. Verified with nix flake check, nix eval (exactly-once package membership), and a full nixos-rebuild build --flake .#hamsa."
     },
     {
       "project_number": 98,
@@ -50,12 +86,58 @@
     {
       "project_number": 99,
       "project_name": "ryzen_docs_niri_framing",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "nix",
       "topic": "nixos-config",
       "description": "Consolidate the two near-duplicate Ryzen AI 300 docs (docs/ryzen-ai-300-compatibility.md and docs/ryzen-ai-300-support-summary.md) into a single authoritative doc, and re-confirm docs/niri.md 'Recommended Usage Strategy' testing-phase framing against actual daily-driver usage (update if stale). Carried over from task 94 deferred Phase 8 - needs user confirmation on how to consolidate/reframe. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group E) and specs/094_review_nixos_config_documentation/plans/01_nixos-doc-config-improvements.md (Phase 8).",
       "created": "2026-07-05T09:48:44Z",
-      "last_updated": "2026-07-05T09:48:44Z"
+      "last_updated": "2026-07-05T10:10:23Z",
+      "session_id": "sess_1783245278_b9efc6_99",
+      "artifacts": [
+        {
+          "type": "research_report",
+          "path": "specs/099_ryzen_docs_niri_framing/reports/01_ryzen-docs-niri-framing-research.md",
+          "summary": "Content map for Ryzen doc merge, full inbound-link inventory, and niri.md Recommended Usage Strategy stale-framing analysis with proposed rewording"
+        },
+        {
+          "type": "plan",
+          "path": "specs/099_ryzen_docs_niri_framing/plans/01_ryzen-docs-niri-framing.md",
+          "summary": "4-phase markdown-only plan executed in full"
+        },
+        {
+          "type": "summary",
+          "path": "specs/099_ryzen_docs_niri_framing/summaries/01_ryzen-docs-niri-framing-summary.md",
+          "summary": "Implementation summary with verification results"
+        }
+      ],
+      "researched": "2026-07-05T09:59:35Z",
+      "plan_metadata": {
+        "phases": 4,
+        "total_effort_hours": 2,
+        "complexity": "simple",
+        "research_integrated": true,
+        "plan_version": 1,
+        "dependency_waves": [
+          [
+            1,
+            3
+          ],
+          [
+            2
+          ],
+          [
+            4
+          ]
+        ],
+        "reports_integrated": [
+          {
+            "path": "reports/01_ryzen-docs-niri-framing-research.md",
+            "integrated_in_plan_version": 1,
+            "integrated_date": "2026-07-05"
+          }
+        ]
+      },
+      "completion_summary": "Consolidated docs/ryzen-ai-300-compatibility.md and docs/ryzen-ai-300-support-summary.md into a single docs/ryzen-ai-300.md (preserving updateMicrocode and build-usb-installer.sh, dropping stale git-hash/self-pointer sections), deleted both originals, repointed the 3 live inbound links in docs/README.md and docs/usb-installer.md, and reframed docs/niri.md Recommended Usage Strategy section from stale testing-phase migration framing to permanent dual-session daily-driver framing."
     },
     {
       "project_number": 100,

@@ -1,13 +1,14 @@
-# AMD Ryzen AI 300 Series Compatibility Analysis
+# AMD Ryzen AI 300 Series Support
 
 ## System Overview
+
 **Processor**: AMD Ryzen™ AI 9 HX 370 (Ryzen AI 300 Series)
 **Architecture**: Zen 4 + Zen 5c hybrid architecture
 **Platform**: x86_64-linux (fully supported)
 
-## USB Installer Compatibility
+## Hardware Support Summary
 
-### ✅ **What Will Work Out of the Box**
+### Fully Supported Out of the Box
 
 #### Core System
 - **Boot Process**: Generic USB configuration will detect and boot properly
@@ -26,12 +27,24 @@
 - **Networking**: Ethernet and WiFi adapter detection
 - **Audio**: AMD audio controller support
 
-### ✅ **Updated USB Installer Configuration**
+### Ryzen AI 9 HX 370 Specific Features
 
-The updated configuration now includes:
+#### Fully Supported
+- **Hybrid Architecture**: Zen 4 + Zen 5c core scheduling
+- **AI Acceleration**: XDNA 2 NPU support (kernel 6.5+)
+- **Power Management**: AMD P-state driver
+- **Memory Controller**: DDR5/LPDDR5X support
+- **PCIe 4.0/5.0**: High-speed peripheral support
+
+#### May Need Configuration
+- **Integrated Graphics**: May need amdgpu driver configuration
+- **AI NPU**: XDNA 2 support may require newer kernel
+- **Power Management**: Ryzen-specific power profiles
+
+## USB Installer Configuration
 
 ```nix
-boot.initrd.availableKernelModules = [ 
+boot.initrd.availableKernelModules = [
   "xhci_pci"      # USB 3.0/3.1 controllers
   "ahci"           # SATA controllers
   "ohci_pci"       # USB 1.1 controllers
@@ -43,37 +56,25 @@ boot.initrd.availableKernelModules = [
   "usbhid"         # USB input devices
   "thunderbolt"     # Thunderbolt support
 ];
-boot.kernelModules = [ 
+boot.kernelModules = [
   "kvm-amd"        # AMD virtualization support
   "kvm-intel"       # Intel virtualization support (compatibility)
 ];
 ```
 
-#### Key Improvements for Ryzen AI:
+### Key Improvements for Ryzen AI
+
 - **`nvme`**: Essential for modern NVMe SSDs in Ryzen laptops
 - **`kvm-amd`**: Proper AMD virtualization support
 - **`thunderbolt`**: Modern laptop connectivity
 - **AMD microcode**: Updated to include AMD CPU support
 
-## Ryzen AI 9 HX 370 Specific Features
-
-### ✅ **Fully Supported**
-- **Hybrid Architecture**: Zen 4 + Zen 5c core scheduling
-- **AI Acceleration**: XDNA 2 NPU support (kernel 6.5+)
-- **Power Management**: AMD P-state driver
-- **Memory Controller**: DDR5/LPDDR5X support
-- **PCIe 4.0/5.0**: High-speed peripheral support
-
-### ⚠️ **May Need Configuration**
-- **Integrated Graphics**: May need amdgpu driver configuration
-- **AI NPU**: XDNA 2 support may require newer kernel
-- **Power Management**: Ryzen-specific power profiles
-
-### 📋 **Recommended Post-Installation Configuration**
+## Recommended Post-Installation Configuration
 
 After installing NixOS on your Ryzen AI 9 HX 370 system:
 
-#### 1. Graphics Configuration
+### Graphics Configuration
+
 Add to your host's `configuration.nix`:
 
 ```nix
@@ -93,7 +94,8 @@ hardware.graphics = {
 };
 ```
 
-#### 2. CPU and Power Management
+### CPU and Power Management
+
 ```nix
 # AMD CPU optimizations
 boot.kernelParams = [
@@ -103,21 +105,34 @@ boot.kernelParams = [
 
 # CPU frequency scaling
 powerManagement.cpuFreqGovernor = "performance";  # or "ondemand"
+
+# AMD microcode
+hardware.cpu.amd.updateMicrocode = true;
 ```
 
-#### 3. AI/NPU Support (Optional)
+### AI/NPU Support (Optional)
+
 ```nix
 # For AI acceleration (experimental)
 boot.kernelModules = [ "amdxdna" ];  # XDNA NPU driver
 ```
 
-## Installation Process for Ryzen AI 300 Series
+## Installation Process
 
-### Step 1: Boot from USB Installer
+### Step 1: Build the USB Installer
+
+```bash
+cd ~/.dotfiles
+./scripts/build-usb-installer.sh
+```
+
+### Step 2: Boot from USB Installer
+
 - The generic configuration will detect your Ryzen AI 9 HX 370
 - All essential hardware should be recognized
 
-### Step 2: Generate Hardware Configuration
+### Step 3: Generate Hardware Configuration
+
 ```bash
 sudo nixos-generate-config --root /mnt
 ```
@@ -128,34 +143,36 @@ This will create a hardware-specific configuration that includes:
 - Graphics card detection
 - Network interface identification
 
-### Step 3: Review Generated Configuration
+### Step 4: Review Generated Configuration
+
 Check `/mnt/etc/nixos/hardware-configuration.nix` for:
 - NVMe storage detection
 - AMD GPU recognition
 - Network interface names
 - Any Ryzen-specific settings
 
-### Step 4: Install System
+### Step 5: Install System
+
 ```bash
 sudo nixos-install --flake .#your-hostname
 ```
 
 ## Expected Performance
 
-### ✅ **Excellent Performance Expected**
+### Excellent Performance Expected
 - **CPU**: Full performance with proper power management
 - **Graphics**: AMD GPU acceleration working
 - **Storage**: NVMe full speed support
 - **Memory**: DDR5/LPDDR5X optimization
 - **Virtualization**: KVM with AMD extensions
 
-### 🎯 **Ryzen AI Advantages**
+### Ryzen AI Advantages
 - **AI Workloads**: NPU acceleration for compatible applications
 - **Gaming**: RDNA 3/3.5 graphics performance
 - **Productivity**: Hybrid core efficiency
 - **Power Efficiency**: Zen 5c efficiency cores
 
-## Troubleshooting for Ryzen AI Systems
+## Troubleshooting
 
 ### Common Issues and Solutions
 
@@ -194,18 +211,21 @@ powerManagement = {
 
 ## Conclusion
 
-**The generic USB installer configuration will work perfectly** with your AMD Ryzen AI 9 HX 370. The updated configuration includes all necessary drivers for modern AMD systems.
+The generic USB installer configuration will work perfectly with an AMD Ryzen AI 9 HX 370. The
+configuration includes all necessary drivers for modern AMD systems.
 
-### Key Points:
-1. **Boot Success**: Generic config will detect and boot your system
+### Key Points
+
+1. **Boot Success**: Generic config will detect and boot the system
 2. **Hardware Recognition**: All major components supported
 3. **Performance**: Full performance achievable with proper configuration
 4. **Future-Proof**: Ready for AI/NPU features as kernel support matures
 
-### Recommendation:
+### Recommendation
+
 1. Use the updated USB installer (includes AMD-specific modules)
 2. Generate hardware-specific configuration during installation
-3. Add AMD optimizations to your final configuration
+3. Add AMD optimizations to the final configuration
 4. Test AI/NPU features with newer kernels if needed
 
-Your Ryzen AI 9 HX 370 is an excellent platform for NixOS with full support in the Linux kernel!
+The Ryzen AI 9 HX 370 is an excellent platform for NixOS with full support in the Linux kernel.

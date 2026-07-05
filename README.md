@@ -6,8 +6,8 @@ This repository contains my personal NixOS configuration using flakes and Home M
 
 These dotfiles provide a complete NixOS setup with:
 
-- **System Configuration**: NixOS system-wide settings via `configuration.nix`
-- **User Environment**: Home Manager configuration in `home.nix`
+- **System Configuration**: NixOS system-wide settings via `modules/system/*.nix`
+- **User Environment**: Home Manager configuration in `modules/home/**/*.nix`
 - **Flake Management**: Modern Nix flake setup with pinned inputs
 - **Custom Modules**: Extended functionality through custom Home Manager modules
 - **Application Integration**: Configured applications with seamless integration
@@ -16,8 +16,11 @@ These dotfiles provide a complete NixOS setup with:
 
 ### Core Configuration Files
 
-- [`configuration.nix`](configuration.nix): System-wide NixOS configuration
-- [`home.nix`](home.nix): Home Manager user environment configuration
+- [`configuration.nix`](configuration.nix): A thin import shim -- imports `./modules/system`
+  (the NixOS aggregator) and sets `system.stateVersion`. Real system configuration lives in
+  `modules/system/*.nix`.
+- [`home.nix`](home.nix): A thin import shim -- imports `./modules/home` (the Home Manager
+  aggregator). Real user environment configuration lives in `modules/home/**/*.nix`.
 - [`flake.nix`](flake.nix): Nix flake with inputs, overlays, and host definitions
 
 ### Module Map
@@ -25,8 +28,8 @@ These dotfiles provide a complete NixOS setup with:
 ```
 .
 ├── flake.nix                      # Inputs + overlays + nixosConfigurations + homeConfigurations
-├── configuration.nix              # System NixOS config (boot, hardware, services, packages)
-├── home.nix                       # User Home Manager config (apps, dotfiles, user services)
+├── configuration.nix              # Thin import shim -> modules/system/
+├── home.nix                       # Thin import shim -> modules/home/
 │
 ├── hosts/                         # Per-host hardware configurations
 │   ├── nandi/hardware-configuration.nix   # Primary workstation (Intel)
@@ -122,8 +125,8 @@ See [`docs/usb-installer.md`](docs/usb-installer.md) for complete guide.
 
 ### Customization
 
-- **System changes**: Edit [`configuration.nix`](configuration.nix)
-- **User environment**: Edit [`home.nix`](home.nix)  
+- **System changes**: Edit `modules/system/*.nix`
+- **User environment**: Edit `modules/home/**/*.nix`
 - **Package updates**: Modify [`flake.nix`](flake.nix) inputs
 - **Application configs**: Update files in [`config/`](config/)
 
