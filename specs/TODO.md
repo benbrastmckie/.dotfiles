@@ -11,8 +11,8 @@ next_project_number: 94
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69,77,86,92,93 | -- | nix-infrastructure, desktop, maintenance, ... |
-| 2 | 78,87,88,89 | 77,86 | nix-infrastructure, desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,77,86,92,93 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 2 | 69,78,87,88,89 | 77,86 | nix-infrastructure, desktop |
 | 3 | 90 | 88 | nix-infrastructure |
 | 4 | 91 | 87,89,90 | nix-infrastructure |
 
@@ -22,8 +22,8 @@ next_project_number: 94
 
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
 68 [NOT STARTED] — The iso and usb-installer nixosConfigurations fail to build becau
-69 [NOT STARTED] — Consolidate the dual home-manager setup so there is a single sour
 86 [NOT STARTED] — Adopt the module convention (options + aggregators) and make the 
+  └─ 69 [NOT STARTED] — SCOPE UPDATE (2026-07): now depends on task 86 and is serialized 
   └─ 87 [NOT STARTED] — Clean up hosts/ structure and documentation in the NixOS/Home Man
     └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do
   └─ 88 [NOT STARTED] — Run a module granularity pass over modules/home/ in the NixOS/Hom
@@ -384,9 +384,9 @@ SEED/CROSS-REPO: diagnosis performed in ~/Mail; approved delete manifest + wrapp
 - **Status**: [NOT STARTED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
-- **Dependencies**: None
+- **Dependencies**: Task 86
 
-**Description**: Consolidate the dual home-manager setup so there is a single source of truth. Both the NixOS-integrated path (home-manager.users.benjamin via lib/mkHost.nix) and the standalone path (homeConfigurations.benjamin) import home.nix but pass subtly different extraSpecialArgs - notably lectic as the raw flake input (integrated) vs the resolved package (standalone). This asymmetry caused the lectic regression caught in task 66 phase 9. Decide the intended behavior (likely: both should ship the built lectic package), unify the specialArgs, and document in docs/dual-home-manager.md. See the open question recorded there.
+**Description**: SCOPE UPDATE (2026-07): now depends on task 86 and is serialized after it. Task 81's design decomposition folded this task's resolution into subtask 86 (and, failing that, subtask 91) as Option A — DOCUMENTATION-ONLY. Do NOT run concurrently with 86: they both touch docs/dual-home-manager.md, home.nix, lib/mkHost.nix and flake.nix. After 86 lands, first VERIFY whether 86 already unified the extraSpecialArgs and closed docs/dual-home-manager.md; if so, this task is a verification-only close-out (mark completed, no code changes). Only if 86 did NOT fold it, complete the Option-A documentation resolution here — do NOT redo 86's aggregator/wiring code changes. Original framing follows. --- Consolidate the dual home-manager setup so there is a single source of truth. Both the NixOS-integrated path (home-manager.users.benjamin via lib/mkHost.nix) and the standalone path (homeConfigurations.benjamin) import home.nix but pass subtly different extraSpecialArgs - notably lectic as the raw flake input (integrated) vs the resolved package (standalone). This asymmetry caused the lectic regression caught in task 66 phase 9. Decide the intended behavior (likely: both should ship the built lectic package), unify the specialArgs, and document in docs/dual-home-manager.md. See the open question recorded there.
 
 ---
 

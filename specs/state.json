@@ -824,11 +824,14 @@
       "project_name": "consolidate_dual_home_manager_config",
       "status": "not_started",
       "task_type": "nix",
-      "description": "Consolidate the dual home-manager setup so there is a single source of truth. Both the NixOS-integrated path (home-manager.users.benjamin via lib/mkHost.nix) and the standalone path (homeConfigurations.benjamin) import home.nix but pass subtly different extraSpecialArgs - notably lectic as the raw flake input (integrated) vs the resolved package (standalone). This asymmetry caused the lectic regression caught in task 66 phase 9. Decide the intended behavior (likely: both should ship the built lectic package), unify the specialArgs, and document in docs/dual-home-manager.md. See the open question recorded there.",
+      "description": "SCOPE UPDATE (2026-07): now depends on task 86 and is serialized after it. Task 81's design decomposition folded this task's resolution into subtask 86 (and, failing that, subtask 91) as Option A \u2014 DOCUMENTATION-ONLY. Do NOT run concurrently with 86: they both touch docs/dual-home-manager.md, home.nix, lib/mkHost.nix and flake.nix. After 86 lands, first VERIFY whether 86 already unified the extraSpecialArgs and closed docs/dual-home-manager.md; if so, this task is a verification-only close-out (mark completed, no code changes). Only if 86 did NOT fold it, complete the Option-A documentation resolution here \u2014 do NOT redo 86's aggregator/wiring code changes. Original framing follows. --- Consolidate the dual home-manager setup so there is a single source of truth. Both the NixOS-integrated path (home-manager.users.benjamin via lib/mkHost.nix) and the standalone path (homeConfigurations.benjamin) import home.nix but pass subtly different extraSpecialArgs - notably lectic as the raw flake input (integrated) vs the resolved package (standalone). This asymmetry caused the lectic regression caught in task 66 phase 9. Decide the intended behavior (likely: both should ship the built lectic package), unify the specialArgs, and document in docs/dual-home-manager.md. See the open question recorded there.",
       "topic": "nix-infrastructure",
       "created": "2026-06-24T22:04:05Z",
       "parent_task": 66,
-      "dependencies": []
+      "dependencies": [
+        86
+      ],
+      "last_updated": "2026-07-05T05:03:01Z"
     },
     {
       "project_number": 73,
