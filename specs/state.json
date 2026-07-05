@@ -1,6 +1,72 @@
 {
-  "next_project_number": 95,
+  "next_project_number": 101,
   "active_projects": [
+    {
+      "project_number": 95,
+      "project_name": "post_reorg_documentation_sweep",
+      "status": "not_started",
+      "task_type": "nix",
+      "topic": "nixos-config",
+      "description": "Complete the post-reorg documentation sweep: fix all remaining docs that still point contributors at configuration.nix/home.nix for content that now lives in modules/system/* and modules/home/**. Covers root README.md (4 spots), hosts/nandi/README.md, hosts/garuda/README.md, and 6 topic docs (docs/dictation.md, docs/neovim.md, docs/gnome-settings.md, docs/discord-bot.md, docs/installation.md, docs/development.md). Also fix docs/dictation.md stale package name, broken line reference, and dead wtype references that contradict its own text. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group A).",
+      "created": "2026-07-05T09:48:44Z",
+      "last_updated": "2026-07-05T09:48:44Z"
+    },
+    {
+      "project_number": 96,
+      "project_name": "documentation_completeness_gaps",
+      "status": "not_started",
+      "task_type": "nix",
+      "topic": "nixos-config",
+      "dependencies": [
+        95
+      ],
+      "description": "Fill documentation completeness gaps: add a missing hosts/hamsa/README.md (the daily-driver AMD Ryzen AI 9 HX 370 machine, currently the only host without a README - reuse the corrected wording from task 95 rather than the stale nandi/garuda phrasing), and add header comments to the 9 of 13 packages/*.nix files that lack them. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group B).",
+      "created": "2026-07-05T09:48:44Z",
+      "last_updated": "2026-07-05T09:48:44Z"
+    },
+    {
+      "project_number": 97,
+      "project_name": "refactor_dead_comment_cleanup",
+      "status": "not_started",
+      "task_type": "nix",
+      "topic": "nixos-config",
+      "description": "Small refactor and dead-comment cleanup: extract the 3 inline writeShellScriptBin wrappers from modules/system/packages.nix into their own packages/*.nix files for consistency with the rest of the package layout, and fix the confirmed contradictory MCPHub comment pair in flake.nix (lines 33 vs 62). Verify with nix flake check. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group C).",
+      "created": "2026-07-05T09:48:44Z",
+      "last_updated": "2026-07-05T09:48:44Z"
+    },
+    {
+      "project_number": 98,
+      "project_name": "nix_formatter_lint_tooling",
+      "status": "not_started",
+      "task_type": "nix",
+      "topic": "nixos-config",
+      "dependencies": [
+        97
+      ],
+      "description": "Add Nix formatter and lint tooling to the flake (none configured today; CI only runs nix flake check). Standardize on nixfmt (RFC 166 / nixfmt-rfc-style, the official formatter) as the flake formatter output, and add statix + deadnix for linting/dead-code detection. Decide and document whether to gate CI on formatting/lint (needs user confirmation on strictness). Apply an initial format pass. Depends on task 97 as both touch flake.nix. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group D).",
+      "created": "2026-07-05T09:48:44Z",
+      "last_updated": "2026-07-05T09:48:44Z"
+    },
+    {
+      "project_number": 99,
+      "project_name": "ryzen_docs_niri_framing",
+      "status": "not_started",
+      "task_type": "nix",
+      "topic": "nixos-config",
+      "description": "Consolidate the two near-duplicate Ryzen AI 300 docs (docs/ryzen-ai-300-compatibility.md and docs/ryzen-ai-300-support-summary.md) into a single authoritative doc, and re-confirm docs/niri.md 'Recommended Usage Strategy' testing-phase framing against actual daily-driver usage (update if stale). Carried over from task 94 deferred Phase 8 - needs user confirmation on how to consolidate/reframe. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group E) and specs/094_review_nixos_config_documentation/plans/01_nixos-doc-config-improvements.md (Phase 8).",
+      "created": "2026-07-05T09:48:44Z",
+      "last_updated": "2026-07-05T09:48:44Z"
+    },
+    {
+      "project_number": 100,
+      "project_name": "strip_niri_doc_emoji",
+      "status": "not_started",
+      "task_type": "nix",
+      "topic": "nixos-config",
+      "description": "Strip the ~58 emoji glyphs from docs/niri.md (1035 lines) to conform to the emoji convention added in task 91, preserving arrows/structural characters. Purely mechanical, no config verification needed. Carried over from task 94 deferred Phase 8. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group F).",
+      "created": "2026-07-05T09:48:44Z",
+      "last_updated": "2026-07-05T09:48:44Z"
+    },
     {
       "project_number": 94,
       "project_name": "review_nixos_config_documentation",
