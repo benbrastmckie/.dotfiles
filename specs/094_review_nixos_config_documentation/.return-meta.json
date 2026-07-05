@@ -1,21 +1,93 @@
 {
-  "status": "planned",
+  "status": "implemented",
+  "summary": "Executed Phases 1-7 of the NixOS doc/config improvement plan: corrected the nandi/hamsa CPU-vendor factual bug, de-staled configuration.md/unstable-packages.md/how-to-add-package.md/how-to-add-service.md, fixed package-inventory docs (removed marker-pdf.nix, added opencode/kooha/slidev sections, python312->python3), swept emoji from eligible docs, made three conservative comment-only config cleanups, and created overlays/README.md. Phase 8 (Ryzen doc consolidation, niri testing-phase framing, niri.md emoji strip) was deliberately left untouched pending user confirmation. nix flake check passes.",
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/094_review_nixos_config_documentation/plans/01_nixos-doc-config-improvements.md",
-      "summary": "Priority-sequenced 8-phase plan: (1) fix nandi/hamsa CPU-vendor factual bug in root README; (2) de-stale docs/configuration.md + docs/unstable-packages.md; (3) repoint docs/how-to-add-package.md + docs/how-to-add-service.md to the module layout; (4) correct packages/README.md + docs/packages.md (marker-pdf removal, opencode/kooha/slidev additions, python312->python3); (5) emoji sweep of eligible docs; (6) conservative comment-only cleanups in modules/system/{packages,desktop}.nix + home.nix verified by nix flake check; (7) create overlays/README.md; (8) DEFERRED user-confirmation items (Ryzen doc consolidation, niri testing-phase framing, niri.md emoji strip) not executed autonomously."
+      "type": "summary",
+      "path": "specs/094_review_nixos_config_documentation/summaries/01_nixos-doc-config-improvements-summary.md",
+      "summary": "Implementation summary with verification results and plan deviations"
+    },
+    {
+      "type": "implementation",
+      "path": "README.md",
+      "summary": "Corrected nandi/hamsa CPU-vendor mislabel; added overlays/ directory bullet"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/configuration.md",
+      "summary": "De-staled File Structure tree, overlay heading, config/home shim descriptions"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/unstable-packages.md",
+      "summary": "Removed stale pending-Phase-2 language"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/how-to-add-package.md",
+      "summary": "Repointed decision tree/examples to modules/; fixed overlay-file staleness"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/how-to-add-service.md",
+      "summary": "Repointed examples + service table to modules/; documented optional/host-toggled pattern"
+    },
+    {
+      "type": "implementation",
+      "path": "packages/README.md",
+      "summary": "Removed marker-pdf.nix; added opencode/kooha/slidev sections; python312 -> python3"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/packages.md",
+      "summary": "Fixed deleted-file reference and python312 mention"
+    },
+    {
+      "type": "implementation",
+      "path": "overlays/README.md",
+      "summary": "New file documenting all three overlays"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/system/packages.nix",
+      "summary": "Pruned 4 confirmed-configured items from dead comment block"
+    },
+    {
+      "type": "implementation",
+      "path": "home.nix",
+      "summary": "Annotated dead historical stateVersion comment lines"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/usb-installer.md",
+      "summary": "Emoji glyphs removed"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/wifi.md",
+      "summary": "Emoji glyphs removed"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/installation.md",
+      "summary": "Emoji glyph removed"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/development.md",
+      "summary": "Emoji glyph removed"
     }
   ],
-  "next_steps": "Run /implement 94 to execute the plan",
-  "memory_candidates": [],
+  "completion_data": {
+    "completion_summary": "Corrected NixOS config documentation across README.md, docs/, packages/README.md, and created overlays/README.md; made three conservative comment-only config cleanups verified by nix flake check. Phase 8 deferred pending user confirmation."
+  },
   "metadata": {
     "session_id": "sess_1783238869_c87ed8",
-    "agent_type": "planner-agent",
+    "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
-    "phase_count": 8,
-    "estimated_hours": 5.5,
-    "dependency_waves": [[1, 2, 3, 4, 6, 7], [5]]
-  }
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 7,
+    "phases_total": 8
+  },
+  "next_steps": "Consider spawning a follow-up task for the deferred Phase 8 items: Ryzen doc consolidation, niri.md testing-phase framing re-confirmation, and a dedicated niri.md emoji-strip task."
 }

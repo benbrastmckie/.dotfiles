@@ -1,13 +1,14 @@
 {
-  "status": "planned",
-  "task_number": 94,
-  "summary": "Created a priority-sequenced 8-phase implementation plan from the research findings. High-priority doc-accuracy fixes first: Phase 1 corrects the confirmed nandi/hamsa CPU-vendor factual bug in root README.md; Phase 2 de-stales docs/configuration.md + docs/unstable-packages.md (removes 'planned'/'pending Phase 2' language now that the reorg landed); Phase 3 repoints docs/how-to-add-package.md + docs/how-to-add-service.md at the modules/system + modules/home layout and documents the optional/host-toggled pattern; Phase 4 corrects packages/README.md + docs/packages.md (deletes nonexistent marker-pdf.nix, adds opencode/kooha/slidev, python312->python3, fixes the deleted-file reference). Medium: Phase 5 sweeps emoji from eligible docs (excludes niri.md and the two Ryzen docs). Low/conservative: Phase 6 makes comment-only cleanups in modules/system/{packages,desktop}.nix + home.nix, verified by nix flake check (no functional or stateVersion changes); Phase 7 creates the missing overlays/README.md. Phase 8 is explicitly DEFERRED and not executed autonomously: Ryzen doc consolidation, niri 'testing phase' framing, and the large niri.md emoji strip all require user confirmation. Doc-only vs config changes are kept separate; every phase lists specific files, concrete changes, and a verification step (doc re-read against live config; nix flake check for .nix edits). Phases 1-4, 6, 7 touch disjoint files (parallelizable wave 1); Phase 5 depends on 2,3. Estimated 5.5 hours for executable phases.",
+  "status": "implemented",
+  "phases_completed": 7,
   "phases_total": 8,
+  "summary": "Executed Phases 1-7 of the NixOS doc/config improvement plan: fixed the nandi/hamsa CPU-vendor factual bug in README.md, de-staled docs/configuration.md, docs/unstable-packages.md, docs/how-to-add-package.md, and docs/how-to-add-service.md to describe the current post-reorg modules/system + modules/home layout, corrected packages/README.md and docs/packages.md (removed nonexistent marker-pdf.nix, added opencode/kooha/slidev sections, python312 -> python3), swept emoji glyphs from eligible docs/*.md files, made three conservative comment-only config cleanups in modules/system/packages.nix and home.nix (verified via nix flake check), and created overlays/README.md closing the last directory-convention gap. Phase 8 (Ryzen doc consolidation, niri.md testing-phase framing, niri.md emoji strip) was deliberately left untouched per the orchestration directive, since all three items require explicit user judgment.",
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/094_review_nixos_config_documentation/plans/01_nixos-doc-config-improvements.md"
+      "type": "summary",
+      "path": "specs/094_review_nixos_config_documentation/summaries/01_nixos-doc-config-improvements-summary.md"
     }
   ],
-  "next_steps": "Run /implement 94 to execute the plan (Phase 8 items are deferred pending user confirmation)"
+  "blockers": [],
+  "continuation_context": "Phase 8 remains [NOT STARTED] by design (deferred, not executed under autonomous orchestration). Recommend spawning a follow-up task to handle: (1) Ryzen doc consolidation (docs/ryzen-ai-300-compatibility.md + docs/ryzen-ai-300-support-summary.md near-duplicates), (2) docs/niri.md 'Recommended Usage Strategy' testing-phase framing re-confirmation against actual daily-driver usage, (3) a dedicated docs/niri.md emoji-strip task (~58 glyphs, 1035 lines)."
 }
