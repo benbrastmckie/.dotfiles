@@ -21,7 +21,7 @@
     ./email/protonmail.nix
     ./email/notmuch.nix
     ./email/aerc.nix
-    ./email/agent-tools.nix
+    ./email/agent-tools
 
     # Package modules
     ./packages/ai-tools.nix
