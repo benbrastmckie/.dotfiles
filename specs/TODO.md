@@ -1,5 +1,5 @@
 ---
-next_project_number: 101
+next_project_number: 102
 ---
 
 # TODO
@@ -11,10 +11,14 @@ next_project_number: 101
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92,101 | -- | nixos-config, nix-infrastructure, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
+
+### Nixos Config
+
+101 [NOT STARTED] — Clear the statix and deadnix findings surfaced by the warn-only l
 
 ### Nix Infrastructure
 
@@ -47,6 +51,16 @@ next_project_number: 101
 92 [NOT STARTED] — Fix the Logos (Protonmail Bridge) mbsync group so the email-clean
 
 ## Tasks
+
+### 101. Nix lint findings cleanup
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Clear the statix and deadnix findings surfaced by the warn-only lint tooling added in task 98, so the tree is lint-clean (enabling a future decision to gate CI on lint if desired). Two linters, concrete findings as of task 98 completion: (1) statix — 33 warnings across 4 rule classes: 18x 'repeated keys in attribute sets' (the home-manager.useGlobalPkgs/useUserPackages/users block in flake.nix:155-157, collapse into one home-manager = { ... } attrset), 11x 'empty pattern in function argument' ({ ... }: -> _: where the args are unused), 3x 'assignment instead of inherit from' (overlays/unstable-packages.nix:6,12 and flake.nix:55), 1x 'unnecessary parentheses'. (2) deadnix — 23 unused lambda declarations across 16 files (unused lib/pkgs/prev/final/old args), e.g. modules/system/{boot,nix,desktop}.nix (lib), overlays/{claude-squad,python-packages}.nix (prev/final/old), flake.nix:45, home.nix:2, packages/{aristotle,claude-code,polkit-gnome-agent-wrapper,slidev}.nix. NOTE: 4 of the deadnix hits are in auto-generated hosts/*/hardware-configuration.nix (unused pkgs pattern) — decide whether to fix those (risk: overwritten by nixos-generate-config) or exclude them via a deadnix exclude rather than editing. Prefer 'statix fix' / 'deadnix --edit' assisted passes but hand-verify each change; some unused args (final/prev in overlays) may be intentional signature conventions worth keeping with a deadnix skip comment. Verify with nix flake check (must stay green) and re-run statix check + deadnix to confirm zero findings (or a documented, deliberately-excluded remainder). Follow-on to task 98 (specs/098_nix_formatter_lint_tooling).
+
+---
 
 ### 100. Strip niri doc emoji
 - **Status**: [COMPLETED]
