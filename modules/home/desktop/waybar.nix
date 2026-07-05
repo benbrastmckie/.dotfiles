@@ -1,6 +1,5 @@
 # Waybar status bar configuration for the Niri Wayland compositor session.
-{ ... }:
-{
+_: {
   programs.waybar = {
     enable = true;
     settings = {

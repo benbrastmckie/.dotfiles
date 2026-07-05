@@ -1,7 +1,6 @@
 # Aerc terminal email client configuration with notmuch backend.
 # See: specs/045_add_terminal_email_client_to_nixos
-{ ... }:
-{
+_: {
   # aerc - terminal email client with notmuch backend
   programs.aerc = {
     enable = true;

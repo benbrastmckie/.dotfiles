@@ -1,6 +1,5 @@
 # XDG base directories, MIME associations, and desktop integration.
-{ ... }:
-{
+_: {
   # Enable XDG base directories
   xdg.enable = true;
 

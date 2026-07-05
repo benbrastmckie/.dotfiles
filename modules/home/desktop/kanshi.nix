@@ -1,7 +1,6 @@
 # Kanshi dynamic display configuration for the Niri Wayland compositor session.
 # Note: Uses niri.service target so it only runs in Niri session
-{ ... }:
-{
+_: {
   services.kanshi = {
     enable = true;
     systemdTarget = "niri.service";

@@ -1,6 +1,5 @@
 # Networking, firewall, security, and related service timeout configuration.
-{ ... }:
-{
+_: {
   # NOTE: networking.hostName is set per-host in flake.nix (via mkHost)
 
   # WiFi Configuration (see docs/wifi.md for details)

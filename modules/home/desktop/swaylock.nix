@@ -1,7 +1,6 @@
 # Swaylock screen locker configuration.
 # swayidle is DISABLED — see inline comment for rationale.
-{ ... }:
-{
+_: {
   programs.swaylock = {
     enable = true;
     settings = {

@@ -1,6 +1,5 @@
 # Shell configuration — programs.fish system-wide settings.
-{ ... }:
-{
+_: {
   # Shell configuration
   programs.fish = {
     enable = true;

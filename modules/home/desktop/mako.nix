@@ -1,6 +1,5 @@
 # Mako notification daemon configuration.
-{ ... }:
-{
+_: {
   services.mako = {
     enable = true;
     settings = {

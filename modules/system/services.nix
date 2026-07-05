@@ -1,6 +1,5 @@
 # System services: printing, network discovery, keyboard layout, and input.
-{ ... }:
-{
+_: {
   # Enable CUPS to print documents.
   # Using IPP Everywhere (driverless) - HPLIP removed as it conflicts with IPP
   services.printing = {

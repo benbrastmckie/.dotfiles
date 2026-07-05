@@ -179,20 +179,23 @@ keep-set or the excluded hardware-config files.
 
 ---
 
-### Phase 3: Apply the 15 auto-fixable statix findings via `statix fix` [NOT STARTED]
+### Phase 3: Apply the 15 auto-fixable statix findings via `statix fix` [COMPLETED]
 
 **Goal**: Clear the three auto-fixable rule classes (W10 empty-pattern ×11, W04 manual-inherit ×3,
 W08 useless-parens ×1) mechanically.
 
 **Tasks**:
-- [ ] Run `statix fix` on the tree.
-- [ ] Diff-review against the dry-run expectations in the research report: W10 `{ ... }:` -> `_:`
+- [x] Run `statix fix` on the tree.
+- [x] Diff-review against the dry-run expectations in the research report: W10 `{ ... }:` -> `_:`
   in the 11 module headers; W04 `lib = nixpkgs.lib;` -> `inherit (nixpkgs) lib;` at `flake.nix:55`
   and the two `overlays/unstable-packages.nix` entries (`niri`, `gemini-cli`); W08 outer-paren
-  removal at `modules/system/packages.nix:5`.
-- [ ] Run a spot `nix fmt` on the files `statix fix` touched (statix's re-indentation may differ
-  from nixfmt's opinion, especially around `packages.nix`'s `with pkgs; [ ... ]`).
-- [ ] Confirm no W20 finding was accidentally introduced by the paren/indent change.
+  removal at `modules/system/packages.nix:5`. Verified: all 14 diffs match exactly, comments
+  preserved.
+- [x] Run a spot `nix fmt` on the files `statix fix` touched (statix's re-indentation may differ
+  from nixfmt's opinion, especially around `packages.nix`'s `with pkgs; [ ... ]`). Verified: only
+  whitespace/paren-removal changes (sorted-content diff confirms zero package-list changes).
+- [x] Confirm no W20 finding was accidentally introduced by the paren/indent change. Verified:
+  `statix check` now reports only 18 W20 findings, zero W10/W04/W08.
 
 **Timing**: 0.5 hours
 
@@ -206,9 +209,9 @@ W08 useless-parens ×1) mechanically.
 - `modules/system/packages.nix:5` - drop useless parens
 
 **Verification**:
-- `nix flake check` stays green.
+- `nix flake check` stays green. Verified: `all checks passed!`.
 - `statix check` no longer reports any W10/W04/W08 findings (only W20 remain, minus any already
-  excluded).
+  excluded). Verified: 18 W20 findings remain, zero W10/W04/W08.
 
 ---
 
