@@ -1,5 +1,5 @@
 ---
-next_project_number: 93
+next_project_number: 94
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 93
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69,77,86,92 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,69,77,86,92,93 | -- | nix-infrastructure, desktop, maintenance, ... |
 | 2 | 78,87,88,89 | 77,86 | nix-infrastructure, desktop |
 | 3 | 90 | 88 | nix-infrastructure |
 | 4 | 91 | 87,89,90 | nix-infrastructure |
@@ -31,6 +31,7 @@ next_project_number: 93
       └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
   └─ 89 [NOT STARTED] — Package opencode-discord-bot via buildPythonApplication in the Ni
     └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
+93 [NOT STARTED] — Make scripts/update.sh's automatic git checkpoint commit opt-in i
 
 ### Services
 
@@ -58,6 +59,16 @@ next_project_number: 93
 92 [NOT STARTED] — Fix the Logos (Protonmail Bridge) mbsync group so the email-clean
 
 ## Tasks
+
+### 93. Update sh auto commit opt in
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nix-infrastructure
+- **Dependencies**: None
+
+**Description**: Make scripts/update.sh's automatic git checkpoint commit opt-in instead of default (hazard surfaced during tasks 82-85 parallel orchestration). scripts/update.sh:7-17 currently runs `git add -A && git commit` unconditionally whenever the working tree is dirty, which during concurrent work swept unrelated staged changes from other tasks into misattributed commits (e.g. commit 6ba1f4e "checkpoint: auto-commit before update" absorbed task-85 changes, and commit 02f806d absorbed task-83's work under task 92's message). Fix: make the checkpoint opt-in behind a flag/env var, mirroring the existing task-61 `--update` opt-in pattern already in this file (lines 19-28) — e.g. add a `--checkpoint` flag or `UPDATE_CHECKPOINT=1` env var, defaulting OFF. When the checkpoint is OFF and the tree is dirty, prefer refusing to proceed with a clear message (or skipping the checkpoint) rather than silently staging everything. CRITICAL: never use `git add -A` to stage arbitrary unrelated changes — if a checkpoint is made, it must be explicit/opt-in. Update docs/development.md and any README/doc reference to `./scripts/update.sh` to document the new flag (grep repo-wide for `update.sh` references — task 85 already normalized these to the scripts/ prefix). Verification: `./scripts/update.sh` with a dirty tree no longer creates an auto-commit unless the opt-in flag/env is passed; the `--update` flake-input path still works; `bash -n scripts/update.sh` clean; `nix flake check` green. Seed context: this session's orchestration of tasks 82-85 (see specs/085_root_scripts_relocation_scripts_dir/summaries/01_scripts-dir-relocation-summary.md deviation note) and specs/083_git_hygiene_specs_tmp_nixos_repo/summaries/01_git-hygiene-untrack-tmp-summary.md commit-attribution note.
+
+---
 
 ### 92. Logos mbsync group labels fix
 - **Status**: [NOT STARTED]
