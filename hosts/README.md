@@ -21,20 +21,50 @@ Generic hardware configuration for the USB installer. This configuration is used
 Each host directory contains:
 - `hardware-configuration.nix` - Auto-generated hardware configuration
 
+Some host directories also carry:
+- `default.nix` - Optional, host-toggled NixOS module (opt-in only, wired in explicitly via
+  `extraModules` in `flake.nix`; see `.claude/rules/nix.md`'s Optional/Host-Toggled Modules
+  convention). Present on `nandi/` (opts into the Discord bot relay) and `usb-installer/`
+  (installer-specific overrides).
+- `README.md` - Per-host notes on hardware details and building. Present on `garuda/` and
+  `nandi/`.
+
 ## Usage
 
-Host configurations are referenced in `flake.nix` to build system-specific configurations:
+Host configurations are built via the `mkHost` factory (`lib/mkHost.nix`), which centralizes the
+repeated `nixpkgs.lib.nixosSystem` wiring — `configuration.nix`,
+`hosts/<hostname>/hardware-configuration.nix`, `sops-nix`, the shared nixpkgs overlay
+configuration, and the home-manager module are all included automatically. `flake.nix` calls it
+once per host:
 
 ```nix
+mkHost = import ./lib/mkHost.nix {
+  inherit nixpkgs home-manager sops-nix;
+  inherit nixpkgsConfig username name pkgs-unstable lectic nix-ai-tools system;
+  root = self;
+};
+
 nixosConfigurations = {
-  garuda = nixpkgs.lib.nixosSystem {
-    modules = [
-      ./configuration.nix
-      ./hosts/garuda/hardware-configuration.nix
+  # Simple form: only hostname is required.
+  hamsa = mkHost { hostname = "hamsa"; };
+  garuda = mkHost { hostname = "garuda"; };
+
+  # Richer form: extraModules and extraSpecialArgs extend the generated configuration.
+  usb-installer = mkHost {
+    hostname = "usb-installer";
+    extraModules = [
+      "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+      ./hosts/usb-installer/default.nix
     ];
+    extraSpecialArgs = { inherit niri; };
   };
 };
 ```
+
+`mkHost` accepts `{ hostname, extraModules ? [ ], extraSpecialArgs ? { } }`. Note: the `iso`
+configuration is NOT built via `mkHost` — an installer image has no
+`hardware-configuration.nix`, which `mkHost` unconditionally requires, so `iso` is wired directly
+with `lib.nixosSystem` in `flake.nix`.
 
 ## Building for a Host
 

@@ -133,29 +133,33 @@ capture the `iso` `drvPath` needed for Phase 3's before/after equivalence proof.
 
 ---
 
-### Phase 2: Rewrite hosts/README.md for the mkHost factory (REQUIRED) [NOT STARTED]
+### Phase 2: Rewrite hosts/README.md for the mkHost factory (REQUIRED) [COMPLETED]
 
 **Goal**: Replace the obsolete inline-`nixosSystem` example and correct the "Structure" drift so
 the directory-level doc reflects the current `mkHost` factory and per-host conventions.
 
 **Tasks**:
-- [ ] Rewrite the `## Usage` code block (`hosts/README.md:28-37`) to document the `mkHost` factory:
+- [x] Rewrite the `## Usage` code block (`hosts/README.md:28-37`) to document the `mkHost` factory:
       show the simple one-liner form (`hamsa = mkHost { hostname = "hamsa"; };`,
       `garuda = mkHost { hostname = "garuda"; };`) and the richer `usb-installer` form that
       exercises both `extraModules` and `extraSpecialArgs`
       (`usb-installer = mkHost { hostname = "usb-installer"; extraModules = [ "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix" ./hosts/usb-installer/default.nix ]; extraSpecialArgs = { inherit niri; }; };`).
       Note that `mkHost` (`lib/mkHost.nix`) wires in `configuration.nix`,
       `hosts/<name>/hardware-configuration.nix`, `sops-nix`, the nixpkgs overlay config, and the
-      home-manager module automatically.
-- [ ] Update the `## Structure` section (lines 19-23): host directories contain
+      home-manager module automatically. *(completed; also added a one-line note that `iso` is
+      not built via `mkHost` because it lacks `hardware-configuration.nix` — orthogonal to the
+      Hosts-list deferral below, purely explaining the factory's own precondition)*
+- [x] Update the `## Structure` section (lines 19-23): host directories contain
       `hardware-configuration.nix` and MAY also carry a per-host `default.nix` (opt-in module, per
       `.claude/rules/nix.md`'s Optional/Host-Toggled convention — e.g. `nandi/`, `usb-installer/`)
-      and/or a `README.md` (e.g. `garuda/`, `nandi/`).
-- [ ] Leave the "Available hosts" line (line 49) and "Hosts" section (lines 5-17) unchanged in this
+      and/or a `README.md` (e.g. `garuda/`, `nandi/`). *(completed)*
+- [x] Leave the "Available hosts" line (line 49) and "Hosts" section (lines 5-17) unchanged in this
       phase — adding `iso` is deferred to Phase 3 so the README stays self-consistent if Phase 3 is
-      skipped.
-- [ ] Stage and verify: `git add hosts/README.md` (NEVER `git add -A`), then
-      `nix flake check --no-build`.
+      skipped. *(completed — verified unchanged in final diff)*
+- [x] Stage and verify: `git add hosts/README.md` (NEVER `git add -A`), then
+      `nix flake check --no-build`. *(completed — `git diff --staged` showed only
+      `hosts/README.md`; `nix flake check --no-build` output byte-identical to Phase 1 baseline:
+      "all checks passed!" with the same two zfs warnings)*
 
 **Timing**: ~15 minutes
 
