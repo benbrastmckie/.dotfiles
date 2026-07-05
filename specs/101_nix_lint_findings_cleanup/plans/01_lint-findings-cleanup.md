@@ -265,25 +265,40 @@ the diff is small and mechanical.
 
 ---
 
-### Phase 5: Hand-collapse W20 Tier 2 (whole-file wrap files) [NOT STARTED]
+### Phase 5: Hand-collapse W20 Tier 2 (whole-file wrap files) [COMPLETED]
 
 **Goal**: Collapse the 4 Tier-2 findings by wrapping the existing line range in one outer
 `<key> = { ... };` and stripping the repeated prefix, preserving every interleaved comment's
 relative position.
 
 **Tasks**:
-- [ ] `modules/system/boot.nix` - wrap the whole body in `boot = { ... };`, dropping the `boot.`
+- [x] `modules/system/boot.nix` - wrap the whole body in `boot = { ... };`, dropping the `boot.`
   prefix on all 6 assignments; keep the Ryzen comment blocks in place; re-flow with `nix fmt`
   after. (Note: this file already carries its Phase 1 `# deadnix: skip`; keep it above the header.)
-- [ ] `modules/home/core/dotfiles.nix` - collapse `home` (sessionVariables / file / file.".zuliprc".source)
+- [x] `modules/home/core/dotfiles.nix` - collapse `home` (sessionVariables / file / file.".zuliprc".source)
   one level only: keep `file = ...` and `file.".zuliprc".source = ...;` as two separate statements
-  inside the merged `home = {...}` (not a full recursive collapse).
-- [ ] `modules/home/core/xdg.nix` - wrap the whole file body in `xdg = { ... };` (enable /
+  inside the merged `home = {...}` (not a full recursive collapse). *(deviation: altered — statix
+  actually flagged 5 occurrences of `home.*` in this file, not 3 (the "3 shown + 2 omitted" note
+  in the research table): the 2 omitted were `home.activation.claudeSettings` and
+  `home.activation.uvTools`. Folded both `activation.*` entries into the same merged `home = {...}`
+  block too, since leaving them as standalone `home.activation.X` statements would still leave 3
+  `home` occurrences and re-trigger W20.)*
+- [x] `modules/home/core/xdg.nix` - wrap the whole file body in `xdg = { ... };` (enable /
   dataFile."applications/sioyek.desktop".text / mimeApps).
-- [ ] `modules/system/power.nix` - collapse the 3 `services.*` occurrences
+- [x] `modules/system/power.nix` - collapse the 3 `services.*` occurrences
   (power-profiles-daemon.enable / udev.extraRules / fwupd.enable), skipping over the single-use
   `powerManagement` and `systemd.services.init-power-profile` keys (do NOT absorb them).
-- [ ] Run `nix flake check` after each file.
+  *(deviation: altered — statix actually flagged 4 occurrences of `services.*` (the "1 occurrence
+  omitted" note), the 4th being `services.earlyoom` further down the file. Merged only the 3
+  plan-specified entries (power-profiles-daemon/udev.extraRules/fwupd) into one `services = {...}`
+  block at their original position; left `services.earlyoom` as its own standalone statement in
+  its original position (untouched, preserving its feature-walkthrough placement next to swap/zram/
+  VM-tuning). Verified this leaves exactly 2 `services` occurrences in the file, below statix's
+  3-occurrence firing threshold, confirmed by post-edit `statix check` reporting zero findings for
+  this file.)*
+- [x] Run `nix flake check` after each file. Verified: `all checks passed!` after all 4 files
+  edited; spot-checked `nix eval` of `services.earlyoom.enable`, `services.fwupd.enable`,
+  `services.power-profiles-daemon.enable` on `nixosConfigurations.nandi` — all `true`, unchanged.
 
 **Timing**: 1 hour
 
@@ -294,9 +309,11 @@ relative position.
   `modules/system/power.nix` - whole-body / range wrap of the flagged key
 
 **Verification**:
-- `nix flake check` green after each file.
-- `statix check` reports zero W20 findings for these 4 files.
-- Confirm no comment was lost or reordered relative to its code (visual diff review).
+- `nix flake check` green after each file. Verified: `all checks passed!`.
+- `statix check` reports zero W20 findings for these 4 files. Verified: remaining W20 findings
+  are only `modules/system/desktop.nix` (Phase 6) and the 4 hardware-configuration.nix files
+  (Phase 7) — 6 total findings left tree-wide.
+- Confirm no comment was lost or reordered relative to its code (visual diff review). Verified.
 
 ---
 

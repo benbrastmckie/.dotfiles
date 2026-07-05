@@ -8,31 +8,38 @@
     enable = true;
   };
 
-  # Power profiles daemon for Waybar integration and system-wide power management
-  services.power-profiles-daemon.enable = true;
+  services = {
+    # Power profiles daemon for Waybar integration and system-wide power management
+    power-profiles-daemon.enable = true;
 
-  # ==========================================================================
-  # Automatic Power Profile Switching - AC vs Battery
-  # ==========================================================================
-  # The HX 370 at "balanced" platform profile can draw 45W+ and runs the fan
-  # continuously. Switching to "low-power" on battery: reduces CPU TDP, limits
-  # boost, and significantly quiets the fan (GPU+CPU both power-gate more).
-  #
-  # Implementation: udev rules write directly to the ACPI platform_profile sysfs
-  # node on AC state change. We do NOT call powerprofilesctl because udev rules
-  # run outside the D-Bus session. PPD will not override these sysfs writes.
-  #
-  # The GPU DPM performance level is also set per ArchWiki Framework 13 guidance:
-  # https://wiki.archlinux.org/title/Framework_Laptop_13
-  # ==========================================================================
-  services.udev.extraRules = lib.mkAfter ''
-    # On battery: low-power platform profile + GPU low performance level
-    SUBSYSTEM=="power_supply", KERNEL=="ACAD", ENV{POWER_SUPPLY_ONLINE}=="0", RUN+="${pkgs.bash}/bin/bash -c 'echo low-power > /sys/firmware/acpi/platform_profile'"
-    SUBSYSTEM=="power_supply", KERNEL=="ACAD", ENV{POWER_SUPPLY_ONLINE}=="0", RUN+="${pkgs.bash}/bin/bash -c 'echo low > /sys/bus/pci/devices/0000:c1:00.0/power_dpm_force_performance_level'"
-    # On AC: balanced platform profile + GPU auto performance level
-    SUBSYSTEM=="power_supply", KERNEL=="ACAD", ENV{POWER_SUPPLY_ONLINE}=="1", RUN+="${pkgs.bash}/bin/bash -c 'echo balanced > /sys/firmware/acpi/platform_profile'"
-    SUBSYSTEM=="power_supply", KERNEL=="ACAD", ENV{POWER_SUPPLY_ONLINE}=="1", RUN+="${pkgs.bash}/bin/bash -c 'echo auto > /sys/bus/pci/devices/0000:c1:00.0/power_dpm_force_performance_level'"
-  '';
+    # ==========================================================================
+    # Automatic Power Profile Switching - AC vs Battery
+    # ==========================================================================
+    # The HX 370 at "balanced" platform profile can draw 45W+ and runs the fan
+    # continuously. Switching to "low-power" on battery: reduces CPU TDP, limits
+    # boost, and significantly quiets the fan (GPU+CPU both power-gate more).
+    #
+    # Implementation: udev rules write directly to the ACPI platform_profile sysfs
+    # node on AC state change. We do NOT call powerprofilesctl because udev rules
+    # run outside the D-Bus session. PPD will not override these sysfs writes.
+    #
+    # The GPU DPM performance level is also set per ArchWiki Framework 13 guidance:
+    # https://wiki.archlinux.org/title/Framework_Laptop_13
+    # ==========================================================================
+    udev.extraRules = lib.mkAfter ''
+      # On battery: low-power platform profile + GPU low performance level
+      SUBSYSTEM=="power_supply", KERNEL=="ACAD", ENV{POWER_SUPPLY_ONLINE}=="0", RUN+="${pkgs.bash}/bin/bash -c 'echo low-power > /sys/firmware/acpi/platform_profile'"
+      SUBSYSTEM=="power_supply", KERNEL=="ACAD", ENV{POWER_SUPPLY_ONLINE}=="0", RUN+="${pkgs.bash}/bin/bash -c 'echo low > /sys/bus/pci/devices/0000:c1:00.0/power_dpm_force_performance_level'"
+      # On AC: balanced platform profile + GPU auto performance level
+      SUBSYSTEM=="power_supply", KERNEL=="ACAD", ENV{POWER_SUPPLY_ONLINE}=="1", RUN+="${pkgs.bash}/bin/bash -c 'echo balanced > /sys/firmware/acpi/platform_profile'"
+      SUBSYSTEM=="power_supply", KERNEL=="ACAD", ENV{POWER_SUPPLY_ONLINE}=="1", RUN+="${pkgs.bash}/bin/bash -c 'echo auto > /sys/bus/pci/devices/0000:c1:00.0/power_dpm_force_performance_level'"
+    '';
+
+    # Firmware updates via fwupd - recommended for Framework laptops.
+    # BIOS >= 3.05 is required to fix standby power drain (Framework community).
+    # Run: fwupdmgr refresh && fwupdmgr update
+    fwupd.enable = true;
+  };
 
   # Apply the correct profile at boot based on current AC state
   systemd.services.init-power-profile = {
@@ -45,11 +52,6 @@
       ExecStart = "${pkgs.bash}/bin/bash -c 'if [ \"$(cat /sys/class/power_supply/ACAD/online)\" = \"1\" ]; then echo balanced > /sys/firmware/acpi/platform_profile; echo auto > /sys/bus/pci/devices/0000:c1:00.0/power_dpm_force_performance_level; else echo low-power > /sys/firmware/acpi/platform_profile; echo low > /sys/bus/pci/devices/0000:c1:00.0/power_dpm_force_performance_level; fi'";
     };
   };
-
-  # Firmware updates via fwupd - recommended for Framework laptops.
-  # BIOS >= 3.05 is required to fix standby power drain (Framework community).
-  # Run: fwupdmgr refresh && fwupdmgr update
-  services.fwupd.enable = true;
 
   # ==========================================================================
   # Memory Management - earlyoom for OOM Prevention
