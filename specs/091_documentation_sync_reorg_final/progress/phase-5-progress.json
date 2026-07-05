@@ -1,0 +1,23 @@
+{
+  "phase": 5,
+  "phase_name": "[OPTIONAL] Fold-in single-line drift fixes",
+  "started_at": "2026-07-05T07:30:00Z",
+  "last_updated": "2026-07-05T07:30:00Z",
+  "objectives": [
+    {"id": 1, "description": "Fix docs/configuration.md:20 stale modules/ description", "status": "done", "files_touched": ["docs/configuration.md"]},
+    {"id": 2, "description": "Fix docs/unstable-packages.md:12 stale (planned: task 66 Phase 2) note", "status": "done", "files_touched": ["docs/unstable-packages.md"]},
+    {"id": 3, "description": "Document packages/README.md marker-pdf.nix/missing-sections drift as OUT OF SCOPE follow-up (not fixed)", "status": "done", "files_touched": []}
+  ],
+  "current_objective": null,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": [
+    {
+      "task_id": "5.note",
+      "description": "docs/configuration.md ASCII block lines 18-19 ((planned) overlays/, lib/) and the Task 66 status blockquote at lines 22-24 remain stale after the line-20 fix; docs/unstable-packages.md lines 5-7 have a similar stale task-66-phase-1 note",
+      "type": "deferred",
+      "reason": "Plan and user instructions scoped Phase 5 explicitly to the two single named lines (docs/configuration.md:20, docs/unstable-packages.md:12) only, to avoid scope creep on the capstone task; adjacent staleness in the same files is recorded as a follow-up rather than silently fixed or silently ignored, mirroring the packages/README.md disposition",
+      "annotation": "*(deviation: deferred — adjacent stale content in same files left as follow-up, not fixed)*"
+    }
+  ]
+}

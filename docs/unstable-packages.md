@@ -9,8 +9,9 @@ This document explains the approach used for managing packages from the unstable
 ## Approach
 
 The configuration uses a centralized overlay (`unstablePackagesOverlay`) defined in `flake.nix`
-(planned: `overlays/unstable-packages.nix` after task 66 Phase 2) to selectively pull packages
-from the unstable channel while keeping the rest of the system on the stable channel. This approach:
+and implemented in `overlays/unstable-packages.nix` (`flake.nix:59` imports it, curried with
+`pkgs-unstable`) to selectively pull packages from the unstable channel while keeping the rest of
+the system on the stable channel. This approach:
 
 1. Makes it explicit which packages are being pulled from unstable
 2. Keeps the configuration clean and maintainable

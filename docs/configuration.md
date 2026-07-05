@@ -17,7 +17,7 @@ The configuration spans three primary files and several support directories:
 ├── packages/              # Custom derivations (claude-code, opencode, loogle, etc.)
 ├── overlays/              # (planned) Extracted overlays (claude-squad, unstable, python)
 ├── lib/                   # (planned) mkHost helper function
-└── modules/               # Stub scaffold (opencode.nix; home-modules/ stubs)
+└── modules/               # system/ (NixOS) + home/ (Home Manager) — see modules/README.md
 ```
 
 > **Task 66 status**: Phases 2-6 (structural split into `modules/system/`, `modules/home/`,

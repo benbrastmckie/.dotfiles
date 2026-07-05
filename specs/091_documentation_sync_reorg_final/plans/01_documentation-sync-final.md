@@ -218,7 +218,7 @@ Option A/B/C question are already closed and documented — NOT new resolution c
 - The existing "extraSpecialArgs unified (task 69)" bullet and "Keep both paths (Option A)"
   recommendation are untouched (no rewrite).
 
-### Phase 5: [OPTIONAL] Fold-in single-line drift fixes [NOT STARTED]
+### Phase 5: [OPTIONAL] Fold-in single-line drift fixes [COMPLETED]
 
 **Goal**: Opportunistically fix the two trivial, same-staleness-class single-line drift items the
 drift check surfaced (research recommendation (a)). Clearly marked OPTIONAL — if time/scope pressure
@@ -226,15 +226,18 @@ appears, defer to `/fix-it`; the phase is self-contained and its omission does n
 or the regression in Phase 6.
 
 **Tasks**:
-- [ ] `docs/configuration.md:20` — replace the stale `modules/ # Stub scaffold (opencode.nix;
+- [x] `docs/configuration.md:20` — replace the stale `modules/ # Stub scaffold (opencode.nix;
       home-modules/ stubs)` description (both referents gone) with the current `modules/system/` +
-      `modules/home/` reality (pointer to `modules/README.md`).
-- [ ] `docs/unstable-packages.md:12` — drop the stale `(planned: ... after task 66 Phase 2)` note on
-      `overlays/unstable-packages.nix` (the file exists and is wired into `flake.nix:59`).
-- [ ] EXPLICITLY document (in the implementation summary, not by silent edit) that
+      `modules/home/` reality (pointer to `modules/README.md`). *(completed)*
+- [x] `docs/unstable-packages.md:12` — drop the stale `(planned: ... after task 66 Phase 2)` note on
+      `overlays/unstable-packages.nix` (the file exists and is wired into `flake.nix:59`). *(completed)*
+- [x] EXPLICITLY document (in the implementation summary, not by silent edit) that
       `packages/README.md`'s nonexistent `marker-pdf.nix` section and its missing `kooha.nix`/
       `opencode.nix`/`slidev.nix` sections are OUT OF SCOPE for task 91 and recommended as a
-      follow-up `/fix-it`/spawned task (research recommendation (b)).
+      follow-up `/fix-it`/spawned task (research recommendation (b)). *(completed: also flagged
+      adjacent stale content in docs/configuration.md lines 18-19/22-24 and
+      docs/unstable-packages.md lines 5-7 as a follow-up, deferred per Phase 5's strict two-line
+      scope — see progress/phase-5-progress.json deviations)*
 
 **Timing**: 0.25 hours
 
