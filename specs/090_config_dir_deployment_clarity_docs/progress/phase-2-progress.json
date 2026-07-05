@@ -1,0 +1,22 @@
+{
+  "phase": 2,
+  "phase_name": "Add Naming Hazards callouts + force-overwrite flag",
+  "started_at": "2026-07-05T06:59:59Z",
+  "last_updated": "2026-07-05T06:59:59Z",
+  "objectives": [
+    {"id": 1, "description": "Add ## Naming Hazards section with two callouts", "status": "done", "files_touched": ["config/README.md"]},
+    {"id": 2, "description": "Add force-overwrite WARNING to mechanism 3", "status": "done", "files_touched": ["config/README.md"], "note": "written during Phase 1 edit alongside mechanism 3 prose"}
+  ],
+  "current_objective": 2,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": [
+    {
+      "task_id": "2.4",
+      "description": "Add the force-overwrite WARNING to mechanism 3",
+      "type": "altered",
+      "reason": "Warning was written inline with mechanism-3 prose in Phase 1 rather than as a separate Phase 2 edit; content matches requirement.",
+      "annotation": "*(deviation: altered — written during Phase 1's edit)*"
+    }
+  ]
+}

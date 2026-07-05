@@ -125,27 +125,30 @@ each naming its source file and behavior, replacing the current under-specified 
 
 ---
 
-### Phase 2: Add "Naming Hazards" callouts + force-overwrite flag [NOT STARTED]
+### Phase 2: Add "Naming Hazards" callouts + force-overwrite flag [COMPLETED]
 
 **Goal**: Add the two required callouts as their own clearly-headed subsections, and the
 preserve-and-flag force-overwrite warning as part of describing mechanism 3.
 
 **Tasks**:
-- [ ] Add a `## Naming Hazards` section with two subsections.
-- [ ] Callout (a) — `config/` vs Nix `config` argument shadowing: explain that inside
+- [x] Add a `## Naming Hazards` section with two subsections. *(completed)*
+- [x] Callout (a) — `config/` vs Nix `config` argument shadowing: explain that inside
       `dotfiles.nix` the `{ config, pkgs, ... }` argument `config` is the Home Manager
       module-system attrset (e.g. `config.home.homeDirectory`, `config.lib.dag.entryAfter`) and is
       unrelated to the repo-root `config/` directory, which is always referenced via relative
-      paths like `../../../config/...`.
-- [ ] Callout (b) — three-way "claude" collision: name all three distinctly — this repo's
+      paths like `../../../config/...`. *(completed)*
+- [x] Callout (b) — three-way "claude" collision: name all three distinctly — this repo's
       `.claude/` agent-orchestration system (out of scope, untouched), this repo's `config/claude/`
       dotfiles source (in scope), and the deployed runtime target `~/.claude/` in `$HOME` (the
-      user's actual Claude Code CLI config dir). State they must never be conflated.
-- [ ] Add the force-overwrite WARNING to mechanism 3 (from Phase 1), worded as intentional/
+      user's actual Claude Code CLI config dir). State they must never be conflated. *(completed)*
+- [x] Add the force-overwrite WARNING to mechanism 3 (from Phase 1), worded as intentional/
       documented behavior: every `home-manager switch` unconditionally `rm -f` + `cp`s over
       `~/.claude/settings.json` and `~/.claude/keybindings.json` with no merge — a manual edit to
       those runtime files is destroyed on the next rebuild unless copied back into
       `config/claude/` first. Frame as a documented constraint, explicitly NOT a bug being fixed.
+      *(deviation: altered — this warning was written inline as part of the mechanism-3 prose
+      during Phase 1's edit, rather than deferred to Phase 2, since it reads naturally attached to
+      the mechanism it warns about; content and framing match this task's requirement exactly)*
 
 **Timing**: 30 min
 

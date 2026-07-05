@@ -69,6 +69,39 @@ read-only store symlink would not allow.
 > files directly, copy your changes into `config/claude/` before the next rebuild or they will be
 > lost.
 
+## Naming Hazards
+
+Two naming collisions in this repo are easy to conflate. Always use the full path when referring
+to any of the entities below — never a bare, ambiguous name like "the config directory" or "the
+claude directory".
+
+### `config/` directory vs. the Nix `config` module-argument
+
+`modules/home/core/dotfiles.nix` (like other Home Manager modules) opens with
+`{ config, pkgs, ... }:`. Inside that function body, the bare name `config` refers to the
+**Home Manager module-system attribute set** — e.g. `config.home.homeDirectory` or
+`config.lib.dag.entryAfter` — and has nothing to do with the repository's top-level `config/`
+directory that holds the actual dotfiles content. The repo-root directory is never referred to
+by the bare name `config` inside module code; it is always reached via a relative path such as
+`../../../config/kitty.conf`. When reading `dotfiles.nix`, resolve `config.<x>` as "the Home
+Manager module system" and `../../../config/<file>` as "the dotfiles source directory" — they are
+unrelated despite sharing the word "config".
+
+### The three-way "claude" collision
+
+This repository contains three distinct, easily-confused "claude"-named entities. They must
+never be conflated:
+
+| Path | What it is | Scope |
+|------|------------|-------|
+| `.claude/` (repo root) | The Claude Code agent-orchestration system for this repo (commands, skills, agents, context) | Out of scope for this task and for task 81 generally |
+| `config/claude/` | The dotfiles *source* for Claude Code CLI settings (`settings.json`, `keybindings.json`), tracked in this repo | In scope — this is what deployment mechanism 3 copies from |
+| `~/.claude/` (user's `$HOME`) | The deployed *runtime* target directory that the actual Claude Code CLI reads/writes at `$HOME`, outside this repo | The destination mechanism 3 copies to; not itself version-controlled |
+
+`.claude/` and `config/claude/` are both inside this git repository but serve completely
+different purposes (agent orchestration vs. dotfiles source); `~/.claude/` is outside the repo
+entirely and is where the CLI actually runs. When in doubt, name the full path.
+
 ## Terminal Emulators
 
 | File | Deployed To | Description |
