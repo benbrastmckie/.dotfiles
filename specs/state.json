@@ -1101,14 +1101,14 @@
     {
       "project_number": 84,
       "project_name": "nix_flake_check_ci_gate",
-      "status": "planned",
+      "status": "completed",
       "task_type": "nix",
       "description": "Add a `nix flake check` CI gate to the NixOS/Home Manager dotfiles repo (task 81 Tier 0, subtask blueprint #3 — NEW subtask, no dependencies). Add a GitHub Actions workflow under .github/workflows/ that runs `nix flake check` on push/PR (the repo already has a GitHub remote, free for personal repos), and/or a local pre-commit hook as a complement. This closes the exact gap that let tasks 67 (R env/ICU), 68 (zfs-kernel), and 69 (lectic specialArgs) go undetected until an unrelated task's audit surfaced them — cheap (one workflow file), high ROI, and explicitly first-class Tier-0 so it is in place before the bulk of the remaining reorg subtasks land. Inherited cross-cutting protocol: stage the new workflow file with `git add <specific path>` before verifying locally. Verification level: build-only inertness — workflow runs green on a trivial PR/push; local `nix flake check` still passes. Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/02_team-research.md (\"NEW — CI gate\" subtask and \"CI-gate rationale\" in Migration Philosophy), and design/target-layout.md §3 (Subtask Blueprint row 3) and §4.4 (CI-Gate Rationale).",
       "topic": "nix-infrastructure",
       "parent_task": 81,
       "dependencies": [],
       "created": "2026-07-05T01:03:22Z",
-      "last_updated": "2026-07-05T02:25:43Z",
+      "last_updated": "2026-07-05T02:44:42Z",
       "next_artifact_number": 1,
       "session_id": "sess_1783217512_f16aa6_84",
       "artifacts": [
@@ -1116,6 +1116,11 @@
           "path": "specs/084_nix_flake_check_ci_gate/plans/01_ci-flake-check-gate.md",
           "type": "plan",
           "summary": "Implementation plan"
+        },
+        {
+          "path": "specs/084_nix_flake_check_ci_gate/summaries/01_ci-flake-check-gate-summary.md",
+          "type": "summary",
+          "summary": "CI flake-check gate added; local check green"
         }
       ]
     },

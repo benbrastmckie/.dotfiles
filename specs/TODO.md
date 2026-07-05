@@ -11,10 +11,10 @@ next_project_number: 93
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69,77,84,85,86,92 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,69,77,85,86,92 | -- | nix-infrastructure, desktop, maintenance, ... |
 | 2 | 78,87,88,89 | 77,86 | nix-infrastructure, desktop |
 | 3 | 90 | 88 | nix-infrastructure |
-| 4 | 91 | 84,85,87,89,90 | nix-infrastructure |
+| 4 | 91 | 85,87,89,90 | nix-infrastructure |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -23,10 +23,8 @@ next_project_number: 93
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
 68 [NOT STARTED] — The iso and usb-installer nixosConfigurations fail to build becau
 69 [NOT STARTED] — Consolidate the dual home-manager setup so there is a single sour
-84 [PLANNED] — Add a `nix flake check` CI gate to the NixOS/Home Manager dotfile
-  └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do
 85 [NOT STARTED] — Relocate root shell scripts into a new scripts/ directory in the 
-  └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
+  └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do
 86 [NOT STARTED] — Adopt the module convention (options + aggregators) and make the 
   └─ 87 [NOT STARTED] — Clean up hosts/ structure and documentation in the NixOS/Home Man
     └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
@@ -156,11 +154,12 @@ SEED/CROSS-REPO: diagnosis performed in ~/Mail; approved delete manifest + wrapp
 ---
 
 ### 84. Nix flake check ci gate
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
 - **Plan**: [084_nix_flake_check_ci_gate/plans/01_ci-flake-check-gate.md]
+- **Summary**: [084_nix_flake_check_ci_gate/summaries/01_ci-flake-check-gate-summary.md]
 
 **Description**: Add a `nix flake check` CI gate to the NixOS/Home Manager dotfiles repo (task 81 Tier 0, subtask blueprint #3 — NEW subtask, no dependencies). Add a GitHub Actions workflow under .github/workflows/ that runs `nix flake check` on push/PR (the repo already has a GitHub remote, free for personal repos), and/or a local pre-commit hook as a complement. This closes the exact gap that let tasks 67 (R env/ICU), 68 (zfs-kernel), and 69 (lectic specialArgs) go undetected until an unrelated task's audit surfaced them — cheap (one workflow file), high ROI, and explicitly first-class Tier-0 so it is in place before the bulk of the remaining reorg subtasks land. Inherited cross-cutting protocol: stage the new workflow file with `git add <specific path>` before verifying locally. Verification level: build-only inertness — workflow runs green on a trivial PR/push; local `nix flake check` still passes. Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/02_team-research.md ("NEW — CI gate" subtask and "CI-gate rationale" in Migration Philosophy), and design/target-layout.md §3 (Subtask Blueprint row 3) and §4.4 (CI-Gate Rationale).
 
