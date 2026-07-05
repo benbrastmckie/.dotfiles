@@ -15,6 +15,8 @@
   # OMF has been removed - fish greeting disabled in config.fish
 
   home.stateVersion = "24.11"; # Please read the comment before changing.
+  # History, do not restore — active stateVersion is frozen (see modules/README.md Verified
+  # Health Notes). Kept as a record of prior values, not a rollback option.
   # home.stateVersion = "24.05"; # Please read the comment before changing.
   # home.stateVersion = "23.11"; # Please read the comment before changing.
 }

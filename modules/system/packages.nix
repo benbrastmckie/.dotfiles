@@ -22,17 +22,15 @@
       brightnessctl # Laptop backlight control (XF86MonBrightness keys in niri; uses logind SetBrightness, no udev/video-group needed)
 
       # # For use with Niri without Gnome utilities
-      # mako                 # Lightweight notification daemon for Wayland
+      # (mako, waybar, kanshi, swaylock are now configured as home-manager modules —
+      #  see modules/home/desktop/{mako,waybar,kanshi,swaylock}.nix — removed from this list)
       # grim                 # Screenshot utility for Wayland
       # slurp                # Area selection tool for Wayland screenshots
-      # swaylock             # Screen locker for Wayland compositors
-      # waybar               # Customizable status bar for Wayland
       # swayidle             # Idle management daemon for Wayland
       # network-manager-applet  # GUI for NetworkManager connections
       # blueman              # Bluetooth management utility
       # wl-clipboard-x11     # X11 clipboard compatibility for Wayland
       # clipman              # Clipboard manager for Wayland
-      # kanshi               # Dynamic display configuration tool
 
       # Terminals and Shells
       kitty # GPU-accelerated terminal emulator

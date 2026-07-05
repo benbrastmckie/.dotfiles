@@ -269,26 +269,27 @@ documentation files" rule, without touching the deferred files.
 
 ---
 
-### Phase 6: Conservative config-comment cleanups [NOT STARTED]
+### Phase 6: Conservative config-comment cleanups [COMPLETED]
 
 **Goal**: Make only safe, individually-justified comment cleanups in three `.nix` files; verify the
 flake still evaluates.
 
 **Tasks**:
-- [ ] `modules/system/packages.nix` (lines ~24-35): in the commented-out "For use with Niri without
+- [x] `modules/system/packages.nix` (lines ~24-35): in the commented-out "For use with Niri without
       Gnome utilities" block, prune only the four items now genuinely configured as home-manager modules
       (`mako`, `waybar`, `kanshi`, `swaylock` — confirm each via the existence of
       `modules/home/desktop/{mako,kanshi,swaylock,waybar}.nix`). Keep the remaining items
       (`grim`, `slurp`, `swayidle`, `network-manager-applet`, `blueman`, `wl-clipboard-x11`, `clipman`)
       since they may be deliberate X11-era exclusions; verify each is genuinely still absent before
       leaving it, and do not add any package.
-- [ ] `modules/system/desktop.nix` (line ~70): the stray commented `# core-network.enable = true;` line
+- [x] `modules/system/desktop.nix` (line ~70): the stray commented `# core-network.enable = true;` line
       is inconsistent with the well-documented sibling lines below it. Do NOT delete it blindly (its
       validity as a current NixOS option was not confirmed in research). Either (a) add a brief rationale
       comment + spec/task reference matching the sibling `localsearch`/`tinysparql` lines if the intent
       is recoverable, or (b) leave it unchanged and note it in the summary. Default to (b) if intent is
-      unclear — do not remove.
-- [ ] `home.nix` (lines ~17-19): the two commented-out historical `home.stateVersion` values
+      unclear — do not remove. *(option (b) taken: left unchanged, noted here and in the summary —
+      option validity not independently confirmed this run.)*
+- [x] `home.nix` (lines ~17-19): the two commented-out historical `home.stateVersion` values
       (`24.05`, `23.11`) beneath the active `24.11` line are unexplained clutter. Add a one-line
       clarifying comment (e.g. "history, do not restore — active stateVersion is frozen") rather than
       deleting, to preserve the intentional-history signal. Do NOT touch the active `24.11` value.
