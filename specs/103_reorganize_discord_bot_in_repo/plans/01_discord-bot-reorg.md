@@ -215,22 +215,24 @@ mirroring nandi; keep nandi enabled.
 
 ---
 
-### Phase 4: Inertness gate + manual switch handoff [NOT STARTED]
+### Phase 4: Inertness gate + manual switch handoff [COMPLETED]
 
 **Goal**: Prove the tree is internally consistent with both changes, and hand the user a precise
 MANUAL runtime-verification procedure (sudo is sandbox-denied in agent context).
 
 **Tasks**:
-- [ ] Run `nix flake check` -- must pass for nandi/hamsa/garuda/iso + usb-installer.
-- [ ] Run `nixos-rebuild build --flake .#hamsa` (build-only, no sudo) -- must succeed and produce a
+- [x] Run `nix flake check` -- must pass for nandi/hamsa/garuda/iso + usb-installer.
+- [x] Run `nixos-rebuild build --flake .#hamsa` (build-only, no sudo) -- must succeed and produce a
       generation whose `discord-bot`/`opencode-serve` units use the packaged
       `${opencodeDiscordBot}/bin/opencode-discord-bot` console script (not the stale PYTHONPATH form).
-- [ ] Document the MANUAL user step in the implementation summary (and, if appropriate, in
+      Confirmed via `cat $RESULT/etc/systemd/system/discord-bot.service`:
+      `ExecStart=/nix/store/.../opencode-discord-bot-0.1.0/bin/opencode-discord-bot`.
+- [x] Document the MANUAL user step in the implementation summary (and, if appropriate, in
       `docs/discord-bot.md`): `sudo nixos-rebuild switch --flake .#hamsa`, then
       `systemctl status discord-bot opencode-serve` and `journalctl -u discord-bot -b` to confirm
       both services come back on the new packaged unit. Flag the expected, intended behavior delta
       (stale PYTHONPATH unit -> packaged console-script unit).
-- [ ] Record that agent-side verification stops at the build gate; runtime confirmation is the
+- [x] Record that agent-side verification stops at the build gate; runtime confirmation is the
       user's responsibility.
 
 **Timing**: 30 minutes
@@ -247,15 +249,15 @@ MANUAL runtime-verification procedure (sudo is sandbox-denied in agent context).
 
 ## Testing & Validation
 
-- [ ] `nix flake check` passes on the updated tree.
-- [ ] `nixos-rebuild build --flake .#hamsa` succeeds (sudo-free build).
-- [ ] `nix eval .#nixosConfigurations.hamsa.config.services.discordBot.enable` == `true`.
-- [ ] `nix eval .#nixosConfigurations.nandi.config.services.discordBot.enable` == `true`.
-- [ ] Discord bot derivation builds with the relocated `src` (`pythonImportsCheck` green).
-- [ ] `git grep` confirms no stale live-tree references to the old `../opencode-discord-bot` path.
-- [ ] All five docs updated; `hosts/hamsa/README.md` + `modules/README.md` no longer say hamsa
+- [x] `nix flake check` passes on the updated tree.
+- [x] `nixos-rebuild build --flake .#hamsa` succeeds (sudo-free build).
+- [x] `nix eval .#nixosConfigurations.hamsa.config.services.discordBot.enable` == `true`.
+- [x] `nix eval .#nixosConfigurations.nandi.config.services.discordBot.enable` == `true`.
+- [x] Discord bot derivation builds with the relocated `src` (`pythonImportsCheck` green).
+- [x] `git grep` confirms no stale live-tree references to the old `../opencode-discord-bot` path.
+- [x] All five docs updated; `hosts/hamsa/README.md` + `modules/README.md` no longer say hamsa
       lacks bot wiring.
-- [ ] MANUAL `sudo nixos-rebuild switch` + `systemctl`/`journalctl` procedure is documented for
+- [x] MANUAL `sudo nixos-rebuild switch` + `systemctl`/`journalctl` procedure is documented for
       the user (not executed by the agent).
 
 ## Artifacts & Outputs
