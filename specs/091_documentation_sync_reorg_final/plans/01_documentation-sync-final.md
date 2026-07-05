@@ -196,15 +196,15 @@ the flake.lock and stateVersion verified-non-issue one-liners in a "Verified Hea
 - `grep -in "flake.lock\|stateVersion" modules/README.md` shows both verified-non-issue notes.
 - Section list matches the real `find modules -type d` output (no invented subdirectories).
 
-### Phase 4: Confirming note for task 69 dual-home-manager closure [NOT STARTED]
+### Phase 4: Confirming note for task 69 dual-home-manager closure [COMPLETED]
 
 **Goal**: Record a one-line confirming note that task 69's `extraSpecialArgs` asymmetry and the
 Option A/B/C question are already closed and documented — NOT new resolution content.
 
 **Tasks**:
-- [ ] Add a one-line confirming note near the top of `docs/dual-home-manager.md` stating that task 69's
+- [x] Add a one-line confirming note near the top of `docs/dual-home-manager.md` stating that task 69's
       dual-home-manager closure (the `extraSpecialArgs` unification and the "Keep both paths / Option A"
-      recommendation already present in this file) is verified current as of task 91 — no further action.
+      recommendation already present in this file) is verified current as of task 91 — no further action. *(completed)*
 
 **Timing**: 0.25 hours
 

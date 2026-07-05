@@ -1,0 +1,13 @@
+{
+  "phase": 4,
+  "phase_name": "Confirming note for task 69 dual-home-manager closure",
+  "started_at": "2026-07-05T07:25:00Z",
+  "last_updated": "2026-07-05T07:25:00Z",
+  "objectives": [
+    {"id": 1, "description": "Add one-line confirming note near top of docs/dual-home-manager.md", "status": "done", "files_touched": ["docs/dual-home-manager.md"]}
+  ],
+  "current_objective": null,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": []
+}

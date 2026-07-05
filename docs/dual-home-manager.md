@@ -1,5 +1,11 @@
 # Dual Home-Manager Architecture
 
+> **Verified current (task 91)**: Task 69's `extraSpecialArgs`/`lectic` unification (documented
+> below under "Consequences of the Dual Setup") and the "Keep both paths (Option A)"
+> recommendation (under "Current Recommendation") are both closed and already documented in this
+> file — re-checked against the current tree during task 91's documentation sync pass, no further
+> action needed.
+
 ## Overview
 
 This flake runs two home-manager instances **in parallel** for the `benjamin` user:
