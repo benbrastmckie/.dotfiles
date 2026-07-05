@@ -1,7 +1,7 @@
 # Implementation Plan: Task #103
 
 - **Task**: 103 - Reorganize the opencode-discord-bot in-repo (host-wiring fix + repo-root declutter)
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 2.5 hours
 - **Dependencies**: None (follows task 89 packaging + task 86 module convention, both complete)
 - **Research Inputs**: specs/103_reorganize_discord_bot_in_repo/reports/01_discord-bot-reorg-research.md

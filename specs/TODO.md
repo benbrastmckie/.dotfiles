@@ -11,7 +11,7 @@ next_project_number: 104
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92,103 | -- | nix-infrastructure, services, desktop, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, services, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -27,7 +27,6 @@ next_project_number: 104
 23 [PLANNED] — install_simple_webcam_recording_software
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
-103 [NOT STARTED] — Reorganize the opencode-discord-bot in-repo (do NOT extract to a 
 
 ### Packaging
 
@@ -50,10 +49,12 @@ next_project_number: 104
 ## Tasks
 
 ### 103. Reorganize discord bot in repo
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: services
 - **Dependencies**: None
+- **Research**: [103_reorganize_discord_bot_in_repo/reports/01_discord-bot-reorg-research.md]
+- **Summary**: [103_reorganize_discord_bot_in_repo/summaries/01_discord-bot-reorg-summary.md]
 
 **Description**: Reorganize the opencode-discord-bot in-repo (do NOT extract to a separate repository). Two goals. (1) Fix host-wiring drift: the discord-bot systemd service is currently running on hamsa (the primary machine) even though only hosts/nandi/default.nix opts in via services.discordBot.enable = true. Make services.discordBot.enable cleanly enableable on ANY host and enable it on hamsa so the tracked config matches reality; decide whether nandi should stay enabled. (2) Declutter the repo root: relocate the in-tree Python source from root opencode-discord-bot/ (16 tracked files) to sit next to its derivation (recommended target packages/opencode-discord-bot/, co-located with packages/opencode-discord-bot.nix), updating the derivation's src from ../opencode-discord-bot to the new relative path (e.g. ./opencode-discord-bot), plus .gitignore entries and any references. Note the file/dir naming caveat if using packages/ (packages/opencode-discord-bot.nix file alongside a packages/opencode-discord-bot/ dir); research/plan may pick an alternative co-location target (e.g. a new pkgs/ or apps/ dir) if cleaner. Keep everything else in .dotfiles unchanged: sops secrets, the optional module, systemd wiring (opencode-serve + discord-bot, LoadCredential, StateDirectory, watchdog). Update docs to reflect the new source path and host wiring: docs/discord-bot.md, packages/README.md, modules/README.md, README.md (note the tree diagram at README.md line ~43). Verify nix flake check passes and the discord-bot service still builds/runs on hamsa after nixos-rebuild. Explicitly rejected alternative: extracting to a standalone flake-input repo (adds cross-repo iteration friction and maintenance surface for reuse/versioning benefits this personal, tightly-coupled service does not need). Follows task 89 (bot packaging, complete).
 

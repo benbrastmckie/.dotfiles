@@ -1,0 +1,44 @@
+{
+  "$schema": "orchestrator-handoff-v1",
+  "phase": "implement",
+  "status": "implemented",
+  "summary": "Implemented all 4 phases of the discord bot reorg plan. Phase 1: git mv opencode-discord-bot/ (14 tracked files) to packages/opencode-discord-bot/, repointed src = ./opencode-discord-bot and header comments in packages/opencode-discord-bot.nix. Phase 2: created hosts/hamsa/default.nix mirroring hosts/nandi/default.nix and added extraModules = [ ./hosts/hamsa/default.nix ] to the hamsa mkHost call in flake.nix; both nandi and hamsa now evaluate services.discordBot.enable == true, nandi unchanged. Phase 3: updated docs/discord-bot.md, packages/README.md, modules/README.md, README.md tree diagram, and hosts/hamsa/README.md to the new source path and hamsa wiring; also fixed one stale comment-only path reference in modules/system/optional/discord-bot.nix surfaced by the completeness-check grep (no functional change). Phase 4: nix flake check passes across all nixosConfigurations; nixos-rebuild build --flake .#hamsa succeeds and the built discord-bot.service ExecStart resolves to the packaged opencode-discord-bot-0.1.0 console script, confirming the intended drift closure. The MANUAL sudo nixos-rebuild switch + systemctl/journalctl runtime-verification step is documented in the summary for the user (sudo is sandbox-denied in agent context).",
+  "artifacts": [
+    {"type": "report", "path": "specs/103_reorganize_discord_bot_in_repo/reports/01_discord-bot-reorg-research.md"},
+    {"type": "plan", "path": "specs/103_reorganize_discord_bot_in_repo/plans/01_discord-bot-reorg.md"},
+    {"type": "summary", "path": "specs/103_reorganize_discord_bot_in_repo/summaries/01_discord-bot-reorg-summary.md"},
+    {"type": "implementation", "path": "packages/opencode-discord-bot/", "summary": "Relocated 14-file bot source tree (from root opencode-discord-bot/)"},
+    {"type": "implementation", "path": "packages/opencode-discord-bot.nix", "summary": "Updated src path + header comments"},
+    {"type": "implementation", "path": "hosts/hamsa/default.nix", "summary": "New host wiring file enabling services.discordBot"},
+    {"type": "implementation", "path": "flake.nix", "summary": "Added hamsa extraModules entry"},
+    {"type": "implementation", "path": "docs/discord-bot.md", "summary": "Updated source path + hamsa wiring prose"},
+    {"type": "implementation", "path": "packages/README.md", "summary": "Updated src path + stem-pairing note"},
+    {"type": "implementation", "path": "modules/README.md", "summary": "Updated host-wiring sentence for hamsa"},
+    {"type": "implementation", "path": "README.md", "summary": "Added packages/opencode-discord-bot/ tree entry"},
+    {"type": "implementation", "path": "hosts/hamsa/README.md", "summary": "Removed stale 'no default.nix' line"},
+    {"type": "implementation", "path": "modules/system/optional/discord-bot.nix", "summary": "Comment-only stale-path fix (no functional change)"}
+  ],
+  "blockers": [],
+  "next_action_hint": "complete",
+  "files_modified": [
+    "packages/opencode-discord-bot/ (14 relocated files)",
+    "packages/opencode-discord-bot.nix",
+    "hosts/hamsa/default.nix",
+    "flake.nix",
+    "docs/discord-bot.md",
+    "packages/README.md",
+    "modules/README.md",
+    "README.md",
+    "hosts/hamsa/README.md",
+    "modules/system/optional/discord-bot.nix",
+    "specs/103_reorganize_discord_bot_in_repo/plans/01_discord-bot-reorg.md",
+    "specs/103_reorganize_discord_bot_in_repo/summaries/01_discord-bot-reorg-summary.md"
+  ],
+  "decisions_made": [
+    "Executed phases in plan order (1 then 2, both wave 1) so Phase 4's combined build exercised both changes in one pass",
+    "Kept modules/system/optional/discord-bot.nix's functional structure (sops, systemd, callPackage path) fully untouched per the plan's non-goal; only fixed two stale-path comment lines to satisfy the Phase 3 completeness-check verification criterion (zero grep hits) -- annotated as a deviation",
+    "Did not attempt sudo nixos-rebuild switch or systemctl/journalctl checks -- documented as the MANUAL user step in the summary per the plan's explicit non-goal"
+  ],
+  "dead_ends": [],
+  "plan_markers_verified": true
+}
