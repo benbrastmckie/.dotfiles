@@ -11,10 +11,10 @@ next_project_number: 93
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,69,77,82,83,84,85,86,92 | -- | nix-infrastructure, desktop, maintenance, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,69,77,82,84,85,86,92 | -- | nix-infrastructure, desktop, maintenance, ... |
 | 2 | 78,87,88,89 | 77,86 | nix-infrastructure, desktop |
 | 3 | 90 | 88 | nix-infrastructure |
-| 4 | 91 | 82,83,84,85,87,89,90 | nix-infrastructure |
+| 4 | 91 | 82,84,85,87,89,90 | nix-infrastructure |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -23,11 +23,9 @@ next_project_number: 93
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
 68 [NOT STARTED] — The iso and usb-installer nixosConfigurations fail to build becau
 69 [NOT STARTED] — Consolidate the dual home-manager setup so there is a single sour
-82 [NOT STARTED] — Remove dead code and orphaned files from the NixOS/Home Manager d
+82 [PLANNED] — Remove dead code and orphaned files from the NixOS/Home Manager d
   └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do
-83 [NOT STARTED] — Fix git hygiene in the NixOS/Home Manager dotfiles repo (task 81 
-  └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
-84 [NOT STARTED] — Add a `nix flake check` CI gate to the NixOS/Home Manager dotfile
+84 [PLANNED] — Add a `nix flake check` CI gate to the NixOS/Home Manager dotfile
   └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
 85 [NOT STARTED] — Relocate root shell scripts into a new scripts/ directory in the 
   └─ 91 [NOT STARTED] — Perform final documentation sync across the NixOS/Home Manager do (see above)
@@ -160,30 +158,36 @@ SEED/CROSS-REPO: diagnosis performed in ~/Mail; approved delete manifest + wrapp
 ---
 
 ### 84. Nix flake check ci gate
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
+- **Plan**: [084_nix_flake_check_ci_gate/plans/01_ci-flake-check-gate.md]
 
 **Description**: Add a `nix flake check` CI gate to the NixOS/Home Manager dotfiles repo (task 81 Tier 0, subtask blueprint #3 — NEW subtask, no dependencies). Add a GitHub Actions workflow under .github/workflows/ that runs `nix flake check` on push/PR (the repo already has a GitHub remote, free for personal repos), and/or a local pre-commit hook as a complement. This closes the exact gap that let tasks 67 (R env/ICU), 68 (zfs-kernel), and 69 (lectic specialArgs) go undetected until an unrelated task's audit surfaced them — cheap (one workflow file), high ROI, and explicitly first-class Tier-0 so it is in place before the bulk of the remaining reorg subtasks land. Inherited cross-cutting protocol: stage the new workflow file with `git add <specific path>` before verifying locally. Verification level: build-only inertness — workflow runs green on a trivial PR/push; local `nix flake check` still passes. Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/02_team-research.md ("NEW — CI gate" subtask and "CI-gate rationale" in Migration Philosophy), and design/target-layout.md §3 (Subtask Blueprint row 3) and §4.4 (CI-Gate Rationale).
 
 ---
 
 ### 83. Git hygiene specs tmp nixos repo
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
+- **Research**: [083_git_hygiene_specs_tmp_nixos_repo/reports/01_git-hygiene-specs-tmp.md]
+- **Plan**: [083_git_hygiene_specs_tmp_nixos_repo/plans/01_git-hygiene-untrack-tmp.md]
+- **Summary**: [083_git_hygiene_specs_tmp_nixos_repo/summaries/01_git-hygiene-untrack-tmp-summary.md]
 
 **Description**: Fix git hygiene in the NixOS/Home Manager dotfiles repo (task 81 Tier 0, subtask blueprint #2, no dependencies). Untrack specs/tmp/* contents (specs/tmp/claude-tts-notify.log, specs/tmp/claude-tts-last-notify, specs/tmp/lit.md) via `git rm --cached` and extend .gitignore to cover specs/tmp/ contents — but the specs/tmp/ DIRECTORY ITSELF must continue to exist on disk (Critic correction: .claude/scripts/skill-base.sh's atomic state-write pattern, skill-base.sh:356,362, depends on the directory being present). Note specs/tmp/lit.md is an unrelated mbsync troubleshooting note, not --lit tooling — no decoupling work needed. Fix update.sh's mangled shebang (`#\!/bin/bash` from a heredoc write) and stray `complete\!` text. Inherited cross-cutting protocol: stage changes with `git add <specific paths>` (never `git add -A`) before verification (flake.nix's `root = self`). Scope boundary: this subtask touches specs/tmp/ and .gitignore/update.sh only — it does NOT touch any other content under specs/ or .claude/. Verification level: build-only inertness — `git status --porcelain` clean on specs/tmp/ contents, directory still present, `./update.sh` still executes, `nix flake check` green. Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md ("Git hygiene" section), reports/02_team-research.md (Critic correction on specs/tmp/, subtask blueprint row 2), and design/target-layout.md §3 (Subtask Blueprint row 2) and §4.1 (git-add-before-verify protocol).
 
 ---
 
 ### 82. Dead code removal nixos repo
-- **Status**: [NOT STARTED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
+- **Research**: [082_dead_code_removal_nixos_repo/reports/02_dead-code-removal-research.md]
+- **Plan**: [082_dead_code_removal_nixos_repo/plans/02_dead-code-removal-plan.md]
 
 **Description**: Remove dead code and orphaned files from the NixOS/Home Manager dotfiles repo (task 81 Tier 0, subtask blueprint #1, no dependencies). Delete: home-modules/ directory (mcp-hub.nix + its README, plus the commented-out import at home.nix:6 and stale comments at modules/home/core/shell.nix:8 and modules/home/packages/email-tools.nix:38), modules/opencode.nix (dead AND broken — references ../../config/opencode.json above repo root), packages/neovim.nix (unreferenced wrapNeovimUnstable derivation — NOT modules/home/core/neovim.nix, confirmed a different, live file), test-sasl.sh, test-update.md, root TODO.md (superseded by specs/TODO.md), and 5 wallpapers/ scaffolding files (IMPLEMENTATION_COMPLETE.md, README.md, SETUP_INSTRUCTIONS.md, verify-setup.sh, SAVE_IMAGE_HERE.txt). Widen packages/test-mcphub.sh removal to also patch its 3 doc references (docs/packages.md:244, docs/applications.md:26, packages/README.md:260-277) in the SAME subtask — it is doc-referenced, not orphaned (Critic correction). Drop the config/rclone.conf 'verify' step entirely — already untracked/resolved, nothing to do. Inherited cross-cutting protocol: stage each deletion/edit with `git add <specific paths>` (never `git add -A`) before running verification, since flake.nix's `root = self` means the harness only sees git-tracked content. Verification level: build-only inertness — `nix flake check` + `nixos-rebuild build --flake .#nandi/.#hamsa/.#garuda` + `nix build .#homeConfigurations.benjamin.activationPackage`; `git status` shows only deletions + the 3 doc edits; harness green (none of these files are imported anywhere). Seed context: specs/081_reorganize_nixos_dotfiles_repository_design/reports/01_repo-organization-review.md ("home-modules/", "packages/" sections), reports/02_team-research.md (subtask blueprint row 1), and design/target-layout.md §3 (Subtask Blueprint row 1) and §4 (Migration Safety & Verification).
 

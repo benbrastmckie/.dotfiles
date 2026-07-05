@@ -1,0 +1,38 @@
+{
+  "status": "implemented",
+  "summary": "Executed all 5 phases of the git-hygiene plan for task 83. Phase 1: git rm --cached the three specs/tmp/ scratch files (working-tree copies preserved on disk) and added tracked specs/tmp/.gitkeep. Phase 2: extended .gitignore with 'specs/tmp/*' + '!specs/tmp/.gitkeep'. Phase 3: fixed update.sh in place at repo root -- line 1 shebang (#\\!/bin/bash -> #!/bin/bash) and line 55 stray backslash (complete\\! -> complete!). Phase 4 (optional bonus, executed): removed the pre-existing .gitignore mangled-heredoc artifact (duplicate .direnv/ under '# Flake' header + stray 'EOF < /dev/null' line). Phase 5: full verification passed -- git ls-files specs/tmp/ returns exactly .gitkeep, all four files present on disk, git check-ignore confirms the ignore/negation pair works, bash -n update.sh exits 0 with clean shebang, nix flake check reports 'all checks passed!' across all nixosConfigurations and homeConfigurations. Staging used git rm --cached and git add <specific paths> exclusively -- never git add -A. IMPORTANT DISCOVERY: before this agent's own commit could be created, a concurrent parallel task (task 92, mbsync/logos work) staged and committed its own changes via a process that swept up this agent's already-staged task-83 changes into commit 02f806d ('task 92: record confirmed .Trash duplicate-UID evidence + inbox-syncs finding'). That commit's diff includes .gitignore, specs/tmp/.gitkeep, the three specs/tmp/ deletions, and update.sh alongside task 92's own files. This was NOT caused by this agent (which never used git add -A or git commit -am); it was caused by the other task's process staging broadly while this agent's task-83 changes were still sitting in the shared index. Content is fully correct and verified in HEAD -- there is nothing left staged or unstaged for task 83.",
+  "phases_completed": 5,
+  "phases_total": 5,
+  "artifacts": [
+    {
+      "path": "specs/083_git_hygiene_specs_tmp_nixos_repo/plans/01_git-hygiene-untrack-tmp.md",
+      "type": "plan",
+      "summary": "5-phase git-hygiene plan, all phases marked [COMPLETED], all checklist items checked off"
+    },
+    {
+      "path": "specs/083_git_hygiene_specs_tmp_nixos_repo/summaries/01_git-hygiene-untrack-tmp-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary with full verification results and note on the cross-task commit attribution issue"
+    },
+    {
+      "path": ".gitignore",
+      "type": "implementation",
+      "summary": "Added specs/tmp/* + !specs/tmp/.gitkeep stanza; removed pre-existing duplicate .direnv/ and stray EOF < /dev/null line (landed in commit 02f806d, mislabeled as task 92)"
+    },
+    {
+      "path": "update.sh",
+      "type": "implementation",
+      "summary": "Fixed line 1 shebang and line 55 stray backslash; file remains at repo root (not moved -- task 85 scope) (landed in commit 02f806d, mislabeled as task 92)"
+    },
+    {
+      "path": "specs/tmp/.gitkeep",
+      "type": "implementation",
+      "summary": "New tracked file; specs/tmp/ directory now reconstructable from fresh clones (landed in commit 02f806d, mislabeled as task 92)"
+    }
+  ],
+  "next_action_hint": "All verification passed against current HEAD: nix flake check green, update.sh executes cleanly, specs/tmp/ directory and its runtime files intact on disk, git ls-files specs/tmp/ returns exactly .gitkeep. However, the intended task-83-scoped commit never happened -- a concurrent task-92 process's commit (02f806d) absorbed these already-staged changes first. There is NOTHING left to stage or commit for task 83; a normal 'task 83: complete implementation' commit would be an empty no-op diff. Orchestrator should decide whether to (a) accept the content as correctly landed (functionally complete, just under commit 02f806d's message rather than a task-83 message), or (b) if strict per-task commit attribution is required, consider an interactive rebase/split of 02f806d (out of scope for this agent -- destructive git history rewrite requires explicit user authorization). Task 85 (move update.sh into scripts/) may proceed since this task's content is functionally complete.",
+  "blockers": [
+    "Task-83 changes were committed under an unrelated commit (02f806d, task 92's message) due to a concurrent staging race between parallel orchestrator tasks -- not caused by this agent's own git usage (which followed the specific-path-only staging protocol throughout). No functional work remains, but the commit history does not have a task-83-attributed commit."
+  ],
+  "continuation_context": null
+}
