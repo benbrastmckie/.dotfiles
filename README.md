@@ -198,6 +198,29 @@ Both commands install `home.nix` packages to separate profile paths. `update.sh`
 both in sequence to keep them in sync. For quick home-only changes, `home-manager switch`
 alone is sufficient since `~/.nix-profile/` takes PATH priority.
 
+### Optional: local flake-check hook
+
+Every push and pull request is gated by a `nix-flake-check` GitHub Actions workflow
+(`.github/workflows/ci.yml`) that runs `nix flake check` — this is the authoritative gate for
+the repo, and CI failures are the source of truth.
+
+If you'd like earlier local feedback before pushing, you can opt in to a local `pre-push` hook
+that runs the same check. This is **not installed by default** and is entirely optional — it
+does not conflict with the repo's frequent-commit cadence, since it only runs on `push`, not on
+every commit. To opt in:
+
+```bash
+cat > .git/hooks/pre-push <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+echo "Running 'nix flake check' before push..."
+nix flake check
+EOF
+chmod +x .git/hooks/pre-push
+```
+
+To remove it later, delete `.git/hooks/pre-push`.
+
 ## License
 
 MIT
