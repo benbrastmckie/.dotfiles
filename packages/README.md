@@ -34,6 +34,17 @@ NPX wrapper for Claude Code that fetches the latest version from NPM on each inv
 
 **Updating**: To pin a specific version, replace `@latest` with `@X.Y.Z`. After any change, rebuild with `sudo nixos-rebuild switch` (and `home-manager switch` or `./scripts/update.sh`). The npx cache (`~/.npm/_npx/`) may serve a stale version — delete it to force a fresh download.
 
+### opencode-discord-bot.nix
+`buildPythonApplication` derivation for the Nextcord Discord bot relay that bridges Discord to a headless OpenCode agent server (task 89) — the first `buildPythonApplication` in this repo (the other Python packages here, e.g. `python-cvc5.nix`, `pymupdf4llm.nix`, `python-vosk.nix`, are libraries built with `buildPythonPackage` and composed into environments via `python3.withPackages`).
+
+**Implementation**: Builds from the in-tree source at `../opencode-discord-bot` (PEP 621 `pyproject.toml` + `setuptools` backend), producing an `opencode-discord-bot` console script. `callPackage`d directly in `modules/system/optional/discord-bot.nix` — **not** routed through `overlays/python-packages.nix`, since that overlay is scoped to library overrides composed via `python3.withPackages`, an architecturally different consumer than a standalone application with its own entry point.
+
+**Runtime**: The `discord-bot` systemd service runs `${opencodeDiscordBot}/bin/opencode-discord-bot` directly (no working-tree `PYTHONPATH` import). Session state is persisted under a systemd `StateDirectory` (`/var/lib/discord-bot`, `SESSION_STORE_PATH=%S/discord-bot/sessions.json`) rather than a nix-store-relative path, since the nix store is read-only at runtime.
+
+**Future work**: extracting `opencode-discord-bot/` to its own repository (consumed as a flake input) is documented — but not implemented — as a header comment in `opencode-discord-bot.nix`, mirroring the email extension's wrapper-binary/own-source precedent. The current in-tree `src = ../opencode-discord-bot` shape is the deliberate near-term choice.
+
+**See**: `docs/discord-bot.md`, `specs/089_opencode_discord_bot_packaging/`
+
 ### marker-pdf.nix
 UV wrapper for marker-pdf that automatically uses the latest version from PyPI. This zero-maintenance approach eliminates the need for manual version updates while providing PDF to markdown conversion capabilities.
 

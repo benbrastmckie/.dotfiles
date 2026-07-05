@@ -22,29 +22,48 @@ Neovim TUI (opencode --port)  <-->  discord-bot.service  <-->  Discord
 
 | File | Purpose |
 |------|---------|
-| `modules/system/optional/discord-bot.nix` | `discordBotPython` env + sops config + both systemd services |
+| `modules/system/optional/discord-bot.nix` | `opencodeDiscordBot` packaged app + sops config + both systemd services |
+| `packages/opencode-discord-bot.nix` | `buildPythonApplication` derivation for the bot (task 89) |
+| `opencode-discord-bot/pyproject.toml` | PEP 621 packaging metadata + `opencode-discord-bot` console-script entry point |
 | `flake.nix` | sops-nix flake input; `discord-bot.nix` opted in explicitly per-host (see `hosts/nandi/default.nix`), not imported by default |
 | `.sops.yaml` | Age key config + creation rules for `secrets/*.yaml` |
 | `secrets/secrets.yaml` | Encrypted secrets (committed encrypted) |
 | `~/.config/sops/age/keys.txt` | Age private key (**never committed**) |
 
-## Python Environment
+## Python Packaging
 
-`discordBotPython` is a dedicated `python312.withPackages` environment defined as a let-binding in `configuration.nix`. It contains:
+As of task 89, the bot is a real `buildPythonApplication` derivation
+(`packages/opencode-discord-bot.nix`), `callPackage`d directly as `opencodeDiscordBot` in
+`modules/system/optional/discord-bot.nix` — **not** routed through
+`overlays/python-packages.nix` (that overlay is scoped to library overrides composed via
+`python3.withPackages`, an architecturally different consumer than a standalone application
+with its own console-script entry point).
 
-| Package | Purpose |
-|---------|---------|
+| Dependency | Purpose |
+|------------|---------|
 | `nextcord` | Discord API library |
 | `aiohttp` | HTTP client for local OpenCode API calls |
-| `anyio` | Structured concurrency |
 
-Versions are not pinned — they track whatever is in the nixpkgs flake input.
+Versions are not pinned — they track whatever is in the nixpkgs flake input. `anyio` was dropped
+from the dependency list during packaging (verified unused).
 
-The environment is scoped to the bot service only — it does not leak into the global system PATH. The bot service runs it directly:
+The bot service runs the built console script directly:
 
 ```nix
-ExecStart = "${discordBotPython}/bin/python -m opencode_discord_bot.src.bot"
+ExecStart = "${opencodeDiscordBot}/bin/opencode-discord-bot"
 ```
+
+There is no working-tree `PYTHONPATH` import — the derivation's own wrapper sets up the Python
+environment. **Prior to task 89**, `discordBotPython` was an ad-hoc
+`python3.withPackages` environment invoked as `${discordBotPython}/bin/python -m
+opencode_discord_bot.src.bot` with `PYTHONPATH` pointed at the working-tree checkout; this is
+recoverable from git history if ever needed.
+
+**Future work: own-repo extraction.** `opencode-discord-bot/` currently lives in-tree
+(`src = ../opencode-discord-bot` in the derivation) as the deliberate near-term choice. If the
+bot's source grows an independent release cadence or needs reuse outside this flake, it could be
+extracted to its own repository and consumed as a flake input — mirroring how the email
+extension documents its wrapper-binary/own-source precedent. Not implemented here.
 
 ## Systemd Services
 
@@ -89,8 +108,9 @@ WantedBy = [ "multi-user.target" ]
 User = "benjamin"
 Group = "users"
 WorkingDirectory = "/home/benjamin/.dotfiles"
+StateDirectory = "discord-bot"
 
-ExecStart = "${discordBotPython}/bin/python -m opencode_discord_bot.src.bot"
+ExecStart = "${opencodeDiscordBot}/bin/opencode-discord-bot"
 LoadCredential = [
   "discord_bot_token:/run/secrets/discord_bot_token"
   "opencode_server_password:/run/secrets/opencode_server_password"
@@ -105,14 +125,14 @@ Environment = [
   "WHITELISTED_USER_IDS="
   "LINK_API_TOKEN=%d/link_api_token"
   "LOG_LEVEL=info"
-  "PYTHONPATH=/home/benjamin/.dotfiles/opencode-discord-bot"
+  "SESSION_STORE_PATH=%S/discord-bot/sessions.json"
 ]
 ```
 
 - **`Wants`** (soft dependency) + **`After`** (ordering) on `opencode-serve.service` — the bot tolerates OpenCode restarts without being force-restarted itself
 - **`Type = "notify"`** + **`WatchdogSec = "120s"`** — the bot sends `READY=1` to systemd when the Discord gateway connects, then pings `WATCHDOG=1` every 60s. If the event loop freezes (no ping for 120s), systemd kills and restarts the bot automatically
-- `PYTHONPATH` points to bot project source at `~/.dotfiles/opencode-discord-bot/`
-- Bot will fail to start until the Python source code exists (external task 547)
+- `ExecStart` resolves to the packaged console script in the nix store (task 89) — no working-tree Python import path is needed
+- `StateDirectory = "discord-bot"` + `SESSION_STORE_PATH=%S/discord-bot/sessions.json` give the bot a writable location (`/var/lib/discord-bot/sessions.json`) for session-to-thread persistence, since the nix store itself is read-only at runtime
 - All secrets injected via `LoadCredential`, each in its own credential file
 - `LINK_API_TOKEN` enables Bearer authentication on the HTTP API (used by Neovim integration)
 
@@ -305,7 +325,7 @@ To remove the Discord bot infrastructure:
 
 ```bash
 # 1. Remove sops-nix flake input from flake.nix and all 4 host module imports
-# 2. Remove discordBotPython binding from configuration.nix
+# 2. Remove opencodeDiscordBot binding (and packages/opencode-discord-bot.nix) from configuration.nix
 # 3. Remove sops config block from configuration.nix
 # 4. Remove both systemd services from configuration.nix
 # 5. Remove sops/age from environment.systemPackages

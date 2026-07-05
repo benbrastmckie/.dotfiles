@@ -1,7 +1,7 @@
 # Implementation Plan: Task #89 — Package opencode-discord-bot via buildPythonApplication
 
 - **Task**: 89 - Package opencode-discord-bot via buildPythonApplication
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 5.5 hours
 - **Dependencies**: Task 86 (module convention + per-host opt-in) — confirmed landed
 - **Research Inputs**: specs/089_opencode_discord_bot_packaging/reports/02_opencode-discord-bot-packaging.md
@@ -255,43 +255,46 @@ referencing the gitignored `.opencode/` tree becomes untracked (working copy pre
 
 ---
 
-### Phase 5: Build + runtime-shape verification (BUILD + RUNTIME) [NOT STARTED]
+### Phase 5: Build + runtime-shape verification (BUILD + RUNTIME) [COMPLETED]
 
 **Goal**: Prove the behavior change with a successful build and a byte-for-byte `nix eval`
 pre/post comparison of `nandi`'s evaluated `discord-bot.serviceConfig`; document the intentional
 closure delta and the Outstanding Manual Step.
 
 **Tasks**:
-- [ ] STAGE FIRST (flakes only see tracked/staged files): confirm `pyproject.toml`,
+- [x] STAGE FIRST (flakes only see tracked/staged files): confirm `pyproject.toml`,
       `packages/opencode-discord-bot.nix`, the module, and the Python edits are all `git add`-ed
       (Phases 1-4 commits cover this; re-check with `git status --short` — no relevant file should
-      show as untracked `??`).
-- [ ] BUILD proof: `nixos-rebuild build --flake .#nandi` (build only, no `sudo`/switch) completes
+      show as untracked `??`). *(completed — all five files confirmed committed via `git ls-files`
+      before build)*
+- [x] BUILD proof: `nixos-rebuild build --flake .#nandi` (build only, no `sudo`/switch) completes
       successfully — confirms the packaged bot enters `nandi`'s closure and the module evaluates.
-      Fallback if a full host build is heavy: `nix build --no-link
-      .#nixosConfigurations.nandi.config.systemd.services.discord-bot` is not a valid attr; instead
-      build the package indirectly by evaluating `ExecStart` (next task) which forces the derivation.
-- [ ] RUNTIME-shape proof (primary automated check), compare against the report's captured
+      *(completed — exit 0; built `opencode-discord-bot-0.1.0.drv` +
+      `unit-discord-bot.service.drv` among the 12 derivations; final output
+      `/nix/store/hflllx5hw9w85yxzmpfw7xckj24ssvac-nixos-system-nandi-26.05.20260622.3426825`)*
+- [x] RUNTIME-shape proof (primary automated check), compared against the report's captured
       pre-fix baseline:
       - `nix eval --raw '.#nixosConfigurations.nandi.config.systemd.services.discord-bot.serviceConfig.ExecStart'`
-        → MUST now resolve to `/nix/store/<hash>-opencode-discord-bot-0.1.0/bin/opencode-discord-bot`
-        (pre-fix baseline was `/nix/store/...-python3-3.13.13-env/bin/python -m opencode_discord_bot.src.bot`).
+        → **POST**: `/nix/store/fi6z2vi7a5s17c5rv039yxcihfhv7lin-opencode-discord-bot-0.1.0/bin/opencode-discord-bot`
+        (pre-fix baseline was `/nix/store/...-python3-3.13.13-env/bin/python -m opencode_discord_bot.src.bot`). *(completed)*
       - `nix eval --json '.#nixosConfigurations.nandi.config.systemd.services.discord-bot.serviceConfig.Environment'`
-        → MUST NOT contain any `PYTHONPATH=...dotfiles...` entry (pre-fix baseline contained
-        `"PYTHONPATH=/home/benjamin/.dotfiles/opencode-discord-bot"`), and MUST now contain
-        `"SESSION_STORE_PATH=%S/discord-bot/sessions.json"`.
+        → **POST**: no `PYTHONPATH=` entry present (confirmed via grep on the JSON output); list now ends
+        `..., "LOG_LEVEL=info", "SESSION_STORE_PATH=%S/discord-bot/sessions.json"]` (pre-fix baseline
+        contained `"PYTHONPATH=/home/benjamin/.dotfiles/opencode-discord-bot"` as the final entry). *(completed)*
       - `nix eval --raw '.#nixosConfigurations.nandi.config.systemd.services.discord-bot.serviceConfig.StateDirectory'`
-        → `discord-bot`.
-- [ ] Record the pre/post values in the implementation summary as the behavior-change evidence.
-- [ ] Document the intentional closure delta: `nandi`'s system closure now contains
+        → **POST**: `discord-bot`. *(completed)*
+- [x] Record the pre/post values in the implementation summary as the behavior-change evidence.
+      *(completed — see summary artifact)*
+- [x] Document the intentional closure delta: `nandi`'s system closure now contains
       `opencode-discord-bot-0.1.0` (and no longer the ad-hoc `python3-*-env` built solely for the
-      bot's PYTHONPATH import).
-- [ ] Write the **Outstanding Manual Step** (human with SSH/sudo to `nandi`): `nixos-rebuild
+      bot's interpreter-path import). *(completed — see summary artifact)*
+- [x] Write the **Outstanding Manual Step** (human with SSH/sudo to `nandi`): `nixos-rebuild
       switch --flake .#nandi` then `systemctl cat discord-bot.service` + `journalctl -u
       discord-bot.service` to confirm live; and a one-time session-state migration — copy the
       existing `~/.dotfiles/opencode-discord-bot/data/sessions.json` to
       `/var/lib/discord-bot/sessions.json` before/after the first switch (or accept a clean slate;
-      low stakes — session→thread links only).
+      low stakes — session→thread links only). *(completed — documented in the summary artifact;
+      NOT attempted here: `sudo`/SSH to `nandi` is sandbox-denied in this environment)*
 
 **Timing**: 1 hour
 
@@ -308,21 +311,30 @@ closure delta and the Outstanding Manual Step.
 
 ---
 
-### Phase 6: Documentation [NOT STARTED]
+### Phase 6: Documentation [COMPLETED]
 
 **Goal**: Keep `packages/README.md` complete and record the deferred own-repo extraction, mirroring
 the email-extension precedent.
 
 **Tasks**:
-- [ ] Add an `### opencode-discord-bot.nix` section to `packages/README.md` (consistent with the
+- [x] Add an `### opencode-discord-bot.nix` section to `packages/README.md` (consistent with the
       existing per-package sections): note it is a `buildPythonApplication` (the first in this repo),
       `callPackage`d directly in `modules/system/optional/discord-bot.nix` (not via
       `overlays/python-packages.nix`), producing the `opencode-discord-bot` console script.
-- [ ] Add a short "Future work: own-repo extraction" note (in `docs/discord-bot.md` or a comment
+      *(completed)*
+- [x] Add a short "Future work: own-repo extraction" note (in `docs/discord-bot.md` or a comment
       block in `packages/opencode-discord-bot.nix`) documenting — but NOT implementing — extracting
       `opencode-discord-bot/` into its own repository consumed as a flake input, mirroring how the
       email extension documents its wrapper-binary/own-source precedent. State the current in-tree
-      `src = ../opencode-discord-bot;` shape as the deliberate near-term choice.
+      `src = ../opencode-discord-bot;` shape as the deliberate near-term choice. *(completed — note
+      present in both `packages/opencode-discord-bot.nix`'s header comment (added in Phase 2) and
+      `docs/discord-bot.md`'s "Python Packaging" section; deviation: also refreshed
+      `docs/discord-bot.md`'s stale `discordBotPython`/`PYTHONPATH`/`ExecStart` references in the
+      Files table, a renamed "Python Packaging" section, and the `discord-bot.service` code block +
+      bullets, plus the `opencodeDiscordBot` rename in the pre-existing Rollback section — beyond
+      the plan's literal file-list scope, but necessary so the doc doesn't contradict Phase 3's
+      module changes; `hamsa`/`configuration.nix` staleness in Rollback predates task 89 and was
+      left untouched as out of scope)*
 
 **Timing**: 0.5 hours
 
@@ -339,17 +351,18 @@ the email-extension precedent.
 
 ## Testing & Validation
 
-- [ ] Python syntax valid for edited `config.py` / `bot.py` (Phase 1)
-- [ ] `pyproject.toml` parses; console-script entry `opencode_discord_bot.src.bot:main` present (Phase 2)
-- [ ] `nix-instantiate --parse packages/opencode-discord-bot.nix` succeeds (Phase 2)
-- [ ] Module no longer references `discordBotPython`/`PYTHONPATH`; contains `opencodeDiscordBot`,
+- [x] Python syntax valid for edited `config.py` / `bot.py` (Phase 1)
+- [x] `pyproject.toml` parses; console-script entry `opencode_discord_bot.src.bot:main` present (Phase 2)
+- [x] `nix-instantiate --parse packages/opencode-discord-bot.nix` succeeds (Phase 2)
+- [x] Module no longer references `discordBotPython`/`PYTHONPATH`; contains `opencodeDiscordBot`,
       `SESSION_STORE_PATH`, `StateDirectory` (Phase 3)
-- [ ] Comment typo corrected to `opencode_discord_bot/src/bot.py` (Phase 3)
-- [ ] `git ls-files opencode.json` empty; working copy preserved; `config/opencode.json` untouched (Phase 4)
-- [ ] `nixos-rebuild build --flake .#nandi` exits 0 (Phase 5, BUILD)
-- [ ] `nix eval` shows store-path `ExecStart`, no `PYTHONPATH`, `SESSION_STORE_PATH` +
+- [x] Comment typo corrected to `opencode_discord_bot/src/bot.py` (Phase 3)
+- [x] `git ls-files opencode.json` empty; working copy preserved; `config/opencode.json` untouched (Phase 4)
+- [x] `nixos-rebuild build --flake .#nandi` exits 0 (Phase 5, BUILD)
+- [x] `nix eval` shows store-path `ExecStart`, no `PYTHONPATH`, `SESSION_STORE_PATH` +
       `StateDirectory` present (Phase 5, RUNTIME)
-- [ ] `packages/README.md` + future-extraction note present (Phase 6)
+- [x] `packages/README.md` + future-extraction note present (Phase 6)
+- [x] `nix flake check` passes (all outputs) — full-repo regression check run after Phase 6
 
 ## Artifacts & Outputs
 
