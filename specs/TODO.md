@@ -18,7 +18,7 @@ next_project_number: 105
 
 ### Nixos Config
 
-104 [NOT STARTED] — Fix recurring system freezes from mt7925e WiFi kernel panics: upd
+104 [RESEARCHED] — Fix recurring system freezes from mt7925e WiFi kernel panics: upd
 
 ### Nix Infrastructure
 
@@ -53,7 +53,7 @@ next_project_number: 105
 ## Tasks
 
 ### 104. Fix mt7925e wifi kernel panic freezes
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
