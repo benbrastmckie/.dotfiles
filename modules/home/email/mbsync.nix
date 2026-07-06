@@ -169,6 +169,15 @@
     Expunge Both
     SyncState *
 
+    # logos-labels is defined for manual/inspection sync only; it is intentionally NOT a member
+    # of Group logos below (task 826). Protonmail Bridge exposes labels as additive virtual IMAP
+    # mailboxes (like Gmail's label-as-mailbox model) -- every message carrying one or more
+    # labels is mirrored as a SEPARATE physical file under the corresponding .Labels.* Maildir++
+    # folder, on top of its copy in the canonical folder (INBOX/.Archive/.Sent/etc). Including
+    # this channel in the group duplicated 38,041 files (86% of the ~/Mail/Logos tree) and, once
+    # a label containing a dot appeared (.Labels.benbrastmckie@gmail.com), crashed the whole-group
+    # reconcile on the Maildir++ dotted-folder name. The channel definition is kept for optional
+    # manual inspection (`mbsync logos-labels`); it is never invoked by the agent-facing sync path.
     Channel logos-labels
     Far :logos-remote:
     Near :logos-local:
@@ -187,13 +196,20 @@
     Remove Both
     SyncState *
 
+    # Group all channels together.
+    # logos-labels is intentionally omitted (task 826): Protonmail Bridge mirrors every
+    # additive label as a separate local Maildir++ folder (.Labels.*), so including it here
+    # duplicated every labeled message on disk and crashed the whole-group reconcile the moment
+    # a dotted label name (.Labels.benbrastmckie@gmail.com) appeared. The channel definition
+    # above is kept for optional manual inspection only. logos-folders is kept in the group:
+    # Proton Folders are exclusive (a message lives in exactly one Folder), so no duplication
+    # risk exists there.
     Group logos
     Channel logos-inbox
     Channel logos-sent
     Channel logos-drafts
     Channel logos-trash
     Channel logos-archive
-    Channel logos-labels
     Channel logos-folders
   '';
 
@@ -305,6 +321,38 @@
       echo "[email-thaw] Run 'notmuch new --no-hooks' to reindex (folder/account tags re-apply" >&2
       echo "[email-thaw] via modules/home/email/notmuch.nix postNew)." >&2
       echo "[email-thaw] THAWED." >&2
+    '')
+
+    (pkgs.writeShellScriptBin "email-reindex" ''
+      set -euo pipefail
+
+      if [ "''${1:-}" = "--help" ] || [ "''${1:-}" = "-h" ]; then
+        echo "email-reindex - operator helper (task 824; NOT part of the 5-binary agent contract)"
+        echo ""
+        echo "Reconciles the notmuch index to the on-disk maildir by running"
+        echo "'notmuch new --no-hooks'. The --no-hooks form is deliberate:"
+        echo "  * skips the preNew hook ('mbsync -a'), preserving the never-'mbsync -a' invariant"
+        echo "    and staying safe to run during an email-freeze;"
+        echo "  * skips the postNew auto-tagging (+inbox/+gmail/+logos), so folder-scoped queries"
+        echo "    (folder:Gmail / folder:Logos, used by email-classify) are made current, while"
+        echo "    tag-based views (+inbox) may lag until a later full 'notmuch new' runs."
+        echo ""
+        echo "This does NOT fetch new mail from the server. If the server has mail not yet on"
+        echo "disk, run a group-scoped 'mbsync <gmail|logos>' (or 'email-thaw') FIRST, then"
+        echo "'email-reindex'. This is the sanctioned reindex path for the /email skill's"
+        echo "staleness remediation (skill-email-cleanup); it is index-only and mutates no mail."
+        exit 0
+      fi
+
+      echo "[email-reindex] Reconciling notmuch index to on-disk maildir via 'notmuch new --no-hooks'..." >&2
+      echo "[email-reindex] (index-only; does NOT sync the server. Run 'mbsync <group>' first if you" >&2
+      echo "[email-reindex]  need to pull new server mail before reindexing.)" >&2
+      BEFORE=$(notmuch count '*' 2>/dev/null || echo '?')
+      notmuch new --no-hooks
+      AFTER=$(notmuch count '*' 2>/dev/null || echo '?')
+      echo "[email-reindex] Done. Total indexed messages: $BEFORE -> $AFTER." >&2
+      echo "[email-reindex] NOTE: --no-hooks skipped postNew auto-tagging (+inbox/+gmail/+logos);" >&2
+      echo "[email-reindex] folder-scoped classification is now current, tag-based views may lag." >&2
     '')
   ];
 }
