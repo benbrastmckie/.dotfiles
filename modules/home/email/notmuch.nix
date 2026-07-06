@@ -17,7 +17,13 @@
       };
     };
     hooks = {
-      preNew = "mbsync -a";
+      # Sync the two GROUPS explicitly -- never `mbsync -a`. Per `man mbsync`, `-a`
+      # runs ALL configured Channels and ignores group membership, which would run the
+      # orphan `logos-labels` channel (deliberately excluded from `Group logos` in
+      # mbsync.nix, task 826) and re-import every Proton label as a duplicated .Labels.*
+      # Maildir++ folder. Naming the groups runs only their member channels, so
+      # `logos-labels` never fires automatically. (~/.dotfiles handoff; tasks 826-828.)
+      preNew = "mbsync gmail logos";
       postNew = ''
         # Tag new mail
         notmuch tag +inbox +unread -- tag:new

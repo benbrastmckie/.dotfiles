@@ -37,6 +37,17 @@ in
             ;;
         esac
         echo ""
+        echo "--- Index freshness: INBOX on-disk (himalaya) vs notmuch-indexed (task 823) ---"
+        echo "(divergence => notmuch index is stale for INBOX; classification/--all coverage will be"
+        echo " incomplete. Reconcile with 'email-reindex' before a coverage-promising sweep.)"
+        INBOX_ONDISK=$(himalaya envelope list "''${HIMALAYA_ACCT[@]}" -f INBOX -o json -s 100000 2>/dev/null \
+          | jq 'length' 2>/dev/null)
+        INBOX_ONDISK="''${INBOX_ONDISK:-?}"
+        INBOX_INDEXED=$(notmuch count "folder:$ACCOUNT_FOLDER" 2>/dev/null || echo '?')
+        if [ "$INBOX_ONDISK" = "$INBOX_INDEXED" ]; then FRESH="ok"; else FRESH="STALE"; fi
+        printf "%-16s on-disk=%s  notmuch-indexed=%s  [%s]\n" \
+          "INBOX freshness" "$INBOX_ONDISK" "$INBOX_INDEXED" "$FRESH"
+        echo ""
         echo "--- Sender census: top 25 by message count ---"
         echo "(verified invocation: notmuch address --output=sender --output=count --deduplicate=address -- '*')"
         notmuch address --output=sender --output=count --deduplicate=address -- '*' 2>/dev/null \
