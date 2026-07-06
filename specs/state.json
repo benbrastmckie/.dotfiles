@@ -4,13 +4,14 @@
     {
       "project_number": 104,
       "project_name": "fix_mt7925e_wifi_kernel_panic_freezes",
-      "status": "researched",
+      "status": "completed",
       "task_type": "nix",
       "description": "Fix recurring system freezes from mt7925e WiFi kernel panics: update kernel via flake bump and add panic=10 auto-reboot kernel param",
       "topic": "nixos-config",
       "created": "2026-07-06T22:08:36Z",
-      "last_updated": "2026-07-06T22:09:53Z",
-      "session_id": "sess_1783375791_dbb59f"
+      "last_updated": "2026-07-06T22:22:37Z",
+      "session_id": "sess_1783375791_dbb59f",
+      "completion_summary": "Diagnosed recurring blinking-capslock freezes as mt7925e WiFi driver kernel panics (wcid poll_list corruption, confirmed via pstore dumps). Added panic=10 kernel param for auto-reboot, updated kernel 7.1.1 -> 7.1.2, pinned nixpkgs-unstable to 2026-06-16 to keep r-V8 building. Known upstream fixes already present in 7.1.x; recurrence possible until race fully fixed upstream."
     },
     {
       "project_number": 103,

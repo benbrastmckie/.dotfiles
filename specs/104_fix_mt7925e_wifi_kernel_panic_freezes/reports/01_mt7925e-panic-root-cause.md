@@ -94,6 +94,31 @@ is a distinct runtime bug in the driver's RX/TX-status path and is not mitigated
 4. **Hardware fallback** (last resort): the Framework 13 WiFi module is replaceable; an
    Intel AX210 sidesteps the mt76 driver entirely.
 
+## Post-research findings during implementation (2026-07-06)
+
+Verification against the v7.1.2 source tree showed that **both published upstream fixes
+are already present in the crashing kernel**: `mt76_wcid_add_poll()` in 7.1.1/7.1.2
+carries the `!wcid->sta` guard, and `mt7925_mac_link_sta_add()` no longer has the
+duplicate `mt76_wcid_init()` (the 7.1.2 changelog contains no mt76 commits, so 7.1.1 is
+identical). This panic is therefore a **still-unfixed variant** of the wcid/poll_list
+race. The community fix tracker ([zbowling/mt7925](https://github.com/zbowling/mt7925))
+does not catalog this exact backtrace, and its per-kernel patch sets stop at 6.19 (all
+merged into 7.x).
+
+Implications:
+- The kernel bump (7.1.1 → 7.1.2) does NOT contain a targeted fix; recurrence is
+  possible. `panic=10` is the operative mitigation until upstream fixes the race.
+- Reporting the pstore dumps upstream (linux-mediatek list or zbowling/mt7925 issues)
+  would be genuinely useful — this trace is not yet catalogued.
+- If panics persist across future kernel updates, fall back to swapping the WiFi module
+  (Intel AX210).
+
+Also encountered: the 2026-07-05 `nixpkgs-unstable` rev breaks `r-V8` (link failure
+against nodejs-slim libv8), which breaks the R environment in
+`modules/system/packages.nix` (gt → gtsummary chain, cf. task 61). `nixpkgs-unstable`
+was pinned back to 567a49d (2026-06-16) in flake.lock; the main `nixpkgs` input (which
+provides the kernel) stayed on the 2026-07-04 rev.
+
 ## Verification notes for implementation
 
 - After `nix flake update`, build with `nixos-rebuild build --flake .#hamsa` (or

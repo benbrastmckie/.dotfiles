@@ -11,14 +11,10 @@ next_project_number: 105
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92,104 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, services, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
-
-### Nixos Config
-
-104 [RESEARCHED] — Fix recurring system freezes from mt7925e WiFi kernel panics: upd
 
 ### Nix Infrastructure
 
@@ -53,7 +49,7 @@ next_project_number: 105
 ## Tasks
 
 ### 104. Fix mt7925e wifi kernel panic freezes
-- **Status**: [RESEARCHED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
