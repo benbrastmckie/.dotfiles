@@ -85,6 +85,10 @@
     # (8.0.1 expects ICU 78 but stable provides 76.1, with no standalone v8
     # package to bridge it), which fails to link and breaks gt -> gtsummary.
     # Unstable's r-V8 8.2.0 is version-matched and builds cleanly. See task 61.
+    # NOTE: nixpkgs-unstable is pinned in flake.lock to 567a49d (2026-06-16)
+    # because the 2026-07-05 unstable rev breaks r-V8 again (link failure
+    # against nodejs-slim libv8: "./v8version: not found"). Before unpinning
+    # with `nix flake update`, verify r-V8 builds. See task 104.
     (pkgs-unstable.rWrapper.override {
       packages = with pkgs-unstable.rPackages; [
         # P0: Core statistical packages

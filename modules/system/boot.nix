@@ -47,6 +47,11 @@
       "amdgpu.dcdebugmask=0x10" # Disable problematic GPU features during suspend
       "rtc_cmos.use_acpi_alarm=1" # Better ACPI wake support
       "hung_task_timeout_secs=60" # Detect deadlocks faster (default: 120s)
+      # Auto-reboot 10s after a kernel panic instead of hanging with a blinking
+      # Caps Lock LED. The mt7925e WiFi driver has a known list-corruption panic
+      # (mt76_wcid_add_poll, see task 104 research report); until the fixed
+      # kernel lands this keeps the machine recoverable without a power-button hold.
+      "panic=10"
     ];
 
     # Audio and WiFi kernel module options
