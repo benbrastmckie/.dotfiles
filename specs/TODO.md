@@ -1,20 +1,24 @@
 ---
-next_project_number: 104
+next_project_number: 105
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-07-05. Generated from state.json dependency graph.*
+*Updated 2026-07-06. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, services, desktop, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92,104 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
+
+### Nixos Config
+
+104 [NOT STARTED] — Fix recurring system freezes from mt7925e WiFi kernel panics: upd
 
 ### Nix Infrastructure
 
@@ -47,6 +51,16 @@ next_project_number: 104
 92 [NOT STARTED] — Fix the Logos (Protonmail Bridge) mbsync group so the email-clean
 
 ## Tasks
+
+### 104. Fix mt7925e wifi kernel panic freezes
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Fix recurring system freezes from mt7925e WiFi kernel panics: update kernel via flake bump and add panic=10 auto-reboot kernel param
+
+---
 
 ### 103. Reorganize discord bot in repo
 - **Status**: [COMPLETED]

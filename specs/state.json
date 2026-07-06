@@ -1,6 +1,16 @@
 {
-  "next_project_number": 104,
+  "next_project_number": 105,
   "active_projects": [
+    {
+      "project_number": 104,
+      "project_name": "fix_mt7925e_wifi_kernel_panic_freezes",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Fix recurring system freezes from mt7925e WiFi kernel panics: update kernel via flake bump and add panic=10 auto-reboot kernel param",
+      "topic": "nixos-config",
+      "created": "2026-07-06T22:08:36Z",
+      "last_updated": "2026-07-06T22:08:36Z"
+    },
     {
       "project_number": 103,
       "project_name": "reorganize_discord_bot_in_repo",
