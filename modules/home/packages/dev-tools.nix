@@ -36,6 +36,12 @@
     optipng # PNG optimizer
     jpegoptim # JPEG optimizer
 
+    # Digital Hardware Simulation (Verilog/SystemVerilog + waveform viewing)
+    iverilog # Icarus Verilog simulator (provides iverilog + vvp; writes VCD traces)
+    verilator # Fast compiled Verilog/SystemVerilog simulator
+    gtkwave # GTKWave VCD/waveform viewer
+    surfer # Modern VCD/waveform viewer
+
     nodejs # Required runtime dependency
   ];
 }
