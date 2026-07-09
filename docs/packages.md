@@ -213,6 +213,31 @@ jpegoptim --strip-all --all-progressive src/assets/hero.jpg
 convert input.jpg -resize 800x600 output.jpg
 ```
 
+### Digital Hardware Simulation (home.nix)
+
+**Open-source Verilog/SystemVerilog RTL simulation and waveform viewing** (defined in
+`modules/home/packages/dev-tools.nix`):
+
+- `iverilog` - Icarus Verilog simulator; provides `iverilog` (compiler) and `vvp` (runtime).
+  Writes VCD trace files from `$dumpfile`/`$dumpvars` in the testbench.
+- `verilator` - Fast compiled Verilog/SystemVerilog simulator (C++ transpilation)
+- `gtkwave` - GTKWave VCD/waveform viewer
+- `surfer` - Modern VCD/waveform viewer (alternative to GTKWave)
+
+**Example usage (smoke test):**
+```bash
+# Compile + run an Icarus simulation, then view the trace.
+# The testbench must contain: initial begin $dumpfile("dump.vcd"); $dumpvars; end
+iverilog -o sim example.v && vvp sim   # runs sim, writes dump.vcd
+gtkwave dump.vcd                        # open the trace (or: surfer dump.vcd)
+
+# Verify installed versions
+iverilog -V
+verilator --version
+gtkwave --version
+surfer --version
+```
+
 ### Email Testing (home.nix)
 
 - `swaks` - Swiss Army Knife for SMTP - comprehensive email testing tool

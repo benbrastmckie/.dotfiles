@@ -42,6 +42,16 @@
     gtkwave # GTKWave VCD/waveform viewer
     surfer # Modern VCD/waveform viewer
 
+    # Digital Hardware Synthesis, Formal Verification & Linting
+    yosys # RTL synthesis suite (also drives formal flows)
+    sby # SymbiYosys front-end for Yosys formal verification
+    boolector # SMT solver (bit-vectors + arrays), used as a formal backend
+    bitwuzla # SMT solver (bit-vectors/arrays/FP), Boolector successor
+    yices # Yices 2 SMT solver
+    verible # SystemVerilog linter/formatter (verible-verilog-lint et al.)
+    nusmv # NuSMV symbolic model checker
+    python3Packages.cocotb # Python cosimulation testbench framework
+
     nodejs # Required runtime dependency
   ];
 }
