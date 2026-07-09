@@ -238,6 +238,34 @@ gtkwave --version
 surfer --version
 ```
 
+### Digital Hardware Synthesis, Formal Verification & Linting (home.nix)
+
+**Open-source RTL synthesis, formal-verification backends, and SystemVerilog linting** (defined
+in `modules/home/packages/dev-tools.nix`):
+
+- `yosys` - RTL synthesis suite; also drives Yosys-based formal flows
+- `sby` - SymbiYosys, the front-end that runs Yosys formal verification (BMC, induction, etc.)
+- `boolector` - SMT solver (bit-vectors + arrays) usable as a formal backend
+- `bitwuzla` - SMT solver (bit-vectors/arrays/FP); Boolector's successor
+- `yices` - Yices 2 SMT solver
+- `verible` - SystemVerilog linter/formatter (`verible-verilog-lint`, `verible-verilog-format`, ...)
+- `nusmv` - NuSMV symbolic model checker
+- `python3Packages.cocotb` - Python cosimulation testbench framework (drives iverilog/verilator)
+
+**Verify installed versions:**
+```bash
+yosys --version
+sby --help                    # usage output; may exit non-zero (expected)
+boolector --version
+bitwuzla --version
+yices --version
+verible-verilog-lint --version
+NuSMV -help                   # usage output; may exit non-zero (expected)
+
+# cocotb has no version CLI flag:
+python3 -c "import cocotb; print(cocotb.__version__)"
+```
+
 ### Email Testing (home.nix)
 
 - `swaks` - Swiss Army Knife for SMTP - comprehensive email testing tool
