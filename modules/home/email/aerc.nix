@@ -67,6 +67,12 @@ _: {
         k = ":prev<Enter>";
         J = ":next-folder<Enter>";
         K = ":prev-folder<Enter>";
+
+        # Task 105: Tab/S-Tab account-tab switching (Neovim <Tab>/<S-Tab>
+        # buffer-nav reflex). <C-n>/<C-p> (global) remain as fallback aliases.
+        "<Tab>" = ":next-tab<Enter>";
+        "<S-Tab>" = ":prev-tab<Enter>";
+
         g = ":select 0<Enter>";
         G = ":select -1<Enter>";
         "<C-d>" = ":next 50%<Enter>";
@@ -160,6 +166,11 @@ _: {
         k = ":prev-part<Enter>";
         J = ":next<Enter>";
         K = ":prev<Enter>";
+
+        # Task 105: Tab/S-Tab account-tab switching (Neovim <Tab>/<S-Tab>
+        # buffer-nav reflex). <C-n>/<C-p> (global) remain as fallback aliases.
+        "<Tab>" = ":next-tab<Enter>";
+        "<S-Tab>" = ":prev-tab<Enter>";
 
         # Actions
         r = ":reply<Enter>";

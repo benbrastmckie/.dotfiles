@@ -1,0 +1,53 @@
+{
+  "task": 105,
+  "phase": "implement",
+  "status": "implemented",
+  "session_id": "sess_1783577798_e8cfa8",
+  "plan_path": "specs/105_aerc_keybindings_nvim_himalaya_alignment/plans/01_aerc-tab-switching.md",
+  "research_inputs": [
+    "specs/105_aerc_keybindings_nvim_himalaya_alignment/reports/01_aerc-keymap-alignment.md"
+  ],
+  "task_type": "nix",
+  "phases_completed": 2,
+  "phases_total": 2,
+  "phase_status": {
+    "1": "COMPLETED",
+    "2": "PARTIAL — home-manager build verified success; home-manager switch and interactive manual checks deferred to user per orchestrator instruction"
+  },
+  "estimated_hours": 0.75,
+  "dependency_waves": [[1], [2]],
+  "files_modified": [
+    "modules/home/email/aerc.nix"
+  ],
+  "verification_commands": [
+    "home-manager build --flake .#benjamin"
+  ],
+  "verification_result": "home-manager build --flake .#benjamin succeeded (exit 0). Built binds.conf derivation output inspected directly via nix path-info: new <Tab>/<S-Tab> entries present in [messages] and [view]; all safety-critical binds (d/D/a/A prompts, Proposed-Delete/Archive/Unsure wrapper gestures, scoped $ sync) byte-for-byte unchanged; global/compose/compose::editor/terminal contexts unchanged with no <Tab> additions.",
+  "scope_summary": "Recommendation A only: add <Tab>=:next-tab and <S-Tab>=:prev-tab to aerc [messages] and [view] contexts, keep <C-n>/<C-p> as fallback aliases. Recommendation B (cross-repo C-hjkl/<Esc> unblock in ~/.config/nvim) is out of scope and should be a separate dependent Neovim task.",
+  "safety_invariants": [
+    "Do not regress d/D/a/A human-only mutation prompts in [messages]",
+    "Do not touch Proposed-Delete/Archive/Unsure folder wrapper gestures (email-classify --append-approved)",
+    "Do not touch scoped $ sync (mbsync gmail && notmuch new --no-hooks; never mbsync -a)",
+    "Do not add <Tab>/<S-Tab> to global/compose/terminal contexts"
+  ],
+  "safety_invariants_verified": true,
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "modules/home/email/aerc.nix",
+      "summary": "Added <Tab>/<S-Tab> next-tab/prev-tab binds to [messages] and [view] extraBinds contexts (additive only)"
+    },
+    {
+      "type": "summary",
+      "path": "specs/105_aerc_keybindings_nvim_himalaya_alignment/summaries/01_aerc-tab-switching-summary.md",
+      "summary": "Implementation summary with build verification and safety-invariant confirmation"
+    },
+    {
+      "type": "handoff",
+      "path": "specs/105_aerc_keybindings_nvim_himalaya_alignment/handoffs/phase-2-handoff-20260709T062017Z.md",
+      "summary": "Final handoff noting home-manager switch + interactive checks as user follow-up"
+    }
+  ],
+  "next_steps": "User: run `home-manager switch` (or repo update.sh) to deploy, then manually verify <Tab>/<S-Tab> tab-switching in aerc message list/view, <C-n>/<C-p> aliases, compose-buffer non-interference, and WezTerm backtab (CSI Z) distinguishability.",
+  "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"]
+}

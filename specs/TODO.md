@@ -11,7 +11,7 @@ next_project_number: 106
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92,105 | -- | nix-infrastructure, services, desktop, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, services, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -45,16 +45,17 @@ next_project_number: 106
 ### Email Infrastructure
 
 92 [NOT STARTED] — Fix the Logos (Protonmail Bridge) mbsync group so the email-clean
-105 [RESEARCHED] — Align the aerc terminal email client's keybindings with the user'
 
 ## Tasks
 
 ### 105. Aerc keybindings nvim himalaya alignment
-- **Status**: [RESEARCHED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: email-infrastructure
 - **Dependencies**: None
 - **Research**: [105_aerc_keybindings_nvim_himalaya_alignment/reports/01_aerc-keymap-alignment.md]
+- **Plan**: [105_aerc_keybindings_nvim_himalaya_alignment/plans/01_aerc-tab-switching.md]
+- **Summary**: [105_aerc_keybindings_nvim_himalaya_alignment/summaries/01_aerc-tab-switching-summary.md]
 
 **Description**: Align the aerc terminal email client's keybindings with the user's Neovim core + Himalaya-plugin navigation conventions so muscle memory transfers across all three clients.
 
