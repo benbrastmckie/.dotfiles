@@ -1,17 +1,17 @@
 ---
-next_project_number: 105
+next_project_number: 106
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-07-06. Generated from state.json dependency graph.*
+*Updated 2026-07-09. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, services, desktop, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92,105 | -- | nix-infrastructure, services, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -45,8 +45,32 @@ next_project_number: 105
 ### Email Infrastructure
 
 92 [NOT STARTED] — Fix the Logos (Protonmail Bridge) mbsync group so the email-clean
+105 [RESEARCHED] — Align the aerc terminal email client's keybindings with the user'
 
 ## Tasks
+
+### 105. Aerc keybindings nvim himalaya alignment
+- **Status**: [RESEARCHED]
+- **Task Type**: nix
+- **Topic**: email-infrastructure
+- **Dependencies**: None
+- **Research**: [105_aerc_keybindings_nvim_himalaya_alignment/reports/01_aerc-keymap-alignment.md]
+
+**Description**: Align the aerc terminal email client's keybindings with the user's Neovim core + Himalaya-plugin navigation conventions so muscle memory transfers across all three clients.
+
+TWO SEED ASKS: (1) switch aerc account tabs with <Tab>/<S-Tab> (the Neovim next/prev-buffer keys) instead of <C-n>/<C-p>; (2) navigate aerc like Neovim panes with <C-h/j/k/l>.
+
+CRITICAL FINDING (see reports/01): aerc runs inside a Neovim floating toggleterm (launched by ~/.config/nvim/.../tools/mail.lua via <leader>me), and Neovim installs terminal-mode maps on every term:// buffer (autocmds.lua:25 -> set_terminal_keymaps keymaps.lua:116). That layer INTERCEPTS <C-h/j/k/l> (->wincmd) and <Esc> (->exit terminal mode) before aerc sees them, but passes <Tab>/<S-Tab>/<C-n>/<C-p> through. Therefore Ask 1 is viable in aerc.nix alone; Ask 2 is blocked at the Neovim layer and also has no aerc pane model to map onto.
+
+RECOMMENDATION A (low risk, .dotfiles only): in modules/home/email/aerc.nix extraBinds, add <Tab>=:next-tab / <S-Tab>=:prev-tab to [messages] and [view] (NOT global/compose, to avoid stealing Tab from text fields), keeping <C-n>/<C-p> as fallback aliases; optional s=sync alias reusing the safe scoped exec. RECOMMENDATION B (optional, cross-repo follow-up in ~/.config/nvim): special-case the aerc terminal in set_terminal_keymaps() to skip the <C-hjkl>->wincmd and <Esc> remaps (like the existing is_claude/is_opencode cases), then bind <C-h>/<C-l>=prev/next-folder in aerc.
+
+SAFETY (must not regress): native d/D/a/A are human-only mutation paths outside the agent guardrail (D/A/d :prompt-hardened; A=archive-all is WHY account-switch cannot reuse A); the Proposed-Delete/Archive/Unsure folder overrides route d/a/k through email-classify --append-approved (manifest approval), never aerc-native delete/archive; $ sync is deliberately scoped to `mbsync gmail && notmuch new --no-hooks` (never mbsync -a). Ref .dotfiles task 72 Phase 9.
+
+EDIT/DEPLOY: edit modules/home/email/aerc.nix (source of truth); ~/.config/aerc/binds.conf is a read-only nix-store symlink. Verify with home-manager build, then switch; manually confirm Tab/S-Tab switch tabs, aliases still work, no safety-bind regression, and Shift-Tab is distinguishable in WezTerm.
+
+CROSS-REPO: research performed from ~/Mail; report + task homed in .dotfiles because aerc.nix lives here. Recommendation B, if adopted, needs a companion task in ~/.config/nvim.
+
+---
 
 ### 104. Fix mt7925e wifi kernel panic freezes
 - **Status**: [COMPLETED]
