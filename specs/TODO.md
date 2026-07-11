@@ -44,7 +44,7 @@ next_project_number: 108
 
 ### Email Infrastructure
 
-92 [RESEARCHED] — Fix the Logos (Protonmail Bridge) mbsync group so the email-clean
+92 [RESEARCHED] — [RESCOPED 2026-07-11 after research reports 02 + 03] Harden the L
 
 ## Tasks
 
@@ -258,19 +258,19 @@ CROSS-REPO: research performed from ~/Mail; report + task homed in .dotfiles bec
   - [092_logos_mbsync_group_labels_fix/reports/02_task-still-needed.md]
   - [092_logos_mbsync_group_labels_fix/reports/03_cross-repo-nvim-sync-linkage.md]
 
-**Description**: Fix the Logos (Protonmail Bridge) mbsync group so the email-cleanup wrappers' post-mutation `mbsync logos` reconcile succeeds instead of exiting non-zero.
+**Description**: [RESCOPED 2026-07-11 after research reports 02 + 03] Harden the Logos (Protonmail Bridge) mbsync config. The ORIGINAL blocking bug -- the wrappers' post-mutation `mbsync logos` reconcile exiting non-zero because `Group logos` chained `logos-labels` and hit the dotted Gmail-import label `benbrastmckie@gmail.com` under `SubFolders Maildir++` -- is ALREADY FIXED by commit a8f65ad (removed logos-labels from Group logos; landed via nvim task 826). Two residual hardening items remain (see reports/02_task-still-needed.md and reports/03_cross-repo-nvim-sync-linkage.md).
 
-ROOT CAUSE (diagnosed live from the ~/Mail repo during a `/email --logos --all` run on 2026-07-04): `Group logos` in modules/home/email/mbsync.nix (lines 190-197) chains all 7 logos channels, including `logos-labels` (Patterns "Labels/*") and `logos-folders` (Patterns "Folders/*"). The far (Proton) side exposes a Gmail-import label literally named `benbrastmckie@gmail.com`; under `SubFolders Maildir++` (line 135) a mailbox NAME containing dots cannot be represented, so mbsync aborts that channel with `folder 'Labels/benbrastmckie@gmail.com': SubFolders style Maildir++ does not support dots in mailbox names` and the whole group returns exit 1. The labels/folders channels also drag in the entire Gmail-import label tree (observed `Near: +41797`), irrelevant to an INBOX->Trash cleanup reconcile and making every wrapper mutation's internal reconcile slow/noisy. Local maildir moves still succeed (the 20-message Logos INBOX cleanup landed in .Trash correctly, verified Trash 1764->1784); only the server-side reconcile is affected.
+RESIDUAL ITEM 1 (HIGHEST PRIORITY -- negative dotted-name patterns): Add `"!Labels/*.*"` to the `logos-labels` channel Patterns and `"!Folders/*.*"` to the `logos-folders` channel Patterns in modules/home/email/mbsync.nix, so no dotted mailbox name can ever reach the Maildir++ store. This is now the top item because `logos-folders` is STILL a member of `Group logos` (line ~207-213), and this session's nvim task 851 wired `mbsync -a` (which runs Group logos) onto hot interactive keymaps `<leader>me` (open aerc) and `<leader>mN` (full sync). If Proton ever exposes a dotted Folder name, `<leader>me` would break in the user's face on a common keystroke. The pattern also makes a8f65ad's own commit-message claim that logos-labels is safe "for manual inspection" actually true (currently a manual `mbsync logos-labels` would still crash on the dotted label).
 
-FIX (mirrors the existing precedent in this same file: `Group gmail` at lines 114-119 deliberately omits gmail-trash/gmail-spam because those far-boxes break the group): (1) Slim `Group logos` to the core channels only -- logos-inbox, logos-sent, logos-drafts, logos-trash, logos-archive -- so the wrapper reconcile cannot choke on labels. (2) Add a new `Group logos-full` = core channels PLUS logos-labels + logos-folders for explicit on-demand full sync. (3) Harden logos-labels (and logos-folders) with a negative pattern, e.g. `Patterns "Labels/*" "!Labels/*.*"`, so even `mbsync logos-full` skips dotted label names Maildir++ cannot hold.
+RESIDUAL ITEM 2 (LOW PRIORITY -- operator convenience): Add a new `Group logos-full` = core channels (logos-inbox, logos-sent, logos-drafts, logos-trash, logos-archive) PLUS logos-labels + logos-folders, for explicit on-demand full sync. No keymap depends on it; purely a convenience so the slimmed `Group logos` still has a full-sync counterpart.
 
-SECONDARY (non-blocking; note in plan, do not necessarily fix here): duplicate-UID warnings in .Trash/.Archive from maildir moves (mbsync usually self-heals on a clean run); one malformed 144-byte message in local Sent missing a `Date:` header that Proton rejects on APPEND (`invalid rfc5322 message: Required header field Date not found or empty`).
+FILES: modules/home/email/mbsync.nix (Logos section). The runtime ~/.mbsyncrc is a home-manager /nix/store symlink -- never edit it directly.
 
-FILES: modules/home/email/mbsync.nix (Logos section, lines 121-197). The runtime artifact ~/.mbsyncrc is a home-manager /nix/store symlink -- never edit it directly.
+VERIFICATION (shared with nvim task 851's one remaining open item -- one live check credits both repos): `home-manager build` evaluates; after `home-manager switch`: `mbsync logos-inbox` (the `<leader>ms` leg), `mbsync logos` (wrapper reconcile), and `mbsync -a` (the `<leader>me`/`<leader>mN` path) all exit 0; and once logos-full exists, `mbsync logos-full` completes without any dotted-name fatal error. Non-fatal duplicate-UID warnings and the one dateless local Sent message (report 01) may still appear but do not fail the reconcile.
 
-VERIFICATION: `home-manager build` evaluates; after `home-manager switch`, `mbsync logos` exits 0 and propagates pending Logos INBOX->Trash deletes to the Proton server; `mbsync logos-full` completes without the dotted-label fatal error.
+OUT OF SCOPE (unchanged): the secondary data-level issues -- duplicate-UID warnings in .Trash/.Archive and the malformed 144-byte Sent message missing a `Date:` header -- are not config fixes and are not addressed by this task.
 
-SEED/CROSS-REPO: diagnosis performed in ~/Mail; approved delete manifest + wrapper state at ~/Mail/specs/email-manifests/logos/. Relates to .dotfiles email-workflow tasks 72/79.
+SEED/CROSS-REPO: original diagnosis in ~/Mail (specs/email-manifests/logos/). Relates to .dotfiles email tasks 72/79 and nvim task 851.
 
 ---
 
