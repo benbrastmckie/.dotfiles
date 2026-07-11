@@ -1,7 +1,7 @@
 # Implementation Plan: Fix WezTerm Leader+c new-tab stale cwd
 
 - **Task**: 107 - Fix WezTerm Leader+c new-tab opening in a stale (Neovim) working directory
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 1.5-2 hours
 - **Dependencies**: None
 - **Research Inputs**: reports/01_wezterm-leader-c-stale-cwd.md
@@ -167,7 +167,10 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 4: Behavioral verification [PARTIAL]
+### Phase 4: Behavioral verification [COMPLETED]
+
+**Manual verification (2026-07-11)**: User confirmed Case 2 (the previously broken case) — a new tab opened with LEADER+c after a Neovim worktree session landed at `~` instead of the stale project dir. Fix accepted.
+
 
 **Goal**: Confirm the fix works across all cases in the report's verification protocol and did not regress the tab-title feature.
 

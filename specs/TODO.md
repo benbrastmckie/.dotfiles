@@ -11,7 +11,7 @@ next_project_number: 108
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92,107 | -- | nix-infrastructure, services, terminal, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, services, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -46,14 +46,10 @@ next_project_number: 108
 
 92 [NOT STARTED] — Fix the Logos (Protonmail Bridge) mbsync group so the email-clean
 
-### Terminal
-
-107 [IMPLEMENTING] — New WezTerm tabs opened with LEADER+c start in a stale project di
-
 ## Tasks
 
 ### 107. Fix WezTerm Leader+c new-tab opening in a stale Neovim working directory
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: terminal
 - **Dependencies**: None

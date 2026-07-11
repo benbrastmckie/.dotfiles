@@ -1946,11 +1946,11 @@
     {
       "project_number": 107,
       "project_name": "fix_wezterm_leader_c_stale_cwd",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "nix",
       "topic": "terminal",
       "created": "2026-07-11T20:38:11Z",
-      "last_updated": "2026-07-11T21:00:02Z",
+      "last_updated": "2026-07-11T21:07:51Z",
       "session_id": "sess_1783803580_bce607",
       "next_artifact_number": 2,
       "dependencies": [],
@@ -1972,7 +1972,8 @@
           "type": "summary",
           "summary": "Implementation summary: revert diagnosis, hardened action_callback, home-manager switch + deployment verification, per-case manual verification checklist"
         }
-      ]
+      ],
+      "completion_summary": "Hardened WezTerm LEADER+c to spawn new tabs at the real shell cwd ($HOME fallback, never plain SpawnTab); deployed via home-manager switch. User confirmed the previously-broken nvim-exited case now opens at ~."
     }
   ],
   "repository_health": {
