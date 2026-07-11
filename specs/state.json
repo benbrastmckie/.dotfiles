@@ -1940,11 +1940,11 @@
     {
       "project_number": 107,
       "project_name": "fix_wezterm_leader_c_stale_cwd",
-      "status": "planning",
+      "status": "planned",
       "task_type": "nix",
       "topic": "terminal",
       "created": "2026-07-11T20:38:11Z",
-      "last_updated": "2026-07-11T20:45:14Z",
+      "last_updated": "2026-07-11T20:47:52Z",
       "session_id": "sess_1783802698_fbe99c",
       "next_artifact_number": 2,
       "dependencies": [],
@@ -1955,6 +1955,11 @@
           "path": "specs/107_fix_wezterm_leader_c_stale_cwd/reports/01_wezterm-leader-c-stale-cwd.md",
           "type": "research",
           "summary": "Root cause: LEADER+c SpawnTab inherits stale OSC-7 cwd polluted by Neovim; fix (get_foreground_process_info) was written in 3af0978 and reverted (3d82539) with no rationale — analyzes likely revert causes (nil return, foreground-process semantics), recommends hardened re-apply + verification protocol"
+        },
+        {
+          "path": "specs/107_fix_wezterm_leader_c_stale_cwd/plans/01_wezterm-leader-c-stale-cwd.md",
+          "type": "plan",
+          "summary": "Phased plan: diagnose the revert, decide the Neovim-foreground policy and design a hardened action_callback (fallback $HOME), edit config/wezterm.lua + home-manager switch, then behaviorally verify per the report protocol"
         }
       ]
     }

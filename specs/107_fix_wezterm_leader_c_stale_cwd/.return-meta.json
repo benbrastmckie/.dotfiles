@@ -1,0 +1,21 @@
+{
+  "status": "planned",
+  "agent_type": "planner-agent",
+  "session_id": "sess_1783802698_fbe99c",
+  "delegation_path": ["orchestrator", "plan", "planner-agent"],
+  "summary": "4-phase plan to re-apply and harden the WezTerm LEADER+c get_foreground_process_info().cwd fix, resolving the prior revert before re-landing",
+  "artifacts": [
+    {
+      "path": "specs/107_fix_wezterm_leader_c_stale_cwd/plans/01_wezterm-leader-c-stale-cwd.md",
+      "type": "plan",
+      "summary": "Phased plan: diagnose the revert, decide the Neovim-foreground policy and design a hardened action_callback (fallback $HOME), edit config/wezterm.lua + home-manager switch, then behaviorally verify per the report protocol"
+    }
+  ],
+  "next_steps": "Run /implement 107 to execute the plan",
+  "memory_candidates": [],
+  "metadata": {
+    "phase_count": 4,
+    "estimated_hours": 2,
+    "dependency_waves": 4
+  }
+}
