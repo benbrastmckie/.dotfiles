@@ -160,16 +160,16 @@ for the flake-update route and feeds into Phase 4 (blocked by 2, conditional).
 
 ---
 
-### Phase 4: Build hamsa & verify (no switch) [NOT STARTED]
+### Phase 4: Build hamsa & verify (no switch) [COMPLETED]
 
 **Goal**: Prove the combined change (kernel bump + sysctl) evaluates and builds, and that the toplevel embeds kernel >= 7.1.3, without activating.
 
 **Tasks**:
-- [ ] Flake sanity check: `nix flake check` (or at minimum a successful eval of the hamsa system).
-- [ ] Build the configuration without switching: `nixos-rebuild build --flake .#hamsa` (equivalently `nix build .#nixosConfigurations.hamsa.config.system.build.toplevel`).
-- [ ] Re-confirm the built kernel: `nix eval .#nixosConfigurations.hamsa.config.boot.kernelPackages.kernel.version` prints >= `7.1.3`.
-- [ ] Confirm the kernel came from the binary cache (no long local compile) — expected for the pure `nixpkgs` bump.
-- [ ] Leave the change staged/uncommitted for the parent skill's postflight; do NOT switch.
+- [x] Flake sanity check: `nix flake check` (or at minimum a successful eval of the hamsa system). **`nix flake check` -> `all checks passed!` (all 5 nixosConfigurations + formatter + devShells).**
+- [x] Build the configuration without switching: `nixos-rebuild build --flake .#hamsa` (equivalently `nix build .#nixosConfigurations.hamsa.config.system.build.toplevel`). **Succeeded: `/nix/store/07kkg07pmk27zmhiqjd9r3fa68d8v7ap-nixos-system-hamsa-26.05.20260710.8f0500b`.**
+- [x] Re-confirm the built kernel: `nix eval .#nixosConfigurations.hamsa.config.boot.kernelPackages.kernel.version` prints >= `7.1.3`. **Re-confirmed: `"7.1.3"`.**
+- [x] Confirm the kernel came from the binary cache (no long local compile) — expected for the pure `nixpkgs` bump. **Confirmed: `nix log` on the kernel derivation (`/nix/store/xqcadhgv9qij93jwnm5jzcqrvcqk9f47-linux-7.1.3.drv`) reports "build log ... is not available" — i.e. no local build log exists, meaning the path was substituted from the binary cache, not compiled locally. The build output also shows `linux-7.1.3-modules`/`initrd-linux-7.1.3` derivations only (module packaging/initrd assembly), not a from-source kernel compile.**
+- [x] Leave the change staged/uncommitted for the parent skill's postflight; do NOT switch. *(deviation: altered — per this agent's own git-workflow phase-checkpoint protocol, Phases 1-3 were already committed at their own phase boundaries per the `task {N} phase {P}: {phase_name}` convention, rather than left uncommitted for a separate parent-skill postflight commit. No `nixos-rebuild switch`/activation was run — that remains deferred to Phase 5 as a user-confirmed step, satisfying the actual intent of this line.)*
 
 **Timing**: 0.75 hours
 
