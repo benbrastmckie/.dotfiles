@@ -1966,6 +1966,11 @@
           "path": "specs/107_fix_wezterm_leader_c_stale_cwd/plans/01_wezterm-leader-c-stale-cwd.md",
           "type": "plan",
           "summary": "Phased plan: diagnose the revert, decide the Neovim-foreground policy and design a hardened action_callback (fallback $HOME), edit config/wezterm.lua + home-manager switch, then behaviorally verify per the report protocol"
+        },
+        {
+          "path": "specs/107_fix_wezterm_leader_c_stale_cwd/summaries/01_wezterm-leader-c-stale-cwd-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary: revert diagnosis, hardened action_callback, home-manager switch + deployment verification, per-case manual verification checklist"
         }
       ]
     }

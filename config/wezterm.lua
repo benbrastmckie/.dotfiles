@@ -454,7 +454,31 @@ config.keys = {
   {
     key = "c",
     mods = "LEADER",
-    action = act.SpawnTab("CurrentPaneDomain"),
+    -- Spawn new tab at the real shell cwd, never WezTerm's cached OSC-7 dir.
+    -- OSC-7 goes stale when Neovim emits its own (project) cwd and never
+    -- re-emits on exit, so plain SpawnTab("CurrentPaneDomain") can land a
+    -- new tab in a defunct Neovim session's project dir (task 107).
+    -- Policy: a new tab always opens at $HOME, never an editor's project
+    -- cwd -- so if Neovim (or vim) is still the foreground process, resolve
+    -- to $HOME rather than trusting its cwd. Nil/empty foreground-process
+    -- info (e.g. non-local domains) also resolves to $HOME. The fallback
+    -- NEVER reverts to plain SpawnTab (that was the reverted commit's bug:
+    -- 3af0978 -> 3d82539).
+    action = wezterm.action_callback(function(window, pane)
+      local home = os.getenv("HOME")
+      local info = pane:get_foreground_process_info()
+      local cwd = home
+      if info and info.cwd and info.cwd ~= "" then
+        local editor_names = { nvim = true, vim = true }
+        if not editor_names[info.name] then
+          cwd = info.cwd
+        end
+      end
+      window:perform_action(
+        act.SpawnCommandInNewTab({ domain = "CurrentPaneDomain", cwd = cwd }),
+        pane
+      )
+    end),
   },
   {
     key = "k",

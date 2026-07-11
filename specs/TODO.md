@@ -59,6 +59,7 @@ next_project_number: 108
 - **Dependencies**: None
 - **Research**: [107_fix_wezterm_leader_c_stale_cwd/reports/01_wezterm-leader-c-stale-cwd.md]
 - **Plan**: [107_fix_wezterm_leader_c_stale_cwd/plans/01_wezterm-leader-c-stale-cwd.md]
+- **Summary**: [107_fix_wezterm_leader_c_stale_cwd/summaries/01_wezterm-leader-c-stale-cwd-summary.md]
 
 **Description**: New WezTerm tabs opened with LEADER+c start in a stale project directory instead of the shell's real cwd (~). Root cause (confirmed in nvim-repo task 87): the LEADER+c binding act.SpawnTab("CurrentPaneDomain") (config/wezterm.lua:456) spawns the new shell in WezTerm's cached OSC-7 cwd, which Neovim pollutes when it emits OSC 7 for a worktree tcd/cd and never re-emits on exit; new fish shells are physically chdir'd to the stale dir (verified via /proc). The get_foreground_process_info().cwd fix was already written (commit 3af0978) and reverted with no rationale (3d82539) — determine why before re-applying, harden the nil fallback to $HOME (never back to stale SpawnTab), decide the new-tab-while-nvim-open policy, then apply via home-manager switch. Config owned by this repo at config/wezterm.lua, wired via modules/home/core/dotfiles.nix:37.
 
