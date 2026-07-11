@@ -99,7 +99,7 @@ for the flake-update route and feeds into Phase 4 (blocked by 2, conditional).
 **Tasks**:
 - [x] Record running kernel: `uname -r` (expected `7.1.2`). **Actual: `7.1.2`.**
 - [x] Record current panic sysctls: `cat /proc/sys/kernel/panic` (expect `10`) and `cat /proc/sys/kernel/panic_on_oops` (expect `0`). **Actual: `panic=10`, `panic_on_oops=0`.**
-- [x] Record the ACTUAL pinned nixpkgs rev/date: `jq '.nodes.nixpkgs.locked | {rev, lastModified, ref}' flake.lock` (do not assume the report's `a50de1b7` — capture the real value). **Actual: rev `cf3ffa5d140899101f1deb3f4d16b1a1aa2de849`, lastModified `1745997950` (2025-04-30) — differs from the report's cited `a50de1b7`/2026-07-04, recorded as-is per instruction not to assume the report's value; `nixpkgs-unstable` pin unaffected at `567a49d1913ce81ac6e9582e3553dd90a955875f`.**
+- [x] Record the ACTUAL pinned nixpkgs rev/date: `jq '.nodes.nixpkgs.locked | {rev, lastModified, ref}' flake.lock` (do not assume the report's `a50de1b7` — capture the real value). *(deviation: altered — the plan's literal jq path `.nodes.nixpkgs` resolves to an unrelated transitive dedup node (a nested input pulled in by another flake input), not the root flake's `nixpkgs` input; `flake.lock`'s `.nodes.root.inputs.nixpkgs` shows the actual root node is `nixpkgs_2`. Corrected query `jq '.nodes.nixpkgs_2.locked | {rev, lastModified, ref}' flake.lock` returns rev `a50de1b7d8a586adc18d2395c19de7d6058e6030`, lastModified `1783148766` (2026-07-04) — this DOES match the report's cited value. `nixpkgs-unstable` pin unaffected at `567a49d1913ce81ac6e9582e3553dd90a955875f`.)*
 - [x] Evaluate the kernel version at the current pin BEFORE any change: `nix eval .#nixosConfigurations.hamsa.config.boot.kernelPackages.kernel.version`. **Actual: `"7.1.2"`, confirming the crashing kernel is still pinned.**
 - [x] Confirm `/sys/fs/pstore` is empty (`ls -la /sys/fs/pstore/`) and note that one Jun-29 dump under `/var/lib/systemd/pstore/` should be retained (no deletion this task). *(deviation: altered — `ls -la /sys/fs/pstore/` returned `Permission denied` for the unprivileged implementer session rather than an empty-directory listing; this matches the report's prior root-verified finding of an empty pstore and is non-blocking read-only diagnostics, not a build input, so it does not gate the phase.)*
 - [x] Note the r-V8/`nixpkgs-unstable` constraint from task 104: the bump must touch the `nixpkgs` input ONLY. **Confirmed via the pin capture above; enforced in Phase 2 via `git diff flake.lock`.**
@@ -116,15 +116,15 @@ for the flake-update route and feeds into Phase 4 (blocked by 2, conditional).
 
 ---
 
-### Phase 2: Update nixpkgs input & confirm kernel >= 7.1.3 (abort gate) [NOT STARTED]
+### Phase 2: Update nixpkgs input & confirm kernel >= 7.1.3 (abort gate) [COMPLETED]
 
 **Goal**: Bump only the `nixpkgs` input and prove — cheaply, via eval — that it resolves to kernel >= 7.1.3 before committing to a build.
 
 **Tasks**:
-- [ ] Run the targeted input update: `nix flake update nixpkgs` (updates ONLY the `nixpkgs` node in `flake.lock`; leaves `nixpkgs-unstable` at its task-104 pin).
-- [ ] Confirm `flake.lock` changed only the `nixpkgs` node: `git diff flake.lock` (verify `nixpkgs-unstable` rev is unchanged).
-- [ ] Evaluate the resolved kernel version: `nix eval .#nixosConfigurations.hamsa.config.boot.kernelPackages.kernel.version`.
-- [ ] ABORT GATE: it MUST print `"7.1.3"` (or higher). If it still shows `7.1.2` (or the bump would regress another input), revert `flake.lock` (`git checkout flake.lock`) and divert to the conditional Phase 6 fallback instead.
+- [x] Run the targeted input update: `nix flake update nixpkgs` (updates ONLY the `nixpkgs` node in `flake.lock`; leaves `nixpkgs-unstable` at its task-104 pin). **Actual: `nixpkgs_2` node bumped `a50de1b7d8a586adc18d2395c19de7d6058e6030` (2026-07-04) → `8f0500b9660505dc3cb647775fe9a978a74b5283` (2026-07-10).**
+- [x] Confirm `flake.lock` changed only the `nixpkgs` node: `git diff flake.lock` (verify `nixpkgs-unstable` rev is unchanged). **Confirmed via a node-name scan of the diff: only `nixpkgs_2` (the root `nixpkgs` input) changed; `nixpkgs-unstable`/`nixpkgs-unstable_2` untouched.**
+- [x] Evaluate the resolved kernel version: `nix eval .#nixosConfigurations.hamsa.config.boot.kernelPackages.kernel.version`. **Actual: `"7.1.3"`.**
+- [x] ABORT GATE: it MUST print `"7.1.3"` (or higher). If it still shows `7.1.2` (or the bump would regress another input), revert `flake.lock` (`git checkout flake.lock`) and divert to the conditional Phase 6 fallback instead. **GATE PASSED — kernel resolves to 7.1.3. Main path continues; Phase 6 fallback is skipped (not executed).**
 
 **Timing**: 0.5 hours
 
@@ -138,15 +138,15 @@ for the flake-update route and feeds into Phase 4 (blocked by 2, conditional).
 
 ---
 
-### Phase 3: Add panic_on_oops sysctl (retain panic=10) [NOT STARTED]
+### Phase 3: Add panic_on_oops sysctl (retain panic=10) [COMPLETED]
 
 **Goal**: Ensure a future panic produces a capturable oops/pstore record, without removing the existing auto-reboot net.
 
 **Tasks**:
-- [ ] In `modules/system/boot.nix`, add `boot.kernel.sysctl."kernel.panic_on_oops" = 1;` (with a comment referencing task 104/106 and the empty-pstore diagnostics finding).
-- [ ] Confirm the existing `"panic=10"` entry in `boot.kernelParams` is retained unchanged.
-- [ ] Keep `extraModprobeConfig` (`mt7925e disable_aspm=1 power_save=0`) unchanged — research confirmed these are irrelevant to this race but harmless.
-- [ ] Format the file: `nix fmt modules/system/boot.nix`.
+- [x] In `modules/system/boot.nix`, add `boot.kernel.sysctl."kernel.panic_on_oops" = 1;` (with a comment referencing task 104/106 and the empty-pstore diagnostics finding). **Added as `kernel.sysctl."kernel.panic_on_oops" = 1;` inside the existing `boot = { ... }` block (equivalent to `boot.kernel.sysctl...` at module top level), with a comment citing task 104/106 and the report.**
+- [x] Confirm the existing `"panic=10"` entry in `boot.kernelParams` is retained unchanged. **Confirmed unchanged (line 54).**
+- [x] Keep `extraModprobeConfig` (`mt7925e disable_aspm=1 power_save=0`) unchanged — research confirmed these are irrelevant to this race but harmless. **Confirmed unchanged.**
+- [x] Format the file: `nix fmt modules/system/boot.nix`. **Ran; no diff produced (file was already correctly formatted).**
 
 **Timing**: 0.25 hours
 

@@ -54,6 +54,17 @@
       "panic=10"
     ];
 
+    # Panic on the first oops instead of limping along. Task 104/106 diagnostics
+    # finding: the mt7925e sta_poll_list corruption panic (mt76_wcid_add_poll)
+    # was leaving NO pstore/EFI-var record — with panic_on_oops=0 the crashed
+    # NAPI kthread dies holding a lock, the system wedges for ~60s, and by the
+    # time the eventual hung-task/hard-lockup panic fires, the kmsg dump can no
+    # longer be written. Setting panic_on_oops=1 panics immediately on the first
+    # oops so the pstore dump captures cleanly before any wedge, and the
+    # existing panic=10 auto-reboot below still applies afterward.
+    # See: specs/106_root_cause_fix_mt7925e_wifi_kernel_panics/reports/01_mt7925e-panic-upstream-fix.md
+    kernel.sysctl."kernel.panic_on_oops" = 1;
+
     # Audio and WiFi kernel module options
     # snd_hda_intel power_save=1: allow codec to idle after 1s of silence.
     #   Previously set to 0, but the EAPD speaker-amp is already disabled by the
