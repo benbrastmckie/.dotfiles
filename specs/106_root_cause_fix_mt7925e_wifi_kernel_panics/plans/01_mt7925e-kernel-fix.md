@@ -1,7 +1,7 @@
 # Implementation Plan: mt7925e WiFi Kernel-Panic Root-Cause Fix (kernel 7.1.3 + panic_on_oops)
 
 - **Task**: 106 - root_cause_fix_mt7925e_wifi_kernel_panics
-- **Status**: [NOT STARTED]
+- **Status**: [PARTIAL] (all repo-side phases complete and build-verified; Phase 5 activation awaits user-run `sudo nixos-rebuild switch --flake .#hamsa` + reboot)
 - **Effort**: 3 hours (main path; +1.5 hours if the conditional fallback Phase 6 is triggered)
 - **Dependencies**: None (builds on task 104 mitigations already in `modules/system/boot.nix`)
 - **Research Inputs**: reports/01_mt7925e-panic-upstream-fix.md
@@ -183,15 +183,15 @@ for the flake-update route and feeds into Phase 4 (blocked by 2, conditional).
 
 ---
 
-### Phase 5: Activation (user-confirmed) & post-switch verification [NOT STARTED]
+### Phase 5: Activation (user-confirmed) & post-switch verification [PARTIAL]
 
 **Goal**: Activate the verified build and confirm the fix is live. Activation is a USER-CONFIRMED step (requires sudo) — the implementer flags it, the user runs it.
 
 **Tasks**:
-- [ ] FLAG for the user (do NOT run autonomously): `sudo nixos-rebuild switch --flake .#hamsa` followed by a reboot into the new kernel.
-- [ ] After the user reboots, verify: `uname -r` >= `7.1.3`.
-- [ ] Verify panic sysctls live: `cat /proc/sys/kernel/panic` == `10` and `cat /proc/sys/kernel/panic_on_oops` == `1`.
-- [ ] Optional source confirmation: the `published`/`rcu_dereference_protected` block is present in `mt76_sta_add()` (per report Rec. 1).
+- [x] FLAG for the user (do NOT run autonomously): `sudo nixos-rebuild switch --flake .#hamsa` followed by a reboot into the new kernel. **FLAGGED — see "User Action Required" in the implementation summary. Per the plan's explicit Non-Goal ("Running `sudo nixos-rebuild switch` autonomously") and Risk mitigation ("Activation run without user consent"), this implementer did NOT run `switch`, only `build` (Phase 4). The verified build result is `/nix/store/07kkg07pmk27zmhiqjd9r3fa68d8v7ap-nixos-system-hamsa-26.05.20260710.8f0500b`.**
+- [ ] After the user reboots, verify: `uname -r` >= `7.1.3`. *(deviation: deferred — requires the user-run switch+reboot above; cannot be executed by the implementer before that happens.)*
+- [ ] Verify panic sysctls live: `cat /proc/sys/kernel/panic` == `10` and `cat /proc/sys/kernel/panic_on_oops` == `1`. *(deviation: deferred — same reason, post-reboot user verification.)*
+- [ ] Optional source confirmation: the `published`/`rcu_dereference_protected` block is present in `mt76_sta_add()` (per report Rec. 1). *(deviation: deferred — optional, post-reboot user verification.)*
 
 **Timing**: 0.5 hours
 
@@ -205,12 +205,12 @@ for the flake-update route and feeds into Phase 4 (blocked by 2, conditional).
 
 ---
 
-### Phase 6: FALLBACK — boot.kernelPatches cherry-pick [NOT STARTED] (CONDITIONAL)
+### Phase 6: FALLBACK — boot.kernelPatches cherry-pick [SKIPPED] (CONDITIONAL)
 
 **Goal**: Only if Phase 2's abort gate shows kernel < 7.1.3 (or the bump is otherwise blocked): apply the merged fix as a source patch onto the current kernel. Skip entirely on the main path.
 
 **Tasks**:
-- [ ] CONDITIONAL — execute only if Phase 2 did not deliver kernel >= 7.1.3. Otherwise mark this phase skipped.
+- [x] CONDITIONAL — execute only if Phase 2 did not deliver kernel >= 7.1.3. Otherwise mark this phase skipped. *(deviation: skipped — Phase 2's abort gate PASSED (`nix eval` printed `"7.1.3"`), so the main path applies and this entire fallback phase is not executed, per its own conditional trigger.)*
 - [ ] Revert any speculative `flake.lock` change from Phase 2 (`git checkout flake.lock`) so the base kernel stays at the current pin.
 - [ ] Add the exact snippet below to `modules/system/boot.nix` (report §3, hash precomputed and apply dry-run-verified):
 
@@ -248,15 +248,17 @@ boot.kernelPatches = [
 
 ---
 
-### Phase 7: Monitoring & close-out [NOT STARTED]
+### Phase 7: Monitoring & close-out [COMPLETED]
 
 **Goal**: Establish how to confirm the fix held and document the escalation path if it does not.
 
 **Tasks**:
-- [ ] Record the success criteria to watch: 2+ weeks on >= 7.1.3 with (a) no journal-truncation freezes, (b) no new `/var/lib/systemd/pstore/` entries, (c) no `WARN … mt76_sta_add` lines in the journal.
-- [ ] Document the check commands: `journalctl --list-boots` for unexpected reboots; `ls /var/lib/systemd/pstore/` for new dumps; `journalctl -k | grep -i mt76_sta_add` for the residual-race WARN.
-- [ ] Note post-task housekeeping (retain one Jun-29 dump for upstream hygiene; prune the rest and `~/pstore-copy/` only after that, per report §6) — NOT executed in this task.
-- [ ] Document the terminal fallback: if the same trace recurs on >= 7.1.3 WITH capture working, escalate to the Intel AX210 (non-vPro) / QCNCM865 hardware swap (report §5).
+- [x] Record the success criteria to watch: 2+ weeks on >= 7.1.3 with (a) no journal-truncation freezes, (b) no new `/var/lib/systemd/pstore/` entries, (c) no `WARN … mt76_sta_add` lines in the journal. **Recorded — see implementation summary "Monitoring & Escalation".**
+- [x] Document the check commands: `journalctl --list-boots` for unexpected reboots; `ls /var/lib/systemd/pstore/` for new dumps; `journalctl -k | grep -i mt76_sta_add` for the residual-race WARN. **Documented in the summary.**
+- [x] Note post-task housekeeping (retain one Jun-29 dump for upstream hygiene; prune the rest and `~/pstore-copy/` only after that, per report §6) — NOT executed in this task. **Noted in the summary; not executed here.**
+- [x] Document the terminal fallback: if the same trace recurs on >= 7.1.3 WITH capture working, escalate to the Intel AX210 (non-vPro) / QCNCM865 hardware swap (report §5). **Documented in the summary.**
+
+*(Note: this phase is documentation-only and does not require the Phase 5 user-run switch to have already happened, despite the "Depends on: 5" dependency table entry — the monitoring/escalation guidance is written for the user to apply once they do switch and reboot.)*
 
 **Timing**: 0.25 hours (plus passive multi-week observation).
 
@@ -270,11 +272,11 @@ boot.kernelPatches = [
 
 ## Testing & Validation
 
-- [ ] `nix eval .#nixosConfigurations.hamsa.config.boot.kernelPackages.kernel.version` prints >= `7.1.3` (Phase 2 and Phase 4).
-- [ ] `git diff flake.lock` shows only the `nixpkgs` node changed (`nixpkgs-unstable` pin intact).
-- [ ] `nixos-rebuild build --flake .#hamsa` succeeds and the kernel is sourced from the binary cache (no local compile on the main path).
-- [ ] `modules/system/boot.nix` retains `panic=10` AND adds `kernel.panic_on_oops = 1`.
-- [ ] Post-switch (user-run): `uname -r` >= `7.1.3`, `/proc/sys/kernel/panic` == `10`, `/proc/sys/kernel/panic_on_oops` == `1`.
+- [x] `nix eval .#nixosConfigurations.hamsa.config.boot.kernelPackages.kernel.version` prints >= `7.1.3` (Phase 2 and Phase 4). **Verified both times: `"7.1.3"`.**
+- [x] `git diff flake.lock` shows only the `nixpkgs` node changed (`nixpkgs-unstable` pin intact). **Verified: only `nixpkgs_2` node touched.**
+- [x] `nixos-rebuild build --flake .#hamsa` succeeds and the kernel is sourced from the binary cache (no local compile on the main path). **Verified: build succeeded; `nix log` confirms no local build log for the kernel derivation (substituted).**
+- [x] `modules/system/boot.nix` retains `panic=10` AND adds `kernel.panic_on_oops = 1`. **Verified in file.**
+- [ ] Post-switch (user-run): `uname -r` >= `7.1.3`, `/proc/sys/kernel/panic` == `10`, `/proc/sys/kernel/panic_on_oops` == `1`. *(deviation: deferred to user — requires the Phase 5 user-run `switch` + reboot.)*
 
 ## Artifacts & Outputs
 
