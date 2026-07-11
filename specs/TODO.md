@@ -18,7 +18,7 @@ next_project_number: 108
 
 ### Nixos Config
 
-106 [RESEARCHED] — Root-cause and permanently fix the recurring mt7925e WiFi kernel 
+106 [PLANNED] — Root-cause and permanently fix the recurring mt7925e WiFi kernel 
 
 ### Nix Infrastructure
 
@@ -68,11 +68,12 @@ next_project_number: 108
 ---
 
 ### 106. Root cause fix mt7925e wifi kernel panics
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
 - **Research**: [106_root_cause_fix_mt7925e_wifi_kernel_panics/reports/01_mt7925e-panic-upstream-fix.md]
+- **Plan**: [106_root_cause_fix_mt7925e_wifi_kernel_panics/plans/01_mt7925e-kernel-fix.md]
 
 **Description**: Root-cause and permanently fix the recurring mt7925e WiFi kernel panic freezes on hamsa (Framework 13, Ryzen AI 9 HX 370) — follow-up to task 104. Task 104 confirmed via pstore dumps that the freezes are kernel panics from a wcid/poll_list linked-list corruption race in the MediaTek mt7925e/mt76 driver (kernel BUG at lib/list_debug.c:32, __list_add_valid_or_report -> mt76_wcid_add_poll -> mt7925_mac_add_txs/mt7925_queue_rx_skb on the threaded NAPI RX/TXS path), triggered during heavy AP roaming. Task 104 only shipped a MITIGATION (panic=10 auto-reboot, kernel 7.1.1->7.1.2) but verified BOTH published upstream fixes were already present, so this is a still-unfixed variant of the race. The freeze just recurred and the machine auto-rebooted as intended. GOAL: identify a CORRECT solution, not another mitigation, via proper online research. Research: current state of the mt76/mt7925 poll_list/wcid race upstream (linux-wireless / linux-mediatek mailing lists, netdev, git.kernel.org mt76 tree, openwrt/mt76 issue #1023 and related, zbowling/mt7925 tracker, Framework community forum reports for the RZ717/mt7925 on Ryzen AI 300); whether a newer kernel or a specific pending patch series fixes THIS exact backtrace; whether boot.kernelPatches with a cherry-picked upstream commit is viable and which commit; whether driver options (mt7925e disable_aspm/power_save, threaded NAPI toggle, roaming/band-steering aggressiveness) meaningfully reduce trigger surface; and the Intel AX210 hardware-swap fallback. Collect the current pstore dumps from /var/lib/systemd/pstore/ as fresh evidence and report this trace upstream if still uncatalogued. Deliver a concrete, verifiable fix recommendation with the exact nix config changes. Machine: hosts/hamsa; modules/system/boot.nix already carries amdgpu.dcdebugmask=0x10, mt7925e disable_aspm=1 power_save=0, hung_task_timeout_secs=60, panic=10. Reference: specs/104_fix_mt7925e_wifi_kernel_panic_freezes/reports/01_mt7925e-panic-root-cause.md
 
