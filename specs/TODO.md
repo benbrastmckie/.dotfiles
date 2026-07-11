@@ -256,6 +256,7 @@ CROSS-REPO: research performed from ~/Mail; report + task homed in .dotfiles bec
 - **Research**:
   - [092_logos_mbsync_group_labels_fix/reports/01_mbsync-logos-diagnosis.md]
   - [092_logos_mbsync_group_labels_fix/reports/02_task-still-needed.md]
+  - [092_logos_mbsync_group_labels_fix/reports/03_cross-repo-nvim-sync-linkage.md]
 
 **Description**: Fix the Logos (Protonmail Bridge) mbsync group so the email-cleanup wrappers' post-mutation `mbsync logos` reconcile succeeds instead of exiting non-zero.
 

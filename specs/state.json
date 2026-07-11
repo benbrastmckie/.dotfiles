@@ -1850,21 +1850,27 @@
       "topic": "email-infrastructure",
       "dependencies": [],
       "created": "2026-07-05T01:28:15Z",
-      "last_updated": "2026-07-11T14:50:00Z",
-      "next_artifact_number": 3,
+      "last_updated": "2026-07-11T14:51:57Z",
+      "next_artifact_number": 4,
       "artifacts": [
         {
           "path": "specs/092_logos_mbsync_group_labels_fix/reports/01_mbsync-logos-diagnosis.md",
           "type": "report",
-          "summary": "mbsync logos diagnosis (backfilled by --sync)"
+          "summary": "Live diagnosis seed (2026-07-04): whole-group mbsync logos exit 1 from dotted Gmail-import label under Maildir++; 3-part fix sketch"
         },
         {
           "path": "specs/092_logos_mbsync_group_labels_fix/reports/02_task-still-needed.md",
           "type": "report",
-          "summary": "Task-still-needed research: PARTIAL — a8f65ad already fixed the blocking crash; Group logos-full and negative dotted-name patterns remain unimplemented"
+          "summary": "Is the fix still needed? PARTIAL: crash already fixed by a8f65ad (nvim task 826, logos-labels removed from Group logos); parts 2 (logos-full) and 3 (negative patterns) unimplemented"
+        },
+        {
+          "path": "specs/092_logos_mbsync_group_labels_fix/reports/03_cross-repo-nvim-sync-linkage.md",
+          "type": "report",
+          "summary": "Cross-repo: nvim task 851 now runs mbsync -a (Group logos) on <leader>me/<leader>mN and logos-inbox on <leader>ms; raises value of part-3 folder hardening; task 92 verification == 851 remaining item"
         }
       ],
-      "session_id": "sess_1783806446_e3775f"
+      "session_id": "sess_1783806446_e3775f",
+      "researched": "2026-07-11T14:51:57Z"
     },
     {
       "project_number": 93,
