@@ -44,7 +44,7 @@ next_project_number: 108
 
 ### Email Infrastructure
 
-92 [RESEARCHED] — [RESCOPED 2026-07-11 after research reports 02 + 03] Harden the L
+92 [PLANNED] — [RESCOPED 2026-07-11 after research reports 02 + 03] Harden the L
 
 ## Tasks
 
@@ -249,7 +249,7 @@ CROSS-REPO: research performed from ~/Mail; report + task homed in .dotfiles bec
 ---
 
 ### 92. Logos mbsync group labels fix
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: email-infrastructure
 - **Dependencies**: None
@@ -257,6 +257,7 @@ CROSS-REPO: research performed from ~/Mail; report + task homed in .dotfiles bec
   - [092_logos_mbsync_group_labels_fix/reports/01_mbsync-logos-diagnosis.md]
   - [092_logos_mbsync_group_labels_fix/reports/02_task-still-needed.md]
   - [092_logos_mbsync_group_labels_fix/reports/03_cross-repo-nvim-sync-linkage.md]
+- **Plan**: [092_logos_mbsync_group_labels_fix/plans/03_logos-mbsync-hardening.md]
 
 **Description**: [RESCOPED 2026-07-11 after research reports 02 + 03] Harden the Logos (Protonmail Bridge) mbsync config. The ORIGINAL blocking bug -- the wrappers' post-mutation `mbsync logos` reconcile exiting non-zero because `Group logos` chained `logos-labels` and hit the dotted Gmail-import label `benbrastmckie@gmail.com` under `SubFolders Maildir++` -- is ALREADY FIXED by commit a8f65ad (removed logos-labels from Group logos; landed via nvim task 826). Two residual hardening items remain (see reports/02_task-still-needed.md and reports/03_cross-repo-nvim-sync-linkage.md).
 

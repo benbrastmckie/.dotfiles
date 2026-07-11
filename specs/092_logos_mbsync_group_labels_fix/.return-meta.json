@@ -1,31 +1,34 @@
 {
-  "status": "researched",
+  "status": "planned",
+  "session_id": "sess_1783808629_02c9b0",
+  "agent_type": "planner-agent",
+  "delegation_path": ["orchestrator", "plan", "planner-agent"],
+  "task_number": 92,
+  "task_name": "logos_mbsync_group_labels_fix",
+  "task_type": "nix",
+  "next_steps": "Run /implement 92 to execute the plan",
   "artifacts": [
     {
-      "type": "report",
-      "path": "specs/092_logos_mbsync_group_labels_fix/reports/02_task-still-needed.md",
-      "summary": "Determines task 92 is PARTIAL: commit a8f65ad already removed logos-labels from Group logos, fixing the whole-group crash on the dotted Gmail-import label name (proposal part 1's intent, though logos-folders was kept rather than also excluded). Proposal parts 2 (Group logos-full) and 3 (negative dotted-name patterns on logos-labels/logos-folders) were never implemented, and part 3's absence means the commit's own claim that logos-labels is safe for 'manual inspection' is not actually true yet."
+      "type": "plan",
+      "path": "specs/092_logos_mbsync_group_labels_fix/plans/03_logos-mbsync-hardening.md",
+      "summary": "Two-phase, ~1 hour nix hardening plan for the Logos section of modules/home/email/mbsync.nix. Phase 1 (high priority): add negative dotted-name patterns \"!Labels/*.*\" and \"!Folders/*.*\" to the logos-labels and logos-folders channels so no dotted mailbox name reaches the Maildir++ store (logos-folders is still in Group logos, which hot nvim keymaps run via mbsync -a). Phase 2 (low priority): add Group logos-full for on-demand full sync, then run home-manager build plus the user-gated live mbsync verification suite that also credits nvim task 851. Explicitly does NOT re-plan the already-landed a8f65ad group-slimming fix and excludes the secondary duplicate-UID / dateless-Sent data issues."
     }
   ],
-  "next_steps": "Decide with the user whether to narrow task 92 to the two remaining residual items (Group logos-full + negative dotted-name patterns) and route to /plan, or mark task 92 ABANDONED citing a8f65ad as having resolved the operationally significant part of the bug.",
-  "metadata": {
-    "session_id": "sess_1783806533_7050e6",
-    "agent_type": "nix-research-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
-    "findings_count": 6,
-    "key_findings": {
-      "group_logos_current_channels": ["logos-inbox", "logos-sent", "logos-drafts", "logos-trash", "logos-archive", "logos-folders"],
-      "logos_labels_in_group": false,
-      "logos_folders_in_group": true,
-      "group_logos_full_exists": false,
-      "negative_patterns_added": false,
-      "relevant_commit": "a8f65ad (2026-07-05, landed via nvim task 826, not task 92)",
-      "fix_part_1_slim_group": "PARTIAL",
-      "fix_part_2_logos_full_group": "NOT DONE",
-      "fix_part_3_negative_patterns": "NOT DONE",
-      "secondary_issues_addressed_in_this_repo": false,
-      "recommendation": "PARTIAL"
-    }
-  }
+  "plan_metadata": {
+    "phases": 2,
+    "total_effort_hours": 1,
+    "complexity": "simple",
+    "research_integrated": true,
+    "plan_version": 1,
+    "dependency_waves": [
+      { "wave": 1, "phases": [1], "blocked_by": [] },
+      { "wave": 2, "phases": [2], "blocked_by": [1] }
+    ],
+    "reports_integrated": [
+      "specs/092_logos_mbsync_group_labels_fix/reports/01_mbsync-logos-diagnosis.md",
+      "specs/092_logos_mbsync_group_labels_fix/reports/02_task-still-needed.md",
+      "specs/092_logos_mbsync_group_labels_fix/reports/03_cross-repo-nvim-sync-linkage.md"
+    ]
+  },
+  "memory_candidates": []
 }
