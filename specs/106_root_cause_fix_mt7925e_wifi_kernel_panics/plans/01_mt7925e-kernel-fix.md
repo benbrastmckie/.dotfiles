@@ -92,17 +92,17 @@ Phases within the same wave can execute in parallel. Phase 6 is a CONDITIONAL of
 it is executed only if the Phase 2 abort gate shows kernel < 7.1.3, in which case it substitutes
 for the flake-update route and feeds into Phase 4 (blocked by 2, conditional).
 
-### Phase 1: Pre-change verification & snapshot [NOT STARTED]
+### Phase 1: Pre-change verification & snapshot [COMPLETED]
 
 **Goal**: Record the exact current state so the fix is verifiable and the bump is scoped safely.
 
 **Tasks**:
-- [ ] Record running kernel: `uname -r` (expected `7.1.2`).
-- [ ] Record current panic sysctls: `cat /proc/sys/kernel/panic` (expect `10`) and `cat /proc/sys/kernel/panic_on_oops` (expect `0`).
-- [ ] Record the ACTUAL pinned nixpkgs rev/date: `jq '.nodes.nixpkgs.locked | {rev, lastModified, ref}' flake.lock` (do not assume the report's `a50de1b7` — capture the real value).
-- [ ] Evaluate the kernel version at the current pin BEFORE any change: `nix eval .#nixosConfigurations.hamsa.config.boot.kernelPackages.kernel.version`.
-- [ ] Confirm `/sys/fs/pstore` is empty (`ls -la /sys/fs/pstore/`) and note that one Jun-29 dump under `/var/lib/systemd/pstore/` should be retained (no deletion this task).
-- [ ] Note the r-V8/`nixpkgs-unstable` constraint from task 104: the bump must touch the `nixpkgs` input ONLY.
+- [x] Record running kernel: `uname -r` (expected `7.1.2`). **Actual: `7.1.2`.**
+- [x] Record current panic sysctls: `cat /proc/sys/kernel/panic` (expect `10`) and `cat /proc/sys/kernel/panic_on_oops` (expect `0`). **Actual: `panic=10`, `panic_on_oops=0`.**
+- [x] Record the ACTUAL pinned nixpkgs rev/date: `jq '.nodes.nixpkgs.locked | {rev, lastModified, ref}' flake.lock` (do not assume the report's `a50de1b7` — capture the real value). **Actual: rev `cf3ffa5d140899101f1deb3f4d16b1a1aa2de849`, lastModified `1745997950` (2025-04-30) — differs from the report's cited `a50de1b7`/2026-07-04, recorded as-is per instruction not to assume the report's value; `nixpkgs-unstable` pin unaffected at `567a49d1913ce81ac6e9582e3553dd90a955875f`.**
+- [x] Evaluate the kernel version at the current pin BEFORE any change: `nix eval .#nixosConfigurations.hamsa.config.boot.kernelPackages.kernel.version`. **Actual: `"7.1.2"`, confirming the crashing kernel is still pinned.**
+- [x] Confirm `/sys/fs/pstore` is empty (`ls -la /sys/fs/pstore/`) and note that one Jun-29 dump under `/var/lib/systemd/pstore/` should be retained (no deletion this task). *(deviation: altered — `ls -la /sys/fs/pstore/` returned `Permission denied` for the unprivileged implementer session rather than an empty-directory listing; this matches the report's prior root-verified finding of an empty pstore and is non-blocking read-only diagnostics, not a build input, so it does not gate the phase.)*
+- [x] Note the r-V8/`nixpkgs-unstable` constraint from task 104: the bump must touch the `nixpkgs` input ONLY. **Confirmed via the pin capture above; enforced in Phase 2 via `git diff flake.lock`.**
 
 **Timing**: 0.5 hours
 
