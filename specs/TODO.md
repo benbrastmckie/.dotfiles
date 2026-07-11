@@ -1,5 +1,5 @@
 ---
-next_project_number: 107
+next_project_number: 108
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 107
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92,106 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,92,106,107 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -50,7 +50,22 @@ next_project_number: 107
 
 92 [NOT STARTED] — Fix the Logos (Protonmail Bridge) mbsync group so the email-clean
 
+### Terminal
+
+107 [RESEARCHED] — New WezTerm tabs opened with LEADER+c start in a stale project di
+
 ## Tasks
+
+### 107. Fix WezTerm Leader+c new-tab opening in a stale Neovim working directory
+- **Status**: [RESEARCHED]
+- **Task Type**: nix
+- **Topic**: terminal
+- **Dependencies**: None
+- **Research**: [107_fix_wezterm_leader_c_stale_cwd/reports/01_wezterm-leader-c-stale-cwd.md]
+
+**Description**: New WezTerm tabs opened with LEADER+c start in a stale project directory instead of the shell's real cwd (~). Root cause (confirmed in nvim-repo task 87): the LEADER+c binding act.SpawnTab("CurrentPaneDomain") (config/wezterm.lua:456) spawns the new shell in WezTerm's cached OSC-7 cwd, which Neovim pollutes when it emits OSC 7 for a worktree tcd/cd and never re-emits on exit; new fish shells are physically chdir'd to the stale dir (verified via /proc). The get_foreground_process_info().cwd fix was already written (commit 3af0978) and reverted with no rationale (3d82539) — determine why before re-applying, harden the nil fallback to $HOME (never back to stale SpawnTab), decide the new-tab-while-nvim-open policy, then apply via home-manager switch. Config owned by this repo at config/wezterm.lua, wired via modules/home/core/dotfiles.nix:37.
+
+---
 
 ### 106. Root cause fix mt7925e wifi kernel panics
 - **Status**: [RESEARCHED]

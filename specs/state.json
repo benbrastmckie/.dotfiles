@@ -1,5 +1,5 @@
 {
-  "next_project_number": 107,
+  "next_project_number": 108,
   "active_projects": [
     {
       "project_number": 106,
@@ -1931,6 +1931,27 @@
       ],
       "session_id": "sess_1783577798_e8cfa8",
       "completion_summary": "Added <Tab>=:next-tab / <S-Tab>=:prev-tab to aerc [messages] and [view] contexts in modules/home/email/aerc.nix (additive; C-n/C-p aliases retained). home-manager build verified; d/D/a/A, Proposed-* wrappers, and scoped $ sync all confirmed unchanged. User follow-up: home-manager switch + interactive keybinding check."
+    },
+    {
+      "project_number": 107,
+      "project_name": "fix_wezterm_leader_c_stale_cwd",
+      "status": "researched",
+      "task_type": "nix",
+      "topic": "terminal",
+      "created": "2026-07-11T20:38:11Z",
+      "last_updated": "2026-07-11T20:38:11Z",
+      "session_id": "sess_1783802210_be4fd3",
+      "next_artifact_number": 2,
+      "dependencies": [],
+      "title": "Fix WezTerm Leader+c new-tab opening in a stale Neovim working directory",
+      "description": "New WezTerm tabs opened with LEADER+c start in a stale project directory instead of the shell's real cwd (~). Root cause (confirmed in nvim-repo task 87): the LEADER+c binding act.SpawnTab(\"CurrentPaneDomain\") (config/wezterm.lua:456) spawns the new shell in WezTerm's cached OSC-7 cwd, which Neovim pollutes when it emits OSC 7 for a worktree tcd/cd and never re-emits on exit; new fish shells are physically chdir'd to the stale dir (verified via /proc). The get_foreground_process_info().cwd fix was already written (commit 3af0978) and reverted with no rationale (3d82539) — determine why before re-applying, harden the nil fallback to $HOME (never back to stale SpawnTab), decide the new-tab-while-nvim-open policy, then apply via home-manager switch. Config owned by this repo at config/wezterm.lua, wired via modules/home/core/dotfiles.nix:37.",
+      "artifacts": [
+        {
+          "path": "specs/107_fix_wezterm_leader_c_stale_cwd/reports/01_wezterm-leader-c-stale-cwd.md",
+          "type": "research",
+          "summary": "Root cause: LEADER+c SpawnTab inherits stale OSC-7 cwd polluted by Neovim; fix (get_foreground_process_info) was written in 3af0978 and reverted (3d82539) with no rationale — analyzes likely revert causes (nil return, foreground-process semantics), recommends hardened re-apply + verification protocol"
+        }
+      ]
     }
   ],
   "repository_health": {
