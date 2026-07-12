@@ -1,7 +1,7 @@
 # Implementation Plan: Logos mbsync Dotted-Name Hardening
 
 - **Task**: 92 - logos_mbsync_group_labels_fix
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 1 hour
 - **Dependencies**: None
 - **Research Inputs**: reports/01_mbsync-logos-diagnosis.md, reports/02_task-still-needed.md, reports/03_cross-repo-nvim-sync-linkage.md
@@ -83,20 +83,20 @@ No ROADMAP.md consulted for this task.
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Add negative dotted-name patterns [NOT STARTED]
+### Phase 1: Add negative dotted-name patterns [COMPLETED]
 
 **Goal**: Guard the `logos-labels` and `logos-folders` channels so no dotted mailbox name can ever
 reach the Maildir++ store — the highest-value residual item, since `logos-folders` is still in
 `Group logos`, which the hot nvim keymaps `<leader>me` / `<leader>mN` run via `mbsync -a`.
 
 **Tasks**:
-- [ ] In `modules/home/email/mbsync.nix`, change the `logos-labels` channel `Patterns` line
+- [x] In `modules/home/email/mbsync.nix`, change the `logos-labels` channel `Patterns` line
       (currently `Patterns "Labels/*"`, ~line 184) to `Patterns "Labels/*" "!Labels/*.*"`.
-- [ ] Change the `logos-folders` channel `Patterns` line (currently `Patterns "Folders/*"`,
+- [x] Change the `logos-folders` channel `Patterns` line (currently `Patterns "Folders/*"`,
       ~line 193) to `Patterns "Folders/*" "!Folders/*.*"`.
-- [ ] Optionally add a short inline comment noting the negative pattern skips dotted names that
+- [x] Optionally add a short inline comment noting the negative pattern skips dotted names that
       Maildir++ cannot represent (consistent with the file's existing exclusion comments).
-- [ ] Run `home-manager build` (see Testing & Validation for the exact flake target) and confirm
+- [x] Run `home-manager build` (see Testing & Validation for the exact flake target) and confirm
       it evaluates cleanly.
 
 **Timing**: 30 minutes
@@ -114,21 +114,24 @@ reach the Maildir++ store — the highest-value residual item, since `logos-fold
 
 ---
 
-### Phase 2: Add Group logos-full and run live verification [NOT STARTED]
+### Phase 2: Add Group logos-full and run live verification [COMPLETED]
 
 **Goal**: Add an explicit on-demand full-sync group covering the core channels plus
 `logos-labels` and `logos-folders`, rebuild, and define/run the shared live `mbsync` verification
 suite (the live portion is user-gated).
 
 **Tasks**:
-- [ ] In `modules/home/email/mbsync.nix`, after the existing `Group logos` block (~lines 207-213),
+- [x] In `modules/home/email/mbsync.nix`, after the existing `Group logos` block (~lines 207-213),
       add a new `Group logos-full` listing: `logos-inbox`, `logos-sent`, `logos-drafts`,
       `logos-trash`, `logos-archive`, `logos-labels`, `logos-folders`.
-- [ ] Optionally add a short comment noting `logos-full` is an on-demand full sync not used by any
+- [x] Optionally add a short comment noting `logos-full` is an on-demand full sync not used by any
       keymap or wrapper reconcile path.
-- [ ] Run `home-manager build` and confirm clean evaluation with both Phase 1 and Phase 2 changes.
+- [x] Run `home-manager build` and confirm clean evaluation with both Phase 1 and Phase 2 changes.
 - [ ] Hand off the live verification suite to the user (requires `home-manager switch` + Proton
       Bridge): `mbsync logos-inbox`, `mbsync logos`, `mbsync -a`, and `mbsync logos-full`.
+      *(deviation: deferred to user — requires `home-manager switch` and a live Proton Bridge
+      session per the plan's Risks & Mitigations and Non-Goals; agent performed build-only
+      verification only, per explicit task instructions not to run `home-manager switch`.)*
 
 **Timing**: 30 minutes (build by agent; live switch/sync deferred to user)
 
@@ -148,10 +151,12 @@ suite (the live portion is user-gated).
 
 ## Testing & Validation
 
-- [ ] `home-manager build` evaluates cleanly after Phase 1 (use the repo's flake target, e.g.
+- [x] `home-manager build` evaluates cleanly after Phase 1 (use the repo's flake target, e.g.
       `home-manager build --flake .#<user>`; confirm the exact attribute from `flake.nix`).
-- [ ] `home-manager build` evaluates cleanly after Phase 2 (both changes present).
-- [ ] `grep` confirms `"!Labels/*.*"`, `"!Folders/*.*"`, and `Group logos-full` are present.
+      Ran `home-manager build --flake .#benjamin`; succeeded (target attribute confirmed from
+      `flake.nix` `homeConfigurations.benjamin`).
+- [x] `home-manager build` evaluates cleanly after Phase 2 (both changes present).
+- [x] `grep` confirms `"!Labels/*.*"`, `"!Folders/*.*"`, and `Group logos-full` are present.
 - [ ] **User-gated live suite** (requires the user's machine, `home-manager switch`, and a running
       Proton Bridge — the agent can build but switching/syncing is a live operation deferred to the
       user). This single live check credits both this task and nvim task 851's one remaining open
@@ -160,8 +165,11 @@ suite (the live portion is user-gated).
   - `mbsync logos` — exit 0; propagates pending Logos INBOX->Trash deletes to the Proton server.
   - `mbsync -a` — exit 0 (exercises the `<leader>me` / `<leader>mN` path end to end).
   - `mbsync logos-full` — completes without any dotted-name fatal error.
+  *(deviation: deferred to user — not run by the agent; see Phase 2 task annotation.)*
 - [ ] Non-fatal duplicate-UID warnings (`.Trash`/`.Archive`) and the one dateless local `Sent`
       message (report 01) may still appear but do NOT fail the reconcile — expected, not a failure.
+      *(informational note for the user during the live suite; not independently verifiable by the
+      agent without a live sync.)*
 
 ## Artifacts & Outputs
 

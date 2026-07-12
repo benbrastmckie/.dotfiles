@@ -1,0 +1,33 @@
+{
+  "status": "implemented",
+  "summary": "Hardened modules/home/email/mbsync.nix: added negative dotted-name Patterns (\"!Labels/*.*\", \"!Folders/*.*\") to the logos-labels and logos-folders channels so no dotted mailbox name can reach the Maildir++ store, and added a new Group logos-full covering the five core channels plus logos-labels and logos-folders for explicit on-demand full sync. home-manager build --flake .#benjamin evaluated cleanly and the rendered .mbsyncrc store output was inspected to confirm both patterns and the new group render correctly. The runtime ~/.mbsyncrc symlink was never touched.",
+  "phases_completed": 2,
+  "phases_total": 2,
+  "blockers": [
+    "Live mbsync verification suite (mbsync logos-inbox, mbsync logos, mbsync -a, mbsync logos-full) requires home-manager switch and a running Proton Bridge session on the user's machine; deferred to the user per explicit task instructions (agent must not run home-manager switch)."
+  ],
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "modules/home/email/mbsync.nix",
+      "summary": "Added \"!Labels/*.*\" / \"!Folders/*.*\" negative Patterns to logos-labels and logos-folders channels; added Group logos-full block"
+    },
+    {
+      "type": "plan",
+      "path": "specs/092_logos_mbsync_group_labels_fix/plans/03_logos-mbsync-hardening.md",
+      "summary": "Plan updated to [IMPLEMENTING] with both phases marked [COMPLETED] and the user-gated live-suite item annotated as a deferred deviation"
+    },
+    {
+      "type": "summary",
+      "path": "specs/092_logos_mbsync_group_labels_fix/summaries/03_logos-mbsync-hardening-summary.md",
+      "summary": "Implementation summary with build verification and remaining user-gated live checks"
+    }
+  ],
+  "metadata": {
+    "session_id": "sess_1783820611_cbf042",
+    "agent_type": "nix-implementation-agent",
+    "task_number": 92,
+    "task_type": "nix"
+  },
+  "next_steps": "User runs `home-manager switch` to regenerate ~/.mbsyncrc, then the live verification suite: mbsync logos-inbox, mbsync logos, mbsync -a, mbsync logos-full."
+}
