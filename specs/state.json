@@ -1844,13 +1844,13 @@
     {
       "project_number": 92,
       "project_name": "logos_mbsync_group_labels_fix",
-      "status": "planned",
+      "status": "completed",
       "task_type": "nix",
       "description": "[RESCOPED 2026-07-11 after research reports 02 + 03] Harden the Logos (Protonmail Bridge) mbsync config. The ORIGINAL blocking bug -- the wrappers' post-mutation `mbsync logos` reconcile exiting non-zero because `Group logos` chained `logos-labels` and hit the dotted Gmail-import label `benbrastmckie@gmail.com` under `SubFolders Maildir++` -- is ALREADY FIXED by commit a8f65ad (removed logos-labels from Group logos; landed via nvim task 826). Two residual hardening items remain (see reports/02_task-still-needed.md and reports/03_cross-repo-nvim-sync-linkage.md).\n\nRESIDUAL ITEM 1 (HIGHEST PRIORITY -- negative dotted-name patterns): Add `\"!Labels/*.*\"` to the `logos-labels` channel Patterns and `\"!Folders/*.*\"` to the `logos-folders` channel Patterns in modules/home/email/mbsync.nix, so no dotted mailbox name can ever reach the Maildir++ store. This is now the top item because `logos-folders` is STILL a member of `Group logos` (line ~207-213), and this session's nvim task 851 wired `mbsync -a` (which runs Group logos) onto hot interactive keymaps `<leader>me` (open aerc) and `<leader>mN` (full sync). If Proton ever exposes a dotted Folder name, `<leader>me` would break in the user's face on a common keystroke. The pattern also makes a8f65ad's own commit-message claim that logos-labels is safe \"for manual inspection\" actually true (currently a manual `mbsync logos-labels` would still crash on the dotted label).\n\nRESIDUAL ITEM 2 (LOW PRIORITY -- operator convenience): Add a new `Group logos-full` = core channels (logos-inbox, logos-sent, logos-drafts, logos-trash, logos-archive) PLUS logos-labels + logos-folders, for explicit on-demand full sync. No keymap depends on it; purely a convenience so the slimmed `Group logos` still has a full-sync counterpart.\n\nFILES: modules/home/email/mbsync.nix (Logos section). The runtime ~/.mbsyncrc is a home-manager /nix/store symlink -- never edit it directly.\n\nVERIFICATION (shared with nvim task 851's one remaining open item -- one live check credits both repos): `home-manager build` evaluates; after `home-manager switch`: `mbsync logos-inbox` (the `<leader>ms` leg), `mbsync logos` (wrapper reconcile), and `mbsync -a` (the `<leader>me`/`<leader>mN` path) all exit 0; and once logos-full exists, `mbsync logos-full` completes without any dotted-name fatal error. Non-fatal duplicate-UID warnings and the one dateless local Sent message (report 01) may still appear but do not fail the reconcile.\n\nOUT OF SCOPE (unchanged): the secondary data-level issues -- duplicate-UID warnings in .Trash/.Archive and the malformed 144-byte Sent message missing a `Date:` header -- are not config fixes and are not addressed by this task.\n\nSEED/CROSS-REPO: original diagnosis in ~/Mail (specs/email-manifests/logos/). Relates to .dotfiles email tasks 72/79 and nvim task 851.",
       "topic": "email-infrastructure",
       "dependencies": [],
       "created": "2026-07-05T01:28:15Z",
-      "last_updated": "2026-07-11T22:27:08Z",
+      "last_updated": "2026-07-12T01:47:33Z",
       "next_artifact_number": 4,
       "artifacts": [
         {
@@ -1874,7 +1874,7 @@
           "summary": "Two-phase (~1h) nix hardening plan: Phase 1 adds negative dotted-name patterns to logos-labels/logos-folders; Phase 2 adds Group logos-full + user-gated live mbsync verification (shared with nvim task 851)"
         }
       ],
-      "session_id": "sess_1783808629_02c9b0",
+      "session_id": "sess_1783820611_cbf042",
       "researched": "2026-07-11T14:51:57Z",
       "plan_metadata": {
         "phases": 2,
@@ -1890,7 +1890,8 @@
             2
           ]
         ]
-      }
+      },
+      "completion_summary": "Hardened modules/home/email/mbsync.nix: added negative dotted-name Patterns (\"!Labels/*.*\" to logos-labels, \"!Folders/*.*\" to logos-folders) so no dotted mailbox name can reach the Maildir++ store, and added Group logos-full (five core channels + logos-labels + logos-folders) for on-demand full sync. home-manager build evaluated cleanly and rendered .mbsyncrc was inspected to confirm correct output. Live mbsync suite (logos-inbox/logos/-a/logos-full) remains user-gated pending home-manager switch + Proton Bridge session."
     },
     {
       "project_number": 93,

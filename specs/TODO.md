@@ -6,12 +6,12 @@ next_project_number: 108
 
 ## Task Order
 
-*Updated 2026-07-11. Generated from state.json dependency graph.*
+*Updated 2026-07-12. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,92 | -- | nix-infrastructure, services, desktop, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77 | -- | nix-infrastructure, services, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -41,10 +41,6 @@ next_project_number: 108
 
 77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM
   └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
-
-### Email Infrastructure
-
-92 [PLANNED] — [RESCOPED 2026-07-11 after research reports 02 + 03] Harden the L
 
 ## Tasks
 
@@ -249,7 +245,7 @@ CROSS-REPO: research performed from ~/Mail; report + task homed in .dotfiles bec
 ---
 
 ### 92. Logos mbsync group labels fix
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: email-infrastructure
 - **Dependencies**: None

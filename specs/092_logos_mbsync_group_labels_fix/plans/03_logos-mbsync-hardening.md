@@ -1,7 +1,7 @@
 # Implementation Plan: Logos mbsync Dotted-Name Hardening
 
 - **Task**: 92 - logos_mbsync_group_labels_fix
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 1 hour
 - **Dependencies**: None
 - **Research Inputs**: reports/01_mbsync-logos-diagnosis.md, reports/02_task-still-needed.md, reports/03_cross-repo-nvim-sync-linkage.md
