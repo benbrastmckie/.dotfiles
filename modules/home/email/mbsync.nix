@@ -181,7 +181,9 @@
     Channel logos-labels
     Far :logos-remote:
     Near :logos-local:
-    Patterns "Labels/*"
+    # "!Labels/*.*" excludes dotted label names (e.g. Labels.benbrastmckie@gmail.com), which
+    # Maildir++ cannot represent as a valid mailbox path (task 92).
+    Patterns "Labels/*" "!Labels/*.*"
     Create Both
     Expunge Both
     Remove Both
@@ -190,7 +192,9 @@
     Channel logos-folders
     Far :logos-remote:
     Near :logos-local:
-    Patterns "Folders/*"
+    # "!Folders/*.*" excludes dotted folder names, which Maildir++ cannot represent as a valid
+    # mailbox path (task 92).
+    Patterns "Folders/*" "!Folders/*.*"
     Create Both
     Expunge Both
     Remove Both
@@ -210,6 +214,19 @@
     Channel logos-drafts
     Channel logos-trash
     Channel logos-archive
+    Channel logos-folders
+
+    # logos-full is an explicit on-demand full sync (task 92) covering every Logos channel,
+    # including logos-labels and logos-folders. It is never invoked by any keymap or the
+    # wrapper reconcile path -- run manually via `mbsync logos-full` when a full inspection
+    # sync is desired.
+    Group logos-full
+    Channel logos-inbox
+    Channel logos-sent
+    Channel logos-drafts
+    Channel logos-trash
+    Channel logos-archive
+    Channel logos-labels
     Channel logos-folders
   '';
 
