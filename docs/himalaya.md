@@ -404,7 +404,9 @@ SyncState *
 Channel logos-labels
 Far :logos-remote:
 Near :logos-local:
-Patterns "Labels/*"
+# "!Labels/*.*" excludes dotted label names (e.g. Labels.benbrastmckie@gmail.com),
+# which Maildir++ cannot represent as a valid mailbox path.
+Patterns "Labels/*" "!Labels/*.*"
 Create Both
 Expunge Both
 Remove Both
@@ -413,13 +415,31 @@ SyncState *
 Channel logos-folders
 Far :logos-remote:
 Near :logos-local:
-Patterns "Folders/*"
+# "!Folders/*.*" excludes dotted folder names for the same Maildir++ reason.
+Patterns "Folders/*" "!Folders/*.*"
 Create Both
 Expunge Both
 Remove Both
 SyncState *
 
+# Group logos intentionally OMITS logos-labels: Protonmail Bridge mirrors every
+# additive label as a separate local Maildir++ folder (.Labels.*), so including it
+# duplicated every labeled message on disk and crashed the whole-group reconcile the
+# moment a dotted label name appeared. logos-folders stays in the group (Proton
+# Folders are exclusive, so no duplication risk). This is the group the agent sync
+# path and the wrapper post-mutation reconcile invoke.
 Group logos
+Channel logos-inbox
+Channel logos-sent
+Channel logos-drafts
+Channel logos-trash
+Channel logos-archive
+Channel logos-folders
+
+# Group logos-full is an explicit on-demand full sync covering every Logos channel,
+# including logos-labels. No keymap or wrapper invokes it — run `mbsync logos-full`
+# manually when a complete inspection sync (labels included) is desired.
+Group logos-full
 Channel logos-inbox
 Channel logos-sent
 Channel logos-drafts
@@ -486,7 +506,8 @@ Channel logos-folders
 ```bash
 # Sync specific account
 mbsync gmail          # Gmail full sync
-mbsync logos          # Protonmail full sync
+mbsync logos          # Protonmail sync (core folders; excludes labels — see note below)
+mbsync logos-full     # Protonmail full sync INCLUDING labels (on-demand inspection sync)
 
 # Sync all accounts
 mbsync -a
@@ -707,7 +728,7 @@ Two channels handle bidirectional sync:
 Channel logos-labels
 Far :logos-remote:
 Near :logos-local:
-Patterns "Labels/*"
+Patterns "Labels/*" "!Labels/*.*"
 Create Both
 Expunge Both
 Remove Both
@@ -716,25 +737,33 @@ SyncState *
 Channel logos-folders
 Far :logos-remote:
 Near :logos-local:
-Patterns "Folders/*"
+Patterns "Folders/*" "!Folders/*.*"
 Create Both
 Expunge Both
 Remove Both
 SyncState *
 ```
 
-Both channels are included in the `logos` group for unified sync operations.
+`logos-folders` is included in the `logos` group for unified sync operations.
+`logos-labels` is deliberately **excluded** from `logos` (Bridge mirrors every additive
+label as a separate `.Labels.*` Maildir++ folder, which duplicated labeled messages on
+disk and crashed the whole-group reconcile once a dotted label name appeared). To sync
+labels, run `mbsync logos-labels` directly or use `mbsync logos-full`, which covers every
+channel including labels.
 
 **Directives**:
 - `Create Both` - New labels/folders created on either side sync to the other
 - `Expunge Both` - Deleted messages sync in both directions
 - `Remove Both` - Deleted labels/folders sync in both directions
+- `Patterns "Labels/*" "!Labels/*.*"` - The negative `*.*` exclusion keeps dotted names
+  (which Maildir++ cannot represent as a valid mailbox path) out of the local store
 
 #### Label/Folder Sync Workflows
 
 **Creating a label/folder in Protonmail**:
 1. Create a new label or folder in Protonmail web interface
-2. Run `mbsync logos-labels` or `mbsync logos-folders` (or `mbsync logos` for all)
+2. Run `mbsync logos-labels` or `mbsync logos-folders` (or `mbsync logos-full` for all;
+   note plain `mbsync logos` syncs folders but NOT labels — labels are excluded from that group)
 3. Folder appears in `himalaya folder list --account logos` as `Labels/YourLabel` or `Folders/YourFolder`
 
 **Creating a label/folder in Himalaya**:
