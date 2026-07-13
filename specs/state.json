@@ -1,6 +1,16 @@
 {
-  "next_project_number": 108,
+  "next_project_number": 109,
   "active_projects": [
+    {
+      "project_number": 108,
+      "project_name": "census_freshness_rename_deletion_aware",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Make the email census freshness signal rename/deletion-aware in modules/home/email/agent-tools/census.nix. The freshness line is currently an INBOX file-count-with-tolerance proxy that cannot detect maildir flag-renames (e.g. U=5202:2, -> U=5202:2,S) or phantom index drift (observed 84 files on disk vs 122 in notmuch = 38 phantom entries), which produced a false-green that let aerc launch onto a stale notmuch index. Enhance the freshness contract to surface a rename/deletion-aware signal (not just a bounded file count) that downstream consumers can treat as authoritative. Scope: ONLY the .dotfiles census.nix freshness-line enhancement. Out of scope: the ~/Mail duplicate-UID data repair, the one-time notmuch new reindex, and the nvim mail.lua gate hardening (those live in ~/Mail and ~/.config/nvim).",
+      "topic": "services",
+      "created": "2026-07-13T19:41:06Z",
+      "last_updated": "2026-07-13T19:41:06Z"
+    },
     {
       "project_number": 106,
       "project_name": "root_cause_fix_mt7925e_wifi_kernel_panics",
