@@ -17,24 +17,28 @@
       };
     };
     hooks = {
-      # Sync the two GROUPS explicitly -- never `mbsync -a`. Per `man mbsync`, `-a`
-      # runs ALL configured Channels and ignores group membership, which would run the
-      # orphan `logos-labels` channel (deliberately excluded from `Group logos` in
-      # mbsync.nix, task 826) and re-import every Proton label as a duplicated .Labels.*
-      # Maildir++ folder. Naming the groups runs only their member channels, so
-      # `logos-labels` never fires automatically. (~/.dotfiles handoff; tasks 826-828.)
+      # Sync via `mail-sync both` -- never `mbsync -a`. `mail-sync` (task 109) is the single
+      # canonical, flock-serialized entry point into mbsync shared with aerc's `$` keybind; it
+      # takes a blocking flock before invoking mbsync so this hook-triggered sync can never
+      # overlap a manual aerc-triggered sync. Internally it runs `mbsync gmail` then
+      # `mbsync logos` sequentially (never `-a`, never a passthrough channel), which per
+      # `man mbsync` runs only the named Groups' member channels -- avoiding the orphan
+      # `logos-labels` channel (deliberately excluded from `Group logos` in mbsync.nix, task
+      # 826), which would otherwise re-import every Proton label as a duplicated .Labels.*
+      # Maildir++ folder. (~/.dotfiles handoff; tasks 826-828, 109.)
       #
       # `|| true`: notmuch aborts the ENTIRE `notmuch new` run (skipping both the disk
-      # scan and postNew below) if preNew exits non-zero. mbsync currently exits 1 on
-      # partial/transient failures unrelated to notmuch's own indexing job -- e.g. a
+      # scan and postNew below) if preNew exits non-zero. `mail-sync`/mbsync currently exit
+      # non-zero on partial/transient failures unrelated to notmuch's own indexing job -- e.g. a
       # single channel's far-side box failing to open, or the known pre-existing
       # duplicate-UID collision in Gmail/.All_Mail (~Mail task 34 baseline; tracked
       # separately as .dotfiles task 852/853). Without this tolerance, any hook-having
       # `notmuch new` invocation fails outright, which is what made this hook an
       # unreliable auto-reindex authority (~Mail task 34, Phase 4). `--no-hooks`
-      # call sites (email-reindex, aerc's `$` keybind) are unaffected either way since
-      # they skip this hook entirely.
-      preNew = "mbsync gmail logos || true";
+      # call sites (email-reindex, `mail-sync`'s own internal reindex step) are unaffected
+      # either way since they skip this hook entirely -- so preNew calling `mail-sync`, which
+      # itself runs `notmuch new --no-hooks`, is not reentrant.
+      preNew = "mail-sync both || true";
       postNew = ''
         # Tag new mail
         notmuch tag +inbox +unread -- tag:new

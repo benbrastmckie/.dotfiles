@@ -120,7 +120,12 @@ _: {
         # the same freeze-blast-radius hazard as the preNew hook (would also touch the
         # deferred Logos/Bridge account); notmuch new (no --no-hooks) would re-trigger the
         # preNew hook's own 'mbsync -a'. Group-scoped + hook-bypassing form only.
-        "$" = ":exec mbsync gmail && notmuch new --no-hooks<Enter>";
+        # Task 109: repointed to 'mail-sync gmail', the single canonical flock-serialized
+        # entry point shared with the notmuch preNew hook -- the wrapper already runs
+        # 'notmuch new --no-hooks' internally after a successful mbsync, so no separate
+        # reindex call is needed here. Kept gmail-only to preserve current behavior;
+        # 'mail-sync logos'/'mail-sync both' is a trivial future extension, out of scope here.
+        "$" = ":exec mail-sync gmail<Enter>";
         u = ":check-mail<Enter>";
 
         # Marks

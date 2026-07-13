@@ -1,0 +1,48 @@
+{
+  "status": "implemented",
+  "summary": "Created the mail-sync wrapper (flock-serialized, group-scoped, no mbsync -a), wired it into modules/home/default.nix, repointed notmuch preNew and aerc's $ keybind to it, and verified via nix flake check, home-manager build, and a two-run credential-free concurrency test.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "modules/home/email/mail-sync.nix",
+      "summary": "New mail-sync wrapper: flock-serialized, gmail|logos|both allowlist, no -a, duplicate-UID detection"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/default.nix",
+      "summary": "Added ./email/mail-sync.nix import"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/email/notmuch.nix",
+      "summary": "preNew repointed to mail-sync both || true"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/email/aerc.nix",
+      "summary": "$ keybind repointed to mail-sync gmail"
+    },
+    {
+      "type": "test",
+      "path": "specs/109_serialized_group_scoped_mail_sync_wrapper/concurrency-test.sh",
+      "summary": "Credential-free stub-mbsync concurrency test proving serialization"
+    },
+    {
+      "type": "summary",
+      "path": "specs/109_serialized_group_scoped_mail_sync_wrapper/summaries/01_serialized-mail-sync-wrapper-summary.md",
+      "summary": "Implementation summary with verification results"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Created a single canonical, flock-serialized, group-scoped mail-sync wrapper structurally incapable of mbsync -a, wired it into the Home Manager import list, repointed both in-repo triggers (notmuch preNew, aerc's $ keybind) to it, and verified nix flake check, home-manager build --flake .#benjamin, and a credential-free concurrency test (run twice) all pass."
+  },
+  "metadata": {
+    "session_id": "sess_1783976264_c5539a",
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 5,
+    "phases_total": 5
+  },
+  "next_steps": "Run 'home-manager switch --flake .#benjamin' to activate, then exercise mail-sync gmail/logos/both manually against the real account."
+}

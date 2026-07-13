@@ -1,5 +1,5 @@
 ---
-next_project_number: 109
+next_project_number: 110
 ---
 
 # TODO
@@ -43,6 +43,19 @@ next_project_number: 109
   └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
 
 ## Tasks
+
+### 109. Serialized group scoped mail sync wrapper
+- **Status**: [COMPLETED]
+- **Task Type**: nix
+- **Topic**: services
+- **Dependencies**: None
+- **Research**: [109_serialized_group_scoped_mail_sync_wrapper/reports/01_serialized-mail-sync-wrapper.md]
+- **Plan**: [109_serialized_group_scoped_mail_sync_wrapper/plans/01_serialized-mail-sync-wrapper.md]
+- **Summary**: [109_serialized_group_scoped_mail_sync_wrapper/summaries/01_serialized-mail-sync-wrapper-summary.md]
+
+**Description**: Provide a single canonical, serialized, group-scoped, hook-safe mail-sync command in the email module (modules/home/email/) that every sync trigger invokes, eliminating the concurrent/overlapping mbsync invocations that cause `duplicate UID` Maildir corruption and abort server sync (exit 1). Root cause: multiple independent triggers run mbsync with no mutual exclusion, and some use the forbidden `mbsync -a` (all-channels) form plus hook-ful `notmuch new` — whose pre-new hook itself runs `mbsync gmail logos` — so a single action can launch two overlapping mbsync runs writing the same maildir (e.g. Gmail/.All_Mail), producing duplicate-UID errors. The dotfiles email module already codifies the correct doctrine (notmuch.nix: never `mbsync -a`, group-scoped only; aerc.nix: `$` rebound to a group-scoped + hook-bypassing form; wrappers use `notmuch new --no-hooks`), but the invariant is enforced per-caller and can still be bypassed. Current trigger inventory: the notmuch pre-new hook (`mbsync gmail logos`), aerc's `$` keybind, the Neovim `<leader>me`/`<leader>mN` mappings (which still call `mbsync -a` + hook-ful `notmuch new`), and manual invocation. Deliverable: a nix-built wrapper (e.g. `mail-sync`) that (1) takes an flock on one lockfile so no two mbsync runs can overlap regardless of trigger; (2) is group-scoped only (`mbsync gmail`/`mbsync logos`) and structurally incapable of `mbsync -a`; (3) reindexes with `notmuch new --no-hooks` to avoid re-triggering the pre-new mbsync loop; (4) on the known `duplicate UID` failure prints actionable remediation (or invokes a detector/repair helper alongside census.nix). Then repoint every trigger — the notmuch pre-new hook and aerc's `$`, plus (via a companion Neovim-repo task) `<leader>me`/`<leader>mN` — at this one wrapper, so the never-`mbsync -a`, never-concurrent, `--no-hooks` invariants cannot be bypassed from any editor, keybind, or hook. Non-goals: the one-time maildir data repair of an existing duplicate-UID collision, and the Neovim-side change to call the wrapper (separate nvim-repo task). Verify with `nix flake check` and a concurrency test: two near-simultaneous invocations must serialize rather than corrupt.
+
+---
 
 ### 78. Niri documentation rewrite
 - **Status**: [NOT STARTED]
