@@ -77,14 +77,27 @@ let
       HELPEOF
           }
 
+          ACCOUNT_EXPLICIT=0
           ARGS=()
           while [ "$#" -gt 0 ]; do
             case "$1" in
-              --account) ACCOUNT="''${2:-}"; shift 2 ;;
-              --account=*) ACCOUNT="''${1#--account=}"; shift ;;
+              --account) ACCOUNT="''${2:-}"; ACCOUNT_EXPLICIT=1; shift 2 ;;
+              --account=*) ACCOUNT="''${1#--account=}"; ACCOUNT_EXPLICIT=1; shift ;;
               --manifest-dir) MANIFEST_DIR="''${2:-}"; shift 2 ;;
               --manifest-dir=*) MANIFEST_DIR="''${1#--manifest-dir=}"; shift ;;
               --help|-h) print_help; exit 0 ;;
+              gmail|logos)
+                if [ "$ACCOUNT_EXPLICIT" -eq 1 ]; then
+                  # --account already given explicitly; treat this token as an ordinary
+                  # positional arg (e.g. email-classify/email-unsubscribe-extract's [QUERY]).
+                  ARGS+=("$1")
+                else
+                  log "NOTE: interpreting bare positional '$1' as '--account $1' (pass --account explicitly to silence this note)"
+                  ACCOUNT="$1"
+                  ACCOUNT_EXPLICIT=1
+                fi
+                shift
+                ;;
               *) ARGS+=("$1"); shift ;;
             esac
           done
