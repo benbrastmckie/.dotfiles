@@ -367,9 +367,13 @@
       BEFORE=$(notmuch count '*' 2>/dev/null || echo '?')
       notmuch new --no-hooks
       AFTER=$(notmuch count '*' 2>/dev/null || echo '?')
+      mkdir -p "''${XDG_STATE_HOME:-$HOME/.local/state}/email-agent"
+      date -Iseconds > "''${XDG_STATE_HOME:-$HOME/.local/state}/email-agent/last-reindex"
       echo "[email-reindex] Done. Total indexed messages: $BEFORE -> $AFTER." >&2
       echo "[email-reindex] NOTE: --no-hooks skipped postNew auto-tagging (+inbox/+gmail/+logos);" >&2
       echo "[email-reindex] folder-scoped classification is now current, tag-based views may lag." >&2
+      echo "[email-reindex] Wrote reindex-ran marker (read by email-census's" >&2
+      echo "[email-reindex]  reindex=<ISO|never> freshness field)." >&2
     '')
   ];
 }
