@@ -1,5 +1,5 @@
 ---
-next_project_number: 110
+next_project_number: 114
 ---
 
 # TODO
@@ -11,8 +11,9 @@ next_project_number: 110
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77 | -- | nix-infrastructure, services, desktop, ... |
-| 2 | 78 | 77 | desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,77,110,111 | -- | nix-infrastructure, services, desktop, ... |
+| 2 | 78,112 | 77,110 | services, desktop |
+| 3 | 113 | 112 | services |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -27,6 +28,10 @@ next_project_number: 110
 23 [PLANNED] — install_simple_webcam_recording_software
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
+110 [NOT STARTED] — Fix the aerc INBOX virtual folder so it reflects the real inbox. 
+  └─ 112 [NOT STARTED] — Enable a real, server-propagating archive action in aerc (the `a`
+    └─ 113 [NOT STARTED] — Deliver the end-user goal: replying to a message in aerc archives
+111 [NOT STARTED] — Stop aerc-composed/replied email from hard-wrapping at ~72-80 col
 
 ### Packaging
 
@@ -43,6 +48,46 @@ next_project_number: 110
   └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
 
 ## Tasks
+
+### 113. Aerc archive on reply and periodic sync
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: services
+- **Dependencies**: Task 112
+
+**Description**: Deliver the end-user goal: replying to a message in aerc archives it, aerc updates immediately, and Gmail-in-the-browser stays in sync occasionally (non-immediate sync is acceptable per the user). TWO PARTS in modules/home/email/aerc.nix. (A) Archive-on-reply: a `[hooks]` `mail-sent` entry gated on the outgoing `Re:` subject prefix that runs `aerc :archive flat` on the selected (replied-to) message. This is ALREADY DRAFTED in the working tree (uncommitted) but only becomes functional once task 112 enables `:archive`. Verify it archives exactly the replied message and does nothing on a fresh `:compose` (whose subject is not `Re:`). Re-evaluate the known caveat that it archives the list-SELECTED message (correct in the normal select->r->reply->send flow) and decide whether to keep as-is or harden. (B) Periodic sync: nothing currently runs mbsync on a schedule — sync only fires via aerc's `$`/`u` keys or the notmuch preNew hook. Add occasional automatic sync through the existing serialized, flock-guarded `mail-sync` wrapper (from task 109, modules/home/email/mail-sync.nix): either aerc `[account]` `check-mail = 10m` + `check-mail-cmd = mail-sync gmail` (syncs while aerc is open) and/or a systemd user timer running `mail-sync both` (syncs even when aerc is closed). Prefer the least surprising option; document the choice. DEPENDS ON task 112 (archive must actually work for archive-on-reply to be meaningful, and for the sync to have an archive to propagate). VERIFY end-to-end: reply to a test message, confirm it leaves the aerc INBOX immediately, then let the periodic sync run (or trigger `mail-sync gmail`) and confirm in the Gmail browser that the message is archived (out of inbox, still in All Mail).
+
+---
+
+### 112. Aerc enable folder move archive
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: services
+- **Dependencies**: Task 110
+
+**Description**: Enable a real, server-propagating archive action in aerc (the `a`/`A` keys and, later, the reply hook). Currently aerc's notmuch-backend `:archive`/`:delete` are DISABLED because they require `maildir-store` to be set in accounts.conf and it is unset (modules/home/email/aerc.nix, home.file accounts.conf). So `a = :archive flat` is a silent no-op — verified: replied messages remain in Gmail/cur with tag:inbox, unmoved. FIX in accounts.conf for BOTH [gmail] and [logos]: add `maildir-store = ~/Mail`, and add `multi-file-strategy = act-dir`. The multi-file-strategy is REQUIRED, not optional: a live probe shows 35 of the 85 inbox messages ALSO have a copy in All_Mail (Gmail's label model), and aerc's default `refuse` strategy will refuse to archive multi-file messages; `act-dir` scopes the operation to the file in the current (inbox) folder. Archive semantics with this in place: `:archive flat` moves the inbox-folder file to the account's `archive=` folder (All_Mail for gmail, Archive for logos), and mbsync's `gmail-inbox` channel — which is `Expunge Both` (mbsync.nix) — propagates that as an INBOX-label removal on Gmail at the next sync. This matches the repo's already-proven mutation in email-archive-confirmed.nix (`himalaya message move All_Mail <id> -f INBOX`). DEPENDS ON task 110 so that an archived (moved-out-of-inbox) message actually disappears from the now-folder-based INBOX view. VERIFY CAREFULLY ON LIVE MAIL before trusting broadly (85 real messages, 35 multi-file): archive ONE ordinary message and ONE known multi-file message, run `mail-sync gmail`, and confirm in the Gmail browser that each left the inbox and remains in All Mail (i.e. archived, not trashed). Also review whether the existing `a`/`A` :prompt confirmations and the Proposed-* wrapper-routed gestures need any adjustment given archive is now live. Do NOT wire archive-on-reply or periodic sync here (task 113).
+
+---
+
+### 111. Aerc compose line wrapping
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: services
+- **Dependencies**: None
+
+**Description**: Stop aerc-composed/replied email from hard-wrapping at ~72-80 columns; lines should stay soft-wrappable so recipients' clients reflow to their own width. Root cause (live-verified): the compose editor is nvim, and nvim's built-in `mail` ftplugin sets textwidth=72 and formatoptions=jtcql (the `t` flag auto-hard-wraps as you type). FIX in modules/home/email/aerc.nix `[compose]` (extraConfig.compose): (1) `editor = "nvim -c 'setlocal textwidth=0 formatoptions-=t'"` so the compose buffer never inserts hard breaks regardless of the (unmanaged) nvim config; (2) `format-flowed = true` so aerc emits RFC3676 `text/plain; format=flowed`, letting long unwrapped lines reflow on the receiving side instead of appearing broken at a fixed column. Both are complementary and both are needed. NOTE: these two edits are ALREADY DRAFTED in the working tree (uncommitted) as of this task's creation — this task is to verify and commit them, not author from scratch. Independent of the inbox/archive/sync tasks (110/112/113). VERIFY: `home-manager build --flake .#benjamin`; send a test message to yourself with a long paragraph and confirm (a) no hard line breaks were inserted and (b) the sent message carries a `Content-Type: text/plain; format=flowed` header. Then commit the aerc.nix compose changes.
+
+---
+
+### 110. Aerc inbox querymap real folder
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: services
+- **Dependencies**: None
+
+**Description**: Fix the aerc INBOX virtual folder so it reflects the real inbox. In modules/home/email/aerc.nix the querymaps define `INBOX=tag:inbox AND folder:/Gmail/` (querymap-gmail) and `INBOX=tag:inbox AND folder:/Logos/` (querymap-logos). This is wrong on two counts: (1) `tag:inbox` is applied ONCE at delivery by notmuch.nix postNew (`notmuch tag +inbox`) and is never removed on archive, and (2) `folder:/Gmail/` is a notmuch regex that also matches Gmail/.All_Mail. So the INBOX tab returns everything ever tagged inbox, including the ~64k-message archive. Live-verified on 2026-07-13: `notmuch count folder:Gmail` = 85 (the true inbox) vs `notmuch count 'tag:inbox AND folder:/Gmail/'` = 12,580. This is the root cause of the user's report that replied/handled mail never leaves the aerc inbox. FIX: change the INBOX querymap entries to the exact inbox maildir folder — `INBOX=folder:Gmail` and `INBOX=folder:Logos` (bare exact-match form = INBOX-only, per CLAUDE.md's verified folder-token table and the email-census wrapper which already treats INBOX as `folder:$ACCOUNT_FOLDER`). This makes the tab show the true inbox AND makes any message moved out of the inbox folder (i.e. archived) disappear from the view. Also decide and document whether the Unread/Flagged/Proposed-* querymap entries (which also use `folder:/Gmail/` = whole-account) should remain account-wide or be scoped to the inbox — they are a separate concern from INBOX and account-wide is likely correct for search/triage. NON-GOAL: enabling archive itself (task 112) and periodic sync (task 113). VERIFY: `home-manager build --flake .#benjamin`; open aerc and confirm the INBOX tab shows ~85 messages, not ~12k. Low-risk: this is a read-only view definition change with no mail mutation.
+
+---
 
 ### 109. Serialized group scoped mail sync wrapper
 - **Status**: [COMPLETED]
