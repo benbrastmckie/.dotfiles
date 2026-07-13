@@ -4,18 +4,23 @@
     {
       "project_number": 108,
       "project_name": "census_freshness_rename_deletion_aware",
-      "status": "researched",
+      "status": "planned",
       "task_type": "nix",
       "description": "Make the email census freshness signal rename/deletion-aware in modules/home/email/agent-tools/census.nix. The freshness line is currently an INBOX file-count-with-tolerance proxy that cannot detect maildir flag-renames (e.g. U=5202:2, -> U=5202:2,S) or phantom index drift (observed 84 files on disk vs 122 in notmuch = 38 phantom entries), which produced a false-green that let aerc launch onto a stale notmuch index. Enhance the freshness contract to surface a rename/deletion-aware signal (not just a bounded file count) that downstream consumers can treat as authoritative. Scope: ONLY the .dotfiles census.nix freshness-line enhancement. Out of scope: the ~/Mail duplicate-UID data repair, the one-time notmuch new reindex, and the nvim mail.lua gate hardening (those live in ~/Mail and ~/.config/nvim).",
       "topic": "services",
       "created": "2026-07-13T19:41:06Z",
-      "last_updated": "2026-07-13T19:49:57Z",
-      "session_id": "sess_1783971770_ca1ded",
+      "last_updated": "2026-07-13T20:00:27Z",
+      "session_id": "sess_1783972599_cef86a",
       "artifacts": [
         {
           "path": "specs/108_census_freshness_rename_deletion_aware/reports/01_freshness-signal-research.md",
           "type": "report",
           "summary": "freshness signal research (backfilled by --sync)"
+        },
+        {
+          "path": "specs/108_census_freshness_rename_deletion_aware/plans/01_freshness-set-diff-signal.md",
+          "type": "plan",
+          "summary": "4-phase, fully sequential implementation plan for the rename/deletion-aware census freshness signal, built on research Approach 1 (UID-joined literal-filename set-diff, INBOX-scoped, backward-compatible field append, dual-check verdict)."
         }
       ]
     },

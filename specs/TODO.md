@@ -27,7 +27,7 @@ next_project_number: 109
 23 [PLANNED] — install_simple_webcam_recording_software
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
-108 [RESEARCHED] — Make the email census freshness signal rename/deletion-aware in m
+108 [PLANNED] — Make the email census freshness signal rename/deletion-aware in m
 
 ### Packaging
 
@@ -46,10 +46,12 @@ next_project_number: 109
 ## Tasks
 
 ### 108. Census freshness rename deletion aware
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: services
 - **Dependencies**: None
+- **Research**: [108_census_freshness_rename_deletion_aware/reports/01_freshness-signal-research.md]
+- **Plan**: [108_census_freshness_rename_deletion_aware/plans/01_freshness-set-diff-signal.md]
 
 **Description**: Make the email census freshness signal rename/deletion-aware in modules/home/email/agent-tools/census.nix. The freshness line is currently an INBOX file-count-with-tolerance proxy that cannot detect maildir flag-renames (e.g. U=5202:2, -> U=5202:2,S) or phantom index drift (observed 84 files on disk vs 122 in notmuch = 38 phantom entries), which produced a false-green that let aerc launch onto a stale notmuch index. Enhance the freshness contract to surface a rename/deletion-aware signal (not just a bounded file count) that downstream consumers can treat as authoritative. Scope: ONLY the .dotfiles census.nix freshness-line enhancement. Out of scope: the ~/Mail duplicate-UID data repair, the one-time notmuch new reindex, and the nvim mail.lua gate hardening (those live in ~/Mail and ~/.config/nvim).
 
@@ -111,6 +113,7 @@ CROSS-REPO: research performed from ~/Mail; report + task homed in .dotfiles bec
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
+- **Research**: [104_fix_mt7925e_wifi_kernel_panic_freezes/reports/01_mt7925e-panic-root-cause.md]
 
 **Description**: Fix recurring system freezes from mt7925e WiFi kernel panics: update kernel via flake bump and add panic=10 auto-reboot kernel param
 
@@ -123,6 +126,7 @@ CROSS-REPO: research performed from ~/Mail; report + task homed in .dotfiles bec
 - **Dependencies**: None
 - **Research**: [103_reorganize_discord_bot_in_repo/reports/01_discord-bot-reorg-research.md]
 - **Summary**: [103_reorganize_discord_bot_in_repo/summaries/01_discord-bot-reorg-summary.md]
+- **Plan**: [103_reorganize_discord_bot_in_repo/plans/01_discord-bot-reorg.md]
 
 **Description**: Reorganize the opencode-discord-bot in-repo (do NOT extract to a separate repository). Two goals. (1) Fix host-wiring drift: the discord-bot systemd service is currently running on hamsa (the primary machine) even though only hosts/nandi/default.nix opts in via services.discordBot.enable = true. Make services.discordBot.enable cleanly enableable on ANY host and enable it on hamsa so the tracked config matches reality; decide whether nandi should stay enabled. (2) Declutter the repo root: relocate the in-tree Python source from root opencode-discord-bot/ (16 tracked files) to sit next to its derivation (recommended target packages/opencode-discord-bot/, co-located with packages/opencode-discord-bot.nix), updating the derivation's src from ../opencode-discord-bot to the new relative path (e.g. ./opencode-discord-bot), plus .gitignore entries and any references. Note the file/dir naming caveat if using packages/ (packages/opencode-discord-bot.nix file alongside a packages/opencode-discord-bot/ dir); research/plan may pick an alternative co-location target (e.g. a new pkgs/ or apps/ dir) if cleaner. Keep everything else in .dotfiles unchanged: sops secrets, the optional module, systemd wiring (opencode-serve + discord-bot, LoadCredential, StateDirectory, watchdog). Update docs to reflect the new source path and host wiring: docs/discord-bot.md, packages/README.md, modules/README.md, README.md (note the tree diagram at README.md line ~43). Verify nix flake check passes and the discord-bot service still builds/runs on hamsa after nixos-rebuild. Explicitly rejected alternative: extracting to a standalone flake-input repo (adds cross-repo iteration friction and maintenance surface for reuse/versioning benefits this personal, tightly-coupled service does not need). Follows task 89 (bot packaging, complete).
 
@@ -133,6 +137,9 @@ CROSS-REPO: research performed from ~/Mail; report + task homed in .dotfiles bec
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: Task 101
+- **Research**: [102_gate_ci_on_lint/reports/01_gate-ci-on-lint.md]
+- **Plan**: [102_gate_ci_on_lint/plans/01_gate-ci-on-lint.md]
+- **Summary**: [102_gate_ci_on_lint/summaries/01_gate-ci-on-lint-summary.md]
 
 **Description**: Gate CI on lint: promote the warn-only statix/deadnix lint steps (added in task 98) from advisory to CI-blocking now that task 101 made the tree lint-clean (statix + deadnix both zero-finding). Update .github/workflows/ci.yml so the statix check and deadnix --exclude 'hosts/*/hardware-configuration.nix' steps exit non-zero (remove any continue-on-error / warn-only shielding) and gate the workflow, so future lint regressions fail the build. Preserve the existing hardware-configuration.nix path exclusions (statix.toml ignore glob + deadnix --exclude flag). Verify the gated workflow passes on the current clean tree. Follows task 98 (lint tooling), depends on task 101 (lint-clean baseline).
 
@@ -143,6 +150,9 @@ CROSS-REPO: research performed from ~/Mail; report + task homed in .dotfiles bec
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
+- **Research**: [101_nix_lint_findings_cleanup/reports/01_lint-findings-cleanup.md]
+- **Plan**: [101_nix_lint_findings_cleanup/plans/01_lint-findings-cleanup.md]
+- **Summary**: [101_nix_lint_findings_cleanup/summaries/01_lint-findings-cleanup-summary.md]
 
 **Description**: Clear the statix and deadnix findings surfaced by the warn-only lint tooling added in task 98, so the tree is lint-clean (enabling a future decision to gate CI on lint if desired). Two linters, concrete findings as of task 98 completion: (1) statix — 33 warnings across 4 rule classes: 18x 'repeated keys in attribute sets' (the home-manager.useGlobalPkgs/useUserPackages/users block in flake.nix:155-157, collapse into one home-manager = { ... } attrset), 11x 'empty pattern in function argument' ({ ... }: -> _: where the args are unused), 3x 'assignment instead of inherit from' (overlays/unstable-packages.nix:6,12 and flake.nix:55), 1x 'unnecessary parentheses'. (2) deadnix — 23 unused lambda declarations across 16 files (unused lib/pkgs/prev/final/old args), e.g. modules/system/{boot,nix,desktop}.nix (lib), overlays/{claude-squad,python-packages}.nix (prev/final/old), flake.nix:45, home.nix:2, packages/{aristotle,claude-code,polkit-gnome-agent-wrapper,slidev}.nix. NOTE: 4 of the deadnix hits are in auto-generated hosts/*/hardware-configuration.nix (unused pkgs pattern) — decide whether to fix those (risk: overwritten by nixos-generate-config) or exclude them via a deadnix exclude rather than editing. Prefer 'statix fix' / 'deadnix --edit' assisted passes but hand-verify each change; some unused args (final/prev in overlays) may be intentional signature conventions worth keeping with a deadnix skip comment. Verify with nix flake check (must stay green) and re-run statix check + deadnix to confirm zero findings (or a documented, deliberately-excluded remainder). Follow-on to task 98 (specs/098_nix_formatter_lint_tooling).
 
@@ -198,6 +208,7 @@ CROSS-REPO: research performed from ~/Mail; report + task homed in .dotfiles bec
 - **Dependencies**: None
 - **Research_report**: [097_refactor_dead_comment_cleanup/reports/01_wrapper-extraction-mcphub-fix.md]
 - **Plan**: [097_refactor_dead_comment_cleanup/plans/01_wrapper-extraction-mcphub-fix.md]
+- **Summary**: [097_refactor_dead_comment_cleanup/summaries/01_wrapper-extraction-mcphub-fix-summary.md]
 
 **Description**: Small refactor and dead-comment cleanup: extract the 3 inline writeShellScriptBin wrappers from modules/system/packages.nix into their own packages/*.nix files for consistency with the rest of the package layout, and fix the confirmed contradictory MCPHub comment pair in flake.nix (lines 33 vs 62). Verify with nix flake check. See specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md (Group C).
 
@@ -234,7 +245,9 @@ CROSS-REPO: research performed from ~/Mail; report + task homed in .dotfiles bec
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
-- **Research**: [094_review_nixos_config_documentation/reports/01_nixos-config-doc-review.md]
+- **Research**:
+  - [094_review_nixos_config_documentation/reports/01_nixos-config-doc-review.md]
+  - [094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md]
 - **Plan**: [094_review_nixos_config_documentation/plans/01_nixos-doc-config-improvements.md]
 - **Summary**: [094_review_nixos_config_documentation/summaries/01_nixos-doc-config-improvements-summary.md]
 
@@ -265,6 +278,7 @@ CROSS-REPO: research performed from ~/Mail; report + task homed in .dotfiles bec
   - [092_logos_mbsync_group_labels_fix/reports/02_task-still-needed.md]
   - [092_logos_mbsync_group_labels_fix/reports/03_cross-repo-nvim-sync-linkage.md]
 - **Plan**: [092_logos_mbsync_group_labels_fix/plans/03_logos-mbsync-hardening.md]
+- **Summary**: [092_logos_mbsync_group_labels_fix/summaries/03_logos-mbsync-hardening-summary.md]
 
 **Description**: [RESCOPED 2026-07-11 after research reports 02 + 03] Harden the Logos (Protonmail Bridge) mbsync config. The ORIGINAL blocking bug -- the wrappers' post-mutation `mbsync logos` reconcile exiting non-zero because `Group logos` chained `logos-labels` and hit the dotted Gmail-import label `benbrastmckie@gmail.com` under `SubFolders Maildir++` -- is ALREADY FIXED by commit a8f65ad (removed logos-labels from Group logos; landed via nvim task 826). Two residual hardening items remain (see reports/02_task-still-needed.md and reports/03_cross-repo-nvim-sync-linkage.md).
 
