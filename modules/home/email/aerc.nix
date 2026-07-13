@@ -256,30 +256,40 @@ _: {
       outgoing-cred-cmd = secret-tool lookup service protonmail-bridge username benjamin@logos-labs.ai
     '';
 
-    # aerc query map for Gmail virtual folders
+    # aerc query map for Gmail virtual folders.
+    #
+    # Task 34 (decouple aerc/himalaya stacks, Phase 5 / F5): account scoping uses
+    # `folder:/Gmail/` (notmuch's slash-delimited regex form) instead of `tag:gmail`,
+    # aligning aerc with the canonical folder-scoping convention CLAUDE.md mandates
+    # for the /email wrapper contract. NOTE: `folder:Gmail*` glob syntax (as CLAUDE.md's
+    # prose currently shows it) does NOT work as a literal notmuch query -- it matches
+    # zero messages; verified empirically against the working `tag:gmail`-scoped
+    # baseline that only `folder:/Gmail/` (or an exact `folder:Gmail/SubDir` path)
+    # reproduces the same counts. Flagged for a CLAUDE.md accuracy follow-up.
     ".config/aerc/querymap-gmail".text = ''
-      INBOX=tag:inbox AND tag:gmail
+      INBOX=tag:inbox AND folder:/Gmail/
       Sent=folder:Gmail/.Sent
       Drafts=folder:Gmail/.Drafts
       Trash=folder:Gmail/.Trash
       All_Mail=folder:Gmail/.All_Mail
       Spam=folder:Gmail/.Spam
-      Unread=tag:unread AND tag:gmail
-      Flagged=tag:flagged AND tag:gmail
-      Proposed-Delete=tag:proposed-delete AND tag:gmail
-      Proposed-Archive=tag:proposed-archive AND tag:gmail
-      Proposed-Unsure=tag:proposed-unsure AND tag:gmail
+      Unread=tag:unread AND folder:/Gmail/
+      Flagged=tag:flagged AND folder:/Gmail/
+      Proposed-Delete=tag:proposed-delete AND folder:/Gmail/
+      Proposed-Archive=tag:proposed-archive AND folder:/Gmail/
+      Proposed-Unsure=tag:proposed-unsure AND folder:/Gmail/
     '';
 
-    # aerc query map for Logos virtual folders
+    # aerc query map for Logos virtual folders. See Gmail querymap comment above
+    # (task 34, Phase 5 / F5) -- same `folder:/Logos/` regex-form rationale.
     ".config/aerc/querymap-logos".text = ''
-      INBOX=tag:inbox AND tag:logos
+      INBOX=tag:inbox AND folder:/Logos/
       Sent=folder:Logos/.Sent
       Drafts=folder:Logos/.Drafts
       Trash=folder:Logos/.Trash
       Archive=folder:Logos/.Archive
-      Unread=tag:unread AND tag:logos
-      Flagged=tag:flagged AND tag:logos
+      Unread=tag:unread AND folder:/Logos/
+      Flagged=tag:flagged AND folder:/Logos/
     '';
   };
 }
