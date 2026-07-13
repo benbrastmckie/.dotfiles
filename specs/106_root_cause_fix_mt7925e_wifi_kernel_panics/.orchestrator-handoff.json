@@ -1,0 +1,57 @@
+{
+  "status": "implemented",
+  "summary": "Root-cause fix for hamsa's mt7925e WiFi kernel panics delivered: bumped the nixpkgs flake input to kernel 7.1.3 (contains merged upstream fix 20b126920a25 for the sta_poll_list corruption race) and added kernel.panic_on_oops=1 to modules/system/boot.nix to close the pstore diagnostics gap. Phase 2 abort gate passed (kernel resolved to 7.1.3 on the first nix flake update nixpkgs), so the conditional boot.kernelPatches fallback (Phase 6) was not needed. nix flake check and nixos-rebuild build --flake .#hamsa both succeeded; the kernel was confirmed sourced from the Hydra binary cache (nix log shows no local build log for the linux-7.1.3 derivation). Activation (sudo nixos-rebuild switch + reboot) is deliberately NOT performed by this implementer, per the plan's explicit Non-Goal and risk mitigation requiring user consent for system activation.",
+  "blockers": [
+    {
+      "type": "user_action_required",
+      "description": "System activation requires sudo and is out of scope for autonomous execution by design (plan Non-Goal + risk mitigation 'Activation run without user consent'). The user must run: sudo nixos-rebuild switch --flake .#hamsa, then reboot, then verify uname -r >= 7.1.3 and the panic sysctls.",
+      "blocking": false,
+      "note": "Not a true blocker on task completion from the implementer's perspective -- the plan's Definition of Done only requires the build be verified and activation be flagged, both of which are done. Flagged here for orchestrator/user visibility."
+    }
+  ],
+  "continuation_context": {
+    "task_number": 106,
+    "plan_path": "specs/106_root_cause_fix_mt7925e_wifi_kernel_panics/plans/01_mt7925e-kernel-fix.md",
+    "summary_path": "specs/106_root_cause_fix_mt7925e_wifi_kernel_panics/summaries/01_mt7925e-kernel-fix-summary.md",
+    "report_path": "specs/106_root_cause_fix_mt7925e_wifi_kernel_panics/reports/01_mt7925e-panic-upstream-fix.md",
+    "files_modified": [
+      "flake.lock",
+      "modules/system/boot.nix"
+    ],
+    "build_result": "/nix/store/07kkg07pmk27zmhiqjd9r3fa68d8v7ap-nixos-system-hamsa-26.05.20260710.8f0500b",
+    "phases": {
+      "phase_1_pre_change_snapshot": "COMPLETED",
+      "phase_2_nixpkgs_bump_abort_gate": "COMPLETED (gate passed, kernel resolved to 7.1.3)",
+      "phase_3_panic_on_oops_sysctl": "COMPLETED",
+      "phase_4_build_and_verify": "COMPLETED",
+      "phase_5_activation_user_confirmed": "PARTIAL (flagged for user; post-reboot verification deferred)",
+      "phase_6_kernelpatches_fallback": "SKIPPED (conditional, not triggered)",
+      "phase_7_monitoring_closeout": "COMPLETED (documentation only)"
+    }
+  },
+  "next_action_hint": "Task 106's repo-side implementation is complete and build-verified. Recommend transitioning task status toward completion (not blocked/partial in the state.json sense) since the plan's Definition of Done treats user activation as an explicit out-of-scope follow-up, not a phase the implementer must finish. If task status tracking requires activation before COMPLETED, keep status as implementing/partial and note the single remaining user step: sudo nixos-rebuild switch --flake .#hamsa && reboot, then verify per the summary's User Action Required section.",
+  "phases_completed": 5,
+  "phases_total": 7,
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "flake.lock",
+      "summary": "nixpkgs input bumped to kernel 7.1.3 (nixpkgs-unstable pin untouched)"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/system/boot.nix",
+      "summary": "Added kernel.panic_on_oops=1 sysctl; retained panic=10"
+    },
+    {
+      "type": "plan",
+      "path": "specs/106_root_cause_fix_mt7925e_wifi_kernel_panics/plans/01_mt7925e-kernel-fix.md",
+      "summary": "Updated with per-phase completion evidence and deviation annotations"
+    },
+    {
+      "type": "summary",
+      "path": "specs/106_root_cause_fix_mt7925e_wifi_kernel_panics/summaries/01_mt7925e-kernel-fix-summary.md",
+      "summary": "Full implementation summary with verification, user action required, and monitoring/escalation guidance"
+    }
+  ]
+}

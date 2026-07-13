@@ -27,7 +27,7 @@ next_project_number: 109
 23 [PLANNED] — install_simple_webcam_recording_software
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
-108 [NOT STARTED] — Make the email census freshness signal rename/deletion-aware in m
+108 [RESEARCHED] — Make the email census freshness signal rename/deletion-aware in m
 
 ### Packaging
 
@@ -46,7 +46,7 @@ next_project_number: 109
 ## Tasks
 
 ### 108. Census freshness rename deletion aware
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: nix
 - **Topic**: services
 - **Dependencies**: None

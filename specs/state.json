@@ -4,12 +4,20 @@
     {
       "project_number": 108,
       "project_name": "census_freshness_rename_deletion_aware",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "nix",
       "description": "Make the email census freshness signal rename/deletion-aware in modules/home/email/agent-tools/census.nix. The freshness line is currently an INBOX file-count-with-tolerance proxy that cannot detect maildir flag-renames (e.g. U=5202:2, -> U=5202:2,S) or phantom index drift (observed 84 files on disk vs 122 in notmuch = 38 phantom entries), which produced a false-green that let aerc launch onto a stale notmuch index. Enhance the freshness contract to surface a rename/deletion-aware signal (not just a bounded file count) that downstream consumers can treat as authoritative. Scope: ONLY the .dotfiles census.nix freshness-line enhancement. Out of scope: the ~/Mail duplicate-UID data repair, the one-time notmuch new reindex, and the nvim mail.lua gate hardening (those live in ~/Mail and ~/.config/nvim).",
       "topic": "services",
       "created": "2026-07-13T19:41:06Z",
-      "last_updated": "2026-07-13T19:41:06Z"
+      "last_updated": "2026-07-13T19:49:57Z",
+      "session_id": "sess_1783971770_ca1ded",
+      "artifacts": [
+        {
+          "path": "specs/108_census_freshness_rename_deletion_aware/reports/01_freshness-signal-research.md",
+          "type": "report",
+          "summary": "freshness signal research (backfilled by --sync)"
+        }
+      ]
     },
     {
       "project_number": 106,
@@ -50,7 +58,14 @@
       "created": "2026-07-06T22:08:36Z",
       "last_updated": "2026-07-06T22:22:37Z",
       "session_id": "sess_1783375791_dbb59f",
-      "completion_summary": "Diagnosed recurring blinking-capslock freezes as mt7925e WiFi driver kernel panics (wcid poll_list corruption, confirmed via pstore dumps). Added panic=10 kernel param for auto-reboot, updated kernel 7.1.1 -> 7.1.2, pinned nixpkgs-unstable to 2026-06-16 to keep r-V8 building. Known upstream fixes already present in 7.1.x; recurrence possible until race fully fixed upstream."
+      "completion_summary": "Diagnosed recurring blinking-capslock freezes as mt7925e WiFi driver kernel panics (wcid poll_list corruption, confirmed via pstore dumps). Added panic=10 kernel param for auto-reboot, updated kernel 7.1.1 -> 7.1.2, pinned nixpkgs-unstable to 2026-06-16 to keep r-V8 building. Known upstream fixes already present in 7.1.x; recurrence possible until race fully fixed upstream.",
+      "artifacts": [
+        {
+          "path": "specs/104_fix_mt7925e_wifi_kernel_panic_freezes/reports/01_mt7925e-panic-root-cause.md",
+          "type": "report",
+          "summary": "mt7925e panic root cause (backfilled by --sync)"
+        }
+      ]
     },
     {
       "project_number": 103,
@@ -73,6 +88,11 @@
           "path": "specs/103_reorganize_discord_bot_in_repo/summaries/01_discord-bot-reorg-summary.md",
           "type": "summary",
           "summary": ""
+        },
+        {
+          "path": "specs/103_reorganize_discord_bot_in_repo/plans/01_discord-bot-reorg.md",
+          "type": "plan",
+          "summary": "discord bot reorg (backfilled by --sync)"
         }
       ],
       "completion_summary": "Reorganized opencode-discord-bot in-repo: relocated 14 tracked source files to packages/opencode-discord-bot/ (co-located with derivation, src updated), fixed host-wiring drift by adding hosts/hamsa/default.nix + flake extraModules so services.discordBot.enable is now tracked on hamsa (matching the running service), kept nandi enabled, and updated 5 docs. nix flake check + nixos-rebuild build .#hamsa pass; sudo switch/systemctl runtime verification left as documented manual step."
@@ -89,7 +109,24 @@
       "description": "Gate CI on lint: promote the warn-only statix/deadnix lint steps (added in task 98) from advisory to CI-blocking now that task 101 made the tree lint-clean (statix + deadnix both zero-finding). Update .github/workflows/ci.yml so the statix check and deadnix --exclude 'hosts/*/hardware-configuration.nix' steps exit non-zero (remove any continue-on-error / warn-only shielding) and gate the workflow, so future lint regressions fail the build. Preserve the existing hardware-configuration.nix path exclusions (statix.toml ignore glob + deadnix --exclude flag). Verify the gated workflow passes on the current clean tree. Follows task 98 (lint tooling), depends on task 101 (lint-clean baseline).",
       "created": "2026-07-05T15:31:21Z",
       "last_updated": "2026-07-05T15:40:43Z",
-      "session_id": "sess_1783265681_651db9"
+      "session_id": "sess_1783265681_651db9",
+      "artifacts": [
+        {
+          "path": "specs/102_gate_ci_on_lint/reports/01_gate-ci-on-lint.md",
+          "type": "report",
+          "summary": "gate ci on lint (backfilled by --sync)"
+        },
+        {
+          "path": "specs/102_gate_ci_on_lint/plans/01_gate-ci-on-lint.md",
+          "type": "plan",
+          "summary": "gate ci on lint (backfilled by --sync)"
+        },
+        {
+          "path": "specs/102_gate_ci_on_lint/summaries/01_gate-ci-on-lint-summary.md",
+          "type": "summary",
+          "summary": "gate ci on lint summary (backfilled by --sync)"
+        }
+      ]
     },
     {
       "project_number": 95,
@@ -201,6 +238,11 @@
           "type": "plan",
           "path": "specs/097_refactor_dead_comment_cleanup/plans/01_wrapper-extraction-mcphub-fix.md",
           "summary": "4-phase extraction plan: create 3 packages/*.nix wrapper files, wire via overlays/unstable-packages.nix (zathura/sioyek prev.X positional import, polkit callPackage), clean up packages.nix list membership, delete stale flake.nix:62 MCPHub comment. Verify with nix flake check + nixos-rebuild build .#hamsa."
+        },
+        {
+          "path": "specs/097_refactor_dead_comment_cleanup/summaries/01_wrapper-extraction-mcphub-fix-summary.md",
+          "type": "summary",
+          "summary": "wrapper extraction mcphub fix summary (backfilled by --sync)"
         }
       ],
       "researched": "2026-07-05T10:00:16Z",
@@ -417,6 +459,11 @@
           "path": "specs/094_review_nixos_config_documentation/summaries/01_nixos-doc-config-improvements-summary.md",
           "type": "summary",
           "summary": "nixos doc config improvements summary (backfilled by --sync)"
+        },
+        {
+          "path": "specs/094_review_nixos_config_documentation/reports/02_remaining-cleanup-backlog.md",
+          "type": "report",
+          "summary": "remaining cleanup backlog (backfilled by --sync)"
         }
       ],
       "completion_summary": "Reviewed the NixOS/Home Manager config and its docs; structure was healthy so fixes centered on documentation accuracy. Executed 7/8 planned phases: corrected a confirmed hardware factual error (nandi is Intel, hamsa is the AMD host) in README.md; de-staled contributor docs (configuration.md, unstable-packages.md, how-to-add-package/service.md) to reflect the completed modules/ reorg and python3 migration; fixed package-inventory docs (removed nonexistent marker-pdf, added opencode/kooha/slidev); added overlays/README.md; swept emoji from eligible docs; and made conservative comment-only .nix cleanups verified by nix flake check (passes). Deferred Phase 8 (Ryzen doc consolidation, niri testing-phase framing, niri.md emoji strip) left for a follow-up task as it needs user confirmation."
@@ -1882,6 +1929,11 @@
           "path": "specs/092_logos_mbsync_group_labels_fix/plans/03_logos-mbsync-hardening.md",
           "type": "plan",
           "summary": "Two-phase (~1h) nix hardening plan: Phase 1 adds negative dotted-name patterns to logos-labels/logos-folders; Phase 2 adds Group logos-full + user-gated live mbsync verification (shared with nvim task 851)"
+        },
+        {
+          "path": "specs/092_logos_mbsync_group_labels_fix/summaries/03_logos-mbsync-hardening-summary.md",
+          "type": "summary",
+          "summary": "logos mbsync hardening summary (backfilled by --sync)"
         }
       ],
       "session_id": "sess_1783820611_cbf042",
@@ -1953,7 +2005,24 @@
         "hosts/"
       ],
       "session_id": "sess_1783262545_d22cc9",
-      "completion_summary": "Lint-clean tree: 69 statix + 23 deadnix findings cleared across 8 committed phases. statix fix (15 auto), deadnix skip-comments (8 intentional) + --edit (11 safe), hand-collapsed 42 W20 repeated-keys, path-excluded 4 auto-generated hardware-configuration.nix via statix.toml + ci.yml. nix flake check green; both linters zero-finding."
+      "completion_summary": "Lint-clean tree: 69 statix + 23 deadnix findings cleared across 8 committed phases. statix fix (15 auto), deadnix skip-comments (8 intentional) + --edit (11 safe), hand-collapsed 42 W20 repeated-keys, path-excluded 4 auto-generated hardware-configuration.nix via statix.toml + ci.yml. nix flake check green; both linters zero-finding.",
+      "artifacts": [
+        {
+          "path": "specs/101_nix_lint_findings_cleanup/reports/01_lint-findings-cleanup.md",
+          "type": "report",
+          "summary": "lint findings cleanup (backfilled by --sync)"
+        },
+        {
+          "path": "specs/101_nix_lint_findings_cleanup/plans/01_lint-findings-cleanup.md",
+          "type": "plan",
+          "summary": "lint findings cleanup (backfilled by --sync)"
+        },
+        {
+          "path": "specs/101_nix_lint_findings_cleanup/summaries/01_lint-findings-cleanup-summary.md",
+          "type": "summary",
+          "summary": "lint findings cleanup summary (backfilled by --sync)"
+        }
+      ]
     },
     {
       "project_number": 105,
