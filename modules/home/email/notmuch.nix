@@ -23,7 +23,18 @@
       # mbsync.nix, task 826) and re-import every Proton label as a duplicated .Labels.*
       # Maildir++ folder. Naming the groups runs only their member channels, so
       # `logos-labels` never fires automatically. (~/.dotfiles handoff; tasks 826-828.)
-      preNew = "mbsync gmail logos";
+      #
+      # `|| true`: notmuch aborts the ENTIRE `notmuch new` run (skipping both the disk
+      # scan and postNew below) if preNew exits non-zero. mbsync currently exits 1 on
+      # partial/transient failures unrelated to notmuch's own indexing job -- e.g. a
+      # single channel's far-side box failing to open, or the known pre-existing
+      # duplicate-UID collision in Gmail/.All_Mail (~Mail task 34 baseline; tracked
+      # separately as .dotfiles task 852/853). Without this tolerance, any hook-having
+      # `notmuch new` invocation fails outright, which is what made this hook an
+      # unreliable auto-reindex authority (~Mail task 34, Phase 4). `--no-hooks`
+      # call sites (email-reindex, aerc's `$` keybind) are unaffected either way since
+      # they skip this hook entirely.
+      preNew = "mbsync gmail logos || true";
       postNew = ''
         # Tag new mail
         notmuch tag +inbox +unread -- tag:new
