@@ -1,7 +1,7 @@
 # Implementation Plan: Rename/Deletion-Aware Census Freshness Signal
 
 - **Task**: 108 - census freshness rename/deletion-aware signal
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 4.5 hours
 - **Dependencies**: None
 - **Research Inputs**: reports/01_freshness-signal-research.md
@@ -97,30 +97,34 @@ staleness-detection contract by closing the same-count-churn false-green gap it 
 Phases within the same wave can execute in parallel. This plan is fully sequential (one phase per
 wave).
 
-### Phase 1: Implement the UID-joined set-diff computation [NOT STARTED]
+### Phase 1: Implement the UID-joined set-diff computation [COMPLETED]
+
+**Completed**: 2026-07-13T20:20:00Z
 
 **Goal**: Add the INBOX-scoped literal-filename set-diff to the census wrapper script, computing
 `RENAMED`/`REMOVED`/`ADDED` counts, without yet touching the verdict logic or output line.
 
 **Tasks**:
-- [ ] In `census.nix`, immediately after the existing `INBOX_INDEXED` count computation
+- [x] In `census.nix`, immediately after the existing `INBOX_INDEXED` count computation
       (lines 48-50), add a second computation that retains the matching indexed filename LIST:
       reuse the same `notmuch search --output=files "path:$ACCOUNT_FOLDER/cur or
       path:$ACCOUNT_FOLDER/new"` call, filter with `grep -E "/$ACCOUNT_FOLDER/(cur|new)/"`
-      (non-`-c`), and reduce to basenames (`sed 's#.*/##'`).
-- [ ] Build the on-disk filename list via
+      (non-`-c`), and reduce to basenames (`sed 's#.*/##'`). *(deviation: altered — basename
+      reduction is done inline inside the awk join via `sub(/.*\//, "", base)` on the indexed
+      side rather than a separate `sed` pipe stage; functionally identical, one fewer process)*
+- [x] Build the on-disk filename list via
       `find "$HOME/Mail/$ACCOUNT_FOLDER/cur" "$HOME/Mail/$ACCOUNT_FOLDER/new" -maxdepth 1 -type f
       -printf '%f\n'` (basenames only), guarded so a missing directory does not abort the script.
-- [ ] Add a guard: assert the `find` file count equals the already-computed `$INBOX_ONDISK`; if it
+- [x] Add a guard: assert the `find` file count equals the already-computed `$INBOX_ONDISK`; if it
       does not, set `RENAMED=REMOVED=ADDED="?"` and skip the join (fallback path).
-- [ ] Implement the UID-keyed join over the two basename lists using a single POSIX `awk` pass
+- [x] Implement the UID-keyed join over the two basename lists using a single POSIX `awk` pass
       (extract `U=([0-9]+):` as key): UID in both under different full basenames -> `renamed`;
       UID only in indexed -> `removed`; UID only in on-disk -> `added`. Emit the three counts into
       shell variables `RENAMED`, `REMOVED`, `ADDED`.
-- [ ] Add an inline comment cross-referencing the `wrapper-contracts.md` §13 required-query-form
+- [x] Add an inline comment cross-referencing the `wrapper-contracts.md` §13 required-query-form
       constraint (mirroring the existing comment at census.nix:43-44), so the `search`/`path:`
       query form is not "simplified" into the exclude-tags trap.
-- [ ] Keep all reads within the sanctioned set (`find`, `notmuch search`, `himalaya`) — no
+- [x] Keep all reads within the sanctioned set (`find`, `notmuch search`, `himalaya`) — no
       mutation, no `email-reindex` call; preserve `safetyClass = "read-only"`.
 
 **Timing**: 1.5 hours
@@ -138,23 +142,25 @@ wave).
 
 ---
 
-### Phase 2: Wire the exact-set check into the verdict and output line [NOT STARTED]
+### Phase 2: Wire the exact-set check into the verdict and output line [COMPLETED]
+
+**Completed**: 2026-07-13T20:35:00Z
 
 **Goal**: Make the new signal verdict-affecting and append the new fields to the freshness line,
 preserving backward-compatible field ordering and the trailing bracket position.
 
 **Tasks**:
-- [ ] Extend the verdict logic (census.nix:55-63): after computing `FRESH` from the existing
+- [x] Extend the verdict logic (census.nix:55-63): after computing `FRESH` from the existing
       `|divergence| <= tol` check, flip `FRESH="STALE"` if the exact-set signal exceeds its
       threshold — i.e. `RENAMED + REMOVED + ADDED > SETDIFF_TOL` (with `SETDIFF_TOL` a named
       variable, default 0, to be finalized in Phase 3). Treat a `"?"` fallback for any of the three
       as `STALE` (parse-failure convention).
-- [ ] Guard the arithmetic so a `"?"` value never enters a `$(( ))` expression (branch on the
+- [x] Guard the arithmetic so a `"?"` value never enters a `$(( ))` expression (branch on the
       numeric-regex check already used for `INBOX_ONDISK`).
-- [ ] Extend the `printf` format string (census.nix:67-68) to append `  renamed=%s  removed=%s
+- [x] Extend the `printf` format string (census.nix:67-68) to append `  renamed=%s  removed=%s
       added=%s` AFTER `reindex=%s` and BEFORE the trailing `  [%s]` verdict bracket, passing
       `$RENAMED $REMOVED $ADDED` in order. Confirm the bracketed verdict remains the LAST token.
-- [ ] Do NOT alter the name, relative order, or computation of any existing token (`on-disk=`,
+- [x] Do NOT alter the name, relative order, or computation of any existing token (`on-disk=`,
       `indexed-files=`, `divergence=`, `tol=`, `reindex=`).
 
 **Timing**: 1 hour
@@ -175,31 +181,51 @@ preserving backward-compatible field ordering and the trailing bracket position.
 
 ---
 
-### Phase 3: Build and verify against the live INBOX [NOT STARTED]
+### Phase 3: Build and verify against the live INBOX [COMPLETED]
+
+**Completed**: 2026-07-13T20:50:00Z
 
 **Goal**: Build the agent-tools and run `email-census` against the real Gmail INBOX to confirm the
 new fields appear, behave, and are repeatable; finalize `SETDIFF_TOL`.
 
 **Tasks**:
-- [ ] Run `nix flake check` and build the home-manager configuration (or build the `email-census`
+- [x] Run `nix flake check` and build the home-manager configuration (or build the `email-census`
       package directly, e.g. `nix build .#homeConfigurations...` / `home-manager build --flake`) so
-      the updated wrapper is on `$PATH`.
-- [ ] Confirm the `email-census` binary is on `$PATH` (wrapper-only `$PATH` precondition) before
-      invoking it.
-- [ ] Run `email-census` (default `account=gmail`) and confirm the `INBOX freshness` line now shows
+      the updated wrapper is on `$PATH`. *(deviation: altered — built the `email-census` derivation
+      directly via its evaluated `drvPath` under `homeConfigurations.benjamin.config.home.packages`
+      rather than a full `home-manager switch`, since switching the live system generation is a
+      separate, invasive operation outside this config-file task's scope; the built binary was
+      invoked at its store path for live verification, which is byte-identical to what a switch
+      would place on `$PATH`)*
+- [x] Confirm the `email-census` binary is on `$PATH` (wrapper-only `$PATH` precondition) before
+      invoking it. *(deviation: altered — verified the PRE-EXISTING `email-census` is on `$PATH`
+      today (confirming the precondition machinery works); the newly-built binary itself was not
+      activated onto `$PATH` in this run per the note above, and was instead invoked at its
+      absolute `/nix/store/...` path)*
+- [x] Run `email-census` (default `account=gmail`) and confirm the `INBOX freshness` line now shows
       `renamed=<R> removed=<X> added=<A>` before the `[ok|STALE]` bracket, and that existing tokens
-      are unchanged.
-- [ ] Run `email-census` twice back-to-back with no intervening mail activity and confirm the
+      are unchanged. Live result: `on-disk=86 indexed-files=86 divergence=0 tol=9 reindex=never
+      renamed=1 removed=2 added=2 [STALE]` — a direct, live reproduction of the false-green gap
+      this task closes (`divergence=0` would have read `[ok]` under the old logic alone).
+- [x] Run `email-census` twice back-to-back with no intervening mail activity and confirm the
       exact-set counts are stable (ideally `renamed=0 removed=0 added=0` both times, or a small
       stable residual). Use the observed jitter to finalize `SETDIFF_TOL` (0 if stable; 1-2 only if
       a genuine in-flight-write residual is observed) and update Phase 2's threshold accordingly.
-- [ ] If feasible, exercise a synthetic flag-rename case: identify an INBOX `U=<uid>` file, and
+      Result: both runs produced identical `renamed=1 removed=2 added=2` — perfectly stable (this
+      is real persistent drift, not jitter), so `SETDIFF_TOL=0` (already set in Phase 2) required
+      no adjustment.
+- [x] If feasible, exercise a synthetic flag-rename case: identify an INBOX `U=<uid>` file, and
       WITHOUT running `notmuch new`, confirm the census reports `renamed>=1` (i.e. notmuch's stale
       record vs the on-disk name) — reproducing the research's `U=5202:2,` -> `U=5202:2,S` finding.
       Do this read-only against existing drift where possible; if manufacturing drift, restore any
-      test state and DO NOT run a reindex as part of this task.
-- [ ] Confirm the count-mismatch fallback path renders `renamed=? removed=? added=?` and `[STALE]`
-      (can be checked by reasoning/inspection if the live counts always agree).
+      test state and DO NOT run a reindex as part of this task. *(deviation: altered — no synthetic
+      manufacture was needed; existing live drift already reproduced this exact case (`renamed=1`),
+      confirmed read-only with zero mail-state mutation and no reindex)*
+- [x] Confirm the count-mismatch fallback path renders `renamed=? removed=? added=?` and `[STALE]`
+      (can be checked by reasoning/inspection if the live counts always agree). Confirmed by code
+      inspection (live counts agree today, so the guard's `else` branch could not be exercised
+      live): the guard sets `RENAMED=REMOVED=ADDED="?"` on mismatch, and Phase 2's numeric-regex
+      check on all three then routes to its `else` branch, setting `FRESH="STALE"`.
 
 **Timing**: 1 hour
 
@@ -216,26 +242,31 @@ new fields appear, behave, and are repeatable; finalize `SETDIFF_TOL`.
 
 ---
 
-### Phase 4: Update email-extension documentation [NOT STARTED]
+### Phase 4: Update email-extension documentation [COMPLETED]
+
+**Completed**: 2026-07-13T21:05:00Z
 
 **Goal**: Document the new freshness-line fields and the authoritative rename/deletion-aware
 contract in the extension docs.
 
 **Tasks**:
-- [ ] Update `wrapper-contracts.md` §13 freshness-line format: add `renamed=`/`removed=`/`added=` to
+- [x] Update `wrapper-contracts.md` §13 freshness-line format: add `renamed=`/`removed=`/`added=` to
       the documented line shape (after `reindex=`, before the bracket), describe each field's
       meaning, and state the new verdict rule ([STALE] if EITHER count-tolerance OR exact-set
       fires). Reaffirm the required query form (`notmuch search --output=files "path:..."`, never
       `count`/`tag:`).
-- [ ] Update `domain/staleness-detection.md`: describe the UID-joined set-diff as the authoritative
+- [x] Update `domain/staleness-detection.md`: describe the UID-joined set-diff as the authoritative
       rename/deletion-aware signal, the INBOX-only scope (explicitly noting All_Mail is a deferred
       follow-up), the `find`-based on-disk filename source and its count-equality guard, and the
       `"?"` fallback convention.
-- [ ] Note explicitly in the docs that `skill-email-cleanup` Stage 1 parser branching on the new
+- [x] Note explicitly in the docs that `skill-email-cleanup` Stage 1 parser branching on the new
       fields is a required FOLLOW-UP (out of scope here) — the census change alone does not close
       the aerc false-green loop until a consumer acts on it.
-- [ ] Verify no task-number references leak into these deliverable docs (per
-      `no-task-references-in-deliverables.md`); keep descriptions contract-oriented.
+- [x] Verify no task-number references leak into these deliverable docs (per
+      `no-task-references-in-deliverables.md`); keep descriptions contract-oriented. Verified via
+      `git diff` on the two doc files: no `task N` references appear in any added line (a
+      pre-existing `task 827` reference in `staleness-detection.md`'s unmodified prose was left
+      untouched, out of this task's edit scope).
 
 **Timing**: 1 hour
 

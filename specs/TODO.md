@@ -11,7 +11,7 @@ next_project_number: 109
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,108 | -- | nix-infrastructure, services, desktop, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77 | -- | nix-infrastructure, services, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -27,7 +27,6 @@ next_project_number: 109
 23 [PLANNED] — install_simple_webcam_recording_software
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
-108 [PLANNED] — Make the email census freshness signal rename/deletion-aware in m
 
 ### Packaging
 
@@ -46,12 +45,13 @@ next_project_number: 109
 ## Tasks
 
 ### 108. Census freshness rename deletion aware
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: services
 - **Dependencies**: None
 - **Research**: [108_census_freshness_rename_deletion_aware/reports/01_freshness-signal-research.md]
 - **Plan**: [108_census_freshness_rename_deletion_aware/plans/01_freshness-set-diff-signal.md]
+- **Summary**: [108_census_freshness_rename_deletion_aware/summaries/01_freshness-set-diff-signal-summary.md]
 
 **Description**: Make the email census freshness signal rename/deletion-aware in modules/home/email/agent-tools/census.nix. The freshness line is currently an INBOX file-count-with-tolerance proxy that cannot detect maildir flag-renames (e.g. U=5202:2, -> U=5202:2,S) or phantom index drift (observed 84 files on disk vs 122 in notmuch = 38 phantom entries), which produced a false-green that let aerc launch onto a stale notmuch index. Enhance the freshness contract to surface a rename/deletion-aware signal (not just a bounded file count) that downstream consumers can treat as authoritative. Scope: ONLY the .dotfiles census.nix freshness-line enhancement. Out of scope: the ~/Mail duplicate-UID data repair, the one-time notmuch new reindex, and the nvim mail.lua gate hardening (those live in ~/Mail and ~/.config/nvim).
 

@@ -4,13 +4,13 @@
     {
       "project_number": 108,
       "project_name": "census_freshness_rename_deletion_aware",
-      "status": "planned",
+      "status": "completed",
       "task_type": "nix",
       "description": "Make the email census freshness signal rename/deletion-aware in modules/home/email/agent-tools/census.nix. The freshness line is currently an INBOX file-count-with-tolerance proxy that cannot detect maildir flag-renames (e.g. U=5202:2, -> U=5202:2,S) or phantom index drift (observed 84 files on disk vs 122 in notmuch = 38 phantom entries), which produced a false-green that let aerc launch onto a stale notmuch index. Enhance the freshness contract to surface a rename/deletion-aware signal (not just a bounded file count) that downstream consumers can treat as authoritative. Scope: ONLY the .dotfiles census.nix freshness-line enhancement. Out of scope: the ~/Mail duplicate-UID data repair, the one-time notmuch new reindex, and the nvim mail.lua gate hardening (those live in ~/Mail and ~/.config/nvim).",
       "topic": "services",
       "created": "2026-07-13T19:41:06Z",
-      "last_updated": "2026-07-13T20:00:27Z",
-      "session_id": "sess_1783972599_cef86a",
+      "last_updated": "2026-07-13T20:21:16Z",
+      "session_id": "sess_1783973355_dfea0d",
       "artifacts": [
         {
           "path": "specs/108_census_freshness_rename_deletion_aware/reports/01_freshness-signal-research.md",
@@ -21,8 +21,14 @@
           "path": "specs/108_census_freshness_rename_deletion_aware/plans/01_freshness-set-diff-signal.md",
           "type": "plan",
           "summary": "4-phase, fully sequential implementation plan for the rename/deletion-aware census freshness signal, built on research Approach 1 (UID-joined literal-filename set-diff, INBOX-scoped, backward-compatible field append, dual-check verdict)."
+        },
+        {
+          "path": "specs/108_census_freshness_rename_deletion_aware/summaries/01_freshness-set-diff-signal-summary.md",
+          "type": "summary",
+          "summary": "Rename/deletion-aware freshness set-diff implemented in census.nix (renamed/removed/added fields; STALE-on-set-divergence)"
         }
-      ]
+      ],
+      "completion_summary": "Implemented the research-recommended Approach 1 UID-joined literal-filename set-diff in email-census's INBOX freshness line, adding renamed=/removed=/added= fields before the [ok|STALE] bracket and flipping the verdict STALE on either the pre-existing count-tolerance check or the new exact-set check. Live-verified against the real Gmail INBOX: reproduced the exact false-green gap the task targets (divergence=0 with renamed=1 removed=2 added=2, correctly rendering [STALE]). Updated wrapper-contracts.md §13 and staleness-detection.md to document the new contract."
     },
     {
       "project_number": 106,
