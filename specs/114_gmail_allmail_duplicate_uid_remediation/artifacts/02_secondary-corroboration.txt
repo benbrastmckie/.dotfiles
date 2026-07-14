@@ -1,0 +1,36 @@
+=== eNTERTAINMENT cENTER files (Message-ID 000001c6ee96...@isda1) ===
+--- 1770746110.1372450_624.hamsa,U=15:2, ---
+size=129615 mtime=2026-02-10 09:55:10.552007362 -0800
+a890f98b00ff0110f45469dca5a876b4c03ac1cb35e7a923443de6c74f6891dd  1770746110.1372450_624.hamsa,U=15:2,
+From: "Rob McKie" <rmarchitecture@sbcglobal.net>
+Subject: eNTERTAINMENT cENTER
+Date: Fri, 13 Oct 2006 00:07:44 -0700
+Message-ID: <000001c6ee96$483cd850$4101a8c0@isda1>
+
+--- 1770756059.1523822_21746.hamsa,U=64479:2, ---
+size=129615 mtime=2026-02-10 12:40:59.021004170 -0800
+caf1f90b0b7f5aaf5863f75ac7bd24b3b07b865fe6b4289e6a50bdb86918b3d2  1770756059.1523822_21746.hamsa,U=64479:2,
+From: "Rob McKie" <rmarchitecture@sbcglobal.net>
+Subject: eNTERTAINMENT cENTER
+Date: Fri, 13 Oct 2006 00:07:44 -0700
+Message-ID: <000001c6ee96$483cd850$4101a8c0@isda1>
+
+=== CEO Nick Slape files (Message-ID 0.0.F.6B.1D7857A52BBBC03.0@t01...) ===
+--- 1770674724.1073681_15.hamsa,U=15:2, ---
+size=122008 mtime=2026-02-09 14:05:24.496731303 -0800
+d20e581e5bd1e756aa126e8fca56f6bb35c587921b04c28925f87e9894fcec24  1770674724.1073681_15.hamsa,U=15:2,
+From: "The Co-operative Bank" <noreply@mail.co-operativebank.co.uk>
+Date: 30 Jul 2021 19:37:24 +0000
+Subject: A message from our CEO Nick Slape
+Message-ID: <0.0.F.6B.1D7857A52BBBC03.0@t01.communicatoremail.com>
+
+--- 1770754427.1523822_12554.hamsa,U=55287:2, ---
+size=122008 mtime=2026-02-10 12:13:47.977131520 -0800
+dca64d70ba246d82ccbfa357af49946fdb4ca18abbc70d1c5fa5f35ee40e5541  1770754427.1523822_12554.hamsa,U=55287:2,
+From: "The Co-operative Bank" <noreply@mail.co-operativebank.co.uk>
+Date: 30 Jul 2021 19:37:24 +0000
+Subject: A message from our CEO Nick Slape
+Message-ID: <0.0.F.6B.1D7857A52BBBC03.0@t01.communicatoremail.com>
+
+SELECT: OK [b'67163']
+STATUS UIDVALIDITY: OK [b'"[Gmail]/All Mail" (UIDVALIDITY 1)']

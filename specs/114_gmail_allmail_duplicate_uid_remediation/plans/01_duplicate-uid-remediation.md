@@ -127,23 +127,33 @@ situation before touching anything, and re-confirm the failure live.
 
 ---
 
-### Phase 2: Confirm which file is the stray (read-only corroboration gate) [NOT STARTED]
+### Phase 2: Confirm which file is the stray (read-only corroboration gate) [COMPLETED]
 
 **Goal**: Positively identify which of the two files is the stray, mapping the legitimate near-UID
 15 to far (server) UID 34, WITHOUT any mutation. This is the decision gate for the whole task.
 
 **Tasks**:
-- [ ] Primary corroboration: read-only IMAP `FETCH 34 (BODY[HEADER.FIELDS (MESSAGE-ID)])` against
+- [x] Primary corroboration: read-only IMAP `FETCH 34 (BODY[HEADER.FIELDS (MESSAGE-ID)])` against
   `[Gmail]/All Mail` to learn the Message-ID that far-UID 34 (the legit near-UID 15) corresponds to.
-  Use existing credentials carefully; this is a pure read, no STORE/flag change.
-- [ ] Match the fetched Message-ID to exactly one of the two files → that file is the LEGIT one; the
-  other is the STRAY to be de-UID'd.
-- [ ] Secondary/fallback corroboration: check notmuch for each Message-ID and any consistent UID
+  Use existing credentials carefully; this is a pure read, no STORE/flag change. *(completed: UID
+  FETCH with readonly SELECT + BODY.PEEK; UIDVALIDITY cross-checked unchanged (1==1); result:
+  far-UID 34 -> Message-ID `<000001c6ee96$483cd850$4101a8c0@isda1>`, Subject "eNTERTAINMENT
+  cENTER")*
+- [x] Match the fetched Message-ID to exactly one of the two files → that file is the LEGIT one; the
+  other is the STRAY to be de-UID'd. *(completed: eNTERTAINMENT cENTER file
+  `1770746110.1372450_624.hamsa,U=15:2,` = LEGIT; CEO Nick Slape file
+  `1770674724.1073681_15.hamsa,U=15:2,` = STRAY — this REVERSES the report's speculative
+  mtime-ordinal guess, which the primary IMAP signal overrides per plan precedence)*
+- [x] Secondary/fallback corroboration: check notmuch for each Message-ID and any consistent UID
   usage elsewhere in the maildir; if IMAP is impractical, corroborate via notmuch plus the
   report's mtime-ordinal heuristic (later-mtime `..._624... eNTERTAINMENT cENTER` is the likely
-  injected duplicate) — but only accept the heuristic when a second signal agrees.
-- [ ] Record the identified stray filename explicitly and STOP for confirmation if the two signals
-  disagree or are inconclusive (do not proceed to Phase 3 on a guess).
+  injected duplicate) — but only accept the heuristic when a second signal agrees. *(completed:
+  notmuch shows each Message-ID already has a second, independently-UID'd content-identical copy
+  elsewhere in the maildir (UID=64479 and UID=55287 respectively) -- neutral supporting evidence,
+  consistent with the primary signal, confirms low risk either way)*
+- [x] Record the identified stray filename explicitly and STOP for confirmation if the two signals
+  disagree or are inconclusive (do not proceed to Phase 3 on a guess). *(completed: see
+  artifacts/02_stray-identification.md — unambiguous, proceeding to Phase 3)*
 
 **Timing**: 45 minutes
 

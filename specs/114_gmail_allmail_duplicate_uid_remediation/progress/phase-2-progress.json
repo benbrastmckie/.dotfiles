@@ -1,0 +1,17 @@
+{
+  "phase": 2,
+  "phase_name": "Confirm which file is the stray (read-only corroboration gate)",
+  "started_at": "2026-07-14T08:58:00-07:00",
+  "last_updated": "2026-07-14T09:05:00-07:00",
+  "objectives": [
+    {"id": 1, "description": "Primary corroboration: read-only IMAP FETCH 34 against [Gmail]/All Mail", "status": "done", "files_touched": ["specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/imap_fetch34.py", "specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/02_imap-fetch34-output.txt"]},
+    {"id": 2, "description": "Match fetched Message-ID to exactly one file -> identify LEGIT vs STRAY", "status": "done", "files_touched": ["specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/02_stray-identification.md"]},
+    {"id": 3, "description": "Secondary/fallback corroboration via notmuch + content comparison", "status": "done", "files_touched": ["specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/02_secondary-corroboration.txt"]},
+    {"id": 4, "description": "Record identified stray filename; STOP if inconclusive", "status": "done", "files_touched": ["specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/02_stray-identification.md"]}
+  ],
+  "current_objective": null,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": [],
+  "notes": "CRITICAL: primary IMAP corroboration (far-UID 34, UIDVALIDITY cross-checked as unchanged) identifies eNTERTAINMENT cENTER (1770746110.1372450_624.hamsa,U=15:2,) as LEGIT and CEO Nick Slape (1770674724.1073681_15.hamsa,U=15:2,) as the STRAY. This is the OPPOSITE of the diagnosis report's speculative mtime heuristic -- the primary signal overrides it per plan precedence. Read-only throughout: SELECT opened readonly=True and BODY.PEEK used (no \\Seen flag set, no STORE command issued)."
+}
