@@ -1,0 +1,39 @@
+{
+  "status": "researched",
+  "agent_type": "general-research-agent",
+  "delegation_path": ["orchestrator", "research", "general-research-agent"],
+  "session_id": "sess_1784056726_46cc9d",
+  "task_number": 116,
+  "findings_count": 7,
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/116_mail_specs_stray_tree_cleanup/reports/01_stray-tree-investigation.md",
+      "summary": "Corrects task premise: ~/Mail/specs/ is a legitimate independent repo (218/219 files git-tracked, dating to Feb 2026), not a stray dump. Identifies the one genuine stray (empty untracked 072_email_workflow_infrastructure_prereqs/manifests/ stub) and its exact root cause: modules/home/email/agent-tools/lib.nix:35 hardcodes a repo-relative manifestDirDefault. Provides notmuch new.ignore guard and lib.nix absolute-path fix recommendations."
+    }
+  ],
+  "memory_candidates": [
+    {
+      "content": "~/Mail and ~/.config/nvim are independent, long-lived git repos each running their own deployment of the Claude Code agent-system with their own specs/ task-numbering (distinct from ~/.dotfiles task numbers). When investigating filesystem artifacts under ~/Mail/specs/ or similar, check git log/ls-files/status on that repo first before assuming content is stray -- it is very likely legitimate, git-tracked history belonging to that sibling repo.",
+      "category": "INSIGHT",
+      "source_artifact": "specs/116_mail_specs_stray_tree_cleanup/reports/01_stray-tree-investigation.md",
+      "confidence": 0.9,
+      "suggested_keywords": ["mail-repo", "multi-repo", "specs-directory", "sibling-deployment", "task-numbering"]
+    },
+    {
+      "content": "modules/home/email/agent-tools/lib.nix hardcodes manifestDirDefault as a repo-relative path (specs/072_email_workflow_infrastructure_prereqs/manifests). All five email wrapper binaries fall back to this when EMAIL_MANIFEST_DIR/--manifest-dir is not set, and mkdir -p it relative to the caller's cwd -- silently recreating stray directory trees anywhere the wrapper is invoked from an unexpected cwd (including once inside a live Gmail maildir folder). Fix: make the default an absolute, XDG-state-style path decoupled from any specific (archivable/renumberable) specs/ task directory.",
+      "category": "PATTERN",
+      "source_artifact": "specs/116_mail_specs_stray_tree_cleanup/reports/01_stray-tree-investigation.md",
+      "confidence": 0.9,
+      "suggested_keywords": ["email-wrapper", "manifest-dir", "relative-path-bug", "lib.nix", "cwd-dependent-default"]
+    },
+    {
+      "content": "notmuch new.ignore accepts two entry forms: bare filename/dirname (matched at any depth, regardless of location) or anchored regex delimited by slashes matched against the path relative to database.path (must use explicit caret/dollar anchors). When database.path spans a whole repo (like ~/Mail with database.path=~/Mail), use anchored regex entries for top-level non-mail directories to avoid noisy 'Ignoring non-mail file' logs on every notmuch new.",
+      "category": "TECHNIQUE",
+      "source_artifact": "specs/116_mail_specs_stray_tree_cleanup/reports/01_stray-tree-investigation.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["notmuch", "new.ignore", "database.path", "config-regex", "mail-indexing"]
+    }
+  ],
+  "next_steps": "Run /plan 116 to create implementation plan"
+}

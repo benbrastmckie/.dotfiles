@@ -46,12 +46,12 @@ Warning: 2 task(s) have no topic and will render under Uncategorized: 115, 116 (
 ### Uncategorized
 
 115 [NOT STARTED] — Consolidate and refactor the aerc email configuration (modules/ho
-116 [NOT STARTED] — Investigate and safely remediate a misplaced non-mail filesystem 
+116 [RESEARCHED] — Investigate and safely remediate a misplaced non-mail filesystem 
 
 ## Tasks
 
 ### 116. Mail specs stray tree cleanup
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: general
 - **Dependencies**: None
 
