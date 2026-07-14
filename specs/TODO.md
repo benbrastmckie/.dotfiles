@@ -1,5 +1,5 @@
 ---
-next_project_number: 118
+next_project_number: 119
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 118
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,117 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,117,118 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -19,6 +19,7 @@ next_project_number: 118
 ### Nixos Config
 
 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
+118 [NOT STARTED] — Research and create documentation in docs/ for the no-sleep funct
 
 ### Nix Infrastructure
 
@@ -47,6 +48,16 @@ next_project_number: 118
   └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
 
 ## Tasks
+
+### 118. Document no sleep functionality
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Research and create documentation in docs/ for the no-sleep functionality set up so AI agents can run without interruption
+
+---
 
 ### 117. Laptop lid close no sleep headless
 - **Status**: [PARTIAL]

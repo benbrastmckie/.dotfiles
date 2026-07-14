@@ -1,0 +1,7 @@
+INBOX=folder:Logos
+Sent=folder:Logos/.Sent
+Drafts=folder:Logos/.Drafts
+Trash=folder:Logos/.Trash
+Archive=folder:Logos/.Archive
+Unread=tag:unread AND folder:/Logos/
+Flagged=tag:flagged AND folder:/Logos/

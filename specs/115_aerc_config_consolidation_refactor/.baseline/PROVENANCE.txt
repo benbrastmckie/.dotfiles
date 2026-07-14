@@ -1,0 +1,5 @@
+Baseline captured: 2026-07-14T13:40:48-07:00
+Build result: /nix/store/wcqbx4pnsvazanag6zvqrignlyx8j34p-home-manager-generation
+home-manager-files: /nix/store/2kdb6g08v3jxfz8d1vgq24wndw13vzrv-home-manager-files
+Source HEAD: d82e6699412f82c8287d04e3339233a7e8425f9b
+aerc.nix status vs HEAD: clean (git status --porcelain modules/home/email/ empty)

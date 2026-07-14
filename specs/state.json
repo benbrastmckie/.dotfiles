@@ -1,6 +1,16 @@
 {
-  "next_project_number": 118,
+  "next_project_number": 119,
   "active_projects": [
+    {
+      "project_number": 118,
+      "project_name": "document_no_sleep_functionality",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Research and create documentation in docs/ for the no-sleep functionality set up so AI agents can run without interruption",
+      "topic": "nixos-config",
+      "created": "2026-07-14T22:34:35Z",
+      "last_updated": "2026-07-14T22:34:35Z"
+    },
     {
       "project_number": 117,
       "project_name": "laptop_lid_close_no_sleep_headless",

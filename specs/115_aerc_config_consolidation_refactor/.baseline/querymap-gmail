@@ -1,0 +1,11 @@
+INBOX=folder:Gmail
+Sent=folder:Gmail/.Sent
+Drafts=folder:Gmail/.Drafts
+Trash=folder:Gmail/.Trash
+All_Mail=folder:Gmail/.All_Mail
+Spam=folder:Gmail/.Spam
+Unread=tag:unread AND folder:/Gmail/
+Flagged=tag:flagged AND folder:/Gmail/
+Proposed-Delete=tag:proposed-delete AND folder:/Gmail/
+Proposed-Archive=tag:proposed-archive AND folder:/Gmail/
+Proposed-Unsure=tag:proposed-unsure AND folder:/Gmail/
