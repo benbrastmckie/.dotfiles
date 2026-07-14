@@ -1,5 +1,5 @@
 {
-  "next_project_number": 114,
+  "next_project_number": 115,
   "active_projects": [
     {
       "project_number": 71,
@@ -437,6 +437,25 @@
           "path": "specs/113_aerc_archive_on_reply_and_periodic_sync/summaries/01_archive-on-reply-periodic-sync-summary.md",
           "type": "summary",
           "summary": "Native :send -a flat rebind, hooks block removed, systemd mail-sync timer added; build passing, live verify deferred to user checklist."
+        }
+      ]
+    },
+    {
+      "project_number": 114,
+      "project_name": "gmail_allmail_duplicate_uid_remediation",
+      "status": "researched",
+      "task_type": "general",
+      "created": "2026-07-14T15:32:52Z",
+      "dependencies": [],
+      "file_scope": [
+        "modules/home/email/mail-sync.nix"
+      ],
+      "description": "Safely remediate the pre-existing duplicate-UID collision in ~/Mail/Gmail/.All_Mail that makes `mbsync gmail` (and thus `mail-sync gmail`) exit non-zero, which task 113 surfaced as a recurring aerc check-mail error banner and a failing mail-sync-timer unit. Root cause (live-verified 2026-07-14): two DIFFERENT messages both carry maildir UID tag ,U=15 in Gmail/.All_Mail/cur (subjects: \"eNTERTAINMENT cENTER\" and \"A message from our CEO Nick Slape\"); .mbsyncstate has a single legit mapping `34 15 S` (far UID 34 <-> near UID 15), so one file is a stray that erroneously got ,U=15 (likely from historical email dedup/migration tooling). HIGH RISK: gmail-all channel is `Expunge Both`, so removing/moving a synced local file can permanently delete a real message from Gmail All Mail. SAFE approach (validate first): identify the stray, then RENAME (never delete) it to strip its ,U=15 suffix -- collision clears, `Create Near` means the de-UID`d local-only file is never uploaded (no server duplicate), no file removed means no Expunge propagation (no server deletion), fully reversible. See reports/01_duplicate-uid-diagnosis.md for the full grounded analysis, open questions (confirm which file is the stray via read-only IMAP FETCH 34 or notmuch corroboration; notmuch re-index after rename; optional mail-sync.nix benign-duplicate guard; sweep for OTHER duplicate UIDs), and verification steps (mbsync exits 0, both messages still present in Gmail web UI, aerc banner clears). Do NOT rm or move any maildir file out of the folder. NON-GOAL: re-doing tasks 110-113.",
+      "artifacts": [
+        {
+          "path": "specs/114_gmail_allmail_duplicate_uid_remediation/reports/01_duplicate-uid-diagnosis.md",
+          "type": "report",
+          "summary": "Live-grounded diagnosis of the Gmail/.All_Mail duplicate-UID collision, the Expunge-Both deletion risk, and the safe rename-to-de-UID remediation."
         }
       ]
     }

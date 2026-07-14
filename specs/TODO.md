@@ -1,9 +1,10 @@
 ---
-next_project_number: 114
+next_project_number: 115
 ---
 
 # TODO
 
+Warning: 1 task(s) have no topic and will render under Uncategorized: 114 (non-fatal)
 ## Task Order
 
 *Updated 2026-07-14. Generated from state.json dependency graph.*
@@ -11,7 +12,7 @@ next_project_number: 114
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77 | -- | nix-infrastructure, services, desktop, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,114 | -- | nix-infrastructure, services, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -42,7 +43,21 @@ next_project_number: 114
 77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM
   └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
 
+### Uncategorized
+
+114 [RESEARCHED] — Safely remediate the pre-existing duplicate-UID collision in ~/Ma
+
 ## Tasks
+
+### 114. Gmail allmail duplicate uid remediation
+- **Status**: [RESEARCHED]
+- **Task Type**: general
+- **Dependencies**: None
+- **Research**: [114_gmail_allmail_duplicate_uid_remediation/reports/01_duplicate-uid-diagnosis.md]
+
+**Description**: Safely remediate the pre-existing duplicate-UID collision in ~/Mail/Gmail/.All_Mail that makes `mbsync gmail` (and thus `mail-sync gmail`) exit non-zero, which task 113 surfaced as a recurring aerc check-mail error banner and a failing mail-sync-timer unit. Root cause (live-verified 2026-07-14): two DIFFERENT messages both carry maildir UID tag ,U=15 in Gmail/.All_Mail/cur (subjects: "eNTERTAINMENT cENTER" and "A message from our CEO Nick Slape"); .mbsyncstate has a single legit mapping `34 15 S` (far UID 34 <-> near UID 15), so one file is a stray that erroneously got ,U=15 (likely from historical email dedup/migration tooling). HIGH RISK: gmail-all channel is `Expunge Both`, so removing/moving a synced local file can permanently delete a real message from Gmail All Mail. SAFE approach (validate first): identify the stray, then RENAME (never delete) it to strip its ,U=15 suffix -- collision clears, `Create Near` means the de-UID`d local-only file is never uploaded (no server duplicate), no file removed means no Expunge propagation (no server deletion), fully reversible. See reports/01_duplicate-uid-diagnosis.md for the full grounded analysis, open questions (confirm which file is the stray via read-only IMAP FETCH 34 or notmuch corroboration; notmuch re-index after rename; optional mail-sync.nix benign-duplicate guard; sweep for OTHER duplicate UIDs), and verification steps (mbsync exits 0, both messages still present in Gmail web UI, aerc banner clears). Do NOT rm or move any maildir file out of the folder. NON-GOAL: re-doing tasks 110-113.
+
+---
 
 ### 113. Aerc archive on reply and periodic sync
 - **Status**: [COMPLETED]
