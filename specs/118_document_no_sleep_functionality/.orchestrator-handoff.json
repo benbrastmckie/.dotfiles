@@ -1,0 +1,35 @@
+{
+  "task_number": 118,
+  "phase": "implement",
+  "status": "completed",
+  "plan_path": "specs/118_document_no_sleep_functionality/plans/01_no-sleep-documentation.md",
+  "research_path": "specs/118_document_no_sleep_functionality/reports/01_no-sleep-functionality.md",
+  "summary_path": "specs/118_document_no_sleep_functionality/summaries/01_no-sleep-documentation-summary.md",
+  "phases_completed": 4,
+  "phases_total": 4,
+  "blockers": [],
+  "session_id": "sess_1784068658_f4c1ca",
+  "continuation_context": {
+    "next_command": "none — task complete; ready for /todo archival",
+    "artifacts_created": [
+      "docs/no-sleep-agents.md"
+    ],
+    "artifacts_modified": [
+      "docs/gnome-settings.md",
+      "docs/niri.md",
+      "docs/README.md",
+      "modules/system/power.nix",
+      "modules/home/desktop/gnome.nix"
+    ],
+    "verification_results": {
+      "docs_leakage_grep": "zero matches for specs/117, task 117, task-117 in docs/no-sleep-agents.md, docs/gnome-settings.md, docs/niri.md",
+      "nix_diff_comment_only": "confirmed via git diff — only # See docs/no-sleep-agents.md. lines added to modules/system/power.nix and modules/home/desktop/gnome.nix",
+      "nix_flake_check": "passed (all checks passed!), pre-existing unrelated boot.zfs.forceImportRoot warnings only",
+      "leader_rz_claim": "dropped everywhere (not found in .lua files repo-wide; removed from docs/gnome-settings.md, omitted from new page)",
+      "live_lid_activation_status": "HandleLidSwitch still returns \"suspend\" live (not \"lock\") — activation gap persists, documented in docs/no-sleep-agents.md Activation & verification section with the fix command; not remediated per plan non-goals"
+    },
+    "outstanding_items": [
+      "Optional (out of scope for this task): run 'sudo systemctl restart systemd-logind' or reboot on the live system to actually activate the committed lid-lock setting; docs/no-sleep-agents.md documents this as a live, re-checkable fact rather than assuming it"
+    ]
+  }
+}
