@@ -1,4 +1,5 @@
-# Power management, udev rules, OOM handling, swap, zram, and VM parameters.
+# Power management, udev rules, battery suspend backstop, OOM handling, swap,
+# zram, and VM parameters.
 { pkgs, lib, ... }:
 {
   # Power management configuration for Ryzen AI 300
@@ -84,6 +85,63 @@
       Type = "oneshot";
       RemainAfterExit = true;
       ExecStart = "${pkgs.bash}/bin/bash -c 'if [ \"$(cat /sys/class/power_supply/ACAD/online)\" = \"1\" ]; then echo balanced > /sys/firmware/acpi/platform_profile; echo auto > /sys/bus/pci/devices/0000:c1:00.0/power_dpm_force_performance_level; else echo low-power > /sys/firmware/acpi/platform_profile; echo low > /sys/bus/pci/devices/0000:c1:00.0/power_dpm_force_performance_level; fi'";
+    };
+  };
+
+  # ==========================================================================
+  # Battery Suspend Backstop - fires REGARDLESS of sleep inhibitors
+  # ==========================================================================
+  # Claude Code sessions hold logind block inhibitors (sleep:idle). On systemd
+  # 260 a strong block inhibitor makes logind reject ALL ordinary sleep
+  # requests outright - including UPower's own 2% CriticalPowerAction (verified
+  # from source; see specs/117_laptop_lid_close_no_sleep_headless/reports/
+  # 03_battery-level-backstop.md). Without this unit, a lid-closed laptop with
+  # active agents drains to 0% and hard-powers-off.
+  # `systemctl suspend -i` = SuspendWithFlags(SD_LOGIND_SKIP_INHIBITORS),
+  # which root is polkit-authorized to use; the timer retries every minute so
+  # it cannot be raced by a freshly acquired inhibitor.
+  #
+  # Re-suspend loop is INTENTIONAL, not an oversight: after any wake that is
+  # still <=10% and Discharging, the next tick (<=60s, worst case ~2min under
+  # the default timer AccuracySec=1min coalescing) suspends again. Each cycle
+  # costs little battery and s2idle at <=10% survives hours - the loop IS the
+  # protection. No threshold-band hysteresis (e.g. re-allow at 15%): it would
+  # only lengthen awake time below 10% with nothing to damp (the machine is
+  # suspended, not flapping a service). Escape hatches:
+  #   - plug in (status leaves "Discharging"), or
+  #   - systemctl stop battery-suspend-backstop.timer for a deliberate
+  #     low-battery session (re-enabled at next boot/switch).
+  #
+  # The status check is the AC gate (live strings on this host: "Not charging"
+  # / "Charging" on AC or dock, "Discharging" on battery). Do NOT add
+  # ConditionACPower - it duplicates the gate with subtly different
+  # multi-supply semantics; the sysfs check is authoritative.
+  # Glob BAT* ONLY - never power_supply/*: this host has a peripheral
+  # hid-*-battery reporting perpetual "Discharging 100" that must not match.
+  # ==========================================================================
+  systemd.services.battery-suspend-backstop = {
+    description = "Suspend at <=10% battery, bypassing sleep inhibitors";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "battery-suspend-backstop" ''
+        threshold=10
+        for bat in /sys/class/power_supply/BAT*; do
+          [ -e "$bat/capacity" ] || continue
+          status=$(cat "$bat/status")
+          cap=$(cat "$bat/capacity")
+          if [ "$status" = "Discharging" ] && [ "$cap" -le "$threshold" ]; then
+            echo "battery at ''${cap}% and discharging: suspending (inhibitors bypassed)"
+            exec ${pkgs.systemd}/bin/systemctl suspend -i
+          fi
+        done
+      '';
+    };
+  };
+  systemd.timers.battery-suspend-backstop = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "2min";
+      OnUnitActiveSec = "60s";
     };
   };
 
