@@ -19,7 +19,7 @@ Warning: 1 task(s) have no topic and will render under Uncategorized: 115 (non-f
 
 ### Nixos Config
 
-117 [IMPLEMENTING] — Configure laptop lid-close to blank screen but not sleep (keep AI
+117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
 
 ### Nix Infrastructure
 
@@ -54,12 +54,13 @@ Warning: 1 task(s) have no topic and will render under Uncategorized: 115 (non-f
 ## Tasks
 
 ### 117. Laptop lid close no sleep headless
-- **Status**: [IMPLEMENTING]
+- **Status**: [PARTIAL]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
 - **Research**: [117_laptop_lid_close_no_sleep_headless/reports/01_lid-close-no-sleep.md]
 - **Plan**: [117_laptop_lid_close_no_sleep_headless/plans/01_lid-close-no-sleep.md]
+- **Summary**: [117_laptop_lid_close_no_sleep_headless/summaries/01_lid-close-no-sleep-summary.md]
 
 **Description**: Configure laptop lid-close to blank screen but not sleep (keep AI agents running headless), preserving existing multi-monitor window distribution when monitors are attached, and document the setup in docs/ and relevant README.md files
 

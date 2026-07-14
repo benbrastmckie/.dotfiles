@@ -183,12 +183,18 @@ Phases within the same wave can execute in parallel. Phases 2 and 3 have no tech
 
 ---
 
-### Phase 4: Activate and verify runtime behavior [NOT STARTED]
+### Phase 4: Activate and verify runtime behavior [BLOCKED]
+
+> **Status note (pending-user-activation)**: The implementing agent cannot elevate (interactive
+> sudo unavailable in this session). All config phases (1-3) are committed and build-verified;
+> the closure for `.#hamsa` builds cleanly. The user must run
+> `sudo nixos-rebuild switch --flake .#hamsa` and then perform the runtime checks below.
+> No runtime item is checked because none was actually executed.
 
 **Goal**: Apply all three config changes in one activation and prove the new behavior on the live system (hamsa). Activation requires sudo — coordinate with the user if the implementing agent cannot elevate; all checks below are read-only except the rebuild itself.
 
 **Tasks**:
-- [ ] `sudo nixos-rebuild switch --flake .#hamsa` (single activation for Phases 1-3).
+- [ ] `sudo nixos-rebuild switch --flake .#hamsa` (single activation for Phases 1-3). *(pending-user-activation: agent cannot obtain interactive sudo)*
 - [ ] Logind picked up the config: `busctl get-property org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager HandleLidSwitch` returns `s "ignore"`. If it still shows `"suspend"` (stale in-memory config), run `systemctl restart systemd-logind`, confirm the graphical session survives, and re-check; otherwise schedule a reboot.
 - [ ] `grep HandleLidSwitch /etc/systemd/logind.conf` shows both `ignore` lines.
 - [ ] GNOME setting live: `gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type` returns `'nothing'` (may require logout/login for dconf re-read; note result either way).
@@ -210,17 +216,17 @@ Phases within the same wave can execute in parallel. Phases 2 and 3 have no tech
 
 ---
 
-### Phase 5: Proportionate documentation updates [NOT STARTED]
+### Phase 5: Proportionate documentation updates [COMPLETED]
 
 **Goal**: Update existing docs to match the new behavior — small, accurate edits only. No new doc file, no root README changes, no task-number references in any file outside `specs/` (per the no-task-references-in-deliverables rule).
 
 **Tasks**:
-- [ ] `docs/gnome-settings.md` — Power Management section (lines 20-26): add a short "Lid-close behavior" bullet group stating: lid close blanks the internal screen but never suspends (logind `HandleLidSwitch*=ignore` in `modules/system/power.nix`); docked/external-monitor behavior unchanged; update the AC sleep line to reflect `sleep-inactive-ac-type = nothing` (AC idle-suspend disabled; battery idle-suspend after 15 min retained as protection); extend the existing inhibitor Note to state that inhibitors are no longer needed for lid protection but still govern idle-suspend on battery; add one plain-language warning that a lid-shut laptop on battery no longer suspends automatically (bag/heat/drain hazard).
-- [ ] `docs/niri.md` — two matching touches for the Phase 3 change: the "Swaylock + Swayidle" bullet near line 75 (drop the auto-suspend mention, e.g. "screen locking, auto-lock after 5 min; no idle auto-suspend") and the swayidle-related snippet/description around lines 898-916 if it mentions the 10-minute suspend; add one sentence noting lid close never suspends in either session (logind-level setting).
-- [ ] `modules/README.md` — one-line touch: where `power.nix` is characterized (hardware-enablement bullet near line 70), extend to mention lid/logind behavior (e.g. "power profiles, OOM, swap, lid/logind no-suspend"). Do not add a new section.
-- [ ] `docs/configuration.md` — line ~33: at most adjust the `power.nix` phrase the same way. Skip entirely if the existing phrasing already covers it generically.
-- [ ] Consistency pass: re-read each touched doc line against the final config (power.nix, gnome.nix, config.kdl) — no stale numbers, no over-claiming.
-- [ ] Commit; write implementation summary at `specs/117_laptop_lid_close_no_sleep_headless/summaries/01_lid-close-no-sleep-summary.md`.
+- [x] `docs/gnome-settings.md` — Power Management section (lines 20-26): add a short "Lid-close behavior" bullet group stating: lid close blanks the internal screen but never suspends (logind `HandleLidSwitch*=ignore` in `modules/system/power.nix`); docked/external-monitor behavior unchanged; update the AC sleep line to reflect `sleep-inactive-ac-type = nothing` (AC idle-suspend disabled; battery idle-suspend after 15 min retained as protection); extend the existing inhibitor Note to state that inhibitors are no longer needed for lid protection but still govern idle-suspend on battery; add one plain-language warning that a lid-shut laptop on battery no longer suspends automatically (bag/heat/drain hazard).
+- [x] `docs/niri.md` — two matching touches for the Phase 3 change: the "Swaylock + Swayidle" bullet near line 75 (drop the auto-suspend mention, e.g. "screen locking, auto-lock after 5 min; no idle auto-suspend") and the swayidle-related snippet/description around lines 898-916 if it mentions the 10-minute suspend; add one sentence noting lid close never suspends in either session (logind-level setting). *(snippet at 898-916 already had no suspend mention; added the clarifying sentence after it)*
+- [ ] `modules/README.md` — one-line touch: where `power.nix` is characterized (hardware-enablement bullet near line 70), extend to mention lid/logind behavior (e.g. "power profiles, OOM, swap, lid/logind no-suspend"). Do not add a new section. *(deviation: skipped — the current modules/README.md contains no per-file characterization of power.nix, only bare filename lists at lines 31/70; adding a lone description would break the list style and the plan forbids a new section. The equivalent one-phrase touch was made in docs/configuration.md instead.)*
+- [x] `docs/configuration.md` — line ~33: at most adjust the `power.nix` phrase the same way. Skip entirely if the existing phrasing already covers it generically. *(adjusted "graphics, sound, etc." to "graphics, sound, power/lid behavior")*
+- [x] Consistency pass: re-read each touched doc line against the final config (power.nix, gnome.nix, config.kdl) — no stale numbers, no over-claiming.
+- [x] Commit; write implementation summary at `specs/117_laptop_lid_close_no_sleep_headless/summaries/01_lid-close-no-sleep-summary.md`.
 
 **Timing**: 1 hour
 
@@ -239,15 +245,15 @@ Phases within the same wave can execute in parallel. Phases 2 and 3 have no tech
 
 ## Testing & Validation
 
-- [ ] `nix flake check` passes after each config phase
-- [ ] `nixos-rebuild build --flake .#hamsa` passes after each config phase (Phases 1-3)
-- [ ] Generated logind.conf eval contains `HandleLidSwitch=ignore` and `HandleLidSwitchExternalPower=ignore`
-- [ ] Post-switch: `busctl get-property org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager HandleLidSwitch` → `s "ignore"`
-- [ ] Post-switch: `gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type` → `'nothing'`
-- [ ] Functional: lid close with no external monitor → no suspend (journalctl shows "Lid closed." with no suspend entry); running process continues
-- [ ] Regression: lid close with external monitor → windows stay on external display; gsd-power inhibitor still listed
-- [ ] Regression: 5-minute idle blank with lid open still works
-- [ ] `niri validate -c config/config.kdl` passes (when binary available); no `systemctl suspend` remains in config.kdl
+- [x] `nix flake check` passes after each config phase
+- [x] `nixos-rebuild build --flake .#hamsa` passes after each config phase (Phases 1-3)
+- [x] Generated logind.conf eval contains `HandleLidSwitch=ignore` and `HandleLidSwitchExternalPower=ignore`
+- [ ] Post-switch: `busctl get-property org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager HandleLidSwitch` → `s "ignore"` *(pending-user-activation)*
+- [ ] Post-switch: `gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type` → `'nothing'` *(pending-user-activation)*
+- [ ] Functional: lid close with no external monitor → no suspend (journalctl shows "Lid closed." with no suspend entry); running process continues *(pending-user-activation)*
+- [ ] Regression: lid close with external monitor → windows stay on external display; gsd-power inhibitor still listed *(pending-user-activation)*
+- [ ] Regression: 5-minute idle blank with lid open still works *(pending-user-activation)*
+- [x] `niri validate -c config/config.kdl` passes (when binary available); no `systemctl suspend` remains in config.kdl
 
 ## Artifacts & Outputs
 

@@ -72,7 +72,7 @@ You can choose at GDM login:
 **Services Included**:
 - Waybar (status bar with system tray, battery, network, audio)
 - Mako (notification daemon)
-- Swaylock + Swayidle (screen locking, auto-lock after 5 min)
+- Swaylock + Swayidle (screen locking, auto-lock after 5 min; no idle auto-suspend)
 - cliphist (clipboard history manager)
 
 **Best for**: Testing niri workflow, when you want better performance, casual work
@@ -914,6 +914,11 @@ services.swayidle = {
   ];
 };
 ```
+
+Swayidle only locks the screen - it never auto-suspends on idle, so long-running headless
+workloads survive idle periods in the niri session too. Note that closing the lid never
+suspends in either session (GNOME or niri): lid handling is ignored at the systemd-logind
+level (`modules/system/power.nix`), independent of the compositor.
 
 **Step 3: Rebuild System**
 ```bash

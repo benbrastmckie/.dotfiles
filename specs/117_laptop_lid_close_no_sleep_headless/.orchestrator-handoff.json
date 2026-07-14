@@ -1,13 +1,39 @@
 {
-  "status": "planned",
-  "summary": "Created 5-phase implementation plan for lid-close-no-suspend: Phase 1 adds services.logind.settings.Login.{HandleLidSwitch,HandleLidSwitchExternalPower}=ignore to modules/system/power.nix (core fix, build-verified); Phases 2-3 resolve the secondary auto-suspend decision points (disable GNOME AC idle-suspend via sleep-inactive-ac-type=nothing, keep battery protection; drop the niri swayidle 10-min systemctl suspend); Phase 4 activates via nixos-rebuild switch on hamsa with busctl/gsettings/journalctl runtime verification plus docked and blank regression tests; Phase 5 makes proportionate doc edits (gnome-settings.md Power Management, niri.md, one-line modules/README.md and docs/configuration.md touches; no new doc, no root README).",
+  "status": "partial",
+  "summary": "Phases 1-3 and 5 complete and committed: logind HandleLidSwitch/HandleLidSwitchExternalPower=ignore in modules/system/power.nix (Phase 1), GNOME sleep-inactive-ac-type=nothing in modules/home/desktop/gnome.nix (Phase 2), niri swayidle 10-min systemctl suspend removed from config/config.kdl (Phase 3, niri validate OK), and proportionate doc updates to docs/gnome-settings.md, docs/niri.md, docs/configuration.md (Phase 5; modules/README.md touch skipped with deviation annotation — no per-file power.nix characterization exists there). All build-level verification green: nix flake check, nixos-rebuild build --flake .#hamsa after each config phase, logind.conf eval shows both ignore lines with KillUserProcesses=false retained. Phase 4 (activation + runtime verification) is BLOCKED pending the user: the agent cannot obtain interactive sudo.",
+  "phases_completed": 4,
+  "phases_total": 5,
   "artifacts": [
     {
       "path": "specs/117_laptop_lid_close_no_sleep_headless/plans/01_lid-close-no-sleep.md",
       "type": "plan",
-      "summary": "5-phase plan (3.5h, waves [1],[2,3],[4],[5]): logind lid ignore, GNOME AC idle-suspend off, niri swayidle suspend removal, activation+runtime verification, proportionate docs"
+      "summary": "5-phase plan; Phases 1,2,3,5 [COMPLETED], Phase 4 [BLOCKED] pending-user-activation"
+    },
+    {
+      "path": "modules/system/power.nix",
+      "type": "implementation",
+      "summary": "logind.settings.Login lid-ignore block with explanatory banner comment"
+    },
+    {
+      "path": "modules/home/desktop/gnome.nix",
+      "type": "implementation",
+      "summary": "sleep-inactive-ac-type = nothing (AC idle-suspend disabled; battery 15-min suspend retained)"
+    },
+    {
+      "path": "config/config.kdl",
+      "type": "implementation",
+      "summary": "swayidle spawn without the 600s systemctl suspend pair; lock behavior preserved"
+    },
+    {
+      "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/01_lid-close-no-sleep-summary.md",
+      "type": "summary",
+      "summary": "Implementation summary with verification results and pending user activation steps"
     }
   ],
   "session_id": "sess_1784057900_748474",
-  "next_steps": "Run /implement 117 to execute the plan"
+  "continuation_context": "All config and doc edits are committed and build-verified; nothing further is automatable without sudo. USER ACTION REQUIRED: (1) sudo nixos-rebuild switch --flake .#hamsa; (2) busctl get-property org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager HandleLidSwitch should return s \"ignore\" (if still \"suspend\", systemctl restart systemd-logind or reboot); (3) gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type should return 'nothing' (may need logout/login); (4) lid test: close lid ~2 min with no external monitor, journalctl -b -u systemd-logind | grep -i lid shows 'Lid closed.' with no suspend; (5) regression: docked lid-close keeps windows on external display, 5-min idle blank still works. After these pass, mark Phase 4 complete and set task 117 to completed.",
+  "blockers": [
+    "Phase 4 activation requires interactive sudo (sudo nixos-rebuild switch --flake .#hamsa); the implementing agent's sudo access is denied by the permission system"
+  ],
+  "next_steps": "User runs sudo nixos-rebuild switch --flake .#hamsa and performs the runtime checks in continuation_context, then task 117 can be marked completed"
 }

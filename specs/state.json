@@ -4,12 +4,12 @@
     {
       "project_number": 117,
       "project_name": "laptop_lid_close_no_sleep_headless",
-      "status": "implementing",
+      "status": "partial",
       "task_type": "nix",
       "description": "Configure laptop lid-close to blank screen but not sleep (keep AI agents running headless), preserving existing multi-monitor window distribution when monitors are attached, and document the setup in docs/ and relevant README.md files",
       "topic": "nixos-config",
       "created": "2026-07-14T19:36:34Z",
-      "last_updated": "2026-07-14T19:55:31Z",
+      "last_updated": "2026-07-14T20:12:10Z",
       "artifacts": [
         {
           "type": "report",
@@ -20,6 +20,11 @@
           "type": "plan",
           "path": "specs/117_laptop_lid_close_no_sleep_headless/plans/01_lid-close-no-sleep.md",
           "summary": "5-phase plan: core logind lid fix, GNOME/niri idle-suspend decisions, activation verification, proportionate docs"
+        },
+        {
+          "type": "summary",
+          "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/01_lid-close-no-sleep-summary.md",
+          "summary": "Implementation summary: phases 1-3,5 done and build-verified; phase 4 activation pending user (interactive sudo unavailable)"
         }
       ],
       "plan_metadata": {

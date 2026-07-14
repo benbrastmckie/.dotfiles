@@ -30,7 +30,7 @@ wired in per-host instead, via `hosts/<name>/default.nix` + `extraModules` in `f
 
 Key module categories under `modules/system/` include:
 - Boot loader and kernel configuration (`boot.nix`)
-- Hardware enablement — graphics, sound, etc. (`desktop.nix`, `audio.nix`, `power.nix`)
+- Hardware enablement — graphics, sound, power/lid behavior (`desktop.nix`, `audio.nix`, `power.nix`)
 - Network services and firewall (`networking.nix`)
 - Desktop environment setup (`desktop.nix`, `display.nix`)
 - Security and user management (`users.nix`)

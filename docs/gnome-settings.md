@@ -19,11 +19,26 @@ The following settings are managed by Home Manager:
 
 ### Power Management
 - **Idle delay**: 300 seconds (5 minutes) - screen dims/blanks
-- **Sleep timeout (AC)**: 3600 seconds (60 minutes)
-- **Sleep timeout (Battery)**: 900 seconds (15 minutes)
+- **Idle suspend (AC)**: Disabled (`sleep-inactive-ac-type = "nothing"`) - the machine never
+  auto-suspends on AC power so headless workloads (AI agents, builds) keep running; the
+  60-minute `sleep-inactive-ac-timeout` value remains in the config but is inert
+- **Sleep timeout (Battery)**: 900 seconds (15 minutes) - retained as battery/thermal protection
 - **Idle dim**: Enabled
 
-**Note**: When using the Neovim sleep inhibitor (`<leader>rz`), the screen will still blank after 5 minutes of inactivity, but the system will not sleep. This allows the screen to save power while keeping long-running tasks active.
+#### Lid-Close Behavior
+- Closing the lid blanks the internal screen but **never suspends** the system, on AC or
+  battery, with or without external monitors. This is set at the systemd-logind level
+  (`HandleLidSwitch = "ignore"` and `HandleLidSwitchExternalPower = "ignore"` in
+  `modules/system/power.nix`), which is the component that owns lid actions.
+- Docked/external-monitor behavior is unchanged: with a monitor attached, closing the lid
+  still moves windows to the external display exactly as before (`HandleLidSwitchDocked`
+  keeps its default `ignore`).
+- **Warning**: a lid-shut laptop on battery no longer suspends automatically. Putting the
+  running machine in a bag risks heat buildup and battery drain - suspend explicitly
+  (`systemctl suspend`) first. The 15-minute battery idle-suspend above remains as a backstop
+  when the machine is idle.
+
+**Note**: When using the Neovim sleep inhibitor (`<leader>rz`), the screen will still blank after 5 minutes of inactivity, but the system will not sleep. This allows the screen to save power while keeping long-running tasks active. Inhibitors are no longer needed for lid protection (logind ignores the lid switch entirely), but they still matter on battery, where they block the 15-minute idle-suspend.
 
 ### Mouse & Touchpad
 - Custom speed settings
