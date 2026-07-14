@@ -101,19 +101,19 @@ Phases within the same wave can execute in parallel.
 - **Timing:** ~20 minutes
 - **Depends on:** none
 
-### Phase 2: Author the consolidated docs/no-sleep-agents.md page [NOT STARTED]
+### Phase 2: Author the consolidated docs/no-sleep-agents.md page [COMPLETED]
 
 - **Goal:** Produce the single end-to-end page covering all four mechanisms in the reader's
   own words, with the composed-scenario table, verification checklist, and rejected-alternatives
   section.
 - **Tasks:**
-  - [ ] Write the four-mechanism breakdown in reader-encounter order: (1) Claude Code `SessionStart`/`SessionEnd` inhibitor hooks in `config/claude/settings.json` (the `systemd-inhibit --what=sleep:idle ... --mode=block`, the `tail --pid=$PPID` tether rationale, pid-file reaping, session-scoped-not-activity-scoped) — this is the currently-undocumented piece; (2) GNOME/logind settings (`modules/system/power.nix` logind lid `lock`, the `lock`-vs-`ignore` mutter rationale, `modules/home/desktop/gnome.nix` `sleep-inactive-*` dconf keys, `LidSwitchIgnoreInhibited` note); (3) niri swayidle equivalent (`config/config.kdl`, native lid handling, zero idle auto-suspend); (4) root `battery-suspend-backstop` timer/service in `modules/system/power.nix` (`BAT*` glob, `<=10%` + discharging, `systemctl suspend -i` inhibitor bypass, threshold rationale, escape hatches).
-  - [ ] Include the composed-scenario table (AC vs battery, session open vs not, lid closed, external monitor, `<=10%` backstop) from report §2.
-  - [ ] Add an "Activation & verification" section written as the `busctl`/`systemctl`/`gsettings` *commands* to run (not a hardcoded status), and reflect the Phase 1 finding on whether the logind lid setting is currently live (including the `sudo systemctl restart systemd-logind` / reboot fix if the gap persists).
-  - [ ] Add a short "Why not just X" section covering the rejected alternatives (plain `ignore` instead of `lock`; UPower's 2% HybridSleep; hibernate/suspend-then-hibernate on this hardware) in the writer's own words.
-  - [ ] Only include the `<leader>rz` reference if Phase 1 confirmed it; otherwise omit it entirely.
-  - [ ] Ensure zero `specs/117` / `task 117` / task-number references anywhere in the page.
-  - [ ] Choose the page's README category placement note (System/Hardware vs Applications & Desktop) for Phase 4 to apply.
+  - [x] Write the four-mechanism breakdown in reader-encounter order: (1) Claude Code `SessionStart`/`SessionEnd` inhibitor hooks in `config/claude/settings.json` (the `systemd-inhibit --what=sleep:idle ... --mode=block`, the `tail --pid=$PPID` tether rationale, pid-file reaping, session-scoped-not-activity-scoped) — this is the currently-undocumented piece; (2) GNOME/logind settings (`modules/system/power.nix` logind lid `lock`, the `lock`-vs-`ignore` mutter rationale, `modules/home/desktop/gnome.nix` `sleep-inactive-*` dconf keys, `LidSwitchIgnoreInhibited` note); (3) niri swayidle equivalent (`config/config.kdl`, native lid handling, zero idle auto-suspend); (4) root `battery-suspend-backstop` timer/service in `modules/system/power.nix` (`BAT*` glob, `<=10%` + discharging, `systemctl suspend -i` inhibitor bypass, threshold rationale, escape hatches).
+  - [x] Include the composed-scenario table (AC vs battery, session open vs not, lid closed, external monitor, `<=10%` backstop) from report §2.
+  - [x] Add an "Activation & verification" section written as the `busctl`/`systemctl`/`gsettings` *commands* to run (not a hardcoded status), and reflect the Phase 1 finding on whether the logind lid setting is currently live (including the `sudo systemctl restart systemd-logind` / reboot fix if the gap persists).
+  - [x] Add a short "Why not just X" section covering the rejected alternatives (plain `ignore` instead of `lock`; UPower's 2% HybridSleep; hibernate/suspend-then-hibernate on this hardware) in the writer's own words.
+  - [x] Only include the `<leader>rz` reference if Phase 1 confirmed it; otherwise omit it entirely. *(Phase 1 could not confirm the claim — omitted entirely from the new page.)*
+  - [x] Ensure zero `specs/117` / `task 117` / task-number references anywhere in the page.
+  - [x] Choose the page's README category placement note (System/Hardware vs Applications & Desktop) for Phase 4 to apply. *(Decision: place under "Applications & Desktop", adjacent to gnome-settings.md/niri.md, since it primarily addresses desktop-session power behavior that both those pages already partially cover; a one-line description will note the system/hardware content it also touches.)*
 - **Timing:** ~60 minutes
 - **Depends on:** 1
 
