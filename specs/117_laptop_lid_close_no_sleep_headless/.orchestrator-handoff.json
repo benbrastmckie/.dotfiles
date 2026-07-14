@@ -1,0 +1,13 @@
+{
+  "status": "planned",
+  "summary": "Created 5-phase implementation plan for lid-close-no-suspend: Phase 1 adds services.logind.settings.Login.{HandleLidSwitch,HandleLidSwitchExternalPower}=ignore to modules/system/power.nix (core fix, build-verified); Phases 2-3 resolve the secondary auto-suspend decision points (disable GNOME AC idle-suspend via sleep-inactive-ac-type=nothing, keep battery protection; drop the niri swayidle 10-min systemctl suspend); Phase 4 activates via nixos-rebuild switch on hamsa with busctl/gsettings/journalctl runtime verification plus docked and blank regression tests; Phase 5 makes proportionate doc edits (gnome-settings.md Power Management, niri.md, one-line modules/README.md and docs/configuration.md touches; no new doc, no root README).",
+  "artifacts": [
+    {
+      "path": "specs/117_laptop_lid_close_no_sleep_headless/plans/01_lid-close-no-sleep.md",
+      "type": "plan",
+      "summary": "5-phase plan (3.5h, waves [1],[2,3],[4],[5]): logind lid ignore, GNOME AC idle-suspend off, niri swayidle suspend removal, activation+runtime verification, proportionate docs"
+    }
+  ],
+  "session_id": "sess_1784057900_748474",
+  "next_steps": "Run /implement 117 to execute the plan"
+}

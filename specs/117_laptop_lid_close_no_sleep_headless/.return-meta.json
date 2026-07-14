@@ -1,0 +1,21 @@
+{
+  "status": "in_progress",
+  "started_at": "2026-07-14T12:54:59-07:00",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/117_laptop_lid_close_no_sleep_headless/plans/01_lid-close-no-sleep.md",
+      "summary": "5-phase plan: core logind lid fix, GNOME AC idle-suspend and niri swayidle decisions, single activation with runtime verification, proportionate docs"
+    }
+  ],
+  "partial_progress": {
+    "stage": "resuming_phase_1",
+    "details": "Resumed after session-limit termination; Phase 1 edit verified on disk, logind.conf eval check passed, running build verification"
+  },
+  "metadata": {
+    "session_id": "sess_1784057900_748474",
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"]
+  }
+}

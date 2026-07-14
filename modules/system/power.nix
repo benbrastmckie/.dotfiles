@@ -39,6 +39,31 @@
     # BIOS >= 3.05 is required to fix standby power drain (Framework community).
     # Run: fwupdmgr refresh && fwupdmgr update
     fwupd.enable = true;
+
+    # ==========================================================================
+    # Lid-Close Behavior - Blank, Never Suspend
+    # ==========================================================================
+    # Lid close must never suspend: long-running headless workloads (AI agents,
+    # builds) keep running with the lid shut and no external monitors. The
+    # internal panel still goes dark (mutter/niri disable eDP on lid close),
+    # and the 5-minute idle blank (GNOME idle-delay) is unaffected.
+    #
+    # - HandleLidSwitch: covers battery / unspecified power state.
+    # - HandleLidSwitchExternalPower: covers AC (systemd default inherits
+    #   HandleLidSwitch; set explicitly to be robust to upstream changes).
+    # - HandleLidSwitchDocked is deliberately NOT set: it already defaults to
+    #   "ignore" (docked = docking station OR >1 display), which together with
+    #   gsd-power's handle-lid-switch inhibitor preserves today's
+    #   external-monitor behavior exactly (windows stay on external displays).
+    #
+    # Note: sleep inhibitors (e.g. Claude Code's sleep:idle) do NOT block the
+    # lid action (LidSwitchIgnoreInhibited=yes is the logind default), so this
+    # config is the only reliable lid protection.
+    # ==========================================================================
+    logind.settings.Login = {
+      HandleLidSwitch = "ignore";
+      HandleLidSwitchExternalPower = "ignore";
+    };
   };
 
   # Apply the correct profile at boot based on current AC state
