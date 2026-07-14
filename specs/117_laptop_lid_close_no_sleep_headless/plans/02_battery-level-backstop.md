@@ -220,21 +220,23 @@ Phases within the same wave can execute in parallel. Phases 2 and 3 have no tech
 
 ---
 
-### Phase 4: Activation + runtime verification (user-performed switch) [NOT STARTED]
+### Phase 4: Activation + runtime verification (user-performed switch) [BLOCKED]
+
+> **Status note (2026-07-14, round-2 implementation)**: BLOCKED pending user activation — interactive sudo is unavailable to agents, and agents must not run `nixos-rebuild switch` or any `systemctl suspend` variant. The full activation + verification checklist has been handed to the user in `summaries/02_battery-level-backstop-summary.md`. Every runtime item below is **pending-user-activation**; none has been run.
 
 **Goal**: One `sudo nixos-rebuild switch --flake .#hamsa` + reboot activates everything from both rounds (lid `lock`, AC no-suspend, battery timeout, backstop timer, hook fix), then each layer is verified live with safe checks — no battery draining, no stranding.
 
 **Tasks**:
-- [ ] Hand the user the activation step (interactive sudo is NOT available to agents): `sudo nixos-rebuild switch --flake .#hamsa`, then reboot (reboot also clears any pre-fix stale inhibitor state and guarantees fresh logind/gsd config).
-- [ ] Post-activation checks (agent-runnable except where marked USER):
+- [x] Hand the user the activation step (interactive sudo is NOT available to agents): `sudo nixos-rebuild switch --flake .#hamsa`, then reboot (reboot also clears any pre-fix stale inhibitor state and guarantees fresh logind/gsd config). *(handed off in summaries/02_battery-level-backstop-summary.md)*
+- [ ] Post-activation checks (agent-runnable except where marked USER) — *(all pending-user-activation; the "agent-runnable" ones become runnable only after the user's switch+reboot)*:
   1. **Backstop timer live**: `systemctl list-timers battery-suspend-backstop.timer --no-pager` shows the timer active with next elapse ≤60 s away; `systemctl status battery-suspend-backstop.service` shows clean oneshot runs; `journalctl -u battery-suspend-backstop.service -n 10` is silent at >10% (script exits 0 without output).
   2. **Suspend-bypass path works — SAFE A/B test, no battery drain** (USER, with a Claude session deliberately open so block inhibitors are held): first `sudo systemctl suspend` must be REFUSED with `BlockedByInhibitorLock` (proves inhibitors work); then `sudo systemctl suspend -i` must suspend the machine despite them (wake with lid/keypress; proves the exact call the backstop makes). This validates the whole §1/§6 chain without simulating low battery.
   3. **Threshold logic dry-run without suspending**: run the store script manually while on AC (`bash $(systemctl cat battery-suspend-backstop.service | sed -n 's/^ExecStart=//p')`) — must exit silently since status is not `Discharging`; optionally verify the decision inputs directly: `cat /sys/class/power_supply/BAT1/{status,capacity}`. Do NOT test by draining to 10%.
   4. **GNOME values live**: `gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-timeout` → `3600`; `... sleep-inactive-battery-type` → `'suspend'`; `... sleep-inactive-ac-type` → `'nothing'` (this last one is the round-1 change finally going live — it currently still reads `'suspend'`).
   5. **Lid behavior (round-1 activation)**: `busctl get-property org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager HandleLidSwitch` → `"lock"` (and `HandleLidSwitchExternalPower` → `"lock"`); if stale, `systemctl restart systemd-logind` then re-check. USER: close lid undocked → session locks, panel powers off ~30 s later, machine stays awake.
   6. **Hook tether live**: deployed `~/.claude/settings.json` hook block matches the repo (`diff <(jq .hooks ~/.claude/settings.json) <(jq .hooks config/claude/settings.json)`); scratch-session kill test from Phase 3 passes; `systemd-inhibit --list` shows claude-code entries with `tail` payloads.
-- [ ] Record outcomes in the implementation summary; any failed check stays [PARTIAL] with the failing layer named.
-- [ ] Commit any follow-up fixes discovered (`task 117 phase 4: activation verification`).
+- [ ] Record outcomes in the implementation summary; any failed check stays [PARTIAL] with the failing layer named. *(pending-user-activation)*
+- [ ] Commit any follow-up fixes discovered (`task 117 phase 4: activation verification`). *(pending-user-activation)*
 
 **Timing**: 0.5 hours (agent side; user performs switch/reboot and the two USER checks)
 
@@ -245,22 +247,22 @@ Phases within the same wave can execute in parallel. Phases 2 and 3 have no tech
 
 ---
 
-### Phase 5: Documentation — proportionate updates, accepted limitation stated plainly [NOT STARTED]
+### Phase 5: Documentation — proportionate updates, accepted limitation stated plainly [COMPLETED]
 
 **Goal**: Docs match the new reality: 10% backstop exists and is the only inhibitor-proof protection; battery idle-suspend is 1 hour and only fires with no session open; the old "15-minute backstop" and "inhibitors govern idle-suspend" framings are corrected. No new standalone doc, no root README changes.
 
 **Tasks**:
-- [ ] `modules/system/power.nix`: banner comments are written in Phases 1 (backstop) — this phase only cross-checks them against final behavior (threshold, escape hatches, re-suspend loop) after Phase 4 findings.
-- [ ] `docs/gnome-settings.md` — Power Management section:
+- [x] `modules/system/power.nix`: banner comments are written in Phases 1 (backstop) — this phase only cross-checks them against final behavior (threshold, escape hatches, re-suspend loop) after Phase 4 findings. *(cross-checked against the built store script: threshold 10, both escape hatches, and the intentional re-suspend loop are all stated in the banner; Phase 4 runtime findings pending user activation — re-check only if activation surfaces a discrepancy)*
+- [x] `docs/gnome-settings.md` — Power Management section:
   - Line 25: "**Sleep timeout (Battery)**: 900 seconds (15 minutes) - retained as battery/thermal protection" → 3600 seconds (60 minutes), explicit `suspend` type, and the caveat that it fires only when no sleep inhibitor is held.
   - Add a short "Battery backstop" bullet: root timer suspends at ≤10% while discharging, **bypassing all sleep inhibitors** (`systemctl suspend -i`); re-suspends after wake until plugged in; escape hatch `systemctl stop battery-suspend-backstop.timer`; note that suspend on this platform is s2idle and still drains ~1.5-3%/h, so a bagged laptop at 10% survives hours, not days (hibernate upgrade path: grow swapfile ≥ RAM, test, then consider suspend-then-hibernate).
   - **Document the accepted limitation (decision 1), plainly**: Claude Code sessions hold a block inhibitor for their whole lifetime — an open-but-idle Claude terminal prevents battery idle-suspend entirely; such a machine sleeps only at the 10% backstop. Close sessions (or `exit` idle terminals) to let the 1-hour battery idle-suspend work.
   - Correct any residual text implying UPower's 2% critical action protects anything: state that under block inhibitors it is denied and never retried (it is left configured but is not load-bearing). (Planning-time grep found no explicit "2%"/UPower text in docs/ — the correction lands as part of the new backstop bullet rather than editing nonexistent text; the false claims actually present are the two "15-minute backstop" lines above.)
-- [ ] `docs/gnome-settings.md` — Lid-Close Behavior section (lines 28-48):
+- [x] `docs/gnome-settings.md` — Lid-Close Behavior section (lines 28-48):
   - Line 43-46 warning ("The 15-minute battery idle-suspend above remains as a backstop"): replace with the 10% backstop as the real bagged-laptop protection, keeping the "suspend explicitly before bagging" advice.
   - Line 48 note ("inhibitors ... still matter on battery, where they block the 15-minute idle-suspend"): update to 60 minutes and add that the 10% backstop deliberately bypasses inhibitors, including the Neovim `<leader>rz` one.
-- [ ] Reconcile every touched doc line against the final config state (round-1 lesson: checklist each line).
-- [ ] Commit (`task 117 phase 5: documentation`).
+- [x] Reconcile every touched doc line against the final config state (round-1 lesson: checklist each line). *(reconciled: 3600/suspend/nothing match gnome.nix eval output; 10%/60s/suspend -i/BAT* match the built store script; `grep "900\|15 minutes\|15-minute" docs/gnome-settings.md` returns nothing)*
+- [x] Commit (`task 117 phase 5: documentation`).
 
 **Verification**:
 - `grep -n "900\|15 minutes\|15-minute" docs/gnome-settings.md` returns no stale battery-timeout claims; `grep -n "backstop" docs/gnome-settings.md modules/system/power.nix` shows the new sections; a read-through of the Power Management + Lid-Close sections against `gnome.nix`/`power.nix` finds no contradiction.

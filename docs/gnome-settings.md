@@ -22,7 +22,25 @@ The following settings are managed by Home Manager:
 - **Idle suspend (AC)**: Disabled (`sleep-inactive-ac-type = "nothing"`) - the machine never
   auto-suspends on AC power so headless workloads (AI agents, builds) keep running; the
   60-minute `sleep-inactive-ac-timeout` value remains in the config but is inert
-- **Sleep timeout (Battery)**: 900 seconds (15 minutes) - retained as battery/thermal protection
+- **Idle suspend (Battery)**: 3600 seconds (60 minutes), with the action pinned explicitly
+  (`sleep-inactive-battery-type = "suspend"`). Caveat: this fires **only when no logind sleep
+  inhibitor is held**. Claude Code sessions hold a block inhibitor for their entire lifetime,
+  so an open Claude terminal - even a completely idle one - prevents battery idle-suspend
+  entirely; such a machine sleeps only at the 10% battery backstop below. This is an accepted,
+  deliberate limitation (session-scoped inhibitors protect background agents mid-task); close
+  or `exit` idle Claude terminals to let the 1-hour battery idle-suspend work.
+- **Battery backstop (10%)**: a root systemd timer (`battery-suspend-backstop` in
+  `modules/system/power.nix`) polls `/sys/class/power_supply/BAT*` every 60 seconds and
+  suspends at <=10% while discharging, **bypassing all sleep inhibitors** (`systemctl
+  suspend -i`). This is the only inhibitor-proof protection: UPower's built-in 2% critical
+  action (HybridSleep) is rejected outright by logind under any block inhibitor and never
+  retried, so it is not load-bearing (it remains configured but protects nothing). The
+  backstop re-suspends after every wake until the charger is connected - that loop is
+  intentional. Escape hatch for a deliberate low-battery session:
+  `systemctl stop battery-suspend-backstop.timer` (re-enabled at next boot/switch). Note:
+  suspend on this platform is s2idle and still drains roughly 1.5-3%/h, so a bagged laptop
+  at 10% survives hours, not days (hibernate upgrade path: grow the swapfile to >= RAM,
+  test image allocation, then consider suspend-then-hibernate).
 - **Idle dim**: Enabled
 
 #### Lid-Close Behavior
@@ -42,10 +60,11 @@ The following settings are managed by Home Manager:
   layer).
 - **Warning**: a lid-shut laptop on battery no longer suspends automatically. Putting the
   running machine in a bag risks heat buildup and battery drain - suspend explicitly
-  (`systemctl suspend`) first. The 15-minute battery idle-suspend above remains as a backstop
-  when the machine is idle.
+  (`systemctl suspend`) first. The real bagged-laptop protection is the 10% battery backstop
+  above, which suspends regardless of inhibitors; do not rely on the 60-minute battery
+  idle-suspend, which any open Claude session blocks.
 
-**Note**: When using the Neovim sleep inhibitor (`<leader>rz`), the screen will still blank after 5 minutes of inactivity, but the system will not sleep. This allows the screen to save power while keeping long-running tasks active. Sleep inhibitors do not affect the lid action at all (`LidSwitchIgnoreInhibited=yes` is logind's default), so the logind `lock` setting above is the only reliable lid protection; inhibitors govern idle-suspend instead, and still matter on battery, where they block the 15-minute idle-suspend.
+**Note**: When using the Neovim sleep inhibitor (`<leader>rz`), the screen will still blank after 5 minutes of inactivity, but the system will not sleep. This allows the screen to save power while keeping long-running tasks active. Sleep inhibitors do not affect the lid action at all (`LidSwitchIgnoreInhibited=yes` is logind's default), so the logind `lock` setting above is the only reliable lid protection; inhibitors govern idle-suspend instead, and still matter on battery, where they block the 60-minute idle-suspend. The 10% battery backstop deliberately bypasses ALL sleep inhibitors - including the Neovim `<leader>rz` one - so at <=10% and discharging the machine suspends no matter what is running.
 
 ### Mouse & Touchpad
 - Custom speed settings
