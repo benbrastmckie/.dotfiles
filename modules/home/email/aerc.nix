@@ -180,6 +180,14 @@ _: {
         # Navigation
         j = ":next-part<Enter>";
         k = ":prev-part<Enter>";
+        # <Enter> cycles message parts too (matches the instinct to "select" the
+        # highlighted text/plain vs text/html alternative in the part list at the
+        # bottom of the viewer). aerc has no "Enter to select" concept -- moving the
+        # part selection IS what displays it -- so this just aliases :next-part onto
+        # Enter for discoverability; j/k still work. text/html renders via the w3m
+        # filter configured in [filters]. Trade-off: Enter no longer scrolls the pager
+        # one line (Space / <C-d> / <C-u> page instead).
+        "<Enter>" = ":next-part<Enter>";
         J = ":next<Enter>";
         K = ":prev<Enter>";
 
