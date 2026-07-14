@@ -132,6 +132,8 @@
     kdePackages.okular # Universal document viewer (moved from libsForQt5 in nixos-unstable)
     pdftk # PDF toolkit for manipulating PDF documents
     pdfannots # Extract annotations from PDF files
+    ocrmypdf # Add an OCR text layer to scanned PDFs
+    tesseract # OCR engine (backend for ocrmypdf)
     xsel # Command-line tool for getting/setting X selection
     pstree # Display running processes as a tree
     pandoc # Universal document converter
