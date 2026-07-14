@@ -1,7 +1,7 @@
 # Implementation Plan: Task #116
 
 - **Task**: 116 - Safely remediate the one genuine stray artifact under ~/Mail/specs/ and fix its root cause
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 2 hours
 - **Dependencies**: None (task 114 is related history, not a blocker; its maildir-internal stray is already resolved)
 - **Research Inputs**: specs/116_mail_specs_stray_tree_cleanup/reports/01_stray-tree-investigation.md

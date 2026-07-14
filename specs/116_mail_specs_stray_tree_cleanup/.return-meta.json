@@ -1,38 +1,7 @@
 {
-  "status": "implemented",
-  "artifacts": [
-    {
-      "type": "summary",
-      "path": "specs/116_mail_specs_stray_tree_cleanup/summaries/01_stray-tree-remediation-summary.md",
-      "summary": "3-phase remediation complete: removed the single empty untracked stray stub under ~/Mail/specs/, fixed lib.nix's manifestDirDefault to an absolute XDG-state path with verified wrapper rebuild and override precedence, and added anchored notmuch new.ignore guards verified via built config inspection."
-    }
-  ],
+  "status": "completed",
   "metadata": {
-    "session_id": "sess_1784056726_46cc9d",
-    "agent_type": "general-implementation-agent",
-    "task_number": 116,
-    "delegation_depth": 2,
-    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
-    "phases_completed": 3,
-    "phases_total": 3
-  },
-  "completion_data": {
-    "completion_summary": "Removed the single empty untracked stray stub at ~/Mail/specs/072_email_workflow_infrastructure_prereqs/manifests/, changed the five email wrapper binaries' manifestDirDefault from a repo-relative specs/072_... path to an absolute XDG-state path ($HOME/.local/state/email-agent/manifests) with verified rebuild and override precedence, and added 15 anchored notmuch new.ignore regex entries to silence non-mail-file indexing spam under ~/Mail. No git-tracked ~/Mail content was touched."
-  },
-  "memory_candidates": [
-    {
-      "content": "Nix wrapper scripts built via ''...'' indented strings: a plain double-quoted Nix string default value (e.g. manifestDirDefault = \"$HOME/.local/state/foo\";) keeps $HOME literal in the Nix value; when interpolated into the ''...'' preamble it is emitted as literal bash source, so bash expands $HOME at binary runtime, not at Nix eval time. Useful pattern for moving a compiled-in default off a repo-relative or archivable path onto a stable absolute XDG path without needing a Home Manager module (config.xdg.stateHome) when the file is a plain expression with no config arg.",
-      "category": "PATTERN",
-      "source_artifact": "specs/116_mail_specs_stray_tree_cleanup/summaries/01_stray-tree-remediation-summary.md",
-      "confidence": 0.8,
-      "suggested_keywords": ["nix", "home-manager", "indented-string", "HOME-expansion", "xdg-state-path"]
-    },
-    {
-      "content": "To verify a Nix-built wrapper's compiled-in default/override precedence without live mail mutation, use the wrapper's own read-only safety class (e.g. email-census) with a throwaway --account/env override that reaches mkdir -p before any network/IMAP call, or pass an invalid --account to confirm mkdir ordering; always realpath-resolve through the home-manager-generation/home-path symlink chain to reach the true built binary rather than trusting a stale /nix/store hit from an unrelated earlier build.",
-      "category": "TECHNIQUE",
-      "source_artifact": "specs/116_mail_specs_stray_tree_cleanup/summaries/01_stray-tree-remediation-summary.md",
-      "confidence": 0.75,
-      "suggested_keywords": ["email-wrapper", "verification", "nix-store", "read-only", "override-precedence"]
-    }
-  ]
+    "cycles_used": 3,
+    "final_state": "completed"
+  }
 }
