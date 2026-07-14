@@ -35,7 +35,10 @@
     };
 
     "org/gnome/settings-daemon/plugins/power" = {
-      sleep-inactive-ac-timeout = 3600; # 60 minutes on AC power
+      # Never auto-suspend on AC — headless agents keep running; the battery
+      # timeout below is kept as battery/thermal protection.
+      sleep-inactive-ac-type = "nothing";
+      sleep-inactive-ac-timeout = 3600; # 60 minutes on AC power (inert with type "nothing")
       sleep-inactive-battery-timeout = 900; # 15 minutes on battery
       idle-dim = true; # Dim screen before blanking
     };

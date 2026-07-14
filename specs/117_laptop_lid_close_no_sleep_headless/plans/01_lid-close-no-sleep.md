@@ -125,7 +125,7 @@ Phases within the same wave can execute in parallel. Phases 2 and 3 have no tech
 
 ---
 
-### Phase 2: GNOME AC idle-suspend decision — disable suspend-on-idle on AC [NOT STARTED]
+### Phase 2: GNOME AC idle-suspend decision — disable suspend-on-idle on AC [COMPLETED]
 
 **Goal**: Close secondary suspend path (a): GNOME currently suspends after 60 idle minutes on AC (`sleep-inactive-ac-timeout = 3600` with live `sleep-inactive-ac-type = 'suspend'` — the type comes from the gsettings default, not the repo). Today this is masked only by Claude Code's own `sleep:idle` inhibitors, which exist only while the CLI runs; agents launched by other means (detached jobs, other tools) would be suspended after an hour.
 
@@ -136,9 +136,9 @@ Phases within the same wave can execute in parallel. Phases 2 and 3 have no tech
 - On battery, idle-suspend after 15 min is retained — a headless agent on battery with no inhibitor may still be suspended; this is deliberate battery protection. If the user later wants battery-headless operation, flip `sleep-inactive-battery-type` in a follow-up (documented as such in the doc phase, not changed here).
 
 **Tasks**:
-- [ ] In `modules/home/desktop/gnome.nix`, extend the `"org/gnome/settings-daemon/plugins/power"` block (lines 37-41): add `sleep-inactive-ac-type = "nothing";` with a short comment (e.g. "never auto-suspend on AC — headless agents keep running; battery timeout below is kept as protection"). Leave `sleep-inactive-ac-timeout` in place (harmless with type `nothing`; keeps the value documented) or remove it with a comment — prefer leaving it.
-- [ ] `nixos-rebuild build --flake .#hamsa` succeeds (Home Manager is part of the NixOS closure via `mkHost`).
-- [ ] Commit once green.
+- [x] In `modules/home/desktop/gnome.nix`, extend the `"org/gnome/settings-daemon/plugins/power"` block (lines 37-41): add `sleep-inactive-ac-type = "nothing";` with a short comment (e.g. "never auto-suspend on AC — headless agents keep running; battery timeout below is kept as protection"). Leave `sleep-inactive-ac-timeout` in place (harmless with type `nothing`; keeps the value documented) or remove it with a comment — prefer leaving it. *(left in place, annotated as inert)*
+- [x] `nixos-rebuild build --flake .#hamsa` succeeds (Home Manager is part of the NixOS closure via `mkHost`).
+- [x] Commit once green.
 
 **Timing**: 0.5 hours
 
