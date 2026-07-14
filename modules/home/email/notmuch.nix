@@ -68,6 +68,25 @@
         ".strstrings"
         ".lock"
         "dovecot*"
+        # Anchored, root-relative (matched against the path relative to database.path)
+        # top-level non-maildir entries under ~/Mail. Task 116: silences "Ignoring
+        # non-mail file" spam from `notmuch new` without risking any match inside a real
+        # maildir folder (bare basenames would match at any depth; these are anchored).
+        "/^specs$/"
+        "/^\\.claude$/"
+        "/^\\.git$/"
+        "/^docs$/"
+        "/^email_plans$/"
+        "/^email_reports$/"
+        "/^\\.memory$/"
+        "/^README\\.md$/"
+        "/^README_OLD\\.md$/"
+        "/^CLAUDE\\.md$/"
+        "/^Contacts$/"
+        "/^\\.gitignore$/"
+        "/^\\.logos-backup.*$/"
+        "/^\\.logos-presync.*$/"
+        "/^\\.syncstate-backups$/"
       ];
     };
     search = {

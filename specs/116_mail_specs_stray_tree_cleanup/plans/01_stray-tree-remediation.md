@@ -183,7 +183,7 @@ lifecycle entirely): `"$HOME/.local/state/email-agent/manifests"`.
 
 ---
 
-### Phase 3: notmuch new.ignore guard for non-mail top-level entries [NOT STARTED]
+### Phase 3: notmuch new.ignore guard for non-mail top-level entries [COMPLETED]
 
 **Goal**: Add anchored, root-relative `new.ignore` regex entries to
 `modules/home/email/notmuch.nix` so `notmuch new` stops logging "Ignoring non-mail file" for every
@@ -191,11 +191,11 @@ non-maildir top-level entry under `~/Mail` (`database.path = ~/Mail`, the whole 
 is one of many such entries, not a special case.
 
 **Tasks**:
-- [ ] Edit the `programs.notmuch.new.ignore` list (`notmuch.nix:66-71`) to add anchored regex entries (one per non-maildir top-level entry), keeping the existing four bare-name entries: append `"/^specs$/"`, `"/^\\.claude$/"`, `"/^\\.git$/"`, `"/^docs$/"`, `"/^email_plans$/"`, `"/^email_reports$/"`, `"/^\\.memory$/"`, `"/^README\\.md$/"`, `"/^README_OLD\\.md$/"`, `"/^CLAUDE\\.md$/"`, `"/^Contacts$/"`, `"/^\\.gitignore$/"`, `"/^\\.logos-backup.*$/"`, `"/^\\.logos-presync.*$/"`, `"/^\\.syncstate-backups$/"` (per report section "(a)").
-- [ ] Use the anchored `/^...$/` regex form (matched against the path relative to `database.path`), NOT bare basenames — this restricts matching to true top-level entries and avoids any theoretical match inside a real maildir folder.
-- [ ] Follow `nix.md` formatting: each list item on its own line, 2-space indentation, quoted strings.
-- [ ] Rebuild: `home-manager build --flake .#benjamin` (or the host `nixos-rebuild build`), then `nix flake check`. (If executed together with Phase 2, a single combined build covers both.)
-- [ ] (Optional live check) After activation, run `notmuch new --no-hooks --full-scan 2>&1 | grep -c "Ignoring non-mail file"` and compare against a pre-change count; expect it to drop to (near) zero. This is a read-only index operation (the sanctioned `--no-hooks` reindex form) and does not mutate mail; skip if activation is out of scope for the implement run and note the deferral in the summary.
+- [x] Edit the `programs.notmuch.new.ignore` list (`notmuch.nix:66-71`) to add anchored regex entries (one per non-maildir top-level entry), keeping the existing four bare-name entries: append `"/^specs$/"`, `"/^\\.claude$/"`, `"/^\\.git$/"`, `"/^docs$/"`, `"/^email_plans$/"`, `"/^email_reports$/"`, `"/^\\.memory$/"`, `"/^README\\.md$/"`, `"/^README_OLD\\.md$/"`, `"/^CLAUDE\\.md$/"`, `"/^Contacts$/"`, `"/^\\.gitignore$/"`, `"/^\\.logos-backup.*$/"`, `"/^\\.logos-presync.*$/"`, `"/^\\.syncstate-backups$/"` (per report section "(a)"). *(completed)*
+- [x] Use the anchored `/^...$/` regex form (matched against the path relative to `database.path`), NOT bare basenames — this restricts matching to true top-level entries and avoids any theoretical match inside a real maildir folder. *(completed)*
+- [x] Follow `nix.md` formatting: each list item on its own line, 2-space indentation, quoted strings. *(completed)*
+- [x] Rebuild: `home-manager build --flake .#benjamin` (or the host `nixos-rebuild build`), then `nix flake check`. (If executed together with Phase 2, a single combined build covers both.) *(completed: both succeeded; generated hm_notmuchdefaultconfig store output inspected directly and confirmed all 15 new anchored entries present alongside the original 4)*
+- [ ] (Optional live check) After activation, run `notmuch new --no-hooks --full-scan 2>&1 | grep -c "Ignoring non-mail file"` and compare against a pre-change count; expect it to drop to (near) zero. This is a read-only index operation (the sanctioned `--no-hooks` reindex form) and does not mutate mail; skip if activation is out of scope for the implement run and note the deferral in the summary. *(deviation: deferred — activation/home-manager switch is out of scope for this implement run per the plan's own escape hatch; verified instead via direct inspection of the built hm_notmuchdefaultconfig store output, which is a stronger static guarantee than the optional live count check)*
 
 **Timing**: ~30 minutes
 
