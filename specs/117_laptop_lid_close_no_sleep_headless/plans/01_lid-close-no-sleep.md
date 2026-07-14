@@ -153,7 +153,7 @@ Phases within the same wave can execute in parallel. Phases 2 and 3 have no tech
 
 ---
 
-### Phase 3: niri swayidle decision — drop the 10-minute auto-suspend [NOT STARTED]
+### Phase 3: niri swayidle decision — drop the 10-minute auto-suspend [COMPLETED]
 
 **Goal**: Close secondary suspend path (b): the niri session (alternate GDM session, not currently active) spawns swayidle with `timeout 600 systemctl suspend` (`config/config.kdl:270`), which would suspend headless agents after 10 idle minutes if the user logs into niri.
 
@@ -164,10 +164,10 @@ Phases within the same wave can execute in parallel. Phases 2 and 3 have no tech
 - Alternative considered and rejected: leave the line and document the divergence — rejected because a 10-minute silent suspend directly contradicts the task's intent whenever the niri session is used.
 
 **Tasks**:
-- [ ] Edit `config/config.kdl:268-270`: update the comment ("Lock after 5 min idle, lock before sleep" — drop "suspend after 10 min") and remove `"timeout" "600" "systemctl suspend"` from the swayidle spawn, preserving all other arguments (`-w`, 300s swaylock, before-sleep, lock).
-- [ ] Validate: if the `niri` binary is on PATH, run `niri validate -c config/config.kdl` (exit 0); otherwise visually verify KDL token integrity (quoted-arg list remains well-formed).
-- [ ] `nixos-rebuild build --flake .#hamsa` still succeeds (file is deployed by `modules/home/core/dotfiles.nix:28` as a raw source; build confirms nothing else broke).
-- [ ] Commit once green.
+- [x] Edit `config/config.kdl:268-270`: update the comment ("Lock after 5 min idle, lock before sleep" — drop "suspend after 10 min") and remove `"timeout" "600" "systemctl suspend"` from the swayidle spawn, preserving all other arguments (`-w`, 300s swaylock, before-sleep, lock).
+- [x] Validate: if the `niri` binary is on PATH, run `niri validate -c config/config.kdl` (exit 0); otherwise visually verify KDL token integrity (quoted-arg list remains well-formed). *(niri validate: "config is valid")*
+- [x] `nixos-rebuild build --flake .#hamsa` still succeeds (file is deployed by `modules/home/core/dotfiles.nix:28` as a raw source; build confirms nothing else broke).
+- [x] Commit once green.
 
 **Timing**: 0.5 hours
 

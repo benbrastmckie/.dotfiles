@@ -265,6 +265,7 @@ spawn-at-startup "kitty"
 spawn-at-startup "wl-paste" "--type" "text" "--watch" "cliphist" "store"
 spawn-at-startup "wl-paste" "--type" "image" "--watch" "cliphist" "store"
 
-// Idle management and auto-lock/suspend
-// Lock after 5 min idle, suspend after 10 min, lock before sleep
-spawn-at-startup "swayidle" "-w" "timeout" "300" "swaylock -f" "timeout" "600" "systemctl suspend" "before-sleep" "swaylock -f" "lock" "swaylock -f"
+// Idle management and auto-lock
+// Lock after 5 min idle, lock before sleep. No idle auto-suspend: headless
+// workloads (AI agents, builds) must keep running; suspend only when asked.
+spawn-at-startup "swayidle" "-w" "timeout" "300" "swaylock -f" "before-sleep" "swaylock -f" "lock" "swaylock -f"
