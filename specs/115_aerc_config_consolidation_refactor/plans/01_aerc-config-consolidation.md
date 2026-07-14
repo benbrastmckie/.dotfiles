@@ -171,7 +171,7 @@ are NOT touched in this phase (that is Phase 3), so full byte-identity is the ga
 
 ---
 
-### Phase 3: Consolidate the 11 rationale clusters and record decisions [NOT STARTED]
+### Phase 3: Consolidate the 11 rationale clusters and record decisions [COMPLETED]
 
 **Goal**: Rewrite the comment archaeology into forward-looking documentation per D5, D7, D8:
 every rationale survives, task numbers become trailing citations, accounts.conf in-string
@@ -197,10 +197,10 @@ Phase 4:
 | 11 | check-mail (303-315, in-string) + querymap scoping (337-356, 372-373) | check-mail: hoist to Nix level; keep secondary-to-systemd-timer framing, `--no-wait` fail-fast rationale, 30s timeout rationale, `u` keybind note; replace the `[logos]`-unwired sentence with the explicit D4 decision citing task 114. Querymap scoping: consolidate the two comment blocks into ONE above the generator call sites: why bare `folder:Gmail` for INBOX (tag:inbox is a permanent delivered-marker; `/Gmail/` regex over-matches .All_Mail); why Unread/Flagged/Proposed-* stay account-wide (tag-driven triage views; re-scoping Proposed-* would hide triaged messages and undermine the review gate — do not re-scope); keep the `folder:Gmail*` glob-does-NOT-work empirical note and its CLAUDE.md-accuracy-follow-up flag | D4 explicit decision text; do-not-re-scope warning; glob-inaccuracy flag; ~12,580-vs-~85 over-match consequence may be summarized but the mechanism must remain |
 
 **Additional tasks**:
-- [ ] Add the D2 considered-and-rejected line at `viewer.alternatives` (Nix comment: plaintext-first kept; html one keypress away via `:next-part`)
-- [ ] After hoisting, the rendered accounts.conf must contain only `[section]` and `key = value` lines (plus blank lines exactly as before) — no content lines added, removed, or reordered
-- [ ] Rebuild (build only) and run the Phase 3 diff gate below; iterate until it passes
-- [ ] Commit (`modules/home/email/aerc.nix` only) as `task 115 phase 3: consolidate rationale clusters`
+- [x] Add the D2 considered-and-rejected line at `viewer.alternatives` (Nix comment: plaintext-first kept; html one keypress away via `:next-part`) *(completed)*
+- [x] After hoisting, the rendered accounts.conf must contain only `[section]` and `key = value` lines (plus blank lines exactly as before) — no content lines added, removed, or reordered *(verified — comment-stripped diff empty; raw diff only removed `#` lines; rendered file has zero `#` lines)*
+- [x] Rebuild (build only) and run the Phase 3 diff gate below; iterate until it passes *(passed first iteration)*
+- [x] Commit (`modules/home/email/aerc.nix` only) as `task 115 phase 3: consolidate rationale clusters` *(completed)*
 
 **Timing**: 2 hours
 

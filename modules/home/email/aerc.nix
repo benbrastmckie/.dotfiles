@@ -1,9 +1,31 @@
 # Aerc terminal email client configuration with notmuch backend.
-# See: specs/045_add_terminal_email_client_to_nixos
+#
+# Cross-file contract (invariants this module shares with the rest of the mail
+# stack -- mbsync.nix, mail-sync.nix, notmuch.nix, mail-sync-timer.nix):
+#   - Both accounts live under ONE shared ~/Mail maildir root indexed by a
+#     single notmuch database; account scoping is expressed only via notmuch
+#     `folder:` query tokens.
+#   - `folder:` token semantics: bare `folder:Gmail` is an EXACT maildir-folder
+#     match (INBOX only); `folder:/Gmail/` is a slash-delimited regex matching
+#     the whole account subtree (`folder:Gmail*` glob syntax does NOT work --
+#     see the querymap scoping note below).
+#   - All three sync entry points -- the `$` keybind, check-mail-cmd, and the
+#     systemd mail-sync-timer -- converge on the single flock-serialized
+#     `mail-sync` wrapper, which reindexes internally.
+#   - Deletion danger: the mbsync channels run with `Expunge Both` (see
+#     mbsync.nix), so a local delete propagates to the server on the next sync.
 _:
 let
-  # Shared display-only exclusion of the raw physical maildir tree (see the
-  # folders-exclude comments in accounts.conf below); identical for both accounts.
+  # folders-exclude, shared by both accounts.conf blocks. Architectural note:
+  # the two accounts deliberately share one maildir-store root (~/Mail), so
+  # aerc's notmuch worker enumerates the WHOLE physical tree (Gmail/* and
+  # Logos/*) into every sidebar on top of the query-map virtual folders.
+  # folders-exclude is DISPLAY-ONLY -- it does not affect :archive's file move,
+  # which resolves archive= against maildir-store independently -- and hides
+  # only the raw physical tree: the `~` prefix marks a regex, and no query-map
+  # name starts with Gmail/Logos. Considered and rejected: a `folders`
+  # whitelist, and per-account maildir-account-path -- the shared-~/Mail-root
+  # architecture is intentional. (task 112 and its follow-up regression fix)
   foldersExclude = "~^Gmail,~^Logos";
 
   # Generator for the per-account aerc query-map files. Both accounts share the
@@ -54,6 +76,9 @@ in
       };
       viewer = {
         pager = "less -R";
+        # Plaintext-first is a kept decision (html-first considered and
+        # rejected): text/html is one keypress away via :next-part -- see the
+        # `view` binds below.
         alternatives = "text/plain,text/html";
         show-headers = false;
         header-layout = "From|To,Cc|Bcc,Date,Subject";
@@ -104,8 +129,8 @@ in
         J = ":next-folder<Enter>";
         K = ":prev-folder<Enter>";
 
-        # Task 105: Tab/S-Tab account-tab switching (Neovim <Tab>/<S-Tab>
-        # buffer-nav reflex). <C-n>/<C-p> (global) remain as fallback aliases.
+        # Tab/S-Tab account-tab switching, matching the Neovim <Tab>/<S-Tab>
+        # buffer-nav reflex; <C-n>/<C-p> (global) remain as fallback aliases. (task 105)
         "<Tab>" = ":next-tab<Enter>";
         "<S-Tab>" = ":prev-tab<Enter>";
 
@@ -117,17 +142,18 @@ in
         "<C-b>" = ":prev 100%<Enter>";
 
         # Actions
-        # Task 72 Phase 9 decision (recorded in handoffs/mail-29-runbook.md): native d/D/a/A
-        # are KEPT as human-only paths, outside the agent guardrail by design (the PreToolUse
-        # mail-guard hook can only gate the Claude Code agent's own Bash calls, not aerc's Go
-        # worker). D (bare :delete, no confirm) and A (bulk archive) are hardened with a
-        # :prompt confirm below; d already prompted.
+        # Native d/D/a/A are human-only paths by design: the PreToolUse
+        # mail-guard hook can only gate the agent's own Bash calls, not aerc's
+        # Go worker, so these keys sit outside the agent guardrail. D (bare
+        # :delete, no confirm) and A (bulk archive) are hardened with a :prompt
+        # confirm; d already prompts. Single-message archive (a) is
+        # deliberately UNPROMPTED -- a reversible file move with low blast
+        # radius, matching mail-client convention -- while A/d/D stay prompted
+        # because they act on larger or irreversible blast radii.
+        # (task 72 phase 9, recorded in handoffs/mail-29-runbook.md; task 112)
         "<Enter>" = ":view<Enter>";
         d = ":prompt 'Delete message?' 'delete-message'<Enter>";
         D = ":prompt 'Hard delete (bypass the confirm-message prompt)?' 'delete'<Enter>";
-        # Task 112: single-message archive is deliberately left UNPROMPTED (reversible
-        # file move, low blast radius, matches mail-client convention), while A/d/D
-        # remain prompted since they act on larger or irreversible blast radii.
         a = ":archive flat<Enter>";
         A = ":unmark -a<Enter>:mark -a<Enter>:prompt 'Archive ALL marked messages?' 'archive flat'<Enter>";
 
@@ -155,15 +181,14 @@ in
         "<Space>" = ":toggle-select<Enter>";
 
         # Sync
-        # Task 72 Phase 9 decision: rebound from 'mbsync -a && notmuch new' -- the -a form is
-        # the same freeze-blast-radius hazard as the preNew hook (would also touch the
-        # deferred Logos/Bridge account); notmuch new (no --no-hooks) would re-trigger the
-        # preNew hook's own 'mbsync -a'. Group-scoped + hook-bypassing form only.
-        # Task 109: repointed to 'mail-sync gmail', the single canonical flock-serialized
-        # entry point shared with the notmuch preNew hook -- the wrapper already runs
-        # 'notmuch new --no-hooks' internally after a successful mbsync, so no separate
-        # reindex call is needed here. Kept gmail-only to preserve current behavior;
-        # 'mail-sync logos'/'mail-sync both' is a trivial future extension, out of scope here.
+        # Group-scoped + hook-bypassing by design: never `mbsync -a`, which
+        # would also touch the deferred Logos/Bridge account and (via a plain
+        # `notmuch new`) re-trigger the preNew hook's own `mbsync -a`. Routed
+        # through the single canonical flock-serialized `mail-sync` wrapper,
+        # which runs `notmuch new --no-hooks` internally after a successful
+        # mbsync -- no separate reindex call is needed here. Kept gmail-only
+        # deliberately; `mail-sync logos`/`mail-sync both` is a trivial future
+        # extension. (task 72 phase 9; task 109)
         "$" = ":exec mail-sync gmail<Enter>";
         u = ":check-mail<Enter>";
 
@@ -177,7 +202,7 @@ in
         "<Enter>" = ":recall<Enter>";
       };
 
-      # Task 72 Phase 9: Proposed-* review views (email-classify's +proposed-* candidates).
+      # Proposed-* review views (email-classify's +proposed-* candidates).
       # Confirm gestures retag +confirmed-{delete,archive} and :exec email-classify
       # --append-approved {{.MessageId}} to queue the Message-ID into the APPROVED manifest
       # (wrapper-contract.md §6) -- they NEVER mutate inline and NEVER use aerc's native
@@ -186,6 +211,7 @@ in
       # +proposed-keep. d/a deliberately SHADOW the native single-delete/archive keys ONLY
       # within these three curated views, replacing them with the safe wrapper-routed
       # gesture; d/D/a/A keep their native (human-only) behavior everywhere else.
+      # (task 72 phase 9)
       "messages:folder=Proposed-Delete" = {
         d = ":modify-tags +confirmed-delete -proposed-delete<Enter>:exec email-classify --append-approved {{.MessageId}}<Enter>";
         k = ":modify-tags +proposed-keep -proposed-delete<Enter>";
@@ -208,30 +234,26 @@ in
         # Navigation
         j = ":next-part<Enter>";
         k = ":prev-part<Enter>";
-        # <Enter> cycles message parts too (matches the instinct to "select" the
-        # highlighted text/plain vs text/html alternative in the part list at the
-        # bottom of the viewer). aerc has no "Enter to select" concept -- moving the
-        # part selection IS what displays it -- so this just aliases :next-part onto
-        # Enter for discoverability; j/k still work. text/html renders via the w3m
-        # filter configured in [filters]. Trade-off: Enter no longer scrolls the pager
-        # one line (Space / <C-d> / <C-u> page instead).
+        # <Enter> aliases :next-part: aerc has no native "Enter to select" part
+        # concept -- moving the part selection IS what displays it (text/html
+        # renders via the w3m [filters] entry). Trade-off: Enter no longer
+        # scrolls the pager one line; <Space>/<C-d>/<C-u> page instead.
         "<Enter>" = ":next-part<Enter>";
         J = ":next<Enter>";
         K = ":prev<Enter>";
 
-        # Task 105: Tab/S-Tab account-tab switching (Neovim <Tab>/<S-Tab>
-        # buffer-nav reflex). <C-n>/<C-p> (global) remain as fallback aliases.
+        # Same Tab/S-Tab account-switch aliases as `messages` above. The BIND
+        # duplication is intentional and required (different bind scopes);
+        # only the rationale comment lives once, in `messages`.
         "<Tab>" = ":next-tab<Enter>";
         "<S-Tab>" = ":prev-tab<Enter>";
 
         # Actions
-        # -c ("close the view tab when replying") closes THIS message-view tab at
-        # reply-open time, so after :send -a flat archives the message, tab history
-        # returns focus to the message list ("main view") instead of stranding the
-        # user in the now-stale viewer. Provably safe: reply.go's -c only acts when a
-        # message viewer is focused (mv != nil), so the list-context r/R above are a
-        # guaranteed no-op and are left as bare :reply; -c is orthogonal to -a (no
-        # double-archive); aborting the reply reopens a peek-view of the message.
+        # `-c` closes this viewer tab at reply-open time, so post-send focus
+        # returns to the message list instead of a stale viewer; it is a safe
+        # no-op from the list context (the `messages` r/R stay bare :reply) and
+        # orthogonal to `-a` (no double-archive). NOTE: `-a -c` as two separate
+        # flags is the verified syntax; the bundled `-ac` form was NOT verified.
         r = ":reply -c<Enter>";
         R = ":reply -a -c<Enter>";
         f = ":forward<Enter>";
@@ -272,13 +294,12 @@ in
       };
 
       "compose::review" = {
-        # Task 113: native archive-on-reply. aerc 0.21.0's `:send -a` (Send.Archive,
-        # commands/compose/send.go) is consumed by msg/reply.go's OnClose closure, which
-        # archives the exact models.MessageInfo captured by reference at :reply time --
-        # immune to list reflow / cursor drift (unlike the removed Subject-sniffing
-        # mail-sent hook). `-a` is inert (never archives) on :forward, a fresh :compose,
-        # and :recall, so this rebind is safe on every send path. Independently scoped
-        # from `R` (:reply -a, reply-all below) -- no collision.
+        # Native archive-on-reply: `:send -a` archives the exact replied-to
+        # message captured by reference at :reply time -- immune to list
+        # reflow / cursor drift, unlike the removed Subject-sniffing mail-sent
+        # hook (do NOT reintroduce that hook: it would double-archive). `-a` is
+        # inert (never archives) on :forward, a fresh :compose, and :recall, so
+        # this rebind is safe on every send path. (task 113)
         y = ":send -a flat<Enter>";
         n = ":abort<Enter>";
         p = ":postpone<Enter>";
@@ -299,28 +320,46 @@ in
   };
 
   home.file = {
-    # aerc email client accounts configuration
+    # aerc accounts configuration. Rationale for the non-obvious settings
+    # (kept at Nix level so nothing here perturbs the rendered file):
+    #
+    # maildir-store + multi-file-strategy (both accounts): required for aerc's
+    # notmuch worker to perform real :archive/:delete file moves -- without
+    # them the worker gates all mutations and returns errUnsupported, the
+    # mechanism behind a prior silent :archive no-op. Forward-compat caveat:
+    # upstream aerc master has deprecated maildir-store in favor of
+    # enable-maildir, but the installed nixpkgs aerc 0.21.0 still uses
+    # maildir-store; remove the two lines (or switch to enable-maildir) if/when
+    # the aerc derivation is bumped past that upstream change. (task 112)
+    #
+    # OPEN RISK (unresolved, never live-verified): `multi-file-strategy =
+    # act-dir` resolves the current folder from the open TAB name, and the
+    # INBOX querymap alias is not a physical-folder key, so multi-file archive
+    # from the INBOX tab may fail with "refusing to act on multiple files" --
+    # see specs/112_aerc_enable_folder_move_archive/reports/01_enable-archive-action.md
+    # finding-7.
+    #
+    # folders-exclude (both accounts): see the architectural note on the
+    # `foldersExclude` let binding at the top of this file.
+    #
+    # check-mail ([gmail]): while-aerc-is-open convenience sync, secondary to
+    # the systemd mail-sync-timer (the primary "sync even when closed"
+    # mechanism). --no-wait makes a lock-contended call fail fast against
+    # mail-sync's flock (the timer will pick up the sync shortly regardless)
+    # rather than hanging aerc's "Checking for new mail..." indicator for up
+    # to 300s; check-mail-timeout is raised from its 10s default so a normal,
+    # uncontended network mbsync round-trip is not spuriously killed. Wiring
+    # check-mail-cmd also makes the `u = ":check-mail<Enter>"` keybind
+    # functional (it previously errored "checkmail: no command specified").
+    # DECISION: [logos] check-mail is deliberately left UNWIRED pending a
+    # decided check-mail failure-surfacing policy (see task 114); wiring it now
+    # would add a second undifferentiated failure surface. (task 109; task 113)
     ".config/aerc/accounts.conf".text = ''
       [gmail]
       source = notmuch://~/Mail
-      # Task 112: required for aerc's notmuch worker to perform real :archive/:delete
-      # file moves (without it, the worker gates all mutations and returns
-      # errUnsupported -- the mechanism behind the prior silent no-op). Upstream aerc
-      # master has deprecated maildir-store in favor of enable-maildir, but the
-      # installed nixpkgs aerc 0.21.0 still uses maildir-store; remove these two
-      # lines (or switch to enable-maildir) if/when the aerc derivation is bumped
-      # past that upstream change.
       maildir-store = ~/Mail
       multi-file-strategy = act-dir
       query-map = ~/.config/aerc/querymap-gmail
-      # Regression fix (follow-up to task 112): setting maildir-store above makes the
-      # notmuch worker ALSO enumerate every physical maildir folder under the shared
-      # ~/Mail root -- so BOTH accounts' Gmail/* and Logos/* dirs stacked into every
-      # sidebar on top of the query-map virtual folders. folders-exclude is display-only
-      # (it does NOT affect :archive's file move, which resolves archive= against
-      # maildir-store independently), so it restores the clean, per-account query-map
-      # folder list. The ~ prefix marks a regex; no query-map name starts with
-      # Gmail/Logos, so this hides only the raw physical tree.
       folders-exclude = ${foldersExclude}
       default = INBOX
       from = Benjamin Brast-McKie <benbrastmckie@gmail.com>
@@ -328,29 +367,15 @@ in
       archive = All_Mail
       outgoing = smtps://benbrastmckie@gmail.com@smtp.gmail.com:465
       outgoing-cred-cmd = secret-tool lookup service gmail-app-password username benbrastmckie@gmail.com
-      # Task 113: while-aerc-is-open convenience sync, secondary to the systemd
-      # mail-sync-timer (primary "sync even when closed" mechanism). --no-wait makes
-      # a lock-contended call fail fast (task 109's mail-sync flock; the systemd timer
-      # will pick up the sync shortly regardless) rather than hanging aerc's "Checking
-      # for new mail..." indicator for up to 300s. check-mail-timeout is raised from
-      # its 10s default so a normal, uncontended network mbsync round-trip is not
-      # spuriously killed. Wiring check-mail-cmd also makes the pre-existing
-      # `u = ":check-mail<Enter>"` keybind functional (it previously errored
-      # "checkmail: no command specified"). [logos] is intentionally left unwired,
-      # matching the existing gmail-only `$` keybind convention (out of scope).
       check-mail = 10m
       check-mail-cmd = mail-sync gmail --no-wait
       check-mail-timeout = 30s
 
       [logos]
       source = notmuch://~/Mail
-      # Task 112: see the [gmail] maildir-store/multi-file-strategy comment above --
-      # same forward-compat caveat applies here.
       maildir-store = ~/Mail
       multi-file-strategy = act-dir
       query-map = ~/.config/aerc/querymap-logos
-      # Regression fix (follow-up to task 112): see the [gmail] folders-exclude comment.
-      # Same shared-~/Mail enumeration applies here, so exclude the same physical tree.
       folders-exclude = ${foldersExclude}
       default = INBOX
       from = Benjamin Brast-McKie <benjamin@logos-labs.ai>
@@ -360,28 +385,33 @@ in
       outgoing-cred-cmd = secret-tool lookup service protonmail-bridge username benjamin@logos-labs.ai
     '';
 
-    # aerc query map for Gmail virtual folders.
+    # aerc query maps: per-account virtual folders, generated by mkQuerymap
+    # (see the let block above); Gmail's Spam folder and its Proposed-* triage
+    # views are the intentional asymmetries, visible as data below.
     #
-    # Task 34 (decouple aerc/himalaya stacks, Phase 5 / F5): account scoping uses
-    # `folder:/Gmail/` (notmuch's slash-delimited regex form) instead of `tag:gmail`,
-    # aligning aerc with the canonical folder-scoping convention CLAUDE.md mandates
-    # for the /email wrapper contract. NOTE: `folder:Gmail*` glob syntax (as CLAUDE.md's
-    # prose currently shows it) does NOT work as a literal notmuch query -- it matches
-    # zero messages; verified empirically against the working `tag:gmail`-scoped
-    # baseline that only `folder:/Gmail/` (or an exact `folder:Gmail/SubDir` path)
-    # reproduces the same counts. Flagged for a CLAUDE.md accuracy follow-up.
-    #
-    # Task 110: INBOX below uses the bare exact-match form `folder:Gmail`/`folder:Logos`
-    # (INBOX-only, true maildir-folder membership) rather than `tag:inbox AND folder:/Gmail/`,
-    # because `notmuch.nix`'s postNew hook applies `+inbox` once at delivery and never removes
-    # it on archive (only on the Sent/Trash/Spam auto-tag rules), so `tag:inbox` is a permanent
-    # "was delivered" marker, not a live inbox-membership signal; and `folder:/Gmail/` regex
-    # over-matches `Gmail/.All_Mail`. Together the old query returned ~12,580 messages instead
-    # of the true ~85-message inbox. The `Unread`/`Flagged`/`Proposed-*` entries below
-    # intentionally REMAIN account-wide (`folder:/Gmail/` / `folder:/Logos/`) -- they are
-    # tag-driven triage/search views, not folder-membership views, and scoping `Proposed-*` to
-    # the inbox would silently hide proposed-tagged messages touched by a prior triage pass,
-    # undermining the review gate. Do not re-scope them to match INBOX.
+    # Query scoping rationale (applies identically to both accounts):
+    #   - Account scoping uses notmuch `folder:` tokens instead of `tag:gmail`,
+    #     aligning aerc with the canonical folder-scoping convention CLAUDE.md
+    #     mandates for the /email wrapper contract. NOTE: `folder:Gmail*` glob
+    #     syntax (as CLAUDE.md's prose currently shows it) does NOT work as a
+    #     literal notmuch query -- it matches zero messages; verified
+    #     empirically that only `folder:/Gmail/` (slash-delimited regex) or an
+    #     exact `folder:Gmail/SubDir` path reproduces the expected counts.
+    #     Flagged for a CLAUDE.md accuracy follow-up. (task 34 phase 5/F5)
+    #   - INBOX uses the bare exact-match form `folder:Gmail`/`folder:Logos`
+    #     (true maildir-folder membership) rather than `tag:inbox AND
+    #     folder:/Gmail/`: notmuch.nix's postNew hook applies `+inbox` once at
+    #     delivery and never removes it on archive, so `tag:inbox` is a
+    #     permanent "was delivered" marker, not a live inbox-membership signal;
+    #     and the `/Gmail/` regex over-matches `Gmail/.All_Mail`. Together the
+    #     old query returned ~12,580 messages instead of the true ~85-message
+    #     inbox. (task 110)
+    #   - `Unread`/`Flagged`/`Proposed-*` intentionally REMAIN account-wide
+    #     (`folder:/Gmail/` / `folder:/Logos/`): they are tag-driven
+    #     triage/search views, not folder-membership views, and re-scoping
+    #     `Proposed-*` to the inbox would silently hide proposed-tagged
+    #     messages touched by a prior triage pass, undermining the review
+    #     gate. Do not re-scope them to match INBOX. (task 110)
     ".config/aerc/querymap-gmail".text = mkQuerymap {
       prefix = "Gmail";
       archiveName = "All_Mail";
@@ -393,9 +423,6 @@ in
       ];
     };
 
-    # aerc query map for Logos virtual folders. See Gmail querymap comment above
-    # (task 34, Phase 5 / F5; task 110) -- same `folder:/Logos/` regex-form rationale and
-    # same INBOX-vs-triage-view scope-asymmetry rationale.
     ".config/aerc/querymap-logos".text = mkQuerymap {
       prefix = "Logos";
       archiveName = "Archive";
