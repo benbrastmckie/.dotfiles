@@ -69,6 +69,7 @@
     # Note: sleep inhibitors (e.g. Claude Code's sleep:idle) do NOT block the
     # lid action (LidSwitchIgnoreInhibited=yes is the logind default), so this
     # config is the only reliable lid protection.
+    # See docs/no-sleep-agents.md.
     # ==========================================================================
     logind.settings.Login = {
       HandleLidSwitch = "lock";
@@ -118,6 +119,7 @@
   # multi-supply semantics; the sysfs check is authoritative.
   # Glob BAT* ONLY - never power_supply/*: this host has a peripheral
   # hid-*-battery reporting perpetual "Discharging 100" that must not match.
+  # See docs/no-sleep-agents.md.
   # ==========================================================================
   systemd.services.battery-suspend-backstop = {
     description = "Suspend at <=10% battery, bypassing sleep inhibitors";

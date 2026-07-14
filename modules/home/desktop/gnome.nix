@@ -36,6 +36,7 @@
 
     "org/gnome/settings-daemon/plugins/power" = {
       # Never auto-suspend on AC — headless agents keep running.
+      # See docs/no-sleep-agents.md.
       sleep-inactive-ac-type = "nothing";
       sleep-inactive-ac-timeout = 3600; # 60 minutes on AC power (inert with type "nothing")
       # Battery idle-suspend after 60 minutes. Fires ONLY when no logind block

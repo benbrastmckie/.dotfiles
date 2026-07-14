@@ -130,15 +130,15 @@ Phases within the same wave can execute in parallel.
 - **Timing:** ~30 minutes
 - **Depends on:** 2
 
-### Phase 4: Wire index entry and nix cross-reference trailers [NOT STARTED]
+### Phase 4: Wire index entry and nix cross-reference trailers [COMPLETED]
 
 - **Goal:** Register the new page per the repo's documented "adding new docs/ files" convention.
 - **Tasks:**
-  - [ ] Add `docs/no-sleep-agents.md` to `docs/README.md` under the category chosen in Phase 2 (with a one-line description).
-  - [ ] Add a comment-only `# See docs/no-sleep-agents.md.` trailer near the relevant blocks in `modules/system/power.nix` (logind lid settings banner and `battery-suspend-backstop` service/timer banner).
-  - [ ] Add a comment-only `# See docs/no-sleep-agents.md.` trailer near the `sleep-inactive-*` dconf keys in `modules/home/desktop/gnome.nix`.
-  - [ ] Optionally add a one-line mention/link in root `README.md` only if judged sufficiently user-facing (writer's call per report §5.6; default is to skip, matching task 117's guidance).
-  - [ ] Verify the nix edits are comment-only (targeted `git diff` shows only added `#` lines) and, if convenient, that the flake still evaluates.
+  - [x] Add `docs/no-sleep-agents.md` to `docs/README.md` under the category chosen in Phase 2 (with a one-line description).
+  - [x] Add a comment-only `# See docs/no-sleep-agents.md.` trailer near the relevant blocks in `modules/system/power.nix` (logind lid settings banner and `battery-suspend-backstop` service/timer banner).
+  - [x] Add a comment-only `# See docs/no-sleep-agents.md.` trailer near the `sleep-inactive-*` dconf keys in `modules/home/desktop/gnome.nix`.
+  - [x] Optionally add a one-line mention/link in root `README.md` only if judged sufficiently user-facing (writer's call per report §5.6; default is to skip, matching task 117's guidance). *(Skipped, matching the default/precedent.)*
+  - [x] Verify the nix edits are comment-only (targeted `git diff` shows only added `#` lines) and, if convenient, that the flake still evaluates. *(`git diff` on both files shows only added `# See docs/no-sleep-agents.md.` comment lines; `nix flake check --no-build` passed with "all checks passed!".)*
 - **Timing:** ~20 minutes
 - **Depends on:** 2
 
