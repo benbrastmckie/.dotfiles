@@ -49,7 +49,7 @@ Warning: 1 task(s) have no topic and will render under Uncategorized: 115 (non-f
 
 ### Uncategorized
 
-115 [RESEARCHED] — Consolidate and refactor the aerc email configuration (modules/ho
+115 [PLANNED] — Consolidate and refactor the aerc email configuration (modules/ho
 
 ## Tasks
 
@@ -58,7 +58,9 @@ Warning: 1 task(s) have no topic and will render under Uncategorized: 115 (non-f
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
-- **Research**: [117_laptop_lid_close_no_sleep_headless/reports/01_lid-close-no-sleep.md]
+- **Research**:
+  - [117_laptop_lid_close_no_sleep_headless/reports/01_lid-close-no-sleep.md]
+  - [117_laptop_lid_close_no_sleep_headless/reports/02_lid-close-screen-off-mechanism.md]
 - **Plan**: [117_laptop_lid_close_no_sleep_headless/plans/01_lid-close-no-sleep.md]
 - **Summary**: [117_laptop_lid_close_no_sleep_headless/summaries/01_lid-close-no-sleep-summary.md]
 
@@ -79,10 +81,11 @@ Warning: 1 task(s) have no topic and will render under Uncategorized: 115 (non-f
 ---
 
 ### 115. Aerc config consolidation refactor
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Dependencies**: None
 - **Research**: [115_aerc_config_consolidation_refactor/reports/01_aerc-config-consolidation-research.md]
+- **Plan**: [115_aerc_config_consolidation_refactor/plans/01_aerc-config-consolidation.md]
 
 **Description**: Consolidate and refactor the aerc email configuration (modules/home/email/aerc.nix, 384 lines) for maintainability and coherence, WITHOUT changing behavior unless the plan makes an explicit justified decision. A complete self-contained session hand-off brief ALREADY EXISTS at specs/115_aerc_config_consolidation_refactor/reports/00_session-context-and-handoff.md and MUST be read first by the research phase and built forward from -- do not re-derive the history. That brief documents: (1) the full 2026-07-13/14 changelog (tasks 110-113 batch + follow-up fixes: INBOX querymap real-folder, compose format-flowed, enable :archive via maildir-store+act-dir, native :send -a flat archive-on-reply + systemd mail-sync timer, folders-exclude sidebar fix, :reply -c return-to-list, <Enter> part-cycle); (2) current architecture across aerc.nix/mbsync.nix/mail-sync.nix/notmuch.nix/mail-sync-timer.nix; (3) outstanding/deferred items (task 114 Gmail/.All_Mail duplicate-UID HIGH-RISK Expunge-Both remediation; 112/113 live-mail verification still user-pending; how check-mail should treat known-vs-real failures; the -a -c parser caveat; 17 accreted Task-NN comment markers to consolidate); (4) refactor goals (consolidate task-number comment archaeology into forward-looking docs; holistically reconsider folders-exclude-vs-folders-whitelist, text/plain-vs-text/html default, Enter-binding trade-off, logos check-mail, querymap de-duplication); (5) INVARIANTS to preserve (no agent live-mail mutation, Expunge-Both deletion danger, wrapper-only /email mutation, folder: token scoping, keep home-manager build green, no double-archive/tag:inbox regressions); (6) verification (build green + rendered-config semantic-equivalence diff + manual user checklist for TUI/live-mail). NON-GOALS: task 114 maildir remediation (separate task), redesigning behavior, home-manager switch or any live-mail action. This task is safe to orchestrate: it is config-refactor + build-verify only.
 

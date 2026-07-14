@@ -9,7 +9,7 @@
       "description": "Configure laptop lid-close to blank screen but not sleep (keep AI agents running headless), preserving existing multi-monitor window distribution when monitors are attached, and document the setup in docs/ and relevant README.md files",
       "topic": "nixos-config",
       "created": "2026-07-14T19:36:34Z",
-      "last_updated": "2026-07-14T20:12:10Z",
+      "last_updated": "2026-07-14T20:25:59Z",
       "artifacts": [
         {
           "type": "report",
@@ -25,6 +25,11 @@
           "type": "summary",
           "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/01_lid-close-no-sleep-summary.md",
           "summary": "Implementation summary: phases 1-3,5 done and build-verified; phase 4 activation pending user (interactive sudo unavailable)"
+        },
+        {
+          "type": "report",
+          "path": "specs/117_laptop_lid_close_no_sleep_headless/reports/02_lid-close-screen-off-mechanism.md",
+          "summary": "Round-2 verification: ignore alone leaves undocked panel on (mutter 50.2 source); niri native; recommends HandleLidSwitch=lock companion; docked path unaffected; suspend-path audit"
         }
       ],
       "plan_metadata": {
@@ -531,7 +536,7 @@
     {
       "project_number": 115,
       "project_name": "aerc_config_consolidation_refactor",
-      "status": "researched",
+      "status": "planned",
       "task_type": "nix",
       "created": "2026-07-14T15:42:26Z",
       "dependencies": [],
@@ -539,13 +544,18 @@
         "modules/home/email/aerc.nix"
       ],
       "description": "Consolidate and refactor the aerc email configuration (modules/home/email/aerc.nix, 384 lines) for maintainability and coherence, WITHOUT changing behavior unless the plan makes an explicit justified decision. A complete self-contained session hand-off brief ALREADY EXISTS at specs/115_aerc_config_consolidation_refactor/reports/00_session-context-and-handoff.md and MUST be read first by the research phase and built forward from -- do not re-derive the history. That brief documents: (1) the full 2026-07-13/14 changelog (tasks 110-113 batch + follow-up fixes: INBOX querymap real-folder, compose format-flowed, enable :archive via maildir-store+act-dir, native :send -a flat archive-on-reply + systemd mail-sync timer, folders-exclude sidebar fix, :reply -c return-to-list, <Enter> part-cycle); (2) current architecture across aerc.nix/mbsync.nix/mail-sync.nix/notmuch.nix/mail-sync-timer.nix; (3) outstanding/deferred items (task 114 Gmail/.All_Mail duplicate-UID HIGH-RISK Expunge-Both remediation; 112/113 live-mail verification still user-pending; how check-mail should treat known-vs-real failures; the -a -c parser caveat; 17 accreted Task-NN comment markers to consolidate); (4) refactor goals (consolidate task-number comment archaeology into forward-looking docs; holistically reconsider folders-exclude-vs-folders-whitelist, text/plain-vs-text/html default, Enter-binding trade-off, logos check-mail, querymap de-duplication); (5) INVARIANTS to preserve (no agent live-mail mutation, Expunge-Both deletion danger, wrapper-only /email mutation, folder: token scoping, keep home-manager build green, no double-archive/tag:inbox regressions); (6) verification (build green + rendered-config semantic-equivalence diff + manual user checklist for TUI/live-mail). NON-GOALS: task 114 maildir remediation (separate task), redesigning behavior, home-manager switch or any live-mail action. This task is safe to orchestrate: it is config-refactor + build-verify only.",
-      "last_updated": "2026-07-14T20:17:29Z",
-      "session_id": "sess_1784058983_0ee6e2",
+      "last_updated": "2026-07-14T20:36:26Z",
+      "session_id": "sess_1784060900_29066a",
       "artifacts": [
         {
           "path": "specs/115_aerc_config_consolidation_refactor/reports/01_aerc-config-consolidation-research.md",
           "type": "report",
           "summary": "Validates the pre-existing handoff brief (00_session-context-and-handoff.md) against the live modules/home/email/{aerc,mbsync,mail-sync,notmuch}.nix and modules/home/services/mail-sync-timer.nix files; inventories ~16 Task-NN comment citations into 11 rationale clusters; recommends a Nix generator to de-duplicate querymap-gmail/querymap-logos and the repeated folders-exclude line; resolves all five holistic-reconsideration decision points with recommendations grounded in the locally-installed aerc 0.21.0 man pages (aerc-accounts(5), aerc-notmuch(5)) and task 112's prior source-level research; establishes a rendered-config byte-diff verification approach against a confirmed-green home-manager build baseline."
+        },
+        {
+          "path": "specs/115_aerc_config_consolidation_refactor/plans/01_aerc-config-consolidation.md",
+          "type": "plan",
+          "summary": "4-phase, fully sequential, behavior-preserving refactor plan for modules/home/email/aerc.nix. Phase 1 captures the five rendered config files (accounts.conf, aerc.conf, binds.conf, querymap-gmail, querymap-logos) from a green home-manager build into specs/115_*/.baseline/ with sha256sums. Phase 2 adds a top-level let block with foldersExclude and an mkQuerymap generator (explicit line lists + builtins.concatStringsSep, module signature stays `_:`) gated on byte-identity of ALL five rendered files. Phase 3 consolidates the 16 Task-NN citations into 11 rationale clusters via an authoritative mapping table (task numbers demoted to trailing citations, rationale never deleted), hoists accounts.conf in-string comments to Nix level, and records the five KEEP decisions in-file. Phase 4 runs a rationale-preservation audit (anchor-phrase grep per cluster), final diffs, and writes the summary with the manual user checklist."
         }
       ]
     },
