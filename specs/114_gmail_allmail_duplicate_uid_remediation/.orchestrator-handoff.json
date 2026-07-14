@@ -1,0 +1,42 @@
+{
+  "session_id": "sess_1784044079_ecb718",
+  "task": 114,
+  "task_slug": "gmail_allmail_duplicate_uid_remediation",
+  "phase": "plan",
+  "status": "planned",
+  "from_state": "researched",
+  "to_state": "planned",
+  "next_command": "/implement 114",
+  "plan_path": "specs/114_gmail_allmail_duplicate_uid_remediation/plans/01_duplicate-uid-remediation.md",
+  "research_inputs": [
+    "specs/114_gmail_allmail_duplicate_uid_remediation/reports/01_duplicate-uid-diagnosis.md"
+  ],
+  "phase_count": 6,
+  "estimated_hours": 3.25,
+  "dependency_waves": [[1], [2], [3], [4], [5], [6]],
+  "risk_class": "HIGH",
+  "safety_invariants": [
+    "Rename in place only; never rm or move any maildir file OUT of its folder (Expunge Both = server deletion risk)",
+    "Confirm the stray via corroboration before the single rename; STOP if inconclusive",
+    "Create Near guarantees the de-UID'd local-only file is never uploaded (no server duplicate)",
+    "Fully reversible: record exact old->new rename mapping; revert by renaming back",
+    "No full .mbsyncstate/.uidvalidity reset; no Gmail web-side mutation"
+  ],
+  "definition_of_done": [
+    "mbsync gmail and mail-sync gmail exit 0",
+    "Both colliding messages still present in Gmail All Mail server-side",
+    "mail-sync-timer non-failed and aerc banner cleared",
+    "Duplicate-UID sweep clean across Gmail/Logos folders",
+    "Documented decision on the optional mail-sync.nix benign-duplicate guard"
+  ],
+  "mutation_surface": [
+    "~/Mail/Gmail/.All_Mail/cur/<stray-file> (in-place rename to strip ,U=15)",
+    "modules/home/email/mail-sync.nix (only if Phase 6 guard is chosen)"
+  ],
+  "non_goals": [
+    "Re-doing tasks 110-113",
+    "Deleting/expunging/moving any maildir file out of its folder",
+    "Full .mbsyncstate reset"
+  ],
+  "created": "2026-07-14T15:50:00Z"
+}

@@ -1,0 +1,18 @@
+{
+  "phase": 1,
+  "phase_name": "Snapshot and baseline the collision (read-only)",
+  "started_at": "2026-07-14T08:53:00-07:00",
+  "last_updated": "2026-07-14T08:57:00-07:00",
+  "objectives": [
+    {"id": 1, "description": "Record both colliding files' basenames, sizes, sha256, mtimes", "status": "done", "files_touched": ["specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/01_phase1-baseline.txt"]},
+    {"id": 2, "description": "Extract and record Subject/Message-ID headers, confirm match to report", "status": "done", "files_touched": ["specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/01_phase1-baseline.txt"]},
+    {"id": 3, "description": "Back up .mbsyncstate, confirm single 34 15 S mapping", "status": "done", "files_touched": ["specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/01_mbsyncstate-backup-20260714T085330.bak"]},
+    {"id": 4, "description": "Reproduce mbsync gmail failure as before-state", "status": "done", "files_touched": ["specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/01_mbsync-gmail-before-state.log"]},
+    {"id": 5, "description": "Confirm mail-sync timer idle / stop it for the mutation window", "status": "done", "files_touched": []}
+  ],
+  "current_objective": null,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": [],
+  "notes": "All files under ~/Mail were read-only in this phase (no maildir mutation). No file removed from .All_Mail/cur. Timer (mail-sync-timer.timer) stopped via systemctl --user stop; will re-enable in Phase 4."
+}

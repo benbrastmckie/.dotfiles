@@ -1,0 +1,34 @@
+{
+  "status": "in_progress",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/114_gmail_allmail_duplicate_uid_remediation/plans/01_duplicate-uid-remediation.md",
+      "summary": "6-phase, fully-sequential HIGH-RISK remediation plan: snapshot, corroborate the stray, single in-place rename to strip ,U=15, verify zero server-side change, sweep for other collisions, decide on mail-sync.nix guard."
+    },
+    {
+      "type": "handoff",
+      "path": "specs/114_gmail_allmail_duplicate_uid_remediation/.orchestrator-handoff.json",
+      "summary": "Orchestrator handoff recording plan->implement transition, safety invariants, and definition of done."
+    }
+  ],
+  "next_steps": "Run /implement 114 to execute the plan",
+  "metadata": {
+    "session_id": "sess_1784044079_ecb718",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 6,
+    "estimated_hours": 3.25,
+    "dependency_waves": [[1], [2], [3], [4], [5], [6]]
+  },
+  "memory_candidates": [
+    {
+      "content": "Maildir++ (mbsync/isync) reads the IMAP UID from the ',U=<n>' filename suffix, so a duplicate-UID collision must be fixed by renaming the stray file in place to strip ',U=<n>' -- NOT by rm/move (which, under an 'Expunge Both' channel, propagates as a server-side deletion) and NOT by a .mbsyncstate reset (which does not touch filename-derived UIDs). When the channel is 'Create Near', the de-UID'd file becomes local-only and is never uploaded, so the rename produces no server duplicate. Confirm which of the colliding files is the stray via read-only IMAP FETCH of the far-UID from .mbsyncstate before renaming.",
+      "category": "TECHNIQUE",
+      "source_artifact": "specs/114_gmail_allmail_duplicate_uid_remediation/plans/01_duplicate-uid-remediation.md",
+      "confidence": 0.8,
+      "suggested_keywords": ["mbsync", "isync", "duplicate-uid", "maildir", "expunge-both", "create-near"]
+    }
+  ]
+}

@@ -45,7 +45,7 @@ Warning: 2 task(s) have no topic and will render under Uncategorized: 114, 115 (
 
 ### Uncategorized
 
-114 [RESEARCHED] — Safely remediate the pre-existing duplicate-UID collision in ~/Ma
+114 [PLANNED] — Safely remediate the pre-existing duplicate-UID collision in ~/Ma
 115 [NOT STARTED] — Consolidate and refactor the aerc email configuration (modules/ho
 
 ## Tasks
@@ -60,10 +60,11 @@ Warning: 2 task(s) have no topic and will render under Uncategorized: 114, 115 (
 ---
 
 ### 114. Gmail allmail duplicate uid remediation
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: general
 - **Dependencies**: None
 - **Research**: [114_gmail_allmail_duplicate_uid_remediation/reports/01_duplicate-uid-diagnosis.md]
+- **Plan**: [114_gmail_allmail_duplicate_uid_remediation/plans/01_duplicate-uid-remediation.md]
 
 **Description**: Safely remediate the pre-existing duplicate-UID collision in ~/Mail/Gmail/.All_Mail that makes `mbsync gmail` (and thus `mail-sync gmail`) exit non-zero, which task 113 surfaced as a recurring aerc check-mail error banner and a failing mail-sync-timer unit. Root cause (live-verified 2026-07-14): two DIFFERENT messages both carry maildir UID tag ,U=15 in Gmail/.All_Mail/cur (subjects: "eNTERTAINMENT cENTER" and "A message from our CEO Nick Slape"); .mbsyncstate has a single legit mapping `34 15 S` (far UID 34 <-> near UID 15), so one file is a stray that erroneously got ,U=15 (likely from historical email dedup/migration tooling). HIGH RISK: gmail-all channel is `Expunge Both`, so removing/moving a synced local file can permanently delete a real message from Gmail All Mail. SAFE approach (validate first): identify the stray, then RENAME (never delete) it to strip its ,U=15 suffix -- collision clears, `Create Near` means the de-UID`d local-only file is never uploaded (no server duplicate), no file removed means no Expunge propagation (no server deletion), fully reversible. See reports/01_duplicate-uid-diagnosis.md for the full grounded analysis, open questions (confirm which file is the stray via read-only IMAP FETCH 34 or notmuch corroboration; notmuch re-index after rename; optional mail-sync.nix benign-duplicate guard; sweep for OTHER duplicate UIDs), and verification steps (mbsync exits 0, both messages still present in Gmail web UI, aerc banner clears). Do NOT rm or move any maildir file out of the folder. NON-GOAL: re-doing tasks 110-113.
 

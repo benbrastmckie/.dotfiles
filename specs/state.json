@@ -443,7 +443,7 @@
     {
       "project_number": 114,
       "project_name": "gmail_allmail_duplicate_uid_remediation",
-      "status": "researched",
+      "status": "planned",
       "task_type": "general",
       "created": "2026-07-14T15:32:52Z",
       "dependencies": [],
@@ -456,8 +456,15 @@
           "path": "specs/114_gmail_allmail_duplicate_uid_remediation/reports/01_duplicate-uid-diagnosis.md",
           "type": "report",
           "summary": "Live-grounded diagnosis of the Gmail/.All_Mail duplicate-UID collision, the Expunge-Both deletion risk, and the safe rename-to-de-UID remediation."
+        },
+        {
+          "path": "specs/114_gmail_allmail_duplicate_uid_remediation/plans/01_duplicate-uid-remediation.md",
+          "type": "plan",
+          "summary": "6-phase duplicate-UID remediation plan (HIGH risk, rename-in-place only)"
         }
-      ]
+      ],
+      "last_updated": "2026-07-14T15:52:32Z",
+      "session_id": "sess_1784044079_ecb718"
     },
     {
       "project_number": 115,
