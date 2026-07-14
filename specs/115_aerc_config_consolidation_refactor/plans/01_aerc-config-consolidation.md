@@ -1,7 +1,7 @@
 # Implementation Plan: Task #115
 
 - **Task**: 115 - Consolidate and refactor the aerc email configuration
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 5 hours
 - **Dependencies**: None (task 114 is explicitly out of scope; its artifacts are referenced read-only)
 - **Research Inputs**:
@@ -216,20 +216,20 @@ Phase 4:
 
 ---
 
-### Phase 4: Verification audit, rationale-preservation check, and manual user checklist [NOT STARTED]
+### Phase 4: Verification audit, rationale-preservation check, and manual user checklist [COMPLETED]
 
 **Goal**: Final gates, proof that no rationale was lost, and the deliverables the user needs to
 manually verify TUI behavior.
 
 **Tasks**:
-- [ ] Final full re-diff of all five rendered files against `.baseline/` (same gates as Phase 3; catches any drift from late edits)
-- [ ] Rationale-preservation audit: for each of the 11 clusters, grep the refactored aerc.nix for its "must preserve" anchor phrases (e.g. `-ac`/two-flag caveat, `errUnsupported`, `enable-maildir`, `folder:Gmail*` glob note, "do not re-scope", Expunge, finding-7 pointer, task 114 citation in the check-mail decision). Record the cluster-by-cluster result table in the summary. Any missing item: fix in aerc.nix and re-run the Phase 3 diff gate before proceeding
-- [ ] Confirm every demoted task number survives as a trailing citation where the mapping table says so (spot-check clusters 3, 5, 9, 10, 11)
-- [ ] Line-count sanity check: report before (384) vs after; expect a net reduction from the querymap/comment de-duplication
-- [ ] Run `nix flake check` if inexpensive, else rely on the already-green `home-manager build`
-- [ ] Write `specs/115_aerc_config_consolidation_refactor/summaries/01_aerc-config-consolidation-summary.md` containing: what changed and why; the Decision Log outcomes (D1-D8); the diff-verification evidence (sha256 table); the rationale-audit table; and the **manual user checklist** below
-- [ ] Note in the summary that `.baseline/` is retained (uncommitted) for the user's own re-verification and may be deleted afterwards
-- [ ] Commit summary + any final aerc.nix touch-ups as `task 115: complete implementation`
+- [x] Final full re-diff of all five rendered files against `.baseline/` (same gates as Phase 3; catches any drift from late edits) *(completed — 4 byte-identical; accounts.conf comment-stripped diff empty, 0 non-`#` change lines)*
+- [x] Rationale-preservation audit: for each of the 11 clusters, grep the refactored aerc.nix for its "must preserve" anchor phrases (e.g. `-ac`/two-flag caveat, `errUnsupported`, `enable-maildir`, `folder:Gmail*` glob note, "do not re-scope", Expunge, finding-7 pointer, task 114 citation in the check-mail decision). Record the cluster-by-cluster result table in the summary. Any missing item: fix in aerc.nix and re-run the Phase 3 diff gate before proceeding *(completed — 11/11 PASS, ~40 anchor phrases; table in summary)*
+- [x] Confirm every demoted task number survives as a trailing citation where the mapping table says so (spot-check clusters 3, 5, 9, 10, 11) *(completed — tasks 34, 72 phase 9, 109, 110, 112, 113, 114 all present as trailing citations)*
+- [x] Line-count sanity check: report before (384) vs after; expect a net reduction from the querymap/comment de-duplication *(deviation: after = 431 (+47), not a reduction — the mandated additions (contract header, KEEP decision records, finding-7 pointer, let block) outweigh de-dup savings; reported in summary, no gate affected)*
+- [x] Run `nix flake check` if inexpensive, else rely on the already-green `home-manager build` *(completed — `nix flake check --no-build` all checks passed)*
+- [x] Write `specs/115_aerc_config_consolidation_refactor/summaries/01_aerc-config-consolidation-summary.md` containing: what changed and why; the Decision Log outcomes (D1-D8); the diff-verification evidence (sha256 table); the rationale-audit table; and the **manual user checklist** below *(completed)*
+- [x] Note in the summary that `.baseline/` is retained (uncommitted) for the user's own re-verification and may be deleted afterwards *(completed)*
+- [x] Commit summary + any final aerc.nix touch-ups as `task 115: complete implementation` *(completed — no aerc.nix touch-ups needed, audit found nothing missing)*
 
 **Manual user checklist** (agent MUST NOT perform these — TUI/live-mail invariant):
 1. Open aerc: per-account sidebars still show only querymap virtual folders (no physical Gmail/*, Logos/* clutter, no cross-account bleed)
@@ -252,12 +252,12 @@ manually verify TUI behavior.
 
 ## Testing & Validation
 
-- [ ] `home-manager build --flake .#benjamin` exits 0 after every phase (build ONLY; `home-manager switch` is forbidden for agents)
-- [ ] Byte-identity: `aerc.conf`, `binds.conf`, `querymap-gmail`, `querymap-logos` match baseline sha256s at Phases 2, 3, and 4
-- [ ] `accounts.conf`: comment-stripped diff empty; raw diff `#`-lines-only (Phases 3-4, per D8)
-- [ ] Rationale-preservation audit: 11/11 clusters' anchor phrases present (Phase 4)
-- [ ] Invariants held throughout: no live-mail mutation, no mbsync/mail-sync invocation, no wrapper-contract or folder:-token changes, no edits to mbsync.nix/mail-sync.nix/notmuch.nix/mail-sync-timer.nix, finding-7 risk carried forward (D7) not resolved
-- [ ] Manual user checklist delivered in the summary (TUI/live-mail items remain user-pending by design)
+- [x] `home-manager build --flake .#benjamin` exits 0 after every phase (build ONLY; `home-manager switch` is forbidden for agents)
+- [x] Byte-identity: `aerc.conf`, `binds.conf`, `querymap-gmail`, `querymap-logos` match baseline sha256s at Phases 2, 3, and 4
+- [x] `accounts.conf`: comment-stripped diff empty; raw diff `#`-lines-only (Phases 3-4, per D8)
+- [x] Rationale-preservation audit: 11/11 clusters' anchor phrases present (Phase 4)
+- [x] Invariants held throughout: no live-mail mutation, no mbsync/mail-sync invocation, no wrapper-contract or folder:-token changes, no edits to mbsync.nix/mail-sync.nix/notmuch.nix/mail-sync-timer.nix, finding-7 risk carried forward (D7) not resolved
+- [x] Manual user checklist delivered in the summary (TUI/live-mail items remain user-pending by design)
 
 ## Artifacts & Outputs
 

@@ -1,59 +1,44 @@
 {
-  "status": "researched",
+  "status": "implemented",
   "task": 115,
   "task_slug": "aerc_config_consolidation_refactor",
-  "phase_completed": "research",
+  "phase_completed": "implement",
   "task_type": "nix",
+  "summary": "All 4 phases completed. modules/home/email/aerc.nix refactored behavior-preservingly: let-bound mkQuerymap generator + shared foldersExclude (Phase 2 gate: entire home-manager-files derivation hash identical to baseline), 16 Task-NN citations consolidated into 11 rationale clusters with task numbers demoted to trailing citations (Phase 3), accounts.conf in-string comments hoisted to Nix level per D8 (comment-stripped diff empty, raw diff only removed #-lines, 0 non-# changes), rationale-preservation audit 11/11 PASS (Phase 4). home-manager build green after every phase; nix flake check --no-build passed. Finding-7 risk carried forward as flagged OPEN RISK comment (D7); all five KEEP decisions recorded in-file. One reported deviation: line count 384 -> 431 (+47) instead of the expected net reduction, driven by plan-mandated additions (contract header, KEEP records, finding-7 pointer, let block); no gate affected.",
   "artifacts": [
     {
-      "type": "report",
-      "path": "specs/115_aerc_config_consolidation_refactor/reports/01_aerc-config-consolidation-research.md",
-      "summary": "Validates the pre-existing handoff brief (00_session-context-and-handoff.md) against the live modules/home/email/{aerc,mbsync,mail-sync,notmuch}.nix and modules/home/services/mail-sync-timer.nix files; inventories ~16 Task-NN comment citations into 11 rationale clusters; recommends a Nix generator to de-duplicate querymap-gmail/querymap-logos and the repeated folders-exclude line; resolves all five holistic-reconsideration decision points with recommendations grounded in the locally-installed aerc 0.21.0 man pages (aerc-accounts(5), aerc-notmuch(5)) and task 112's prior source-level research; establishes a rendered-config byte-diff verification approach against a confirmed-green home-manager build baseline."
+      "type": "summary",
+      "path": "specs/115_aerc_config_consolidation_refactor/summaries/01_aerc-config-consolidation-summary.md",
+      "summary": "Implementation summary: D1-D8 outcomes, sha256 diff-verification table (4 byte-identical files + D8-gated accounts.conf), 11/11 rationale-preservation audit table, line-count deviation note, and the manual user checklist for TUI/live-mail items (sidebar cleanliness, ~85-message INBOX scale, reply->send->archive->focus flow, Enter part-cycling, u check-mail toast, carried-forward live archive end-to-end and finding-7 probes)."
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/email/aerc.nix",
+      "summary": "Refactored aerc config (431 lines): top-level let with foldersExclude + mkQuerymap generator, cross-file contract header, 11 consolidated rationale clusters, five KEEP decisions and finding-7 OPEN RISK recorded in-file; rendered output behavior-identical to baseline."
     }
   ],
-  "prior_context_read": [
-    "specs/115_aerc_config_consolidation_refactor/reports/00_session-context-and-handoff.md"
+  "phases_completed": 4,
+  "phases_total": 4,
+  "commits": [
+    "d202892 task 115 phase 1: capture rendered-config baseline",
+    "5d9c8d9 task 115 phase 2: querymap and folders-exclude generator",
+    "a178885 task 115 phase 3: consolidate rationale clusters"
   ],
-  "findings_summary": {
-    "comment_consolidation": "~16 distinct Task-NN/Regression-fix citations across aerc.nix, clustering into 11 rationale groups (tab-switch, delete/archive hardening, mail-sync keybind history, Proposed-* wrapper routing, reply-close -c, Enter part-cycle, native send -a archive-on-reply, maildir-store/multi-file-strategy x2, folders-exclude x2, check-mail, INBOX/querymap scoping x2). Recommendation: consolidate into forward-looking prose per group, demote task numbers to trailing citations, do not delete the underlying rationale.",
-    "querymap_dedup": "querymap-gmail/querymap-logos are structurally identical apart from the account folder prefix, the archive-folder name (All_Mail vs Archive), and Gmail's extra Spam line. Recommend a let-bound Nix generator function producing both from small per-account records; target byte-identical rendered output.",
-    "folders_exclude_vs_whitelist_vs_maildir_account_path": "KEEP folders-exclude blacklist. maildir-account-path was already evaluated and explicitly rejected by task 112's own research (both accounts intentionally share one maildir-store/notmuch source root); a folders whitelist has the identical cross-account-awareness requirement as the current blacklist and buys no clarity. De-duplicate the identical folders-exclude line between [gmail]/[logos] instead of changing the mechanism.",
-    "alternatives_text_plain_vs_html": "KEEP text/plain,text/html (plaintext-first) as the global viewer default. Flipping it is a real behavior change (global, not per-message) with real downsides (w3m filter correctness, privacy/speed); the existing <Enter>/:next-part cycle already serves the html preference as a low-cost opt-in per message. Document as considered-and-rejected rather than silently flipped.",
-    "enter_binding": "KEEP <Enter> = :next-part in [view]. No native part-select concept exists in aerc; <Space>/<C-d>/<C-u> already fully cover pager scrolling so nothing unique is lost. Trim the comment from 5 lines to ~2 while preserving the trade-off statement.",
-    "logos_check_mail": "KEEP [logos] check-mail unwired. Both accounts already get periodic sync via the systemd mail-sync-timer (mail-sync both, every 15 min); check-mail-cmd is secondary/convenience only. Wiring logos now would add a second undifferentiated failure-surfacing case before task 114's known-vs-real-failure policy exists. Recommend documenting this as an explicit decision citing task 114, not a silent omission.",
-    "cross_file_consistency": "Verified folder names, tag semantics, and the three mail-sync entry points (aerc $ keybind, check-mail-cmd, notmuch preNew hook) all converge correctly on the same flock-serialized mail-sync wrapper. No inconsistency found.",
-    "additional_risk_beyond_brief": "Task 112's report (finding-7) documents an unresolved, source-grounded risk: aerc's act-dir multi-file-strategy resolves curDir from the currently-open tab name, which does not match for the INBOX querymap alias (only literal Gmail/Logos tab names resolve) -- multi-file archive from the INBOX tab may silently fail with 'refusing to act on multiple files'. This was never live-verified (task 112 Phase 4 PARTIAL/skipped). The refactor must carry this forward as an explicitly flagged open item, not silently resolve or mask it."
-  },
-  "non_goals_confirmed": [
-    "Task 114 (Gmail .All_Mail duplicate-UID remediation) untouched",
-    "No behavior redesign -- all five reconsideration points resolved as KEEP with documented rationale",
-    "No home-manager switch or live-mail action performed",
-    "No implementation edits made to aerc.nix during this research pass"
-  ],
-  "verification": {
-    "baseline_build": "home-manager build --flake .#benjamin ran during this research session and exited 0 (green baseline confirmed before any implementation work).",
-    "rendered_config_paths_confirmed": [
-      ".config/aerc/accounts.conf",
-      ".config/aerc/aerc.conf",
-      ".config/aerc/binds.conf",
-      ".config/aerc/querymap-gmail",
-      ".config/aerc/querymap-logos"
-    ],
-    "recommended_verification_approach": "Capture the five rendered files above from a green baseline build before editing; after the refactor, rebuild and diff each pair. A pure-consolidation refactor should produce zero diffs in binds.conf/accounts.conf/querymap-*; aerc.conf comment-only changes are not expected to alter its parsed form.",
-    "read_only_safe": "All research this session was read-only plus one home-manager build (build-only, no switch, no mail mutation)."
-  },
-  "next_command": "/plan 115",
-  "next_steps": "Create an implementation plan consolidating the 11 rationale clusters into forward-looking documentation, implementing the querymap and folders-exclude Nix generator for de-duplication, and recording each of the five reconsideration decisions (all KEEP, with explicit documented rationale) -- verified via the rendered-config byte-diff approach plus a green home-manager build.",
   "blockers": [],
-  "open_questions": [
-    "Exact Nix idiom preferred for the querymap/folders-exclude generator (inline let-binding vs. a small local function vs. lib.generators) -- left for the plan phase to decide within nix-style-guide.md conventions.",
-    "Whether to add a one-line pointer comment near multi-file-strategy flagging the unresolved task-112 finding-7 curDir/INBOX-tab risk, or leave it fully external to this file -- left for the plan phase."
+  "invariants_held": [
+    "Build-only: home-manager build --flake .#benjamin (exit 0 every phase); never switch",
+    "No live-mail action of any kind; no himalaya/notmuch/msmtp/mbsync mutation",
+    "Wrapper-only /email mutation semantics and folder: token scoping preserved (binds and querymaps byte-identical to baseline)",
+    "No double-archive / tag:inbox regressions (rendered binds.conf and querymaps byte-identical)",
+    "Task 114 untouched; finding-7 carried forward as flagged open risk (D7), not resolved",
+    ".baseline/ left uncommitted; pre-existing dirty modules/system/packages.nix left alone; targeted staging only"
   ],
+  "next_action_hint": "Implementation complete; final commit 'task 115: complete implementation' includes summary + plan + handoff. User-pending: manual TUI checklist in the summary (requires home-manager switch first). .baseline/ retained uncommitted for user re-verification.",
   "metadata": {
-    "session_id": "sess_orchestrator_115_research",
-    "agent_type": "nix-research-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "nix-research-agent"]
+    "session_id": "sess_1784060900_29066a",
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 2,
+    "delegation_path": ["orchestrator", "orchestrate", "skill-orchestrate", "nix-implementation-agent"]
   },
-  "timestamp": "2026-07-14T20:45:00Z"
+  "timestamp": "2026-07-14T13:54:03-07:00"
 }
