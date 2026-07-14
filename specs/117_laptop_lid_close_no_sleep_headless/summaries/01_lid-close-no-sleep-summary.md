@@ -68,3 +68,18 @@ default `ignore`), as is the 5-minute idle screen blank (`idle-delay = 300` unto
   `sudo nixos-rebuild switch --flake .#hamsa`.
 - Rollback: each phase is a separate scoped commit (`git revert`), plus
   `nixos-rebuild switch --rollback` for immediate relief.
+
+## Round-2 Addendum (2026-07-14)
+
+Round-2 research (`reports/02_lid-close-screen-off-mechanism.md`) **falsified the round-1
+assumption** that mutter blanks the internal panel on lid close: mutter 50.2 deliberately keeps
+the internal eDP panel active when it is the only monitor and the lid closes, so under `ignore`
+the panel stayed lit inside the closed lid until the 5-minute idle blank. The two logind values
+in `modules/system/power.nix` were therefore changed from `"ignore"` to `"lock"` in commit
+d82e669: `lock` never suspends, GNOME powers the panel off ~30s after locking (gsd-power
+screensaver blank timeout), and swayidle's existing lock handler covers the niri session.
+Docked behavior remains unaffected (gsd-power's `handle-lid-switch` block inhibitor, plus
+`HandleLidSwitchDocked` default `ignore`). The docs (`docs/gnome-settings.md`, `docs/niri.md`)
+were reconciled with the lock-based behavior in this phase. Activation (Phase 4) is still
+pending the user; when verifying, the busctl check in step 2 above should now expect
+`s "lock"`, not `s "ignore"`.

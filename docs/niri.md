@@ -917,8 +917,10 @@ services.swayidle = {
 
 Swayidle only locks the screen - it never auto-suspends on idle, so long-running headless
 workloads survive idle periods in the niri session too. Note that closing the lid never
-suspends in either session (GNOME or niri): lid handling is ignored at the systemd-logind
-level (`modules/system/power.nix`), independent of the compositor.
+suspends in either session (GNOME or niri): the systemd-logind lid action is set to `lock`
+(`modules/system/power.nix`), which only locks the session. niri needs nothing beyond that -
+it natively turns the internal monitor off/on with the lid (per upstream), and swayidle's
+existing lock handler covers the logind lock signal.
 
 **Step 3: Rebuild System**
 ```bash

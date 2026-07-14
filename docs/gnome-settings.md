@@ -26,19 +26,26 @@ The following settings are managed by Home Manager:
 - **Idle dim**: Enabled
 
 #### Lid-Close Behavior
-- Closing the lid blanks the internal screen but **never suspends** the system, on AC or
-  battery, with or without external monitors. This is set at the systemd-logind level
-  (`HandleLidSwitch = "ignore"` and `HandleLidSwitchExternalPower = "ignore"` in
-  `modules/system/power.nix`), which is the component that owns lid actions.
-- Docked/external-monitor behavior is unchanged: with a monitor attached, closing the lid
-  still moves windows to the external display exactly as before (`HandleLidSwitchDocked`
-  keeps its default `ignore`).
+- Closing the lid **locks the session and never suspends** the system, on AC or battery,
+  with or without external monitors. This is set at the systemd-logind level
+  (`HandleLidSwitch = "lock"` and `HandleLidSwitchExternalPower = "lock"` in
+  `modules/system/power.nix`), which is the component that owns lid actions. The `lock`
+  action never suspends anything; after locking, GNOME powers the internal panel off about
+  30 seconds later (gsd-power's screensaver blank timeout), giving blank-but-awake. `lock`
+  is used rather than `ignore` because mutter deliberately keeps the internal panel active
+  when it is the only monitor — under `ignore` the panel would stay lit inside the closed
+  lid until the 5-minute idle blank.
+- Docked/external-monitor behavior is unchanged: while external monitors are attached,
+  gsd-power holds a `handle-lid-switch` block inhibitor that makes the logind lid settings
+  moot, so closing the lid still moves windows to the external display exactly as before —
+  no lock, no suspend (`HandleLidSwitchDocked` also keeps its default `ignore` as a second
+  layer).
 - **Warning**: a lid-shut laptop on battery no longer suspends automatically. Putting the
   running machine in a bag risks heat buildup and battery drain - suspend explicitly
   (`systemctl suspend`) first. The 15-minute battery idle-suspend above remains as a backstop
   when the machine is idle.
 
-**Note**: When using the Neovim sleep inhibitor (`<leader>rz`), the screen will still blank after 5 minutes of inactivity, but the system will not sleep. This allows the screen to save power while keeping long-running tasks active. Inhibitors are no longer needed for lid protection (logind ignores the lid switch entirely), but they still matter on battery, where they block the 15-minute idle-suspend.
+**Note**: When using the Neovim sleep inhibitor (`<leader>rz`), the screen will still blank after 5 minutes of inactivity, but the system will not sleep. This allows the screen to save power while keeping long-running tasks active. Sleep inhibitors do not affect the lid action at all (`LidSwitchIgnoreInhibited=yes` is logind's default), so the logind `lock` setting above is the only reliable lid protection; inhibitors govern idle-suspend instead, and still matter on battery, where they block the 15-minute idle-suspend.
 
 ### Mouse & Touchpad
 - Custom speed settings
