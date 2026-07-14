@@ -1,0 +1,19 @@
+{
+  "status": "researched",
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/115_aerc_config_consolidation_refactor/reports/01_aerc-config-consolidation-research.md",
+      "summary": "Research report: validates the pre-existing handoff brief against live files, inventories the ~16 Task-NN comment markers into 11 rationale clusters, recommends a querymap/folders-exclude Nix generator for de-duplication, and works through all five holistic-reconsideration decision points (folders-exclude vs whitelist vs maildir-account-path, text/plain vs text/html default, Enter-binding trade-off, logos check-mail) with man-page- and prior-task-grounded recommendations -- all preserving current behavior. Establishes a rendered-config (aerc.conf/binds.conf/accounts.conf/querymap-*) byte-diff verification approach against a confirmed-green home-manager build baseline."
+    }
+  ],
+  "next_steps": "Run /plan 115 to create an implementation plan consolidating the 11 rationale clusters, de-duplicating querymap-gmail/querymap-logos and the folders-exclude line via a Nix generator, and recording each of the five reconsideration decisions explicitly -- all behavior-preserving per this report's recommendations.",
+  "metadata": {
+    "session_id": "sess_orchestrator_115_research",
+    "agent_type": "nix-research-agent",
+    "duration_seconds": 2600,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
+    "findings_count": 11
+  }
+}
