@@ -41,28 +41,37 @@
     fwupd.enable = true;
 
     # ==========================================================================
-    # Lid-Close Behavior - Blank, Never Suspend
+    # Lid-Close Behavior - Lock and Blank, Never Suspend
     # ==========================================================================
     # Lid close must never suspend: long-running headless workloads (AI agents,
-    # builds) keep running with the lid shut and no external monitors. The
-    # internal panel still goes dark (mutter/niri disable eDP on lid close),
-    # and the 5-minute idle blank (GNOME idle-delay) is unaffected.
+    # builds) keep running with the lid shut and no external monitors.
+    #
+    # Why "lock" and not "ignore": mutter deliberately keeps the internal eDP
+    # panel ACTIVE when it is the only monitor and the lid closes (it refuses to
+    # leave the session with zero outputs - see MONITOR_MATCH_ALLOW_FALLBACK and
+    # find_primary_monitor's "except if no other alternatives exist"). Under
+    # "ignore" the panel therefore stays lit inside the closed lid until the
+    # 5-minute idle blank, and re-lights when undocking with the lid shut.
+    # logind's "lock" action never suspends, and GNOME powers the panel off
+    # ~30s after locking (gsd-power SCREENSAVER_TIMEOUT_BLANK), which gives us
+    # blank-but-awake. swayidle's existing lock handler covers the niri session.
     #
     # - HandleLidSwitch: covers battery / unspecified power state.
     # - HandleLidSwitchExternalPower: covers AC (systemd default inherits
     #   HandleLidSwitch; set explicitly to be robust to upstream changes).
     # - HandleLidSwitchDocked is deliberately NOT set: it already defaults to
-    #   "ignore" (docked = docking station OR >1 display), which together with
-    #   gsd-power's handle-lid-switch inhibitor preserves today's
-    #   external-monitor behavior exactly (windows stay on external displays).
+    #   "ignore" (docked = docking station OR >1 display), and while docked
+    #   gsd-power's handle-lid-switch block inhibitor makes these settings moot
+    #   anyway - so external-monitor behavior is preserved exactly (windows
+    #   stay on external displays, no lock on lid close).
     #
     # Note: sleep inhibitors (e.g. Claude Code's sleep:idle) do NOT block the
     # lid action (LidSwitchIgnoreInhibited=yes is the logind default), so this
     # config is the only reliable lid protection.
     # ==========================================================================
     logind.settings.Login = {
-      HandleLidSwitch = "ignore";
-      HandleLidSwitchExternalPower = "ignore";
+      HandleLidSwitch = "lock";
+      HandleLidSwitchExternalPower = "lock";
     };
   };
 
