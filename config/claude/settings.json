@@ -67,7 +67,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "SESSION_ID=$(jq -r '.session_id // \"default\"'); systemd-inhibit --what=sleep:idle --who=claude-code --why=\"Claude Code session\" --mode=block sleep infinity & echo $! > /tmp/claude-inhibitor-${SESSION_ID}.pid",
+            "command": "SESSION_ID=$(jq -r '.session_id // \"default\"'); for f in /tmp/claude-inhibitor-*.pid; do [ -f \"$f\" ] && ! kill -0 \"$(cat \"$f\")\" 2>/dev/null && rm -f \"$f\"; done; systemd-inhibit --what=sleep:idle --who=claude-code --why=\"Claude Code session\" --mode=block tail --pid=$PPID -f /dev/null & echo $! > /tmp/claude-inhibitor-${SESSION_ID}.pid",
             "async": true
           }
         ]
