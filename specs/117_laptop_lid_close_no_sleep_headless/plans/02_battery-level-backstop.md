@@ -164,16 +164,16 @@ Phases within the same wave can execute in parallel. Phases 2 and 3 have no tech
 
 ---
 
-### Phase 2: GNOME battery idle timeout — 3600 s + explicit suspend type [NOT STARTED]
+### Phase 2: GNOME battery idle timeout — 3600 s + explicit suspend type [COMPLETED]
 
 **Goal**: Requirement (B) for the no-session-open case: battery idle-suspend at 1 hour instead of 15 minutes, with the action type pinned explicitly instead of riding the schema default.
 
 **Tasks**:
-- [ ] In `modules/home/desktop/gnome.nix`, `"org/gnome/settings-daemon/plugins/power"` block (lines 37-44):
+- [x] In `modules/home/desktop/gnome.nix`, `"org/gnome/settings-daemon/plugins/power"` block (lines 37-44):
   - `sleep-inactive-battery-timeout = 900` → `3600`, with the comment updated to say 60 minutes and to note it fires only when no block inhibitor is held (an open Claude session blocks it until the 10% backstop — decision 1).
   - Add `sleep-inactive-battery-type = "suspend";` explicitly (schema-verified enum value; currently implicit default). Rationale comment: after deliberately setting the AC type to `"nothing"`, leaving the battery type implicit invites drift.
-- [ ] Keep `sleep-inactive-ac-type = "nothing"` and the rest of the block untouched.
-- [ ] Build-level verification, then commit (`task 117 phase 2: gnome battery idle timeout 3600`).
+- [x] Keep `sleep-inactive-ac-type = "nothing"` and the rest of the block untouched.
+- [x] Build-level verification, then commit (`task 117 phase 2: gnome battery idle timeout 3600`). *(verified: flake check green; hamsa build green; HM dconf eval shows `sleep-inactive-battery-timeout = 3600` and `sleep-inactive-battery-type = "suspend"` with ac-type still `"nothing"`)*
 
 **Verification**:
 - `nix flake check` passes; `nixos-rebuild build --flake .#hamsa` succeeds (HM is a NixOS module in this flake, so the system build covers gnome.nix).

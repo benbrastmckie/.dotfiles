@@ -35,11 +35,19 @@
     };
 
     "org/gnome/settings-daemon/plugins/power" = {
-      # Never auto-suspend on AC — headless agents keep running; the battery
-      # timeout below is kept as battery/thermal protection.
+      # Never auto-suspend on AC — headless agents keep running.
       sleep-inactive-ac-type = "nothing";
       sleep-inactive-ac-timeout = 3600; # 60 minutes on AC power (inert with type "nothing")
-      sleep-inactive-battery-timeout = 900; # 15 minutes on battery
+      # Battery idle-suspend after 60 minutes. Fires ONLY when no logind block
+      # inhibitor is held: an open Claude Code session (even idle) blocks it
+      # entirely, in which case the 10% battery-suspend-backstop timer in
+      # modules/system/power.nix is the only protection (accepted limitation,
+      # task 117 decision 1).
+      sleep-inactive-battery-timeout = 3600; # 60 minutes on battery
+      # Explicit rather than riding the schema default: after deliberately
+      # setting the AC type to "nothing" above, leaving the battery type
+      # implicit invites drift.
+      sleep-inactive-battery-type = "suspend";
       idle-dim = true; # Dim screen before blanking
     };
 
