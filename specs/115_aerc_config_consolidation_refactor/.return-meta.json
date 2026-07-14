@@ -1,30 +1,7 @@
 {
-  "status": "implemented",
-  "started_at": "2026-07-14T13:37:54-07:00",
-  "summary": "Behavior-preserving consolidation refactor of modules/home/email/aerc.nix completed across all 4 plan phases. Querymaps and folders-exclude de-duplicated via a let-bound mkQuerymap generator with byte-identical rendered output (Phase 2's home-manager-files derivation hash matched baseline exactly); 16 Task-NN comment citations consolidated into 11 forward-looking rationale clusters with trailing citations; accounts.conf in-string comments hoisted to Nix level (D8 gate: comment-stripped diff empty, raw diff only removed #-lines); rationale-preservation audit 11/11 PASS; five KEEP decisions and the finding-7 OPEN RISK recorded in-file. home-manager build green after every phase; nix flake check passed.",
-  "artifacts": [
-    {
-      "type": "implementation",
-      "path": "modules/home/email/aerc.nix",
-      "summary": "Refactored aerc configuration (384 -> 431 lines): let-bound generator, cross-file contract header, 11 consolidated rationale clusters, KEEP decisions D1-D4 and finding-7 pointer recorded in-file; rendered behavior identical to baseline"
-    },
-    {
-      "type": "summary",
-      "path": "specs/115_aerc_config_consolidation_refactor/summaries/01_aerc-config-consolidation-summary.md",
-      "summary": "Implementation summary with D1-D8 outcomes, sha256 diff-verification table, 11/11 rationale-audit table, line-count deviation note, and the manual user checklist for TUI/live-mail verification"
-    }
-  ],
-  "completion_data": {
-    "completion_summary": "Consolidated and refactored the aerc email configuration for maintainability with zero behavior change: added a let-bound querymap/folders-exclude generator (byte-identical rendered output), consolidated 16 task-number comment citations into 11 forward-looking rationale clusters, hoisted accounts.conf in-string comments to Nix level, and recorded the five KEEP decisions plus the unresolved finding-7 act-dir risk in-file. Verified via rendered-config diff gates against a captured baseline and a green home-manager build at every phase; manual TUI checklist delivered in the summary."
-  },
-  "next_steps": "User: run home-manager switch when ready, then walk the manual TUI checklist in summaries/01_aerc-config-consolidation-summary.md; .baseline/ (uncommitted) may be deleted after re-verification.",
+  "status": "completed",
   "metadata": {
-    "session_id": "sess_1784060900_29066a",
-    "duration_seconds": 970,
-    "agent_type": "nix-implementation-agent",
-    "delegation_depth": 2,
-    "delegation_path": ["orchestrator", "orchestrate", "skill-orchestrate", "nix-implementation-agent"],
-    "phases_completed": 4,
-    "phases_total": 4
+    "cycles_used": 3,
+    "final_state": "completed"
   }
 }

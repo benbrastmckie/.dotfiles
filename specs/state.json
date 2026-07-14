@@ -536,7 +536,7 @@
     {
       "project_number": 115,
       "project_name": "aerc_config_consolidation_refactor",
-      "status": "planned",
+      "status": "completed",
       "task_type": "nix",
       "created": "2026-07-14T15:42:26Z",
       "dependencies": [],
@@ -544,7 +544,7 @@
         "modules/home/email/aerc.nix"
       ],
       "description": "Consolidate and refactor the aerc email configuration (modules/home/email/aerc.nix, 384 lines) for maintainability and coherence, WITHOUT changing behavior unless the plan makes an explicit justified decision. A complete self-contained session hand-off brief ALREADY EXISTS at specs/115_aerc_config_consolidation_refactor/reports/00_session-context-and-handoff.md and MUST be read first by the research phase and built forward from -- do not re-derive the history. That brief documents: (1) the full 2026-07-13/14 changelog (tasks 110-113 batch + follow-up fixes: INBOX querymap real-folder, compose format-flowed, enable :archive via maildir-store+act-dir, native :send -a flat archive-on-reply + systemd mail-sync timer, folders-exclude sidebar fix, :reply -c return-to-list, <Enter> part-cycle); (2) current architecture across aerc.nix/mbsync.nix/mail-sync.nix/notmuch.nix/mail-sync-timer.nix; (3) outstanding/deferred items (task 114 Gmail/.All_Mail duplicate-UID HIGH-RISK Expunge-Both remediation; 112/113 live-mail verification still user-pending; how check-mail should treat known-vs-real failures; the -a -c parser caveat; 17 accreted Task-NN comment markers to consolidate); (4) refactor goals (consolidate task-number comment archaeology into forward-looking docs; holistically reconsider folders-exclude-vs-folders-whitelist, text/plain-vs-text/html default, Enter-binding trade-off, logos check-mail, querymap de-duplication); (5) INVARIANTS to preserve (no agent live-mail mutation, Expunge-Both deletion danger, wrapper-only /email mutation, folder: token scoping, keep home-manager build green, no double-archive/tag:inbox regressions); (6) verification (build green + rendered-config semantic-equivalence diff + manual user checklist for TUI/live-mail). NON-GOALS: task 114 maildir remediation (separate task), redesigning behavior, home-manager switch or any live-mail action. This task is safe to orchestrate: it is config-refactor + build-verify only.",
-      "last_updated": "2026-07-14T20:36:26Z",
+      "last_updated": "2026-07-14T20:55:50Z",
       "session_id": "sess_1784060900_29066a",
       "artifacts": [
         {
@@ -556,8 +556,14 @@
           "path": "specs/115_aerc_config_consolidation_refactor/plans/01_aerc-config-consolidation.md",
           "type": "plan",
           "summary": "4-phase, fully sequential, behavior-preserving refactor plan for modules/home/email/aerc.nix. Phase 1 captures the five rendered config files (accounts.conf, aerc.conf, binds.conf, querymap-gmail, querymap-logos) from a green home-manager build into specs/115_*/.baseline/ with sha256sums. Phase 2 adds a top-level let block with foldersExclude and an mkQuerymap generator (explicit line lists + builtins.concatStringsSep, module signature stays `_:`) gated on byte-identity of ALL five rendered files. Phase 3 consolidates the 16 Task-NN citations into 11 rationale clusters via an authoritative mapping table (task numbers demoted to trailing citations, rationale never deleted), hoists accounts.conf in-string comments to Nix level, and records the five KEEP decisions in-file. Phase 4 runs a rationale-preservation audit (anchor-phrase grep per cluster), final diffs, and writes the summary with the manual user checklist."
+        },
+        {
+          "path": "specs/115_aerc_config_consolidation_refactor/summaries/01_aerc-config-consolidation-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary: D1-D8 outcomes, sha256 diff-verification table (4 byte-identical files + D8-gated accounts.conf), 11/11 rationale-preservation audit table, line-count deviation note, and the manual user checklist for TUI/live-mail items (sidebar cleanliness, ~85-message INBOX scale, reply->send->archive->focus flow, Enter part-cycling, u check-mail toast, carried-forward live archive end-to-end and finding-7 probes)."
         }
-      ]
+      ],
+      "completion_summary": "Refactored modules/home/email/aerc.nix (384->431 lines) behavior-preservingly: let-bound mkQuerymap generator + shared foldersExclude de-duplicate the querymaps and folders-exclude; 16 Task-NN citations consolidated into 11 forward-looking rationale clusters with task numbers demoted to trailing citations; five holistic-reconsideration points recorded in-file as explicit KEEP decisions; task-112 finding-7 curDir/INBOX-tab risk carried forward as a flagged OPEN RISK. Verified: home-manager build green, nix flake check passed, aerc.conf/binds.conf/querymap-gmail/querymap-logos byte-identical to baseline, accounts.conf diff comment-only (0 non-comment changes, D8 gate). No switch, no live-mail action. Manual TUI checklist pending user."
     },
     {
       "project_number": 116,
