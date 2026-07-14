@@ -277,16 +277,16 @@ Phases within the same wave can execute in parallel. Phases 2 and 3 have no tech
 
 ## Testing & Validation
 
-- [ ] `nix flake check` green after each config phase (1, 2).
-- [ ] `nixos-rebuild build --flake .#hamsa` green after each config phase (1, 2, 3).
-- [ ] Eval checks: backstop `ExecStart`/`timerConfig` (Phase 1), dconf power block (Phase 2).
-- [ ] `jq .` parses `config/claude/settings.json` (Phase 3).
-- [ ] Safe A/B suspend test: plain `suspend` refused under inhibitors, `suspend -i` succeeds (Phase 4, USER).
-- [ ] Backstop timer listed and ticking cleanly; script dry-run exits silently on AC (Phase 4).
-- [ ] Live gsettings: battery timeout 3600 / type `suspend` / ac-type `nothing` (Phase 4).
-- [ ] `HandleLidSwitch` live-reads `"lock"`; physical lid-close check (Phase 4, USER).
-- [ ] Scratch-session `kill -9` releases its inhibitor without SessionEnd (Phase 4).
-- [ ] Docs contain no stale 900 s/15-minute/backstop claims; accepted limitation documented (Phase 5).
+- [x] `nix flake check` green after each config phase (1, 2). *(also re-run after Phase 5: green)*
+- [x] `nixos-rebuild build --flake .#hamsa` green after each config phase (1, 2, 3). *(final build: `nixos-system-hamsa-26.05.20260710.8f0500b`)*
+- [x] Eval checks: backstop `ExecStart`/`timerConfig` (Phase 1), dconf power block (Phase 2).
+- [x] `jq .` parses `config/claude/settings.json` (Phase 3). *(plus `bash -n` on the extracted hook command)*
+- [ ] Safe A/B suspend test: plain `suspend` refused under inhibitors, `suspend -i` succeeds (Phase 4, USER). *(pending-user-activation)*
+- [ ] Backstop timer listed and ticking cleanly; script dry-run exits silently on AC (Phase 4). *(dry-run half already done pre-activation: store script exits 0 silently at AC/100%; timer listing pending-user-activation)*
+- [ ] Live gsettings: battery timeout 3600 / type `suspend` / ac-type `nothing` (Phase 4). *(pending-user-activation)*
+- [ ] `HandleLidSwitch` live-reads `"lock"`; physical lid-close check (Phase 4, USER). *(pending-user-activation)*
+- [ ] Scratch-session `kill -9` releases its inhibitor without SessionEnd (Phase 4). *(pending-user-activation; the tether mechanism itself was verified in isolation during Phase 3 — release within ~1 s of owner `kill -9`)*
+- [x] Docs contain no stale 900 s/15-minute/backstop claims; accepted limitation documented (Phase 5).
 
 ## Artifacts & Outputs
 

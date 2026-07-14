@@ -1,14 +1,42 @@
 {
-  "status": "researched",
-  "summary": "Round-3 research complete. HEADLINE (Q1): the existing UPower 2% backstop (CriticalPowerAction=HybridSleep, PercentageAction=2) is DENIED by systemd-logind while Claude Code's strong block inhibitors are held - verified end-to-end from installed-version sources (UPower 1.91.1 legacy HybridSleep(false) call cannot carry SD_LOGIND_SKIP_INHIBITORS; systemd v260 verify_shutdown_creds rejects outright on any strong block inhibitor, root gets no exemption; UPower fires once with a NULL error callback, never retries, never falls back) and corroborated by 7 live BlockedByInhibitorLock journal denials this boot. Consequence: with agents active, battery would drain past 2% to hard power loss. (B) verdict: 'sleep after an hour without agent activity' is UNACHIEVABLE as stated - the inhibitors come from the user's own SessionStart/SessionEnd hooks (repo: config/claude/settings.json) and are held while a session is merely open at the prompt; additionally gsd's battery idle-suspend is one-shot per idle period (no retry after a denial). Closest approximation: turn-scoped hooks (UserPromptSubmit/Stop) + sleep-inactive-battery-timeout 900->3600 + explicit sleep-inactive-battery-type=suspend, with residual misses bounded by the ~20% battery-low re-arm and the 10% backstop. (C) design: new root systemd timer (60s) polling /sys/class/power_supply/BAT*/ and running 'systemctl suspend -i' at <=10% while Discharging - verified bypass chain (systemctl -i => SuspendWithFlags(SD_LOGIND_SKIP_INHIBITORS); polkit implicitly authorizes uid 0). Threshold 10% not 2% (s2idle-only platform, 61Wh battery, FW13 AMD community drain 1.5-3%/h => 2% dies in under an hour suspended). Hibernate/HybridSleep NOT dependable (16G swapfile vs 30G RAM with ~28G routinely used, despite systemd-initrd shipping hibernate-resume) - use suspend. (A) confirmed no regression (power.nix lock committed; live logind still pre-activation 'suspend'). Also found: orphaned-inhibitor hazard (detached 'sleep infinity' survives missed SessionEnd until reboot).",
+  "status": "partial",
+  "agent_type": "nix-implementation-agent",
+  "session_id": "sess_1784057900_748474",
+  "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+  "task_number": 117,
+  "summary": "Round-2 battery-backstop implementation (plan 02): phases 1, 2, 3, 5 complete, build-verified, committed. (1) battery-suspend-backstop root service+timer in modules/system/power.nix - polls /sys/class/power_supply/BAT* every 60s, systemctl suspend -i at <=10% while Discharging, inhibitor-proof, intentional re-suspend loop documented in banner (commit c72c4cf). (2) GNOME sleep-inactive-battery-timeout 900->3600 with explicit sleep-inactive-battery-type=suspend (commit 2386332). (3) Claude SessionStart inhibitor payload swapped to tail --pid=$PPID -f /dev/null tether plus stale-pidfile reap; SessionEnd unchanged; hooks remain SESSION-scoped per user decision 1 (commit 29fdd1f). (5) docs/gnome-settings.md: battery backstop bullet, 60-min caveat, accepted open-Claude-session limitation stated plainly, all 15-minute-backstop claims removed (commit 09eb586). Both plan-flagged empirical dependencies VERIFIED before shipping: hook-shell $PPID is the owning claude process (deployed-settings probe + scratch session, deployed file restored from backup), and the systemd-inhibit tail-tether releases within ~1s of owner kill -9 (isolated live test). Backstop branch logic exercised against fake sysfs values (fires at 9/10 Discharging, silent at 11/Not charging/Charging; peripheral hid-* battery excluded by BAT* glob); store-script dry-run silent on AC/100%. All builds green: nix flake check + nixos-rebuild build .#hamsa after every config phase (final closure nixos-system-hamsa-26.05.20260710.8f0500b). Phase 4 [BLOCKED] pending user: interactive sudo unavailable; no switch, no suspend, no battery manipulation performed.",
+  "phases_completed": 4,
+  "phases_total": 5,
+  "blockers": [
+    "Phase 4 activation is user-gated: sudo nixos-rebuild switch --flake .#hamsa + reboot, then the runtime checklist in summaries/02_battery-level-backstop-summary.md (backstop timer live, safe suspend vs suspend -i A/B test under held inhibitors, live gsettings, HandleLidSwitch=lock, scratch-session kill -9 tether check)"
+  ],
   "artifacts": [
     {
-      "path": "specs/117_laptop_lid_close_no_sleep_headless/reports/03_battery-level-backstop.md",
-      "type": "report",
-      "summary": "Round-3: UPower 2% backstop verified blocked (headline); per-requirement A/B/C verdicts; concrete 10% root-timer suspend -i backstop spec for power.nix; turn-scoped hook recommendation; hibernate non-viability; verified-fact vs inference ledger with upstream URLs and live evidence"
+      "type": "implementation",
+      "path": "modules/system/power.nix",
+      "summary": "battery-suspend-backstop service + timer (BAT* glob, threshold 10, suspend -i, OnBootSec=2min/OnUnitActiveSec=60s)"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/desktop/gnome.nix",
+      "summary": "battery idle-suspend 3600s + explicit suspend type with inhibitor-caveat comments"
+    },
+    {
+      "type": "implementation",
+      "path": "config/claude/settings.json",
+      "summary": "SessionStart inhibitor tethered to owning claude process ($PPID verified) + stale-pidfile reap"
+    },
+    {
+      "type": "documentation",
+      "path": "docs/gnome-settings.md",
+      "summary": "10% backstop documented, 60-min battery idle-suspend caveat, accepted limitation, stale 15-minute claims removed"
+    },
+    {
+      "type": "summary",
+      "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/02_battery-level-backstop-summary.md",
+      "summary": "Round-2 implementation summary incl. USER ACTIVATION CHECKLIST and one-time stale-pidfile cleanup command"
     }
   ],
-  "session_id": "sess_1784057900_748474",
-  "continuation_context": "Ready for /plan (or /revise of plan 01) integrating report 03. Implementation surface: (1) modules/system/power.nix - add battery-suspend-backstop systemd service+timer (spec in report Section 6, threshold 10, BAT* glob only - peripheral hid-* battery false-positive documented); (2) modules/home/desktop/gnome.nix - sleep-inactive-battery-timeout 900->3600 and explicit sleep-inactive-battery-type=\"suspend\"; (3) config/claude/settings.json - move inhibitor acquisition SessionStart->UserPromptSubmit, release on Stop (+SessionEnd belt-and-suspenders), and tie inhibitor lifetime to the claude process instead of detached 'sleep infinity' (orphan hazard); (4) docs touch-ups per prior rounds' targets. User decisions to surface at plan time: 10% vs other threshold; whether to adopt turn-scoped hooks (weakens protection for run_in_background jobs); optional retrying idle-suspend poller extension (report Section 3.3, not recommended initially). Phase-4 activation of the lid lock config still pending user sudo (unchanged).",
-  "next_steps": "Run /plan 117 (revision) to fold report 03 into an implementation plan; lid-lock activation via sudo nixos-rebuild switch remains a user step"
+  "continuation_context": "All round-2 config work is committed and build-green; nothing further is agent-actionable until the user activates. Fixed decisions honored: hooks SESSION-scoped (no UserPromptSubmit/Stop), requirement (B) accepted as partial (open-idle Claude terminal blocks idle-suspend until the 10% backstop), services.upower.* untouched. After user activation + reboot, the remaining Phase 4 items are: timer listed and ticking, suspend/suspend -i A/B test (USER), live gsettings 3600/suspend/nothing, HandleLidSwitch lock (+ physical lid check, USER), deployed-hooks diff empty, scratch-session kill -9 releases inhibitor. Any failed check loops back into the owning phase's file; task stays partial until Phase 4 passes.",
+  "next_steps": "User runs: sudo nixos-rebuild switch --flake .#hamsa, reboot, then the Phase 4 checklist in summaries/02_battery-level-backstop-summary.md; on all-green, mark Phase 4 complete and the task completed."
 }

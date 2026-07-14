@@ -4,7 +4,7 @@
     {
       "project_number": 117,
       "project_name": "laptop_lid_close_no_sleep_headless",
-      "status": "implementing",
+      "status": "partial",
       "task_type": "nix",
       "description": "Configure laptop lid-close to blank screen but not sleep (keep AI agents running headless), preserving existing multi-monitor window distribution when monitors are attached, and document the setup in docs/ and relevant README.md files",
       "topic": "nixos-config",
@@ -40,6 +40,11 @@
           "type": "plan",
           "path": "specs/117_laptop_lid_close_no_sleep_headless/plans/02_battery-level-backstop.md",
           "summary": "5-phase plan: 10% root-timer suspend -i backstop, GNOME battery timeout 3600 + explicit suspend type, session-tethered inhibitor cleanup, activation + safe runtime verification, docs incl. accepted open-session limitation"
+        },
+        {
+          "type": "summary",
+          "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/02_battery-level-backstop-summary.md",
+          "summary": "Round-2 implementation summary: backstop timer, GNOME battery timeout, inhibitor tether all build-verified and committed; Phase 4 activation checklist pending user"
         }
       ],
       "plan_metadata": {

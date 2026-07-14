@@ -1,50 +1,40 @@
 {
   "status": "partial",
-  "started_at": "2026-07-14T12:54:59-07:00",
-  "summary": "Phases 1-3 and 5 complete and committed (logind lid-ignore, GNOME AC idle-suspend off, niri swayidle suspend removed, proportionate docs). All build-level verification green (nix flake check, nixos-rebuild build .#hamsa, logind.conf eval, niri validate). Phase 4 activation + runtime checks are blocked pending the user: interactive sudo is unavailable to the agent.",
+  "started_at": "2026-07-14T13:30:00-07:00",
+  "summary": "Round-2 battery-backstop implementation: phases 1, 2, 3, 5 complete, build-verified, and committed (backstop timer c72c4cf, GNOME battery timeout 2386332, inhibitor tether 29fdd1f, docs 09eb586). Both plan-flagged empirical dependencies verified: hook-shell $PPID IS the owning claude process (probe), and the tail --pid tether releases the inhibitor within ~1s of owner kill -9 (isolated test). Phase 4 (activation + runtime verification) pending user: interactive sudo unavailable and agents must not switch/suspend.",
   "artifacts": [
     {
       "type": "implementation",
       "path": "modules/system/power.nix",
-      "summary": "logind.settings.Login HandleLidSwitch/HandleLidSwitchExternalPower = ignore with banner comment"
+      "summary": "battery-suspend-backstop service + timer: BAT* poll every 60s, systemctl suspend -i at <=10% Discharging, inhibitor-proof"
     },
     {
       "type": "implementation",
       "path": "modules/home/desktop/gnome.nix",
-      "summary": "sleep-inactive-ac-type = nothing added to gsd-power dconf block"
+      "summary": "sleep-inactive-battery-timeout 900->3600, explicit sleep-inactive-battery-type=suspend"
     },
     {
       "type": "implementation",
-      "path": "config/config.kdl",
-      "summary": "swayidle 10-minute systemctl suspend pair removed; lock handlers preserved"
+      "path": "config/claude/settings.json",
+      "summary": "SessionStart inhibitor payload sleep infinity -> tail --pid=$PPID tether + stale-pidfile reap; SessionEnd unchanged"
     },
     {
       "type": "documentation",
       "path": "docs/gnome-settings.md",
-      "summary": "Power Management section: lid-close behavior, AC idle-suspend change, battery hazard warning, inhibitor note"
-    },
-    {
-      "type": "documentation",
-      "path": "docs/niri.md",
-      "summary": "Swayidle bullet + post-snippet clarification: no idle auto-suspend, lid never suspends in either session"
-    },
-    {
-      "type": "documentation",
-      "path": "docs/configuration.md",
-      "summary": "One-phrase power.nix category touch (power/lid behavior)"
+      "summary": "Battery backstop bullet, 60-min battery idle-suspend with inhibitor caveat, accepted limitation, stale 15-minute claims removed"
     },
     {
       "type": "summary",
-      "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/01_lid-close-no-sleep-summary.md",
-      "summary": "Implementation summary with verification results and pending user activation steps"
+      "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/02_battery-level-backstop-summary.md",
+      "summary": "Round-2 implementation summary with user activation checklist and one-time stale-pidfile cleanup command"
     }
   ],
   "completion_data": {
-    "completion_summary": "Lid-close no-suspend implemented at config level: logind ignores the lid switch (battery and AC), GNOME AC idle-suspend disabled, niri swayidle auto-suspend removed, docs updated. Runtime activation (sudo nixos-rebuild switch --flake .#hamsa) and the runtime/functional checks remain pending the user."
+    "completion_summary": "Battery-level suspend backstop implemented and build-verified: root systemd timer suspends at <=10% while discharging via systemctl suspend -i (bypasses all sleep inhibitors), GNOME battery idle-suspend raised to 60 minutes with explicit suspend type, Claude session inhibitors tethered to their owning process so crashed sessions release their locks. Activation (sudo nixos-rebuild switch + reboot + runtime checks) pending user."
   },
   "partial_progress": {
     "stage": "phase_4_blocked",
-    "details": "Phases 1,2,3,5 [COMPLETED]; Phase 4 [BLOCKED] pending-user-activation (interactive sudo unavailable)",
+    "details": "Phases 1,2,3,5 [COMPLETED]; Phase 4 [BLOCKED] pending-user-activation (interactive sudo unavailable; suspend tests are user-performed)",
     "handoff_path": "specs/117_laptop_lid_close_no_sleep_headless/.orchestrator-handoff.json"
   },
   "metadata": {
@@ -55,5 +45,5 @@
     "phases_completed": 4,
     "phases_total": 5
   },
-  "next_steps": "User runs: sudo nixos-rebuild switch --flake .#hamsa, then the busctl/gsettings/journalctl lid checks in the summary; then mark Phase 4 complete and the task completed."
+  "next_steps": "User: sudo nixos-rebuild switch --flake .#hamsa, reboot, then run the Phase 4 checklist in summaries/02_battery-level-backstop-summary.md (incl. the safe suspend vs suspend -i A/B test and the scratch-session kill-9 tether check)."
 }
