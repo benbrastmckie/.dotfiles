@@ -4,12 +4,12 @@
     {
       "project_number": 117,
       "project_name": "laptop_lid_close_no_sleep_headless",
-      "status": "partial",
+      "status": "researched",
       "task_type": "nix",
       "description": "Configure laptop lid-close to blank screen but not sleep (keep AI agents running headless), preserving existing multi-monitor window distribution when monitors are attached, and document the setup in docs/ and relevant README.md files",
       "topic": "nixos-config",
       "created": "2026-07-14T19:36:34Z",
-      "last_updated": "2026-07-14T20:25:59Z",
+      "last_updated": "2026-07-14T21:25:00Z",
       "artifacts": [
         {
           "type": "report",
@@ -30,6 +30,11 @@
           "type": "report",
           "path": "specs/117_laptop_lid_close_no_sleep_headless/reports/02_lid-close-screen-off-mechanism.md",
           "summary": "Round-2 verification: ignore alone leaves undocked panel on (mutter 50.2 source); niri native; recommends HandleLidSwitch=lock companion; docked path unaffected; suspend-path audit"
+        },
+        {
+          "type": "report",
+          "path": "specs/117_laptop_lid_close_no_sleep_headless/reports/03_battery-level-backstop.md",
+          "summary": "Round-3: UPower 2% backstop verified BLOCKED by strong inhibitors on systemd 260 (would hard-die at 0%); (B) unachievable as stated (SessionStart/SessionEnd hooks hold inhibitor while idle); recommends 10% root-timer suspend -i backstop, turn-scoped hooks, battery timeout 3600 + explicit suspend type"
         }
       ],
       "plan_metadata": {

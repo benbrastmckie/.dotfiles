@@ -18,7 +18,7 @@ next_project_number: 118
 
 ### Nixos Config
 
-117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
+117 [RESEARCHED] — Configure laptop lid-close to blank screen but not sleep (keep AI
 
 ### Nix Infrastructure
 
@@ -49,13 +49,14 @@ next_project_number: 118
 ## Tasks
 
 ### 117. Laptop lid close no sleep headless
-- **Status**: [PARTIAL]
+- **Status**: [RESEARCHED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
 - **Research**:
   - [117_laptop_lid_close_no_sleep_headless/reports/01_lid-close-no-sleep.md]
   - [117_laptop_lid_close_no_sleep_headless/reports/02_lid-close-screen-off-mechanism.md]
+  - [117_laptop_lid_close_no_sleep_headless/reports/03_battery-level-backstop.md]
 - **Plan**: [117_laptop_lid_close_no_sleep_headless/plans/01_lid-close-no-sleep.md]
 - **Summary**: [117_laptop_lid_close_no_sleep_headless/summaries/01_lid-close-no-sleep-summary.md]
 

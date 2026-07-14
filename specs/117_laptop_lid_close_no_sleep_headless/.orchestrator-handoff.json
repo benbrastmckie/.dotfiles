@@ -1,34 +1,14 @@
 {
-  "status": "implemented",
-  "summary": "Phase 5 (round 2): reconciled docs with the lock-based lid behavior after round-2 research falsified the round-1 'mutter blanks the panel, ignore is sufficient' rationale and the config changed ignore->lock in commit d82e669. docs/gnome-settings.md Lid-Close Behavior subsection now states both logind values as 'lock', describes lock-then-panel-off-~30s (gsd-power screensaver blank) blank-but-awake behavior, credits gsd-power's handle-lid-switch block inhibitor (plus HandleLidSwitchDocked default ignore) for unchanged docked behavior, and its inhibitor Note now correctly says sleep inhibitors never affect the lid action (LidSwitchIgnoreInhibited=yes default) and govern idle-suspend only; the battery bag-warning bullet is retained. docs/niri.md lid paragraph corrected from 'ignored at logind' to the lock action, noting niri natively toggles the internal monitor with the lid and swayidle's lock handler covers the lock signal. docs/configuration.md:33 left alone (generic, accurate). Grep across docs/ found no other stale 'ignore'/mutter-blanks claims. Round-2 addendum appended to summaries/01 (falsification, d82e669 ignore->lock, docs reconciled, busctl check now expects 'lock'). Verification: nix flake check 'all checks passed!'; nixos-rebuild build --flake .#hamsa succeeded. Committed as d558c6b (3 files only; concurrent-session churn excluded). Activation (Phase 4) still pending user sudo.",
-  "phases_completed": 5,
-  "phases_total": 5,
+  "status": "researched",
+  "summary": "Round-3 research complete. HEADLINE (Q1): the existing UPower 2% backstop (CriticalPowerAction=HybridSleep, PercentageAction=2) is DENIED by systemd-logind while Claude Code's strong block inhibitors are held - verified end-to-end from installed-version sources (UPower 1.91.1 legacy HybridSleep(false) call cannot carry SD_LOGIND_SKIP_INHIBITORS; systemd v260 verify_shutdown_creds rejects outright on any strong block inhibitor, root gets no exemption; UPower fires once with a NULL error callback, never retries, never falls back) and corroborated by 7 live BlockedByInhibitorLock journal denials this boot. Consequence: with agents active, battery would drain past 2% to hard power loss. (B) verdict: 'sleep after an hour without agent activity' is UNACHIEVABLE as stated - the inhibitors come from the user's own SessionStart/SessionEnd hooks (repo: config/claude/settings.json) and are held while a session is merely open at the prompt; additionally gsd's battery idle-suspend is one-shot per idle period (no retry after a denial). Closest approximation: turn-scoped hooks (UserPromptSubmit/Stop) + sleep-inactive-battery-timeout 900->3600 + explicit sleep-inactive-battery-type=suspend, with residual misses bounded by the ~20% battery-low re-arm and the 10% backstop. (C) design: new root systemd timer (60s) polling /sys/class/power_supply/BAT*/ and running 'systemctl suspend -i' at <=10% while Discharging - verified bypass chain (systemctl -i => SuspendWithFlags(SD_LOGIND_SKIP_INHIBITORS); polkit implicitly authorizes uid 0). Threshold 10% not 2% (s2idle-only platform, 61Wh battery, FW13 AMD community drain 1.5-3%/h => 2% dies in under an hour suspended). Hibernate/HybridSleep NOT dependable (16G swapfile vs 30G RAM with ~28G routinely used, despite systemd-initrd shipping hibernate-resume) - use suspend. (A) confirmed no regression (power.nix lock committed; live logind still pre-activation 'suspend'). Also found: orphaned-inhibitor hazard (detached 'sleep infinity' survives missed SessionEnd until reboot).",
   "artifacts": [
     {
-      "path": "docs/gnome-settings.md",
-      "type": "implementation",
-      "summary": "Lid-Close Behavior subsection and inhibitor Note reconciled: HandleLidSwitch*=lock values, lock-then-blank (~30s) mechanism, gsd-power docked inhibitor, LidSwitchIgnoreInhibited=yes inhibitor nuance; battery warning retained"
-    },
-    {
-      "path": "docs/niri.md",
-      "type": "implementation",
-      "summary": "Post-swayidle lid paragraph corrected: logind lid action is lock (not ignored); niri natively toggles the internal monitor with the lid; swayidle lock handler covers the lock signal"
-    },
-    {
-      "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/01_lid-close-no-sleep-summary.md",
-      "type": "summary",
-      "summary": "Round-2 addendum appended: round-1 assumption falsified, ignore->lock in commit d82e669, docs reconciled, activation-check expectation updated to 'lock'"
-    },
-    {
-      "path": "specs/117_laptop_lid_close_no_sleep_headless/reports/02_lid-close-screen-off-mechanism.md",
+      "path": "specs/117_laptop_lid_close_no_sleep_headless/reports/03_battery-level-backstop.md",
       "type": "report",
-      "summary": "Round-2 research (pre-existing): mutter 50.2 source proof that ignore alone leaves the undocked panel on; basis for the lock revision and this doc reconciliation"
+      "summary": "Round-3: UPower 2% backstop verified blocked (headline); per-requirement A/B/C verdicts; concrete 10% root-timer suspend -i backstop spec for power.nix; turn-scoped hook recommendation; hibernate non-viability; verified-fact vs inference ledger with upstream URLs and live evidence"
     }
   ],
   "session_id": "sess_1784057900_748474",
-  "continuation_context": "Config (power.nix at lock, commit d82e669) and all docs now agree with the round-2 findings. state.json status intentionally left 'partial': Phase 4 activation requires interactive sudo. USER steps: (1) sudo nixos-rebuild switch --flake .#hamsa; (2) busctl get-property org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager HandleLidSwitch -> expect s \"lock\" (restart systemd-logind if stale); (3) follow the safe activation/test procedure in reports/02_lid-close-screen-off-mechanism.md (dock-attached lid test before undocked test; canary process instead of live agents for the first undocked test). Open user decision from report 02 remains: keep 15-min battery idle-suspend vs sleep-inactive-battery-type=nothing.",
-  "blockers": [
-    "Phase 4 activation requires interactive sudo (sudo nixos-rebuild switch --flake .#hamsa); the implementing agent's sudo access is denied by the permission system"
-  ],
-  "next_steps": "User activates with sudo nixos-rebuild switch --flake .#hamsa, verifies HandleLidSwitch=lock via busctl, and runs the report-02 safe lid tests; then task 117 can be marked completed"
+  "continuation_context": "Ready for /plan (or /revise of plan 01) integrating report 03. Implementation surface: (1) modules/system/power.nix - add battery-suspend-backstop systemd service+timer (spec in report Section 6, threshold 10, BAT* glob only - peripheral hid-* battery false-positive documented); (2) modules/home/desktop/gnome.nix - sleep-inactive-battery-timeout 900->3600 and explicit sleep-inactive-battery-type=\"suspend\"; (3) config/claude/settings.json - move inhibitor acquisition SessionStart->UserPromptSubmit, release on Stop (+SessionEnd belt-and-suspenders), and tie inhibitor lifetime to the claude process instead of detached 'sleep infinity' (orphan hazard); (4) docs touch-ups per prior rounds' targets. User decisions to surface at plan time: 10% vs other threshold; whether to adopt turn-scoped hooks (weakens protection for run_in_background jobs); optional retrying idle-suspend poller extension (report Section 3.3, not recommended initially). Phase-4 activation of the lid lock config still pending user sudo (unchanged).",
+  "next_steps": "Run /plan 117 (revision) to fold report 03 into an implementation plan; lid-lock activation via sudo nixos-rebuild switch remains a user step"
 }
