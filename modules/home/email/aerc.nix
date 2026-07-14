@@ -189,8 +189,15 @@ _: {
         "<S-Tab>" = ":prev-tab<Enter>";
 
         # Actions
-        r = ":reply<Enter>";
-        R = ":reply -a<Enter>";
+        # -c ("close the view tab when replying") closes THIS message-view tab at
+        # reply-open time, so after :send -a flat archives the message, tab history
+        # returns focus to the message list ("main view") instead of stranding the
+        # user in the now-stale viewer. Provably safe: reply.go's -c only acts when a
+        # message viewer is focused (mv != nil), so the list-context r/R above are a
+        # guaranteed no-op and are left as bare :reply; -c is orthogonal to -a (no
+        # double-archive); aborting the reply reopens a peek-view of the message.
+        r = ":reply -c<Enter>";
+        R = ":reply -a -c<Enter>";
         f = ":forward<Enter>";
         d = ":prompt 'Delete message?' 'delete-message'<Enter>";
         a = ":archive flat<Enter>";
