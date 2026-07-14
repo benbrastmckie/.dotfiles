@@ -169,19 +169,25 @@ situation before touching anything, and re-confirm the failure live.
 
 ---
 
-### Phase 3: Rename the stray in place to strip `,U=15` (the single mutation) [NOT STARTED]
+### Phase 3: Rename the stray in place to strip `,U=15` (the single mutation) [COMPLETED]
 
 **Goal**: Resolve the collision with one reversible in-place rename of the confirmed stray.
 
 **Tasks**:
-- [ ] Re-verify no mail-sync/mbsync run is active (flock held or timer stopped from Phase 1).
-- [ ] Rename ONLY the confirmed-stray file in place within `.All_Mail/cur/`, stripping the `,U=15`
+- [x] Re-verify no mail-sync/mbsync run is active (flock held or timer stopped from Phase 1).
+  *(completed: timer inactive, no mbsync/mail-sync process running, flock -n on
+  /run/user/1000/mail-sync.lock acquired cleanly)*
+- [x] Rename ONLY the confirmed-stray file in place within `.All_Mail/cur/`, stripping the `,U=15`
   portion of the suffix (e.g. `..._624.hamsa,U=15:2,` → `..._624.hamsa:2,`). Use `mv` within the
   same directory only. Do NOT `rm`, do NOT move to `tmp/`, `new/`, or any other folder, do NOT
-  touch the legit file.
-- [ ] Record the exact old→new name mapping so the rename can be reverted verbatim.
-- [ ] Confirm both files still physically exist in `.All_Mail/cur/` (one now without `,U=15`, one
-  still with `,U=15`), so no `Expunge Both` deletion can be propagated.
+  touch the legit file. *(completed: `1770674724.1073681_15.hamsa,U=15:2,` ->
+  `1770674724.1073681_15.hamsa:2,`, same-directory `mv -n`; sha256 verified identical
+  before/after)*
+- [x] Record the exact old→new name mapping so the rename can be reverted verbatim. *(completed:
+  artifacts/03_rename-mapping.txt)*
+- [x] Confirm both files still physically exist in `.All_Mail/cur/` (one now without `,U=15`, one
+  still with `,U=15`), so no `Expunge Both` deletion can be propagated. *(completed: both files
+  present; exactly one ,U=15 file remains — the legit eNTERTAINMENT cENTER file)*
 
 **Timing**: 15 minutes
 

@@ -1,0 +1,13 @@
+# Phase 3 rename mapping (fully reversible)
+# Directory: /home/benjamin/Mail/Gmail/.All_Mail/cur/
+# Rename performed: 2026-07-14
+
+OLD_NAME=1770674724.1073681_15.hamsa,U=15:2,
+NEW_NAME=1770674724.1073681_15.hamsa:2,
+
+# To revert:
+# cd /home/benjamin/Mail/Gmail/.All_Mail/cur/
+# mv -n -- '1770674724.1073681_15.hamsa:2,' '1770674724.1073681_15.hamsa,U=15:2,'
+
+sha256_before=d20e581e5bd1e756aa126e8fca56f6bb35c587921b04c28925f87e9894fcec24
+sha256_after=d20e581e5bd1e756aa126e8fca56f6bb35c587921b04c28925f87e9894fcec24

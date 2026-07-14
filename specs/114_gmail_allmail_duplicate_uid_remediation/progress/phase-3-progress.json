@@ -1,0 +1,17 @@
+{
+  "phase": 3,
+  "phase_name": "Rename the stray in place to strip ,U=15 (the single mutation)",
+  "started_at": "2026-07-14T09:06:00-07:00",
+  "last_updated": "2026-07-14T09:09:00-07:00",
+  "objectives": [
+    {"id": 1, "description": "Re-verify no mail-sync/mbsync run active", "status": "done", "files_touched": []},
+    {"id": 2, "description": "Rename ONLY the confirmed-stray file in place, stripping ,U=15", "status": "done", "files_touched": []},
+    {"id": 3, "description": "Record exact old->new name mapping for reversibility", "status": "done", "files_touched": ["specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/03_rename-mapping.txt"]},
+    {"id": 4, "description": "Confirm both files still physically exist in cur/, one now without ,U=15", "status": "done", "files_touched": []}
+  ],
+  "current_objective": null,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": [],
+  "notes": "Single mutation performed: mv -n (same-directory rename only, no rm, no cross-directory move) on the confirmed-stray CEO Nick Slape file. sha256 verified identical before/after (content preserved). Legit eNTERTAINMENT cENTER file (,U=15) confirmed untouched. Exactly one ,U=15 file now remains in cur/. Rename mapping recorded in artifacts/03_rename-mapping.txt for verbatim reversal if needed."
+}
