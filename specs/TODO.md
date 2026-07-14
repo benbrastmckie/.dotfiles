@@ -1,10 +1,10 @@
 ---
-next_project_number: 116
+next_project_number: 117
 ---
 
 # TODO
 
-Warning: 1 task(s) have no topic and will render under Uncategorized: 115 (non-fatal)
+Warning: 2 task(s) have no topic and will render under Uncategorized: 115, 116 (non-fatal)
 ## Task Order
 
 *Updated 2026-07-14. Generated from state.json dependency graph.*
@@ -12,7 +12,7 @@ Warning: 1 task(s) have no topic and will render under Uncategorized: 115 (non-f
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,115 | -- | nix-infrastructure, services, desktop, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,115,116 | -- | nix-infrastructure, services, desktop, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -46,8 +46,18 @@ Warning: 1 task(s) have no topic and will render under Uncategorized: 115 (non-f
 ### Uncategorized
 
 115 [NOT STARTED] — Consolidate and refactor the aerc email configuration (modules/ho
+116 [NOT STARTED] — Investigate and safely remediate a misplaced non-mail filesystem 
 
 ## Tasks
+
+### 116. Mail specs stray tree cleanup
+- **Status**: [NOT STARTED]
+- **Task Type**: general
+- **Dependencies**: None
+
+**Description**: Investigate and safely remediate a misplaced non-mail filesystem tree at ~/Mail/specs/ (8.4MB, ~219 files) discovered during task 114. It is a stray copy of task-management/email-cleanup artifacts (TODO.md, state.json, ROADMAP.md, .meta-return.json, a full archive/ of dozens of email-cleanup task dirs, task dirs 027/029/072, and email-manifests/logos/ *.jsonl manifest+state data), created ~2026-07-13/14 by email-cleanup tooling running with cwd=~/Mail and writing RELATIVE specs/... paths there instead of into the repo. Impact: because modules/home/email/notmuch.nix sets the notmuch database path to ~/Mail, every 'notmuch new' walks all ~219 files and logs 'Ignoring non-mail file' for each (minor perf/noise cost). It is NOT inside a maildir folder, so mbsync never scans it and it is NOT a sync blocker (distinct from the task-114 in-maildir 'specs,U=67297' dir, which was already removed). SCOPE: (1) Determine provenance precisely -- which tool/run wrote it (candidates: /email cleanup for logos, tasks 027/029/072 tooling); confirm whether ANY file here is the ONLY copy of real data (esp. email-manifests/logos/*.jsonl and their .state.jsonl) vs. a stale duplicate of the repo's own specs/ tree -- diff against ~/.dotfiles/specs/ before removing anything. (2) Safely relocate any unique/valuable artifacts into the repo (or an appropriate location) and remove the rest; do NOT blindly rm 8.4MB that may contain unique manifests. (3) Add a durable guard so this cannot recur: e.g. a notmuch new.ignore / exclude entry for non-mail paths under ~/Mail, and/or fix the email-cleanup tooling that writes relative specs/ paths so it always writes absolute repo paths (root-cause). SAFETY: nothing here is a maildir message and mbsync does not touch it, so there is NO Expunge-Both server-deletion risk; but treat email-manifests/ data as potentially unique until proven duplicate. NON-GOALS: re-doing task 114; any live-mail mutation; touching actual maildir folders. Task type intentionally set to 'general' (filesystem cleanup + optional notmuch.nix guard), NOT the wrapper-only 'email' type, despite mail-related keywords.
+
+---
 
 ### 115. Aerc config consolidation refactor
 - **Status**: [NOT STARTED]

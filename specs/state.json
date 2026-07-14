@@ -1,5 +1,5 @@
 {
-  "next_project_number": 116,
+  "next_project_number": 117,
   "active_projects": [
     {
       "project_number": 71,
@@ -482,6 +482,19 @@
         "modules/home/email/aerc.nix"
       ],
       "description": "Consolidate and refactor the aerc email configuration (modules/home/email/aerc.nix, 384 lines) for maintainability and coherence, WITHOUT changing behavior unless the plan makes an explicit justified decision. A complete self-contained session hand-off brief ALREADY EXISTS at specs/115_aerc_config_consolidation_refactor/reports/00_session-context-and-handoff.md and MUST be read first by the research phase and built forward from -- do not re-derive the history. That brief documents: (1) the full 2026-07-13/14 changelog (tasks 110-113 batch + follow-up fixes: INBOX querymap real-folder, compose format-flowed, enable :archive via maildir-store+act-dir, native :send -a flat archive-on-reply + systemd mail-sync timer, folders-exclude sidebar fix, :reply -c return-to-list, <Enter> part-cycle); (2) current architecture across aerc.nix/mbsync.nix/mail-sync.nix/notmuch.nix/mail-sync-timer.nix; (3) outstanding/deferred items (task 114 Gmail/.All_Mail duplicate-UID HIGH-RISK Expunge-Both remediation; 112/113 live-mail verification still user-pending; how check-mail should treat known-vs-real failures; the -a -c parser caveat; 17 accreted Task-NN comment markers to consolidate); (4) refactor goals (consolidate task-number comment archaeology into forward-looking docs; holistically reconsider folders-exclude-vs-folders-whitelist, text/plain-vs-text/html default, Enter-binding trade-off, logos check-mail, querymap de-duplication); (5) INVARIANTS to preserve (no agent live-mail mutation, Expunge-Both deletion danger, wrapper-only /email mutation, folder: token scoping, keep home-manager build green, no double-archive/tag:inbox regressions); (6) verification (build green + rendered-config semantic-equivalence diff + manual user checklist for TUI/live-mail). NON-GOALS: task 114 maildir remediation (separate task), redesigning behavior, home-manager switch or any live-mail action. This task is safe to orchestrate: it is config-refactor + build-verify only."
+    },
+    {
+      "project_number": 116,
+      "project_name": "mail_specs_stray_tree_cleanup",
+      "status": "not_started",
+      "task_type": "general",
+      "created": "2026-07-14T19:11:11Z",
+      "dependencies": [],
+      "file_scope": [
+        "~/Mail/specs/",
+        "modules/home/email/notmuch.nix"
+      ],
+      "description": "Investigate and safely remediate a misplaced non-mail filesystem tree at ~/Mail/specs/ (8.4MB, ~219 files) discovered during task 114. It is a stray copy of task-management/email-cleanup artifacts (TODO.md, state.json, ROADMAP.md, .meta-return.json, a full archive/ of dozens of email-cleanup task dirs, task dirs 027/029/072, and email-manifests/logos/ *.jsonl manifest+state data), created ~2026-07-13/14 by email-cleanup tooling running with cwd=~/Mail and writing RELATIVE specs/... paths there instead of into the repo. Impact: because modules/home/email/notmuch.nix sets the notmuch database path to ~/Mail, every 'notmuch new' walks all ~219 files and logs 'Ignoring non-mail file' for each (minor perf/noise cost). It is NOT inside a maildir folder, so mbsync never scans it and it is NOT a sync blocker (distinct from the task-114 in-maildir 'specs,U=67297' dir, which was already removed). SCOPE: (1) Determine provenance precisely -- which tool/run wrote it (candidates: /email cleanup for logos, tasks 027/029/072 tooling); confirm whether ANY file here is the ONLY copy of real data (esp. email-manifests/logos/*.jsonl and their .state.jsonl) vs. a stale duplicate of the repo's own specs/ tree -- diff against ~/.dotfiles/specs/ before removing anything. (2) Safely relocate any unique/valuable artifacts into the repo (or an appropriate location) and remove the rest; do NOT blindly rm 8.4MB that may contain unique manifests. (3) Add a durable guard so this cannot recur: e.g. a notmuch new.ignore / exclude entry for non-mail paths under ~/Mail, and/or fix the email-cleanup tooling that writes relative specs/ paths so it always writes absolute repo paths (root-cause). SAFETY: nothing here is a maildir message and mbsync does not touch it, so there is NO Expunge-Both server-deletion risk; but treat email-manifests/ data as potentially unique until proven duplicate. NON-GOALS: re-doing task 114; any live-mail mutation; touching actual maildir folders. Task type intentionally set to 'general' (filesystem cleanup + optional notmuch.nix guard), NOT the wrapper-only 'email' type, despite mail-related keywords."
     }
   ],
   "repository_health": {
