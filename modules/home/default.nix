@@ -41,6 +41,7 @@
     ./services/ydotool.nix
     ./services/gmail-oauth2.nix
     ./services/cache-cleanup.nix
+    ./services/mail-sync-timer.nix
 
     # Memory monitoring (co-located: scripts + systemd services, three-tier system)
     ./memory/monitor.nix

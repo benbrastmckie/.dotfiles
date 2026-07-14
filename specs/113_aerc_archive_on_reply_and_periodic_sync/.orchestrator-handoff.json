@@ -1,0 +1,39 @@
+{
+  "task_number": 113,
+  "task_name": "aerc_archive_on_reply_and_periodic_sync",
+  "phase_completed": "implement",
+  "status": "implemented",
+  "plan_path": "specs/113_aerc_archive_on_reply_and_periodic_sync/plans/01_archive-on-reply-periodic-sync.md",
+  "task_type": "nix",
+  "modified_files": [
+    "modules/home/email/aerc.nix",
+    "modules/home/services/mail-sync-timer.nix",
+    "modules/home/default.nix"
+  ],
+  "artifacts": [
+    "specs/113_aerc_archive_on_reply_and_periodic_sync/plans/01_archive-on-reply-periodic-sync.md",
+    "specs/113_aerc_archive_on_reply_and_periodic_sync/summaries/01_archive-on-reply-periodic-sync-summary.md"
+  ],
+  "phase_count": 5,
+  "phases_completed": 4,
+  "estimated_hours": 1.75,
+  "dependency_waves": [[1, 2], [3], [4], [5]],
+  "territory": {
+    "modules/home/email/aerc.nix": "Phase 1 (rebind compose::review.y to ':send -a flat<Enter>'; delete the [hooks] mail-sent attrset) and Phase 3 (add [gmail] check-mail/check-mail-cmd/check-mail-timeout). Both COMPLETED.",
+    "modules/home/services/mail-sync-timer.nix": "Phase 2 (new module: oneshot service + timer running 'mail-sync both', modeled on cache-cleanup.nix). COMPLETED.",
+    "modules/home/default.nix": "Phase 2 (import ./services/mail-sync-timer.nix in the Service modules section). COMPLETED."
+  },
+  "summary": "Task 113 config implemented and build-verified. Phase 1: compose::review.y rebound to ':send -a flat<Enter>'; the uncommitted draft [hooks] mail-sent block deleted (confirmed absent from the generated aerc.conf). Phase 2: new modules/home/services/mail-sync-timer.nix (oneshot service + timer, OnCalendar='*:0/15', Persistent=true, After=graphical-session.target) created and imported into modules/home/default.nix's Service modules section; build output inspected directly from the Nix store and confirmed correct. Phase 3: [gmail] accounts.conf wired with check-mail=10m, check-mail-cmd='mail-sync gmail --no-wait', check-mail-timeout=30s (fixes the previously-broken 'u' keybind); [logos] left unwired per plan. Phase 4: 'home-manager build --flake .#benjamin' ran and exited 0 (8 derivations built). Phase 5 (live end-to-end reply->archive->sync->Gmail-web check) is PARTIAL/deferred to a manual user checklist recorded in the implementation summary -- no agent-driven TUI, mail-send, or mail-sync/mbsync live action was performed, per the plan's Non-Goals and orchestrator constraints.",
+  "next_command": "user: home-manager switch --flake .#benjamin, then follow the manual verification checklist in specs/113_aerc_archive_on_reply_and_periodic_sync/summaries/01_archive-on-reply-periodic-sync-summary.md",
+  "blockers": [],
+  "open_questions": [],
+  "verification": {
+    "build": "home-manager build --flake .#benjamin exited 0 (verified).",
+    "read_only_safe": "systemctl --user list-timers / systemctl --user status mail-sync-timer.timer were NOT run by the agent -- no generation has been activated yet (build-only), so the new timer unit is not yet loaded into the running systemd --user session. Safe for the user to run after switch.",
+    "forbidden_for_agent": "Did NOT run home-manager switch, drive aerc's TUI, send real mail, or run mail-sync/mbsync against live servers. The reply->archive->sync->Gmail-web end-to-end check is recorded as a manual user checklist (Phase 5, PARTIAL)."
+  },
+  "commit_note": "No commit was performed and nothing was left staged. The working tree holds intermingled uncommitted hunks (task 112 edits + the draft hook removal + this task's changes); committing is orchestrator-handled. NOTE: modules/home/services/mail-sync-timer.nix required a transient 'git add' / 'git reset HEAD' round-trip to get one green home-manager build (Nix flakes only evaluate git-tracked paths); it is confirmed back to untracked ('??') with nothing staged. Whoever runs the build again before the final commit will need to 'git add' the new file themselves first.",
+  "git_commit_performed": false,
+  "session_id": "sess_1783985072_1a21fb_113",
+  "timestamp": "2026-07-14T00:26:44Z"
+}

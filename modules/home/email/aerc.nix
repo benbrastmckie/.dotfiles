@@ -31,10 +31,18 @@ _: {
         header-layout = "From|To,Cc|Bcc,Date,Subject";
       };
       compose = {
-        editor = "nvim";
+        # Neovim's built-in mail ftplugin sets textwidth=72 and formatoptions+=t,
+        # which HARD-wraps paragraphs as you type (the "breaks lines at ~80" symptom).
+        # Override both for the compose buffer so each paragraph stays a single long
+        # line; combined with format-flowed below, recipients' clients then soft-wrap
+        # to their own width instead of showing fixed-column hard breaks.
+        editor = "nvim -c 'setlocal textwidth=0 formatoptions-=t'";
         header-layout = "To|From,Subject";
         address-book-cmd = "";
         reply-to-self = false;
+        # Emit RFC3676 "text/plain; format=flowed" bodies so long, un-hard-wrapped
+        # lines reflow on the receiving side rather than appearing broken at a column.
+        format-flowed = true;
       };
       filters = {
         "text/plain" = "colorize";
@@ -89,6 +97,9 @@ _: {
         "<Enter>" = ":view<Enter>";
         d = ":prompt 'Delete message?' 'delete-message'<Enter>";
         D = ":prompt 'Hard delete (bypass the confirm-message prompt)?' 'delete'<Enter>";
+        # Task 112: single-message archive is deliberately left UNPROMPTED (reversible
+        # file move, low blast radius, matches mail-client convention), while A/d/D
+        # remain prompted since they act on larger or irreversible blast radii.
         a = ":archive flat<Enter>";
         A = ":unmark -a<Enter>:mark -a<Enter>:prompt 'Archive ALL marked messages?' 'archive flat'<Enter>";
 
@@ -218,7 +229,14 @@ _: {
       };
 
       "compose::review" = {
-        y = ":send<Enter>";
+        # Task 113: native archive-on-reply. aerc 0.21.0's `:send -a` (Send.Archive,
+        # commands/compose/send.go) is consumed by msg/reply.go's OnClose closure, which
+        # archives the exact models.MessageInfo captured by reference at :reply time --
+        # immune to list reflow / cursor drift (unlike the removed Subject-sniffing
+        # mail-sent hook). `-a` is inert (never archives) on :forward, a fresh :compose,
+        # and :recall, so this rebind is safe on every send path. Independently scoped
+        # from `R` (:reply -a, reply-all below) -- no collision.
+        y = ":send -a flat<Enter>";
         n = ":abort<Enter>";
         p = ":postpone<Enter>";
         q = ":abort<Enter>";
@@ -242,6 +260,15 @@ _: {
     ".config/aerc/accounts.conf".text = ''
       [gmail]
       source = notmuch://~/Mail
+      # Task 112: required for aerc's notmuch worker to perform real :archive/:delete
+      # file moves (without it, the worker gates all mutations and returns
+      # errUnsupported -- the mechanism behind the prior silent no-op). Upstream aerc
+      # master has deprecated maildir-store in favor of enable-maildir, but the
+      # installed nixpkgs aerc 0.21.0 still uses maildir-store; remove these two
+      # lines (or switch to enable-maildir) if/when the aerc derivation is bumped
+      # past that upstream change.
+      maildir-store = ~/Mail
+      multi-file-strategy = act-dir
       query-map = ~/.config/aerc/querymap-gmail
       default = INBOX
       from = Benjamin Brast-McKie <benbrastmckie@gmail.com>
@@ -249,9 +276,26 @@ _: {
       archive = All_Mail
       outgoing = smtps://benbrastmckie@gmail.com@smtp.gmail.com:465
       outgoing-cred-cmd = secret-tool lookup service gmail-app-password username benbrastmckie@gmail.com
+      # Task 113: while-aerc-is-open convenience sync, secondary to the systemd
+      # mail-sync-timer (primary "sync even when closed" mechanism). --no-wait makes
+      # a lock-contended call fail fast (task 109's mail-sync flock; the systemd timer
+      # will pick up the sync shortly regardless) rather than hanging aerc's "Checking
+      # for new mail..." indicator for up to 300s. check-mail-timeout is raised from
+      # its 10s default so a normal, uncontended network mbsync round-trip is not
+      # spuriously killed. Wiring check-mail-cmd also makes the pre-existing
+      # `u = ":check-mail<Enter>"` keybind functional (it previously errored
+      # "checkmail: no command specified"). [logos] is intentionally left unwired,
+      # matching the existing gmail-only `$` keybind convention (out of scope).
+      check-mail = 10m
+      check-mail-cmd = mail-sync gmail --no-wait
+      check-mail-timeout = 30s
 
       [logos]
       source = notmuch://~/Mail
+      # Task 112: see the [gmail] maildir-store/multi-file-strategy comment above --
+      # same forward-compat caveat applies here.
+      maildir-store = ~/Mail
+      multi-file-strategy = act-dir
       query-map = ~/.config/aerc/querymap-logos
       default = INBOX
       from = Benjamin Brast-McKie <benjamin@logos-labs.ai>
@@ -271,8 +315,20 @@ _: {
     # zero messages; verified empirically against the working `tag:gmail`-scoped
     # baseline that only `folder:/Gmail/` (or an exact `folder:Gmail/SubDir` path)
     # reproduces the same counts. Flagged for a CLAUDE.md accuracy follow-up.
+    #
+    # Task 110: INBOX below uses the bare exact-match form `folder:Gmail`/`folder:Logos`
+    # (INBOX-only, true maildir-folder membership) rather than `tag:inbox AND folder:/Gmail/`,
+    # because `notmuch.nix`'s postNew hook applies `+inbox` once at delivery and never removes
+    # it on archive (only on the Sent/Trash/Spam auto-tag rules), so `tag:inbox` is a permanent
+    # "was delivered" marker, not a live inbox-membership signal; and `folder:/Gmail/` regex
+    # over-matches `Gmail/.All_Mail`. Together the old query returned ~12,580 messages instead
+    # of the true ~85-message inbox. The `Unread`/`Flagged`/`Proposed-*` entries below
+    # intentionally REMAIN account-wide (`folder:/Gmail/` / `folder:/Logos/`) -- they are
+    # tag-driven triage/search views, not folder-membership views, and scoping `Proposed-*` to
+    # the inbox would silently hide proposed-tagged messages touched by a prior triage pass,
+    # undermining the review gate. Do not re-scope them to match INBOX.
     ".config/aerc/querymap-gmail".text = ''
-      INBOX=tag:inbox AND folder:/Gmail/
+      INBOX=folder:Gmail
       Sent=folder:Gmail/.Sent
       Drafts=folder:Gmail/.Drafts
       Trash=folder:Gmail/.Trash
@@ -286,9 +342,10 @@ _: {
     '';
 
     # aerc query map for Logos virtual folders. See Gmail querymap comment above
-    # (task 34, Phase 5 / F5) -- same `folder:/Logos/` regex-form rationale.
+    # (task 34, Phase 5 / F5; task 110) -- same `folder:/Logos/` regex-form rationale and
+    # same INBOX-vs-triage-view scope-asymmetry rationale.
     ".config/aerc/querymap-logos".text = ''
-      INBOX=tag:inbox AND folder:/Logos/
+      INBOX=folder:Logos
       Sent=folder:Logos/.Sent
       Drafts=folder:Logos/.Drafts
       Trash=folder:Logos/.Trash
