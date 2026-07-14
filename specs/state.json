@@ -4,12 +4,31 @@
     {
       "project_number": 118,
       "project_name": "document_no_sleep_functionality",
-      "status": "not_started",
+      "status": "completed",
       "task_type": "nix",
       "description": "Research and create documentation in docs/ for the no-sleep functionality set up so AI agents can run without interruption",
       "topic": "nixos-config",
       "created": "2026-07-14T22:34:35Z",
-      "last_updated": "2026-07-14T22:34:35Z"
+      "last_updated": "2026-07-14T22:52:47Z",
+      "session_id": "sess_1784068658_f4c1ca",
+      "artifacts": [
+        {
+          "path": "specs/118_document_no_sleep_functionality/reports/01_no-sleep-functionality.md",
+          "type": "report",
+          "summary": "Research on no-sleep functionality"
+        },
+        {
+          "path": "specs/118_document_no_sleep_functionality/plans/01_no-sleep-documentation.md",
+          "type": "plan",
+          "summary": "Documentation plan"
+        },
+        {
+          "path": "specs/118_document_no_sleep_functionality/summaries/01_no-sleep-documentation-summary.md",
+          "type": "summary",
+          "summary": "No-sleep documentation summary"
+        }
+      ],
+      "completion_summary": "Consolidated documentation of the four-layer no-sleep system (Claude Code session inhibitors, GNOME/logind lid+idle, niri swayidle, root battery backstop) into docs/no-sleep-agents.md, with cross-references from gnome-settings.md/niri.md, README index entry, and nix trailer comments."
     },
     {
       "project_number": 117,
