@@ -270,6 +270,15 @@ _: {
       maildir-store = ~/Mail
       multi-file-strategy = act-dir
       query-map = ~/.config/aerc/querymap-gmail
+      # Regression fix (follow-up to task 112): setting maildir-store above makes the
+      # notmuch worker ALSO enumerate every physical maildir folder under the shared
+      # ~/Mail root -- so BOTH accounts' Gmail/* and Logos/* dirs stacked into every
+      # sidebar on top of the query-map virtual folders. folders-exclude is display-only
+      # (it does NOT affect :archive's file move, which resolves archive= against
+      # maildir-store independently), so it restores the clean, per-account query-map
+      # folder list. The ~ prefix marks a regex; no query-map name starts with
+      # Gmail/Logos, so this hides only the raw physical tree.
+      folders-exclude = ~^Gmail,~^Logos
       default = INBOX
       from = Benjamin Brast-McKie <benbrastmckie@gmail.com>
       copy-to = Sent
@@ -297,6 +306,9 @@ _: {
       maildir-store = ~/Mail
       multi-file-strategy = act-dir
       query-map = ~/.config/aerc/querymap-logos
+      # Regression fix (follow-up to task 112): see the [gmail] folders-exclude comment.
+      # Same shared-~/Mail enumeration applies here, so exclude the same physical tree.
+      folders-exclude = ~^Gmail,~^Logos
       default = INBOX
       from = Benjamin Brast-McKie <benjamin@logos-labs.ai>
       copy-to = Sent
