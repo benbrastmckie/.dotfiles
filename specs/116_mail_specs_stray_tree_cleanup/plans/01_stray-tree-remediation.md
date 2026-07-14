@@ -136,7 +136,7 @@ in the entire task.
 
 ---
 
-### Phase 2: Root-cause fix — absolute, task-decoupled default manifest dir [NOT STARTED]
+### Phase 2: Root-cause fix — absolute, task-decoupled default manifest dir [COMPLETED]
 
 **Goal**: Change `manifestDirDefault` in `modules/home/email/agent-tools/lib.nix` from the
 repo-relative `specs/072_email_workflow_infrastructure_prereqs/manifests` to a stable absolute
@@ -156,15 +156,15 @@ lifecycle entirely): `"$HOME/.local/state/email-agent/manifests"`.
   is the correct form. Do not convert `lib.nix` into a Home Manager module for this.
 
 **Tasks**:
-- [ ] Baseline: run `nix flake check` to confirm the tree builds cleanly before editing (records a baseline so any post-change failure is attributable).
-- [ ] Edit `modules/home/email/agent-tools/lib.nix:35`: set `manifestDirDefault = "$HOME/.local/state/email-agent/manifests";`.
-- [ ] Update the help text at `lib.nix:72-74` so the `--manifest-dir` default description reads as the new absolute path (no longer "relative to the current working directory — normally the .dotfiles repo root").
-- [ ] Update `docs/email-workflow.md:27` (the `(default $EMAIL_MANIFEST_DIR, else specs/072_email_workflow_infrastructure_prereqs/manifests/)` reference) to the new absolute default.
-- [ ] Confirm override precedence is untouched: `lib.nix:61` still reads `MANIFEST_DIR="''${EMAIL_MANIFEST_DIR:-${manifestDirDefault}}"` and the `--manifest-dir` / `--manifest-dir=` arg branches (`lib.nix:86-87`) still override `MANIFEST_DIR` afterward.
-- [ ] Rebuild the wrappers: `home-manager build --flake .#benjamin` (or `nix build .#homeConfigurations.benjamin.activationPackage`; if wrappers are delivered via the NixOS host config, `nixos-rebuild build --flake .#<current-host>`). Then `nix flake check`.
-- [ ] Verify the built binaries resolve the new default: inspect one built wrapper (e.g. grep the store path for `email-census`) to confirm the interpolated default is `${EMAIL_MANIFEST_DIR:-$HOME/.local/state/email-agent/manifests}` and NOT the old relative `specs/072...` string; run `email-census --help` and confirm the help text shows the absolute default.
-- [ ] Verify override still wins: with `EMAIL_MANIFEST_DIR=/tmp/mtest-116` set (or `--manifest-dir /tmp/mtest-116`), confirm a dry/read-only wrapper invocation uses that dir (its `mkdir -p` targets `/tmp/mtest-116`), not the compiled default. Clean up `/tmp/mtest-116` afterward. (Stay within wrapper-only, dry-run, read-only invocations — no `--execute`.)
-- [ ] (Optional, defense-in-depth; no rebuild required, may land independently) Note in this plan's summary whether `skill-email-cleanup` / `skill-email-implementation` SKILL.md should be updated to always export an explicit absolute `EMAIL_MANIFEST_DIR` before invoking wrappers, rather than relying on the compiled default. Do not implement unless trivially in scope.
+- [x] Baseline: run `nix flake check` to confirm the tree builds cleanly before editing (records a baseline so any post-change failure is attributable). *(completed: all checks passed!)*
+- [x] Edit `modules/home/email/agent-tools/lib.nix:35`: set `manifestDirDefault = "$HOME/.local/state/email-agent/manifests";`. *(completed)*
+- [x] Update the help text at `lib.nix:72-74` so the `--manifest-dir` default description reads as the new absolute path (no longer "relative to the current working directory — normally the .dotfiles repo root"). *(completed)*
+- [x] Update `docs/email-workflow.md:27` (the `(default $EMAIL_MANIFEST_DIR, else specs/072_email_workflow_infrastructure_prereqs/manifests/)` reference) to the new absolute default. *(completed)*
+- [x] Confirm override precedence is untouched: `lib.nix:61` still reads `MANIFEST_DIR="''${EMAIL_MANIFEST_DIR:-${manifestDirDefault}}"` and the `--manifest-dir` / `--manifest-dir=` arg branches (`lib.nix:86-87`) still override `MANIFEST_DIR` afterward. *(completed: confirmed unchanged by inspection)*
+- [x] Rebuild the wrappers: `home-manager build --flake .#benjamin` (or `nix build .#homeConfigurations.benjamin.activationPackage`; if wrappers are delivered via the NixOS host config, `nixos-rebuild build --flake .#<current-host>`). Then `nix flake check`. *(completed: both succeeded)*
+- [x] Verify the built binaries resolve the new default: inspect one built wrapper (e.g. grep the store path for `email-census`) to confirm the interpolated default is `${EMAIL_MANIFEST_DIR:-$HOME/.local/state/email-agent/manifests}` and NOT the old relative `specs/072...` string; run `email-census --help` and confirm the help text shows the absolute default. *(completed: verified for all 5 built binaries)*
+- [x] Verify override still wins: with `EMAIL_MANIFEST_DIR=/tmp/mtest-116` set (or `--manifest-dir /tmp/mtest-116`), confirm a dry/read-only wrapper invocation uses that dir (its `mkdir -p` targets `/tmp/mtest-116`), not the compiled default. Clean up `/tmp/mtest-116` afterward. (Stay within wrapper-only, dry-run, read-only invocations — no `--execute`.) *(completed: verified both env-var and flag-form overrides; temp dirs cleaned up)*
+- [ ] (Optional, defense-in-depth; no rebuild required, may land independently) Note in this plan's summary whether `skill-email-cleanup` / `skill-email-implementation` SKILL.md should be updated to always export an explicit absolute `EMAIL_MANIFEST_DIR` before invoking wrappers, rather than relying on the compiled default. Do not implement unless trivially in scope. *(deviation: deferred — noted in the implementation summary per this optional task's own instruction, not implemented as it is explicitly out of trivial scope)*
 
 **Timing**: ~50 minutes (edit is one line + two doc/help updates; the rebuild + binary verification dominate)
 

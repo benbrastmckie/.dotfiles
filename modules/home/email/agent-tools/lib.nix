@@ -32,7 +32,7 @@
 # default.nix). PLAIN Nix expression, not a Home Manager module — no `pkgs`/`config` args;
 # consumers `import ./lib.nix` directly and `inherit` the helpers they need.
 let
-  manifestDirDefault = "specs/072_email_workflow_infrastructure_prereqs/manifests";
+  manifestDirDefault = "$HOME/.local/state/email-agent/manifests";
 
   # ---------------------------------------------------------------------------------------
   # Shared preamble (contract §2): global flags, `--account {gmail,logos}` per-account resolver
@@ -70,8 +70,7 @@ let
       Global flags (wrapper-contract.md §2):
         --account <gmail|logos> Account to operate on (default: gmail)
         --manifest-dir <path>   Override manifest storage (default: \$EMAIL_MANIFEST_DIR, else
-                                 ${manifestDirDefault}/ relative to the current working directory —
-                                 normally the .dotfiles repo root)
+                                 ${manifestDirDefault}/)
         --help                  Show this help
       ${extraHelp}
       HELPEOF

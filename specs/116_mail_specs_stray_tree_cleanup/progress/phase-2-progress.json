@@ -1,0 +1,21 @@
+{
+  "phase": 2,
+  "phase_name": "Root-cause fix - absolute, task-decoupled default manifest dir",
+  "started_at": "2026-07-14T00:10:00Z",
+  "last_updated": "2026-07-14T00:45:00Z",
+  "objectives": [
+    {"id": 1, "description": "Baseline: run nix flake check before editing", "status": "done", "files_touched": []},
+    {"id": 2, "description": "Edit lib.nix:35 manifestDirDefault to absolute XDG-state path", "status": "done", "files_touched": ["modules/home/email/agent-tools/lib.nix"]},
+    {"id": 3, "description": "Update lib.nix:72-74 help text", "status": "done", "files_touched": ["modules/home/email/agent-tools/lib.nix"]},
+    {"id": 4, "description": "Update docs/email-workflow.md:27", "status": "done", "files_touched": ["docs/email-workflow.md"]},
+    {"id": 5, "description": "Confirm override precedence unchanged (code review only)", "status": "done", "files_touched": []},
+    {"id": 6, "description": "Rebuild wrappers: home-manager build / nix flake check", "status": "done", "files_touched": []},
+    {"id": 7, "description": "Verify built binaries resolve new absolute default; --help shows it", "status": "done", "files_touched": []},
+    {"id": 8, "description": "Verify EMAIL_MANIFEST_DIR / --manifest-dir override still wins", "status": "done", "files_touched": []}
+  ],
+  "current_objective": null,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": [],
+  "notes": "Baseline `nix flake check` clean before edits. Edited lib.nix:35 (manifestDirDefault -> $HOME/.local/state/email-agent/manifests, literal $HOME in double-quoted Nix string interpolated into the ''...'' preamble so bash expands it at runtime), lib.nix:72-74 help text (dropped stale 'relative to cwd/.dotfiles repo root' phrasing), docs/email-workflow.md:27. Override precedence (lib.nix:61 default assign, lib.nix:85-86 flag overrides) unchanged by inspection. home-manager build --flake .#benjamin succeeded (rebuilt all 5 wrapper drvs: email-census, email-classify, email-unsubscribe-extract, email-archive-confirmed, email-delete-confirmed). Verified via realpath-resolved home-path binaries: all 5 grep to `MANIFEST_DIR=\"${EMAIL_MANIFEST_DIR:-$HOME/.local/state/email-agent/manifests}\"`; `email-census --help` shows the resolved absolute path in its help text. Live read-only verification (sanctioned per plan: dry-run/read-only wrapper-only, no --execute, no mutation): ran `email-census --account gmail` once with EMAIL_MANIFEST_DIR=/tmp/mtest-116 override and once with --manifest-dir /tmp/mtest-116-flag override; both created mkdir -p at the overridden path (confirming override still wins over the new default) and both temp dirs + log files were removed immediately after. `nix flake check` passed cleanly after the rebuild (all checks passed!). grep -rn '072_email_workflow_infrastructure_prereqs/manifests' modules/home/email docs/ returns no stale live references (only historical/doc-history mentions of the archived task number remain, which is expected and acceptable per the plan)."
+}

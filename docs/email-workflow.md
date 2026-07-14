@@ -24,7 +24,7 @@ Built by `modules/home/email/agent-tools.nix`, on `$PATH` after `home-manager sw
 
 Every binary supports `--help`, `--account gmail` (the only accepted value), and
 `--manifest-dir <path>` (default `$EMAIL_MANIFEST_DIR`, else
-`specs/072_email_workflow_infrastructure_prereqs/manifests/`).
+`$HOME/.local/state/email-agent/manifests/`).
 
 ## Dry-run / confirm flow
 
