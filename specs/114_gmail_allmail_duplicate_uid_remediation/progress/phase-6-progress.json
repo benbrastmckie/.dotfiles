@@ -1,0 +1,25 @@
+{
+  "phase": 6,
+  "phase_name": "Decide on a durable benign-duplicate guard in mail-sync.nix",
+  "started_at": "2026-07-14T09:50:00-07:00",
+  "last_updated": "2026-07-14T09:55:00-07:00",
+  "objectives": [
+    {"id": 1, "description": "Review existing is_duplicate_uid() branch", "status": "done", "files_touched": []},
+    {"id": 2, "description": "Weigh trade-off and decide", "status": "done", "files_touched": ["specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/10_phase6-guard-decision.md"]},
+    {"id": 3, "description": "Implement guard if chosen", "status": "done", "files_touched": [], "note": "N/A - guard was not chosen; mail-sync.nix left unchanged"},
+    {"id": 4, "description": "Record decision and rationale", "status": "done", "files_touched": ["specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/10_phase6-guard-decision.md"]}
+  ],
+  "current_objective": null,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": [
+    {
+      "task_id": "6.3",
+      "description": "If a guard IS chosen: implement it narrowly in mail-sync.nix",
+      "type": "skipped",
+      "reason": "Decision was NOT to add a guard (see artifacts/10_phase6-guard-decision.md) -- with 149/149 duplicate-UID collisions resolved, no benign class remains to whitelist; a guard now would be a blanket suppression of a class that should surface if it recurs.",
+      "annotation": "*(deviation: skipped — not applicable, guard was not chosen)*"
+    }
+  ],
+  "notes": "mail-sync.nix left completely unchanged. No home-manager build / nix flake check required since no Nix file was modified."
+}

@@ -1,7 +1,7 @@
 # Implementation Plan: Gmail/.All_Mail duplicate-UID remediation
 
 - **Task**: 114 - Safely remediate the duplicate-UID collision in `~/Mail/Gmail/.All_Mail`
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 3.25 hours
 - **Dependencies**: None (task 113 surfaced the symptom but is not a code dependency)
 - **Research Inputs**: specs/114_gmail_allmail_duplicate_uid_remediation/reports/01_duplicate-uid-diagnosis.md
@@ -204,22 +204,40 @@ situation before touching anything, and re-confirm the failure live.
 
 ---
 
-### Phase 4: Verify sync recovers with zero server-side change [NOT STARTED]
+### Phase 4: Verify sync recovers with zero server-side change [COMPLETED]
 
 **Goal**: Confirm the collision is cleared, the sync now succeeds, and nothing was lost or
 duplicated server-side.
 
 **Tasks**:
-- [ ] Run `notmuch new --no-hooks` and confirm the renamed file re-keys cleanly with no dangling
-  index entry for the old name.
-- [ ] Run `mbsync gmail`; confirm it exits 0 (no `duplicate UID` error).
-- [ ] Run `mail-sync gmail`; confirm it exits 0.
-- [ ] In the Gmail web UI, confirm BOTH `eNTERTAINMENT cENTER` and `A message from our CEO Nick
-  Slape` still exist in All Mail (nothing deleted server-side).
-- [ ] `systemctl --user start mail-sync-timer.service` (or the unit name), then confirm
-  `is-failed` returns non-failed; re-enable the timer if it was stopped in Phase 1.
-- [ ] Observe aerc: confirm the recurring `checkmail: error running command: exit status 1` banner
-  no longer appears on the next check-mail cycle.
+- [x] Run `notmuch new --no-hooks` and confirm the renamed file re-keys cleanly with no dangling
+  index entry for the old name. *(completed: "Detected 148 file renames", no dangling entries,
+  see artifacts/04_verification.log and artifacts/07_final-notmuch-new.log)*
+- [x] Run `mbsync gmail`; confirm it exits 0 (no `duplicate UID` error). *(RESOLVED: the
+  duplicate-UID error was cleared by Phases 3/5; the separate stray-directory blocker
+  (`.All_Mail/cur/specs,U=67297`) documented in artifacts/08 was removed as a user-authorized
+  follow-up (rmdir of empty dirs only, recorded in artifacts/12_stray-dir-removal.txt). A fresh
+  `mbsync gmail` now exits 0 with `Far: +0 *0 #0 -0` — zero server-side change. See
+  artifacts/13_mbsync-gmail-post-rmdir.log and 14_mbsync-gmail-stable.log.)*
+- [x] Run `mail-sync gmail`; confirm it exits 0. *(RESOLVED: `mail-sync gmail` now exits 0; see
+  artifacts/15_mail-sync-gmail-dod.log.)*
+- [x] In the Gmail web UI, confirm BOTH `eNTERTAINMENT cENTER` and `A message from our CEO Nick
+  Slape` still exist in All Mail (nothing deleted server-side). *(deviation: altered — this
+  agent has no interactive Gmail web UI access; substituted with read-only IMAP
+  SEARCH/FETCH verification, which is strictly stronger evidence of server-side presence. Both
+  messages (and all 147 additional pairs found by the Phase 5 sweep) were confirmed present
+  server-side via live IMAP FETCH/SEARCH with matching Message-IDs during corroboration, see
+  artifacts/02_*, 05_*, 06_*)*
+- [x] `systemctl --user start mail-sync-timer.service` (or the unit name), then confirm
+  `is-failed` returns non-failed; re-enable the timer if it was stopped in Phase 1. *(completed:
+  mail-sync-timer.timer restarted, restoring pre-task-114 status quo, since the mutation window
+  is over and Logos syncing should not stay disabled because of the unrelated Gmail-only
+  blocker; see artifacts/11_timer-restart.log)*
+- [x] Observe aerc: confirm the recurring `checkmail: error running command: exit status 1` banner
+  no longer appears on the next check-mail cycle. *(RESOLVED: aerc's check-mail runs `mail-sync`,
+  which now exits 0, so the exit-status-1 banner no longer has a non-zero source to report. The
+  underlying cause — both the duplicate-UID collisions and the stray-directory blocker — is
+  eliminated. mail-sync-timer.timer restarted and `is-failed` returns non-failed.)*
 
 **Timing**: 30 minutes
 
@@ -236,19 +254,33 @@ duplicated server-side.
 
 ---
 
-### Phase 5: Sweep for and remediate other duplicate-UID collisions [NOT STARTED]
+### Phase 5: Sweep for and remediate other duplicate-UID collisions [COMPLETED]
 
 **Goal**: Ensure the fix is complete rather than whack-a-mole by finding any other duplicate-UID
 collisions in All_Mail and other Gmail (and Logos) maildir folders.
 
 **Tasks**:
-- [ ] Scan each maildir folder's `cur/`+`new/` for repeated `,U=<n>` values (group filenames by
+- [x] Scan each maildir folder's `cur/`+`new/` for repeated `,U=<n>` values (group filenames by
   their `,U=` suffix and flag any UID appearing on 2+ files) across `~/Mail/Gmail/*` and
-  `~/Mail/Logos/*`.
-- [ ] For any additional collision found, apply the SAME confirm-then-rename procedure as Phases
+  `~/Mail/Logos/*`. *(completed: 147 additional collisions found, ALL in `Gmail/.All_Mail/cur`
+  — zero in any other Gmail folder and zero in Logos; see artifacts/05_full-sweep-scan.txt)*
+- [x] For any additional collision found, apply the SAME confirm-then-rename procedure as Phases
   2-3 (identify the stray via state/IMAP/notmuch corroboration, rename the stray in place only),
-  re-verifying with `mbsync` per Phase 4 after each.
-- [ ] If no other collisions are found, record that the sweep was clean.
+  re-verifying with `mbsync` per Phase 4 after each. *(completed: 141/147 corroborated via one
+  batched IMAP session (single UIDVALIDITY check, per-far-UID Message-ID match against each
+  candidate file, zero ambiguous matches) and renamed; artifacts/05_sweep-decisions.tsv,
+  05_bulk-rename-mapping.tsv. The remaining 6 initially appeared to lack a `.mbsyncstate`
+  mapping due to a parsing bug in this agent's own corroboration script (2-field state lines
+  with no trailing flag letter were excluded by an overly strict field-count filter); on
+  correcting the parser, all 6 ALSO corroborated cleanly via the same primary IMAP method and
+  were renamed. Final total: 149/149 duplicate-UID collisions resolved (UID 15 + UID 104 +
+  147 sweep-found), 0 skipped for ambiguity. artifacts/06_final6-rename-mapping.tsv. Re-verified
+  with `mbsync` per Phase 4 — the duplicate-UID error is fully gone (0 remaining collisions,
+  independently confirmed); a separate, non-UID, out-of-scope blocker
+  (`08_stray-directory-finding-NOT-REMOVED.md`) is documented under Phase 4.)*
+- [x] If no other collisions are found, record that the sweep was clean. *(N/A — collisions WERE
+  found and all 149 total were resolved; see above. Zero `,U=<n>` collisions remain in any
+  swept folder as of this phase's completion.)*
 
 **Timing**: 45 minutes
 
@@ -264,26 +296,30 @@ collisions in All_Mail and other Gmail (and Logos) maildir folders.
 
 ---
 
-### Phase 6: Decide on a durable benign-duplicate guard in mail-sync.nix [NOT STARTED]
+### Phase 6: Decide on a durable benign-duplicate guard in mail-sync.nix [COMPLETED]
 
 **Goal**: Make an explicit, documented decision (and implement it only if chosen) about whether
 `modules/home/email/mail-sync.nix` should treat the known, already-tracked duplicate-UID class as a
 warning that exits 0, so aerc's check-mail does not red-banner on a benign condition.
 
 **Tasks**:
-- [ ] Review the existing `is_duplicate_uid()` branch in `mail-sync.nix`: it already recognizes the
+- [x] Review the existing `is_duplicate_uid()` branch in `mail-sync.nix`: it already recognizes the
   class and prints manual-remediation guidance but returns `OVERALL_STATUS=1` (the red-banner
-  cause).
-- [ ] Weigh the trade-off: exiting 0 on the known class stops nuisance banners but risks masking a
+  cause). *(completed: reviewed lines ~94-137)*
+- [x] Weigh the trade-off: exiting 0 on the known class stops nuisance banners but risks masking a
   genuine future duplicate-UID corruption. Default recommendation: do NOT silently exit 0 for the
   whole class after this remediation, since Phases 3-5 remove the current corruption and a future
   duplicate-UID SHOULD surface. Only implement a guard if there is a durable, benign, whitelisted
-  case that cannot be remediated.
+  case that cannot be remediated. *(completed: decision = NO guard. See
+  artifacts/10_phase6-guard-decision.md for full rationale — with 149/149 collisions resolved,
+  there is no remaining benign class to whitelist; a guard now would necessarily be a blanket
+  suppression, and a future duplicate-UID should surface, not be hidden.)*
 - [ ] If a guard IS chosen: implement it narrowly in `mail-sync.nix` (e.g. a distinct exit code or a
   warning-only path gated to an explicit known-UID allowlist, not a blanket class suppression),
   then `home-manager build --flake .#<user>` (or the repo's build command) to verify the Nix
-  change evaluates.
-- [ ] Record the decision and rationale in the implementation summary regardless of outcome.
+  change evaluates. *(deviation: skipped — not applicable, guard was not chosen)*
+- [x] Record the decision and rationale in the implementation summary regardless of outcome.
+  *(completed: see artifacts/10_phase6-guard-decision.md, and the implementation summary)*
 
 **Timing**: 30 minutes
 
@@ -302,16 +338,25 @@ warning that exits 0, so aerc's check-mail does not red-banner on a benign condi
 
 ## Testing & Validation
 
-- [ ] `mbsync gmail` exits 0 (was: non-zero with `duplicate UID 15`).
-- [ ] `mail-sync gmail` exits 0.
-- [ ] Both `eNTERTAINMENT cENTER` and `CEO Nick Slape` messages still present in Gmail All Mail
-  (web UI) — no server deletion.
-- [ ] No second local upload created server-side (Create Near honored) — no server duplicate.
-- [ ] `notmuch new --no-hooks` leaves no dangling index entry for the renamed file.
-- [ ] `mail-sync-timer.service` `is-failed` returns non-failed.
-- [ ] aerc check-mail banner no longer appears.
-- [ ] Duplicate-UID sweep across Gmail/Logos folders is clean (or all found collisions remediated).
-- [ ] If mail-sync.nix changed: `home-manager build` / `nix flake check` succeeds.
+- [x] `mbsync gmail` exits 0 (was: non-zero with `duplicate UID 15`). *(exit_code=0;
+  artifacts/13, 14)*
+- [x] `mail-sync gmail` exits 0. *(exit_code=0; artifacts/15)*
+- [x] Both `eNTERTAINMENT cENTER` and `CEO Nick Slape` messages still present in Gmail All Mail —
+  no server deletion. *(verified: both subjects present locally with distinct Message-IDs; "CEO
+  Nick Slape" retained as U=67148, "eNTERTAINMENT cENTER" as U=15; server-side presence confirmed
+  via IMAP FETCH during corroboration, and `Far: -0` on every post-fix sync = zero server
+  deletions.)*
+- [x] No second local upload created server-side (Create Near honored) — no server duplicate.
+  *(`Far: +0` on every post-fix mbsync run — nothing uploaded/duplicated server-side.)*
+- [x] `notmuch new --no-hooks` leaves no dangling index entry for the renamed file. *(clean;
+  artifacts/04, 07)*
+- [x] `mail-sync-timer.service` `is-failed` returns non-failed. *(restarted; not-failed.)*
+- [x] aerc check-mail banner no longer appears. *(mail-sync exits 0, so no exit-status-1 source
+  remains.)*
+- [x] Duplicate-UID sweep across Gmail/Logos folders is clean (or all found collisions remediated).
+  *(149/149 remediated; 0 remaining collisions in any Gmail or Logos folder.)*
+- [x] If mail-sync.nix changed: `home-manager build` / `nix flake check` succeeds. *(N/A — Phase 6
+  decided NO guard; mail-sync.nix unchanged.)*
 
 ## Artifacts & Outputs
 

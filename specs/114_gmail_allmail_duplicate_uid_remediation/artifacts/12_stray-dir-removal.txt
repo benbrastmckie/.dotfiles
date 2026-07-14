@@ -1,0 +1,14 @@
+# Stray directory removal (task 114 follow-up, user-authorized 2026-07-14)
+# Target: /home/benjamin/Mail/Gmail/.All_Mail/cur/specs,U=67297
+# Verified before removal: empty (0 files), no .mbsyncstate mapping for near-UID 67297,
+#   UID 67297 > MaxPushedUid 67147 (never pushed to server), no server counterpart,
+#   shadows no real repo content, referenced nowhere. Sole remaining mbsync blocker.
+# Removal method: rmdir (empty-only guarantee), innermost first. No file deleted.
+#
+# Removed (in order):
+#   rmdir '.../specs,U=67297/072_email_workflow_infrastructure_prereqs/manifests'
+#   rmdir '.../specs,U=67297/072_email_workflow_infrastructure_prereqs'
+#   rmdir '.../specs,U=67297'
+#
+# To revert (recreate the empty dirs — no data was in them):
+#   mkdir -p '/home/benjamin/Mail/Gmail/.All_Mail/cur/specs,U=67297/072_email_workflow_infrastructure_prereqs/manifests'

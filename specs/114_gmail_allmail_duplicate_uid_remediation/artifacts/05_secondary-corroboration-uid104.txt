@@ -1,0 +1,8 @@
+=== notmuch for Edfinancial Message-ID ===
+/home/benjamin/Mail/Gmail/.All_Mail/cur/1770674730.1073681_104.hamsa,U=104:2,
+/home/benjamin/Mail/Gmail/.All_Mail/cur/1770754644.1523822_13695.hamsa,U=56428:2,
+=== notmuch for Save Tree 9 Message-ID ===
+/home/benjamin/Mail/Gmail/.Sent/cur/1770678213.1089134_2400.hamsa,U=67:2,
+/home/benjamin/Mail/Gmail/.Sent/cur/1770746049.1372450_133.hamsa,U=26564:2,
+/home/benjamin/Mail/Gmail/.All_Mail/cur/1770746113.1372450_713.hamsa,U=104:2,
+/home/benjamin/Mail/Gmail/.All_Mail/cur/1770756060.1523822_21835.hamsa,U=64568:2,

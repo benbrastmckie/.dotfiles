@@ -1,0 +1,18 @@
+# Second collision (discovered during Phase 4 verification, remediated ahead of Phase 5's
+# formal sweep since it blocked mbsync gmail exit 0)
+# Directory: /home/benjamin/Mail/Gmail/.All_Mail/cur/
+
+OLD_NAME=1770674730.1073681_104.hamsa,U=104:2,
+NEW_NAME=1770674730.1073681_104.hamsa:2,
+
+# To revert:
+# cd /home/benjamin/Mail/Gmail/.All_Mail/cur/
+# mv -n -- '1770674730.1073681_104.hamsa:2,' '1770674730.1073681_104.hamsa,U=104:2,'
+
+sha256_before=3d7c1901852867b558df1e0f02d49212826836444dec2c9e65e0a2f8f0e3cc96
+sha256_after=3d7c1901852867b558df1e0f02d49212826836444dec2c9e65e0a2f8f0e3cc96
+
+# Corroboration: .mbsyncstate '346 104 S' (near-UID 104 <-> far-UID 346); UIDVALIDITY 1==1;
+# read-only UID FETCH 346 -> Message-ID <fe3d48bb0704110122i64b55e4evf39ee7f75196fe12@mail.gmail.com>,
+# Subject "Save Tree 9" -> matches 1770746113.1372450_713.hamsa,U=104:2, (LEGIT).
+# STRAY = Edfinancial Services file (Message-ID 341359504...@bg81-ca-cc1.prod.awspr).

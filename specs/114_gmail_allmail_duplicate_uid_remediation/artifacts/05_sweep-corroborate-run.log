@@ -1,0 +1,12 @@
+Total collisions: 147
+FarUidValidity (state file): 1
+Collisions with a .mbsyncstate near->far mapping: 141
+Collisions with NO .mbsyncstate mapping (cannot primary-corroborate): 6
+  UNRESOLVED (no state mapping): ['134', '478', '629', '1511', '3803', '3888']
+Live IMAP UIDVALIDITY: 1  (match: True)
+Far-UIDs fetched: 141 / requested 141
+
+RESOLVED (unambiguous legit/stray via primary IMAP signal): 141
+UNRESOLVED (fetched Message-ID matched 0 or 2+ candidate files): 0
+
+Wrote 05_sweep-decisions.tsv and 05_sweep-unresolved.txt

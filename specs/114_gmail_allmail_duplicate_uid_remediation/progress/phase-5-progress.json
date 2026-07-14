@@ -1,0 +1,18 @@
+{
+  "phase": 5,
+  "phase_name": "Sweep for and remediate other duplicate-UID collisions",
+  "started_at": "2026-07-14T09:15:00-07:00",
+  "last_updated": "2026-07-14T09:45:00-07:00",
+  "objectives": [
+    {"id": 1, "description": "Scan Gmail/Logos maildir folders for repeated ,U=<n> values", "status": "done", "files_touched": ["specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/05_full-sweep-scan.txt", "specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/sweep_corroborate.py"]},
+    {"id": 2, "description": "Corroborate and rename each additional collision's stray file", "status": "done", "files_touched": ["specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/05_sweep-decisions.tsv", "specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/05_bulk-rename-mapping.tsv", "specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/06_unresolved-6-corrected-corroboration.txt", "specs/114_gmail_allmail_duplicate_uid_remediation/artifacts/06_final6-rename-mapping.tsv"]},
+    {"id": 3, "description": "Record sweep outcome (clean or fully remediated)", "status": "done", "files_touched": []}
+  ],
+  "current_objective": null,
+  "approaches_tried": [
+    {"approach": "Initial batch corroboration script filtered .mbsyncstate lines with strict len(parts)==3", "result": "failed", "reason": "2-field lines (no trailing flag letter) were silently excluded, leaving 6 near-UIDs falsely appearing to have no state mapping"}
+  ],
+  "handoff_count": 0,
+  "deviations": [],
+  "notes": "147 additional collisions found by the sweep (beyond UID 15 and UID 104 fixed in Phases 3/ad-hoc), all in Gmail/.All_Mail/cur only (Logos and other Gmail folders clean). 141 resolved on first pass; a parsing bug in this agent's own script caused 6 to appear unresolved. On fixing the parser, all 6 also corroborated cleanly and were resolved. Final: 149/149 total collisions (including UID 15 and UID 104) resolved with zero ambiguous/guessed renames. All renames used the same primary-IMAP-FETCH + UIDVALIDITY-cross-check + sha256-verified-in-place-rename protocol as Phases 2-3."
+}

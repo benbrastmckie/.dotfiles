@@ -1,0 +1,8 @@
+  File: /home/benjamin/Mail/Gmail/.All_Mail/cur/specs,U=67297
+  Size: 4096      	Blocks: 8          IO Block: 4096   directory
+Device: 259,2	Inode: 24389289    Links: 3
+Access: (0755/drwxr-xr-x)  Uid: ( 1000/benjamin)   Gid: (  100/   users)
+Access: 2026-07-14 10:08:00.911262620 -0700
+Modify: 2026-07-13 13:46:47.586454400 -0700
+Change: 2026-07-14 09:05:33.605332260 -0700
+ Birth: 2026-07-13 13:46:47.586454400 -0700

@@ -1,0 +1,32 @@
+near=134 far=400 raw_line(s)=['400 134 ']
+near=478 far=1518 raw_line(s)=['1518 478 ']
+near=629 far=2077 raw_line(s)=['2077 629 ']
+near=1511 far=6413 raw_line(s)=['6413 1511 ']
+near=3803 far=25068 raw_line(s)=['25068 3803 ']
+near=3888 far=25873 raw_line(s)=['25873 3888 ']
+UIDVALIDITY: [b'"[Gmail]/All Mail" (UIDVALIDITY 1)']
+
+near=134 far=400 fetched_msgid='<fe3d48bb0704261226v4a557e07t498b3b0f0360d2e7@mail.gmail.com>'
+    file=1770746118.1372450_743.hamsa,U=134:2, local_msgid='<fe3d48bb0704261226v4a557e07t498b3b0f0360d2e7@mail.gmail.com>' MATCH=True
+    file=1770674733.1073681_134.hamsa,U=134:2, local_msgid='<20220217145911.E3A3929D@mx1.bsp.ox.ac.uk>' MATCH=False
+  RESOLVED: legit=1770746118.1372450_743.hamsa,U=134:2, stray=1770674733.1073681_134.hamsa,U=134:2,
+near=478 far=1518 fetched_msgid='<200711081716.lA8HG9ER000859@mailroc.acgiaa.net>'
+    file=1770674759.1073681_478.hamsa,U=478:2, local_msgid='<20200608083738.8A59FE4DC@mx1.bsp.ox.ac.uk>' MATCH=False
+    file=1770746249.1372450_1087.hamsa,U=478:2, local_msgid='<200711081716.lA8HG9ER000859@mailroc.acgiaa.net>' MATCH=True
+  RESOLVED: legit=1770746249.1372450_1087.hamsa,U=478:2, stray=1770674759.1073681_478.hamsa,U=478:2,
+near=629 far=2077 fetched_msgid='<286184.54740.qm@web56312.mail.re3.yahoo.com>'
+    file=1770674767.1073681_629.hamsa,U=629:2, local_msgid='<0102017551533d0d-bd4c25f5-8412-4dec-abf8-3a936324c25b-000000@eu-west-1.amazonses.com>' MATCH=False
+    file=1770746253.1372450_1238.hamsa,U=629:2, local_msgid='<286184.54740.qm@web56312.mail.re3.yahoo.com>' MATCH=True
+  RESOLVED: legit=1770746253.1372450_1238.hamsa,U=629:2, stray=1770674767.1073681_629.hamsa,U=629:2,
+near=1511 far=6413 fetched_msgid='<ac50bd5b404e957fb39b7bc5daaa390b@www.manventureoutpost.com>'
+    file=1770746373.1372450_2120.hamsa,U=1511:2, local_msgid='<ac50bd5b404e957fb39b7bc5daaa390b@www.manventureoutpost.com>' MATCH=True
+    file=1770674871.1073681_1511.hamsa,U=1511:2, local_msgid='<1552931925.5289768.1640948724657.JavaMail.runwas@lwasp101.zlinux.plocal>' MATCH=False
+  RESOLVED: legit=1770746373.1372450_2120.hamsa,U=1511:2, stray=1770674871.1073681_1511.hamsa,U=1511:2,
+near=3803 far=25068 fetched_msgid='<201010122040.o9CKeKkj008269@kettle.unet.brandeis.edu>'
+    file=1770746510.1372450_4412.hamsa,U=3803:2, local_msgid='<201010122040.o9CKeKkj008269@kettle.unet.brandeis.edu>' MATCH=True
+    file=1770677020.1089134_1563.hamsa,U=3803:2, local_msgid='<20250826213549.79b2833a1d946eac@us.greenhouse-mail.io>' MATCH=False
+  RESOLVED: legit=1770746510.1372450_4412.hamsa,U=3803:2, stray=1770677020.1089134_1563.hamsa,U=3803:2,
+near=3888 far=25873 fetched_msgid='<14699F4C-FCCC-4BDC-9433-5633A54AD784@brandeis.edu>'
+    file=1770677022.1089134_1648.hamsa,U=3888:2,F local_msgid='<01000199d90cccc2-e4449894-1731-47d7-89d0-3eb86cf34553-000000@email.amazonses.com>' MATCH=False
+    file=1770746517.1372450_4497.hamsa,U=3888:2, local_msgid='<14699F4C-FCCC-4BDC-9433-5633A54AD784@brandeis.edu>' MATCH=True
+  RESOLVED: legit=1770746517.1372450_4497.hamsa,U=3888:2, stray=1770677022.1089134_1648.hamsa,U=3888:2,F

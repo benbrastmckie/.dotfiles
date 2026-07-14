@@ -1,0 +1,7 @@
+=== restarting mail-sync-timer.timer (restoring pre-task-114 status quo) ===
+active
+-                                 - Tue 2026-07-14 10:16:40 PDT      18ms ago mail-sync-timer.timer          mail-sync-timer.service
+
+=== is-failed check ===
+activating
+active
