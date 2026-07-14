@@ -1,6 +1,34 @@
 # Aerc terminal email client configuration with notmuch backend.
 # See: specs/045_add_terminal_email_client_to_nixos
-_: {
+_:
+let
+  # Shared display-only exclusion of the raw physical maildir tree (see the
+  # folders-exclude comments in accounts.conf below); identical for both accounts.
+  foldersExclude = "~^Gmail,~^Logos";
+
+  # Generator for the per-account aerc query-map files. Both accounts share the
+  # same virtual-folder shape; the intentional asymmetries (Gmail's Spam folder
+  # and the Proposed-* triage views) are visible as data at the call sites.
+  mkQuerymap =
+    { prefix, archiveName, extraFolders ? [ ], extraTriage ? [ ] }:
+    builtins.concatStringsSep "\n" (
+      [
+        "INBOX=folder:${prefix}"
+        "Sent=folder:${prefix}/.Sent"
+        "Drafts=folder:${prefix}/.Drafts"
+        "Trash=folder:${prefix}/.Trash"
+        "${archiveName}=folder:${prefix}/.${archiveName}"
+      ]
+      ++ extraFolders
+      ++ [
+        "Unread=tag:unread AND folder:/${prefix}/"
+        "Flagged=tag:flagged AND folder:/${prefix}/"
+      ]
+      ++ extraTriage
+    )
+    + "\n";
+in
+{
   # aerc - terminal email client with notmuch backend
   programs.aerc = {
     enable = true;
@@ -293,7 +321,7 @@ _: {
       # maildir-store independently), so it restores the clean, per-account query-map
       # folder list. The ~ prefix marks a regex; no query-map name starts with
       # Gmail/Logos, so this hides only the raw physical tree.
-      folders-exclude = ~^Gmail,~^Logos
+      folders-exclude = ${foldersExclude}
       default = INBOX
       from = Benjamin Brast-McKie <benbrastmckie@gmail.com>
       copy-to = Sent
@@ -323,7 +351,7 @@ _: {
       query-map = ~/.config/aerc/querymap-logos
       # Regression fix (follow-up to task 112): see the [gmail] folders-exclude comment.
       # Same shared-~/Mail enumeration applies here, so exclude the same physical tree.
-      folders-exclude = ~^Gmail,~^Logos
+      folders-exclude = ${foldersExclude}
       default = INBOX
       from = Benjamin Brast-McKie <benjamin@logos-labs.ai>
       copy-to = Sent
@@ -354,31 +382,23 @@ _: {
     # tag-driven triage/search views, not folder-membership views, and scoping `Proposed-*` to
     # the inbox would silently hide proposed-tagged messages touched by a prior triage pass,
     # undermining the review gate. Do not re-scope them to match INBOX.
-    ".config/aerc/querymap-gmail".text = ''
-      INBOX=folder:Gmail
-      Sent=folder:Gmail/.Sent
-      Drafts=folder:Gmail/.Drafts
-      Trash=folder:Gmail/.Trash
-      All_Mail=folder:Gmail/.All_Mail
-      Spam=folder:Gmail/.Spam
-      Unread=tag:unread AND folder:/Gmail/
-      Flagged=tag:flagged AND folder:/Gmail/
-      Proposed-Delete=tag:proposed-delete AND folder:/Gmail/
-      Proposed-Archive=tag:proposed-archive AND folder:/Gmail/
-      Proposed-Unsure=tag:proposed-unsure AND folder:/Gmail/
-    '';
+    ".config/aerc/querymap-gmail".text = mkQuerymap {
+      prefix = "Gmail";
+      archiveName = "All_Mail";
+      extraFolders = [ "Spam=folder:Gmail/.Spam" ];
+      extraTriage = [
+        "Proposed-Delete=tag:proposed-delete AND folder:/Gmail/"
+        "Proposed-Archive=tag:proposed-archive AND folder:/Gmail/"
+        "Proposed-Unsure=tag:proposed-unsure AND folder:/Gmail/"
+      ];
+    };
 
     # aerc query map for Logos virtual folders. See Gmail querymap comment above
     # (task 34, Phase 5 / F5; task 110) -- same `folder:/Logos/` regex-form rationale and
     # same INBOX-vs-triage-view scope-asymmetry rationale.
-    ".config/aerc/querymap-logos".text = ''
-      INBOX=folder:Logos
-      Sent=folder:Logos/.Sent
-      Drafts=folder:Logos/.Drafts
-      Trash=folder:Logos/.Trash
-      Archive=folder:Logos/.Archive
-      Unread=tag:unread AND folder:/Logos/
-      Flagged=tag:flagged AND folder:/Logos/
-    '';
+    ".config/aerc/querymap-logos".text = mkQuerymap {
+      prefix = "Logos";
+      archiveName = "Archive";
+    };
   };
 }

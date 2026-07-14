@@ -123,15 +123,15 @@ build, against which every later phase diffs.
 
 ---
 
-### Phase 2: Let-bound generator for querymaps and folders-exclude (byte-identical) [NOT STARTED]
+### Phase 2: Let-bound generator for querymaps and folders-exclude (byte-identical) [COMPLETED]
 
 **Goal**: Structural de-duplication with zero rendered-byte change on ALL five files. Comments
 are NOT touched in this phase (that is Phase 3), so full byte-identity is the gate here.
 
 **Tasks**:
-- [ ] Convert the module opening from `_: {` to `_:` + top-level `let ... in {` (per D6; do not add module arguments)
-- [ ] Add `foldersExclude = "~^Gmail,~^Logos";` to the `let` block and interpolate it as `folders-exclude = ${foldersExclude}` in BOTH the `[gmail]` and `[logos]` blocks of the accounts.conf text (existing comments stay exactly where they are for now)
-- [ ] Add the `mkQuerymap` function per D6. Reference shape (implementer may adjust names, not semantics):
+- [x] Convert the module opening from `_: {` to `_:` + top-level `let ... in {` (per D6; do not add module arguments) *(completed)*
+- [x] Add `foldersExclude = "~^Gmail,~^Logos";` to the `let` block and interpolate it as `folders-exclude = ${foldersExclude}` in BOTH the `[gmail]` and `[logos]` blocks of the accounts.conf text (existing comments stay exactly where they are for now) *(completed)*
+- [x] Add the `mkQuerymap` function per D6. Reference shape (implementer may adjust names, not semantics): *(completed — used the reference shape verbatim)*
 
   ```nix
   mkQuerymap =
@@ -153,11 +153,11 @@ are NOT touched in this phase (that is Phase 3), so full byte-identity is the ga
     )
     + "\n";
   ```
-- [ ] Replace `".config/aerc/querymap-gmail".text` with `mkQuerymap { prefix = "Gmail"; archiveName = "All_Mail"; extraFolders = [ "Spam=folder:Gmail/.Spam" ]; extraTriage = [ the three existing Proposed-* lines verbatim ]; }` — the Gmail/Logos parity and the intentional Spam-line and Proposed-*-lines asymmetry become visible as data
-- [ ] Replace `".config/aerc/querymap-logos".text` with `mkQuerymap { prefix = "Logos"; archiveName = "Archive"; }`
-- [ ] Keep the existing querymap Nix comments (lines 335-356, 371-373) in place, attached to the generator call sites (they are consolidated in Phase 3, not here)
-- [ ] Rebuild: `home-manager build --flake .#benjamin` (build only); diff all five rendered files against `.baseline/`
-- [ ] Iterate on the generator until `diff` is empty for every file, then commit (targeted staging: `modules/home/email/aerc.nix` only) as `task 115 phase 2: querymap and folders-exclude generator`
+- [x] Replace `".config/aerc/querymap-gmail".text` with `mkQuerymap { prefix = "Gmail"; archiveName = "All_Mail"; extraFolders = [ "Spam=folder:Gmail/.Spam" ]; extraTriage = [ the three existing Proposed-* lines verbatim ]; }` — the Gmail/Logos parity and the intentional Spam-line and Proposed-*-lines asymmetry become visible as data *(completed)*
+- [x] Replace `".config/aerc/querymap-logos".text` with `mkQuerymap { prefix = "Logos"; archiveName = "Archive"; }` *(completed)*
+- [x] Keep the existing querymap Nix comments (lines 335-356, 371-373) in place, attached to the generator call sites (they are consolidated in Phase 3, not here) *(completed — comments untouched)*
+- [x] Rebuild: `home-manager build --flake .#benjamin` (build only); diff all five rendered files against `.baseline/` *(completed — exit 0)*
+- [x] Iterate on the generator until `diff` is empty for every file, then commit (targeted staging: `modules/home/email/aerc.nix` only) as `task 115 phase 2: querymap and folders-exclude generator` *(completed first iteration — home-manager-files store path identical to baseline: /nix/store/2kdb6g08v3jxfz8d1vgq24wndw13vzrv)*
 
 **Timing**: 1.5 hours
 
