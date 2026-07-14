@@ -1,22 +1,10 @@
 {
-  "status": "planned",
-  "artifacts": [
-    {
-      "type": "plan",
-      "path": "specs/116_mail_specs_stray_tree_cleanup/plans/01_stray-tree-remediation.md",
-      "summary": "3-phase remediation plan grounded in the corrected research premise: rmdir the single empty untracked stray stub, fix the lib.nix repo-relative manifestDirDefault (absolute XDG-state path + wrapper rebuild verification), and add anchored notmuch new.ignore guards. Preserves all git-tracked ~/Mail sibling-repo content."
-    }
-  ],
-  "next_steps": "Run /implement 116 to execute the plan",
+  "status": "in_progress",
   "metadata": {
     "session_id": "sess_1784056726_46cc9d",
-    "agent_type": "planner-agent",
+    "agent_type": "general-implementation-agent",
     "task_number": 116,
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
-    "phase_count": 3,
-    "estimated_hours": 2,
-    "dependency_waves": [[1, 2, 3]]
-  },
-  "memory_candidates": []
+    "delegation_depth": 2,
+    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"]
+  }
 }

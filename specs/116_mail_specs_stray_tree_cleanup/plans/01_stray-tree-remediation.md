@@ -104,7 +104,7 @@ combined `home-manager build` / `nix flake check` verification if executed toget
 
 ---
 
-### Phase 1: Remove the single empty stray stub [NOT STARTED]
+### Phase 1: Remove the single empty stray stub [COMPLETED]
 
 **Goal**: Delete only the empty, untracked two-directory stub at
 `~/Mail/specs/072_email_workflow_infrastructure_prereqs/manifests/` (and its now-empty parent),
@@ -112,11 +112,11 @@ with a pre-check that proves it is still empty and untracked. This is the ONLY f
 in the entire task.
 
 **Tasks**:
-- [ ] Pre-check emptiness: confirm `find ~/Mail/specs/072_email_workflow_infrastructure_prereqs -type f | wc -l` returns `0`. If non-zero, STOP and re-investigate (do NOT escalate to `rm`).
-- [ ] Pre-check untracked: confirm `git -C ~/Mail ls-files specs/072_email_workflow_infrastructure_prereqs` returns empty (untracked) and `git -C ~/Mail status --porcelain -- specs/072_email_workflow_infrastructure_prereqs` shows nothing tracked/staged.
-- [ ] Confirm the populated, git-tracked copy still exists at `~/Mail/specs/archive/072_email_workflow_infrastructure_prereqs/manifests/` (so nothing unique is at risk) — this is out of scope and must remain untouched.
-- [ ] Remove innermost-first, empty-only: `rmdir ~/Mail/specs/072_email_workflow_infrastructure_prereqs/manifests` then `rmdir ~/Mail/specs/072_email_workflow_infrastructure_prereqs`. If either `rmdir` fails (non-empty), STOP and re-investigate — do not use `rm -rf`.
-- [ ] Post-check: confirm `~/Mail/specs/072_email_workflow_infrastructure_prereqs` no longer exists and `git -C ~/Mail status` is otherwise unchanged.
+- [x] Pre-check emptiness: confirm `find ~/Mail/specs/072_email_workflow_infrastructure_prereqs -type f | wc -l` returns `0`. If non-zero, STOP and re-investigate (do NOT escalate to `rm`). *(completed: returned 0)*
+- [x] Pre-check untracked: confirm `git -C ~/Mail ls-files specs/072_email_workflow_infrastructure_prereqs` returns empty (untracked) and `git -C ~/Mail status --porcelain -- specs/072_email_workflow_infrastructure_prereqs` shows nothing tracked/staged. *(completed: both empty)*
+- [x] Confirm the populated, git-tracked copy still exists at `~/Mail/specs/archive/072_email_workflow_infrastructure_prereqs/manifests/` (so nothing unique is at risk) — this is out of scope and must remain untouched. *(completed: intact, spot-checked)*
+- [x] Remove innermost-first, empty-only: `rmdir ~/Mail/specs/072_email_workflow_infrastructure_prereqs/manifests` then `rmdir ~/Mail/specs/072_email_workflow_infrastructure_prereqs`. If either `rmdir` fails (non-empty), STOP and re-investigate — do not use `rm -rf`. *(completed: both rmdir succeeded)*
+- [x] Post-check: confirm `~/Mail/specs/072_email_workflow_infrastructure_prereqs` no longer exists and `git -C ~/Mail status` is otherwise unchanged. *(completed: path gone; git status shows only pre-existing unrelated entries)*
 
 **Timing**: ~15 minutes
 
