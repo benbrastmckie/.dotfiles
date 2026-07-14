@@ -1,7 +1,7 @@
 # Implementation Plan: Task #118
 
 - **Task**: 118 - document_no_sleep_functionality
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 2.5 hours
 - **Dependencies**: None (documents already-implemented task 117 functionality; no config changes)
 - **Research Inputs**: specs/118_document_no_sleep_functionality/reports/01_no-sleep-functionality.md
@@ -144,14 +144,14 @@ Phases within the same wave can execute in parallel.
 
 ## Testing & Validation
 
-- [ ] `docs/no-sleep-agents.md` exists and covers all four mechanisms, the composed-scenario table, a command-based verification section, and a rejected-alternatives section.
-- [ ] The activation section uses verification *commands*, not a hardcoded pass/fail status, and reflects the Phase 1 live finding.
-- [ ] `grep -rn "specs/117\|task 117\|task-117" docs/no-sleep-agents.md docs/gnome-settings.md docs/niri.md` returns no matches.
-- [ ] `docs/gnome-settings.md` and `docs/niri.md` no longer duplicate the cross-cutting narrative and each contain a `See docs/no-sleep-agents.md` reference.
-- [ ] `docs/README.md` lists the new page under an appropriate category.
-- [ ] `modules/system/power.nix` and `modules/home/desktop/gnome.nix` contain `# See docs/no-sleep-agents.md.` trailers, and `git diff` confirms only comment lines changed in those files.
-- [ ] The `<leader>rz` claim is either verified-and-kept or dropped everywhere (new page + gnome-settings.md), never left as an unverified assertion.
-- [ ] (Optional) `nix flake check` still passes after the comment-only nix edits.
+- [x] `docs/no-sleep-agents.md` exists and covers all four mechanisms, the composed-scenario table, a command-based verification section, and a rejected-alternatives section.
+- [x] The activation section uses verification *commands*, not a hardcoded pass/fail status, and reflects the Phase 1 live finding.
+- [x] `grep -rn "specs/117\|task 117\|task-117" docs/no-sleep-agents.md docs/gnome-settings.md docs/niri.md` returns no matches.
+- [x] `docs/gnome-settings.md` and `docs/niri.md` no longer duplicate the cross-cutting narrative and each contain a `See docs/no-sleep-agents.md` reference.
+- [x] `docs/README.md` lists the new page under an appropriate category.
+- [x] `modules/system/power.nix` and `modules/home/desktop/gnome.nix` contain `# See docs/no-sleep-agents.md.` trailers, and `git diff` confirms only comment lines changed in those files.
+- [x] The `<leader>rz` claim is either verified-and-kept or dropped everywhere (new page + gnome-settings.md), never left as an unverified assertion. *(Dropped everywhere — unconfirmed against source.)*
+- [x] (Optional) `nix flake check` still passes after the comment-only nix edits. *(Passed: "all checks passed!")*
 
 ## Artifacts & Outputs
 
