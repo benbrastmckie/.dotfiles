@@ -117,16 +117,16 @@ Phases within the same wave can execute in parallel.
 - **Timing:** ~60 minutes
 - **Depends on:** 1
 
-### Phase 3: Trim and cross-reference existing pages [NOT STARTED]
+### Phase 3: Trim and cross-reference existing pages [COMPLETED]
 
 - **Goal:** Remove the cross-cutting narrative from `docs/gnome-settings.md` and `docs/niri.md`,
   leaving only their file-scoped content plus a pointer to the new page, so the two pages no longer
   duplicate/drift from it.
 - **Tasks:**
-  - [ ] `docs/gnome-settings.md`: trim the "Power Management" + "Lid-Close Behavior" sections to a short summary of the GNOME-dconf-scoped facts (idle-delay, the raw `sleep-inactive-*` keys) plus a "See docs/no-sleep-agents.md" cross-reference; move the cross-cutting rationale (AC/battery difference, backstop rationale, lid `lock`-vs-`ignore`) out to the new page.
-  - [ ] Apply the Phase 1 `<leader>rz` decision to the existing gnome-settings.md Note (correct it if verified, remove it if not).
-  - [ ] `docs/niri.md`: trim the swayidle paragraph and the "no idle auto-suspend" bullet to a brief statement plus a "See docs/no-sleep-agents.md" cross-reference.
-  - [ ] Re-grep both edited pages for `specs/117` / task-number leakage.
+  - [x] `docs/gnome-settings.md`: trim the "Power Management" + "Lid-Close Behavior" sections to a short summary of the GNOME-dconf-scoped facts (idle-delay, the raw `sleep-inactive-*` keys) plus a "See docs/no-sleep-agents.md" cross-reference; move the cross-cutting rationale (AC/battery difference, backstop rationale, lid `lock`-vs-`ignore`) out to the new page.
+  - [x] Apply the Phase 1 `<leader>rz` decision to the existing gnome-settings.md Note (correct it if verified, remove it if not). *(Removed — the unverified Note was dropped along with the rest of the trimmed section.)*
+  - [x] `docs/niri.md`: trim the swayidle paragraph and the "no idle auto-suspend" bullet to a brief statement plus a "See docs/no-sleep-agents.md" cross-reference.
+  - [x] Re-grep both edited pages for `specs/117` / task-number leakage. *(Zero matches in both files.)*
 - **Timing:** ~30 minutes
 - **Depends on:** 2
 
