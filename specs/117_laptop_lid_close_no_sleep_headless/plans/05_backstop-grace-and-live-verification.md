@@ -1,9 +1,12 @@
 # Implementation Plan: Task #117 (Round 3) — Backstop Wake-Grace and Live Verification
 
 - **Task**: 117 - laptop_lid_close_no_sleep_headless
-- **Status**: [IN PROGRESS]
+- **Status**: [PARTIAL]
   - Started: 2026-07-14 (rounds 1-2; phases 1, 2, 3, 5 complete, committed, and now confirmed LIVE)
   - Revised: 2026-07-25 (round 3: report 04 integrated)
+  - Round-3 implemented: 2026-07-25 (phases 6, 7 complete/committed/build-verified; phase 8 partial
+    — agent-runnable checks run, blocked on user `sudo nixos-rebuild switch` + USER CHECKLIST items
+    1-5)
 - **Effort**: 6.25 hours cumulative (4 hours already spent and complete in rounds 1-2; 2.25 hours remaining in phases 6, 7, 8)
 - **Dependencies**: Rounds 1-2 implementation (plans/01 and plans/02) — all config phases committed AND live on the running system (generation 126+, re-verified 2026-07-25). No activation debt remains for that work.
 - **Research Inputs**:
@@ -563,33 +566,61 @@ additive — task 118 restructured `docs/gnome-settings.md` and task 119 is mid-
 
 ---
 
-### Phase 8: Activate the grace change and close the reduced live checklist [NOT STARTED]
+### Phase 8: Activate the grace change and close the reduced live checklist [PARTIAL]
+
+- Attempted: 2026-07-25 (agent-runnable checks run against the CURRENT running system, generation
+  `nixos-system-hamsa-26.05.20260710.8f0500b`, list-generations shows no generation newer than 118
+  built 2026-06-30 — i.e. this is the SAME generation active before round 3's changes were
+  committed. **Activation genuinely has not happened yet.** Nothing in this round is agent-runnable
+  without `sudo`; that is not a gap in agent effort, it is the plan's own explicit constraint
+  ("No agent-executed `sudo`, ... All such steps are in the Phase 8 user checklist").
 
 **Goal**: Activate ONLY the new Phase 6/7 change (rounds 1-2 are already live and need no
 re-activation), verify the grace mechanism live, and close the three genuinely-remaining checks
 carried over from Phase 4.
 
 **Agent-runnable live checks** (no `sudo`, read-only; run after the user's switch):
-- [ ] `systemctl is-active battery-suspend-backstop.timer` -> `active`;
-  `systemctl list-timers battery-suspend-backstop.timer --no-pager` shows it ticking.
+- [x] `systemctl is-active battery-suspend-backstop.timer` -> `active`;
+  `systemctl list-timers battery-suspend-backstop.timer --no-pager` shows it ticking. VERIFIED
+  2026-07-25 — PASSES already (rounds 1-2 behavior, unaffected by round 3 pending activation).
 - [ ] `systemctl cat battery-suspend-backstop.service` shows the **new** store script (grace
   parameters present); `systemctl show battery-suspend-backstop.service -p StateDirectory` ->
-  `battery-suspend-backstop`; `test -d /var/lib/battery-suspend-backstop`.
+  `battery-suspend-backstop`; `test -d /var/lib/battery-suspend-backstop`. **NOT YET TRUE**
+  (checked 2026-07-25): the live unit's `ExecStart` still resolves to
+  `/nix/store/aicmg94rlqd4jvk2pbl7sds7xhhwyki3-battery-suspend-backstop` (the pre-round-3 script,
+  no grace parameters), `StateDirectory=` is empty, and `/var/lib/battery-suspend-backstop` does
+  not exist. This is expected and blocked on user checklist item 1 below (`sudo nixos-rebuild
+  switch`), not a defect in the committed config (the build-verified new closure is
+  `/nix/store/j84p3im5jdmb4wrz74hppc20jmwbwcrd-...`, confirmed present in the Nix store — it is
+  simply not yet the running system).
 - [ ] `systemctl cat battery-backstop-wake-mark.service` exists and
   `ls /run/current-system/etc/systemd/system/post-resume.target.wants/` lists it — the live proof
-  the resume hook is actually wired, not merely declared.
-- [ ] `journalctl -u battery-suspend-backstop.service -n 20` silent at >10% (no behavior change on
-  AC).
-- [ ] **Regression guards, live**: `busctl get-property org.freedesktop.login1
+  the resume hook is actually wired, not merely declared. **NOT YET TRUE** (checked 2026-07-25):
+  `systemctl cat battery-backstop-wake-mark.service` -> "No files found"; the `.wants/` directory
+  lists only the pre-existing `disable-speaker-amp.service`. Same activation-pending cause as above.
+- [x] `journalctl -u battery-suspend-backstop.service -n 20` silent at >10% (no behavior change on
+  AC). VERIFIED 2026-07-25: last 20 lines show only oneshot Starting/Deactivated/Finished lines, no
+  "suspending" message — battery is `BAT1` `Discharging` `100%` at check time, well above
+  threshold. (This check exercises the shared `Discharging`/threshold core and passes under either
+  the old or new script; it is not itself proof of the new script running.)
+- [x] **Regression guards, live**: `busctl get-property org.freedesktop.login1
   /org/freedesktop/login1 org.freedesktop.login1.Manager HandleLidSwitch` -> `"lock"` (and
   `HandleLidSwitchExternalPower`); `gsettings get org.gnome.settings-daemon.plugins.power
   sleep-inactive-battery-timeout` -> `3600` and `sleep-inactive-battery-type` -> `'suspend'`. Record
-  the AC leg's live values without asserting them (task 119 owns that value).
+  the AC leg's live values without asserting them (task 119 owns that value). VERIFIED 2026-07-25:
+  `HandleLidSwitch` -> `"lock"`, `HandleLidSwitchExternalPower` -> `"lock"`,
+  `sleep-inactive-battery-timeout` -> `3600`, `sleep-inactive-battery-type` -> `'suspend'` — no
+  regression from rounds 1-2. AC leg recorded, not asserted:
+  `sleep-inactive-ac-timeout` -> `43200`, `sleep-inactive-ac-type` -> `'suspend'` (task 119's live
+  value, unchanged by this plan).
 - [ ] After the user's A/B test below, confirm the wake path worked:
   `systemctl status battery-backstop-wake-mark.service` shows an activation timestamp at the resume,
   and `sudo`-free `stat /var/lib/battery-suspend-backstop/wake-mark` shows a matching mtime (read the
   file if permissions allow; otherwise the unit's activation timestamp is sufficient evidence).
-- [ ] Record all outcomes in the round-3 implementation summary, including the recommended
+  *(deviation: skipped — depends on user checklist items 1 and 3, which require interactive `sudo`
+  and a real suspend/resume cycle; not agent-performable. Blocked, not silently dropped — see
+  implementation summary and orchestrator handoff.)*
+- [x] Record all outcomes in the round-3 implementation summary, including the recommended
   `docs/no-sleep-agents.md` follow-up from Phase 7.
 
 **USER CHECKLIST** (requires `sudo`, a real suspend cycle, or physical hardware — agents must not
@@ -621,10 +652,16 @@ perform any of these):
    and Phase 6's offline cases cover the grace logic.
 
 **Verification**:
-- All agent-runnable checks above pass against LIVE state (not source).
-- User checklist items 2-5 reported back; any failure keeps this phase `[PARTIAL]` with the failing
-  layer named explicitly, and item 5's failure specifically blocks any claim that the multi-monitor
-  requirement is verified.
+- All agent-runnable checks above pass against LIVE state (not source). RESULT 2026-07-25: the
+  3 checks that assert *rounds-1-2 behavior unaffected* (timer active, journal silent on AC,
+  regression guards) PASS. The 2 checks that assert *the round-3 change is live* (new script in
+  `systemctl cat`, wake-mark unit present) do NOT yet pass, because `sudo nixos-rebuild switch`
+  (user checklist item 1) has not run — this is the phase's sole blocker, not a failure of the
+  build or the code.
+- User checklist items 1-5 are BLOCKED pending the user (items 2-5 additionally depend on item 1
+  having run first). None have been performed this round. Any failure keeps this phase `[PARTIAL]`
+  with the failing layer named explicitly, and item 5's failure specifically blocks any claim that
+  the multi-monitor requirement is verified.
 
 **Timing**: 0.5 hours agent-side (the user performs the switch and items 2-5, together well under
 15 minutes)
@@ -664,8 +701,9 @@ New in round 3:
 - [ ] USER: physical undocked lid close — locks, panel off, stays awake.
 - [ ] USER: docked multi-monitor regression — `Docked` -> `b true`, lid close leaves docked behavior
   unchanged. **Gates the multi-monitor requirement.**
-- [ ] Docs: `grep -n "grace\|best-effort" docs/gnome-settings.md modules/system/power.nix` shows the
-  new text; `git diff --stat` touches no file outside `file_scope`.
+- [x] Docs: `grep -n "grace\|best-effort" docs/gnome-settings.md modules/system/power.nix` shows the
+  new text; `git diff --stat` touches no file outside `file_scope`. VERIFIED 2026-07-25 (see Phase
+  7 verification above).
 
 ## Artifacts & Outputs
 
