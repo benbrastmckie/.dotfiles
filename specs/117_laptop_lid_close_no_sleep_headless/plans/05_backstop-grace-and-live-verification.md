@@ -472,6 +472,13 @@ verified claim — see Flagged Unverified Items).
   notified-marker suppression verified across two consecutive ticks in the same grace window
   (1 notify call total, not 2); `--test-notify` verified to invoke the notify helper and exit
   without touching battery state.
+  **Coverage gap (found 2026-07-25):** every case above ran with `BACKSTOP_NOTIFY_BIN` pointed at
+  a *stubbed* notify-send. That is correct for exercising the grace logic — which it did validate
+  — but it means the real `battery-backstop-notify` helper was never executed end-to-end, so the
+  23/23 pass could not and did not catch the `runuser -u "#$uid"` defect inside it (see the
+  `--test-notify` USER item in Phase 8). Case (h) "notify helper forced to exit 1" tested that a
+  failing notifier does not block suspend; it did not test that a *succeeding* notifier delivers.
+  Any future round that touches the helper must verify it live, not through the stub.
 - [x] `jq`-free build gates: `nix flake check` green; `nixos-rebuild build --flake .#hamsa` green.
 - [x] Commit (`task 117 phase 6: battery backstop wake-grace and notification`).
 
@@ -583,21 +590,22 @@ carried over from Phase 4.
 - [x] `systemctl is-active battery-suspend-backstop.timer` -> `active`;
   `systemctl list-timers battery-suspend-backstop.timer --no-pager` shows it ticking. VERIFIED
   2026-07-25 — PASSES already (rounds 1-2 behavior, unaffected by round 3 pending activation).
-- [ ] `systemctl cat battery-suspend-backstop.service` shows the **new** store script (grace
+- [x] `systemctl cat battery-suspend-backstop.service` shows the **new** store script (grace
   parameters present); `systemctl show battery-suspend-backstop.service -p StateDirectory` ->
-  `battery-suspend-backstop`; `test -d /var/lib/battery-suspend-backstop`. **NOT YET TRUE**
-  (checked 2026-07-25): the live unit's `ExecStart` still resolves to
-  `/nix/store/aicmg94rlqd4jvk2pbl7sds7xhhwyki3-battery-suspend-backstop` (the pre-round-3 script,
-  no grace parameters), `StateDirectory=` is empty, and `/var/lib/battery-suspend-backstop` does
-  not exist. This is expected and blocked on user checklist item 1 below (`sudo nixos-rebuild
-  switch`), not a defect in the committed config (the build-verified new closure is
-  `/nix/store/j84p3im5jdmb4wrz74hppc20jmwbwcrd-...`, confirmed present in the Nix store — it is
-  simply not yet the running system).
-- [ ] `systemctl cat battery-backstop-wake-mark.service` exists and
+  `battery-suspend-backstop`; `test -d /var/lib/battery-suspend-backstop`. **VERIFIED 2026-07-25**
+  (after the user's `sudo nixos-rebuild switch`): running generation is now 128; the live unit's
+  `ExecStart` resolves to `/nix/store/x4a3qw8gam9xn41ha6i9ymjg7mra6fjw-battery-suspend-backstop`,
+  which contains `threshold=10`, `grace_secs=300`, `grace_floor=5`, `grace_drop=2` and the
+  `--test-notify` branch; `/var/lib/battery-suspend-backstop` exists. The earlier
+  activation-pending note above is resolved.
+- [x] `systemctl cat battery-backstop-wake-mark.service` exists and
   `ls /run/current-system/etc/systemd/system/post-resume.target.wants/` lists it — the live proof
-  the resume hook is actually wired, not merely declared. **NOT YET TRUE** (checked 2026-07-25):
-  `systemctl cat battery-backstop-wake-mark.service` -> "No files found"; the `.wants/` directory
-  lists only the pre-existing `disable-speaker-amp.service`. Same activation-pending cause as above.
+  the resume hook is actually wired, not merely declared. **VERIFIED 2026-07-25**: the unit exists
+  with `StateDirectory=battery-suspend-backstop` and `WantedBy=post-resume.target`, and the
+  `.wants/` directory now lists `battery-backstop-wake-mark.service` alongside the pre-existing
+  `disable-speaker-amp.service`. Note the state dir is still *empty* — no wake-mark file has been
+  written, because no suspend/resume cycle has occurred since activation. USER CHECKLIST item 3
+  is what first exercises this hook.
 - [x] `journalctl -u battery-suspend-backstop.service -n 20` silent at >10% (no behavior change on
   AC). VERIFIED 2026-07-25: last 20 lines show only oneshot Starting/Deactivated/Finished lines, no
   "suspending" message — battery is `BAT1` `Discharging` `100%` at check time, well above
@@ -691,11 +699,23 @@ New in round 3:
   2026-07-25.
 - [x] Eval: `battery-backstop-wake-mark.wantedBy` contains `post-resume.target`; `StateDirectory` set
   on both units; new script present in `ExecStart`. VERIFIED 2026-07-25.
-- [ ] LIVE after activation: new script in `systemctl cat`; `/var/lib/battery-suspend-backstop/`
+- [x] LIVE after activation: new script in `systemctl cat`; `/var/lib/battery-suspend-backstop/`
   exists; wake-mark unit listed under `post-resume.target.wants/`; backstop journal silent on AC.
-- [ ] LIVE regression guards after activation: `HandleLidSwitch` still `"lock"`; battery dconf still
-  `3600` / `'suspend'`.
-- [ ] USER: `--test-notify` visible, including on the lock screen.
+  VERIFIED 2026-07-25 (generation 128). The AC-silence check is now *live* evidence, not merely
+  offline: five consecutive timer firings at 100% on AC each exited without suspending.
+- [x] LIVE regression guards after activation: `HandleLidSwitch` still `"lock"`; battery dconf still
+  `3600` / `'suspend'`. VERIFIED 2026-07-25 via `busctl` runtime properties (not just the config
+  file): `HandleLidSwitch="lock"`, `HandleLidSwitchExternalPower="lock"`,
+  `HandleLidSwitchDocked="ignore"`; dconf `3600` / `'suspend'`.
+- [ ] USER: `--test-notify` visible, including on the lock screen. **FAILED on first attempt
+  2026-07-25, root-caused and fixed — re-run required after the next activation.** The notify
+  helper invoked `runuser -u "#$uid"`; the `#UID` form is a *sudo* convention and `runuser`
+  resolves its `-u` argument via `getpwnam`, which has no `#` handling, so the call died with
+  `user #1000 does not exist` for every uid. The failure was silent because `notify-send`'s stderr
+  is discarded and `safe_notify`'s `|| true` swallows the exit code. Fixed by parsing the username
+  from `loginctl`'s second field and passing `runuser -u "$user"`. Note this defeats only the
+  warning; the suspend decision itself was never affected (that is `safe_notify`'s intended
+  fail-open behavior, which worked correctly).
 - [ ] USER: A/B suspend test — plain `suspend` refused, `suspend -i` succeeds; wake-mark unit shows
   an activation timestamp at the resume.
 - [ ] USER: physical undocked lid close — locks, panel off, stays awake.

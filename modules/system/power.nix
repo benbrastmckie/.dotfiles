@@ -17,9 +17,13 @@ let
     urgency="$1"
     summary="$2"
     body="$3"
-    ${pkgs.systemd}/bin/loginctl list-users --no-legend | while read -r uid _rest; do
+    # runuser resolves its -u argument via getpwnam, which has no "#UID" handling
+    # (that is a sudo convention) -- so the username from loginctl's second field
+    # is what must be passed here. Getting this wrong fails silently: notify-send's
+    # stderr is discarded below and safe_notify's `|| true` swallows the exit code.
+    ${pkgs.systemd}/bin/loginctl list-users --no-legend | while read -r uid user _rest; do
       [ "$uid" -ge 1000 ] 2>/dev/null || continue
-      ${pkgs.util-linux}/bin/runuser -u "#$uid" -- env \
+      ${pkgs.util-linux}/bin/runuser -u "$user" -- env \
         XDG_RUNTIME_DIR="/run/user/$uid" \
         DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" \
         ${pkgs.libnotify}/bin/notify-send -u "$urgency" "$summary" "$body" 2>/dev/null

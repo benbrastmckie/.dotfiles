@@ -87,6 +87,13 @@ remains **un-activated** on the running system pending a `sudo` step only the us
   `wake_cap=11` (2-point drop), fires; (g) 4% Discharging, fresh wake-mark, fires (below
   `grace_floor`); (h) notify helper forced to exit 1, still fires; plus notified-marker
   suppression across two ticks in one grace window (1 notify call, not 2) and `--test-notify` mode.
+  **Scope caveat (added 2026-07-25, post-activation):** these 23 assertions validate the *grace
+  logic* only. Because `BACKSTOP_NOTIFY_BIN` pointed at a stub throughout, the real
+  `battery-backstop-notify` helper never ran end-to-end here, and the suite therefore did not
+  catch a live defect inside it — `runuser -u "#$uid"` (a sudo-ism `runuser` rejects via
+  `getpwnam`), which made every notification silently fail. Fixed post-activation; see the
+  "Post-activation findings" section below. Case (h) proved a *failing* notifier cannot block
+  suspend; nothing here proved a *succeeding* notifier delivers. Read "23/23" accordingly.
 - Docs grep — **PASS**: `grep -n "grace\|wake-grace\|best-effort" docs/gnome-settings.md
   modules/system/power.nix` shows the new text in both files.
 - Live values reconciled at doc-edit time (2026-07-25): `sleep-inactive-battery-timeout` -> `3600`;
@@ -106,7 +113,43 @@ remains **un-activated** on the running system pending a `sudo` step only the us
     build-verified round-3 closure (`.../j84p3im5jdmb4wrz74hppc20jmwbwcrd-...`) exists in the Nix
     store but is not yet the running system.
 
-## USER CHECKLIST (blocking — carried verbatim from the plan, none performed this round)
+## Post-activation findings (2026-07-25, after the user's `nixos-rebuild switch`)
+
+The user activated the round-3 closure; running generation is now **128**. That unblocked the
+agent-runnable half of Phase 8 and surfaced one real defect.
+
+**Verified live** (previously activation-blocked, now confirmed against the running system):
+
+| Check | Evidence |
+|---|---|
+| New script live | `ExecStart` -> `x4a3qw8g…-battery-suspend-backstop`, containing `threshold=10`, `grace_secs=300`, `grace_floor=5`, `grace_drop=2`, `--test-notify` |
+| Wake-mark unit | Exists; `StateDirectory=battery-suspend-backstop`; `WantedBy=post-resume.target`; listed in `post-resume.target.wants/` beside `disable-speaker-amp.service` |
+| State dir | `/var/lib/battery-suspend-backstop/` exists (empty — no suspend/resume yet) |
+| AC silence, live | Five consecutive timer firings at 100% on AC, each exited without suspending |
+| Rounds 1-2 intact | `busctl` runtime: `HandleLidSwitch="lock"`, `HandleLidSwitchExternalPower="lock"`, `HandleLidSwitchDocked="ignore"`; dconf `3600`/`'suspend'` |
+| Inhibitor tether | 5 `claude-code` `block` inhibitors held, all holder PIDs alive (no leaks) |
+
+**Defect found and fixed — USER CHECKLIST item 2 failed.** `sudo <script> --test-notify` produced
+no notification. Root cause in `battery-backstop-notify`: it called `runuser -u "#$uid"`. The
+`#UID` form is a **sudo** convention; `runuser` resolves `-u` through `getpwnam`, which has no `#`
+handling, so it exited 1 with `user #1000 does not exist` on every iteration. Two layers hid it:
+`notify-send`'s stderr goes to `/dev/null`, and `safe_notify`'s `|| true` discards the status.
+
+Diagnosis was by elimination — the daemon was live (`gnome-shell` 50.2 owning
+`org.freedesktop.Notifications`), a direct D-Bus `Notify` returned id 33, banners and lock-screen
+display were both enabled, uid discovery resolved correctly, and a minimal-env `notify-send`
+(simulating the stripped `runuser` environment) rendered on screen. That left `runuser` itself,
+which reproduces standalone.
+
+Fix (`modules/system/power.nix`): parse the username from `loginctl`'s second field and pass
+`runuser -u "$user"`. `nix flake check` and `nixos-rebuild build --flake .#hamsa` both green; the
+rebuilt helper (`pgh847ij…`) carries the change. **Not yet activated** — needs another
+`sudo nixos-rebuild switch`, after which item 2 must be re-run.
+
+Blast radius is limited to the *warning*: `safe_notify`'s fail-open design meant the suspend
+decision was never affected, which is exactly the intended behavior and did work.
+
+## USER CHECKLIST (blocking — item 2 attempted and failed; the rest not performed)
 
 Requires `sudo`, a real suspend cycle, or physical hardware; agents must not perform any of these.
 
