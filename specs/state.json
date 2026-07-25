@@ -29,7 +29,7 @@
       "description": "Fix AC-vs-battery idle sleep so the machine stays available 12 hours on AC and 1 hour on battery with no Claude activity. Currently the computer sleeps after roughly an hour of Claude quiet even when plugged in, instead of only on battery. Revise and improve the existing power management configuration.",
       "topic": "nixos-config",
       "created": "2026-07-25T06:04:20Z",
-      "last_updated": "2026-07-25T06:30:54Z",
+      "last_updated": "2026-07-25T06:40:07Z",
       "session_id": "sess_1784959739_d62475",
       "artifacts": [
         {
@@ -47,6 +47,11 @@
           "type": "summary",
           "summary": "Verification evidence for phases 1/2/4, Phase 3 sudo blocker with activation commands, niri deferral."
         }
+      ],
+      "file_scope": [
+        "modules/home/desktop/gnome.nix",
+        "docs/no-sleep-agents.md",
+        "docs/gnome-settings.md"
       ]
     },
     {
@@ -86,7 +91,7 @@
       "description": "Configure laptop lid-close to blank screen but not sleep (keep AI agents running headless), preserving existing multi-monitor window distribution when monitors are attached, and document the setup in docs/ and relevant README.md files",
       "topic": "nixos-config",
       "created": "2026-07-14T19:36:34Z",
-      "last_updated": "2026-07-14T21:31:33Z",
+      "last_updated": "2026-07-25T06:40:07Z",
       "artifacts": [
         {
           "type": "report",
@@ -156,7 +161,16 @@
           }
         ]
       },
-      "session_id": "sess_1784057900_748474"
+      "session_id": "sess_1784057900_748474",
+      "file_scope": [
+        "config/claude/settings.json",
+        "config/config.kdl",
+        "docs/configuration.md",
+        "docs/gnome-settings.md",
+        "docs/niri.md",
+        "modules/home/desktop/gnome.nix",
+        "modules/system/power.nix"
+      ]
     },
     {
       "project_number": 71,
@@ -422,7 +436,14 @@
         76
       ],
       "description": "Verify and reconcile background-service behavior in the niri+GNOME hybrid session, resolving overlaps rather than leaving gaps. Depends on tasks 74-76 being applied so the session reflects its intended final state. (1) xwayland-satellite: pkgs.xwayland-satellite is installed (modules/system/packages.nix:19; the inline comment claims auto-detection since niri 25.08). Confirm it actually auto-spawns and exports DISPLAY in the niri session — run 'echo $DISPLAY' in a niri terminal and launch an X11 app (e.g. zoom-us). If DISPLAY is empty, add an explicit xwayland-satellite spawn and DISPLAY export. (2) NOTIFICATIONS: services.mako (modules/home/desktop/mako.nix) is enabled and is expected to D-Bus-activate on org.freedesktop.Notifications without explicit startup. Confirm with 'notify-send test' in the niri session; if nothing appears, add an explicit mako startup. (3) gsd/swayidle OVERLAP: gnome-settings-daemon is enabled system-wide (services.gnome.gnome-settings-daemon in modules/system/desktop.nix) while swayidle is spawned in config.kdl:261 for idle-lock/suspend/before-sleep. Some gsd helpers (notably gsd-power for lid-close and idle) may partially run under niri and double-act with swayidle/logind (e.g. double-suspend, or fighting over lid events). Confirm there is no double-suspend or conflicting idle/lid behavior; if there is, disable the overlapping gsd component for the niri session or reconcile logind/swayidle timeouts. Document findings inline and adjust configuration as needed.",
-      "created": "2026-07-04T19:07:57Z"
+      "created": "2026-07-04T19:07:57Z",
+      "file_scope": [
+        "config/config.kdl",
+        "modules/system/desktop.nix",
+        "modules/system/packages.nix",
+        "modules/home/desktop/mako.nix"
+      ],
+      "last_updated": "2026-07-25T06:40:07Z"
     },
     {
       "project_number": 78,
@@ -434,10 +455,15 @@
         74,
         75,
         76,
-        77
+        77,
+        120
       ],
       "description": "Rewrite docs/niri.md to match the actual, settled niri+GNOME-stack configuration after tasks 74-77 land. The current doc is ~60% stale/aspirational: it is dominated by PaperWM material, cross-references archived specs (specs/reports/012_niri_with_gnome_integration.md and specs/plans/010_niri_gnome_portal_integration.md) that no longer drive the config, and its keybinding tables contradict config/config.kdl — e.g. the doc claims Mod+m = maximize and Mod+r = resize mode, but the config binds Mod+M = spotify and Mod+R = switch-preset-column-width; the doc's window-rule examples also use the old match{} block syntax instead of the current top-level window-rule blocks. Fix: (a) trim or clearly quarantine the PaperWM content so it is not presented as the active setup; (b) regenerate the keybinding reference directly from config/config.kdl so it is accurate; (c) remove dead spec cross-references; (d) add a concise 'GNOME-stack hybrid architecture' section documenting the two-layer model — GNOME services/backends (gnome-keyring, polkit-gnome, xdg portals, gnome-settings-daemon, gnome-control-center, Nautilus) vs niri surface tools (waybar, swaybg, mako, swaylock/swayidle, brightnessctl) — and how they compose. Depends on 74-77 so it documents the final state (including whatever reconciliation task 77 decides).",
-      "created": "2026-07-04T19:07:57Z"
+      "created": "2026-07-04T19:07:57Z",
+      "file_scope": [
+        "docs/niri.md"
+      ],
+      "last_updated": "2026-07-25T06:40:07Z"
     },
     {
       "project_number": 109,
@@ -498,6 +524,11 @@
           "path": "specs/110_aerc_inbox_querymap_real_folder/plans/01_inbox-querymap-real-folder.md",
           "type": "summary",
           "summary": "Two-phase implementation plan for the aerc INBOX querymap real-folder fix (both phases marked COMPLETED)."
+        },
+        {
+          "path": "specs/110_aerc_inbox_querymap_real_folder/summaries/01_inbox-querymap-real-folder-summary.md",
+          "type": "summary",
+          "summary": "inbox querymap real folder summary (backfilled by --sync)"
         }
       ]
     },
@@ -525,6 +556,11 @@
           "path": "specs/111_aerc_compose_line_wrapping/plans/01_verify-compose-flowed.md",
           "type": "summary",
           "summary": "Plan file annotated with phase completion and Phase 3 deferral deviation"
+        },
+        {
+          "path": "specs/111_aerc_compose_line_wrapping/summaries/01_verify-compose-flowed-summary.md",
+          "type": "summary",
+          "summary": "verify compose flowed summary (backfilled by --sync)"
         }
       ]
     },
@@ -656,6 +692,11 @@
           "path": "specs/115_aerc_config_consolidation_refactor/summaries/01_aerc-config-consolidation-summary.md",
           "type": "summary",
           "summary": "Implementation summary: D1-D8 outcomes, sha256 diff-verification table (4 byte-identical files + D8-gated accounts.conf), 11/11 rationale-preservation audit table, line-count deviation note, and the manual user checklist for TUI/live-mail items (sidebar cleanliness, ~85-message INBOX scale, reply->send->archive->focus flow, Enter part-cycling, u check-mail toast, carried-forward live archive end-to-end and finding-7 probes)."
+        },
+        {
+          "path": "specs/115_aerc_config_consolidation_refactor/reports/00_session-context-and-handoff.md",
+          "type": "report",
+          "summary": "session context and handoff (backfilled by --sync)"
         }
       ],
       "completion_summary": "Refactored modules/home/email/aerc.nix (384->431 lines) behavior-preservingly: let-bound mkQuerymap generator + shared foldersExclude de-duplicate the querymaps and folders-exclude; 16 Task-NN citations consolidated into 11 forward-looking rationale clusters with task numbers demoted to trailing citations; five holistic-reconsideration points recorded in-file as explicit KEEP decisions; task-112 finding-7 curDir/INBOX-tab risk carried forward as a flagged OPEN RISK. Verified: home-manager build green, nix flake check passed, aerc.conf/binds.conf/querymap-gmail/querymap-logos byte-identical to baseline, accounts.conf diff comment-only (0 non-comment changes, D8 gate). No switch, no live-mail action. Manual TUI checklist pending user."
@@ -705,6 +746,8 @@
     "nixos-config",
     "nix-infrastructure",
     "services",
-    "desktop"
+    "desktop",
+    "maintenance",
+    "packaging"
   ]
 }

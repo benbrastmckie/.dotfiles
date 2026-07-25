@@ -12,7 +12,8 @@ next_project_number: 121
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
 | 1 | 15,19,23,41,42,43,46,67,68,77,117,119 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 78,120 | 77,119 | desktop |
+| 2 | 120 | 77,119 | desktop |
+| 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -36,17 +37,17 @@ next_project_number: 121
 ### Desktop
 
 77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM
-  └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
   └─ 120 [NOT STARTED] — Give the niri session AC/battery-conditional idle suspend (12h on
+    └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
+
+### Maintenance
+
+15 [RESEARCHED] — configure_timezone_location_based
 
 ### Packaging
 
 41 [BLOCKED] — reenable_pdf2docx_nixpkgs_fix
 42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
-
-### Maintenance
-
-15 [RESEARCHED] — configure_timezone_location_based
 
 ## Tasks
 
@@ -122,7 +123,9 @@ next_project_number: 121
 - **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Dependencies**: None
-- **Research**: [115_aerc_config_consolidation_refactor/reports/01_aerc-config-consolidation-research.md]
+- **Research**:
+  - [115_aerc_config_consolidation_refactor/reports/01_aerc-config-consolidation-research.md]
+  - [115_aerc_config_consolidation_refactor/reports/00_session-context-and-handoff.md]
 - **Plan**: [115_aerc_config_consolidation_refactor/plans/01_aerc-config-consolidation.md]
 - **Summary**: [115_aerc_config_consolidation_refactor/summaries/01_aerc-config-consolidation-summary.md]
 
@@ -174,7 +177,9 @@ next_project_number: 121
 - **Topic**: services
 - **Dependencies**: None
 - **Research**: [111_aerc_compose_line_wrapping/reports/01_aerc-compose-flowed-verification.md]
-- **Summary**: [111_aerc_compose_line_wrapping/plans/01_verify-compose-flowed.md]
+- **Summary**:
+  - [111_aerc_compose_line_wrapping/plans/01_verify-compose-flowed.md]
+  - [111_aerc_compose_line_wrapping/summaries/01_verify-compose-flowed-summary.md]
 
 **Description**: Stop aerc-composed/replied email from hard-wrapping at ~72-80 columns; lines should stay soft-wrappable so recipients' clients reflow to their own width. Root cause (live-verified): the compose editor is nvim, and nvim's built-in `mail` ftplugin sets textwidth=72 and formatoptions=jtcql (the `t` flag auto-hard-wraps as you type). FIX in modules/home/email/aerc.nix `[compose]` (extraConfig.compose): (1) `editor = "nvim -c 'setlocal textwidth=0 formatoptions-=t'"` so the compose buffer never inserts hard breaks regardless of the (unmanaged) nvim config; (2) `format-flowed = true` so aerc emits RFC3676 `text/plain; format=flowed`, letting long unwrapped lines reflow on the receiving side instead of appearing broken at a fixed column. Both are complementary and both are needed. NOTE: these two edits are ALREADY DRAFTED in the working tree (uncommitted) as of this task's creation — this task is to verify and commit them, not author from scratch. Independent of the inbox/archive/sync tasks (110/112/113). VERIFY: `home-manager build --flake .#benjamin`; send a test message to yourself with a long paragraph and confirm (a) no hard line breaks were inserted and (b) the sent message carries a `Content-Type: text/plain; format=flowed` header. Then commit the aerc.nix compose changes.
 
@@ -187,7 +192,9 @@ next_project_number: 121
 - **Dependencies**: None
 - **Research**: [110_aerc_inbox_querymap_real_folder/reports/01_inbox-querymap-real-folder.md]
 - **Plan**: [110_aerc_inbox_querymap_real_folder/plans/01_inbox-querymap-real-folder.md]
-- **Summary**: [110_aerc_inbox_querymap_real_folder/plans/01_inbox-querymap-real-folder.md]
+- **Summary**:
+  - [110_aerc_inbox_querymap_real_folder/plans/01_inbox-querymap-real-folder.md]
+  - [110_aerc_inbox_querymap_real_folder/summaries/01_inbox-querymap-real-folder-summary.md]
 
 **Description**: Fix the aerc INBOX virtual folder so it reflects the real inbox. In modules/home/email/aerc.nix the querymaps define `INBOX=tag:inbox AND folder:/Gmail/` (querymap-gmail) and `INBOX=tag:inbox AND folder:/Logos/` (querymap-logos). This is wrong on two counts: (1) `tag:inbox` is applied ONCE at delivery by notmuch.nix postNew (`notmuch tag +inbox`) and is never removed on archive, and (2) `folder:/Gmail/` is a notmuch regex that also matches Gmail/.All_Mail. So the INBOX tab returns everything ever tagged inbox, including the ~64k-message archive. Live-verified on 2026-07-13: `notmuch count folder:Gmail` = 85 (the true inbox) vs `notmuch count 'tag:inbox AND folder:/Gmail/'` = 12,580. This is the root cause of the user's report that replied/handled mail never leaves the aerc inbox. FIX: change the INBOX querymap entries to the exact inbox maildir folder — `INBOX=folder:Gmail` and `INBOX=folder:Logos` (bare exact-match form = INBOX-only, per CLAUDE.md's verified folder-token table and the email-census wrapper which already treats INBOX as `folder:$ACCOUNT_FOLDER`). This makes the tab show the true inbox AND makes any message moved out of the inbox folder (i.e. archived) disappear from the view. Also decide and document whether the Unread/Flagged/Proposed-* querymap entries (which also use `folder:/Gmail/` = whole-account) should remain account-wide or be scoped to the inbox — they are a separate concern from INBOX and account-wide is likely correct for search/triage. NON-GOAL: enabling archive itself (task 112) and periodic sync (task 113). VERIFY: `home-manager build --flake .#benjamin`; open aerc and confirm the INBOX tab shows ~85 messages, not ~12k. Low-risk: this is a read-only view definition change with no mail mutation.
 
@@ -210,7 +217,7 @@ next_project_number: 121
 - **Status**: [NOT STARTED]
 - **Task Type**: nix
 - **Topic**: desktop
-- **Dependencies**: Task 74, Task 75, Task 76, Task 77
+- **Dependencies**: Task 74, Task 75, Task 76, Task 77, Task 120
 
 **Description**: Rewrite docs/niri.md to match the actual, settled niri+GNOME-stack configuration after tasks 74-77 land. The current doc is ~60% stale/aspirational: it is dominated by PaperWM material, cross-references archived specs (specs/reports/012_niri_with_gnome_integration.md and specs/plans/010_niri_gnome_portal_integration.md) that no longer drive the config, and its keybinding tables contradict config/config.kdl — e.g. the doc claims Mod+m = maximize and Mod+r = resize mode, but the config binds Mod+M = spotify and Mod+R = switch-preset-column-width; the doc's window-rule examples also use the old match{} block syntax instead of the current top-level window-rule blocks. Fix: (a) trim or clearly quarantine the PaperWM content so it is not presented as the active setup; (b) regenerate the keybinding reference directly from config/config.kdl so it is accurate; (c) remove dead spec cross-references; (d) add a concise 'GNOME-stack hybrid architecture' section documenting the two-layer model — GNOME services/backends (gnome-keyring, polkit-gnome, xdg portals, gnome-settings-daemon, gnome-control-center, Nautilus) vs niri surface tools (waybar, swaybg, mako, swaylock/swayidle, brightnessctl) — and how they compose. Depends on 74-77 so it documents the final state (including whatever reconciliation task 77 decides).
 

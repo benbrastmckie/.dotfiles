@@ -1,7 +1,7 @@
 # Implementation Plan: Task #119
 
 - **Task**: 119 - fix_ac_vs_battery_idle_sleep_timeouts
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 2.5 hours
 - **Dependencies**: task 117 (laptop_lid_close_no_sleep_headless), task 118
   (document_no_sleep_functionality) — both complete; this task revises the layer they built
