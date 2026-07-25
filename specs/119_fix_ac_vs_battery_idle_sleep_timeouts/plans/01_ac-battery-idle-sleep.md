@@ -204,7 +204,7 @@ inline.
 
 ---
 
-### Phase 2: Static verification — flake check, both builds, and evaluated-value probe [NOT STARTED]
+### Phase 2: Static verification — flake check, both builds, and evaluated-value probe [COMPLETED]
 
 **Goal**: Prove the change evaluates and builds in both Home Manager paths, and that the built
 configuration actually carries `43200` rather than merely that the source file was edited.
@@ -297,7 +297,7 @@ the "committed but not actually in effect" gap that task 118 already documented 
 
 ---
 
-### Phase 4: Update the documentation that asserts the old AC values [NOT STARTED]
+### Phase 4: Update the documentation that asserts the old AC values [COMPLETED]
 
 **Goal**: Keep `docs/` from becoming a stale contradictory source of truth, and record the niri
 divergence explicitly.
