@@ -1,48 +1,47 @@
 {
-  "status": "planned",
+  "status": "partial",
+  "summary": "Round-3 (plan v3) phases 6 and 7 implemented, committed, and build-verified: bounded wake-grace window + lock-screen-visible notification added to the battery-suspend-backstop (report 04 Q5 fix), with 23/23 offline logic-exercise assertions passing against the built store script; docs/gnome-settings.md gained three additive clauses. Phase 8's agent-runnable live checks were all run against the currently-running system, confirming no regression to rounds 1-2, but the round-3 change itself is not yet activated (running generation predates this round's build) -- this and the remaining USER CHECKLIST items require interactive sudo/physical hardware the agent cannot perform.",
   "artifacts": [
+    {
+      "type": "implementation",
+      "path": "modules/system/power.nix",
+      "summary": "Extended battery-suspend-backstop service + new battery-backstop-wake-mark service (post-resume.target hook); added grace parameters, notify helper, --test-notify mode, StateDirectory on both units; banner comment extended in place"
+    },
+    {
+      "type": "documentation",
+      "path": "docs/gnome-settings.md",
+      "summary": "Additive clauses: wake-grace window note on the backstop cross-reference; AC-ceiling best-effort caveat (report 03); multi-monitor/docked evidence-status sentence"
+    },
+    {
+      "type": "summary",
+      "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/05_backstop-grace-and-live-verification-summary.md",
+      "summary": "Round-3 implementation summary: verification evidence, USER CHECKLIST verbatim, multi-monitor status, docs/no-sleep-agents.md follow-up recommendation"
+    },
     {
       "type": "plan",
       "path": "specs/117_laptop_lid_close_no_sleep_headless/plans/05_backstop-grace-and-live-verification.md",
-      "summary": "Round-3 revision (plan v3): preserves phases 1,2,3,5 as COMPLETED and now live-confirmed; rewrites Phase 4 to PARTIAL recording 5 of 6 items live-verified; adds Phase 6 (backstop wake-grace window + lock-screen-visible notification, three-axis bounded), Phase 7 (in-scope docs delta: grace semantics, gsd one-shot AC-ceiling caveat, docked status), Phase 8 (activate new change only + reduced user checklist: A/B suspend, physical lid close, docked multi-monitor regression)."
+      "summary": "Phases 6-7 marked [COMPLETED] with verification evidence; Phase 8 marked [PARTIAL] with agent-runnable check results and deviation annotation on the wake-path-confirmation task"
+    },
+    {
+      "type": "handoff",
+      "path": "specs/117_laptop_lid_close_no_sleep_headless/handoffs/phase-6-handoff-20260725.md",
+      "summary": "Progressive handoff written at Phase 6 completion"
     }
   ],
-  "next_steps": "Run /implement 117 to execute the revised plan (phases 6, 7, then the Phase 8 user checklist). Phases 1-5 are complete and must not be re-run.",
+  "partial_progress": {
+    "stage": "phase-8-blocked-on-user-activation",
+    "details": "Phases 6 and 7 fully complete and committed (fa061c3, b64ac9c). Phase 8's agent-runnable checks ran and were committed (a11bbe4): rounds 1-2 behavior confirmed unaffected; the round-3 units are not yet live because sudo nixos-rebuild switch has not been run. USER CHECKLIST items 1-5 in the plan/summary are the sole remaining work and are explicitly not agent-performable."
+  },
+  "completion_data": {
+    "completion_summary": "Fixed the battery backstop's wake-grace/notification defect (report 04 Q5) with a three-axis-bounded grace window and lock-screen-visible notifications, build-verified and offline-test-verified (23/23 assertions); landed additive docs. Activation and the remaining physical/sudo checks are blocked on the user."
+  },
   "metadata": {
-    "session_id": "sess_1784989397_508e6e",
-    "agent_type": "reviser-agent",
-    "delegation_path": ["orchestrator", "revise", "reviser-agent"],
-    "phases": 8,
-    "total_effort_hours": 6,
-    "complexity": "medium",
-    "research_integrated": true,
-    "plan_version": 3,
-    "dependency_waves": [[1], [2, 3, 6], [4, 5, 7], [8]],
-    "preserved_phases": 4,
-    "revised_phases": 1,
-    "new_phases": 3,
-    "reports_integrated": [
-      {
-        "path": "reports/01_lid-close-no-sleep.md",
-        "integrated_in_plan_version": 1,
-        "integrated_date": "2026-07-14"
-      },
-      {
-        "path": "reports/02_lid-close-screen-off-mechanism.md",
-        "integrated_in_plan_version": 3,
-        "integrated_date": "2026-07-25"
-      },
-      {
-        "path": "reports/03_battery-level-backstop.md",
-        "integrated_in_plan_version": 2,
-        "integrated_date": "2026-07-14"
-      },
-      {
-        "path": "reports/04_partial-state-resolution.md",
-        "integrated_in_plan_version": 3,
-        "integrated_date": "2026-07-25"
-      }
-    ],
-    "out_of_scope_followup": "docs/no-sleep-agents.md deltas (fuller grace narrative, docked-test audit line, gsd one-shot AC caveat) are OUTSIDE task 117 file_scope - recommend folding into task 119's docs phase or a small new doc task."
-  }
+    "session_id": "sess_1784999153_ccd8c8",
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 2,
+    "delegation_path": ["orchestrator", "orchestrate", "skill-orchestrate", "nix-implementation-agent"],
+    "phases_completed": 7,
+    "phases_total": 8
+  },
+  "next_steps": "User runs: sudo nixos-rebuild switch --flake .#hamsa, then works through the reduced USER CHECKLIST in summaries/05 (test-notify, safe A/B suspend test, physical undocked lid close, docked multi-monitor regression -- the last of which gates the task's multi-monitor requirement). On all-green, Phase 8 and the task can be marked complete."
 }

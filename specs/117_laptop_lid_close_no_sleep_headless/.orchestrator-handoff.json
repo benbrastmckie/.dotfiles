@@ -1,42 +1,29 @@
 {
+  "$schema": "orchestrator-handoff-v1",
+  "phase": "implement",
   "status": "partial",
-  "agent_type": "nix-implementation-agent",
-  "session_id": "sess_1784057900_748474",
-  "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
-  "task_number": 117,
-  "summary": "Round-2 battery-backstop implementation (plan 02): phases 1, 2, 3, 5 complete, build-verified, committed. (1) battery-suspend-backstop root service+timer in modules/system/power.nix - polls /sys/class/power_supply/BAT* every 60s, systemctl suspend -i at <=10% while Discharging, inhibitor-proof, intentional re-suspend loop documented in banner (commit c72c4cf). (2) GNOME sleep-inactive-battery-timeout 900->3600 with explicit sleep-inactive-battery-type=suspend (commit 2386332). (3) Claude SessionStart inhibitor payload swapped to tail --pid=$PPID -f /dev/null tether plus stale-pidfile reap; SessionEnd unchanged; hooks remain SESSION-scoped per user decision 1 (commit 29fdd1f). (5) docs/gnome-settings.md: battery backstop bullet, 60-min caveat, accepted open-Claude-session limitation stated plainly, all 15-minute-backstop claims removed (commit 09eb586). Both plan-flagged empirical dependencies VERIFIED before shipping: hook-shell $PPID is the owning claude process (deployed-settings probe + scratch session, deployed file restored from backup), and the systemd-inhibit tail-tether releases within ~1s of owner kill -9 (isolated live test). Backstop branch logic exercised against fake sysfs values (fires at 9/10 Discharging, silent at 11/Not charging/Charging; peripheral hid-* battery excluded by BAT* glob); store-script dry-run silent on AC/100%. All builds green: nix flake check + nixos-rebuild build .#hamsa after every config phase (final closure nixos-system-hamsa-26.05.20260710.8f0500b). Phase 4 [BLOCKED] pending user: interactive sudo unavailable; no switch, no suspend, no battery manipulation performed.",
-  "phases_completed": 4,
-  "phases_total": 5,
-  "blockers": [
-    "Phase 4 activation is user-gated: sudo nixos-rebuild switch --flake .#hamsa + reboot, then the runtime checklist in summaries/02_battery-level-backstop-summary.md (backstop timer live, safe suspend vs suspend -i A/B test under held inhibitors, live gsettings, HandleLidSwitch=lock, scratch-session kill -9 tether check)"
-  ],
+  "summary": "Round-3 plan v3: phases 6-7 complete, committed, build-verified. Added bounded wake-grace + lock-screen notification to battery-suspend-backstop (report 04 Q5 fix); 23/23 offline test assertions pass. Docs delta landed additively. Phase 8 partial: all agent-runnable checks run against the live system, but the change is NOT yet activated (running generation predates this commit) -- blocked on user sudo nixos-rebuild switch plus 4 more user-only checks.",
   "artifacts": [
+    {"type": "summary", "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/05_backstop-grace-and-live-verification-summary.md"}
+  ],
+  "blockers": [
     {
-      "type": "implementation",
-      "path": "modules/system/power.nix",
-      "summary": "battery-suspend-backstop service + timer (BAT* glob, threshold 10, suspend -i, OnBootSec=2min/OnUnitActiveSec=60s)"
-    },
-    {
-      "type": "implementation",
-      "path": "modules/home/desktop/gnome.nix",
-      "summary": "battery idle-suspend 3600s + explicit suspend type with inhibitor-caveat comments"
-    },
-    {
-      "type": "implementation",
-      "path": "config/claude/settings.json",
-      "summary": "SessionStart inhibitor tethered to owning claude process ($PPID verified) + stale-pidfile reap"
-    },
-    {
-      "type": "documentation",
-      "path": "docs/gnome-settings.md",
-      "summary": "10% backstop documented, 60-min battery idle-suspend caveat, accepted limitation, stale 15-minute claims removed"
-    },
-    {
-      "type": "summary",
-      "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/02_battery-level-backstop-summary.md",
-      "summary": "Round-2 implementation summary incl. USER ACTIVATION CHECKLIST and one-time stale-pidfile cleanup command"
+      "description": "Phase 8 activation requires interactive sudo (sudo nixos-rebuild switch --flake .#hamsa) which the agent cannot run. Until activated, 4 more USER CHECKLIST items are also blocked: --test-notify visibility check, safe A/B suspend/suspend-i test, physical undocked lid-close observation, and the docked multi-monitor regression check (the gate on the task's multi-monitor requirement, never run before). Full checklist verbatim in the round-3 summary and plan Phase 8.",
+      "phase": "phase-8",
+      "severity": "hard"
     }
   ],
-  "continuation_context": "All round-2 config work is committed and build-green; nothing further is agent-actionable until the user activates. Fixed decisions honored: hooks SESSION-scoped (no UserPromptSubmit/Stop), requirement (B) accepted as partial (open-idle Claude terminal blocks idle-suspend until the 10% backstop), services.upower.* untouched. After user activation + reboot, the remaining Phase 4 items are: timer listed and ticking, suspend/suspend -i A/B test (USER), live gsettings 3600/suspend/nothing, HandleLidSwitch lock (+ physical lid check, USER), deployed-hooks diff empty, scratch-session kill -9 releases inhibitor. Any failed check loops back into the owning phase's file; task stays partial until Phase 4 passes.",
-  "next_steps": "User runs: sudo nixos-rebuild switch --flake .#hamsa, reboot, then the Phase 4 checklist in summaries/02_battery-level-backstop-summary.md; on all-green, mark Phase 4 complete and the task completed."
+  "next_action_hint": "none",
+  "files_modified": [
+    "modules/system/power.nix",
+    "docs/gnome-settings.md",
+    "specs/117_laptop_lid_close_no_sleep_headless/plans/05_backstop-grace-and-live-verification.md"
+  ],
+  "decisions_made": [
+    "Notify helper is a separate writeShellScript derivation (not inline) so timeout can bound it directly",
+    "Test-only BACKSTOP_* env-var overrides (default to real paths) enable sudo-free offline testing"
+  ],
+  "dead_ends": [],
+  "continuation_context": null,
+  "plan_markers_verified": false
 }
