@@ -365,17 +365,19 @@ divergence explicitly.
 
 ---
 
-### Phase 5: Record the niri boundary and produce the follow-up task recommendation [NOT STARTED]
+### Phase 5: Record the niri boundary and produce the follow-up task recommendation [PARTIAL]
 
 **Goal**: Close the task with the deferral written down as an actionable recommendation, so the
 niri gap is deferred rather than dropped.
 
 **Tasks**:
 
-- [ ] Write `specs/119_fix_ac_vs_battery_idle_sleep_timeouts/summaries/01_ac-battery-idle-sleep-summary.md`
+- [x] Write `specs/119_fix_ac_vs_battery_idle_sleep_timeouts/summaries/01_ac-battery-idle-sleep-summary.md`
       containing: the diff summary, the exact verification commands run in Phases 2 and 3 with
-      their verbatim outputs, and the scope boundary restated.
-- [ ] Include a "Deferred — niri AC/battery parity" section in the summary describing the
+      their verbatim outputs, and the scope boundary restated. *(completed — Phase 3's outputs
+      are pre-activation baseline reads only, transcribed and clearly labeled as such, since
+      live activation did not run; see Phase 3's own deviation note)*
+- [x] Include a "Deferred — niri AC/battery parity" section in the summary describing the
       follow-up work concretely enough to act on:
   - Problem: niri has zero idle auto-suspend on any power state; `swayidle`
     (`config/config.kdl:271`) has no AC/battery-conditional timeout.
@@ -390,13 +392,16 @@ niri gap is deferred rather than dropped.
   - Explicit warning not to resurrect the commented-out `services.swayidle` block in
     `modules/home/desktop/swaylock.nix` verbatim — its unconditional `timeout 600 -> systemctl
     suspend` predates the AC/battery split requirement.
-- [ ] Surface a ready-to-run task-creation invocation in the summary, e.g.
+- [x] Surface a ready-to-run task-creation invocation in the summary, e.g.
       `/task "Give the niri session AC/battery-conditional idle suspend (12h AC, 1h battery) to
       match the GNOME session"`. Do **not** create the task automatically: task creation is an
       interactive, user-confirmed operation under this repo's multi-task creation standard.
-- [ ] Confirm the final change set is exactly `modules/home/desktop/gnome.nix`,
+      *(completed)*
+- [x] Confirm the final change set is exactly `modules/home/desktop/gnome.nix`,
       `docs/no-sleep-agents.md`, `docs/gnome-settings.md`, plus this task's `specs/` artifacts —
-      and nothing else.
+      and nothing else. *(completed — `git status --short` confirmed confined to those paths
+      plus orchestrator-managed `specs/TODO.md` / `specs/state.json`, which this agent does not
+      touch)*
 
 **Timing**: 20 minutes
 
