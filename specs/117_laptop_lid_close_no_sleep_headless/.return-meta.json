@@ -1,49 +1,48 @@
 {
-  "status": "partial",
-  "started_at": "2026-07-14T13:30:00-07:00",
-  "summary": "Round-2 battery-backstop implementation: phases 1, 2, 3, 5 complete, build-verified, and committed (backstop timer c72c4cf, GNOME battery timeout 2386332, inhibitor tether 29fdd1f, docs 09eb586). Both plan-flagged empirical dependencies verified: hook-shell $PPID IS the owning claude process (probe), and the tail --pid tether releases the inhibitor within ~1s of owner kill -9 (isolated test). Phase 4 (activation + runtime verification) pending user: interactive sudo unavailable and agents must not switch/suspend.",
+  "status": "planned",
   "artifacts": [
     {
-      "type": "implementation",
-      "path": "modules/system/power.nix",
-      "summary": "battery-suspend-backstop service + timer: BAT* poll every 60s, systemctl suspend -i at <=10% Discharging, inhibitor-proof"
-    },
-    {
-      "type": "implementation",
-      "path": "modules/home/desktop/gnome.nix",
-      "summary": "sleep-inactive-battery-timeout 900->3600, explicit sleep-inactive-battery-type=suspend"
-    },
-    {
-      "type": "implementation",
-      "path": "config/claude/settings.json",
-      "summary": "SessionStart inhibitor payload sleep infinity -> tail --pid=$PPID tether + stale-pidfile reap; SessionEnd unchanged"
-    },
-    {
-      "type": "documentation",
-      "path": "docs/gnome-settings.md",
-      "summary": "Battery backstop bullet, 60-min battery idle-suspend with inhibitor caveat, accepted limitation, stale 15-minute claims removed"
-    },
-    {
-      "type": "summary",
-      "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/02_battery-level-backstop-summary.md",
-      "summary": "Round-2 implementation summary with user activation checklist and one-time stale-pidfile cleanup command"
+      "type": "plan",
+      "path": "specs/117_laptop_lid_close_no_sleep_headless/plans/05_backstop-grace-and-live-verification.md",
+      "summary": "Round-3 revision (plan v3): preserves phases 1,2,3,5 as COMPLETED and now live-confirmed; rewrites Phase 4 to PARTIAL recording 5 of 6 items live-verified; adds Phase 6 (backstop wake-grace window + lock-screen-visible notification, three-axis bounded), Phase 7 (in-scope docs delta: grace semantics, gsd one-shot AC-ceiling caveat, docked status), Phase 8 (activate new change only + reduced user checklist: A/B suspend, physical lid close, docked multi-monitor regression)."
     }
   ],
-  "completion_data": {
-    "completion_summary": "Battery-level suspend backstop implemented and build-verified: root systemd timer suspends at <=10% while discharging via systemctl suspend -i (bypasses all sleep inhibitors), GNOME battery idle-suspend raised to 60 minutes with explicit suspend type, Claude session inhibitors tethered to their owning process so crashed sessions release their locks. Activation (sudo nixos-rebuild switch + reboot + runtime checks) pending user."
-  },
-  "partial_progress": {
-    "stage": "phase_4_blocked",
-    "details": "Phases 1,2,3,5 [COMPLETED]; Phase 4 [BLOCKED] pending-user-activation (interactive sudo unavailable; suspend tests are user-performed)",
-    "handoff_path": "specs/117_laptop_lid_close_no_sleep_headless/.orchestrator-handoff.json"
-  },
+  "next_steps": "Run /implement 117 to execute the revised plan (phases 6, 7, then the Phase 8 user checklist). Phases 1-5 are complete and must not be re-run.",
   "metadata": {
-    "session_id": "sess_1784057900_748474",
-    "agent_type": "nix-implementation-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
-    "phases_completed": 4,
-    "phases_total": 5
-  },
-  "next_steps": "User: sudo nixos-rebuild switch --flake .#hamsa, reboot, then run the Phase 4 checklist in summaries/02_battery-level-backstop-summary.md (incl. the safe suspend vs suspend -i A/B test and the scratch-session kill-9 tether check)."
+    "session_id": "sess_1784989397_508e6e",
+    "agent_type": "reviser-agent",
+    "delegation_path": ["orchestrator", "revise", "reviser-agent"],
+    "phases": 8,
+    "total_effort_hours": 6,
+    "complexity": "medium",
+    "research_integrated": true,
+    "plan_version": 3,
+    "dependency_waves": [[1], [2, 3, 6], [4, 5, 7], [8]],
+    "preserved_phases": 4,
+    "revised_phases": 1,
+    "new_phases": 3,
+    "reports_integrated": [
+      {
+        "path": "reports/01_lid-close-no-sleep.md",
+        "integrated_in_plan_version": 1,
+        "integrated_date": "2026-07-14"
+      },
+      {
+        "path": "reports/02_lid-close-screen-off-mechanism.md",
+        "integrated_in_plan_version": 3,
+        "integrated_date": "2026-07-25"
+      },
+      {
+        "path": "reports/03_battery-level-backstop.md",
+        "integrated_in_plan_version": 2,
+        "integrated_date": "2026-07-14"
+      },
+      {
+        "path": "reports/04_partial-state-resolution.md",
+        "integrated_in_plan_version": 3,
+        "integrated_date": "2026-07-25"
+      }
+    ],
+    "out_of_scope_followup": "docs/no-sleep-agents.md deltas (fuller grace narrative, docked-test audit line, gsd one-shot AC caveat) are OUTSIDE task 117 file_scope - recommend folding into task 119's docs phase or a small new doc task."
+  }
 }

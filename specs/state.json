@@ -86,22 +86,17 @@
     {
       "project_number": 117,
       "project_name": "laptop_lid_close_no_sleep_headless",
-      "status": "partial",
+      "status": "planned",
       "task_type": "nix",
       "description": "Configure laptop lid-close to blank screen but not sleep (keep AI agents running headless), preserving existing multi-monitor window distribution when monitors are attached, and document the setup in docs/ and relevant README.md files",
       "topic": "nixos-config",
       "created": "2026-07-14T19:36:34Z",
-      "last_updated": "2026-07-25T06:40:07Z",
+      "last_updated": "2026-07-25T14:33:37Z",
       "artifacts": [
         {
           "type": "report",
           "path": "specs/117_laptop_lid_close_no_sleep_headless/reports/01_lid-close-no-sleep.md",
           "summary": "Lid-close no-sleep research: logind ownership analysis, nixos-26.05 option names, verification, doc targets"
-        },
-        {
-          "type": "plan",
-          "path": "specs/117_laptop_lid_close_no_sleep_headless/plans/01_lid-close-no-sleep.md",
-          "summary": "5-phase plan: core logind lid fix, GNOME/niri idle-suspend decisions, activation verification, proportionate docs"
         },
         {
           "type": "summary",
@@ -119,33 +114,37 @@
           "summary": "Round-3: UPower 2% backstop verified BLOCKED by strong inhibitors on systemd 260 (would hard-die at 0%); (B) unachievable as stated (SessionStart/SessionEnd hooks hold inhibitor while idle); recommends 10% root-timer suspend -i backstop, turn-scoped hooks, battery timeout 3600 + explicit suspend type"
         },
         {
-          "type": "plan",
-          "path": "specs/117_laptop_lid_close_no_sleep_headless/plans/02_battery-level-backstop.md",
-          "summary": "5-phase plan: 10% root-timer suspend -i backstop, GNOME battery timeout 3600 + explicit suspend type, session-tethered inhibitor cleanup, activation + safe runtime verification, docs incl. accepted open-session limitation"
-        },
-        {
           "type": "summary",
           "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/02_battery-level-backstop-summary.md",
           "summary": "Round-2 implementation summary: backstop timer, GNOME battery timeout, inhibitor tether all build-verified and committed; Phase 4 activation checklist pending user"
+        },
+        {
+          "path": "specs/117_laptop_lid_close_no_sleep_headless/plans/05_backstop-grace-and-live-verification.md",
+          "type": "plan"
         }
       ],
       "plan_metadata": {
-        "phases": 5,
-        "total_effort_hours": 4,
+        "phases": 8,
+        "total_effort_hours": 6,
         "complexity": "medium",
         "research_integrated": true,
-        "plan_version": 2,
+        "plan_version": 3,
         "dependency_waves": [
           [
             1
           ],
           [
             2,
-            3
+            3,
+            6
           ],
           [
             4,
-            5
+            5,
+            7
+          ],
+          [
+            8
           ]
         ],
         "reports_integrated": [
@@ -155,13 +154,23 @@
             "integrated_date": "2026-07-14"
           },
           {
+            "path": "reports/02_lid-close-screen-off-mechanism.md",
+            "integrated_in_plan_version": 3,
+            "integrated_date": "2026-07-25"
+          },
+          {
             "path": "reports/03_battery-level-backstop.md",
             "integrated_in_plan_version": 2,
             "integrated_date": "2026-07-14"
+          },
+          {
+            "path": "reports/04_partial-state-resolution.md",
+            "integrated_in_plan_version": 3,
+            "integrated_date": "2026-07-25"
           }
         ]
       },
-      "session_id": "sess_1784057900_748474",
+      "session_id": "sess_1784989397_508e6e",
       "file_scope": [
         "config/claude/settings.json",
         "config/config.kdl",
@@ -170,7 +179,8 @@
         "docs/niri.md",
         "modules/home/desktop/gnome.nix",
         "modules/system/power.nix"
-      ]
+      ],
+      "next_artifact_number": 6
     },
     {
       "project_number": 71,
