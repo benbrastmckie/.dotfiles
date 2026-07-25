@@ -22,8 +22,8 @@ The following settings are managed by Home Manager:
 Raw dconf values, managed via `modules/home/desktop/gnome.nix`:
 - **Idle delay**: 300 seconds (5 minutes) - screen dims/blanks (`org/gnome/desktop/session`
   `idle-delay`; purely visual, unrelated to sleep)
-- **Idle suspend (AC)**: `sleep-inactive-ac-type = "nothing"` - never auto-suspends on AC
-  (`sleep-inactive-ac-timeout` remains set but is inert given the type above)
+- **Idle suspend (AC)**: `sleep-inactive-ac-type = "suspend"`,
+  `sleep-inactive-ac-timeout = 43200` (12 hours) - explicit bounded idle-suspend ceiling on AC
 - **Idle suspend (Battery)**: `sleep-inactive-battery-type = "suspend"`,
   `sleep-inactive-battery-timeout = 3600` (60 minutes)
 - **Idle dim**: Enabled (`idle-dim = true`)

@@ -106,8 +106,8 @@ alone would not have prevented lid-close suspend without this setting.
 `dconf.settings`, under `org/gnome/settings-daemon/plugins/power`:
 
 ```nix
-sleep-inactive-ac-type = "nothing";          # AC: never auto-suspend on idle
-sleep-inactive-ac-timeout = 3600;            # inert given the type above; left in place
+sleep-inactive-ac-type = "suspend";          # AC: explicit 12h idle-suspend ceiling
+sleep-inactive-ac-timeout = 43200;           # 12 hours
 sleep-inactive-battery-timeout = 3600;       # battery: 60 minutes
 sleep-inactive-battery-type = "suspend";     # explicit, not left to the schema default
 idle-dim = true;
@@ -116,12 +116,15 @@ idle-dim = true;
 and, under `org/gnome/desktop/session`: `idle-delay = 300` (5-minute screen dim/blank — this is
 purely visual blanking, unrelated to sleep, and is not part of the no-sleep story).
 
-On AC power, idle-based auto-suspend is disabled outright — a plugged-in machine never
-auto-suspends on idle, inhibitor or not. On battery, idle-suspend is retained at 60 minutes as a
-courtesy/battery-protection measure, but it only fires when no logind block inhibitor is held —
-which means it is inert any time a Claude Code session happens to be open (the normal case while
-agents are working). This is exactly why the battery backstop (mechanism 4) exists: the 60-minute
-idle-suspend is not a reliable safety net on its own.
+On AC power, idle-based auto-suspend is bounded at an explicit 12-hour ceiling rather than
+disabled outright — a plugged-in machine stays awake through any single Claude Code session (the
+session's own `sleep:idle` block inhibitor takes precedence for as long as it's held) and only
+idle-suspends once 12 hours of continuous input-idle time have elapsed with no inhibitor held. On
+battery, idle-suspend is retained at 60 minutes as a courtesy/battery-protection measure, and,
+like the AC leg, it only fires when no logind block inhibitor is held — which means it is inert
+any time a Claude Code session happens to be open (the normal case while agents are working).
+This is exactly why the battery backstop (mechanism 4) exists: the 60-minute idle-suspend is not
+a reliable safety net on its own.
 
 One more detail worth knowing if a suspend "should have happened but didn't": GNOME's idle-suspend
 watch is one-shot per idle period — if it's denied once because an inhibitor is held, it does not
@@ -142,9 +145,13 @@ This locks the screen after 5 minutes idle and on `before-sleep`/`lock` signals 
 triggers an auto-suspend on its own. An earlier version of this configuration had a
 `"timeout" "600" "systemctl suspend"` clause that auto-suspended the niri session after 10
 minutes idle; that clause has been removed, so the niri session now has **zero idle-based
-auto-suspend**, matching the intent of the GNOME-session AC policy above (though the niri
-session has no equivalent of the GNOME battery 60-minute timeout — its only idle behavior is
-locking).
+auto-suspend on any power state** — its only idle behavior is locking. This is a deliberate,
+acknowledged divergence from the GNOME session's 12h-AC/1h-battery split above, not an oversight:
+`swayidle`'s `timeout` clause has no AC/battery-conditional concept of its own (a single
+`timeout N command` applies unconditionally regardless of power source), so giving niri the same
+split requires new supervisor infrastructure that is out of scope here and tracked as follow-up
+work. The niri session's only auto-suspend protection today is the battery-level backstop
+(mechanism 4, below), which is power-source-agnostic by design.
 
 Lid handling needs no separate niri configuration at all: niri natively turns the internal
 monitor off and back on in sync with the physical lid switch, independent of logind's
@@ -200,8 +207,8 @@ re-arming) would just mean more awake time below the safety margin.
 
 | Scenario | What happens |
 |---|---|
-| AC power, Claude Code session open, lid open | Nothing sleeps — AC idle-suspend is disabled outright, session or no session. |
-| AC power, no Claude Code session, lid open, idle 60+ minutes | Still nothing — AC idle-suspend type is `"nothing"` unconditionally. |
+| AC power, Claude Code session open, lid open | Nothing sleeps — the session's `sleep:idle` block inhibitor prevents idle-suspend for as long as it's held, regardless of elapsed idle time. |
+| AC power, no Claude Code session, lid open, idle 12+ hours | The machine idle-suspends — the explicit 12-hour AC ceiling has elapsed with no inhibitor held. |
 | Battery, Claude Code session open (inhibitor held), idle 60+ minutes | The idle-suspend watch fires but is denied by logind (blocked by the inhibitor) and does not retry until a re-arm event. Machine stays awake. |
 | Battery, no Claude Code session, idle 60+ minutes | Idle-suspend succeeds normally — the machine suspends. |
 | Lid closed, any power source, no external monitor | Session locks; the panel powers off shortly after (about 30 seconds on GNOME, immediately on niri). The machine never suspends from this alone. |
@@ -247,11 +254,12 @@ values:
 
 ```bash
 gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type
+gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout
 gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type
 gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-timeout
 ```
 
-Expected: `'nothing'`, `'suspend'`, `3600` respectively.
+Expected: `'suspend'`, `43200`, `'suspend'`, `3600` respectively.
 
 **Claude Code session inhibitor** — while a Claude Code session is open, confirm its inhibitor is
 held:
