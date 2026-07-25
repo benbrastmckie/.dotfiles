@@ -1,17 +1,19 @@
 # Implementation Summary: Task #119
 
-**Completed**: 2026-07-25 (Phases 1, 2, 4 fully verified; Phase 3 blocked pending user
-activation — see below)
-**Duration**: ~45 minutes
+**Completed**: 2026-07-25 (all five phases fully verified, including live post-activation
+evidence)
+**Duration**: ~45 minutes implementation + a follow-up verification dispatch after the user
+activated the configuration
 
 ## Overview
 
 Replaced GNOME's unbounded `sleep-inactive-ac-type = "nothing"` with an explicit, auditable
 12-hour AC idle-suspend ceiling (`"suspend"` + `43200`) in `modules/home/desktop/gnome.nix`,
-leaving the existing 1-hour battery leg untouched. The committed change, its evaluation, and both
-build paths are fully verified. **Live activation was not performed** because it requires an
-interactive `sudo` password prompt, which this implementation agent is constrained not to run —
-this is flagged as a blocker below with the exact command the user needs to run.
+leaving the existing 1-hour battery leg untouched. The committed change, its evaluation, both
+build paths, and — following user activation of the configuration — the **live, running-system**
+dconf state are all fully verified. The fix is confirmed live on the machine: both Home Manager
+activation paths agree, and the running system's own generated dconf keyfile carries the new
+values.
 
 ## What Changed
 
@@ -41,19 +43,14 @@ this is flagged as a blocker below with the exact command the user needs to run.
 
 ## Plan Deviations
 
-- **Phase 3** (activation and LIVE dconf verification) — **skipped, blocked on required
-  interactive sudo**: full activation requires `sudo nixos-rebuild switch --flake .#hamsa`
-  (interactive password prompt) alongside `home-manager switch --flake .#benjamin`. The
-  implementation agent operated under an explicit constraint not to run sudo with a password
-  prompt and not to bypass/supply credentials. Activating only the standalone
-  `home-manager switch` path (which does not need sudo) was considered and explicitly rejected:
-  the plan's own risk table states that activating only one of the two Home Manager paths
-  leaves `~/.nix-profile` and `/etc/profiles/per-user` disagreeing, and doing so unilaterally to
-  make this phase appear to pass would reintroduce exactly the activation-lag class of bug this
-  task exists to close. No live post-activation `gsettings get` reads were taken; only
-  pre-activation baseline reads were captured (see "Live Verification" below). This is reported
-  as **incomplete**, not complete.
-- All other phases (1, 2, 4) followed the plan without deviation.
+- None (implementation followed plan). Phase 3 was initially reported blocked on required
+  interactive `sudo` in an earlier dispatch of this task — activating the NixOS-integrated path
+  needs `sudo nixos-rebuild switch --flake .#hamsa`, which the implementation agent is
+  constrained not to run interactively. That blocker has since dissolved: the user activated the
+  configuration directly on the machine. A follow-up verification dispatch independently
+  re-read every live value (not merely transcribed the orchestrator's report) and confirms
+  Phase 3's verification criteria are genuinely met — see "Live Verification (Phase 3)" below.
+  No deviation remains; the task closes with all five phases `[COMPLETED]`.
 
 ## Verification
 
@@ -76,16 +73,21 @@ this is flagged as a blocker below with the exact command the user needs to run.
   `docs/gnome-settings.md` and `docs/no-sleep-agents.md`); `grep -rn '43200' docs/` matches in
   both files. No task numbers appear in the edited `docs/` prose.
 
-### Live Verification (Phase 3) — NOT COMPLETE
+### Live Verification (Phase 3) — COMPLETE
 
-Live activation did not run. The following are **pre-activation baseline reads only** —
-transcribed verbatim, and explicitly NOT evidence that the fix is live:
+The configuration was activated on the machine (both Home Manager paths: the NixOS-integrated
+path via `sudo nixos-rebuild switch --flake .#hamsa`, and the standalone path via
+`home-manager switch --flake .#benjamin`), and a follow-up dispatch independently re-ran every
+live read below directly against the running system — none of this is transcribed from another
+report without re-verification.
+
+**Live `gsettings`/`busctl` reads** (verbatim, this dispatch):
 
 ```
 $ gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type
-'nothing'
+'suspend'
 $ gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout
-3600
+43200
 $ gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type
 'suspend'
 $ gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-timeout
@@ -94,43 +96,50 @@ $ busctl get-property org.freedesktop.login1 /org/freedesktop/login1 org.freedes
 s "ignore"
 $ busctl get-property org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager HandleLidSwitch
 s "lock"
+$ busctl get-property org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager HandleLidSwitchExternalPower
+s "lock"
 ```
 
-These confirm the machine is still running the pre-change values (as expected, since no
-activation ran) and that the untouched logind neighbors (`IdleAction`, `HandleLidSwitch`) are
-unaffected by this change.
+All four dconf values match the fix exactly (`'suspend'` / `43200` on AC, unchanged `'suspend'` /
+`3600` on battery), and all three logind-owned neighbors are unaffected.
 
-**Required user action to complete Phase 3** — run one of the following, then re-read the four
-`gsettings` values:
+**Both Home Manager profile paths independently confirmed to agree** (a stronger check than the
+`gsettings` reads alone, since it traces both activation paths back to their generated
+artifacts rather than only the resulting DB state):
 
-```bash
-# Preferred: runs both Home Manager paths in sequence
-bash scripts/update.sh
+- The NixOS-integrated path's `systemd` unit, `home-manager-benjamin.service`, is
+  `active (exited)` with `Activating dconfSettings` in its log, and its generation's `activate`
+  script loads dconf from the store path `/nix/store/m38ajb6p0zwppsfgblr1hrknvcw377mf-hm-dconf.ini`.
+- The standalone path's current generation
+  (`~/.local/state/nix/profiles/home-manager` -> `home-manager-213-link`, created
+  2026-07-25 07:18 PDT) loads dconf from the **same, byte-identical** store path.
+- That shared `hm-dconf.ini` was read directly and contains:
+  ```
+  [org/gnome/settings-daemon/plugins/power]
+  idle-dim=true
+  sleep-inactive-ac-timeout=43200
+  sleep-inactive-ac-type='suspend'
+  sleep-inactive-battery-timeout=3600
+  sleep-inactive-battery-type='suspend'
+  ```
+- Additionally, `/run/current-system` resolves to
+  `/nix/store/i29bh6x6vi1yi7c9gz3v6qj5x2k1xh43-nixos-system-hamsa-26.05.20260710.8f0500b` — the
+  exact store path built and verified in Phase 2 — confirming the running system is the build
+  that was checked, not a different one.
 
-# Or manually, both are required (activating only one leaves the profiles disagreeing):
-sudo nixos-rebuild switch --flake .#hamsa
-home-manager switch --flake .#benjamin
+**Remediation ladder**: not triggered. All four `gsettings` reads matched on the first read; no
+mismatch occurred, so there was nothing to remediate.
 
-# Then confirm the live values:
-gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type      # expect 'suspend'
-gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout   # expect 43200
-gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type    # expect 'suspend' (unchanged)
-gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-timeout # expect 3600 (unchanged)
-```
+**Known limitation** (recorded regardless): `gsettings get` proves the dconf database value.
+`gsd-power` follows GSettings change notifications live, so a DB match is sufficient evidence in
+practice, but a DB match alone is not proof the daemon re-armed its idle timer internally. This
+dispatch strengthens the evidence beyond a bare DB read by tracing both activation paths to a
+shared, byte-identical generated dconf keyfile, but the 12-hour AC suspend itself was not
+wall-clock observed (see the behavioral note below).
 
-If `sleep-inactive-ac-timeout` reads back `3600` after activation, the schema default is still in
-force and the fix is not live — work the remediation ladder in Phase 3 of the plan (re-run the
-Home Manager `switch` that owns dconf, re-read, then log out/in to force a fresh
-`gnome-settings-daemon`) before concluding the fix is broken.
-
-**Known limitation** (recorded regardless of when activation happens): `gsettings get` proves
-the dconf database value. `gsd-power` follows GSettings change notifications live, so a DB match
-is sufficient evidence in practice, but a DB match alone is not proof the daemon re-armed its
-idle timer internally.
-
-**Behavioral note**: the 12-hour AC path cannot be wall-clock tested within this task regardless
-of activation state. The live dconf reads plus the unchanged, already-verified inhibitor
-mechanism from tasks 117/118 are the accepted evidence once activation completes.
+**Behavioral note**: the 12-hour AC path cannot be wall-clock tested within this task. The live
+dconf reads, the shared-keyfile evidence above, and the unchanged, already-verified inhibitor
+mechanism from tasks 117/118 (re-confirmed below) are the accepted evidence.
 
 ## Deferred — niri AC/battery parity
 
@@ -155,20 +164,22 @@ that dies silently, leaving no idle policy at all.
 `modules/home/desktop/swaylock.nix` verbatim — its unconditional `timeout 600 -> systemctl
 suspend` example predates the AC/battery split requirement.
 
-**Ready-to-run follow-up task invocation** (not auto-created — task creation is an interactive,
-user-confirmed operation):
-
-```
-/task "Give the niri session AC/battery-conditional idle suspend (12h AC, 1h battery) to match the GNOME session"
-```
+**Follow-up task**: this deferral has already been captured as a separate, tracked task (task
+120, "Give the niri session AC/battery-conditional idle suspend") — no further `/task` invocation
+is needed.
 
 ## Notes
 
 - Final change set: `modules/home/desktop/gnome.nix`, `docs/no-sleep-agents.md`,
   `docs/gnome-settings.md`, plus this task's `specs/119_fix_ac_vs_battery_idle_sleep_timeouts/`
   artifacts. No other files were modified.
-- Each verified-green phase (1, 2, 4, and the blocked state of 3) was committed separately:
-  `task 119 phase 1: ...`, `task 119 phase 2: ...`, `task 119 phase 4: ...`,
-  `task 119 phase 3: blocked — live activation requires interactive sudo`.
-- The task should not be marked fully complete until a human runs the activation command above
-  and the live `gsettings` reads confirm `'suspend'` / `43200` on the AC leg.
+- Each verified-green phase (1, 2, 4) was committed separately in the original implementation
+  dispatch: `task 119 phase 1: ...`, `task 119 phase 2: ...`, `task 119 phase 4: ...`. Phase 3
+  was initially committed in a blocked state (`task 119 phase 3: blocked — live activation
+  requires interactive sudo`); the configuration was then activated directly on the machine, and
+  a follow-up verification dispatch independently re-confirmed all live values and closed out
+  Phases 3 and 5.
+- All five phases are now `[COMPLETED]`. The 12-hour AC suspend behavior itself was not — and
+  cannot be — wall-clock observed within this task; the live dconf evidence, the shared-keyfile
+  cross-check between both Home Manager paths, and the unchanged Claude Code inhibitor mechanism
+  are the accepted evidence of correctness.
