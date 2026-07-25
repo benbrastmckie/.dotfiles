@@ -1,6 +1,16 @@
 {
-  "next_project_number": 119,
+  "next_project_number": 120,
   "active_projects": [
+    {
+      "project_number": 119,
+      "project_name": "fix_ac_vs_battery_idle_sleep_timeouts",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Fix AC-vs-battery idle sleep so the machine stays available 12 hours on AC and 1 hour on battery with no Claude activity. Currently the computer sleeps after roughly an hour of Claude quiet even when plugged in, instead of only on battery. Revise and improve the existing power management configuration.",
+      "topic": "nixos-config",
+      "created": "2026-07-25T06:04:20Z",
+      "last_updated": "2026-07-25T06:04:20Z"
+    },
     {
       "project_number": 118,
       "project_name": "document_no_sleep_functionality",

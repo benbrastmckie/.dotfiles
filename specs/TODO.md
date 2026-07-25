@@ -1,17 +1,17 @@
 ---
-next_project_number: 119
+next_project_number: 120
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-07-14. Generated from state.json dependency graph.*
+*Updated 2026-07-25. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,117 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,117,119 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 78 | 77 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -19,6 +19,7 @@ next_project_number: 119
 ### Nixos Config
 
 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
+119 [NOT STARTED] — Fix AC-vs-battery idle sleep so the machine stays available 12 ho
 
 ### Nix Infrastructure
 
@@ -47,6 +48,16 @@ next_project_number: 119
   └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
 
 ## Tasks
+
+### 119. Fix ac vs battery idle sleep timeouts
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Fix AC-vs-battery idle sleep so the machine stays available 12 hours on AC and 1 hour on battery with no Claude activity. Currently the computer sleeps after roughly an hour of Claude quiet even when plugged in, instead of only on battery. Revise and improve the existing power management configuration.
+
+---
 
 ### 118. Document no sleep functionality
 - **Status**: [COMPLETED]
