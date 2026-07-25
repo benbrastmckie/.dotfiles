@@ -357,7 +357,9 @@ is still present.
 
 ---
 
-### Phase 6: Wake-grace window and user-visible notification for the battery backstop [NOT STARTED]
+### Phase 6: Wake-grace window and user-visible notification for the battery backstop [COMPLETED]
+
+- Completed: 2026-07-25 (commit pending in this same implementation pass)
 
 **Goal**: Fix report 04's Q5 HIGH-severity defect. After any resume, the backstop grants a bounded
 grace window before it may re-suspend, and every suspend decision produces a notification the user
@@ -427,41 +429,65 @@ descent for its desktop low-battery warnings to appear (this last point is a rat
 verified claim — see Flagged Unverified Items).
 
 **Tasks**:
-- [ ] Verify option shapes against the pin before writing: `StateDirectory` on
+- [x] Verify option shapes against the pin before writing: `StateDirectory` on
   `systemd.services.<n>.serviceConfig`, and that `post-resume.target` is a valid `wantedBy` target
   in this configuration (`nix eval` the built unit, plus read
   `/run/current-system/etc/systemd/system/post-resume.target.wants/`). Prefer the explicit-unit
   idiom from `audio.nix` over `powerManagement.resumeCommands` (both exist; the former is
-  live-proven here).
-- [ ] Add `systemd.services.battery-backstop-wake-mark` to `modules/system/power.nix` (resume hook,
+  live-proven here). VERIFIED: `disable-speaker-amp.service` symlink confirmed present under
+  `/run/current-system/etc/systemd/system/post-resume.target.wants/` before writing; `StateDirectory`
+  confirmed used elsewhere in-repo (`modules/system/optional/discord-bot.nix:114`).
+- [x] Add `systemd.services.battery-backstop-wake-mark` to `modules/system/power.nix` (resume hook,
   writes `wake-mark`, clears `notified`).
-- [ ] Add the notify helper (`pkgs.writeShellScript`, or inline in the backstop script) with uid
-  discovery, `runuser`, `timeout`, and `|| true`.
-- [ ] Extend the `battery-suspend-backstop` script with the four parameters, the grace branch, the
+- [x] Add the notify helper (`pkgs.writeShellScript`, or inline in the backstop script) with uid
+  discovery, `runuser`, `timeout`, and `|| true`. *(deviation: altered — implemented as a separate
+  `pkgs.writeShellScript "battery-backstop-notify"` derivation invoked by path from the backstop
+  script's `safe_notify()` wrapper, rather than an inline shell function, so `timeout` can bound an
+  external command directly instead of needing `bash -c "$(declare -f ...)"` re-exec gymnastics.
+  Functionally identical: uid discovery via `loginctl list-users`, `runuser` with
+  `XDG_RUNTIME_DIR`/`DBUS_SESSION_BUS_ADDRESS`, `notify-send -u critical`, wrapped in
+  `timeout 5 ... || true` in the caller.)*
+- [x] Extend the `battery-suspend-backstop` script with the four parameters, the grace branch, the
   `notified` marker, and `--test-notify`; add `StateDirectory` to its `serviceConfig`.
-- [ ] Extend the banner comment per the design above (report 04 reference, parameters, bounds,
+  *(deviation: altered — added test-only override env vars `BACKSTOP_BATTERY_GLOB`,
+  `BACKSTOP_SYSTEMCTL_BIN`, `BACKSTOP_NOTIFY_BIN` (all default to the real production paths via
+  bash `${var:-default}`, so an unmodified systemd invocation is byte-identical in behavior) — this
+  is what makes the offline logic exercise below possible without `sudo` or a stubbed
+  `/sys/class/power_supply/`.)*
+- [x] Extend the banner comment per the design above (report 04 reference, parameters, bounds,
   fail-safe direction, trade-off).
-- [ ] Offline logic exercise (agent-runnable, no `sudo`, no suspend): run the built store script
-  against a fake sysfs tree, a fake state directory, and a stubbed `systemctl`, asserting each case:
-  (a) `Not charging`/`Charging` -> silent; (b) 11% Discharging -> silent; (c) 9% Discharging with no
-  wake-mark -> fires; (d) 9% Discharging with a wake-mark 60 s old and `wake_cap=9` -> skips and
-  notifies once; (e) same but wake-mark 400 s old -> fires; (f) same but `wake_cap=11` (2-point drop)
-  -> fires; (g) 4% Discharging with a fresh wake-mark -> fires (below `grace_floor`); (h) notify
-  helper forced to fail -> still fires. Assert the `notified` marker suppresses a second
-  notification within one grace window.
-- [ ] `jq`-free build gates: `nix flake check` green; `nixos-rebuild build --flake .#hamsa` green.
-- [ ] Commit (`task 117 phase 6: battery backstop wake-grace and notification`).
+- [x] Offline logic exercise (agent-runnable, no `sudo`, no suspend): ran the built store script
+  (`/nix/store/x4a3qw8gam9xn41ha6i9ymjg7mra6fjw-battery-suspend-backstop`) against a fake sysfs tree,
+  a fake `STATE_DIRECTORY`, and a stubbed `systemctl`/`notify-send`, via
+  `/tmp/.../scratchpad/run-backstop-tests.sh`. All cases passed (23/23 assertions, 0 failed):
+  (a) `Not charging`/`Charging` -> silent (empty output, systemctl not invoked); (b) 11% Discharging
+  -> silent; (c) 9% Discharging, no wake-mark -> fires, `systemctl suspend -i` invoked; (d) 9%
+  Discharging, wake-mark 60 s old, `wake_cap=9` -> skips, systemctl NOT invoked, notify invoked
+  once; (e) same but wake-mark 400 s old -> fires; (f) same but `wake_cap=11` (2-point drop) ->
+  fires; (g) 4% Discharging, fresh wake-mark -> fires (below `grace_floor`); (h) notify helper
+  forced to exit 1 -> notify still invoked, suspend STILL fires (notify failure never blocks);
+  notified-marker suppression verified across two consecutive ticks in the same grace window
+  (1 notify call total, not 2); `--test-notify` verified to invoke the notify helper and exit
+  without touching battery state.
+- [x] `jq`-free build gates: `nix flake check` green; `nixos-rebuild build --flake .#hamsa` green.
+- [x] Commit (`task 117 phase 6: battery backstop wake-grace and notification`).
 
 **Verification**:
-- `nix flake check` and `nixos-rebuild build --flake .#hamsa` both green.
+- `nix flake check` -- PASS (`all checks passed!`, 2026-07-25).
+- `nixos-rebuild build --flake .#hamsa` -- PASS. Built
+  `/nix/store/j84p3im5jdmb4wrz74hppc20jmwbwcrd-nixos-system-hamsa-26.05.20260710.8f0500b`; 9
+  derivations built including `battery-backstop-wake-mark`, `battery-backstop-notify`,
+  `battery-suspend-backstop`, and both new/changed unit files.
 - `nix eval --raw .#nixosConfigurations.hamsa.config.systemd.services.battery-suspend-backstop.serviceConfig.ExecStart`
-  resolves to the new store script; reading it shows all four parameters, the grace branch, and the
-  unchanged `BAT*` / `Discharging` / threshold-10 / `suspend -i` core.
+  -> `/nix/store/x4a3qw8gam9xn41ha6i9ymjg7mra6fjw-battery-suspend-backstop`; read: contains all four
+  parameters (`threshold=10`, `grace_secs=300`, `grace_floor=5`, `grace_drop=2`), the grace branch,
+  and the unchanged `BAT*` / `Discharging` / threshold-10 / `suspend -i` core.
 - `nix eval --json .#nixosConfigurations.hamsa.config.systemd.services.battery-backstop-wake-mark.wantedBy`
-  contains `"post-resume.target"`; `...serviceConfig.StateDirectory` is
-  `"battery-suspend-backstop"` on both units.
-- The eight offline cases above all pass. Live verification is Phase 8 (this phase changes nothing
-  on the running system until activation).
+  -> `["post-resume.target"]`. `...serviceConfig.StateDirectory` -> `"battery-suspend-backstop"` on
+  BOTH `battery-suspend-backstop` and `battery-backstop-wake-mark` (confirmed both, matching the
+  plan's shared-directory design).
+- The eight offline cases above all pass (23/23 assertions). Live verification is Phase 8 (this
+  phase changes nothing on the running system until activation).
 
 **Timing**: 1.25 hours
 

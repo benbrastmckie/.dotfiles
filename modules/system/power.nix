@@ -1,6 +1,116 @@
 # Power management, udev rules, battery suspend backstop, OOM handling, swap,
 # zram, and VM parameters.
 { pkgs, lib, ... }:
+let
+  # ==========================================================================
+  # Battery backstop wake-grace scripts (round 3 -- report 04 Q5)
+  # ==========================================================================
+  # Test-only override hooks (BACKSTOP_BATTERY_GLOB / BACKSTOP_SYSTEMCTL_BIN /
+  # BACKSTOP_NOTIFY_BIN / STATE_DIRECTORY env vars, read via bash's ${var:-...}
+  # default expansion) let the Phase 6 offline logic exercise run the built
+  # store script against a fake sysfs tree, a fake state directory, and a
+  # stubbed systemctl -- no sudo, no real suspend. All default to the real
+  # paths baked in below, so an unmodified production invocation (via the
+  # systemd unit, which sets STATE_DIRECTORY itself) is unaffected.
+  batteryBackstopNotify = pkgs.writeShellScript "battery-backstop-notify" ''
+    set -u
+    urgency="$1"
+    summary="$2"
+    body="$3"
+    ${pkgs.systemd}/bin/loginctl list-users --no-legend | while read -r uid _rest; do
+      [ "$uid" -ge 1000 ] 2>/dev/null || continue
+      ${pkgs.util-linux}/bin/runuser -u "#$uid" -- env \
+        XDG_RUNTIME_DIR="/run/user/$uid" \
+        DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" \
+        ${pkgs.libnotify}/bin/notify-send -u "$urgency" "$summary" "$body" 2>/dev/null
+    done
+  '';
+
+  batteryBackstopWakeMark = pkgs.writeShellScript "battery-backstop-wake-mark" ''
+    set -u
+    # Written by the post-resume.target hook on every wake: epoch + capacity
+    # at wake time. Clearing the notified marker re-arms one notification per
+    # grace window (see battery-suspend-backstop's notified_marker logic).
+    state_dir="''${STATE_DIRECTORY:-/var/lib/battery-suspend-backstop}"
+    mkdir -p "$state_dir"
+    cap=0
+    for bat in ''${BACKSTOP_BATTERY_GLOB:-/sys/class/power_supply/BAT*}; do
+      [ -e "$bat/capacity" ] || continue
+      cap=$(cat "$bat/capacity")
+      break
+    done
+    echo "$(date +%s) $cap" > "$state_dir/wake-mark"
+    rm -f "$state_dir/notified"
+  '';
+
+  batteryBackstopScript = pkgs.writeShellScript "battery-suspend-backstop" ''
+    set -u
+
+    # Unchanged core (round 1): threshold, BAT* glob, Discharging gate.
+    threshold=10
+    # Round-3 wake-grace parameters (report 04 Q5). See power.nix's banner
+    # comment above for the full rationale and the three independent bounds.
+    grace_secs=300   # wake-grace window length in seconds (5 min)
+    grace_floor=5    # no grace at or below this capacity - unconditional loop resumes
+    grace_drop=2     # grace voided once capacity has fallen this many points since wake
+
+    state_dir="''${STATE_DIRECTORY:-/var/lib/battery-suspend-backstop}"
+    mkdir -p "$state_dir"
+    wake_mark="$state_dir/wake-mark"
+    notified_marker="$state_dir/notified"
+    notify_bin="''${BACKSTOP_NOTIFY_BIN:-${batteryBackstopNotify}}"
+    systemctl_bin="''${BACKSTOP_SYSTEMCTL_BIN:-${pkgs.systemd}/bin/systemctl}"
+
+    safe_notify() {
+      # Never allowed to block/delay the suspend decision: bounded timeout,
+      # and a failure here is cosmetic only -- the journal echo alongside
+      # every call site is the always-works fallback.
+      timeout 5 "$notify_bin" "$1" "$2" "$3" || true
+    }
+
+    if [ "''${1:-}" = "--test-notify" ]; then
+      safe_notify critical "Battery backstop test" "root-to-session notification path OK (--test-notify)"
+      exit 0
+    fi
+
+    for bat in ''${BACKSTOP_BATTERY_GLOB:-/sys/class/power_supply/BAT*}; do
+      [ -e "$bat/capacity" ] || continue
+      status=$(cat "$bat/status")
+      cap=$(cat "$bat/capacity")
+      if [ "$status" = "Discharging" ] && [ "$cap" -le "$threshold" ]; then
+        grant_grace=0
+        delta=0
+        if [ "$cap" -gt "$grace_floor" ] && [ -f "$wake_mark" ]; then
+          wake_epoch=""
+          wake_cap=""
+          read -r wake_epoch wake_cap < "$wake_mark" || true
+          if [ -n "''${wake_epoch:-}" ] && [ -n "''${wake_cap:-}" ]; then
+            now=$(date +%s)
+            delta=$(( now - wake_epoch ))
+            drop=$(( wake_cap - cap ))
+            if [ "$delta" -ge 0 ] && [ "$delta" -lt "$grace_secs" ] && [ "$drop" -lt "$grace_drop" ]; then
+              grant_grace=1
+            fi
+          fi
+        fi
+
+        if [ "$grant_grace" -eq 1 ]; then
+          remaining=$(( grace_secs - delta ))
+          echo "battery at ''${cap}%, discharging, within wake-grace (''${remaining}s remaining): skipping this tick"
+          if [ ! -f "$notified_marker" ]; then
+            touch "$notified_marker"
+            safe_notify critical "Battery low (''${cap}%)" "Wake-grace active: ~''${remaining}s before the backstop may suspend again. Plug in or shut down."
+          fi
+        else
+          echo "battery at ''${cap}% and discharging: suspending (inhibitors bypassed)"
+          safe_notify critical "Battery at ''${cap}%" "Suspending now to protect the battery - inhibitors bypassed."
+          exec "$systemctl_bin" suspend -i
+        fi
+        break
+      fi
+    done
+  '';
+in
 {
   # Power management configuration for Ryzen AI 300
   # cpuFreqGovernor removed - power-profiles-daemon manages governor dynamically
@@ -122,23 +232,74 @@
       # Glob BAT* ONLY - never power_supply/*: this host has a peripheral
       # hid-*-battery reporting perpetual "Discharging 100" that must not match.
       # See docs/no-sleep-agents.md.
+      #
+      # -- Round 3: bounded wake-grace + lock-screen-visible notification --
+      # Defect fixed (report 04 Q5, HIGH): with no grace and no visible
+      # notification, a user who wakes the machine at <=10% specifically to
+      # plug in a charger could be re-suspended within ~60s, repeatedly, with
+      # zero feedback (the journal echo above is invisible behind a lock
+      # screen). Fixed additively -- the unconditional re-suspend loop above
+      # is retained below the grace floor; nothing about the core threshold,
+      # glob, or Discharging gate changed.
+      #
+      # Parameters (in battery-suspend-backstop's ExecStart script):
+      #   threshold=10     unchanged suspend trigger
+      #   grace_secs=300   wake-grace window length (5 min)
+      #   grace_floor=5    NO grace at or below this capacity
+      #   grace_drop=2     grace voided once capacity has fallen this many
+      #                    points below its value at wake
+      #
+      # Three independent bounds keep the grace from defeating the backstop's
+      # purpose: (a) grace is granted only after a *resume* (via the
+      # battery-backstop-wake-mark unit below), never on the unattended
+      # descent; (b) grace_floor -- zero grace at/below 5%, the original
+      # unconditional loop resumes; (c) grace_drop -- grace is voided the
+      # moment capacity falls 2 points below its wake-time value, so each
+      # grant costs at most ~2% regardless of the clock. Worst case: a
+      # handful of grants between 10% and 5%, i.e. the descent is slowed,
+      # never halted.
+      #
+      # Fail-safe direction: no wake-mark file (or a stale/unparsable one)
+      # means no grace, i.e. exactly the pre-round-3 unconditional behavior.
+      # This is deliberate -- protection is never weakened by the resume hook
+      # failing to fire (see battery-backstop-wake-mark below).
+      #
+      # Trade-off (stated plainly, not hidden): a grace window IS a
+      # deliberate, bounded weakening of an unattended machine's protection.
+      # In the worst case (a bagged laptop that keeps waking spuriously),
+      # each grant costs at most 5 minutes of awake time OR 2% of charge,
+      # whichever comes first, and no grant is possible at or below 5%. A
+      # longer window (15-30 min) was rejected because on a bagged laptop it
+      # could burn the entire remaining reserve in one or two spurious wakes.
+      #
+      # Notifications never block or delay the suspend decision: the notify
+      # helper is wrapped in `timeout 5 ... || true`; the journal echo
+      # alongside every call site is retained unconditionally as the
+      # always-works fallback. `--test-notify` turns the root-to-user-session
+      # bus path into a one-line check (`sudo <script> --test-notify`)
+      # instead of an assumption -- see docs/gnome-settings.md.
       # ========================================================================
       battery-suspend-backstop = {
-        description = "Suspend at <=10% battery, bypassing sleep inhibitors";
+        description = "Suspend at <=10% battery, bypassing sleep inhibitors (bounded wake-grace + notification)";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = pkgs.writeShellScript "battery-suspend-backstop" ''
-            threshold=10
-            for bat in /sys/class/power_supply/BAT*; do
-              [ -e "$bat/capacity" ] || continue
-              status=$(cat "$bat/status")
-              cap=$(cat "$bat/capacity")
-              if [ "$status" = "Discharging" ] && [ "$cap" -le "$threshold" ]; then
-                echo "battery at ''${cap}% and discharging: suspending (inhibitors bypassed)"
-                exec ${pkgs.systemd}/bin/systemctl suspend -i
-              fi
-            done
-          '';
+          StateDirectory = "battery-suspend-backstop";
+          ExecStart = batteryBackstopScript;
+        };
+      };
+
+      # Resume hook: marks the wake timestamp + capacity that the backstop
+      # script above reads to decide whether a wake-grace applies. Idiom
+      # proven live in this repo already -- see disable-speaker-amp in
+      # modules/system/audio.nix (wantedBy post-resume.target), whose
+      # .wants/ symlink is present in the running closure.
+      battery-backstop-wake-mark = {
+        description = "Record wake timestamp/capacity for the battery-suspend-backstop wake-grace window";
+        wantedBy = [ "post-resume.target" ];
+        serviceConfig = {
+          Type = "oneshot";
+          StateDirectory = "battery-suspend-backstop";
+          ExecStart = batteryBackstopWakeMark;
         };
       };
     };
