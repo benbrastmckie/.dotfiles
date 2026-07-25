@@ -19,7 +19,7 @@ next_project_number: 120
 ### Nixos Config
 
 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
-119 [NOT STARTED] — Fix AC-vs-battery idle sleep so the machine stays available 12 ho
+119 [IMPLEMENTING] — Fix AC-vs-battery idle sleep so the machine stays available 12 ho
 
 ### Nix Infrastructure
 
@@ -50,10 +50,13 @@ next_project_number: 120
 ## Tasks
 
 ### 119. Fix ac vs battery idle sleep timeouts
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
+- **Research**: [119_fix_ac_vs_battery_idle_sleep_timeouts/reports/01_ac-battery-idle-sleep.md]
+- **Plan**: [119_fix_ac_vs_battery_idle_sleep_timeouts/plans/01_ac-battery-idle-sleep.md]
+- **Summary**: [119_fix_ac_vs_battery_idle_sleep_timeouts/summaries/01_ac-battery-idle-sleep-summary.md]
 
 **Description**: Fix AC-vs-battery idle sleep so the machine stays available 12 hours on AC and 1 hour on battery with no Claude activity. Currently the computer sleeps after roughly an hour of Claude quiet even when plugged in, instead of only on battery. Revise and improve the existing power management configuration.
 

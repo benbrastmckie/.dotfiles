@@ -4,12 +4,30 @@
     {
       "project_number": 119,
       "project_name": "fix_ac_vs_battery_idle_sleep_timeouts",
-      "status": "not_started",
+      "status": "implementing",
       "task_type": "nix",
       "description": "Fix AC-vs-battery idle sleep so the machine stays available 12 hours on AC and 1 hour on battery with no Claude activity. Currently the computer sleeps after roughly an hour of Claude quiet even when plugged in, instead of only on battery. Revise and improve the existing power management configuration.",
       "topic": "nixos-config",
       "created": "2026-07-25T06:04:20Z",
-      "last_updated": "2026-07-25T06:04:20Z"
+      "last_updated": "2026-07-25T06:30:54Z",
+      "session_id": "sess_1784959739_d62475",
+      "artifacts": [
+        {
+          "path": "specs/119_fix_ac_vs_battery_idle_sleep_timeouts/reports/01_ac-battery-idle-sleep.md",
+          "type": "report",
+          "summary": "Full mechanism inventory (10 layers), live-verified root cause, validated GNOME dconf fix, niri gap and design options."
+        },
+        {
+          "path": "specs/119_fix_ac_vs_battery_idle_sleep_timeouts/plans/01_ac-battery-idle-sleep.md",
+          "type": "plan",
+          "summary": "5 phases, waves [[1],[2,4],[3],[5]]: GNOME dconf 12h AC ceiling, dual-path builds, live gsettings verification, docs sync, niri deferral."
+        },
+        {
+          "path": "specs/119_fix_ac_vs_battery_idle_sleep_timeouts/summaries/01_ac-battery-idle-sleep-summary.md",
+          "type": "summary",
+          "summary": "Verification evidence for phases 1/2/4, Phase 3 sudo blocker with activation commands, niri deferral."
+        }
+      ]
     },
     {
       "project_number": 118,

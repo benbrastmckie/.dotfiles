@@ -1,0 +1,22 @@
+{
+  "status": "partial",
+  "summary": "Implemented the 12h-AC / 1h-battery GNOME idle-suspend split in modules/home/desktop/gnome.nix and synced docs/no-sleep-agents.md and docs/gnome-settings.md. Phases 1, 2, and 4 fully verified: nix flake check passes, nixos-rebuild build --flake .#hamsa and home-manager build --flake .#benjamin both succeed, and a nix eval probe confirms the evaluated closure carries sleep-inactive-ac-timeout=43200 and sleep-inactive-ac-type=\"suspend\". Phase 3 (live activation and post-activation gsettings verification) is BLOCKED: it requires sudo nixos-rebuild switch, which needs an interactive password prompt this agent must not run, and activating only the non-sudo home-manager path was explicitly rejected per the plan's own risk table (leaves the two Home Manager profiles disagreeing). Pre-activation gsettings baseline and untouched-neighbor (logind IdleAction/HandleLidSwitch) reads were captured instead. Phase 5's summary was written, documenting the Phase 3 blocker and a niri AC/battery-parity follow-up recommendation (task not auto-created).",
+  "artifacts": [
+    {
+      "path": "specs/119_fix_ac_vs_battery_idle_sleep_timeouts/summaries/01_ac-battery-idle-sleep-summary.md",
+      "type": "summary",
+      "summary": "Full verification evidence for Phases 1/2/4, the Phase 3 blocker with exact activation commands, and the niri deferral/follow-up task recommendation"
+    }
+  ],
+  "blockers": [
+    "Phase 3 (live activation + post-activation gsettings verification) cannot be completed non-interactively: it requires `sudo nixos-rebuild switch --flake .#hamsa`. User must run `bash scripts/update.sh` (preferred, runs both Home Manager paths) or manually run `sudo nixos-rebuild switch --flake .#hamsa` followed by `home-manager switch --flake .#benjamin`, then verify with `gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type` (expect 'suspend') and `sleep-inactive-ac-timeout` (expect 43200)."
+  ],
+  "continuation_context": {
+    "resume_phase": 3,
+    "plan_path": "specs/119_fix_ac_vs_battery_idle_sleep_timeouts/plans/01_ac-battery-idle-sleep.md",
+    "note": "Phases 1, 2, 4 are [COMPLETED]; Phase 3 is [BLOCKED] on required interactive sudo; Phase 5 is [PARTIAL] (summary written, but depends on Phase 3). Once the user activates and confirms live gsettings values, re-run to mark Phase 3 [COMPLETED] and Phase 5 [COMPLETED]."
+  },
+  "next_action_hint": "User must run the activation command above (requires sudo) and confirm live gsettings values before this task can be marked fully complete.",
+  "phases_completed": 3,
+  "phases_total": 5
+}
