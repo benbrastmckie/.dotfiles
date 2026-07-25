@@ -241,7 +241,7 @@ configuration actually carries `43200` rather than merely that the source file w
 
 ---
 
-### Phase 3: Activation and LIVE dconf verification (activation-lag guard) [NOT STARTED]
+### Phase 3: Activation and LIVE dconf verification (activation-lag guard) [BLOCKED]
 
 **Goal**: Prove the values are live on the running system by reading the running system, closing
 the "committed but not actually in effect" gap that task 118 already documented for
@@ -249,38 +249,53 @@ the "committed but not actually in effect" gap that task 118 already documented 
 
 **Tasks**:
 
-- [ ] Capture the pre-activation baseline for the record:
-      `gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type` (expected
-      `'nothing'` before activation) and `... sleep-inactive-ac-timeout`.
+- [x] Capture the pre-activation baseline for the record *(completed)*:
+      `gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type` ->
+      `'nothing'` (as expected before activation), `sleep-inactive-ac-timeout` -> `3600`,
+      `sleep-inactive-battery-type` -> `'suspend'`, `sleep-inactive-battery-timeout` -> `3600`.
 - [ ] Activate. Prefer `bash scripts/update.sh`, which runs both Home Manager paths in
       sequence and keeps `~/.nix-profile/` and `/etc/profiles/per-user/` in sync. If activating
       manually instead, run both `sudo nixos-rebuild switch --flake .#hamsa` and
       `home-manager switch --flake .#benjamin`; activating only one leaves the two paths
-      disagreeing.
+      disagreeing. *(deviation: skipped — the NixOS-integrated path requires
+      `sudo nixos-rebuild switch`, which needs an interactive sudo password prompt. The
+      implementation agent is constrained to non-interactive, non-sudo commands only and must
+      not run sudo with a password prompt. Running only `home-manager switch --flake
+      .#benjamin` without the NixOS-integrated path was considered and explicitly rejected per
+      this phase's own risk table — "Only one of the two Home Manager paths is activated, so
+      `~/.nix-profile` and `/etc/profiles/per-user` disagree" — so no single-path activation was
+      performed. This step requires direct user action; see the summary for the exact command.)*
 - [ ] Read the LIVE values — this is the phase's whole point, and it must be a read of the
       running system, never an inspection of the source file or the build result:
   - [ ] `gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type`
-        -> must be `'suspend'`
+        -> must be `'suspend'` *(deviation: deferred — activation did not run; live read
+        confirmed the pre-activation value `'nothing'` only, see baseline above)*
   - [ ] `gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout`
         -> must be `43200` (**not** `3600`; `3600` here means the schema default is still in
-        force and the fix is not live)
-  - [ ] `gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type`
-        -> must still be `'suspend'`
-  - [ ] `gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-timeout`
-        -> must still be `3600`
-- [ ] Confirm the untouched neighbors did not regress:
+        force and the fix is not live) *(deviation: deferred — same reason; live read
+        confirmed `3600` pre-activation, consistent with the fix not yet being live)*
+  - [x] `gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type`
+        -> confirmed `'suspend'` *(completed — unchanged by this task, matches pre- and
+        post-plan expectation already)*
+  - [x] `gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-timeout`
+        -> confirmed `3600` *(completed — unchanged by this task)*
+- [x] Confirm the untouched neighbors did not regress *(completed)*:
       `busctl get-property org.freedesktop.login1 /org/freedesktop/login1
-      org.freedesktop.login1.Manager IdleAction` -> `"ignore"`, and the same for
-      `HandleLidSwitch` -> `"lock"`.
+      org.freedesktop.login1.Manager IdleAction` -> `"ignore"` (confirmed), and
+      `HandleLidSwitch` -> `"lock"` (confirmed). Both logind-owned settings are untouched by
+      this task and were unaffected regardless of activation state.
 - [ ] On any mismatch, do not report success. Work the remediation ladder in order and re-read
       after each step: (1) confirm the Home Manager path that owns `dconf` actually activated
       (re-run its `switch` and watch for the dconf activation step); (2) re-read to rule out a
       transient; (3) log out and back in to force a fresh `gnome-settings-daemon`; (4) if it
       still disagrees, stop and report the mismatch as a blocker with all four `gsettings`
-      readings attached.
-- [ ] Note the known limitation in the summary: `gsettings get` proves the dconf database
-      value. gsd-power follows GSettings change notifications live, so a DB match is sufficient
-      in practice, but a DB match is not by itself proof that the daemon re-armed its timer.
+      readings attached. *(deviation: skipped — not reached; this ladder applies once
+      activation has run and produced a mismatch. No activation was performed, so there is no
+      mismatch to remediate, only a not-yet-activated state.)*
+- [x] Note the known limitation in the summary *(completed)*: `gsettings get` proves the dconf
+      database value. gsd-power follows GSettings change notifications live, so a DB match is
+      sufficient in practice, but a DB match is not by itself proof that the daemon re-armed its
+      timer.
 
 **Timing**: 30 minutes
 
