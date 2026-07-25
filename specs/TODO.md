@@ -1,5 +1,5 @@
 ---
-next_project_number: 121
+next_project_number: 123
 ---
 
 # TODO
@@ -11,8 +11,8 @@ next_project_number: 121
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,117 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 120 | 77 | desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,77,117,121 | -- | nixos-config, nix-infrastructure, services, ... |
+| 2 | 120,122 | 77,121 | desktop, agent-system |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -48,7 +48,57 @@ next_project_number: 121
 41 [BLOCKED] — reenable_pdf2docx_nixpkgs_fix
 42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
 
+### Agent System
+
+121 [NOT STARTED] — Repair two verified defects in `.claude/scripts/command-gate-out.
+  └─ 122 [NOT STARTED] — Define and enforce a single tracking policy for orchestrator runt
+
 ## Tasks
+
+### 122. Orchestrator runtime file tracking policy
+- **Status**: [NOT STARTED]
+- **Task Type**: meta
+- **Topic**: agent-system
+- **Dependencies**: Task 121
+
+**Description**: Define and enforce a single tracking policy for orchestrator runtime scratch files, which today have no policy at all and are inconsistently committed.
+
+VERIFIED EVIDENCE. `.gitignore` has NO coverage for any of them (verified: no matches for orchestrator, return-meta, loop-guard, or .lock). Live committed counts across specs/: 45 `.return-meta.json`, 27 `.orchestrator-handoff.json`, 3 `.orchestrator-loop-guard`, and 2 committed `.lock` entries (directories created by task-lock.sh).
+
+SAFETY HAZARD (priority within this task). The committed `.orchestrator-loop-guard` files are an ACTIVE CORRECTNESS HAZARD, not merely noise. The loop guard carries cycle_count / max_cycles / current_state, and skill-orchestrate Stage 2 RESUMES from an existing guard rather than starting fresh. A guard committed into git - or restored by a checkout, clone, or branch switch - can make a fresh `/orchestrate` believe it is already mid-run at a stale cycle count, silently consuming its cycle budget.
+
+ROOT CONTRADICTION. `/orchestrate` CHECKPOINT 3 in `.claude/commands/orchestrate.md` stages the WHOLE task directory (`specs/NNN_slug/`), which sweeps these runtime files in, while implementation agents treat them as uncommitted runtime state ("runtime files the orchestrator manages itself, left uncommitted per the established pattern"). The command and the agents actively contradict each other, which is why tracking is inconsistent.
+
+USER-CHOSEN POLICY (already decided - implement this, do not re-litigate it):
+- GITIGNORE and UNTRACK: `specs/*/.orchestrator-loop-guard` and `specs/*/.lock/`. These are pure ephemeral runtime state, and the committed loop-guards are the actual hazard.
+- KEEP TRACKED as durable provenance: `specs/*/.orchestrator-handoff.json` and `specs/*/.return-meta.json`. These form the per-dispatch audit trail of what each dispatch reported, and the 72 already-committed files should stay.
+- The task must therefore include untracking the 3 currently-committed `.orchestrator-loop-guard` files via `git rm --cached` (preserving them on disk) plus the committed `.lock` entries, and must NOT untrack handoff or return-meta files.
+
+REQUIRED RECONCILIATION. After the policy is set, ALL of these must agree with each other and with the new .gitignore:
+- `.gitignore`
+- `.claude/context/standards/git-staging-scope.md` - the staging scope contract must stop implying whole-task-dir adds sweep in ephemeral files
+- `.claude/commands/orchestrate.md` CHECKPOINT 3, and the multi-task Step 5 batch-commit staging, which also stages whole task dirs
+- `.claude/skills/skill-orchestrate/SKILL.md` - document the loop guard as ephemeral/never-committed, reinforcing Stage 2's resume semantics and Stage 8's cleanup
+
+DEPENDENCY RATIONALE. This task depends on task 121 because both have `.claude/skills/skill-orchestrate/SKILL.md` in their file_scope. The dependency edge exists specifically to serialize them so the file-footprint overlap rule (`.claude/context/patterns/file-footprint-overlap.md`) never places them in the same dispatch wave. They must not be created or dispatched as independent siblings.
+
+---
+
+### 121. Fix gate out artifact validation and status vocabulary
+- **Status**: [NOT STARTED]
+- **Task Type**: meta
+- **Topic**: agent-system
+- **Dependencies**: None
+
+**Description**: Repair two verified defects in `.claude/scripts/command-gate-out.sh`. They are merged into one task because they share the root theme "gate-out silently does nothing" and occupy the same small region of the same file, so one agent should reason about the whole gate-out contract at once.
+
+DEFECT 1 - validate-artifact.sh call-arity bug (silent dead code). `.claude/scripts/command-gate-out.sh:101` calls `bash .claude/scripts/validate-artifact.sh "$task_dir" --fix 2>/dev/null || true`, but validate-artifact.sh's signature is `<artifact_path> <type> [--fix] [--strict]` where type must be report|plan|summary. So `--fix` is parsed as the TYPE argument and a DIRECTORY is passed as the artifact path; it exits 3 (file not found) and prints `[FAIL] File not found: specs/NNN_slug` on every gate-out run. Consequence: the non-blocking artifact link-repair that gate-out claims to perform has NEVER run for any command, for any task. It fails silently (swallowed by `|| true`) while emitting misleading FAIL output that users see. Uniformity evidence: EVERY other caller in the system uses the correct 3-token form `validate-artifact.sh "$artifact_path" "$artifact_kind" --fix` - see `.claude/scripts/skill-base.sh:260`, `.claude/scripts/orchestrator-postflight.sh:174`, and the SKILL.md files for skill-researcher, skill-planner, skill-implementer, skill-reviser, skill-planner-hard, skill-researcher-hard. command-gate-out.sh is the lone deviant. Required approach: prefer extracting ONE shared helper (e.g. a "validate every artifact in a task dir with its correct type" function, likely belonging in skill-base.sh alongside the existing caller) over duplicating a per-type loop inline in gate-out, so this convention cannot drift again. Also investigate `.claude/commands/research.md:424`, which already documents that "the validate-artifact.sh --fix leg is dead code and cannot substitute for this check" - determine whether that is the same root cause and fix it uniformly rather than in isolation.
+
+DEFECT 2 - .return-meta.json status vocabulary mismatch (unreachable defensive correction). `.claude/skills/skill-orchestrate/SKILL.md` Stage 8 writes `.return-meta.json` with status "completed" (clean exit) or "partial". `.claude/scripts/command-gate-out.sh:84-85` only enters its defensive status-correction branch when skill_status is one of "implemented", "researched", or "planned". Therefore for the orchestrate operation the correction branch can NEVER fire. If state.json were ever desynced after an orchestrate run, gate-out would silently fail to repair it - which is the entire stated purpose of that checkpoint. The script's own inline comment at lines 70-74 (just above the `case "$operation"` block) claims it repaired a latent bug where "orchestrate" was previously passed verbatim as target_status and "would have failed update-task-status.sh's validation had this branch ever been exercised on a desynced orchestrate run." That comment reasons about a branch that is in fact unreachable for a different reason; the comment is misleading and must be corrected along with the code. Required approach: establish ONE documented status vocabulary shared between everything that WRITES `.return-meta.json` and everything that READS it, enforced in a single place. `.claude/docs/architecture/handoff-schema.md` is the natural single source of truth. Audit for other spellings across skill-implementer, skill-researcher, skill-planner, skill-reviser, the team skills (skill-team-research/plan/implement), and the hard-mode skills (skill-orchestrate-hard, skill-researcher-hard, skill-planner-hard, skill-implementer-hard) - there may be further divergent spellings beyond the two already found.
+
+Note the tension to resolve deliberately: `.claude/context/formats/return-metadata-file.md` explicitly states 'Never use "completed" - it triggers Claude stop behavior', yet skill-orchestrate Stage 8 writes exactly that. Whichever vocabulary is chosen must be reconciled with that constraint, not silently contradict it.
+
+---
 
 ### 120. Niri ac battery conditional idle suspend
 - **Status**: [NOT STARTED]
