@@ -23,17 +23,31 @@ Raw dconf values, managed via `modules/home/desktop/gnome.nix`:
 - **Idle delay**: 300 seconds (5 minutes) - screen dims/blanks (`org/gnome/desktop/session`
   `idle-delay`; purely visual, unrelated to sleep)
 - **Idle suspend (AC)**: `sleep-inactive-ac-type = "suspend"`,
-  `sleep-inactive-ac-timeout = 43200` (12 hours) - explicit bounded idle-suspend ceiling on AC
+  `sleep-inactive-ac-timeout = 43200` (12 hours) - explicit bounded idle-suspend ceiling on AC.
+  Caveat: gsd's idle-suspend watch is one-shot per idle period with no retry, so this ceiling is a
+  **best-effort bound, not a deterministic guarantee** — if the boundary is crossed while any block
+  inhibitor is briefly held, the attempt is denied and is not retried until a re-arm event.
 - **Idle suspend (Battery)**: `sleep-inactive-battery-type = "suspend"`,
   `sleep-inactive-battery-timeout = 3600` (60 minutes)
 - **Idle dim**: Enabled (`idle-dim = true`)
 
 The system-level lid action (`services.logind.settings.Login` in `modules/system/power.nix`) and
 the battery-level suspend backstop (`battery-suspend-backstop` timer, also in
-`modules/system/power.nix`) both live outside this GNOME-dconf scope. For the full rationale
+`modules/system/power.nix`) both live outside this GNOME-dconf scope. The backstop now also grants
+a bounded **wake-grace window**: after a resume, it waits up to 5 minutes before it may re-suspend,
+unless capacity is at or below 5% or has dropped 2 points since the wake, and a critical
+notification (visible on the lock screen) announces each decision. For the full rationale
 behind these values — why AC and battery are treated differently, why the lid uses `lock`
 instead of `ignore`, how the battery backstop bypasses inhibitors, and how all of this composes
 with Claude Code's own session inhibitors — see **[no-sleep-agents.md](no-sleep-agents.md)**.
+
+**Multi-monitor / docked lid-close status**: the docked lid-close path is unaffected by
+`HandleLidSwitch`/`HandleLidSwitchExternalPower` by design — `HandleLidSwitchDocked` is
+deliberately left unset (defaults to `ignore`), and `gsd-power` holds its own lid inhibitor while
+docked regardless of the logind setting. This is verified architecturally against the installed
+gsd/mutter source across two research rounds; it has not yet been re-tested live with an external
+monitor attached since `HandleLidSwitch=lock` went live (tracked as the outstanding docked
+regression check — see the task's implementation summary).
 
 ### Mouse & Touchpad
 - Custom speed settings

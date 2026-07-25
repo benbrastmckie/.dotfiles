@@ -499,45 +499,58 @@ verified claim — see Flagged Unverified Items).
 
 ---
 
-### Phase 7: Documentation delta — grace semantics, AC-ceiling caveat, docked status [NOT STARTED]
+### Phase 7: Documentation delta — grace semantics, AC-ceiling caveat, docked status [COMPLETED]
+
+- Completed: 2026-07-25
 
 **Goal**: In-scope docs describe the grace window and its bounds, carry report 03's gsd one-shot
 finding over to the AC leg, and state the multi-monitor evidence status honestly. Minimal and
 additive — task 118 restructured `docs/gnome-settings.md` and task 119 is mid-flight in it.
 
 **Tasks**:
-- [ ] Re-read `docs/gnome-settings.md` as it currently stands before editing (do NOT assume plan
+- [x] Re-read `docs/gnome-settings.md` as it currently stands before editing (do NOT assume plan
   v2's text survives; the Lid-Close narrative moved to `docs/no-sleep-agents.md` in task 118).
-- [ ] `modules/system/power.nix` — cross-check the Phase 6 banner against the final built script
+  CONFIRMED: file shows the raw-values Power Management block + `no-sleep-agents.md`
+  cross-reference (task 118 restructure), plus task 119's already-live `sleep-inactive-ac-type =
+  "suspend"` / `43200` bullet, exactly as this plan's Coordination note anticipated.
+- [x] `modules/system/power.nix` — cross-check the Phase 6 banner against the final built script
   (parameters, three bounds, fail-safe direction, trade-off, `--test-notify`). This is the durable
-  in-scope record of the grace mechanism.
-- [ ] `docs/gnome-settings.md`, Power Management block: add a short clause to the existing backstop
+  in-scope record of the grace mechanism. VERIFIED: banner (lines ~236-280) and the built script
+  agree on all four parameters, the three bounds, the fail-safe direction, the trade-off, and
+  `--test-notify`; no changes needed (Phase 6 already wrote it correctly).
+- [x] `docs/gnome-settings.md`, Power Management block: add a short clause to the existing backstop
   cross-reference noting the wake-grace window — after a resume, the backstop waits up to 5 minutes
   before it may re-suspend, unless capacity is at or below 5% or has dropped 2 points since the
   wake, and a critical notification (visible on the lock screen) announces each decision.
-- [ ] `docs/gnome-settings.md`, "Idle suspend (AC)" bullet: add **one** caveat clause carrying report
+- [x] `docs/gnome-settings.md`, "Idle suspend (AC)" bullet: add **one** caveat clause carrying report
   03's finding to the AC leg — gsd's idle-suspend watch is one-shot per idle period with no retry,
   so the AC ceiling is a **best-effort bound, not a deterministic guarantee**: if the boundary is
   crossed while any block inhibitor is briefly held, the attempt is denied and is not retried until
   a re-arm event. Do NOT restate or re-litigate the timeout value itself (task 119's settled, live
   decision). Note in the commit message that this clause coordinates with task 119.
-- [ ] `docs/gnome-settings.md`: one sentence recording the multi-monitor status — the docked
+- [x] `docs/gnome-settings.md`: one sentence recording the multi-monitor status — the docked
   lid-close path is unaffected by `HandleLidSwitch`/`HandleLidSwitchExternalPower` by design
   (`HandleLidSwitchDocked` deliberately unset; gsd-power holds its own lid inhibitor), verified
   architecturally against gsd/mutter source and, once Phase 8's docked check runs, live. Phrase it
   so it is accurate *before* Phase 8 completes, and tighten it after.
-- [ ] Do NOT edit `docs/no-sleep-agents.md` (out of `file_scope`). Record the recommended follow-up
+- [x] Do NOT edit `docs/no-sleep-agents.md` (out of `file_scope`). Record the recommended follow-up
   (fold the fuller narrative into task 119's docs phase, or a small new doc task) in the
   implementation summary so it is not lost.
-- [ ] Commit (`task 117 phase 7: document backstop wake-grace and AC ceiling caveat`).
+- [x] Commit (`task 117 phase 7: document backstop wake-grace and AC ceiling caveat`).
 
 **Verification**:
 - `grep -n "grace\|wake-grace\|best-effort" docs/gnome-settings.md modules/system/power.nix` shows
-  the new text in both places.
+  the new text in both places. VERIFIED 2026-07-25: `docs/gnome-settings.md:28,37` and
+  `modules/system/power.nix` (multiple lines, banner + script).
 - Every touched doc line reconciled against LIVE state, not against the source: `gsettings get` the
   four power keys and confirm the doc's stated values match what is actually live at edit time
-  (recording, not asserting, the AC leg's value, which task 119 owns).
-- `git diff --stat` touches only `docs/gnome-settings.md` and `modules/system/power.nix` — proof no
+  (recording, not asserting, the AC leg's value, which task 119 owns). VERIFIED 2026-07-25 live:
+  `sleep-inactive-battery-timeout` -> `3600`; `sleep-inactive-battery-type` -> `'suspend'`;
+  `sleep-inactive-ac-timeout` -> `43200`; `sleep-inactive-ac-type` -> `'suspend'`;
+  `HandleLidSwitch` -> `"lock"`; `Docked` -> `b false` (undocked at edit time — consistent with the
+  doc's "not yet re-tested docked" statement, not a docked regression run).
+- `git diff --stat` touches only `docs/gnome-settings.md` in this phase's own diff (`power.nix` was
+  already committed correct in Phase 6; the cross-check required no further edit) — no
   out-of-scope file was widened into.
 
 **Timing**: 0.5 hours
@@ -634,10 +647,13 @@ Already green and live (rounds 1-2 — do not re-run):
 
 New in round 3:
 
-- [ ] Eight offline grace-logic cases pass (Phase 6), including the notify-fails-still-suspends case.
-- [ ] `nix flake check` + `nixos-rebuild build --flake .#hamsa` green after Phase 6.
-- [ ] Eval: `battery-backstop-wake-mark.wantedBy` contains `post-resume.target`; `StateDirectory` set
-  on both units; new script present in `ExecStart`.
+- [x] Eight offline grace-logic cases pass (Phase 6), including the notify-fails-still-suspends case.
+  VERIFIED 2026-07-25: 23/23 assertions pass via scratchpad test harness against the built store
+  script.
+- [x] `nix flake check` + `nixos-rebuild build --flake .#hamsa` green after Phase 6. VERIFIED
+  2026-07-25.
+- [x] Eval: `battery-backstop-wake-mark.wantedBy` contains `post-resume.target`; `StateDirectory` set
+  on both units; new script present in `ExecStart`. VERIFIED 2026-07-25.
 - [ ] LIVE after activation: new script in `systemctl cat`; `/var/lib/battery-suspend-backstop/`
   exists; wake-mark unit listed under `post-resume.target.wants/`; backstop journal silent on AC.
 - [ ] LIVE regression guards after activation: `HandleLidSwitch` still `"lock"`; battery dconf still
