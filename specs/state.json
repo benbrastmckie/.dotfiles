@@ -24,13 +24,13 @@
     {
       "project_number": 119,
       "project_name": "fix_ac_vs_battery_idle_sleep_timeouts",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "nix",
       "description": "Fix AC-vs-battery idle sleep so the machine stays available 12 hours on AC and 1 hour on battery with no Claude activity. Currently the computer sleeps after roughly an hour of Claude quiet even when plugged in, instead of only on battery. Revise and improve the existing power management configuration.",
       "topic": "nixos-config",
       "created": "2026-07-25T06:04:20Z",
-      "last_updated": "2026-07-25T06:40:07Z",
-      "session_id": "sess_1784959739_d62475",
+      "last_updated": "2026-07-25T14:49:07Z",
+      "session_id": "sess_1784990507_f4dffa",
       "artifacts": [
         {
           "path": "specs/119_fix_ac_vs_battery_idle_sleep_timeouts/reports/01_ac-battery-idle-sleep.md",
@@ -45,14 +45,15 @@
         {
           "path": "specs/119_fix_ac_vs_battery_idle_sleep_timeouts/summaries/01_ac-battery-idle-sleep-summary.md",
           "type": "summary",
-          "summary": "Verification evidence for phases 1/2/4, Phase 3 sudo blocker with activation commands, niri deferral."
+          "summary": "Post-activation LIVE dconf verification: 12h AC / 1h battery split confirmed on the running system across both Home Manager paths; all 5 phases complete."
         }
       ],
       "file_scope": [
         "modules/home/desktop/gnome.nix",
         "docs/no-sleep-agents.md",
         "docs/gnome-settings.md"
-      ]
+      ],
+      "completion_summary": "AC/battery idle-suspend split fixed and live-verified: GNOME now suspends after 12h on AC (sleep-inactive-ac-type=suspend, timeout=43200) and 1h on battery (unchanged), replacing the previous unbounded ac-type=nothing. Verified on the running system via gsettings across both Home Manager profile paths (identical hm-dconf.ini store path); systemd-logind IdleAction left untouched at ignore. Docs synced. niri AC/battery parity deferred to a separate follow-up task."
     },
     {
       "project_number": 118,

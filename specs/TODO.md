@@ -11,8 +11,8 @@ next_project_number: 121
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,117,119 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 120 | 77,119 | desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,77,117 | -- | nixos-config, nix-infrastructure, services, ... |
+| 2 | 120 | 77 | desktop |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -20,7 +20,6 @@ next_project_number: 121
 ### Nixos Config
 
 117 [PLANNED] — Configure laptop lid-close to blank screen but not sleep (keep AI
-119 [IMPLEMENTING] — Fix AC-vs-battery idle sleep so the machine stays available 12 ho
 
 ### Nix Infrastructure
 
@@ -62,7 +61,7 @@ next_project_number: 121
 ---
 
 ### 119. Fix ac vs battery idle sleep timeouts
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
