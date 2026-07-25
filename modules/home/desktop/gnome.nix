@@ -35,19 +35,25 @@
     };
 
     "org/gnome/settings-daemon/plugins/power" = {
-      # Never auto-suspend on AC — headless agents keep running.
-      # See docs/no-sleep-agents.md.
-      sleep-inactive-ac-type = "nothing";
-      sleep-inactive-ac-timeout = 3600; # 60 minutes on AC power (inert with type "nothing")
+      # Explicit 12h AC idle-suspend ceiling. Only elapses when no logind
+      # block inhibitor is held (i.e. no open Claude Code session) and the
+      # user is input-idle for the full window. See docs/no-sleep-agents.md.
+      #
+      # This AC/battery split is deliberately expressed via GNOME's
+      # AC/battery-scoped dconf keys here, not via systemd-logind's
+      # IdleAction/IdleActionSec (modules/system/power.nix) — logind has a
+      # single non-AC-aware idle value with no concept of power source, so it
+      # cannot express this split and must not be used for it.
+      sleep-inactive-ac-type = "suspend";
+      sleep-inactive-ac-timeout = 43200; # 12 hours on AC power
       # Battery idle-suspend after 60 minutes. Fires ONLY when no logind block
       # inhibitor is held: an open Claude Code session (even idle) blocks it
       # entirely, in which case the 10% battery-suspend-backstop timer in
       # modules/system/power.nix is the only protection (accepted limitation,
       # task 117 decision 1).
       sleep-inactive-battery-timeout = 3600; # 60 minutes on battery
-      # Explicit rather than riding the schema default: after deliberately
-      # setting the AC type to "nothing" above, leaving the battery type
-      # implicit invites drift.
+      # Explicit rather than riding the schema default: leaving the battery
+      # type implicit invites drift.
       sleep-inactive-battery-type = "suspend";
       idle-dim = true; # Dim screen before blanking
     };
