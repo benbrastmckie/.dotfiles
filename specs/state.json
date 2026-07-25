@@ -1,6 +1,26 @@
 {
-  "next_project_number": 120,
+  "next_project_number": 121,
   "active_projects": [
+    {
+      "project_number": 120,
+      "project_name": "niri_ac_battery_conditional_idle_suspend",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Give the niri session AC/battery-conditional idle suspend (12h on AC, 1h on battery) to match the GNOME session. niri currently has zero idle auto-suspend on any power state (removed in task 117), and swayidle has no native AC/battery-conditional timeout: the single \"timeout N command\" clause spawned at config/config.kdl:271 applies unconditionally regardless of power source. Two candidate designs from the task 119 research: (Option A) a power-state-aware supervisor that respawns swayidle -w timeout <43200|3600> on /sys/class/power_supply/ACAD/online transitions, structurally mirroring the udev idiom already in modules/system/power.nix; (Option B) two mutually-exclusive systemd user units (swayidle-ac / swayidle-battery) gated on AC power. Known hazards either way: respawn races, two idle timers armed simultaneously, and a supervisor dying silently and leaving no idle policy at all. Must reuse the existing session-scoped systemd-inhibit mechanism from tasks 117/118 for Claude-activity awareness rather than building new detection. DO NOT resurrect the commented-out services.swayidle block in modules/home/desktop/swaylock.nix verbatim: its unconditional \"timeout 600 -> systemctl suspend\" example predates the AC/battery split requirement. Verification must read LIVE state after activation, not just the committed source, per the activation-lag bug class documented in task 119. Related: task 117 (partial) still owns lid-close and multi-monitor behavior; coordinate on docs/no-sleep-agents.md.",
+      "topic": "desktop",
+      "dependencies": [
+        119,
+        77
+      ],
+      "file_scope": [
+        "config/config.kdl",
+        "modules/home/desktop/swaylock.nix",
+        "docs/no-sleep-agents.md"
+      ],
+      "parent_task": 119,
+      "created": "2026-07-25T06:36:41Z",
+      "last_updated": "2026-07-25T06:36:41Z"
+    },
     {
       "project_number": 119,
       "project_name": "fix_ac_vs_battery_idle_sleep_timeouts",
@@ -684,6 +704,7 @@
   "active_topics": [
     "nixos-config",
     "nix-infrastructure",
-    "services"
+    "services",
+    "desktop"
   ]
 }

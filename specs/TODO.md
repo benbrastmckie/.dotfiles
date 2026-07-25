@@ -1,5 +1,5 @@
 ---
-next_project_number: 120
+next_project_number: 121
 ---
 
 # TODO
@@ -12,7 +12,7 @@ next_project_number: 120
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
 | 1 | 15,19,23,41,42,43,46,67,68,77,117,119 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 78 | 77 | desktop |
+| 2 | 78,120 | 77,119 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
 
@@ -33,6 +33,12 @@ next_project_number: 120
 43 [RESEARCHED] — install_forgejo_self_hosted_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
 
+### Desktop
+
+77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM
+  └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
+  └─ 120 [NOT STARTED] — Give the niri session AC/battery-conditional idle suspend (12h on
+
 ### Packaging
 
 41 [BLOCKED] — reenable_pdf2docx_nixpkgs_fix
@@ -42,12 +48,17 @@ next_project_number: 120
 
 15 [RESEARCHED] — configure_timezone_location_based
 
-### Desktop
-
-77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM
-  └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
-
 ## Tasks
+
+### 120. Niri ac battery conditional idle suspend
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: desktop
+- **Dependencies**: Task 119, Task 77
+
+**Description**: Give the niri session AC/battery-conditional idle suspend (12h on AC, 1h on battery) to match the GNOME session. niri currently has zero idle auto-suspend on any power state (removed in task 117), and swayidle has no native AC/battery-conditional timeout: the single "timeout N command" clause spawned at config/config.kdl:271 applies unconditionally regardless of power source. Two candidate designs from the task 119 research: (Option A) a power-state-aware supervisor that respawns swayidle -w timeout <43200|3600> on /sys/class/power_supply/ACAD/online transitions, structurally mirroring the udev idiom already in modules/system/power.nix; (Option B) two mutually-exclusive systemd user units (swayidle-ac / swayidle-battery) gated on AC power. Known hazards either way: respawn races, two idle timers armed simultaneously, and a supervisor dying silently and leaving no idle policy at all. Must reuse the existing session-scoped systemd-inhibit mechanism from tasks 117/118 for Claude-activity awareness rather than building new detection. DO NOT resurrect the commented-out services.swayidle block in modules/home/desktop/swaylock.nix verbatim: its unconditional "timeout 600 -> systemctl suspend" example predates the AC/battery split requirement. Verification must read LIVE state after activation, not just the committed source, per the activation-lag bug class documented in task 119. Related: task 117 (partial) still owns lid-close and multi-monitor behavior; coordinate on docs/no-sleep-agents.md.
+
+---
 
 ### 119. Fix ac vs battery idle sleep timeouts
 - **Status**: [IMPLEMENTING]
