@@ -11,8 +11,8 @@ next_project_number: 123
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,117,121 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 120,122 | 77,121 | desktop, agent-system |
+| 1 | 15,19,23,41,42,43,46,67,68,77,117 | -- | nixos-config, nix-infrastructure, services, ... |
+| 2 | 120 | 77 | desktop |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -48,15 +48,10 @@ next_project_number: 123
 41 [BLOCKED] — reenable_pdf2docx_nixpkgs_fix
 42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
 
-### Agent System
-
-121 [NOT STARTED] — Repair two verified defects in `.claude/scripts/command-gate-out.
-  └─ 122 [NOT STARTED] — Define and enforce a single tracking policy for orchestrator runt
-
 ## Tasks
 
 ### 122. Orchestrator runtime file tracking policy
-- **Status**: [NOT STARTED]
+- **Status**: [ABANDONED]
 - **Task Type**: meta
 - **Topic**: agent-system
 - **Dependencies**: Task 121
@@ -85,7 +80,7 @@ DEPENDENCY RATIONALE. This task depends on task 121 because both have `.claude/s
 ---
 
 ### 121. Fix gate out artifact validation and status vocabulary
-- **Status**: [NOT STARTED]
+- **Status**: [ABANDONED]
 - **Task Type**: meta
 - **Topic**: agent-system
 - **Dependencies**: None
