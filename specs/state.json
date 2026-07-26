@@ -1,6 +1,17 @@
 {
-  "next_project_number": 123,
+  "next_project_number": 124,
   "active_projects": [
+    {
+      "project_number": 123,
+      "project_name": "fix_backstop_polkit_denial_live_verification",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Fix the battery-suspend-backstop polkit denial and replace stubbed verification with live end-to-end checks: the login1 policy sets allow_any=auth_admin_keep on org.freedesktop.login1.suspend-ignore-inhibit, so the backstop oneshot (root, session-less, no polkit agent) is denied when it runs systemctl suspend -i, making the <=10% battery safety net a silent no-op; enable a root-scoped suspend-ignore-inhibit polkit rule in modules/system/power.nix (systemd ships 10-systemd-logind-root-ignore-inhibitors.rules.example for exactly this), then verify the suspend and notification legs without the BACKSTOP_SYSTEMCTL_BIN / BACKSTOP_NOTIFY_BIN stubs that hid both this defect and the earlier runuser #UID defect",
+      "topic": "nixos-config",
+      "dependencies": [],
+      "created": "2026-07-26T22:52:15Z",
+      "last_updated": "2026-07-26T22:52:15Z"
+    },
     {
       "project_number": 120,
       "project_name": "niri_ac_battery_conditional_idle_suspend",
@@ -92,7 +103,7 @@
       "description": "Configure laptop lid-close to blank screen but not sleep (keep AI agents running headless), preserving existing multi-monitor window distribution when monitors are attached, and document the setup in docs/ and relevant README.md files",
       "topic": "nixos-config",
       "created": "2026-07-14T19:36:34Z",
-      "last_updated": "2026-07-25T17:21:54Z",
+      "last_updated": "2026-07-26T22:52:15Z",
       "artifacts": [
         {
           "path": "specs/117_laptop_lid_close_no_sleep_headless/plans/05_backstop-grace-and-live-verification.md",
@@ -186,7 +197,10 @@
         "modules/home/desktop/gnome.nix",
         "modules/system/power.nix"
       ],
-      "next_artifact_number": 6
+      "next_artifact_number": 6,
+      "dependencies": [
+        123
+      ]
     },
     {
       "project_number": 71,

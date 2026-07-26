@@ -1,25 +1,26 @@
 ---
-next_project_number: 123
+next_project_number: 124
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-07-25. Generated from state.json dependency graph.*
+*Updated 2026-07-26. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,117 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 120 | 77 | desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,77,123 | -- | nixos-config, nix-infrastructure, services, ... |
+| 2 | 117,120 | 77,123 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Nixos Config
 
-117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
+123 [NOT STARTED] — Fix the battery-suspend-backstop polkit denial and replace stubbe
+  └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
 
 ### Nix Infrastructure
 
@@ -49,6 +50,16 @@ next_project_number: 123
 42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
 
 ## Tasks
+
+### 123. Fix backstop polkit denial live verification
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Fix the battery-suspend-backstop polkit denial and replace stubbed verification with live end-to-end checks: the login1 policy sets allow_any=auth_admin_keep on org.freedesktop.login1.suspend-ignore-inhibit, so the backstop oneshot (root, session-less, no polkit agent) is denied when it runs systemctl suspend -i, making the <=10% battery safety net a silent no-op; enable a root-scoped suspend-ignore-inhibit polkit rule in modules/system/power.nix (systemd ships 10-systemd-logind-root-ignore-inhibitors.rules.example for exactly this), then verify the suspend and notification legs without the BACKSTOP_SYSTEMCTL_BIN / BACKSTOP_NOTIFY_BIN stubs that hid both this defect and the earlier runuser #UID defect
+
+---
 
 ### 122. Orchestrator runtime file tracking policy
 - **Status**: [ABANDONED]
@@ -135,7 +146,7 @@ Note the tension to resolve deliberately: `.claude/context/formats/return-metada
 - **Status**: [PARTIAL]
 - **Task Type**: nix
 - **Topic**: nixos-config
-- **Dependencies**: None
+- **Dependencies**: Task 123
 - **Plan**: [117_laptop_lid_close_no_sleep_headless/plans/05_backstop-grace-and-live-verification.md]
 - **Research**:
   - [117_laptop_lid_close_no_sleep_headless/reports/01_lid-close-no-sleep.md]

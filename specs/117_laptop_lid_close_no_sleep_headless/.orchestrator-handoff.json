@@ -8,6 +8,11 @@
   ],
   "blockers": [
     {
+      "description": "HIGH: the backstop cannot suspend. org.freedesktop.login1.suspend-ignore-inhibit defaults to auth_admin_keep for allow_any/allow_inactive/allow_active and no rule on this system grants it, so the timer's session-less root `systemctl suspend -i` is denied on every firing -- the <=10% battery safety net has never worked. Confirmed live via `systemd-run --service-type=oneshot systemctl suspend -i --no-ask-password`. Remedy is systemd's shipped 10-systemd-logind-root-ignore-inhibitors.rules.example. Tracked as task 123; task 117 now depends on 123. USER CHECKLIST items 2 and 3a now PASS; 3b FAILED; 4 and 5 still unperformed (5 is the multi-monitor gate).",
+      "phase": "phase-8",
+      "severity": "hard"
+    },
+    {
       "description": "Phase 8 activation requires interactive sudo (sudo nixos-rebuild switch --flake .#hamsa) which the agent cannot run. Until activated, 4 more USER CHECKLIST items are also blocked: --test-notify visibility check, safe A/B suspend/suspend-i test, physical undocked lid-close observation, and the docked multi-monitor regression check (the gate on the task's multi-monitor requirement, never run before). Full checklist verbatim in the round-3 summary and plan Phase 8.",
       "phase": "phase-8",
       "severity": "hard"

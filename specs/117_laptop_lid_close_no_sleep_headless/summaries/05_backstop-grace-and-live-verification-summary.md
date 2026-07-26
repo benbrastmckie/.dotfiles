@@ -149,7 +149,53 @@ rebuilt helper (`pgh847ij…`) carries the change. **Not yet activated** — nee
 Blast radius is limited to the *warning*: `safe_notify`'s fail-open design meant the suspend
 decision was never affected, which is exactly the intended behavior and did work.
 
-## USER CHECKLIST (blocking — item 2 attempted and failed; the rest not performed)
+## Second post-activation round (2026-07-26) — notification fixed, suspend path found BROKEN
+
+The user activated the `runuser` fix (system profile `px5yzfzc…`; live `ExecStart` ->
+`4swipawcdfhyxy1my8mcc7ig94nbpnll-battery-suspend-backstop`, whose notify helper is
+`pgh847ijj8s1iy3vpggnzaw6y87v7a0p-battery-backstop-notify`, carrying `runuser -u "$user"`).
+
+**USER CHECKLIST item 2 — now PASSES.** The user confirmed the critical notification appeared.
+Supporting agent-side checks: `loginctl list-users --no-legend` -> `1000 benjamin no active`, and
+the helper's `read -r uid user _rest` parse yields `user=benjamin`; the old `runuser -u "#1000"`
+form reproduces `user #1000 does not exist…` standalone; `org.freedesktop.Notifications` is owned
+(`:1.26`) and a minimal-env `notify-send` matching the `runuser` env exits 0.
+
+**USER CHECKLIST item 3a — PASSES.** `sudo systemctl suspend` was refused, naming all five
+`claude-code` block inhibitors (PIDs 2050382, 2141407, 2148282, 2160071, 2167843). The inhibitor
+tether works.
+
+**USER CHECKLIST item 3b — FAILED. HIGH severity: the backstop cannot suspend at all.**
+`sudo systemctl suspend -i` raised a polkit `auth_admin` prompt rather than suspending. Root cause:
+`org.freedesktop.login1.suspend-ignore-inhibit` ships with `auth_admin_keep` for **all three**
+subject classes (`allow_any`, `allow_inactive`, `allow_active`), and no rule on this system grants
+it — `/etc/polkit-1/rules.d/` contains only `10-nixos.rules`, which has no `login1` entry. The
+prompt under `sudo` also proves systemd 260's logind does **not** bypass polkit for uid-0 callers.
+
+Confirmed empirically in a faithful production context (root, session-less, no agent — exactly how
+the timer invokes it) via
+`sudo systemd-run --pipe --quiet --service-type=oneshot systemctl suspend -i --no-ask-password`:
+
+> The current polkit policy does not allow root to ignore inhibitors without authentication in
+> order to suspend. To allow this action, a new polkit rule is needed. See
+> `…systemd-260.2/share/polkit-1/rules.d/10-systemd-logind-root-ignore-inhibitors.rules.example`.
+
+So line 62 of the live script (`exec "$systemctl_bin" suspend -i`) is denied every time. At <=10%
+on battery the backstop logs `battery at N% and discharging: suspending (inhibitors bypassed)` and
+then fails — **the safety net against a hard 0% death while running headless has never worked.**
+The remedy is the rule systemd ships as `.example` (present in the store, not symlinked into
+`/etc/polkit-1/rules.d/`); this is not a privilege escalation, since root can already suspend by
+writing `/sys/power/state` — the rule merely routes it through logind's proper sleep sequence.
+
+**Tracked as task 123**, which task 117 now depends on. Items 3b, 4, and 5 stay open behind it.
+
+**Verification-methodology gap (the pattern behind both defects).** The round-3 offline suite
+stubbed `systemctl` (`BACKSTOP_SYSTEMCTL_BIN`) *and* the notifier (`BACKSTOP_NOTIFY_BIN`). Its
+23/23 therefore covered the grace arithmetic and neither real-world leg — so it could not have
+caught the `runuser` `#UID` defect, and did not catch this polkit denial either. Both defects sat
+precisely where a stub stood in for the real call. Task 123 carries this forward.
+
+## USER CHECKLIST (blocking — item 2 now PASSES; item 3a PASSES; item 3b FAILED, see above)
 
 Requires `sudo`, a real suspend cycle, or physical hardware; agents must not perform any of these.
 

@@ -639,11 +639,26 @@ perform any of these):
    's/^ExecStart=//p') --test-notify` — a critical notification should appear in your GNOME session.
    Repeat with the screen locked to confirm it is visible on the lock screen (the surface that
    matters).
+   **RESULT 2026-07-26 — PASSES** after the `runuser -u "$user"` fix was activated (system profile
+   `px5yzfzc…`; live notify helper `pgh847ij…`). User confirmed the notification appeared.
 3. **Safe A/B suspend test** (carried over from Phase 4; with a Claude session deliberately open so
    block inhibitors are held — no battery draining involved): `sudo systemctl suspend` must be
    **REFUSED** with `BlockedByInhibitorLock`; then `sudo systemctl suspend -i` must suspend despite
    the inhibitors. Wake with the lid or a keypress. This proves the exact call the backstop makes,
    and the resume also exercises the new wake-mark hook.
+   **RESULT 2026-07-26 — 3a PASSES, 3b FAILS (HIGH).** `sudo systemctl suspend` was refused, naming
+   all five `claude-code` block inhibitors. `sudo systemctl suspend -i` did **not** suspend: it
+   raised a polkit `auth_admin` prompt, because
+   `org.freedesktop.login1.suspend-ignore-inhibit` defaults to `auth_admin_keep` for `allow_any`,
+   `allow_inactive` **and** `allow_active`, and no rule on this system grants it. Confirmed in the
+   faithful session-less root context via `sudo systemd-run --pipe --quiet --service-type=oneshot
+   systemctl suspend -i --no-ask-password`, which returned "The current polkit policy does not
+   allow root to ignore inhibitors without authentication in order to suspend." The backstop's
+   `exec "$systemctl_bin" suspend -i` is therefore denied on every firing — the <=10% safety net
+   has never been able to suspend. Remedy is the rule systemd ships as
+   `10-systemd-logind-root-ignore-inhibitors.rules.example`. **Tracked as task 123**; task 117 now
+   depends on it. The wake-mark hook consequently remains un-exercised (state dir still empty,
+   `ActiveEnterTimestamp` empty).
 4. **Physical lid-close, undocked** (carried over from Phase 4): close the lid with no external
    monitor attached -> the session locks, the panel powers off roughly 30 s later, and the machine
    **stays awake** (verify afterwards via `who -b` / `journalctl -b 0 -g "suspend"` showing no
@@ -670,6 +685,13 @@ perform any of these):
   having run first). None have been performed this round. Any failure keeps this phase `[PARTIAL]`
   with the failing layer named explicitly, and item 5's failure specifically blocks any claim that
   the multi-monitor requirement is verified.
+- **UPDATE 2026-07-26**: items 1, 2 and 3a now PASS. Item 3b FAILED — named failing layer:
+  **polkit authorization**, not the script, the units, the build, or the inhibitor tether, all of
+  which are confirmed correct. The backstop's `systemctl suspend -i` is denied for a session-less
+  root caller because `org.freedesktop.login1.suspend-ignore-inhibit` requires `auth_admin_keep`
+  in all three subject classes and no rule grants it. Fix tracked as **task 123** (117 depends on
+  it). Items 4 and 5 remain unperformed; item 5 is still the gate on the multi-monitor claim.
+  Phase stays `[PARTIAL]`.
 
 **Timing**: 0.5 hours agent-side (the user performs the switch and items 2-5, together well under
 15 minutes)
