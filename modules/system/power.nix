@@ -191,6 +191,35 @@ in
     };
   };
 
+  # ==========================================================================
+  # Polkit grant: root may suspend while ignoring inhibitors (task 123)
+  # ==========================================================================
+  # Allow root to suspend while ignoring inhibitors, for the session-less
+  # battery-suspend-backstop oneshot below. Without this the oneshot's
+  # `systemctl suspend -i` is denied on every firing (login1 ships
+  # suspend-ignore-inhibit as auth_admin_keep on all three subject
+  # classes, and a session-less root caller has no agent to prompt), so
+  # the <=10% safety net has never once been able to suspend.
+  #
+  # Deliberately narrower than systemd's shipped
+  # 10-systemd-logind-root-ignore-inhibitors.rules.example, which grants
+  # all five *-ignore-inhibit actions (power-off/reboot/halt/suspend/
+  # hibernate). This repo needs suspend only.
+  #
+  # Ordering assumption: NixOS appends extraConfig into the body of
+  # /etc/polkit-1/rules.d/10-nixos.rules, today the only .rules file on
+  # this host. polkit stops at the first rule returning a non-NOT_HANDLED
+  # value, so a future .rules file sorting lexically before 10-nixos
+  # could shadow this. Re-check if rules.d composition ever changes.
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (action.id == "org.freedesktop.login1.suspend-ignore-inhibit" &&
+          subject.user == "root") {
+        return polkit.Result.YES;
+      }
+    });
+  '';
+
   systemd = {
     services = {
       # Apply the correct profile at boot based on current AC state
@@ -214,9 +243,14 @@ in
       # (verified from source; see specs/117_laptop_lid_close_no_sleep_headless/
       # reports/03_battery-level-backstop.md). Without this unit, a lid-closed
       # laptop with active agents drains to 0% and hard-powers-off.
-      # `systemctl suspend -i` = SuspendWithFlags(SD_LOGIND_SKIP_INHIBITORS),
-      # which root is polkit-authorized to use; the timer retries every minute
-      # so it cannot be raced by a freshly acquired inhibitor.
+      # `systemctl suspend -i` = SuspendWithFlags(SD_LOGIND_SKIP_INHIBITORS).
+      # Root is NOT authorized to use this by default -- login1 ships
+      # suspend-ignore-inhibit as auth_admin_keep for all subject classes, so
+      # a session-less root caller (no agent to prompt) is denied outright.
+      # The `security.polkit.extraConfig` rule above this block is what makes
+      # this call succeed; without it this oneshot silently fails every time
+      # it fires (task 123). The timer retries every minute so it cannot be
+      # raced by a freshly acquired inhibitor.
       #
       # Re-suspend loop is INTENTIONAL, not an oversight: after any wake that is
       # still <=10% and Discharging, the next tick (<=60s, worst case ~2min
