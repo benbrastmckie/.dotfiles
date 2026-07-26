@@ -4,13 +4,31 @@
     {
       "project_number": 123,
       "project_name": "fix_backstop_polkit_denial_live_verification",
-      "status": "not_started",
+      "status": "partial",
       "task_type": "nix",
       "description": "Fix the battery-suspend-backstop polkit denial and replace stubbed verification with live end-to-end checks: the login1 policy sets allow_any=auth_admin_keep on org.freedesktop.login1.suspend-ignore-inhibit, so the backstop oneshot (root, session-less, no polkit agent) is denied when it runs systemctl suspend -i, making the <=10% battery safety net a silent no-op; enable a root-scoped suspend-ignore-inhibit polkit rule in modules/system/power.nix (systemd ships 10-systemd-logind-root-ignore-inhibitors.rules.example for exactly this), then verify the suspend and notification legs without the BACKSTOP_SYSTEMCTL_BIN / BACKSTOP_NOTIFY_BIN stubs that hid both this defect and the earlier runuser #UID defect",
       "topic": "nixos-config",
       "dependencies": [],
       "created": "2026-07-26T22:52:15Z",
-      "last_updated": "2026-07-26T22:52:15Z"
+      "last_updated": "2026-07-26T23:22:35Z",
+      "session_id": "sess_1785106463_c3f09e",
+      "artifacts": [
+        {
+          "path": "specs/123_fix_backstop_polkit_denial_live_verification/reports/01_backstop-polkit-denial.md",
+          "type": "report",
+          "summary": "Polkit denial root cause; security.polkit.extraConfig narrow rule; alternatives rejected; layered agent-vs-user verification; uncommitted test suite finding"
+        },
+        {
+          "path": "specs/123_fix_backstop_polkit_denial_live_verification/plans/01_backstop-polkit-fix.md",
+          "type": "plan",
+          "summary": "4-phase plan: narrow root suspend-ignore-inhibit polkit rule, commit offline suite with stub caveat + pkcheck assertion, correct two false polkit-authorized claims, user checklist"
+        },
+        {
+          "path": "specs/123_fix_backstop_polkit_denial_live_verification/summaries/01_backstop-polkit-fix-summary.md",
+          "type": "summary",
+          "summary": "Phases 1-3 done and build-verified; Phase 4 USER CHECKLIST (U1-U4) pending — live suspend authorization unproven"
+        }
+      ]
     },
     {
       "project_number": 120,

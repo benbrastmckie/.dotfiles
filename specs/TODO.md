@@ -19,7 +19,7 @@ next_project_number: 124
 
 ### Nixos Config
 
-123 [NOT STARTED] — Fix the battery-suspend-backstop polkit denial and replace stubbe
+123 [PARTIAL] — Fix the battery-suspend-backstop polkit denial and replace stubbe
   └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
 
 ### Nix Infrastructure
@@ -52,10 +52,13 @@ next_project_number: 124
 ## Tasks
 
 ### 123. Fix backstop polkit denial live verification
-- **Status**: [NOT STARTED]
+- **Status**: [PARTIAL]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
+- **Research**: [123_fix_backstop_polkit_denial_live_verification/reports/01_backstop-polkit-denial.md]
+- **Plan**: [123_fix_backstop_polkit_denial_live_verification/plans/01_backstop-polkit-fix.md]
+- **Summary**: [123_fix_backstop_polkit_denial_live_verification/summaries/01_backstop-polkit-fix-summary.md]
 
 **Description**: Fix the battery-suspend-backstop polkit denial and replace stubbed verification with live end-to-end checks: the login1 policy sets allow_any=auth_admin_keep on org.freedesktop.login1.suspend-ignore-inhibit, so the backstop oneshot (root, session-less, no polkit agent) is denied when it runs systemctl suspend -i, making the <=10% battery safety net a silent no-op; enable a root-scoped suspend-ignore-inhibit polkit rule in modules/system/power.nix (systemd ships 10-systemd-logind-root-ignore-inhibitors.rules.example for exactly this), then verify the suspend and notification legs without the BACKSTOP_SYSTEMCTL_BIN / BACKSTOP_NOTIFY_BIN stubs that hid both this defect and the earlier runuser #UID defect
 

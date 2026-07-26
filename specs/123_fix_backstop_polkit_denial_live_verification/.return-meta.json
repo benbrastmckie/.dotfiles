@@ -46,9 +46,16 @@
     "duration_seconds": 900,
     "agent_type": "nix-implementation-agent",
     "delegation_depth": 2,
-    "delegation_path": ["orchestrator", "orchestrate", "skill-orchestrate", "nix-implementation-agent"],
+    "delegation_path": [
+      "orchestrator",
+      "orchestrate",
+      "skill-orchestrate",
+      "nix-implementation-agent"
+    ],
     "phases_completed": 3,
-    "phases_total": 4
+    "phases_total": 4,
+    "cycles_used": 3,
+    "final_state": "partial"
   },
   "next_steps": "Present Phase 4 USER CHECKLIST (U1-U4) to the user and wait for results; do not mark task 123 complete until a real, non-stubbed systemctl suspend -i (U3 or U4) is recorded as PASSES."
 }
