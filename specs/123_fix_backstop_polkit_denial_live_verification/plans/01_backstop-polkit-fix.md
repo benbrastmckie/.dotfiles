@@ -376,7 +376,7 @@ default, and a reader can find the test suite and its limits.
 
 ---
 
-### Phase 4: Live end-to-end verification [NOT STARTED]
+### Phase 4: Live end-to-end verification [PARTIAL]
 
 **Runnable by**: **Split.** Items U1-U4 are **user-required** — they need `sudo`, a NixOS
 generation activation, and a real suspend/resume cycle. Agents must not attempt any of them. The
@@ -393,15 +393,26 @@ the caller's own identity unless the caller is uid 0 (research finding C, reprod
 override's UID field is ignored for untrusted callers). This is a security boundary, not a tooling
 gap. There is no agent-side substitute; do not invent one.
 
+**Status (recorded 2026-07-26, implementation agent)**: Phases 1-3 are complete, committed, and
+build-verified (see their Verification results blocks above). This phase is marked `[PARTIAL]`
+because it is blocked on the user: every task below requires `sudo`, a NixOS generation
+activation, and/or a real suspend/resume cycle, none of which this agent is permitted to run.
+**Blocker**: USER CHECKLIST items U1-U4 (below) are unexecuted; the agent-runnable follow-up block
+at the end of this phase cannot start until the user reports U1-U4 results. No code change is
+pending — this is a pure activation/verification blocker, not an implementation gap.
+
 **Tasks**:
-- [ ] Present the USER CHECKLIST below to the user verbatim and wait for results.
+- [x] Present the USER CHECKLIST below to the user verbatim and wait for results. *(done via this
+      plan file and the implementation summary; results pending.)*
 - [ ] Record each item's outcome in place as `RESULT <YYYY-MM-DD> — PASSES` / `— FAILS` with the
       observed output, mirroring the annotation style of
       `specs/117_laptop_lid_close_no_sleep_headless/plans/05_backstop-grace-and-live-verification.md`
-      Phase 8.
+      Phase 8. *(deviation: deferred — requires the user's reported U1-U4 output, not yet
+      available.)*
 - [ ] If U2 fails, **stop**: do not proceed to U3 or U4, mark the phase `[BLOCKED]`, and treat the
       rule as not working. Re-check Phase 1 verification items 3-5 against the *live* `/etc` file
-      rather than the built closure (activation may not have taken).
+      rather than the built closure (activation may not have taken). *(deviation: deferred —
+      contingent on U2's outcome, not yet available.)*
 
 **Timing**: 30 minutes of user time; 15 minutes of agent follow-up.
 
@@ -473,7 +484,8 @@ follow-up below can be completed.
 
 ---
 
-**Agent-runnable post-activation follow-up** (only after the user reports U1-U4):
+**Agent-runnable post-activation follow-up** (only after the user reports U1-U4). **Not yet run**
+— U1-U4 are unexecuted, so none of the four items below have been attempted:
 - [ ] Re-run the unprivileged non-regression probe:
       `pkcheck --action-id org.freedesktop.login1.suspend-ignore-inhibit --process "$$"` — must
       still be `auth_admin_keep`, exit 2. A change means the rule over-granted to non-root callers.
