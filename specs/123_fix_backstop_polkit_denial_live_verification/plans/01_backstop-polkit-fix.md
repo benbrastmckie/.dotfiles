@@ -234,7 +234,7 @@ suspend**):
 
 ---
 
-### Phase 2: Commit the offline test suite with its stub caveat and one live assertion [NOT STARTED]
+### Phase 2: Commit the offline test suite with its stub caveat and one live assertion [COMPLETED]
 
 **Runnable by**: **Agent.** No `sudo`. The script itself must run without `sudo` and without
 suspending anything.
@@ -244,23 +244,23 @@ file that states its own coverage limits in its own text, plus one new assertion
 stubbed.
 
 **Tasks**:
-- [ ] Create `tests/battery-suspend-backstop-offline.sh` (new top-level `tests/` directory; the
+- [x] Create `tests/battery-suspend-backstop-offline.sh` (new top-level `tests/` directory; the
       repo has no existing test-harness convention, and `modules/system/` holds Nix modules only).
       Make it executable.
-- [ ] Reconstruct the offline logic exercise: resolve the built backstop script out of the
+- [x] Reconstruct the offline logic exercise: resolve the built backstop script out of the
       current system closure, then drive it with `BACKSTOP_BATTERY_GLOB` pointed at a scratch fake
       `BAT0` tree, `STATE_DIRECTORY` pointed at a scratch dir, and `BACKSTOP_SYSTEMCTL_BIN` /
       `BACKSTOP_NOTIFY_BIN` pointed at recording stubs. Cover the same assertion set as the prior
       round: threshold boundary behavior, the `Discharging` vs. `Not charging`/`Charging` AC gate,
       the wake-grace window bounds, the notified-marker logic, and the `--test-notify` path.
-- [ ] **Caveat header, mandatory** — a comment block at the very top of the file stating, in
+- [x] **Caveat header, mandatory** — a comment block at the very top of the file stating, in
       substance: these assertions exercise the script's *decision logic only*. They stub
       `systemctl` and the notify helper, so they cannot detect an authorization failure on the real
       `systemctl suspend -i` (the defect this task fixes) nor a failure in the real
       root-to-session notification path (the `runuser` defect fixed in the prior round). Both of
       those defects passed this suite. A green run here is **not** evidence the backstop works.
       Name the two env vars responsible so the mechanism is unambiguous.
-- [ ] **New assertion (non-stubbed, no `sudo`)** — authorization non-regression for the calling
+- [x] **New assertion (non-stubbed, no `sudo`)** — authorization non-regression for the calling
       identity: run
       `pkcheck --action-id org.freedesktop.login1.suspend-ignore-inhibit --process "$$"` as the
       invoking (unprivileged) user and assert the result is `auth_admin_keep` / exit 2, i.e. the
@@ -268,12 +268,15 @@ stubbed.
       "authorization non-regression for the calling identity — this CANNOT confirm root is
       granted; polkit refuses cross-identity CheckAuthorization() for untrusted callers. See the
       known-gap footer." Skip with a clear message (not a failure) if `pkcheck` is absent.
-- [ ] **Known-gap footer** — the script's final summary must print, alongside the pass count, a
+- [x] **Known-gap footer** — the script's final summary must print, alongside the pass count, a
       short block naming the checks that require a human: the root `pkcheck` query and the real
       session-less `systemctl suspend -i` probe, with a pointer to this plan's Phase 4 USER
       CHECKLIST by path. The pass line must not read as unqualified success.
-- [ ] Keep it proportionate: one plain `bash` script, roughly 70-100 lines. No bats, no NixOS VM
-      test, no mocked polkit, no new dependency.
+- [x] Keep it proportionate: one plain `bash` script, roughly 70-100 lines. No bats, no NixOS VM
+      test, no mocked polkit, no new dependency. *(deviation: altered — 108 lines, ~8% over the
+      soft 70-100 envelope; the extra length comes from covering all 8 offline cases from the
+      task-117 baseline plus the notified-marker-suppression and pkcheck assertions without
+      collapsing readability. No test framework or new dependency was introduced.)*
 
 **Timing**: 45 minutes.
 
@@ -294,6 +297,23 @@ stubbed.
    `BACKSTOP_NOTIFY_BIN` by name.
 6. Confirm the new `pkcheck` assertion actually invoked `pkcheck` (it is the one assertion in the
    file with no stub between it and the system).
+
+**Verification results (recorded 2026-07-26)**:
+1. `bash tests/battery-suspend-backstop-offline.sh` — exit 0, "16 passed, 0 failed", run as the
+   unprivileged agent user, no `sudo`, no suspend.
+2. `bash -n tests/battery-suspend-backstop-offline.sh` — parses clean. `shellcheck` is not on
+   `$PATH` on this host; skipped per the plan's non-blocking allowance.
+3. Ran the script twice in a row: outputs byte-identical (idempotent), and
+   `/var/lib/battery-suspend-backstop` mtime confirmed unchanged before/after
+   (`1785003350` both times) — the suite operates entirely inside a `mktemp -d` scratch tree via
+   `STATE_DIRECTORY`/`BACKSTOP_BATTERY_GLOB` overrides.
+4. `grep -c "" tests/battery-suspend-backstop-offline.sh` — 108 lines. Slightly over the ~70-100
+   soft envelope (see deviation annotation above); no test framework or new dependency added.
+5. Caveat header (top of file) and known-gap footer both present and both name
+   `BACKSTOP_SYSTEMCTL_BIN` and `BACKSTOP_NOTIFY_BIN` explicitly.
+6. Confirmed the `pkcheck` assertion actually invokes the real `pkcheck` binary (no stub) and
+   returned `auth_admin_keep`/exit 2, consistent with Phase 1 item 6's baseline — no over-grant to
+   the unprivileged caller.
 
 ---
 
