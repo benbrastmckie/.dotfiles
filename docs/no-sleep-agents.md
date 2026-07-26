@@ -179,9 +179,17 @@ systemctl suspend -i
 ```
 
 The `-i` flag is the key: it tells logind to suspend while **skipping every ordinary sleep
-inhibitor**, including the Claude Code one from mechanism 1. Root is authorized to do this via
-polkit. This is the only mechanism on this system that is guaranteed to suspend the machine
-regardless of what inhibitors are held.
+inhibitor**, including the Claude Code one from mechanism 1. This is the only mechanism on this
+system that is guaranteed to suspend the machine regardless of what inhibitors are held --
+**but only because of an explicit polkit grant**. By default, login1 ships
+`suspend-ignore-inhibit` as `auth_admin_keep` for all three polkit subject classes, so a
+session-less root caller (no interactive session, no polkit agent to prompt) is **denied**, not
+authorized, when it calls `systemctl suspend -i` -- without an explicit grant, the backstop is
+denied on every firing and can never actually suspend the machine. `modules/system/power.nix`
+grants root that one action
+explicitly via `security.polkit.extraConfig`, deliberately narrower than the
+`10-systemd-logind-root-ignore-inhibitors.rules.example` systemd ships (which would grant
+power-off/reboot/halt/suspend/hibernate all at once) -- this configuration grants suspend only.
 
 **Why 10%, and why this exists instead of relying on the battery's own built-in low-battery
 protection**: this hardware only supports suspend-to-idle (`s2idle`), not a deeper suspend state,
@@ -248,6 +256,19 @@ systemctl list-timers battery-suspend-backstop.timer --no-pager
 ```
 
 Expected: `active`, with the next elapse within about 60 seconds.
+
+**Battery backstop polkit authorization** — confirm the polkit grant from `modules/system/power.nix`
+is actually live and effective for root (requires `sudo`; this is a read-only authorization query,
+it does not suspend anything):
+
+```bash
+sudo bash -c 'pkcheck --action-id org.freedesktop.login1.suspend-ignore-inhibit --process "$$"'
+```
+
+Expected: **exit 0** (authorized), no `auth_admin_keep` line. Note the single-quoted `bash -c`
+form is required so `$$` expands in the root shell, not your own; writing
+`sudo pkcheck ... --process "$$"` instead expands `$$` in your own uid-1000 shell and will report
+`auth_admin_keep`/exit 2 -- that is the mis-invocation, not a real failure.
 
 **GNOME idle-suspend settings** — confirm the dconf values Home Manager wrote are the live
 values:

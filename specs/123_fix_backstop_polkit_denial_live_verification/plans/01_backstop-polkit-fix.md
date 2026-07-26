@@ -317,7 +317,7 @@ stubbed.
 
 ---
 
-### Phase 3: Correct the false polkit claims in the docs [NOT STARTED]
+### Phase 3: Correct the false polkit claims in the docs [COMPLETED]
 
 **Runnable by**: **Agent.** Documentation only.
 
@@ -325,23 +325,29 @@ stubbed.
 default, and a reader can find the test suite and its limits.
 
 **Tasks**:
-- [ ] `docs/no-sleep-agents.md` (~line 180, mechanism 4): the sentence "Root is authorized to do
+- [x] `docs/no-sleep-agents.md` (~line 180, mechanism 4): the sentence "Root is authorized to do
       this via polkit." is false as written — it was false when written, and is the precise belief
       that let the defect ship. Replace it with an accurate statement: the login1 policy ships
       `suspend-ignore-inhibit` as `auth_admin_keep` for all three subject classes, so a
       session-less root caller is denied by default; this configuration grants root that one
       action explicitly via `security.polkit.extraConfig` in `modules/system/power.nix`. Note the
       grant is narrower than systemd's shipped example (suspend only, not the other four actions).
-- [ ] In the same document's verification section (~lines 243-247, alongside the existing
+      *(deviation: altered — per `.claude/rules/no-task-references-in-deliverables.md`, the
+      replacement text does not cite the task number or a `specs/` path since `docs/` is outside
+      `specs/**`; it states the mechanism and rationale directly instead.)*
+- [x] In the same document's verification section (~lines 243-247, alongside the existing
       `systemctl is-active battery-suspend-backstop.timer` checks), add the root `pkcheck` query as
       the way to confirm the authorization leg, flagged as requiring `sudo`.
-- [ ] `docs/testing.md`: add a short pointer to `tests/battery-suspend-backstop-offline.sh`
+- [x] `docs/testing.md`: add a short pointer to `tests/battery-suspend-backstop-offline.sh`
       stating what it covers (decision logic, stubbed `systemctl`/notify) and what it does not
       (the authorization and notification legs), so the caveat is discoverable from the repo's
       testing entry point and not only from inside the script.
-- [ ] Cross-reference task 117 by path only
+- [x] Cross-reference task 117 by path only
       (`specs/117_laptop_lid_close_no_sleep_headless/`) where prior-round history is relevant. Do
-      not edit any file under that directory.
+      not edit any file under that directory. *(deviation: altered — no cross-reference to
+      task 117 was added to the docs/ files themselves, consistent with the no-task-references
+      rule above; task 117 is cross-referenced only within this plan file, which lives under
+      `specs/**`.)*
 
 **Timing**: 25 minutes.
 
@@ -358,6 +364,15 @@ default, and a reader can find the test suite and its limits.
 3. `grep -rn "battery-suspend-backstop-offline" docs/` finds the pointer in `docs/testing.md`.
 4. `git status --short` shows changes confined to the four paths in File Scope; nothing under
    `specs/117_*` is modified.
+
+**Verification results (recorded 2026-07-26)**:
+1. `grep -rn "Root is authorized to do this via polkit" docs/` — no matches.
+2. `grep -rn "polkit-authorized" modules/ docs/` — no matches.
+3. `grep -rn "battery-suspend-backstop-offline" docs/` — found in `docs/testing.md` (two lines:
+   prose pointer and the invocation example).
+4. `git status --short` — changes confined to `docs/no-sleep-agents.md`, `docs/testing.md` (this
+   phase), plus `modules/system/power.nix` and `tests/battery-suspend-backstop-offline.sh` from
+   Phases 1-2, all within File Scope. Nothing under `specs/117_*` touched.
 
 ---
 

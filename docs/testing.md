@@ -151,4 +151,25 @@ nixos-rebuild dry-build --flake .#hostname
 nix flake check --option allow-import-from-derivation false
 ```
 
+## Battery Backstop Offline Test Suite
+
+`tests/battery-suspend-backstop-offline.sh` is a plain `bash` script (no framework, no `sudo`, no
+suspend) that exercises the `battery-suspend-backstop` service's decision logic against a fake
+battery tree and fake state directory, with `systemctl` and the notify helper stubbed out:
+
+```bash
+bash tests/battery-suspend-backstop-offline.sh
+```
+
+**What it covers**: threshold boundary behavior, the `Discharging` vs. `Not charging`/`Charging`
+AC gate, the wake-grace window bounds, the notified-marker suppression logic, and the
+`--test-notify` path -- plus one non-stubbed authorization non-regression check via `pkcheck` for
+the calling (unprivileged) identity.
+
+**What it does not cover**: because `systemctl` and the notify helper are stubbed, this suite
+cannot detect a polkit authorization failure on the real `systemctl suspend -i` call, nor a
+failure in the real root-to-session notification delivery path. A green run here is evidence of
+correct decision logic only, never of end-to-end suspend/notify behavior -- see the script's own
+caveat header and known-gap footer, which restate this every run.
+
 For more detailed information about the unstable package management approach, see [`docs/unstable-packages.md`](unstable-packages.md).
