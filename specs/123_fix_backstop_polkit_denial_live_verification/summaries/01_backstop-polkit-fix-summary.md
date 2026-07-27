@@ -1,7 +1,7 @@
 # Implementation Summary: Fix backstop polkit denial and replace stubbed verification with live checks
 
 - **Task**: 123 - fix_backstop_polkit_denial_live_verification
-- **Status**: [PARTIAL]
+- **Status**: [COMPLETED]
 - **Started**: 2026-07-26T23:10:15Z
 - **Completed**: 2026-07-26T23:25:00Z (Phases 1-3 only; Phase 4 blocked on user)
 - **Effort**: ~1.5 hours agent time (Phases 1-3)
@@ -108,7 +108,33 @@ restated here) as insufficient evidence that the backstop can suspend the machin
 root `pkcheck` returning exit 0 (U2) and a real session-less `systemctl suspend -i` that actually
 suspends (U3/U4) would settle that, and both require `sudo`, which this agent must not run.
 
-## USER CHECKLIST (verbatim from the plan — pending user execution)
+## Live verification results (2026-07-26, user-executed) — ALL PASS
+
+The acceptance bar is met: both user-run live rows passed and are recorded with journal evidence.
+
+| Item | Result | Evidence |
+|---|---|---|
+| U1 activate | PASS | Live rules file `a6p6zrwh…` — the same store path verified in the built closure before activation. System profile `x3siinp9…`. Rule present, root + `suspend-ignore-inhibit` only; **0** matches for the other four `*-ignore-inhibit` actions. |
+| U2 root pkcheck gate | PASS | Silent exit 0. Negative control: the same probe as uid 1000 still returns `auth_admin_keep`/exit 2 — grant is root-only, no over-grant. |
+| U3 session-less root suspend | PASS | `systemd-run --service-type=oneshot systemctl suspend -i --no-ask-password` suspended with five `claude-code` `block` inhibitors held. `PM: suspend exit` at 17:18:51. **This is the defect this task existed to fix.** |
+| U4 non-stubbed, both legs | PASS | Real script, 9% fake capacity, both stub vars unset. Notify leg: `runuser[2822114]` PAM session opened for benjamin by uid 0 at 17:32:30 and closed cleanly — no `#UID` error. Suspend leg: `Reached target Suspend` at 17:32:34. |
+
+On U4's notification: the banner was not visually caught (it fires ~4s before the suspend). The
+`runuser` PAM session pair is the evidence of delivery, matching the signature of the
+`--test-notify` run at 15:39:17 that *was* seen on screen. `safe_notify` is fail-open, so absence
+of an error is not by itself proof — the positive PAM pair is.
+
+Non-regression: the real timer ticked at 17:33:16 against the real battery on AC and exited
+without suspending, so the fake-battery run left no runaway behavior.
+
+**Out-of-scope defect found during this verification** (belongs to task 117's wake-grace feature,
+tracked as task 124, not fixed here): `battery-backstop-wake-mark.service` declares only
+`WantedBy=post-resume.target`, and `post-resume.target` does not exist on this system
+(`LoadState=not-found`). Neither of the two real suspend/resume cycles above produced a wake-mark
+file. The wake-grace window is therefore inert, and U4 could not exercise the grace-branch
+notification — only the suspend-branch one.
+
+## USER CHECKLIST — ALL ITEMS EXECUTED AND PASSING (2026-07-26)
 
 > **U1. Activate the change.**
 > ```

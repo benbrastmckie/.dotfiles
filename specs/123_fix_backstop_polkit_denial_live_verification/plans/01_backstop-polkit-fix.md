@@ -1,7 +1,7 @@
 # Implementation Plan: Task #123 - Fix backstop polkit denial and replace stubbed verification with live checks
 
 - **Task**: 123 - fix_backstop_polkit_denial_live_verification
-- **Status**: [NOT STARTED]
+- **Status**: [COMPLETED]
 - **Effort**: 2.5 hours (2.0 agent-runnable, 0.5 user-required)
 - **Dependencies**: Task 117 (rounds 1-3 built, committed, and live; round 3's USER CHECKLIST item 3b discovered this defect and opened this task). Task 117 files are **read-only cross-references** for this plan — see File Scope.
 - **Research Inputs**: specs/123_fix_backstop_polkit_denial_live_verification/reports/01_backstop-polkit-denial.md
@@ -376,7 +376,7 @@ default, and a reader can find the test suite and its limits.
 
 ---
 
-### Phase 4: Live end-to-end verification [PARTIAL]
+### Phase 4: Live end-to-end verification [COMPLETED]
 
 **Runnable by**: **Split.** Items U1-U4 are **user-required** — they need `sudo`, a NixOS
 generation activation, and a real suspend/resume cycle. Agents must not attempt any of them. The
@@ -393,11 +393,25 @@ the caller's own identity unless the caller is uid 0 (research finding C, reprod
 override's UID field is ignored for untrusted callers). This is a security boundary, not a tooling
 gap. There is no agent-side substitute; do not invent one.
 
-**Status (recorded 2026-07-26, implementation agent)**: Phases 1-3 are complete, committed, and
-build-verified (see their Verification results blocks above). This phase is marked `[PARTIAL]`
-because it is blocked on the user: every task below requires `sudo`, a NixOS generation
-activation, and/or a real suspend/resume cycle, none of which this agent is permitted to run.
-**Blocker**: USER CHECKLIST items U1-U4 (below) are unexecuted; the agent-runnable follow-up block
+**RESULT (2026-07-26, user-executed): ALL OF U1-U4 PASS. Phase COMPLETED.**
+
+| Item | Result | Evidence |
+|---|---|---|
+| U1 activate | PASS | Live rules file is now `/nix/store/a6p6zrwh8yc0z3zs0268hqi6mgjwchkh-etc-polkit-1-rules.d-10-nixos.rules` — the same store path verified in the built closure pre-activation. System profile `x3siinp9…`. Rule present with `subject.user == "root"` + `suspend-ignore-inhibit`; **zero** matches for the other four `*-ignore-inhibit` actions, so the narrow scoping holds live. |
+| U2 root pkcheck gate | PASS | `sudo bash -c 'pkcheck --action-id org.freedesktop.login1.suspend-ignore-inhibit --process "$$"'` returned silently (exit 0). Negative control: the identical probe as uid 1000 still returns `polkit.result=auth_admin_keep`, exit 2 — the grant is root-only and the normal user gained nothing. |
+| U3 session-less root suspend | PASS | `sudo systemd-run --pipe --quiet --service-type=oneshot systemctl suspend -i --no-ask-password` suspended the machine with five `claude-code` `block` inhibitors held. Journal: `PM: suspend exit`, `System returned from sleep operation 'suspend'` at 17:18:51. |
+| U4 non-stubbed run, both legs | PASS | Real built script at 9% fake capacity, only `BACKSTOP_BATTERY_GLOB`/`STATE_DIRECTORY` overridden (`BACKSTOP_NOTIFY_BIN`/`BACKSTOP_SYSTEMCTL_BIN` unset, so the real helper `pgh847ij…` and real systemctl ran). **Notify leg**: `runuser[2822114]: pam_unix(runuser:session): session opened for user benjamin(uid=1000) by benjamin(uid=0)` at 17:32:30, closed cleanly, no `user #1000 does not exist` error — same signature as the confirmed-visible `--test-notify` run at 15:39:17. **Suspend leg**: `Reached target Suspend` at 17:32:34. The user did not visually catch the banner (it fires ~4s before suspend); the PAM session pair is the evidence it was delivered. |
+
+Non-regression observed alongside: the real timer ticked at 17:33:16 against the real battery on
+AC and exited without suspending (`Deactivated successfully`), so the fake-battery run left no
+runaway behavior.
+
+**Superseded status note (recorded 2026-07-26 by the implementation agent, before the user ran the
+checklist)**: Phases 1-3 are complete, committed, and
+build-verified (see their Verification results blocks above). This phase was marked `[PARTIAL]`
+because it was blocked on the user: every task below requires `sudo`, a NixOS generation
+activation, and/or a real suspend/resume cycle, none of which that agent is permitted to run.
+**Blocker (now cleared)**: USER CHECKLIST items U1-U4 (below) are unexecuted; the agent-runnable follow-up block
 at the end of this phase cannot start until the user reports U1-U4 results. No code change is
 pending — this is a pure activation/verification blocker, not an implementation gap.
 
@@ -507,27 +521,37 @@ U3 or U4 shows an actual suspend. Build-green and offline-green do **not** compl
 
 Ordered weakest to strongest. Each row states who can run it and what it actually proves.
 
-- [ ] **Agent** — `nixos-rebuild build --flake .#hamsa` exits 0. Proves: the Nix evaluates.
-- [ ] **Agent** — `nix flake check` (best-effort; compare to pre-change baseline before blaming
-      this change). Proves: nothing on its own in this repo.
-- [ ] **Agent** — the new rule is present in `./result/etc/polkit-1/rules.d/10-nixos.rules` and
+- [x] **Agent** — `nixos-rebuild build --flake .#hamsa` exits 0. Proves: the Nix evaluates.
+      PASS (re-confirmed by the orchestrator: system `x3siinp9…`).
+- [x] **Agent** — `nix flake check` (best-effort; compare to pre-change baseline before blaming
+      this change). Proves: nothing on its own in this repo. PASS (exit 0, genuinely).
+- [x] **Agent** — the new rule is present in `./result/etc/polkit-1/rules.d/10-nixos.rules` and
       grants exactly one action to exactly one subject. Proves: the text landed and is narrow.
-- [ ] **Agent** — `node --check` on the extracted rule block exits 0. Proves: no gross JS typo
-      (upstream provides no compile-time validation).
-- [ ] **Agent** — `bash tests/battery-suspend-backstop-offline.sh` all-pass. Proves: the script's
+      PASS — built rules file `a6p6zrwh…`, rule at line 6, **0** matches for the other four
+      `*-ignore-inhibit` actions.
+- [x] **Agent** — `node --check` on the extracted rule block exits 0. Proves: no gross JS typo
+      (upstream provides no compile-time validation). PASS.
+- [x] **Agent** — `bash tests/battery-suspend-backstop-offline.sh` all-pass. Proves: the script's
       **decision logic** only. Stubs `systemctl` and notify. **Does not prove the backstop works.**
-- [ ] **Agent** — unprivileged `pkcheck` still returns `auth_admin_keep`/exit 2 after activation.
-      Proves: no over-grant to non-root callers. Cannot prove root is granted.
-- [ ] **User** (`sudo`, no suspend) — root `pkcheck` returns exit 0. Proves: root is authorized.
-- [ ] **User** (`sudo`, suspends) — `sudo systemd-run --pipe --quiet --service-type=oneshot
+      PASS — 16/16, known-gap footer printed beside the count.
+- [x] **Agent** — unprivileged `pkcheck` still returns `auth_admin_keep`/exit 2 after activation.
+      Proves: no over-grant to non-root callers. Cannot prove root is granted. PASS — confirmed
+      post-activation as uid 1000.
+- [x] **User** (`sudo`, no suspend) — root `pkcheck` returns exit 0. Proves: root is authorized.
+      **PASS (U2, 2026-07-26).**
+- [x] **User** (`sudo`, suspends) — `sudo systemd-run --pipe --quiet --service-type=oneshot
       systemctl suspend -i --no-ask-password` suspends the machine. **Proves the suspend leg works
-      end to end.**
-- [ ] **User** (`sudo`, suspends + notifies) — the real built backstop script with only the battery
+      end to end.** **PASS (U3) — `PM: suspend exit` at 17:18:51 with five block inhibitors held.**
+- [x] **User** (`sudo`, suspends + notifies) — the real built backstop script with only the battery
       faked suspends **and** raises a notification. **Proves both legs work with no stub in the
-      path.**
+      path.** **PASS (U4) — notify leg evidenced by the `runuser` PAM session pair at 17:32:30
+      (root -> benjamin, clean open/close, no `#UID` error); suspend leg by `Reached target
+      Suspend` at 17:32:34.**
 
 **Acceptance bar**: the task may be marked complete only if the last two rows passed and were
 recorded. Any other combination is at best `[PARTIAL]`.
+**Bar MET 2026-07-26**: both user-run live rows passed and are recorded above with journal
+evidence.
 
 ## Artifacts & Outputs
 

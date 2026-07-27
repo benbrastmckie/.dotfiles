@@ -15,13 +15,13 @@
     {
       "project_number": 123,
       "project_name": "fix_backstop_polkit_denial_live_verification",
-      "status": "partial",
+      "status": "completed",
       "task_type": "nix",
       "description": "Fix the battery-suspend-backstop polkit denial and replace stubbed verification with live end-to-end checks: the login1 policy sets allow_any=auth_admin_keep on org.freedesktop.login1.suspend-ignore-inhibit, so the backstop oneshot (root, session-less, no polkit agent) is denied when it runs systemctl suspend -i, making the <=10% battery safety net a silent no-op; enable a root-scoped suspend-ignore-inhibit polkit rule in modules/system/power.nix (systemd ships 10-systemd-logind-root-ignore-inhibitors.rules.example for exactly this), then verify the suspend and notification legs without the BACKSTOP_SYSTEMCTL_BIN / BACKSTOP_NOTIFY_BIN stubs that hid both this defect and the earlier runuser #UID defect",
       "topic": "nixos-config",
       "dependencies": [],
       "created": "2026-07-26T22:52:15Z",
-      "last_updated": "2026-07-26T23:22:35Z",
+      "last_updated": "2026-07-27T00:35:39Z",
       "session_id": "sess_1785106463_c3f09e",
       "artifacts": [
         {
@@ -39,7 +39,8 @@
           "type": "summary",
           "summary": "Phases 1-3 done and build-verified; Phase 4 USER CHECKLIST (U1-U4) pending — live suspend authorization unproven"
         }
-      ]
+      ],
+      "completion_summary": "Granted root a narrowly-scoped org.freedesktop.login1.suspend-ignore-inhibit polkit rule, fixing a defect that had made the <=10% battery suspend backstop a silent no-op since it was written. Verified live end-to-end: a session-less root systemctl suspend -i now actually suspends past held block inhibitors, and a fully non-stubbed run drove both the real notify helper and a real suspend. Also committed the previously-ephemeral offline test suite with an explicit stub-coverage caveat plus a non-stubbed pkcheck assertion, and corrected two places in the repo that falsely asserted root was already polkit-authorized."
     },
     {
       "project_number": 120,
@@ -132,7 +133,7 @@
       "description": "Configure laptop lid-close to blank screen but not sleep (keep AI agents running headless), preserving existing multi-monitor window distribution when monitors are attached, and document the setup in docs/ and relevant README.md files",
       "topic": "nixos-config",
       "created": "2026-07-14T19:36:34Z",
-      "last_updated": "2026-07-27T00:27:39Z",
+      "last_updated": "2026-07-27T00:35:39Z",
       "artifacts": [
         {
           "path": "specs/117_laptop_lid_close_no_sleep_headless/plans/05_backstop-grace-and-live-verification.md",
@@ -228,7 +229,6 @@
       ],
       "next_artifact_number": 6,
       "dependencies": [
-        123,
         124
       ]
     },

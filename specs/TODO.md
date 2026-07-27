@@ -11,18 +11,16 @@ next_project_number: 125
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,123,124 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 117,120 | 77,123,124 | nixos-config, desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124 | -- | nixos-config, nix-infrastructure, services, ... |
+| 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
 
 ### Nixos Config
 
-123 [PARTIAL] — Fix the battery-suspend-backstop polkit denial and replace stubbe
-  └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
 124 [NOT STARTED] — Fix the battery-backstop wake-mark resume hook, which has never f
-  └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI (see above)
+  └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
 
 ### Nix Infrastructure
 
@@ -64,7 +62,7 @@ next_project_number: 125
 ---
 
 ### 123. Fix backstop polkit denial live verification
-- **Status**: [PARTIAL]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
@@ -161,7 +159,7 @@ Note the tension to resolve deliberately: `.claude/context/formats/return-metada
 - **Status**: [PARTIAL]
 - **Task Type**: nix
 - **Topic**: nixos-config
-- **Dependencies**: Task 123, Task 124
+- **Dependencies**: Task 124
 - **Plan**: [117_laptop_lid_close_no_sleep_headless/plans/05_backstop-grace-and-live-verification.md]
 - **Research**:
   - [117_laptop_lid_close_no_sleep_headless/reports/01_lid-close-no-sleep.md]
