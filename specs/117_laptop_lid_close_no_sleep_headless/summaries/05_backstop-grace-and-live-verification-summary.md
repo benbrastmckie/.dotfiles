@@ -123,7 +123,7 @@ agent-runnable half of Phase 8 and surfaced one real defect.
 | Check | Evidence |
 |---|---|
 | New script live | `ExecStart` -> `x4a3qw8g…-battery-suspend-backstop`, containing `threshold=10`, `grace_secs=300`, `grace_floor=5`, `grace_drop=2`, `--test-notify` |
-| Wake-mark unit | Exists; `StateDirectory=battery-suspend-backstop`; `WantedBy=post-resume.target`; listed in `post-resume.target.wants/` beside `disable-speaker-amp.service` |
+| ~~Wake-mark unit~~ **RETRACTED 2026-07-26** | Exists; `StateDirectory=battery-suspend-backstop`; `WantedBy=post-resume.target`; listed in `post-resume.target.wants/` beside `disable-speaker-amp.service` — **but this proves nothing: `post-resume.target` does not exist (`LoadState=not-found`), so the `.wants/` symlinks are orphaned and the unit has never run.** See "Wake-mark hook found inert" below. |
 | State dir | `/var/lib/battery-suspend-backstop/` exists (empty — no suspend/resume yet) |
 | AC silence, live | Five consecutive timer firings at 100% on AC, each exited without suspending |
 | Rounds 1-2 intact | `busctl` runtime: `HandleLidSwitch="lock"`, `HandleLidSwitchExternalPower="lock"`, `HandleLidSwitchDocked="ignore"`; dconf `3600`/`'suspend'` |
@@ -195,7 +195,46 @@ stubbed `systemctl` (`BACKSTOP_SYSTEMCTL_BIN`) *and* the notifier (`BACKSTOP_NOT
 caught the `runuser` `#UID` defect, and did not catch this polkit denial either. Both defects sat
 precisely where a stub stood in for the real call. Task 123 carries this forward.
 
-## USER CHECKLIST (blocking — item 2 now PASSES; item 3a PASSES; item 3b FAILED, see above)
+## Third round (2026-07-26) — item 3b now PASSES; wake-mark hook found inert
+
+**USER CHECKLIST item 3b — now PASSES.** After the polkit fix landed (tracked separately and
+activated by the user), `sudo systemd-run --pipe --quiet --service-type=oneshot systemctl suspend
+-i --no-ask-password` suspended the machine from a session-less root context with five
+`claude-code` `block` inhibitors held. Journal evidence: `PM: suspend exit` and `System returned
+from sleep operation 'suspend'` at 2026-07-26 17:18:51. The backstop's exact call path now works.
+
+**New HIGH-severity defect found on that resume: the wake-grace window is inert.**
+`battery-backstop-wake-mark.service` declares only `WantedBy=post-resume.target`, and
+**`post-resume.target` does not exist on this system** — `systemctl show post-resume.target -p
+LoadState` returns `LoadState=not-found`, and `systemctl list-unit-files` has no `post-resume`
+entry at all. systemd never loads a `.wants/` directory whose target unit is absent, so the two
+symlinks in `/run/current-system/etc/systemd/system/post-resume.target.wants/` are orphaned.
+
+Confirmed empirically against the real suspend/resume above: the unit's `ActiveEnterTimestamp` is
+still empty, `/var/lib/battery-suspend-backstop/` is still empty, and no `wake-mark` file exists.
+
+Two claims in this round's own records were therefore wrong and are retracted in place (see the
+verification table above and Phase 8's second checklist item):
+
+1. **"Listed in `post-resume.target.wants/`" was treated as live proof of wiring.** It is not —
+   the directory is inert without its target unit.
+2. **The cited precedent was misread.** `disable-speaker-amp.service` installs as
+   `WantedBy=multi-user.target post-resume.target` and activated at **boot** via
+   `multi-user.target` (`ActiveEnterTimestamp=Sat 2026-07-25 23:09:44`), not on any resume. Its
+   `post-resume.target` membership has never done anything either.
+
+Consequence: no wake-mark is ever written, so `wake_cap` and the wake timestamp never exist, the
+grace branch can never trigger, and a wake at <=10% to plug in a charger is re-suspended within
+~60s — exactly the report 04 Q5 behavior Phase 6 was written to prevent. The Phase 6 offline suite
+passed because its harness wrote fake wake-mark files into a fake state directory; nothing
+exercised the real unit that is supposed to produce one. This is the same failure shape as the
+`runuser` and polkit defects: the verification substituted for the thing being verified.
+
+The mechanism needed is available here — `suspend.target`, `sleep.target`, `hibernate.target` and
+`hybrid-sleep.target` all exist as linked units, and `powerManagement.enable = true` is already
+set in `modules/system/power.nix`. **Tracked as task 124**; task 117 now depends on 123 and 124.
+
+## USER CHECKLIST (blocking — items 2, 3a, 3b now PASS; items 4 and 5 outstanding)
 
 Requires `sudo`, a real suspend cycle, or physical hardware; agents must not perform any of these.
 

@@ -1,18 +1,18 @@
 ---
-next_project_number: 124
+next_project_number: 125
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-07-26. Generated from state.json dependency graph.*
+*Updated 2026-07-27. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,123 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 117,120 | 77,123 | nixos-config, desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,77,123,124 | -- | nixos-config, nix-infrastructure, services, ... |
+| 2 | 117,120 | 77,123,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -21,6 +21,8 @@ next_project_number: 124
 
 123 [PARTIAL] — Fix the battery-suspend-backstop polkit denial and replace stubbe
   └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
+124 [NOT STARTED] — Fix the battery-backstop wake-mark resume hook, which has never f
+  └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI (see above)
 
 ### Nix Infrastructure
 
@@ -50,6 +52,16 @@ next_project_number: 124
 42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
 
 ## Tasks
+
+### 124. Fix wake mark resume hook wiring
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Fix the battery-backstop wake-mark resume hook, which has never fired. battery-backstop-wake-mark.service declares only WantedBy=post-resume.target, but post-resume.target does not exist on this system (systemctl show reports LoadState=not-found and no matching unit file), so nothing ever pulls the unit in. Confirmed against a real suspend/resume cycle: ActiveEnterTimestamp empty, no /var/lib/battery-suspend-backstop/wake-mark file. Consequence: the backstop wake-grace window is permanently inert, so a wake at <=10% to plug in a charger is re-suspended within ~60s -- the exact HIGH-severity behavior the grace window was added to prevent. Two false proofs must not be repeated: the populated post-resume.target.wants/ directory is orphaned (systemd never loads a wants dir whose target unit is absent) and is not evidence of wiring, and the cited precedent disable-speaker-amp in audio.nix actually activates via multi-user.target at boot, not on resume. Rewire to a mechanism that exists here (After=/WantedBy=suspend.target, or powerManagement.resumeCommands -- powerManagement.enable is already true at modules/system/power.nix:122) and verify by an actual suspend/resume cycle producing a wake-mark file, never by inspecting .wants/ symlinks or by a test harness that writes the wake-mark itself
+
+---
 
 ### 123. Fix backstop polkit denial live verification
 - **Status**: [PARTIAL]
@@ -149,7 +161,7 @@ Note the tension to resolve deliberately: `.claude/context/formats/return-metada
 - **Status**: [PARTIAL]
 - **Task Type**: nix
 - **Topic**: nixos-config
-- **Dependencies**: Task 123
+- **Dependencies**: Task 123, Task 124
 - **Plan**: [117_laptop_lid_close_no_sleep_headless/plans/05_backstop-grace-and-live-verification.md]
 - **Research**:
   - [117_laptop_lid_close_no_sleep_headless/reports/01_lid-close-no-sleep.md]

@@ -598,14 +598,22 @@ carried over from Phase 4.
   which contains `threshold=10`, `grace_secs=300`, `grace_floor=5`, `grace_drop=2` and the
   `--test-notify` branch; `/var/lib/battery-suspend-backstop` exists. The earlier
   activation-pending note above is resolved.
-- [x] `systemctl cat battery-backstop-wake-mark.service` exists and
+- [ ] `systemctl cat battery-backstop-wake-mark.service` exists and
   `ls /run/current-system/etc/systemd/system/post-resume.target.wants/` lists it — the live proof
-  the resume hook is actually wired, not merely declared. **VERIFIED 2026-07-25**: the unit exists
-  with `StateDirectory=battery-suspend-backstop` and `WantedBy=post-resume.target`, and the
-  `.wants/` directory now lists `battery-backstop-wake-mark.service` alongside the pre-existing
-  `disable-speaker-amp.service`. Note the state dir is still *empty* — no wake-mark file has been
-  written, because no suspend/resume cycle has occurred since activation. USER CHECKLIST item 3
-  is what first exercises this hook.
+  the resume hook is actually wired, not merely declared. ~~**VERIFIED 2026-07-25**~~ — **THIS
+  CHECK WAS INVALID AND ITS CLAIM IS RETRACTED (2026-07-26).** The unit does exist with
+  `StateDirectory=battery-suspend-backstop` and `WantedBy=post-resume.target`, and the `.wants/`
+  directory does list it beside `disable-speaker-amp.service` — but **`post-resume.target` does
+  not exist on this system** (`systemctl show post-resume.target -p LoadState` ->
+  `LoadState=not-found`; no such unit file). systemd never loads a `.wants/` directory whose
+  target unit is absent, so both symlinks are orphaned and the check above proves nothing. The
+  cited precedent was also misread: `disable-speaker-amp.service` installs as
+  `WantedBy=multi-user.target post-resume.target` and activates at **boot** via
+  `multi-user.target` (live `ActiveEnterTimestamp=Sat 2026-07-25 23:09:44`), not on resume.
+  Disproved by a real suspend/resume cycle on 2026-07-26 (journal shows `PM: suspend exit` at
+  17:18:51): `battery-backstop-wake-mark.service` `ActiveEnterTimestamp` is still empty, the state
+  dir is still empty, and no `wake-mark` file was written. **The wake-grace window is therefore
+  inert and always has been.** Tracked as task 124; task 117 now depends on it.
 - [x] `journalctl -u battery-suspend-backstop.service -n 20` silent at >10% (no behavior change on
   AC). VERIFIED 2026-07-25: last 20 lines show only oneshot Starting/Deactivated/Finished lines, no
   "suspending" message — battery is `BAT1` `Discharging` `100%` at check time, well above

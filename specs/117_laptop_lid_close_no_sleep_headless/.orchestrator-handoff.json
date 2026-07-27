@@ -4,13 +4,21 @@
   "status": "partial",
   "summary": "Round-3 plan v3: phases 6-7 complete, committed, build-verified. Added bounded wake-grace + lock-screen notification to battery-suspend-backstop (report 04 Q5 fix); 23/23 offline test assertions pass. Docs delta landed additively. Phase 8 partial: all agent-runnable checks run against the live system, but the change is NOT yet activated (running generation predates this commit) -- blocked on user sudo nixos-rebuild switch plus 4 more user-only checks.",
   "artifacts": [
-    {"type": "summary", "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/05_backstop-grace-and-live-verification-summary.md"}
+    {
+      "type": "summary",
+      "path": "specs/117_laptop_lid_close_no_sleep_headless/summaries/05_backstop-grace-and-live-verification-summary.md"
+    }
   ],
   "blockers": [
     {
-      "description": "HIGH: the backstop cannot suspend. org.freedesktop.login1.suspend-ignore-inhibit defaults to auth_admin_keep for allow_any/allow_inactive/allow_active and no rule on this system grants it, so the timer's session-less root `systemctl suspend -i` is denied on every firing -- the <=10% battery safety net has never worked. Confirmed live via `systemd-run --service-type=oneshot systemctl suspend -i --no-ask-password`. Remedy is systemd's shipped 10-systemd-logind-root-ignore-inhibitors.rules.example. Tracked as task 123; task 117 now depends on 123. USER CHECKLIST items 2 and 3a now PASS; 3b FAILED; 4 and 5 still unperformed (5 is the multi-monitor gate).",
-      "phase": "phase-8",
+      "description": "HIGH: the wake-grace window is inert. battery-backstop-wake-mark.service declares only WantedBy=post-resume.target, but post-resume.target does not exist on this system (LoadState=not-found, no unit file), so the .wants/ symlinks are orphaned and the unit has never run. Disproved by a real suspend/resume on 2026-07-26: ActiveEnterTimestamp empty, no wake-mark file. A wake at <=10% is therefore re-suspended within ~60s -- the report 04 Q5 behavior Phase 6 was meant to prevent. Tracked as task 124.",
+      "phase": "phase-6",
       "severity": "hard"
+    },
+    {
+      "description": "RESOLVED 2026-07-26: HIGH: the backstop cannot suspend. org.freedesktop.login1.suspend-ignore-inhibit defaults to auth_admin_keep for allow_any/allow_inactive/allow_active and no rule on this system grants it, so the timer's session-less root `systemctl suspend -i` is denied on every firing -- the <=10% battery safety net has never worked. Confirmed live via `systemd-run --service-type=oneshot systemctl suspend -i --no-ask-password`. Remedy is systemd's shipped 10-systemd-logind-root-ignore-inhibitors.rules.example. Tracked as task 123; task 117 now depends on 123. USER CHECKLIST items 2 and 3a now PASS; 3b FAILED; 4 and 5 still unperformed (5 is the multi-monitor gate).",
+      "phase": "phase-8",
+      "severity": "resolved"
     },
     {
       "description": "Phase 8 activation requires interactive sudo (sudo nixos-rebuild switch --flake .#hamsa) which the agent cannot run. Until activated, 4 more USER CHECKLIST items are also blocked: --test-notify visibility check, safe A/B suspend/suspend-i test, physical undocked lid-close observation, and the docked multi-monitor regression check (the gate on the task's multi-monitor requirement, never run before). Full checklist verbatim in the round-3 summary and plan Phase 8.",

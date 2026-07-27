@@ -1,6 +1,17 @@
 {
-  "next_project_number": 124,
+  "next_project_number": 125,
   "active_projects": [
+    {
+      "project_number": 124,
+      "project_name": "fix_wake_mark_resume_hook_wiring",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Fix the battery-backstop wake-mark resume hook, which has never fired. battery-backstop-wake-mark.service declares only WantedBy=post-resume.target, but post-resume.target does not exist on this system (systemctl show reports LoadState=not-found and no matching unit file), so nothing ever pulls the unit in. Confirmed against a real suspend/resume cycle: ActiveEnterTimestamp empty, no /var/lib/battery-suspend-backstop/wake-mark file. Consequence: the backstop wake-grace window is permanently inert, so a wake at <=10% to plug in a charger is re-suspended within ~60s -- the exact HIGH-severity behavior the grace window was added to prevent. Two false proofs must not be repeated: the populated post-resume.target.wants/ directory is orphaned (systemd never loads a wants dir whose target unit is absent) and is not evidence of wiring, and the cited precedent disable-speaker-amp in audio.nix actually activates via multi-user.target at boot, not on resume. Rewire to a mechanism that exists here (After=/WantedBy=suspend.target, or powerManagement.resumeCommands -- powerManagement.enable is already true at modules/system/power.nix:122) and verify by an actual suspend/resume cycle producing a wake-mark file, never by inspecting .wants/ symlinks or by a test harness that writes the wake-mark itself",
+      "topic": "nixos-config",
+      "dependencies": [],
+      "created": "2026-07-27T00:27:39Z",
+      "last_updated": "2026-07-27T00:27:39Z"
+    },
     {
       "project_number": 123,
       "project_name": "fix_backstop_polkit_denial_live_verification",
@@ -121,7 +132,7 @@
       "description": "Configure laptop lid-close to blank screen but not sleep (keep AI agents running headless), preserving existing multi-monitor window distribution when monitors are attached, and document the setup in docs/ and relevant README.md files",
       "topic": "nixos-config",
       "created": "2026-07-14T19:36:34Z",
-      "last_updated": "2026-07-26T22:52:15Z",
+      "last_updated": "2026-07-27T00:27:39Z",
       "artifacts": [
         {
           "path": "specs/117_laptop_lid_close_no_sleep_headless/plans/05_backstop-grace-and-live-verification.md",
@@ -217,7 +228,8 @@
       ],
       "next_artifact_number": 6,
       "dependencies": [
-        123
+        123,
+        124
       ]
     },
     {
