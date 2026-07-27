@@ -22,6 +22,11 @@
           "path": "specs/124_fix_wake_mark_resume_hook_wiring/plans/01_wake-mark-resume-rewiring.md",
           "type": "plan",
           "summary": "5-phase plan rewiring wake-mark to sleep.target; phases 3-4 user-executed"
+        },
+        {
+          "path": "specs/124_fix_wake_mark_resume_hook_wiring/summaries/01_wake-mark-resume-rewiring-summary.md",
+          "type": "summary",
+          "summary": "Phases 1-2 complete: wake-mark rewired to sleep.target, eval/build shape verified"
         }
       ]
     },

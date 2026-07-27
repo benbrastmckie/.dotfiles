@@ -1,43 +1,7 @@
 {
   "status": "partial",
-  "summary": "Rewired battery-backstop-wake-mark from post-resume.target (LoadState=not-found) to sleep.target with the wake-mark script on ExecStop, and rewrote both false-proof comments in modules/system/power.nix. nix flake check and nixos-rebuild build --flake .#hamsa both pass, and the generated unit text matches the intended shape exactly. This is Phases 1-2 of 5 only: Phases 3 (nixos-rebuild switch) and 4 (real suspend/resume verification) are user-executed and were not attempted, per the plan's binding constraints. The task is NOT complete until Phase 4 produces a real fresh wake-mark timestamp.",
-  "artifacts": [
-    {
-      "type": "implementation",
-      "path": "modules/system/power.nix",
-      "summary": "battery-backstop-wake-mark rewired to sleep.target (ExecStop), both stale post-resume.target comments corrected"
-    },
-    {
-      "type": "summary",
-      "path": "specs/124_fix_wake_mark_resume_hook_wiring/summaries/01_wake-mark-resume-rewiring-summary.md",
-      "summary": "Partial implementation summary: Phases 1-2 verified, Phases 3-5 require user-executed suspend/resume"
-    },
-    {
-      "type": "handoff",
-      "path": "specs/124_fix_wake_mark_resume_hook_wiring/handoffs/phase-2-handoff-20260727T012500Z.md",
-      "summary": "Phase-end handoff after Phase 2, directing the user to run Phases 3-4 verbatim"
-    }
-  ],
-  "partial_progress": {
-    "stage": "phase_2_completed",
-    "details": "Phases 1 (code edit) and 2 (eval/build shape gate) completed and verified. Phase 3 (nixos-rebuild switch) and Phase 4 (real suspend/resume, hard gate) are USER-EXECUTED per the plan and were not attempted. Phase 5 (record evidence, commit) depends on Phase 4 and has not run.",
-    "phases_completed": 2,
-    "phases_total": 5,
-    "handoff_path": "specs/124_fix_wake_mark_resume_hook_wiring/handoffs/phase-2-handoff-20260727T012500Z.md"
-  },
-  "completion_data": {
-    "completion_summary": "Phases 1-2 of the wake-mark resume hook rewiring are complete and verified (code edit + eval/build shape gate); the task remains open pending user-executed Phases 3-4 (nixos-rebuild switch, then a real suspend/resume cycle) which are the only acceptable proof the fix works."
-  },
-  "modified_files": [
-    "modules/system/power.nix"
-  ],
   "metadata": {
-    "session_id": "sess_1785113814_55d32b",
-    "agent_type": "nix-implementation-agent",
-    "delegation_depth": 2,
-    "delegation_path": ["orchestrator", "orchestrate", "skill-orchestrate", "nix-implementation-agent"],
-    "phases_completed": 2,
-    "phases_total": 5
-  },
-  "next_steps": "User must run Phase 3 (sudo nixos-rebuild switch --flake .#hamsa + verification commands) then Phase 4 (real systemctl suspend + physical wake + verification commands) from the plan, and paste the outputs back. A follow-up implementation pass then completes Phase 5 (record evidence, commit)."
+    "cycles_used": 3,
+    "final_state": "implementing"
+  }
 }
