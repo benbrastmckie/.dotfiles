@@ -32,9 +32,10 @@ let
 
   batteryBackstopWakeMark = pkgs.writeShellScript "battery-backstop-wake-mark" ''
     set -u
-    # Written by the post-resume.target hook on every wake: epoch + capacity
-    # at wake time. Clearing the notified marker re-arms one notification per
-    # grace window (see battery-suspend-backstop's notified_marker logic).
+    # Run as the sleep.target hook's ExecStop after every resume (see the
+    # battery-backstop-wake-mark unit below): writes epoch + capacity at wake
+    # time. Clearing the notified marker re-arms one notification per grace
+    # window (see battery-suspend-backstop's notified_marker logic).
     state_dir="''${STATE_DIRECTORY:-/var/lib/battery-suspend-backstop}"
     mkdir -p "$state_dir"
     cap=0
@@ -327,17 +328,35 @@ in
       };
 
       # Resume hook: marks the wake timestamp + capacity that the backstop
-      # script above reads to decide whether a wake-grace applies. Idiom
-      # proven live in this repo already -- see disable-speaker-amp in
-      # modules/system/audio.nix (wantedBy post-resume.target), whose
-      # .wants/ symlink is present in the running closure.
+      # script above reads to decide whether a wake-grace applies.
+      #
+      # post-resume.target does NOT exist on this host (`systemctl show
+      # post-resume.target` reports LoadState=not-found) -- this unit
+      # previously targeted it via wantedBy and was therefore never pulled
+      # in by a resume, despite a populated .wants/ directory (systemd
+      # writes [Install] symlinks from a unit's static WantedBy= list
+      # regardless of whether the target resolves; a populated .wants/ dir
+      # is NOT evidence a unit fires).
+      #
+      # Rewired to sleep.target, the documented systemd integration point
+      # for post-resume hooks (man systemd.special: "hook program code
+      # after the actual system sleep operation ... place the command in
+      # ExecStop=, enable StopWhenUnneeded= and RemainAfterExit="). This is
+      # byte-for-byte the shape nixpkgs's own sleep-actions.service already
+      # uses on this host (generated because powerManagement.enable = true
+      # above) -- `before = [ "sleep.target" ]` orders activation before
+      # sleep, and the ExecStop= body (the actual wake-mark write) runs when
+      # sleep.target is torn down on resume.
       battery-backstop-wake-mark = {
         description = "Record wake timestamp/capacity for the battery-suspend-backstop wake-grace window";
-        wantedBy = [ "post-resume.target" ];
+        wantedBy = [ "sleep.target" ];
+        before = [ "sleep.target" ];
+        unitConfig.StopWhenUnneeded = true;
         serviceConfig = {
           Type = "oneshot";
+          RemainAfterExit = true;
           StateDirectory = "battery-suspend-backstop";
-          ExecStart = batteryBackstopWakeMark;
+          ExecStop = batteryBackstopWakeMark;
         };
       };
     };

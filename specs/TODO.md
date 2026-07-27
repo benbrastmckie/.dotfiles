@@ -19,7 +19,7 @@ next_project_number: 125
 
 ### Nixos Config
 
-124 [NOT STARTED] — Fix the battery-backstop wake-mark resume hook, which has never f
+124 [IMPLEMENTING] — Fix the battery-backstop wake-mark resume hook, which has never f
   └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
 
 ### Nix Infrastructure
@@ -52,10 +52,12 @@ next_project_number: 125
 ## Tasks
 
 ### 124. Fix wake mark resume hook wiring
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
+- **Research**: [124_fix_wake_mark_resume_hook_wiring/reports/01_wake-mark-resume-hook.md]
+- **Plan**: [124_fix_wake_mark_resume_hook_wiring/plans/01_wake-mark-resume-rewiring.md]
 
 **Description**: Fix the battery-backstop wake-mark resume hook, which has never fired. battery-backstop-wake-mark.service declares only WantedBy=post-resume.target, but post-resume.target does not exist on this system (systemctl show reports LoadState=not-found and no matching unit file), so nothing ever pulls the unit in. Confirmed against a real suspend/resume cycle: ActiveEnterTimestamp empty, no /var/lib/battery-suspend-backstop/wake-mark file. Consequence: the backstop wake-grace window is permanently inert, so a wake at <=10% to plug in a charger is re-suspended within ~60s -- the exact HIGH-severity behavior the grace window was added to prevent. Two false proofs must not be repeated: the populated post-resume.target.wants/ directory is orphaned (systemd never loads a wants dir whose target unit is absent) and is not evidence of wiring, and the cited precedent disable-speaker-amp in audio.nix actually activates via multi-user.target at boot, not on resume. Rewire to a mechanism that exists here (After=/WantedBy=suspend.target, or powerManagement.resumeCommands -- powerManagement.enable is already true at modules/system/power.nix:122) and verify by an actual suspend/resume cycle producing a wake-mark file, never by inspecting .wants/ symlinks or by a test harness that writes the wake-mark itself
 

@@ -1,0 +1,52 @@
+{
+  "$schema": "orchestrator-handoff-v1",
+  "phase": "implement",
+  "status": "partial",
+  "summary": "Rewired battery-backstop-wake-mark from the non-existent post-resume.target to sleep.target (wantedBy+before sleep.target, unitConfig.StopWhenUnneeded, RemainAfterExit, ExecStop=batteryBackstopWakeMark, ExecStart omitted) in modules/system/power.nix, and rewrote both comments that previously cited the disproven post-resume.target/.wants/ precedent. nix flake check and nixos-rebuild build --flake .#hamsa both pass, and the generated unit text matches the intended shape exactly (Before=sleep.target, StopWhenUnneeded=true, Type=oneshot, RemainAfterExit=true, ExecStop=..., WantedBy=sleep.target, no ExecStart, no post-resume string). Phases 1-2 of the 5-phase plan are complete and verified. Phases 3 (sudo nixos-rebuild switch) and 4 (real systemctl suspend + physical wake, the only acceptable proof) are USER-EXECUTED per the plan's binding constraints and were correctly not attempted by this agent -- a real suspend would sever the agent's own session. The task is not complete and must not be marked so until Phase 4 produces a real fresh wake-mark timestamp pasted back by the user.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "modules/system/power.nix"
+    },
+    {
+      "type": "plan",
+      "path": "specs/124_fix_wake_mark_resume_hook_wiring/plans/01_wake-mark-resume-rewiring.md"
+    },
+    {
+      "type": "summary",
+      "path": "specs/124_fix_wake_mark_resume_hook_wiring/summaries/01_wake-mark-resume-rewiring-summary.md"
+    },
+    {
+      "type": "handoff",
+      "path": "specs/124_fix_wake_mark_resume_hook_wiring/handoffs/phase-2-handoff-20260727T012500Z.md"
+    }
+  ],
+  "blockers": [
+    {
+      "description": "Phase 3 (sudo nixos-rebuild switch --flake .#hamsa) requires root on the live host hamsa and cannot be run by an autonomous agent. Phase 4 (real systemctl suspend + physical wake, then reading /var/lib/battery-suspend-backstop/wake-mark for a fresh epoch, journalctl for the unit, and journalctl -b -u systemd-suspend.service) requires the user because a real suspend would sever the agent's own session. Exact commands and expected output for both phases are in the plan file.",
+      "phase": "phase-3,phase-4",
+      "severity": "hard"
+    }
+  ],
+  "next_action_hint": "implement",
+  "files_modified": [
+    "modules/system/power.nix",
+    "specs/124_fix_wake_mark_resume_hook_wiring/plans/01_wake-mark-resume-rewiring.md",
+    "specs/124_fix_wake_mark_resume_hook_wiring/summaries/01_wake-mark-resume-rewiring-summary.md"
+  ],
+  "decisions_made": [
+    "Implemented Phase 1 exactly as specified: wantedBy/before sleep.target, unitConfig.StopWhenUnneeded=true, serviceConfig.RemainAfterExit=true, ExecStop=batteryBackstopWakeMark, ExecStart omitted entirely.",
+    "Rewrote both comment sites (unit banner ~lines 329-346, script comment ~line 35) per the plan, grounding the sleep.target choice in man systemd.special and the already-live sleep-actions.service, and stating plainly that post-resume.target is not-found on this host.",
+    "Ran Phase 2 as a strict eval/shape gate: recorded nix flake check and nixos-rebuild build --flake .#hamsa output plus the generated unit text verbatim in the plan's Phase 2 Phase Notes, with the mandatory Prohibited-Evidence disclaimer.",
+    "Did not inspect any .wants/ directory, write a test harness, manually systemctl start the unit, or cite sleep-actions.service/the man page as proof of wiring -- all five Prohibited Evidence items were avoided.",
+    "Left Phases 3, 4, and 5 at [NOT STARTED] in the plan file, matching their true unverified state; did not claim any of them complete."
+  ],
+  "dead_ends": [
+    "post-resume.target: LoadState=not-found on this host; never a viable hook point.",
+    "Citing disable-speaker-amp in audio.nix as precedent: it activates via multi-user.target at boot, not on resume, so its resume path is equally inert.",
+    "Reading /etc/systemd/system/*.target.wants/ as wiring evidence: systemd generates those symlinks from static WantedBy= regardless of whether the target resolves."
+  ],
+  "phases_completed": 2,
+  "phases_total": 5,
+  "plan_markers_verified": true
+}

@@ -1,0 +1,11 @@
+{
+  "phase": 1,
+  "phase_name": "Rewire the unit to sleep.target and remove the false-proof comments",
+  "started_at": "2026-07-27T01:07:36Z",
+  "last_updated": "2026-07-27T01:15:00Z",
+  "objectives": [
+    {"id": 1, "description": "Phase 1 -- file changes", "status": "done", "files_touched": ["modules/system/power.nix"]}
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}
