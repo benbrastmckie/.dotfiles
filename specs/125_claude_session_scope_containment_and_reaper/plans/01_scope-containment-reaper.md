@@ -208,7 +208,7 @@ the CLI is launched.
 
 ---
 
-### Phase 2: Reaper module `modules/home/services/claude-session-reaper.nix` [NOT STARTED]
+### Phase 2: Reaper module `modules/home/services/claude-session-reaper.nix` [COMPLETED]
 
 **Execution**: AGENT-EXECUTED
 
@@ -217,11 +217,11 @@ exactly on `cache-cleanup.nix`/`mail-sync-timer.nix`, and wire it into the home-
 imports.
 
 **Tasks**:
-- [ ] Create `modules/home/services/claude-session-reaper.nix` with
+- [x] Create `modules/home/services/claude-session-reaper.nix` with
       `systemd.user.services.claude-session-reaper` (`Type = "oneshot"`, `ExecStart` a
       `pkgs.writeShellScript`, PATH export matching the precedent, `claude-session-reaper:
       starting` / `: done` echo bracketing).
-- [ ] Implement the reap script exactly as specified:
+- [x] Implement the reap script exactly as specified:
   1. `systemctl --user list-units --type=scope --all --no-legend --plain 'claude-*.scope'`
      — the sole enumeration surface.
   2. Per unit: `systemctl --user show "$unit" -p ControlGroup --value`, then read
@@ -233,21 +233,43 @@ imports.
      `claude-session-reaper: <unit> alive, skipping`. No further inspection of any kind.
   6. **Zero** matches → abandoned → `systemctl --user stop "$unit" || true` then
      `systemctl --user reset-failed "$unit" || true`; log the unit and the PIDs it contained.
-- [ ] Add `CLAUDE_REAPER_DRY_RUN` support: when set and non-empty, log the decision for each unit
+  *(Also added, beyond the letter of the spec but within its "skip on ambiguity" intent:
+  explicit unparsable-PID-list detection and explicit PID-vanished-mid-read detection, both of
+  which skip the unit rather than falling through to a kill decision — see the binding
+  constraint's "any ambiguity" clause.)*
+- [x] Add `CLAUDE_REAPER_DRY_RUN` support: when set and non-empty, log the decision for each unit
       but never issue `stop`. This is the mechanism Phase 7's negative test uses to observe the
       predicate's verdict without risking a live child, and stays in the shipped script as a
       permanently available audit tool.
-- [ ] Guarantee the script cannot leave the unit `failed`: no `set -e` that can trip on a
+- [x] Guarantee the script cannot leave the unit `failed`: no `set -e` that can trip on a
       race, and a final `exit 0`.
-- [ ] Add `systemd.user.timers.claude-session-reaper` with `Requires = [
+- [x] Add `systemd.user.timers.claude-session-reaper` with `Requires = [
       "claude-session-reaper.service" ]`, `OnCalendar = "*:0/10"`, `Persistent = true`,
       `RandomizedDelaySec = 60`, `Install.WantedBy = [ "timers.target" ]`.
-- [ ] Write the module header comment covering: the binding liveness-only constraint and the
+- [x] Write the module header comment covering: the binding liveness-only constraint and the
       explicit prohibition on CPU/memory/wall-clock criteria (so a future editor cannot
       "optimize" it in), the `gmail-oauth2.nix` degraded-session cautionary precedent, and the
       opt-out (anything launched as its own non-`claude-*` transient unit is never touched).
-- [ ] Add `./services/claude-session-reaper.nix` to the "Service modules" import block in
+- [x] Add `./services/claude-session-reaper.nix` to the "Service modules" import block in
       `modules/home/default.nix`, after `./services/mail-sync-timer.nix`.
+
+**Behavioral verification performed** (live on hamsa, extracted script run directly via `bash`,
+before any rebuild):
+- No `claude-*.scope` units present → exit 0, `starting`/`done` logged, nothing killed.
+- Hand-made live decoy (`systemd-run --user --scope --unit=claude-decoy-live-$$ -- bash -c
+  'sleep 600; true' claude-decoy-marker`, chosen so bash's own PID persists in the scope's
+  `cgroup.procs` with a cmdline containing `claude-decoy-marker` — bash's tail-call exec
+  optimization otherwise replaces the shell with a bare `sleep` process and loses any argv0
+  marker, and `exec -a` does not work under NixOS's multi-call coreutils wrapper) → reaper logged
+  `alive, skipping`; decoy scope and its `sleep` child both still running afterward, confirmed by
+  `systemctl --user list-units` and `cgroup.procs`.
+- Hand-made abandoned decoy (`systemd-run --user --scope --unit=claude-decoy-abandoned-$$ --
+  sleep 600`, no claude signature) → reaper stopped it; the scope disappeared from `list-units`
+  and its `sleep` process was gone from `cgroup.procs`/`ps`.
+- `bash -n` passed on the extracted script. `shellcheck` was not available on `$PATH` in this
+  environment, so that check was skipped (documented, not silently omitted).
+- Reviewer-checklist grep (`CPUUsage|MemoryCurrent|ActiveEnterTimestamp|etimes|pgrep|ps aux|
+  --older|Timestamp`) over the extracted script: no violations.
 
 **Timing**: 1 hour 15 minutes
 

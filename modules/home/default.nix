@@ -42,6 +42,7 @@
     ./services/gmail-oauth2.nix
     ./services/cache-cleanup.nix
     ./services/mail-sync-timer.nix
+    ./services/claude-session-reaper.nix
 
     # Memory monitoring (co-located: scripts + systemd services, three-tier system)
     ./memory/monitor.nix
