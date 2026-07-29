@@ -1,34 +1,48 @@
 {
   "$schema": "orchestrator-handoff-v1",
-  "phase": "plan",
-  "status": "planned",
-  "summary": "Wrote an 8-phase plan for per-session systemd scope containment of claude plus a liveness-only reaper. Phases 1-3 are agent-executed (wrapper in packages/claude-code.nix, new modules/home/services/claude-session-reaper.nix + import wiring, static build gate); phases 4-7 are USER-EXECUTED (nixos-rebuild/home-manager switch, then live containment, positive-reap, and the release-gating negative test); phase 8 documents opt-out, escape hatch, and rollback. A binding safety section forbids CPU/memory/wall-clock kill criteria outright and unit-file/nix-eval-only verification is explicitly declared insufficient.",
+  "phase": "implement",
+  "status": "partial",
+  "summary": "Implemented and behaviorally verified (live on hamsa) the 3 agent-executable phases: scope-wrapping claude launcher (packages/claude-code.nix), liveness-only reaper module (modules/home/services/claude-session-reaper.nix) with decoy-based tests, and the static build gate (nix flake check, nixos-rebuild build, home-manager build all pass). Phases 4-7 are USER-EXECUTED (sudo rebuild switch, real interactive wezterm session, live process kill) and were not attempted. Phase 8 depends on 6-7's verbatim output and is not started. The release-gating Phase 7 negative test has not run.",
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/125_claude_session_scope_containment_and_reaper/plans/01_scope-containment-reaper.md"
+      "type": "implementation",
+      "path": "packages/claude-code.nix"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/services/claude-session-reaper.nix"
+    },
+    {
+      "type": "summary",
+      "path": "specs/125_claude_session_scope_containment_and_reaper/summaries/01_scope-containment-reaper-summary.md"
     }
   ],
-  "blockers": [],
-  "next_action_hint": "implement",
+  "blockers": [
+    {
+      "description": "Phases 4-7 require sudo (nixos-rebuild switch), a real interactive wezterm terminal session, and live process manipulation (kill a session, observe orphan death, observe a live long-running child survive repeated reaper runs). None of these can be performed by an agent. Phase 8 (docs + rollback path) additionally depends on Phase 5-7's verbatim observed output and cannot proceed until they are run.",
+      "phase": "phase-4",
+      "severity": "soft"
+    }
+  ],
+  "next_action_hint": "none",
   "files_modified": [
-    "specs/125_claude_session_scope_containment_and_reaper/plans/01_scope-containment-reaper.md"
+    "packages/claude-code.nix",
+    "modules/home/services/claude-session-reaper.nix",
+    "modules/home/default.nix",
+    "specs/125_claude_session_scope_containment_and_reaper/plans/01_scope-containment-reaper.md",
+    "specs/125_claude_session_scope_containment_and_reaper/summaries/01_scope-containment-reaper-summary.md"
   ],
   "decisions_made": [
-    "Reap predicate is liveness-only: enumerate claude-*.scope units, read each unit's own cgroup.procs, match only those PIDs' cmdline against (claude|@anthropic|opencode), stop only on zero matches. CPU/memory/wall-clock thresholds are forbidden as kill criteria, encoded as a binding constraints section plus a reviewer grep checklist.",
-    "Wrapper uses plain systemd-run --user --scope --unit=claude-$$-$(date +%s) --quiet with no --pty (invalid with --scope; cwd/env/tty/exit-code all inherit).",
-    "Added a CLAUDE_NO_SCOPE=1 escape hatch (bypass containment with no rebuild) alongside the command -v systemd-run / XDG_RUNTIME_DIR fallback guard, so a broken wrapper can never make claude unlaunchable.",
-    "Added CLAUDE_REAPER_DRY_RUN audit mode to the reaper so the negative test can observe the predicate's verdict without risk to live work.",
-    "Phase 7 (long-running CPU-burning child of a LIVE session survives repeated reaper runs, plus two-live-sessions isolation) is a release gate; phase 6 requires ps-confirmed death of a setsid-detached orphan.",
-    "Phases 4-7 marked USER-EXECUTED with verbatim commands and expected output, since sudo nixos-rebuild switch, home-manager switch, and real interactive wezterm sessions require the user."
+    "--collect omitted from the systemd-run invocation after live empirical testing on hamsa showed no observable difference in scope-unit auto-unload behavior on this systemd version, with or without the flag, on clean and non-zero exit.",
+    "Reaper script adds two ambiguity checks beyond the plan's numbered steps (unparsable PID list, PID vanished mid-read) that both skip the unit, to satisfy the binding constraint's 'any ambiguity' clause literally for those named cases.",
+    "Decoy construction for the live-session behavioral test required 'bash -c \"sleep 600; true\" claude-decoy-marker' rather than 'exec -a claude-decoy sleep 600': exec -a fails under this host's multi-call coreutils wrapper, and a bare 'bash -c sleep 600' gets tail-call exec-optimized by bash into a bare sleep process that loses any argv0 marker.",
+    "Phases 1-2's plan-specified 'behavioral, not eyeballed' verification (standalone script exercise, hand-made live/abandoned decoy scopes) was performed directly via Bash on this live host, since hamsa has a working systemd --user session -- this is distinct from and does not substitute for Phases 4-7's requirement of the real claude launcher, sudo, and a real interactive terminal."
   ],
   "dead_ends": [
-    "Do not use --pty with --scope: invalid combination and unnecessary.",
-    "Do not use ActiveState=abandoned as the reap signal: typically only set by dedicated scope-manager daemons (logind/machined), not plain systemd-run --scope.",
-    "Do not glob 'claude-*' for units: systemd-run auto-appends .scope, so the glob must be 'claude-*.scope'.",
-    "Do not use a system-wide pgrep/ps for the claude signature check: violates the never-enumerate-arbitrary-processes constraint (and the disabled claude-sleep-inhibitor precedent self-matched unrelated processes)."
+    "exec -a <name> <cmd> for decoy argv0 spoofing -- fails under NixOS's multi-call coreutils wrapper ('coreutils: unknown program ...').",
+    "A single trailing command in `bash -c '<cmd>'` for a decoy expected to keep bash's own PID/cmdline visible in cgroup.procs -- bash's tail-call exec optimization silently replaces the bash process with the final command, discarding any marker; append a harmless trailing command (e.g. '; true') to force a real fork."
   ],
-  "phases_completed": 0,
+  "phases_completed": 3,
   "phases_total": 8,
   "plan_markers_verified": true
 }
