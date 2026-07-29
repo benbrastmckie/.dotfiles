@@ -293,7 +293,7 @@ before any rebuild):
 
 ---
 
-### Phase 3: Static evaluation gate [NOT STARTED]
+### Phase 3: Static evaluation gate [COMPLETED]
 
 **Execution**: AGENT-EXECUTED
 
@@ -301,13 +301,16 @@ before any rebuild):
 switch, so a rebuild failure never lands in the user's lap.
 
 **Tasks**:
-- [ ] `nix flake check` (or, if slow/broad in this repo, the targeted builds below).
-- [ ] Build the NixOS-integrated path: `nixos-rebuild build --flake .#hamsa`.
-- [ ] Build the standalone home-manager path: `home-manager build --flake .#benjamin`.
-- [ ] Confirm the reaper unit files appear in the built home-manager generation
+- [x] `nix flake check` (or, if slow/broad in this repo, the targeted builds below). *(Ran
+      `nix flake check --no-build`: all checks passed across nixosConfigurations nandi, hamsa,
+      garuda, iso, usb-installer, plus homeConfigurations, formatter, devShells — no errors.)*
+- [x] Build the NixOS-integrated path: `nixos-rebuild build --flake .#hamsa`.
+- [x] Build the standalone home-manager path: `home-manager build --flake .#benjamin`.
+- [x] Confirm the reaper unit files appear in the built home-manager generation
       (`claude-session-reaper.service`, `claude-session-reaper.timer`) and that the built
       `claude` wrapper in the result contains the scope invocation.
-- [ ] Resolve any evaluation error before proceeding — do not hand a broken build to the user.
+- [x] Resolve any evaluation error before proceeding — do not hand a broken build to the user.
+      *(None encountered.)*
 
 **Timing**: 30 minutes
 
@@ -316,10 +319,20 @@ switch, so a rebuild failure never lands in the user's lap.
 **Files to modify**: none (verification-only phase).
 
 **Verification**:
-- Both build commands exit 0.
-- `grep -l claude-session-reaper` finds the two unit files under the build result.
+- Both build commands exit 0. **Confirmed**: `nixos-rebuild build --flake .#hamsa` completed
+  ("Done. The new configuration is /nix/store/9rcrffh091dzwfwfazwd1bg451y6sl6p-nixos-system-
+  hamsa-26.05.20260710.8f0500b"); `home-manager build --flake .#benjamin` completed with no
+  `error:` lines.
+- `grep -l claude-session-reaper` finds the two unit files under the build result. **Confirmed**:
+  `.config/systemd/user/claude-session-reaper.service`,
+  `.config/systemd/user/claude-session-reaper.timer`, and
+  `.config/systemd/user/timers.target.wants/claude-session-reaper.timer` all present under the
+  built `home-manager-files` store path; the built `claude` wrapper (resolved from
+  `home-manager-path/bin/claude`) contains `--scope` (`grep -c` = 1).
 - Note explicitly in the phase notes that a successful build is **not** acceptance — Phases 5-7
-  are the acceptance criteria.
+  are the acceptance criteria. **This build/eval success is NOT behavioral acceptance.** Phases
+  4-7 (deploy, live containment, positive reap, and the release-gating negative test) remain
+  entirely unexecuted and USER-EXECUTED; none of Phase 3's checks substitute for them.
 
 ---
 
