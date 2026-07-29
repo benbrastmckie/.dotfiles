@@ -1,0 +1,34 @@
+{
+  "$schema": "orchestrator-handoff-v1",
+  "phase": "plan",
+  "status": "planned",
+  "summary": "Wrote an 8-phase plan for per-session systemd scope containment of claude plus a liveness-only reaper. Phases 1-3 are agent-executed (wrapper in packages/claude-code.nix, new modules/home/services/claude-session-reaper.nix + import wiring, static build gate); phases 4-7 are USER-EXECUTED (nixos-rebuild/home-manager switch, then live containment, positive-reap, and the release-gating negative test); phase 8 documents opt-out, escape hatch, and rollback. A binding safety section forbids CPU/memory/wall-clock kill criteria outright and unit-file/nix-eval-only verification is explicitly declared insufficient.",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/125_claude_session_scope_containment_and_reaper/plans/01_scope-containment-reaper.md"
+    }
+  ],
+  "blockers": [],
+  "next_action_hint": "implement",
+  "files_modified": [
+    "specs/125_claude_session_scope_containment_and_reaper/plans/01_scope-containment-reaper.md"
+  ],
+  "decisions_made": [
+    "Reap predicate is liveness-only: enumerate claude-*.scope units, read each unit's own cgroup.procs, match only those PIDs' cmdline against (claude|@anthropic|opencode), stop only on zero matches. CPU/memory/wall-clock thresholds are forbidden as kill criteria, encoded as a binding constraints section plus a reviewer grep checklist.",
+    "Wrapper uses plain systemd-run --user --scope --unit=claude-$$-$(date +%s) --quiet with no --pty (invalid with --scope; cwd/env/tty/exit-code all inherit).",
+    "Added a CLAUDE_NO_SCOPE=1 escape hatch (bypass containment with no rebuild) alongside the command -v systemd-run / XDG_RUNTIME_DIR fallback guard, so a broken wrapper can never make claude unlaunchable.",
+    "Added CLAUDE_REAPER_DRY_RUN audit mode to the reaper so the negative test can observe the predicate's verdict without risk to live work.",
+    "Phase 7 (long-running CPU-burning child of a LIVE session survives repeated reaper runs, plus two-live-sessions isolation) is a release gate; phase 6 requires ps-confirmed death of a setsid-detached orphan.",
+    "Phases 4-7 marked USER-EXECUTED with verbatim commands and expected output, since sudo nixos-rebuild switch, home-manager switch, and real interactive wezterm sessions require the user."
+  ],
+  "dead_ends": [
+    "Do not use --pty with --scope: invalid combination and unnecessary.",
+    "Do not use ActiveState=abandoned as the reap signal: typically only set by dedicated scope-manager daemons (logind/machined), not plain systemd-run --scope.",
+    "Do not glob 'claude-*' for units: systemd-run auto-appends .scope, so the glob must be 'claude-*.scope'.",
+    "Do not use a system-wide pgrep/ps for the claude signature check: violates the never-enumerate-arbitrary-processes constraint (and the disabled claude-sleep-inhibitor precedent self-matched unrelated processes)."
+  ],
+  "phases_completed": 0,
+  "phases_total": 8,
+  "plan_markers_verified": true
+}

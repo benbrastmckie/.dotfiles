@@ -1,0 +1,11 @@
+{
+  "phase": 1,
+  "phase_name": "Scope-containment wrapper in packages/claude-code.nix",
+  "started_at": "2026-07-29T05:50:50Z",
+  "last_updated": "2026-07-29T06:05:00Z",
+  "objectives": [
+    {"id": 1, "description": "Phase 1 -- file changes", "status": "done", "files_touched": ["packages/claude-code.nix"]}
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}
