@@ -1,15 +1,7 @@
 {
-  "status": "in_progress",
-  "started_at": "2026-07-29T05:50:50Z",
-  "artifacts": [],
-  "partial_progress": {
-    "stage": "initializing",
-    "details": "Agent started, parsing delegation context"
-  },
+  "status": "partial",
   "metadata": {
-    "session_id": "sess_1785113814_55d32b",
-    "agent_type": "nix-implementation-agent",
-    "delegation_depth": 2,
-    "delegation_path": ["orchestrator", "orchestrate", "skill-orchestrate", "nix-implementation-agent"]
+    "cycles_used": 3,
+    "final_state": "implementing"
   }
 }
