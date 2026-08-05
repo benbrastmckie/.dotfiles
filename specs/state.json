@@ -4,7 +4,7 @@
     {
       "project_number": 125,
       "project_name": "claude_session_scope_containment_and_reaper",
-      "status": "implementing",
+      "status": "partial",
       "task_type": "nix",
       "description": "Contain every Claude Code session in its own systemd user scope and reap abandoned scopes, so a detached child process can never outlive the session that spawned it. Root cause confirmed live: all claude sessions AND their children currently share one cgroup (app-gnome-org.wezfurlong.wezterm-3725.scope), so there is no per-session boundary to clean up. This produced a runaway `python3 -u search_world_bound.py` that survived its dead session for 2d3h, burned 50h47m of CPU, and held the package at 99C (k10temp Tctl) with the fan pinned at max; a parallel case leaked ~5GB of orphaned lean-lsp workers. Mechanism is empirically proven on this host, not assumed: (1) `systemd-run --user --scope --unit=claude-<id>` contains even a `setsid nohup` double-forked child in the scope cgroup -- verified by reading cgroup.procs; (2) `systemctl --user stop <scope>` SIGKILLs everything in it -- verified the escaped child died; (3) an abandoned scope is detectable by enumerating the scope cgroup.procs and finding no live process named `claude`. BINDING SAFETY CONSTRAINT (user-stated): the reaper MUST NOT interrupt long-running work the user legitimately wants. Therefore the reap predicate MUST be liveness-based ONLY -- \"the claude session that owns this scope is gone\" -- and MUST NOT use any CPU-time, memory, or wall-clock threshold as a kill criterion; a child running for hours must survive untouched as long as its owning session lives. The reaper MUST only ever act on units matching the claude scope naming pattern, MUST never touch a scope containing a live claude process, and MUST NOT enumerate or kill arbitrary user processes. Implementation surface: add the scope wrapper to packages/claude-code.nix (currently a thin `exec npx @anthropic-ai/claude-code@latest`), verifying an interactive TTY session still works correctly inside a --scope; add a home-manager systemd user timer + service for the reaper; provide a documented opt-out for deliberately detaching work meant to outlive a session. Verify by launching a real claude session, confirming its children land in a distinct per-session cgroup, killing the session, and observing the orphan actually die -- never by inspecting unit files alone.",
       "topic": "nixos-config",
@@ -15,7 +15,7 @@
         "overlays/unstable-packages.nix"
       ],
       "created": "2026-07-29T05:35:03Z",
-      "last_updated": "2026-07-29T05:50:17Z",
+      "last_updated": "2026-08-05T17:35:00Z",
       "session_id": "sess_1785113814_55d32b",
       "artifacts": [
         {
@@ -33,18 +33,19 @@
           "type": "summary",
           "summary": "Phases 1-3 complete: wrapper + reaper module + eval gate"
         }
-      ]
+      ],
+      "blocker": "Interactive TTY smoke test only (wezterm: cwd, Ctrl-C, Ctrl-Z, resize, exit). Release gate passed; mechanism deployed and behaviorally accepted."
     },
     {
       "project_number": 124,
       "project_name": "fix_wake_mark_resume_hook_wiring",
-      "status": "implementing",
+      "status": "partial",
       "task_type": "nix",
       "description": "Fix the battery-backstop wake-mark resume hook, which has never fired. battery-backstop-wake-mark.service declares only WantedBy=post-resume.target, but post-resume.target does not exist on this system (systemctl show reports LoadState=not-found and no matching unit file), so nothing ever pulls the unit in. Confirmed against a real suspend/resume cycle: ActiveEnterTimestamp empty, no /var/lib/battery-suspend-backstop/wake-mark file. Consequence: the backstop wake-grace window is permanently inert, so a wake at <=10% to plug in a charger is re-suspended within ~60s -- the exact HIGH-severity behavior the grace window was added to prevent. Two false proofs must not be repeated: the populated post-resume.target.wants/ directory is orphaned (systemd never loads a wants dir whose target unit is absent) and is not evidence of wiring, and the cited precedent disable-speaker-amp in audio.nix actually activates via multi-user.target at boot, not on resume. Rewire to a mechanism that exists here (After=/WantedBy=suspend.target, or powerManagement.resumeCommands -- powerManagement.enable is already true at modules/system/power.nix:122) and verify by an actual suspend/resume cycle producing a wake-mark file, never by inspecting .wants/ symlinks or by a test harness that writes the wake-mark itself",
       "topic": "nixos-config",
       "dependencies": [],
       "created": "2026-07-27T00:27:39Z",
-      "last_updated": "2026-07-27T01:07:16Z",
+      "last_updated": "2026-08-05T17:35:00Z",
       "session_id": "sess_1785113814_55d32b",
       "artifacts": [
         {
@@ -62,7 +63,8 @@
           "type": "summary",
           "summary": "Phases 1-2 complete: wake-mark rewired to sleep.target, eval/build shape verified"
         }
-      ]
+      ],
+      "blocker": "Phase 4 hard gate: real systemctl suspend + physical wake, confirm fresh wake-mark epoch. Phase 3 activation verified 2026-08-05."
     },
     {
       "project_number": 123,

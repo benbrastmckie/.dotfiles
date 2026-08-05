@@ -6,7 +6,7 @@ next_project_number: 126
 
 ## Task Order
 
-*Updated 2026-07-29. Generated from state.json dependency graph.*
+*Updated 2026-08-05. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
@@ -19,9 +19,9 @@ next_project_number: 126
 
 ### Nixos Config
 
-124 [IMPLEMENTING] — Fix the battery-backstop wake-mark resume hook, which has never f
+124 [PARTIAL] — Fix the battery-backstop wake-mark resume hook, which has never f
   └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
-125 [IMPLEMENTING] — Contain every Claude Code session in its own systemd user scope a
+125 [PARTIAL] — Contain every Claude Code session in its own systemd user scope a
 
 ### Nix Infrastructure
 
@@ -53,7 +53,7 @@ next_project_number: 126
 ## Tasks
 
 ### 125. Claude session scope containment and reaper
-- **Status**: [IMPLEMENTING]
+- **Status**: [PARTIAL]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
@@ -66,7 +66,7 @@ next_project_number: 126
 ---
 
 ### 124. Fix wake mark resume hook wiring
-- **Status**: [IMPLEMENTING]
+- **Status**: [PARTIAL]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
