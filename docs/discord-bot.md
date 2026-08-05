@@ -23,7 +23,7 @@ Neovim TUI (opencode --port)  <-->  discord-bot.service  <-->  Discord
 | File | Purpose |
 |------|---------|
 | `modules/system/optional/discord-bot.nix` | `opencodeDiscordBot` packaged app + sops config + both systemd services |
-| `packages/opencode-discord-bot.nix` | `buildPythonApplication` derivation for the bot (task 89) |
+| `packages/opencode-discord-bot.nix` | `buildPythonApplication` derivation for the bot |
 | `packages/opencode-discord-bot/pyproject.toml` | PEP 621 packaging metadata + `opencode-discord-bot` console-script entry point |
 | `flake.nix` | sops-nix flake input; `discord-bot.nix` opted in explicitly per-host (see `hosts/nandi/default.nix` and `hosts/hamsa/default.nix`), not imported by default |
 | `.sops.yaml` | Age key config + creation rules for `secrets/*.yaml` |
@@ -32,7 +32,7 @@ Neovim TUI (opencode --port)  <-->  discord-bot.service  <-->  Discord
 
 ## Python Packaging
 
-As of task 89, the bot is a real `buildPythonApplication` derivation
+The bot is a real `buildPythonApplication` derivation
 (`packages/opencode-discord-bot.nix`), `callPackage`d directly as `opencodeDiscordBot` in
 `modules/system/optional/discord-bot.nix` — **not** routed through
 `overlays/python-packages.nix` (that overlay is scoped to library overrides composed via
@@ -54,7 +54,7 @@ ExecStart = "${opencodeDiscordBot}/bin/opencode-discord-bot"
 ```
 
 There is no working-tree `PYTHONPATH` import — the derivation's own wrapper sets up the Python
-environment. **Prior to task 89**, `discordBotPython` was an ad-hoc
+environment. **Before this was packaged as a derivation**, `discordBotPython` was an ad-hoc
 `python3.withPackages` environment invoked as `${discordBotPython}/bin/python -m
 opencode_discord_bot.src.bot` with `PYTHONPATH` pointed at the working-tree checkout; this is
 recoverable from git history if ever needed.
@@ -131,7 +131,7 @@ Environment = [
 
 - **`Wants`** (soft dependency) + **`After`** (ordering) on `opencode-serve.service` — the bot tolerates OpenCode restarts without being force-restarted itself
 - **`Type = "notify"`** + **`WatchdogSec = "120s"`** — the bot sends `READY=1` to systemd when the Discord gateway connects, then pings `WATCHDOG=1` every 60s. If the event loop freezes (no ping for 120s), systemd kills and restarts the bot automatically
-- `ExecStart` resolves to the packaged console script in the nix store (task 89) — no working-tree Python import path is needed
+- `ExecStart` resolves to the packaged console script in the nix store — no working-tree Python import path is needed
 - `StateDirectory = "discord-bot"` + `SESSION_STORE_PATH=%S/discord-bot/sessions.json` give the bot a writable location (`/var/lib/discord-bot/sessions.json`) for session-to-thread persistence, since the nix store itself is read-only at runtime
 - All secrets injected via `LoadCredential`, each in its own credential file
 - `LINK_API_TOKEN` enables Bearer authentication on the HTTP API (used by Neovim integration)
@@ -266,7 +266,7 @@ Before running `nixos-rebuild switch`:
 
 3. **Back up age key**: Store `~/.config/sops/age/keys.txt` securely (password manager, encrypted backup)
 
-4. **Bot source**: The packaged bot source lives at `~/.dotfiles/packages/opencode-discord-bot/opencode_discord_bot/src/bot.py` (task 89 packaging; task 103 relocation) — no manual setup needed, it builds via the `packages/opencode-discord-bot.nix` derivation.
+4. **Bot source**: The packaged bot source lives at `~/.dotfiles/packages/opencode-discord-bot/opencode_discord_bot/src/bot.py` — no manual setup needed, it builds via the `packages/opencode-discord-bot.nix` derivation.
 
 5. **Apply**:
    ```bash
@@ -406,4 +406,4 @@ ss -tlnp | grep opencode
 - **Spec Report 2**: `specs/053_nixos_discord_bot_prerequisites/reports/02_python-discord-bot-best-practices.md`
 - **Implementation Plan**: `specs/053_nixos_discord_bot_prerequisites/plans/02_nixos-discord-bot-prerequisites.md`
 - **Implementation Summary**: `specs/053_nixos_discord_bot_prerequisites/summaries/02_nixos-discord-bot-prerequisites-summary.md`
-- **Bot source**: `~/.dotfiles/packages/opencode-discord-bot/` (relocated from repo root by task 103)
+- **Bot source**: `~/.dotfiles/packages/opencode-discord-bot/` (packaged via `packages/opencode-discord-bot.nix`; not at the repo root)
