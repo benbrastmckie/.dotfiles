@@ -257,7 +257,18 @@ and correct unit text are NOT evidence the resume hook fires. Wiring is unproven
 
 ---
 
-### Phase 3: Activation on hamsa — USER-EXECUTED [NOT STARTED]
+### Phase 3: Activation on hamsa — USER-EXECUTED [COMPLETED]
+
+**Observed on hamsa (generation activated 2026-08-05, user-run `nixos-rebuild switch`)**:
+- `systemctl show battery-backstop-wake-mark.service` → `LoadState=loaded`,
+  `UnitFileState=enabled`, `ActiveState=inactive`, `WantedBy=sleep.target`.
+- `systemctl cat battery-backstop-wake-mark.service` → `Before=sleep.target`,
+  `StopWhenUnneeded=true`, `RemainAfterExit=true`, `Type=oneshot`,
+  `ExecStop=/nix/store/pi2wc9n4xldvkgrrba69dmjisnxh969g-battery-backstop-wake-mark`,
+  `[Install] WantedBy=sleep.target`, and **zero** `ExecStart=` lines (grep count 0).
+- `systemctl show sleep.target --property=LoadState` → `LoadState=loaded`.
+- Contrast confirmed: `systemctl show post-resume.target --property=LoadState` →
+  `LoadState=not-found` (the dead target the unit was previously wired to).
 
 **Goal**: The new generation is the running system, so the `sleep.target` wiring is live.
 

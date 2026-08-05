@@ -28,6 +28,7 @@ This directory contains comprehensive documentation for the NixOS configuration 
 - **[neovim.md](neovim.md)** - Neovim configuration, package choice, and sideloadInitLua gotcha
 - **[niri.md](niri.md)** - Niri window manager keybindings and configuration
 - **[no-sleep-agents.md](no-sleep-agents.md)** - Keeping the system awake for long-running AI agent sessions (Claude Code inhibitors, GNOME/logind, niri, battery backstop)
+- **[claude-session-scopes.md](claude-session-scopes.md)** - Per-session cgroup containment for Claude Code and the orphan reaper (how to keep work alive, escape hatch, rollback)
 - **[terminal.md](terminal.md)** - WezTerm and Kitty terminal configuration
 - **[dictation.md](dictation.md)** - Whisper dictation system setup
 - **[video-editing.md](video-editing.md)** - Video editing tools and workflow

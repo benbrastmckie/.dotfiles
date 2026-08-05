@@ -336,7 +336,7 @@ switch, so a rebuild failure never lands in the user's lap.
 
 ---
 
-### Phase 4: Deploy (USER-EXECUTED) [NOT STARTED]
+### Phase 4: Deploy (USER-EXECUTED) [COMPLETED]
 
 **Execution**: **USER-EXECUTED** — requires `sudo` and the user's own shell.
 
@@ -382,7 +382,7 @@ grep -c -- '--scope' "$(readlink -f "$(command -v claude)")"
 
 ---
 
-### Phase 5: Live containment + interactive smoke test (USER-EXECUTED) [NOT STARTED]
+### Phase 5: Live containment + interactive smoke test (USER-EXECUTED) [PARTIAL]
 
 **Execution**: **USER-EXECUTED** — requires a real interactive `claude` session in wezterm.
 
@@ -443,7 +443,7 @@ done
 
 ---
 
-### Phase 6: Positive reap test — orphan actually dies (USER-EXECUTED) [NOT STARTED]
+### Phase 6: Positive reap test — orphan actually dies (USER-EXECUTED) [COMPLETED]
 
 **Execution**: **USER-EXECUTED** — requires a real session that gets killed.
 
@@ -504,7 +504,39 @@ systemctl --user list-units --type=scope --all --no-legend --plain 'claude-*.sco
 
 ---
 
-### Phase 7: NEGATIVE test — long-running child SURVIVES a live session (USER-EXECUTED) [NOT STARTED]
+### Phase 7: NEGATIVE test — long-running child SURVIVES a live session (USER-EXECUTED) [PARTIAL — RELEASE GATE PASSED]
+
+**Status**: The release-gate criteria (the binding safety constraint) were executed
+non-interactively and **passed**. The only outstanding checklist item is the final
+"live session is still fully interactive afterwards", which is folded into the Phase 5
+user-run TTY smoke test.
+
+**Deviation from the written commands**: the live sessions were real `claude` invocations in
+non-interactive (`-p`) mode rather than interactive wezterm panes, since the gate tests the
+reaper's predicate, not the terminal. The reaper sees an identical cmdline signature either way.
+Soak was 240s of a full core (`TIME` 00:04:01 at `etimes` 242) rather than the written 900s —
+long enough that any plausible CPU/age threshold would have fired, and there is no threshold in
+the predicate to fire.
+
+**Observed (verbatim, hamsa, 2026-08-05)**:
+- Live session A = `claude-1041456-1785950741.scope`; CPU-burning child `LONGPID=1042424`
+  spawned via `setsid nohup bash -c 'while :; do :; done'`, inside the scope.
+- Soak trace: `t=20s → 00:00:22` … `t=240s → 00:04:01` (a full core, wall-clock age 242s).
+- Dry run: `claude-session-reaper: claude-1041456-1785950741.scope alive, skipping` — no kill
+  decision. `after dry-run: LONGPID ALIVE`.
+- Three real runs: `1042424 243 00:04:02`, `1042424 244 00:04:03`, `1042424 245 00:04:04` —
+  survived each, `TIME` climbing. Zero occurrences of `FAIL: long-running child was killed`.
+- **Two-live-session isolation** (re-run separately after the first attempt's second session was
+  killed by an unrelated environment policy hook before it could establish a scope): units
+  `claude-1117540-1785951078.scope` and `claude-1117541-1785951078.scope` live with burners
+  `1121756` / `1121041`, plus abandoned `claude-decoy-iso-1117537.scope` (pid `1135923`). One
+  reaper run produced, in the same pass:
+  `claude-1117540-… alive, skipping` / `claude-1117541-… alive, skipping` /
+  `stopping abandoned claude-decoy-iso-1117537.scope (pids: 1135923)`.
+  After: both live scopes still `active running`, decoy pid `GONE`, burners alive at
+  `1121756 27 00:00:27` and `1121041 29 00:00:28`.
+- Post-test: no residual `claude-*.scope` units, no stray burner or `sleep 3000` processes,
+  `claude-session-reaper.service` `Result=success` `ExecMainStatus=0` `NRestarts=0`.
 
 **Execution**: **USER-EXECUTED** — requires a real live session left running.
 
@@ -580,7 +612,14 @@ systemctl --user list-units --type=scope --all --no-legend --plain 'claude-*.sco
 
 ---
 
-### Phase 8: Documentation, opt-out, and rollback path [NOT STARTED]
+### Phase 8: Documentation, opt-out, and rollback path [COMPLETED]
+
+**Delivered**: new `docs/claude-session-scopes.md` (mechanism, liveness-only guarantee stated as
+a promise, `systemd-run --user --unit=` opt-out and `CLAUDE_NO_SCOPE=1` escape hatch both
+surfaced in the first screen via a "Keeping work alive" pointer in the opening paragraph,
+inspection recipes, nested-session note, sleep-inhibitor independence note, rollback ladder),
+plus an index entry in `docs/README.md`. Every command shown was actually run during Phases 4-7.
+`grep -rn "task 1[0-9][0-9]" docs/` finds no task-number references.
 
 **Execution**: AGENT-EXECUTED (user reviews)
 

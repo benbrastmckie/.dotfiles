@@ -1,127 +1,176 @@
 # Implementation Summary: Task #125
 
-**Completed (agent-executable phases only)**: 2026-07-29
-**Duration**: ~75 minutes (Phases 1-3)
+**Agent-executed phases (1-3)**: 2026-07-29
+**Deploy + live verification (4-8)**: 2026-08-05
+**Status**: Phases 1-4, 6, 8 complete. Phases 5 and 7 PARTIAL — the **release gate passed**;
+what remains is interactive-terminal confirmation only.
 
 ## Overview
 
-This task wraps the `claude` launcher in a per-invocation `systemd-run --user --scope` and adds a
-home-manager timer + oneshot service that stops abandoned `claude-*.scope` units using a
-liveness-only predicate. The plan splits into 3 AGENT-EXECUTED phases (1-3, all complete) and 5
-USER-EXECUTED phases (4-8) requiring `sudo`, a real interactive wezterm session, and live process
-manipulation on host `hamsa`. **Only Phases 1-3 are reported complete here.** Phases 4-7 have not
-been run at all, and Phase 8 (docs + rollback path) is blocked on their output — it is not
-started. This implementation is **not yet deployed and not yet behaviorally accepted**; the
-binding release gate (Phase 7's negative test) has not been executed.
+The `claude` launcher is wrapped in a per-invocation `systemd-run --user --scope`, and a
+home-manager timer stops abandoned `claude-*.scope` units using a liveness-only predicate. The
+mechanism is now **deployed on hamsa and behaviorally accepted**: the orphan scenario from the
+task description was reproduced and killed, and the binding safety constraint — never kill a
+long-running child while its session lives — was tested to its release-gate criteria and held.
 
 ## What Changed
 
-- `packages/claude-code.nix` — rewrote the `writeShellScriptBin "claude"` body to guard-wrap the
-  launcher in `systemd-run --user --scope --unit="claude-$$-$(date +%s)" --quiet`, with a
+- `packages/claude-code.nix` — the `writeShellScriptBin "claude"` body guard-wraps the launcher
+  in `systemd-run --user --scope --unit="claude-$$-$(date +%s)" --quiet`, with a
   `CLAUDE_NO_SCOPE=1` escape hatch and a fallback to bare `exec` when `systemd-run` or
-  `XDG_RUNTIME_DIR` is unavailable. `--collect` was evaluated empirically (see Decisions) and
-  omitted.
-- `modules/home/services/claude-session-reaper.nix` — new file. `systemd.user.services.
-  claude-session-reaper` (oneshot) implements the liveness-only reap predicate: enumerate
-  `claude-*.scope` units only, read each unit's own `cgroup.procs`, test only those PIDs'
-  `/proc/<pid>/cmdline` against `(claude|@anthropic|opencode)`, skip on any match or any
-  ambiguity, stop only on zero matches. `CLAUDE_REAPER_DRY_RUN` support included.
-  `systemd.user.timers.claude-session-reaper` runs it every 10 minutes.
-- `modules/home/default.nix` — added `./services/claude-session-reaper.nix` to the service-module
-  import block.
+  `XDG_RUNTIME_DIR` is unavailable. `--collect` was evaluated empirically and omitted.
+- `modules/home/services/claude-session-reaper.nix` — new. Oneshot service implementing the
+  liveness-only predicate: enumerate `claude-*.scope` units only, read each unit's own
+  `cgroup.procs`, test only those PIDs' `/proc/<pid>/cmdline` against
+  `(claude|@anthropic|opencode)`, skip on any match or any ambiguity, stop only on zero matches.
+  `CLAUDE_REAPER_DRY_RUN` supported. Timer runs it every 10 minutes.
+- `modules/home/default.nix` — imports the reaper module.
+- `docs/claude-session-scopes.md` — new user-facing documentation (Phase 8).
+- `docs/README.md` — index entry for the above.
 
 ## Decisions
 
-- `--collect` omitted from the `systemd-run` invocation: tested live on hamsa (clean and
-  non-zero exit, with and without `--collect`) — transient scope units already auto-unload from
-  `systemctl --user list-units` on this systemd version regardless of the flag, so it is not
-  load-bearing here.
-- Reaper script adds two ambiguity checks beyond the plan's numbered steps (unparsable PID list,
-  PID vanished mid-read) to satisfy the binding constraint's "any ambiguity ... skip the unit"
-  clause literally for those named cases, rather than letting them silently fall through to a
-  match/no-match decision.
-- Decoy construction for the Phase 2 live-session behavioral test required
-  `bash -c 'sleep 600; true' claude-decoy-marker` rather than `exec -a claude-decoy sleep 600`:
-  `exec -a` fails under this host's multi-call coreutils wrapper
-  (`coreutils: unknown program 'claude-decoy'`), and a bare `bash -c 'sleep 600'` gets
-  tail-call exec-optimized by bash into a bare `sleep` process that loses any argv0 marker.
-
-## Plan Deviations
-
-- None — the two added ambiguity checks are additive strengthening within the letter and spirit
-  of the binding safety constraint, not a deviation from it, and are documented inline on the
-  Phase 2 checklist in the plan file.
+- `--collect` omitted: tested live on hamsa — transient scopes already auto-unload on this
+  systemd version regardless of the flag.
+- Reaper adds two ambiguity checks beyond the plan's numbered steps (unparsable PID list, PID
+  vanished mid-read) to satisfy the binding constraint's "any ambiguity … skip the unit" clause
+  literally.
+- Phase 7's live sessions were real `claude` invocations in non-interactive (`-p`) mode rather
+  than interactive wezterm panes. The gate tests the reaper's predicate, which keys on process
+  cmdline and cgroup membership — identical either way. This is a deviation from the written
+  commands and is called out as such, not glossed.
 
 ## Verification
 
-**Phase 1** (behavioral, live on hamsa — not merely `nix eval`):
-- `nix build .#nixosConfigurations.hamsa.pkgs.claude-code --no-link` succeeded.
-- Built script confirmed to contain `--scope` (1 match), `UNIT="claude-$$-$(date +%s)"` naming,
-  and no `--pty`.
-- Standalone equivalent script exercised from `/tmp/scopetest`: cwd propagated
-  (`/tmp/scopetest`), exported `TESTVAR` visible inside the scoped child, `exit 37` propagated as
-  `$? == 37`, unit name observed as `<name>.scope` in `systemctl --user list-units` while the
-  child ran, and `CLAUDE_NO_SCOPE=1` created zero scope units.
-- `nix fmt` left `packages/claude-code.nix` unchanged.
+### Phase 4 — Deploy [COMPLETED]
 
-**Phase 2** (behavioral, live on hamsa, extracted script run directly via `bash`):
-- No `claude-*.scope` units present → reaper exited 0, logged `starting`/`done`, killed nothing.
-- Hand-made live decoy → reaper logged `alive, skipping`; decoy scope and its `sleep` child both
-  confirmed still running afterward via `systemctl --user list-units` and `cgroup.procs`.
-- Hand-made abandoned decoy (no claude signature) → reaper stopped it; scope gone from
-  `list-units`, `sleep` process gone from `cgroup.procs`/`ps`.
-- `bash -n` passed. `shellcheck` was not available on `$PATH` in this environment (documented,
-  not silently skipped).
-- Reviewer-checklist grep (`CPUUsage|MemoryCurrent|ActiveEnterTimestamp|etimes|pgrep|ps aux|
-  --older|Timestamp`) over the extracted script: no violations.
-- `nix fmt` made no further changes to either touched file.
+User ran `sudo nixos-rebuild switch --flake .#hamsa` and `home-manager switch --flake .#benjamin`.
 
-**Phase 3** (evaluation/build gate — explicitly NOT behavioral acceptance):
-- `nix flake check --no-build`: all checks passed (nixosConfigurations nandi, hamsa, garuda, iso,
-  usb-installer; homeConfigurations; formatter; devShells).
-- `nixos-rebuild build --flake .#hamsa`: succeeded, produced
-  `/nix/store/9rcrffh091dzwfwfazwd1bg451y6sl6p-nixos-system-hamsa-26.05.20260710.8f0500b`.
-- `home-manager build --flake .#benjamin`: succeeded, no `error:` lines.
-- Confirmed present in the built home-manager generation:
-  `.config/systemd/user/claude-session-reaper.service`,
-  `.config/systemd/user/claude-session-reaper.timer`,
-  `.config/systemd/user/timers.target.wants/claude-session-reaper.timer`.
-- Confirmed the built `claude` wrapper (`home-manager-path/bin/claude`) contains `--scope`.
+- `/run/current-system` → `9rcrffh091dzwfwfazwd1bg451y6sl6p-nixos-system-hamsa-…`, matching the
+  Phase 3 build output.
+- `systemctl --user list-timers 'claude-session-reaper*'` → 1 timer, next/last populated.
+- `~/.config/systemd/user/claude-session-reaper.{service,timer}` present as store symlinks.
+- Deployed wrapper `/etc/profiles/per-user/benjamin/bin/claude` →
+  `/nix/store/zijrqv7sdgbpp9gpsqc0axm52wd1l5pk-claude/bin/claude`, contains `--scope`.
+- Two scheduled reaper runs observed with no `claude-*.scope` present: `Result=success`,
+  `ExecMainStatus=0`, `NRestarts=0`, nothing killed. This retires the "reaper fails every run and
+  degrades the user systemd session" risk with live evidence.
 
-**Explicitly NOT verified by this implementation pass** (per the plan's own "Testing &
-Validation" section and this task's binding safety-verification discipline): nothing here
-substitutes for live, behavioral acceptance. Unit-file inspection, `nix eval`, and
-`systemd-analyze verify` never count toward acceptance of the behavioral phases, and none were
-used as a substitute for them above — every phase-1/phase-2 claim above was backed by an actual
-process/cgroup observation on the live host, not an inference from static analysis.
+### Phase 5 — Live containment [PARTIAL: containment verified, TTY behavior NOT verified]
 
-## What Remains (USER-EXECUTED, not started)
+A real `claude -p` invocation through the deployed wrapper:
 
-- **Phase 4 — Deploy**: `sudo nixos-rebuild switch --flake .#hamsa`,
-  `home-manager switch --flake .#benjamin`, confirm the timer is registered
-  (`systemctl --user list-timers 'claude-session-reaper*'`), confirm the wrapper on `PATH`
-  contains `--scope`.
-- **Phase 5 — Live containment + interactive smoke test**: launch a real `claude
-  --dangerously-skip-permissions` session in wezterm, confirm its children land in a distinct
-  `claude-<pid>-<epoch>.scope` cgroup (not the wezterm scope), and confirm cwd/Ctrl-C/Ctrl-Z/
-  resize/exit-code behave unchanged.
-- **Phase 6 — Positive reap test**: spawn a `setsid`-detached child inside a live session, kill
-  the session, run the reaper on demand, confirm the orphan is actually dead (`ps` — not
-  inferred).
-- **Phase 7 — RELEASE GATE, negative test**: a long-running, CPU-burning child of a *live*
-  session must survive repeated reaper runs untouched (dry-run and real), including a two-live-
-  sessions-plus-one-abandoned-scope isolation check. **If this fails, the change does not
-  ship** — revert per the plan's Rollback/Contingency section.
-- **Phase 8 — Documentation**: write `docs/claude-session-scopes.md` (or extend
-  `docs/no-sleep-agents.md`) covering the mechanism, the liveness-only guarantee, the opt-out,
-  the escape hatch, and inspection recipes — using the verbatim Phase 5-7 observed output, which
-  does not exist yet.
+```
+unit: claude-1026815-1785950586.scope   loaded active running
+ControlGroup: /user.slice/user-1000.slice/user@1000.service/app.slice/claude-1026815-1785950586.scope
+1026815  npm exec @anthr  0::/user.slice/…/claude-1026815-1785950586.scope
+1026946  claude           0::/user.slice/…/claude-1026815-1785950586.scope
+exit=0
+```
+
+Both the npx parent and the real `claude` process are in the per-session scope, **not**
+`app-gnome-wezterm-5459.scope`. Exit code propagated. No `Running as unit:` banner leaked.
+
+**Not verified**: cwd preservation in an interactive launch, Ctrl-C mid-turn, Ctrl-Z, terminal
+resize, scrollback, normal exit to a shell prompt. These require a real wezterm session and
+remain USER-EXECUTED.
+
+### Phase 6 — Positive reap [COMPLETED]
+
+The exact scenario from the task description, reproduced end to end:
+
+```
+session exit=0                       (real claude -p session, spawned setsid nohup sleep 900)
+scope AFTER the session exited: claude-1035589-1785950639.scope  loaded active running
+survivors in scope: 1035865  sleep   (the detached orphan)
+
+DRY RUN:  claude-session-reaper: DRY-RUN would stop claude-1035589-1785950639.scope (pids: 1035865)
+          alive-after-dryrun: 1035865 sleep        (dry run killed nothing)
+REAL RUN: claude-session-reaper: stopping abandoned claude-1035589-1785950639.scope (pids: 1035865)
+VERDICT:  ORPHAN DEAD (PASS)         (by ps, not inferred from logs)
+          scope gone from list-units
+```
+
+### Phase 7 — NEGATIVE test / RELEASE GATE [PARTIAL — GATE PASSED]
+
+Live session A = `claude-1041456-1785950741.scope`, CPU-burning child `LONGPID=1042424`
+(`setsid nohup bash -c 'while :; do :; done'`) inside the scope.
+
+Soak — a full core, so any accidental CPU or age threshold would have fired:
+
+```
+soak t=20s:  1042424   22  00:00:22 bash
+…
+soak t=240s: 1042424  242  00:04:01 bash
+live claude signature present in scope A: yes
+```
+
+Dry run, then three real runs:
+
+```
+claude-session-reaper: claude-1041456-1785950741.scope alive, skipping
+after dry-run: LONGPID ALIVE
+1042424 243 00:04:02 bash    run 1: LONGPID survived
+1042424 244 00:04:03 bash    run 2: LONGPID survived
+1042424 245 00:04:04 bash    run 3: LONGPID survived
+```
+
+Zero occurrences of `FAIL: long-running child was killed`. `TIME` climbs across runs.
+
+**Two-live-session isolation** — one reaper pass discriminating three scopes correctly:
+
+```
+BEFORE: claude-1117540-1785951078.scope active running
+        claude-1117541-1785951078.scope active running
+        claude-decoy-iso-1117537.scope  active running   (abandoned, pid 1135923)
+
+journal: claude-1117540-1785951078.scope alive, skipping
+         claude-1117541-1785951078.scope alive, skipping
+         stopping abandoned claude-decoy-iso-1117537.scope (pids: 1135923)
+
+AFTER:  claude-1117540-1785951078.scope active running
+        claude-1117541-1785951078.scope active running
+        decoy pid 1135923 GONE (expected)
+        burners alive: 1121756 27 00:00:27 / 1121041 29 00:00:28
+```
+
+Post-test state: no residual `claude-*.scope`, no stray burner or `sleep 3000` processes,
+reaper `Result=success` / `ExecMainStatus=0` / `NRestarts=0`.
+
+**Honest note on the first attempt**: the isolation check inside the main Phase 7 script did not
+actually establish a second live session — the inner session's command was rejected by an
+unrelated environment policy hook, so it exited before creating a scope. That run therefore
+proved only one-live-plus-one-abandoned discrimination. The two-live-session variant was re-run
+separately (output above) and is the result being claimed.
+
+**Not verified**: "the live session is still fully interactive afterwards" — folded into the
+Phase 5 user smoke test.
+
+### Phase 8 — Documentation [COMPLETED]
+
+`docs/claude-session-scopes.md` covers the mechanism, the liveness-only guarantee stated as a
+promise to the reader, the `systemd-run --user --unit=` opt-out for deliberately-detached work,
+the `CLAUDE_NO_SCOPE=1` escape hatch, inspection recipes, the nested-session note, independence
+from the sleep inhibitors, and the rollback ladder. Both "how do I stop this killing my job"
+answers are reachable from the first screen. `docs/README.md` gained an index entry. Every
+command shown was actually run during Phases 4-7. No task-number references
+(`.claude/rules/no-task-references-in-deliverables.md`).
+
+## What Remains (USER-EXECUTED)
+
+Interactive terminal confirmation only — the safety properties are already proven:
+
+1. Launch `claude --dangerously-skip-permissions` in a wezterm pane from a project directory.
+2. Confirm cwd is preserved and no `Running as unit:` banner appears.
+3. Exercise Ctrl-C mid-turn, Ctrl-Z, terminal resize, scrollback.
+4. Exit normally; confirm exit code and shell prompt behave.
+
+If any of that regresses: `export CLAUDE_NO_SCOPE=1` restores the old behavior instantly with no
+rebuild, and the full rollback ladder is in `docs/claude-session-scopes.md`.
 
 ## Notes
 
-This is a live host (`hamsa`) with a working `systemd --user` session, which is why Phases 1-2's
-"behavioral, not eyeballed" verification requirements could be satisfied here directly via
-`Bash` (standalone script exercises and hand-made decoy scopes) without needing the actual
-interactive `claude` launcher or a real session kill — those remain genuinely user-executed
-because they require `sudo` for the system-level rebuild and a real interactive wezterm terminal
-that only the user can drive.
+- Follow-up, out of scope here: `docs/discord-bot.md` carries pre-existing task-number
+  references (lines 269, 409) that violate
+  `.claude/rules/no-task-references-in-deliverables.md`. Not introduced by this work and left
+  untouched; worth a separate cleanup.
