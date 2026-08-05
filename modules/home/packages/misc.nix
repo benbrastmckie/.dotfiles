@@ -1,5 +1,5 @@
 # Miscellaneous small package groups: fonts, Lean 4/formal-math tools, AI coding assistants.
-# Merged (task 88) from fonts.nix + lean-math.nix + ai-tools.nix, each too small to justify its
+# Merged from fonts.nix + lean-math.nix + ai-tools.nix, each too small to justify its
 # own file. NOTE: this is unrelated to the top-level `../misc.nix` (home.activation/autoExpire/
 # sessionVariables/startServices settings) — the basename collision is deliberate (see
 # design/target-layout.md); do not confuse the two files when editing.

@@ -17,24 +17,24 @@
       };
     };
     hooks = {
-      # Sync via `mail-sync both` -- never `mbsync -a`. `mail-sync` (task 109) is the single
+      # Sync via `mail-sync both` -- never `mbsync -a`. `mail-sync` is the single
       # canonical, flock-serialized entry point into mbsync shared with aerc's `$` keybind; it
       # takes a blocking flock before invoking mbsync so this hook-triggered sync can never
       # overlap a manual aerc-triggered sync. Internally it runs `mbsync gmail` then
       # `mbsync logos` sequentially (never `-a`, never a passthrough channel), which per
       # `man mbsync` runs only the named Groups' member channels -- avoiding the orphan
-      # `logos-labels` channel (deliberately excluded from `Group logos` in mbsync.nix, task
-      # 826), which would otherwise re-import every Proton label as a duplicated .Labels.*
-      # Maildir++ folder. (~/.dotfiles handoff; tasks 826-828, 109.)
+      # `logos-labels` channel (deliberately excluded from `Group logos` in mbsync.nix),
+      # which would otherwise re-import every Proton label as a duplicated .Labels.*
+      # Maildir++ folder.
       #
       # `|| true`: notmuch aborts the ENTIRE `notmuch new` run (skipping both the disk
       # scan and postNew below) if preNew exits non-zero. `mail-sync`/mbsync currently exit
       # non-zero on partial/transient failures unrelated to notmuch's own indexing job -- e.g. a
       # single channel's far-side box failing to open, or the known pre-existing
-      # duplicate-UID collision in Gmail/.All_Mail (~Mail task 34 baseline; tracked
-      # separately as .dotfiles task 852/853). Without this tolerance, any hook-having
+      # duplicate-UID collision in Gmail/.All_Mail (a pre-existing baseline, tracked
+      # separately). Without this tolerance, any hook-having
       # `notmuch new` invocation fails outright, which is what made this hook an
-      # unreliable auto-reindex authority (~Mail task 34, Phase 4). `--no-hooks`
+      # unreliable auto-reindex authority. `--no-hooks`
       # call sites (email-reindex, `mail-sync`'s own internal reindex step) are unaffected
       # either way since they skip this hook entirely -- so preNew calling `mail-sync`, which
       # itself runs `notmuch new --no-hooks`, is not reentrant.
@@ -51,8 +51,8 @@
         notmuch tag +gmail -- folder:/Gmail/
         notmuch tag +logos -- folder:/Logos/
 
-        # --- per-sender junk rules (managed: task 72 scaffold; populated via ~/Mail #29) ---
-        # SCAFFOLDING ONLY -- no live rules land in task 72. Real per-sender junk rules are
+        # --- per-sender junk rules (managed scaffold; populated via the ~/Mail repo) ---
+        # SCAFFOLDING ONLY -- no live rules land here. Real per-sender junk rules are
         # populated here by ~/Mail #29, sourced from the tag:proposed-*/confirmed-* review
         # flow (see specs/072_email_workflow_infrastructure_prereqs/handoffs/wrapper-contract.md).
         # afew was considered and REJECTED as a second config surface for this: tagging stays
@@ -69,7 +69,7 @@
         ".lock"
         "dovecot*"
         # Anchored, root-relative (matched against the path relative to database.path)
-        # top-level non-maildir entries under ~/Mail. Task 116: silences "Ignoring
+        # top-level non-maildir entries under ~/Mail. Silences "Ignoring
         # non-mail file" spam from `notmuch new` without risking any match inside a real
         # maildir folder (bare basenames would match at any depth; these are anchored).
         "/^specs$/"

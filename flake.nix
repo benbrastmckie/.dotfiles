@@ -4,7 +4,7 @@
   inputs = {
     # Pinned to the stable release channel for near-100% binary cache hits
     # (Hydra fully builds the stable channel). nixpkgs-unstable stays on
-    # unstable to feed pkgs-unstable + nix-ai-tools. See task 61.
+    # unstable to feed pkgs-unstable + nix-ai-tools.
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     lean4 = {
@@ -27,7 +27,7 @@
     utils.url = "github:numtide/flake-utils";
     home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    # sops-nix for age-based secrets management (Task 53)
+    # sops-nix for age-based secrets management
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     # Note: MCPHub is loaded via lazy.nvim, not as a flake input
@@ -145,7 +145,7 @@
             "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
             { networking.hostName = "nixos-iso"; }
 
-            # sops-nix for age-based secrets management (Task 53)
+            # sops-nix for age-based secrets management
             sops-nix.nixosModules.sops
 
             # Apply our unstable packages overlay globally

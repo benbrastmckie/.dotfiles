@@ -42,6 +42,6 @@
   };
 
   # DISABLED: pgrep -f 'claude' self-matches inhibitor script, memory-tracker,
-  # earlyoom, etc., causing sleep to be permanently blocked. See task 50.
+  # earlyoom, etc., causing sleep to be permanently blocked.
   # systemd.user.services.claude-sleep-inhibitor = { ... };
 }

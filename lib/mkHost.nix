@@ -31,7 +31,7 @@ nixpkgs.lib.nixosSystem {
     "${root}/hosts/${hostname}/hardware-configuration.nix"
     { networking.hostName = hostname; }
 
-    # sops-nix for age-based secrets management (Task 53)
+    # sops-nix for age-based secrets management
     sops-nix.nixosModules.sops
 
     # Apply our overlays globally

@@ -1,10 +1,10 @@
 # mbsync IMAP synchronisation configuration for Gmail and Logos Labs mail.
 # Gmail authenticates with a Gmail app password (consumer account + 2FA still
 # supports IMAP app passwords in 2026); Logos uses Protonmail Bridge.
-# App-password decision: task 72 Phase 3 (handoffs/oauth-gate.md) — avoids the
+# App-password decision (handoffs/oauth-gate.md) — avoids the
 # restricted-scope CASA Tier 2 requirement that XOAUTH2 Production publishing needs.
 #
-# email-freeze/email-thaw (task 72 Phase 8): operator helpers, NOT part of the 5-binary
+# email-freeze/email-thaw: operator helpers, NOT part of the 5-binary
 # agent-tools.nix contract (handoffs/wrapper-contract.md). Verified facts baked in (Phase 1,
 # handoffs/verification-baseline.md §1, §5): there is NO mbsync systemd timer — mbsync's only
 # trigger paths are notmuch's preNew hook (`mbsync -a`), aerc's `$` keybind
@@ -170,7 +170,7 @@
     SyncState *
 
     # logos-labels is defined for manual/inspection sync only; it is intentionally NOT a member
-    # of Group logos below (task 826). Protonmail Bridge exposes labels as additive virtual IMAP
+    # of Group logos below. Protonmail Bridge exposes labels as additive virtual IMAP
     # mailboxes (like Gmail's label-as-mailbox model) -- every message carrying one or more
     # labels is mirrored as a SEPARATE physical file under the corresponding .Labels.* Maildir++
     # folder, on top of its copy in the canonical folder (INBOX/.Archive/.Sent/etc). Including
@@ -182,7 +182,7 @@
     Far :logos-remote:
     Near :logos-local:
     # "!Labels/*.*" excludes dotted label names (e.g. Labels.benbrastmckie@gmail.com), which
-    # Maildir++ cannot represent as a valid mailbox path (task 92).
+    # Maildir++ cannot represent as a valid mailbox path.
     Patterns "Labels/*" "!Labels/*.*"
     Create Both
     Expunge Both
@@ -193,7 +193,7 @@
     Far :logos-remote:
     Near :logos-local:
     # "!Folders/*.*" excludes dotted folder names, which Maildir++ cannot represent as a valid
-    # mailbox path (task 92).
+    # mailbox path.
     Patterns "Folders/*" "!Folders/*.*"
     Create Both
     Expunge Both
@@ -201,7 +201,7 @@
     SyncState *
 
     # Group all channels together.
-    # logos-labels is intentionally omitted (task 826): Protonmail Bridge mirrors every
+    # logos-labels is intentionally omitted: Protonmail Bridge mirrors every
     # additive label as a separate local Maildir++ folder (.Labels.*), so including it here
     # duplicated every labeled message on disk and crashed the whole-group reconcile the moment
     # a dotted label name (.Labels.benbrastmckie@gmail.com) appeared. The channel definition
@@ -216,7 +216,7 @@
     Channel logos-archive
     Channel logos-folders
 
-    # logos-full is an explicit on-demand full sync (task 92) covering every Logos channel,
+    # logos-full is an explicit on-demand full sync covering every Logos channel,
     # including logos-labels and logos-folders. It is never invoked by any keymap or the
     # wrapper reconcile path -- run manually via `mbsync logos-full` when a full inspection
     # sync is desired.
@@ -238,7 +238,7 @@
       BACKUP_DIR="$HOME/Mail/.syncstate-backups"
 
       if [ "''${1:-}" = "--help" ] || [ "''${1:-}" = "-h" ]; then
-        echo "email-freeze - operator helper (task 72 Phase 8; NOT part of the 5-binary agent contract)"
+        echo "email-freeze - operator helper (NOT part of the 5-binary agent contract)"
         echo ""
         echo "Confirms no mbsync process is running, prints the trigger-path guards to observe"
         echo "while frozen, and backs up every ~/Mail/Gmail/**/.mbsyncstate* file to a"
@@ -288,7 +288,7 @@
       BACKUP_DIR="$HOME/Mail/.syncstate-backups"
 
       if [ "''${1:-}" = "--help" ] || [ "''${1:-}" = "-h" ]; then
-        echo "email-thaw - operator helper (task 72 Phase 8; NOT part of the 5-binary agent contract)"
+        echo "email-thaw - operator helper (NOT part of the 5-binary agent contract)"
         echo ""
         echo "Reconciles with a single group-scoped 'mbsync gmail' invocation (never the -a flag,"
         echo "which would also touch the deferred Logos/Bridge account). Applies the mbsync"
@@ -344,7 +344,7 @@
       set -euo pipefail
 
       if [ "''${1:-}" = "--help" ] || [ "''${1:-}" = "-h" ]; then
-        echo "email-reindex - operator helper (task 824; NOT part of the 5-binary agent contract)"
+        echo "email-reindex - operator helper (NOT part of the 5-binary agent contract)"
         echo ""
         echo "Reconciles the notmuch index to the on-disk maildir by running"
         echo "'notmuch new --no-hooks'. The --no-hooks form is deliberate:"

@@ -4,7 +4,7 @@ set -e
 
 echo "===> Updating dotfiles..."
 
-# Flag parsing (task 93): a single scan over "$@" so flags work regardless of
+# Flag parsing: a single scan over "$@" so flags work regardless of
 # order or position. Fixes a pre-existing bug where --update was only checked
 # at $1/$2 and --no-check only at $1, so `./update.sh --update --no-check`
 # silently ignored --no-check.
@@ -25,7 +25,7 @@ for arg in "$@"; do
   esac
 done
 
-# Git checkpoint is opt-in only (task 93). The prior unconditional
+# Git checkpoint is opt-in only. The prior unconditional
 # `git add -A && git commit` swept unrelated concurrent-session changes into
 # misattributed commits during orchestration (incidents 6ba1f4e, 02f806d).
 # Pass --checkpoint or set UPDATE_CHECKPOINT=1 to auto-commit a dirty tree
@@ -49,7 +49,7 @@ else
   echo "===> No uncommitted changes, skipping checkpoint"
 fi
 
-# Update flake inputs — opt-in only (task 61). Auto-updating on every rebuild
+# Update flake inputs — opt-in only. Auto-updating on every rebuild
 # outran Hydra and forced local source builds. Run `./update.sh --update` to
 # deliberately bump inputs (respecting Hydra cadence); the default path keeps
 # the pinned flake.lock.
@@ -64,7 +64,7 @@ fi
 HOSTNAME=$(hostname)
 echo "===> Detected hostname: $HOSTNAME"
 
-# Cap concurrent build jobs to avoid OOM on heavy C++ packages (task 60).
+# Cap concurrent build jobs to avoid OOM on heavy C++ packages.
 # Override per-invocation with: NIX_MAX_JOBS=1 ./update.sh
 MAX_JOBS="${NIX_MAX_JOBS:-4}"
 echo "===> Build job cap: --max-jobs $MAX_JOBS"

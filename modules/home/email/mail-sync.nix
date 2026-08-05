@@ -1,11 +1,11 @@
-# mail-sync -- single canonical, serialized, group-scoped mail sync wrapper (task 109).
+# mail-sync -- single canonical, serialized, group-scoped mail sync wrapper.
 #
 # Sanctioned non-wrapper index/sync exception, alongside email-reindex (mbsync.nix) -- NOT a
 # sixth member of the frozen 5-binary agent contract (census/classify/archive-confirmed/
 # delete-confirmed/unsubscribe-extract in agent-tools/); `mail-guard.sh`'s allowlist is
 # untouched by this module.
 #
-# Motivation: prior to task 109 there were TWO independent, unsynchronized entry points into
+# Motivation: there were previously TWO independent, unsynchronized entry points into
 # mbsync -- the notmuch preNew hook (`mbsync gmail logos || true`) and aerc's `$` keybind
 # (`mbsync gmail && notmuch new --no-hooks`) -- with no lock between them, so a preNew-triggered
 # reindex could race a manual aerc sync against the same Maildir. `mail-sync` is the single
@@ -26,7 +26,7 @@
         cat <<'HELPEOF'
       mail-sync <gmail|logos|both> [--no-wait]
 
-      Serialized, group-scoped mbsync + notmuch reindex wrapper (task 109).
+      Serialized, group-scoped mbsync + notmuch reindex wrapper.
 
       Structurally incapable of `mbsync -a`: only hardcoded `mbsync gmail` / `mbsync logos`
       are ever run (never -a, never an arbitrary passthrough channel). `both` runs gmail then
@@ -112,8 +112,8 @@
             echo "" >&2
             echo "[mail-sync] DUPLICATE UID detected in 'mbsync $group' output:" >&2
             printf '%s\n' "$dup_lines" | sed 's/^/[mail-sync]   /' >&2
-            echo "[mail-sync] This is a KNOWN pre-existing Maildir corruption class (~Mail task 34" >&2
-            echo "[mail-sync] baseline; tracked separately as .dotfiles task 852/853)." >&2
+            echo "[mail-sync] This is a KNOWN pre-existing Maildir corruption class," >&2
+            echo "[mail-sync] tracked separately from this wrapper." >&2
             echo "[mail-sync] Remediation (MANUAL -- no automatic repair is performed here):" >&2
             echo "[mail-sync]   1. Identify the colliding folder from the line(s) above." >&2
             echo "[mail-sync]   2. Inspect that folder's colliding ',U=N:' files for near-duplicates." >&2

@@ -30,7 +30,7 @@
   # Automatic user-level home-manager generation expiry + store GC. The
   # system-level nix.gc (configuration.nix) only collects root profiles and
   # never touches user HM generations, which were pinning months of old
-  # closures in the store. See task 63.
+  # closures in the store.
   services.home-manager.autoExpire = {
     enable = true;
     timestamp = "-30 days";

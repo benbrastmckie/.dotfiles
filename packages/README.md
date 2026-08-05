@@ -35,7 +35,7 @@ NPX wrapper for Claude Code that fetches the latest version from NPM on each inv
 **Updating**: To pin a specific version, replace `@latest` with `@X.Y.Z`. After any change, rebuild with `sudo nixos-rebuild switch` (and `home-manager switch` or `./scripts/update.sh`). The npx cache (`~/.npm/_npx/`) may serve a stale version — delete it to force a fresh download.
 
 ### opencode-discord-bot.nix
-`buildPythonApplication` derivation for the Nextcord Discord bot relay that bridges Discord to a headless OpenCode agent server (task 89) — the first `buildPythonApplication` in this repo (the other Python packages here, e.g. `python-cvc5.nix`, `pymupdf4llm.nix`, `python-vosk.nix`, are libraries built with `buildPythonPackage` and composed into environments via `python3.withPackages`).
+`buildPythonApplication` derivation for the Nextcord Discord bot relay that bridges Discord to a headless OpenCode agent server — the first `buildPythonApplication` in this repo (the other Python packages here, e.g. `python-cvc5.nix`, `pymupdf4llm.nix`, `python-vosk.nix`, are libraries built with `buildPythonPackage` and composed into environments via `python3.withPackages`).
 
 **Implementation**: Builds from the in-tree source at `./opencode-discord-bot` (co-located
 sibling directory; PEP 621 `pyproject.toml` + `setuptools` backend), producing an
@@ -45,7 +45,7 @@ since that overlay is scoped to library overrides composed via `python3.withPack
 architecturally different consumer than a standalone application with its own entry point.
 
 **Note**: `opencode-discord-bot.nix` (this derivation file) and `opencode-discord-bot/` (its
-source directory, relocated here from the repo root by task 103) share a stem but are not a
+source directory, relocated here from the repo root) share a stem but are not a
 naming conflict — the file is the derivation, the directory is its `src`. This is the first
 co-located source directory under `packages/`.
 
@@ -267,8 +267,8 @@ Declarative Vosk STT language model package for reproducible installations. Down
 ### piper-bin.nix
 Prebuilt Linux x86_64 binary for Piper TTS (rhasspy/piper release `2023.11.14-2`), fetched with
 `fetchurl` instead of building nixpkgs' `piper-tts` from source. The release tarball bundles a
-precompiled `libonnxruntime.so.1.14.1`, so `onnxruntime` is never compiled (task 70; task 62
-originally dropped Piper for this reason, but the source-compile is avoidable via a prebuilt
+precompiled `libonnxruntime.so.1.14.1`, so `onnxruntime` is never compiled (Piper was
+originally dropped for this reason, but the source-compile is avoidable via a prebuilt
 binary). Upstream repo was archived 2025-10-06; this is the final release.
 
 **Implementation**: `stdenvNoCC.mkDerivation` + `autoPatchelfHook`, flat-installs the tarball's
@@ -312,8 +312,8 @@ The system includes TTS and STT tools for Claude Code and Neovim integration.
 ### TTS: Piper (Custom Package)
 Fast, local neural text-to-speech via a prebuilt Linux x86_64 release binary
 (`piper-bin.nix`, fetchurl + autoPatchelfHook), restoring the natural
-`en_US-lessac-medium` voice without compiling `onnxruntime` from source (task 70;
-see `piper-bin.nix`/`piper-voices.nix` sections above).
+`en_US-lessac-medium` voice without compiling `onnxruntime` from source (see
+`piper-bin.nix`/`piper-voices.nix` sections above).
 
 **Test**:
 ```bash

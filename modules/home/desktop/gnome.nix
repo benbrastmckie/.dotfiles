@@ -49,8 +49,7 @@
       # Battery idle-suspend after 60 minutes. Fires ONLY when no logind block
       # inhibitor is held: an open Claude Code session (even idle) blocks it
       # entirely, in which case the 10% battery-suspend-backstop timer in
-      # modules/system/power.nix is the only protection (accepted limitation,
-      # task 117 decision 1).
+      # modules/system/power.nix is the only protection (accepted limitation).
       sleep-inactive-battery-timeout = 3600; # 60 minutes on battery
       # Explicit rather than riding the schema default: leaving the battery
       # type implicit invites drift.

@@ -49,12 +49,12 @@
       "hung_task_timeout_secs=60" # Detect deadlocks faster (default: 120s)
       # Auto-reboot 10s after a kernel panic instead of hanging with a blinking
       # Caps Lock LED. The mt7925e WiFi driver has a known list-corruption panic
-      # (mt76_wcid_add_poll, see task 104 research report); until the fixed
+      # (mt76_wcid_add_poll); until the fixed
       # kernel lands this keeps the machine recoverable without a power-button hold.
       "panic=10"
     ];
 
-    # Panic on the first oops instead of limping along. Task 104/106 diagnostics
+    # Panic on the first oops instead of limping along. Diagnostics
     # finding: the mt7925e sta_poll_list corruption panic (mt76_wcid_add_poll)
     # was leaving NO pstore/EFI-var record — with panic_on_oops=0 the crashed
     # NAPI kthread dies holding a lock, the system wedges for ~60s, and by the

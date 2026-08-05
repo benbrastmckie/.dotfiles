@@ -16,7 +16,7 @@
       auto-optimise-store = true; # Optimize the Nix store automatically
       # Resource limits to prevent OOM on heavy C++ builds (24-core / 30GB box).
       # max-jobs * cores caps concurrent compile units at 12, within the ~26GB
-      # build budget (~2GB/unit for onnxruntime-class packages). See task 60.
+      # build budget (~2GB/unit for onnxruntime-class packages).
       max-jobs = 2;
       cores = 6;
     };

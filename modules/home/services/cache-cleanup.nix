@@ -1,7 +1,7 @@
 # Weekly cleanup of regenerable package-manager caches (pip/uv/npm).
 # Nix store GC is handled by nix.gc (configuration.nix) and
 # home-manager generation expiry by services.home-manager.autoExpire.
-# See task 64. (systemd.user.tmpfiles.rules avoided due to HM issue #8125.)
+# (systemd.user.tmpfiles.rules avoided due to HM issue #8125.)
 { config, pkgs, ... }:
 {
   systemd.user.services.cache-cleanup = {

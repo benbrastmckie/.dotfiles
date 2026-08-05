@@ -1,9 +1,9 @@
 # Periodic "Gmail stays in sync occasionally" mechanism -- runs `mail-sync both` on
-# an interval even when aerc is closed. This is the PRIMARY sync trigger (task 113);
+# an interval even when aerc is closed. This is the PRIMARY sync trigger;
 # the `[gmail]` accounts.conf `check-mail-cmd` in aerc.nix is a secondary,
 # while-aerc-is-open convenience only.
 #
-# Locking: `mail-sync` (task 109) holds its own flock, so this timer-triggered run
+# Locking: `mail-sync` holds its own flock, so this timer-triggered run
 # and any aerc-triggered `check-mail`/`$` run are already mutually safe -- no new
 # locking is needed here.
 #

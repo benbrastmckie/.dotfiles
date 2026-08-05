@@ -1,9 +1,9 @@
 # Dual Home-Manager Architecture
 
-> **Verified current (task 91)**: Task 69's `extraSpecialArgs`/`lectic` unification (documented
+> **Verified current**: the `extraSpecialArgs`/`lectic` unification (documented
 > below under "Consequences of the Dual Setup") and the "Keep both paths (Option A)"
 > recommendation (under "Current Recommendation") are both closed and already documented in this
-> file — re-checked against the current tree during task 91's documentation sync pass, no further
+> file — re-checked against the current tree during a documentation sync pass, no further
 > action needed.
 
 ## Overview
@@ -34,16 +34,16 @@ standalone profile is effectively the "active" one for interactive shell session
   the NixOS-managed profile root. Both must be included in GC analysis.
 - **Sync risk**: If one path is updated and the other is not, they diverge. `scripts/update.sh` mitigates
   this by running both atomically, but a partial failure can leave them out of sync.
-- **extraSpecialArgs unified (task 69)**: The two paths pass the same set of arg *names*
-  (`{ pkgs-unstable, lectic, nix-ai-tools }` plus `username`/`name`), and as of task 69 `lectic`'s
+- **extraSpecialArgs unified**: The two paths pass the same set of arg *names*
+  (`{ pkgs-unstable, lectic, nix-ai-tools }` plus `username`/`name`), and `lectic`'s
   *value* is identical across both: every path resolves `lectic` to the built package via the
   shared expression `lectic.packages.${system}.lectic or lectic.packages.${system}.default or
   lectic`. This was previously a real asymmetry, not an intentional design choice — the
   NixOS-integrated path (`lib/mkHost.nix`'s `home-manager.extraSpecialArgs`, and `flake.nix`'s
   `hmExtraSpecialArgs` consumed raw by the `iso` config) passed the raw, unbuilt `lectic` flake
   input straight into `home.packages`, silently installing an inert reference (no `bin/lectic`).
-  This was the same defect class as the `lectic` regression task 66 phase 9 fixed for the
-  standalone path only. Task 69 applied the standalone path's existing resolution expression to
+  This was the same defect class as an earlier `lectic` regression, which was fixed for the
+  standalone path only; the later fix applied that path's existing resolution expression to
   the NixOS-integrated and `iso` paths as well, so all home-manager evaluation paths now ship the
   real `lectic` derivation.
 

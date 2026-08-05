@@ -6,10 +6,10 @@
 # BACKSTOP_SYSTEMCTL_BIN and BACKSTOP_NOTIFY_BIN with recording scripts, so
 # this suite exercises the backstop script's DECISION LOGIC ONLY. It CANNOT
 # detect an authorization failure on the real `systemctl suspend -i` (the
-# session-less-root polkit denial fixed in task 123 -- see the
+# session-less-root polkit denial fixed by the
 # security.polkit.extraConfig rule in modules/system/power.nix), nor a
 # failure in the real root-to-session notify path (the `runuser` defect
-# fixed in task 117 round 3). Both of those defects passed this exact suite
+# fixed in a later revision). Both of those defects passed this exact suite
 # before their respective fixes. A green run here is NOT evidence the
 # backstop works end to end -- see the known-gap footer this script prints,
 # and Phase 4 of

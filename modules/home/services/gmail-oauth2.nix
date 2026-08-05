@@ -1,6 +1,6 @@
 # Gmail OAuth2 token refresh service and timer
 #
-# DISABLED 2026-07-02 (task 72, Phase 3 — see
+# DISABLED 2026-07-02 (see
 # specs/072_email_workflow_infrastructure_prereqs/handoffs/oauth-gate.md).
 #
 # Why this is no longer needed:

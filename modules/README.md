@@ -18,7 +18,7 @@ Both subtrees follow the same aggregator convention (below): a `default.nix` per
 every always-on module in that subtree, and hosts/profiles wire the subtree in as a single unit
 rather than importing individual module files directly.
 
-## The aggregator convention (task 86)
+## The aggregator convention
 
 Each subtree has one `default.nix` that lists its always-on modules as `imports`, grouped and
 commented by category. This is a real convention already documented in the files themselves —
@@ -86,7 +86,7 @@ concrete example already present in this tree.
 
 ## Verified Health Notes
 
-These are one-line "checked, no action needed" records from task 91's final regression pass, so a
+These are one-line "checked, no action needed" records from a final regression pass, so a
 future verification pass does not have to rediscover them as false positives:
 
 - **`flake.lock`**: schema `version: 7`, 26 nodes total, including multiple nixpkgs-family pins

@@ -1,6 +1,6 @@
 # piper - fast, local neural text-to-speech (rhasspy/piper), prebuilt Linux x86_64 binary.
 # Fetches the official GitHub release tarball instead of building from source, avoiding
-# nixpkgs' piper-tts -> onnxruntime source-compile chain (see task 70 research report).
+# nixpkgs' piper-tts -> onnxruntime source-compile chain.
 # NOTE: upstream rhasspy/piper was archived 2025-10-06; 2023.11.14-2 is the final release.
 # The tarball bundles libonnxruntime.so.1.14.1 as a precompiled blob (accepted CVE risk for
 # local, non-networked TTS). To update (if a fork ships new releases):

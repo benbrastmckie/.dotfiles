@@ -111,10 +111,11 @@ markers) without anyone noticing until a verification pass looks. The convention
 follows is: **each verification pass re-checks doc claims directly against the current tree
 (`find`, `ls`, `grep`) rather than trusting the doc's own prior "last verified" state or a
 previous pass's fix list.** A one-time fix is not a durable guarantee; the next capstone/sync
-pass re-verifies from scratch. This convention was established during task 91 (the task-81 reorg
-capstone) and is recorded here so other tasks (e.g. task 78's niri documentation work) can adopt
-the same practice by citing this subsection -- adoption does not require merging with or
-depending on task 81/91, only following the same verify-against-source discipline.
+pass re-verifies from scratch. This convention was established during the `config/`
+reorganization capstone and is recorded here so other documentation work (e.g. the niri
+documentation rewrite) can adopt the same practice by citing this subsection -- adoption does
+not require merging with or depending on that reorganization, only following the same
+verify-against-source discipline.
 
 ### Prohibited practices
 

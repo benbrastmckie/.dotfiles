@@ -13,7 +13,7 @@
 let
   cfg = config.services.discordBot;
 
-  # Discord Bot packaged application (Task 89)
+  # Discord Bot packaged application
   # buildPythonApplication derivation for the Nextcord bot service, callPackage'd directly
   # here (not via overlays/python-packages.nix, which is scoped to library overrides
   # composed via python3.withPackages). Replaces the pre-task-89 ad-hoc interpreter
@@ -26,7 +26,7 @@ in
   options.services.discordBot.enable = lib.mkEnableOption "the OpenCode Discord bot relay (discord-bot + opencode-serve services)";
 
   # ==========================================================================
-  # Discord Bot Prerequisites (Task 53)
+  # Discord Bot Prerequisites
   # ==========================================================================
   # sops-nix decryption: injects bot token and OpenCode password into
   # systemd services via LoadCredential (never on disk unencrypted).

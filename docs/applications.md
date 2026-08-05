@@ -86,7 +86,7 @@ System-wide TTS and STT tools for Claude Code notifications and Neovim integrati
 
 Fast, local, fully offline neural text-to-speech with the `en_US-lessac-medium` voice.
 Installed via a prebuilt Linux x86_64 release binary (`packages/piper-bin.nix`, fetchurl +
-autoPatchelfHook) so the bundled onnxruntime is never compiled from source (task 70).
+autoPatchelfHook) so the bundled onnxruntime is never compiled from source.
 
 **Package**: `piper` (custom `packages/piper-bin.nix`, rhasspy/piper release 2023.11.14-2)
 **Model**: `piper-voice-en-us-lessac-medium` (symlinked to `~/.local/share/piper/`)

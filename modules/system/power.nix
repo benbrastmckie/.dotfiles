@@ -193,7 +193,7 @@ in
   };
 
   # ==========================================================================
-  # Polkit grant: root may suspend while ignoring inhibitors (task 123)
+  # Polkit grant: root may suspend while ignoring inhibitors
   # ==========================================================================
   # Allow root to suspend while ignoring inhibitors, for the session-less
   # battery-suspend-backstop oneshot below. Without this the oneshot's
@@ -250,7 +250,7 @@ in
       # a session-less root caller (no agent to prompt) is denied outright.
       # The `security.polkit.extraConfig` rule above this block is what makes
       # this call succeed; without it this oneshot silently fails every time
-      # it fires (task 123). The timer retries every minute so it cannot be
+      # it fires. The timer retries every minute so it cannot be
       # raced by a freshly acquired inhibitor.
       #
       # Re-suspend loop is INTENTIONAL, not an oversight: after any wake that is

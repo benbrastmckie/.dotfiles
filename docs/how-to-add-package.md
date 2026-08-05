@@ -90,7 +90,7 @@ A package should appear in **only one** of `environment.systemPackages` or `home
 If it's in both, one entry is redundant — prefer `home.packages` for user tools since
 it participates in the standalone home-manager profile and can be updated without `sudo`.
 
-The following packages were cleaned up in task 66 Phase 1 (removed from `systemPackages`
+The following packages have been cleaned up (removed from `systemPackages`
 because they are already in `home.packages`): `stylua`, `cvc5`, `lectic`, `wl-clipboard`.
 
 ## Python Packages

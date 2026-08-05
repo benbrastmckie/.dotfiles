@@ -3,7 +3,7 @@
 This document describes the Himalaya email client setup with dual-account support (Gmail + Protonmail), app-password authentication, and mbsync synchronization.
 
 > **Authentication update (2026-07-02) — Gmail is on an app password, not OAuth2.**
-> As of task 72 Phase 3, Gmail authenticates end-to-end with a **Gmail app password** (both
+> Gmail authenticates end-to-end with a **Gmail app password** (both
 > `mbsync` IMAP-in and Himalaya SMTP-out) via the `gmail-app-password` keyring entry — the same
 > credential aerc uses. XOAUTH2 is no longer the active path, and the
 > `gmail-oauth2-refresh.service`/`.timer` are **disabled**

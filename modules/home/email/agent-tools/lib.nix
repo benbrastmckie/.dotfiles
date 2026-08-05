@@ -1,4 +1,4 @@
-# Task 72 (Phases 5-6): five nix-declared, dry-run-by-default agent wrapper binaries
+# Five nix-declared, dry-run-by-default agent wrapper binaries
 # implementing the FROZEN interface at
 # specs/072_email_workflow_infrastructure_prereqs/handoffs/wrapper-contract.md.
 #
@@ -15,18 +15,18 @@
 # path (`message delete` twice: once to move to Trash, once inside Trash to set `\Deleted`,
 # then `folder expunge Trash`).
 #
-# Task 79: `--account` is now a real two-value enum (`gmail` | `logos`), superseding the
-# task-72 framing of Protonmail/Logos as "out of scope, flag reserved for future multi-account
+# `--account` is a real two-value enum (`gmail` | `logos`), superseding the earlier
+# framing of Protonmail/Logos as "out of scope, flag reserved for future multi-account
 # support" (see the addendum to wrapper-contract.md). The Logos backend (mbsync Group `logos`,
 # notmuch index, maildir, himalaya + aerc `[logos]` accounts, Protonmail Bridge on
-# 127.0.0.1:1143) was already merged by task 72; task 79 only threads a per-account resolver
-# through this file. Verified against the live system (task 79 research report, Finding 2):
+# 127.0.0.1:1143) was already merged earlier; this file only threads a per-account resolver
+# through. Verified against the live system:
 # Logos's real maildir++ folders are the bare root (`INBOX`), `.Sent`, `.Archive`, `.Drafts`,
 # `.Trash` — there is NO `.All_Mail` and NO `.Spam` for Logos (Proton is folder-based, not
 # Gmail's label model); the non-dot `INBOX`/`Sent`/`Drafts`/`Trash`/`Archive` subdirectories
 # under `~/Mail/Logos/` are stray, always-empty directories and must never be queried.
 #
-# Task 88: split out of the former monolithic `email/agent-tools.nix` (761 lines). Carries
+# Split out of the former monolithic `email/agent-tools.nix` (761 lines). Carries
 # ONLY the shared pure-string helpers used by the five per-binary modules in this directory
 # (census/classify/unsubscribe-extract/archive-confirmed/delete-confirmed, wired by
 # default.nix). PLAIN Nix expression, not a Home Manager module — no `pkgs`/`config` args;
@@ -35,8 +35,8 @@ let
   manifestDirDefault = "$HOME/.local/state/email-agent/manifests";
 
   # ---------------------------------------------------------------------------------------
-  # Shared preamble (contract §2): global flags, `--account {gmail,logos}` per-account resolver
-  # (task 79), manifest-dir resolution, logging. Interpolated into ALL five binaries.
+  # Shared preamble (contract §2): global flags, `--account {gmail,logos}` per-account
+  # resolver, manifest-dir resolution, logging. Interpolated into ALL five binaries.
   # ---------------------------------------------------------------------------------------
   mkPreamble =
     {

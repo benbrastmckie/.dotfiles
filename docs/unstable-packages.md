@@ -2,7 +2,7 @@
 
 This document explains the approach used for managing packages from the unstable channel within the NixOS configuration.
 
-> **Note**: The root-level `unstable-packages.nix` file has been deleted (task 66, Phase 1).
+> **Note**: The root-level `unstable-packages.nix` file has been deleted.
 > Unstable package management now lives in `overlays/unstable-packages.nix`, wired into
 > `flake.nix` as `unstablePackagesOverlay`.
 

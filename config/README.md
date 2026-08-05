@@ -94,7 +94,7 @@ never be conflated:
 
 | Path | What it is | Scope |
 |------|------------|-------|
-| `.claude/` (repo root) | The Claude Code agent-orchestration system for this repo (commands, skills, agents, context) | Out of scope for this task and for task 81 generally |
+| `.claude/` (repo root) | The Claude Code agent-orchestration system for this repo (commands, skills, agents, context) | Out of scope for this document and for the `config/` tree generally |
 | `config/claude/` | The dotfiles *source* for Claude Code CLI settings (`settings.json`, `keybindings.json`), tracked in this repo | In scope — this is what deployment mechanism 3 copies from |
 | `~/.claude/` (user's `$HOME`) | The deployed *runtime* target directory that the actual Claude Code CLI reads/writes at `$HOME`, outside this repo | The destination mechanism 3 copies to; not itself version-controlled |
 

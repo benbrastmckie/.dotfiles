@@ -1,6 +1,6 @@
 # Email Agent Workflow (Wrapper Mechanism)
 
-Task 72 built the `.dotfiles`-owned MECHANISM for AI-assisted Gmail triage: five nix-declared,
+This repo owns the MECHANISM for AI-assisted Gmail triage: five nix-declared,
 dry-run-by-default wrapper binaries, a PreToolUse allowlist hook, mbsync freeze/thaw helpers,
 and an aerc review flow. This doc is a short operator-facing overview; the authoritative,
 FROZEN interface spec lives in
