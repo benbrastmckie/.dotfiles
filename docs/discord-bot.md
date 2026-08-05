@@ -358,7 +358,7 @@ The `discord-link.lua` queries the OpenCode HTTP API directly (no CLI `opencode 
 
 ### Thread Naming
 
-Discord threads are named using the format `{dir} #{task}: {title}` when the session title contains a task number (e.g., `.dotfiles #51: Implementation plan for task 51`). When no task number is found, the format is `{dir}: {title}`. The directory component is the basename of the OpenCode session's working directory. Names are truncated to Discord's 100-character limit.
+Discord threads are named using the format `{dir} #{task}: {title}` when the session title contains a task number. When no task number is found, the format is `{dir}: {title}`. The directory component is the basename of the OpenCode session's working directory. Names are truncated to Discord's 100-character limit.
 
 Thread names update automatically: re-linking an existing session with `<leader>ar` detects title changes and renames the Discord thread to match. This handles the case where a session's title changes after the initial link (e.g., starting a new task in the same session).
 
