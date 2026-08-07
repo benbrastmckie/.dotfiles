@@ -35,6 +35,7 @@ This directory contains comprehensive documentation for the NixOS configuration 
 
 ### Development & Hardware
 - **[development.md](development.md)** - Development notes and workflows
+- **[memory-monitoring.md](memory-monitoring.md)** - Three-tier memory monitoring (earlyoom, aggregate logging, per-process attribution), log schemas, and analysis recipes
 - **[wifi.md](wifi.md)** - **CRITICAL:** WiFi configuration requirements and troubleshooting
 - **[ryzen-ai-300.md](ryzen-ai-300.md)** - AMD Ryzen AI 300 series hardware support and installation guide
 

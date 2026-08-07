@@ -1,10 +1,10 @@
 # Memory monitoring user services
 # Part of the three-tier memory monitoring system:
-#   Tier 1: earlyoom (system-level OOM prevention in configuration.nix)
-#   Tier 2: memory-monitor (user-level logging and alerts)
-#   Tier 3: claude-memory-tracker (process-specific tracking)
+#   Tier 1: earlyoom (system-level OOM prevention in modules/system/power.nix)
+#   Tier 2: memory-monitor (aggregate usage logging and desktop alerts)
+#   Tier 3: process-memory-tracker (top-N per-process attribution)
 #
-# See: specs/26_memory_monitoring_systemd_services_nixos
+# See docs/memory-monitoring.md for the log schemas and analysis recipes.
 { config, ... }:
 {
   # Memory monitor service - logs system memory and sends desktop alerts
@@ -24,15 +24,18 @@
     };
   };
 
-  # Claude memory tracker service - tracks Claude process memory usage
-  systemd.user.services.claude-memory-tracker = {
+  # Process memory tracker service - logs the top RSS consumers system-wide
+  #
+  # Supersedes the former claude-memory-tracker unit. Home Manager's sd-switch
+  # stops and removes the old unit on activation, since it is no longer declared.
+  systemd.user.services.process-memory-tracker = {
     Unit = {
-      Description = "Claude process memory tracker";
+      Description = "Top-N process memory tracker";
       After = [ "default.target" ];
     };
     Service = {
       Type = "simple";
-      ExecStart = "${config.home.homeDirectory}/.nix-profile/bin/claude-memory-tracker";
+      ExecStart = "${config.home.homeDirectory}/.nix-profile/bin/process-memory-tracker";
       Restart = "on-failure";
       RestartSec = 10;
     };

@@ -1,10 +1,12 @@
 # Memory monitoring scripts
 # Part of the three-tier memory monitoring system:
-#   Tier 1: earlyoom (system-level OOM prevention in configuration.nix)
-#   Tier 2: memory-monitor (user-level logging and alerts)
-#   Tier 3: claude-memory-tracker (process-specific tracking)
+#   Tier 1: earlyoom (system-level OOM prevention in modules/system/power.nix)
+#   Tier 2: memory-monitor (aggregate usage logging and desktop alerts)
+#   Tier 3: process-memory-tracker (top-N per-process attribution)
 #
-# See: specs/26_memory_monitoring_systemd_services_nixos
+# Tier 2 answers "when was the system under pressure"; Tier 3 answers "what
+# caused it". See docs/memory-monitoring.md for the log schemas and analysis
+# recipes.
 { pkgs, ... }:
 {
   home.packages = [
@@ -122,22 +124,38 @@
       done
     '')
 
-    # Claude memory tracker script - tracks Claude process memory usage
-    (pkgs.writeShellScriptBin "claude-memory-tracker" ''
+    # Process memory tracker - logs the top RSS consumers system-wide
+    #
+    # Replaces the earlier claude-memory-tracker, which matched a hardcoded
+    # pgrep pattern of "(claude|@anthropic|opencode)". That pattern missed the
+    # processes that actually drive this machine's memory exhaustion: earlyoom's
+    # journal records lean workers at 19 GB and pytest at 22 GB, neither of which
+    # the old pattern selected. (lean appeared in the old CSV only by accident,
+    # when its source path happened to live under a /tmp/claude-1000 scratchpad.)
+    #
+    # This version takes no allowlist. It snapshots the top N processes by RSS,
+    # so whatever the next offender turns out to be, it is already being logged.
+    (pkgs.writeShellScriptBin "process-memory-tracker" ''
       #!/usr/bin/env bash
 
       # Configuration
       LOG_DIR="$HOME/.local/share/memory-monitor"
-      LOG_FILE="$LOG_DIR/claude.csv"
-      CHECK_INTERVAL=60       # Seconds between checks
-      MAX_LOG_SIZE=10485760   # 10MB - rotate log when exceeded
+      LOG_FILE="$LOG_DIR/processes.csv"
+      TOP_N=10                # Number of processes to record per sample
+      MIN_RSS_KB=51200        # 50MB - ignore processes smaller than this
+      INTERVAL_NORMAL=60      # Seconds between samples under normal pressure
+      INTERVAL_BURST=5        # Seconds between samples once BURST_THRESHOLD is crossed
+      BURST_THRESHOLD=75      # Memory % at which to switch to high-resolution sampling
+      MAX_LOG_SIZE=52428800   # 50MB - rotate log when exceeded (~2 weeks at normal rate)
+
+      CSV_HEADER="timestamp,mem_pct,swap_pct,mode,rank,pid,comm,rss_kb,cmdline"
 
       # Create log directory
       mkdir -p "$LOG_DIR"
 
       # Create CSV header if file doesn't exist
       if [ ! -f "$LOG_FILE" ]; then
-        echo "timestamp,pid,command,rss_kb,vsz_kb,mem_pct" > "$LOG_FILE"
+        echo "$CSV_HEADER" > "$LOG_FILE"
       fi
 
       # Function to rotate log file if too large
@@ -146,7 +164,7 @@
           local size=$(stat -c %s "$LOG_FILE" 2>/dev/null || echo 0)
           if [ "$size" -gt "$MAX_LOG_SIZE" ]; then
             mv "$LOG_FILE" "$LOG_FILE.old"
-            echo "timestamp,pid,command,rss_kb,vsz_kb,mem_pct" > "$LOG_FILE"
+            echo "$CSV_HEADER" > "$LOG_FILE"
           fi
         fi
       }
@@ -154,32 +172,51 @@
       # Main monitoring loop
       while true; do
         TIMESTAMP=$(date -Iseconds)
+        MEM_PCT=$(${pkgs.procps}/bin/free | ${pkgs.gawk}/bin/awk '/Mem:/ {printf "%.0f", ($3/$2) * 100}')
+        SWAP_PCT=$(${pkgs.procps}/bin/free | ${pkgs.gawk}/bin/awk '/Swap:/ {if ($2 > 0) printf "%.0f", ($3/$2) * 100; else print "0"}')
 
-        # Find all Claude-related processes
-        # Matches: claude, claude-code, @anthropics/claude-code, node processes with claude
-        PIDS=$(${pkgs.procps}/bin/pgrep -f "(claude|@anthropic|opencode)" 2>/dev/null)
-
-        if [ -n "$PIDS" ]; then
-          for PID in $PIDS; do
-            # Get process details: RSS (resident set size), VSZ (virtual memory), %MEM, command
-            PROC_INFO=$(${pkgs.procps}/bin/ps -o rss=,vsz=,%mem=,comm= -p "$PID" 2>/dev/null)
-
-            if [ -n "$PROC_INFO" ]; then
-              RSS=$(echo "$PROC_INFO" | ${pkgs.gawk}/bin/awk '{print $1}')
-              VSZ=$(echo "$PROC_INFO" | ${pkgs.gawk}/bin/awk '{print $2}')
-              MEM_PCT=$(echo "$PROC_INFO" | ${pkgs.gawk}/bin/awk '{print $3}')
-              COMM=$(echo "$PROC_INFO" | ${pkgs.gawk}/bin/awk '{print $4}')
-
-              # Log to CSV
-              echo "$TIMESTAMP,$PID,$COMM,$RSS,$VSZ,$MEM_PCT" >> "$LOG_FILE"
-            fi
-          done
+        # Under pressure, sample far more often - the ramp into a spike is the
+        # part worth having, and a 60s interval routinely misses it entirely.
+        if [ "$MEM_PCT" -ge "$BURST_THRESHOLD" ]; then
+          MODE="burst"
+          SLEEP_FOR="$INTERVAL_BURST"
+        else
+          MODE="normal"
+          SLEEP_FOR="$INTERVAL_NORMAL"
         fi
+
+        # Snapshot the top consumers. Fields are pid, rss, then the full argv;
+        # comm is derived from argv[0] rather than requested separately, because
+        # ps truncates comm to 15 chars and it may itself contain spaces
+        # (e.g. "npm exec @anthr"), which would misalign a whitespace split.
+        ${pkgs.procps}/bin/ps -eo pid=,rss=,args= --sort=-rss 2>/dev/null \
+          | head -n "$TOP_N" \
+          | ${pkgs.gawk}/bin/awk \
+              -v ts="$TIMESTAMP" -v mem="$MEM_PCT" -v swp="$SWAP_PCT" \
+              -v mode="$MODE" -v min_rss="$MIN_RSS_KB" '
+              {
+                pid = $1
+                rss = $2
+                if (rss + 0 < min_rss + 0) next
+
+                # argv[0] basename becomes the command label
+                n = split($3, path_parts, "/")
+                comm = path_parts[n]
+
+                # Reassemble the full argv, then make it CSV-safe and bounded
+                cmdline = ""
+                for (i = 3; i <= NF; i++) cmdline = cmdline (i > 3 ? " " : "") $i
+                gsub(/,/, ";", cmdline)
+                gsub(/"/, "", cmdline)
+                if (length(cmdline) > 160) cmdline = substr(cmdline, 1, 160)
+
+                printf "%s,%s,%s,%s,%d,%s,%s,%s,%s\n", ts, mem, swp, mode, NR, pid, comm, rss, cmdline
+              }' >> "$LOG_FILE"
 
         # Rotate log if needed
         rotate_log
 
-        sleep "$CHECK_INTERVAL"
+        sleep "$SLEEP_FOR"
       done
     '')
   ];

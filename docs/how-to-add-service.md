@@ -141,7 +141,8 @@ Home Manager must have `systemd.user.startServices = "sd-switch"` set (already c
 |---------|------|---------|
 | `systemd.user.services.ydotool` | `modules/home/services/ydotool.nix` | Universal input tool daemon (Wayland) |
 | `systemd.user.services.screenshot-path-copy` | `modules/home/services/screenshot.nix` | Screenshot path copy service |
-| `systemd.user.services.memory-monitor` | `modules/home/memory/services.nix` | System memory monitoring |
+| `systemd.user.services.memory-monitor` | `modules/home/memory/services.nix` | Aggregate memory logging and desktop alerts |
+| `systemd.user.services.process-memory-tracker` | `modules/home/memory/services.nix` | Top-N per-process memory attribution (see [memory-monitoring.md](memory-monitoring.md)) |
 
 Note: `services.protonmail-bridge` (ProtonMail bridge for email) is actually a Home Manager
 service, declared in `modules/home/email/protonmail.nix` — not a system service, despite its
