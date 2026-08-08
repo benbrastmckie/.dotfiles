@@ -37,6 +37,17 @@ config/zuliprc
 /.opencode/
 /opencode.json
 
+# Extension picker state — generated from whichever extensions are loaded.
+/.claude-extensions.json
+
+# Agent system runtime logs — rewritten every session.
+/.agent-logs/
+
 # Task-system scratch space — directory must persist (skill-base.sh atomic-write dependency)
 specs/tmp/*
 !specs/tmp/.gitkeep
+
+# Task-system event store — machine-local append-only telemetry (read by /distill --dream)
+# plus its advisory lock.
+specs/events.jsonl
+specs/.events.lock
