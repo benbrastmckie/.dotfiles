@@ -11,7 +11,7 @@ next_project_number: 130
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128,129 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -24,7 +24,7 @@ next_project_number: 130
 125 [PARTIAL] — Contain every Claude Code session in its own systemd user scope a
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the result
 128 [NOT STARTED] — Correct this repo's Claude Code MCP registration and permission c
-129 [NOT STARTED] — Provision Zotero agent tooling: zot CLI on PATH, managed API key,
+129 [IMPLEMENTING] — Provision the machine-level tooling that unblocks the literature 
 
 ### Nix Infrastructure
 
@@ -56,11 +56,12 @@ next_project_number: 130
 ## Tasks
 
 ### 129. Provision zotero agent tooling
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
-- **Research**: [129_provision_zotero_agent_tooling/reports/01_zotero-tooling-provisioning-research.md]
+- **Research**: [129_provision_zotero_agent_tooling/reports/02_zotero-tooling-provisioning-verification.md]
+- **Plan**: [129_provision_zotero_agent_tooling/plans/01_provision-zotero-agent-tooling.md]
 
 **Description**: Provision the machine-level tooling that unblocks the literature extension's Zotero write-back path in the agent-system repo (~/.config/nvim — its tasks 38 and 39 are the consumers). All facts verified live on 2026-08-11 (see seed report); re-confirm before editing since the environment may have moved on.
 
