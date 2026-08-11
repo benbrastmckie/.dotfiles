@@ -66,6 +66,18 @@ Usage: `loogle 'List.map'` or `loogle --help`
 
 See [Development Guide](development.md#lean-4-development) for detailed usage.
 
+#### Playwright MCP (packages/playwright-mcp.nix)
+
+NPX wrapper for the Playwright MCP server that automatically uses the latest version:
+- Zero-maintenance approach (no version pinning), matching the `claude-code.nix` convention —
+  nixpkgs' own `playwright-mcp` derivation lags upstream and hardcodes a separate
+  `PLAYWRIGHT_BROWSERS_PATH` browser set
+- Resolves the newest `chromium-*` build already installed under `~/.cache/ms-playwright` and
+  passes it via `--executable-path`, so no browser is ever downloaded
+- Registered as `mcpServers.playwright` in `~/.claude.json` by
+  `home.activation.claudeMcpServers` in `modules/home/core/dotfiles.nix` (see
+  `config/README.md`'s Mechanism 4 for the merge-not-overwrite activation detail)
+
 #### Package Structure
 
 - Package derivations and build instructions

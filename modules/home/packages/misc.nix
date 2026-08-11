@@ -19,5 +19,6 @@
     claude-squad # Terminal app for managing multiple AI agents
     gemini-cli # Google Gemini AI CLI tool
     gh # GitHub CLI (required by claude-squad)
+    playwright-mcp # Playwright MCP server, reuses cached ~/.cache/ms-playwright Chromium
   ];
 }

@@ -10,13 +10,14 @@ Files are organized by application and deployment pattern:
 
 ## Deployment Mechanisms
 
-All deployment logic lives in `modules/home/core/dotfiles.nix`. There are three distinct
+All deployment logic lives in `modules/home/core/dotfiles.nix`. There are four distinct
 mechanisms in that file; a given file in `config/` is deployed by exactly one (or two, for the
-few files mirrored by both mechanism 1 and mechanism 2) of them. Always check `dotfiles.nix`
-itself for the authoritative, current line numbers — the ranges below are current as of this
-writing but will drift as the file is edited.
+few files mirrored by both mechanism 1 and mechanism 2) of them. Mechanism 4 deploys a single key
+inside `~/.claude.json` rather than a `config/`-sourced file — see its subsection below for why it
+is grouped here anyway. Always check `dotfiles.nix` itself for the authoritative, current line
+numbers — the ranges below are current as of this writing but will drift as the file is edited.
 
-### Mechanism 1: `home.file.*.source` store symlinks (`dotfiles.nix:21-42`, plus `:59`)
+### Mechanism 1: `home.file.*.source` store symlinks (`dotfiles.nix:22-45`, plus `:62`)
 
 The majority of `config/` files are deployed via `home.file.<target>.source = ../../../config/<file>;`
 entries. Home Manager places an **immutable symlink** into the Nix store at the target path
@@ -26,7 +27,7 @@ deployed via a rebuild. This is the default/most common mechanism and covers mos
 tables below (terminal emulators, fish, tmux, zathura, niri, sioyek, opencode, fastfetch,
 himalaya, latexmkrc, and `.zuliprc` at line 59 — see the stale-row fix in the Chat section).
 
-### Mechanism 2: `builtins.readFile` mirrors into `~/.config/config-files/` (`dotfiles.nix:45-51`)
+### Mechanism 2: `builtins.readFile` mirrors into `~/.config/config-files/` (`dotfiles.nix:48-54`)
 
 A second, independent mechanism copies exactly **7** of the mechanism-1 files' contents into a
 parallel `~/.config/config-files/` directory using `builtins.readFile`, producing plain
@@ -47,7 +48,7 @@ mechanism-2 mirror. The purpose of the mirror is to keep a version-control-frien
 diffable plain-text copy alongside the store symlink; it is not itself the canonical deployed
 config for any application.
 
-### Mechanism 3: `home.activation.claudeSettings` copy (`dotfiles.nix:61-70`)
+### Mechanism 3: `home.activation.claudeSettings` copy (`dotfiles.nix:65-73`)
 
 `config/claude/settings.json` and `config/claude/keybindings.json` are deployed by an
 **activation script**, not a symlink. On every `home-manager switch`, the
@@ -69,6 +70,23 @@ read-only store symlink would not allow.
 > files directly, copy your changes into `config/claude/` before the next rebuild or they will be
 > lost.
 
+### Mechanism 4: `home.activation.claudeMcpServers` jq merge (`dotfiles.nix:82-109`)
+
+`~/.claude.json` (see the four-way collision table below) is Claude Code's master user-scope
+config file: `mcpServers`, the project list, OAuth state, and session history all live there. The
+`home.activation.claudeMcpServers` block writes exactly one key into it —
+`mcpServers.playwright` — on every `home-manager switch`, using the same `jq` read-modify-write
+technique already proven by `.claude/scripts/setup-lean-mcp.sh` (create the file with `{}` if it
+does not exist, `jq` the new key into a temp file in the same directory, then `mv` the temp file
+over the original).
+
+This is the **deliberate counterpoint** to Mechanism 3's force-overwrite: because `~/.claude.json`
+carries OAuth/session/project-list state that must survive every rebuild, this block never
+`rm -f`s or `cp`s the file — it merges a single key and leaves every other key (including the
+pre-existing `mcpServers.lean-lsp` entry) untouched. If the `jq` merge fails for any reason (a
+missing or malformed source file), the temp file is discarded and `~/.claude.json` is left
+completely unmodified rather than partially written.
+
 ## Naming Hazards
 
 Two naming collisions in this repo are easy to conflate. Always use the full path when referring
@@ -87,20 +105,23 @@ by the bare name `config` inside module code; it is always reached via a relativ
 Manager module system" and `../../../config/<file>` as "the dotfiles source directory" — they are
 unrelated despite sharing the word "config".
 
-### The three-way "claude" collision
+### The four-way "claude" collision
 
-This repository contains three distinct, easily-confused "claude"-named entities. They must
+This repository contains four distinct, easily-confused "claude"-named entities. They must
 never be conflated:
 
 | Path | What it is | Scope |
 |------|------------|-------|
 | `.claude/` (repo root) | The Claude Code agent-orchestration system for this repo (commands, skills, agents, context) | Out of scope for this document and for the `config/` tree generally |
 | `config/claude/` | The dotfiles *source* for Claude Code CLI settings (`settings.json`, `keybindings.json`), tracked in this repo | In scope — this is what deployment mechanism 3 copies from |
-| `~/.claude/` (user's `$HOME`) | The deployed *runtime* target directory that the actual Claude Code CLI reads/writes at `$HOME`, outside this repo | The destination mechanism 3 copies to; not itself version-controlled |
+| `~/.claude/` (user's `$HOME`, a directory) | The deployed *runtime* target directory that the actual Claude Code CLI reads/writes at `$HOME`, outside this repo | The destination mechanism 3 copies to; not itself version-controlled |
+| `~/.claude.json` (user's `$HOME`, a single file, no trailing slash) | Claude Code's master user-scope config file: `mcpServers`, project list, OAuth state, session history — distinct from, and outside, the `~/.claude/` directory above | The destination mechanism 4 merges `mcpServers.playwright` into; not itself version-controlled, and never fully overwritten |
 
 `.claude/` and `config/claude/` are both inside this git repository but serve completely
-different purposes (agent orchestration vs. dotfiles source); `~/.claude/` is outside the repo
-entirely and is where the CLI actually runs. When in doubt, name the full path.
+different purposes (agent orchestration vs. dotfiles source); `~/.claude/` and `~/.claude.json`
+are both outside the repo entirely — one a directory, the other a single file one level up from
+it — and are where the CLI actually runs and stores its master config, respectively. When in
+doubt, name the full path.
 
 ## Terminal Emulators
 
@@ -156,7 +177,7 @@ entirely and is where the CLI actually runs. When in doubt, name the full path.
 
 | File | Deployed To | Description |
 |------|-------------|-------------|
-| `zuliprc` | `~/.zuliprc` | Zulip API client configuration (mechanism 1: plain `home.file.".zuliprc".source` store symlink, `dotfiles.nix:59` — not an activation script) |
+| `zuliprc` | `~/.zuliprc` | Zulip API client configuration (mechanism 1: plain `home.file.".zuliprc".source` store symlink, `dotfiles.nix:62` — not an activation script) |
 
 ## System Information
 
@@ -172,7 +193,9 @@ entirely and is where the CLI actually runs. When in doubt, name the full path.
 - Most configs are deployed as mechanism-1 symlinks (including `.zuliprc`); only
   `config/claude/{settings,keybindings}.json` use an activation script (mechanism 3) that copies
   instead of symlinks, so Claude Code can write to them at runtime — see the force-overwrite
-  WARNING under mechanism 3 above. `rclone.conf` is out of scope for this reference (see
+  WARNING under mechanism 3 above. `~/.claude.json` (mechanism 4) is a separate, unrelated
+  activation script that merges a single key rather than deploying a `config/`-sourced file —
+  see mechanism 4 above. `rclone.conf` is out of scope for this reference (see
   `## Cloud Storage` above)
 - 7 of the mechanism-1 configs are also mirrored to `~/.config/config-files/` as plain-text
   copies for version-control visibility (mechanism 2 — see `## Deployment Mechanisms` above for

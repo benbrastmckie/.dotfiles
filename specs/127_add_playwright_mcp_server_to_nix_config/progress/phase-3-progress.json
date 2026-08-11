@@ -1,0 +1,18 @@
+{
+  "phase": 3,
+  "phase_name": "Add the claudeMcpServers merge activation block",
+  "started_at": "2026-08-11T02:45:00Z",
+  "last_updated": "2026-08-11T02:55:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Add the claudeMcpServers merge activation block — file changes",
+      "status": "done",
+      "files_touched": [
+        "modules/home/core/dotfiles.nix"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

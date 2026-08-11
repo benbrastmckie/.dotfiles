@@ -38,7 +38,9 @@
       ".config/himalaya/config.toml".source = ../../../config/himalaya-config.toml;
       # NOTE: .claude/{settings,keybindings}.json managed via activation script (not symlink)
       # so that Claude Code can write runtime changes. Source: config/claude/
-      # See home.activation.claudeSettings below.
+      # See home.activation.claudeSettings below (force-overwrite copy) and, for the distinct
+      # single-file ~/.claude.json (mcpServers etc.), home.activation.claudeMcpServers (merge,
+      # never overwrite) further below.
       ".tmux.conf".source = ../../../config/.tmux.conf;
       ".latexmkrc".source = ../../../config/latexmkrc;
 
@@ -74,6 +76,35 @@
     activation.uvTools = config.lib.dag.entryAfter [ "writeBoundary" ] ''
       if command -v uv &>/dev/null; then
         run uv tool install --force lean-lsp-mcp 2>/dev/null || true
+      fi
+    '';
+
+    # Idempotently merge the playwright MCP server into ~/.claude.json (user scope; subagents
+    # cannot see project-scoped .mcp.json). Deliberate counterpoint to claudeSettings above:
+    # this file also carries Claude Code's OAuth/session/project-list state, which must survive
+    # every rebuild, so this block merges via jq (like .claude/scripts/setup-lean-mcp.sh) rather
+    # than the rm -f + cp full-overwrite claudeSettings uses. The existing mcpServers.lean-lsp
+    # entry (and every other key) is left untouched. jq output needs shell redirection, which the
+    # `run` helper (a plain "$@" exec, no shell) cannot express directly, so — unlike uvTools'
+    # `run`-wrapped form — this block guards its own mutating body behind the same `DRY_RUN`
+    # variable `run` itself checks, keeping `home-manager switch --dry-run` non-destructive
+    # without fighting `run`'s argument-vector-only interface.
+    activation.claudeMcpServers = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+      claudeJson="${config.home.homeDirectory}/.claude.json"
+      if [[ -v DRY_RUN ]]; then
+        echo "Would merge mcpServers.playwright into $claudeJson"
+      else
+        [ -f "$claudeJson" ] || echo '{}' > "$claudeJson"
+        tmpFile="$(mktemp "${config.home.homeDirectory}/.claude.json.XXXXXX")"
+        if ${pkgs.jq}/bin/jq \
+          --argjson cfg '{"type":"stdio","command":"playwright-mcp","args":[]}' \
+          '.mcpServers.playwright = $cfg' \
+          "$claudeJson" > "$tmpFile"; then
+          mv "$tmpFile" "$claudeJson"
+          chmod u+w "$claudeJson"
+        else
+          rm -f "$tmpFile"
+        fi
       fi
     '';
   };

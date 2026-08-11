@@ -13,6 +13,7 @@ pkgs-unstable: final: prev: {
   loogle = final.callPackage ../packages/loogle.nix { }; # Lean 4 Mathlib search tool (wrapper)
   aristotle = final.callPackage ../packages/aristotle.nix { }; # AI theorem prover with Lean
   slidev = final.callPackage ../packages/slidev.nix { }; # Presentation slides from Markdown
+  playwright-mcp = final.callPackage ../packages/playwright-mcp.nix { }; # Latest version, reuses cached browser (deliberately shadows nixpkgs' derivation)
   kooha = import ../packages/kooha.nix prev.kooha final.gst_all_1; # Screen recorder with full GStreamer plugin support
 
   # Custom wrappers extracted from modules/system/packages.nix.

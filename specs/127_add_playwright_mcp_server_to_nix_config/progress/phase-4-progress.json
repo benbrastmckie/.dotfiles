@@ -1,0 +1,16 @@
+{
+  "phase": 4,
+  "phase_name": "Build, switch, and verify declarative registration",
+  "started_at": "2026-08-11T02:56:00Z",
+  "last_updated": "2026-08-11T03:10:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Build, switch, and verify declarative registration — verification and application only",
+      "status": "done",
+      "files_touched": []
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

@@ -1,0 +1,16 @@
+{
+  "phase": 1,
+  "phase_name": "Verify upstream CLI contract and browser cache layout",
+  "started_at": "2026-08-11T02:36:57Z",
+  "last_updated": "2026-08-11T02:40:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Verify upstream CLI contract and browser cache layout — verification only",
+      "status": "done",
+      "files_touched": []
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}
