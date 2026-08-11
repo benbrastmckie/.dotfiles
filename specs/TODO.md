@@ -11,7 +11,7 @@ next_project_number: 128
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,127 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -23,7 +23,6 @@ next_project_number: 128
   └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
 125 [PARTIAL] — Contain every Claude Code session in its own systemd user scope a
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the result
-127 [IMPLEMENTING] — Add the Playwright MCP server to the Nix configuration so Claude 
 
 ### Nix Infrastructure
 
@@ -55,12 +54,13 @@ next_project_number: 128
 ## Tasks
 
 ### 127. Add playwright mcp server to nix config
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
 - **Research**: [127_add_playwright_mcp_server_to_nix_config/reports/01_playwright-mcp-nix-integration.md]
 - **Plan**: [127_add_playwright_mcp_server_to_nix_config/plans/01_playwright-mcp-nix-declaration.md]
+- **Summary**: [127_add_playwright_mcp_server_to_nix_config/summaries/01_playwright-mcp-nix-declaration-summary.md]
 
 **Description**: Add the Playwright MCP server to the Nix configuration so Claude Code can drive a browser, declared in the same module/option style used elsewhere in the config rather than registered ad-hoc via the CLI. Reuse the existing nix-ld Chromium dependency set in modules/system/nix.nix and the already-populated ~/.cache/ms-playwright browsers instead of re-downloading them. Include concise documentation for the addition matching surrounding conventions.
 

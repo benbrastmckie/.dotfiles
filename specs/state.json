@@ -4,12 +4,12 @@
     {
       "project_number": 127,
       "project_name": "add_playwright_mcp_server_to_nix_config",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "nix",
       "description": "Add the Playwright MCP server to the Nix configuration so Claude Code can drive a browser, declared in the same module/option style used elsewhere in the config rather than registered ad-hoc via the CLI. Reuse the existing nix-ld Chromium dependency set in modules/system/nix.nix and the already-populated ~/.cache/ms-playwright browsers instead of re-downloading them. Include concise documentation for the addition matching surrounding conventions.",
       "topic": "nixos-config",
       "created": "2026-08-11T01:57:10Z",
-      "last_updated": "2026-08-11T02:36:37Z",
+      "last_updated": "2026-08-11T02:51:30Z",
       "session_id": "sess_1786415505_fd2139",
       "artifacts": [
         {
@@ -21,8 +21,14 @@
           "path": "specs/127_add_playwright_mcp_server_to_nix_config/plans/01_playwright-mcp-nix-declaration.md",
           "type": "plan",
           "summary": ""
+        },
+        {
+          "path": "specs/127_add_playwright_mcp_server_to_nix_config/summaries/01_playwright-mcp-nix-declaration-summary.md",
+          "type": "summary",
+          "summary": ""
         }
-      ]
+      ],
+      "completion_summary": "Declared the Playwright MCP server entirely in Nix (npx wrapper reusing cached Chromium via --executable-path, plus a merge-only home.activation block registering it in ~/.claude.json), verified via nix flake check, home-manager build/switch (idempotent), and a live navigate+screenshot smoke test with no browser download."
     },
     {
       "project_number": 125,
