@@ -6,6 +6,14 @@ Nextcord Discord bot that bridges Discord to a headless OpenCode agent server. S
 
 **Complete documentation**: [`docs/discord-bot.md`](discord-bot.md)
 
+## Zotero Agent Tooling
+
+`zot` CLI on PATH, managed credentials (sops-sourced), and an optional localhost-only
+`zotero-translation-server` for metadata resolution — supports the literature extension's Zotero
+write-back path in `~/.config/nvim`.
+
+**Complete documentation**: [`docs/zotero.md`](zotero.md)
+
 ## Email (Himalaya)
 
 Modern CLI email client with Gmail app-password authentication and mbsync synchronization. 

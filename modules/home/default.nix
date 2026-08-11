@@ -43,6 +43,7 @@
     ./services/cache-cleanup.nix
     ./services/mail-sync-timer.nix
     ./services/claude-session-reaper.nix
+    ./services/zotero-translation-server.nix
 
     # Memory monitoring (co-located: scripts + systemd services, three-tier system)
     ./memory/monitor.nix

@@ -227,27 +227,28 @@ dependency. Do not fall back to reusing the compromised key.
 - `docs/packages.md` - document the new wrapper
 
 **Verification**:
-- `nix flake check` succeeds.
-- `nix build .#nixosConfigurations.nandi.config.system.build.toplevel --no-link` succeeds
-  (substitute the live hostname).
-- After `home-manager switch --flake .#benjamin`: `command -v zot` resolves to a
-  `/nix/store/.../bin/zot` path.
-- `zot --version` prints a version `>= 0.10.0` (first invocation may take time while `uvx`
-  populates its cache).
+- `nix flake check` succeeds. Confirmed.
+- `nix build .#nixosConfigurations.hamsa.config.system.build.toplevel --no-link` succeeds
+  (substituted the live hostname, hamsa). Confirmed.
+- After `home-manager switch --flake .#benjamin`: `command -v zot` resolves to
+  `/home/benjamin/.nix-profile/bin/zot` in both fresh bash and fresh fish. Confirmed.
+- `zot --version` prints `0.10.0` in both fresh bash (`bash -lic 'zot --version'`) and fresh fish
+  (`fish -lic 'zot --version'`). Confirmed.
 
 ---
 
-### Phase 3: Localhost-only translation-server, disabled by default [NOT STARTED]
+### Phase 3: Localhost-only translation-server, disabled by default [COMPLETED]
 
 **Goal**: A `zotero-translation-server` user service that binds `127.0.0.1:1969` only, ships
 disabled, and has a documented enable toggle. Container-free, using the nixpkgs package already
 available on the pinned `nixos-26.05` channel.
 
 **Tasks**:
-- [ ] Confirm the package still resolves on the pinned channel before writing the module:
-      `nix build .#nixosConfigurations.nandi.pkgs.zotero-translation-server --no-link --print-out-paths`
-      (or `nix build nixpkgs#zotero-translation-server` against the flake's locked input).
-- [ ] Create `modules/home/services/zotero-translation-server.nix` following the Home Manager
+- [x] Confirm the package still resolves on the pinned channel before writing the module:
+      `nix build .#nixosConfigurations.hamsa.pkgs.zotero-translation-server --no-link --print-out-paths`
+      (substituted the live hostname, hamsa) — resolved to
+      `/nix/store/f5xljw0px32hqkfx4iami9dnjd3hdj8z-zotero-translation-server-unstable-2023-07-13`.
+- [x] Create `modules/home/services/zotero-translation-server.nix` following the Home Manager
       module structure in `.claude/rules/nix.md`:
       - `options.services.zoteroTranslationServer.enable = lib.mkEnableOption "the local Zotero
         translation-server (127.0.0.1:1969, metadata resolution)"` — **defaults to false**.
@@ -261,9 +262,9 @@ available on the pinned `nixos-26.05` channel.
         `ExecStart = "${pkgs.zotero-translation-server}/bin/translation-server"`.
         Record in a header comment that the package default is `host = "0.0.0.0"` and that the
         `NODE_CONFIG` override is what makes it localhost-only.
-- [ ] Import the module unconditionally in `modules/home/default.nix` under the "Service modules"
+- [x] Import the module unconditionally in `modules/home/default.nix` under the "Service modules"
       group. The module is always imported; the **service** is off until the option is set.
-- [ ] Write `docs/zotero.md` (new) documenting: the enable toggle
+- [x] Write `docs/zotero.md` (new) documenting: the enable toggle
       (`services.zoteroTranslationServer.enable = true;`), the endpoints (`POST /search` for
       DOI/ISBN/PMID/arXiv, `POST /web` for URL), the statelessness/no-credentials property, and
       the fact that the consuming repo degrades gracefully when the service is down. Add the
@@ -281,9 +282,10 @@ available on the pinned `nixos-26.05` channel.
 - `docs/applications.md` - cross-reference
 
 **Verification**:
-- `nix flake check` succeeds.
+- `nix flake check` succeeds. Confirmed.
 - `home-manager switch --flake .#benjamin` succeeds and, with the toggle still off,
   `systemctl --user list-unit-files 'zotero-translation-server*'` shows **no** enabled unit.
+  Confirmed (`0 unit files listed.`).
 - Full smoke test (temporary enable, then revert) is deferred to Phase 8 so the repo is never
   left with the toggle on.
 
