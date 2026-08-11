@@ -44,6 +44,18 @@ then `home-manager switch --flake .#benjamin`.
   `127.0.0.1` via `NODE_CONFIG` (the `config` npm module's standard env-var override). Verify
   with `ss -lntp | grep 1969` after enabling — it must show `127.0.0.1:1969`, never `0.0.0.0:1969`.
 
+**Node.js version pin (required, not optional)**: nixpkgs' `zotero-translation-server` package
+resolves its `nodejs` parameter to the "nodejs" alias on this channel, currently Node 24 — under
+which the bundled (2023-era) `config` npm package crashes on *every* startup with
+`TypeError: Utils.isRegExp is not a function`, independent of any `NODE_CONFIG` override (verified
+live: even a bare `node src/server.js` invocation with no env override crashes identically). The
+module overrides the package onto `pkgs.nodejs_22` (still has the deprecated-but-present
+`util.isRegExp`) to work around this; `nodejs_20` was tried first but nixpkgs marks it insecure on
+this channel and refuses to build it without an explicit `permittedInsecurePackages` allowlist
+entry, so `nodejs_22` is the pragmatic minimum-diff fix. Confirmed working end-to-end under
+`nodejs_22`: `POST /search` with a DOI returns real Zotero-format JSON (title, creators, DOI,
+etc.), and the listener binds `127.0.0.1:1969` as required.
+
 **Default state**: off. Toggling it on is a deliberate, explicit action.
 
 ## Declarative `~/.config/zot/config.toml`

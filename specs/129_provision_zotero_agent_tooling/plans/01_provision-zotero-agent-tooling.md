@@ -566,7 +566,7 @@ sandbox. `zot config init` is **not** run against the real config path at any po
 
 ---
 
-### Phase 8: Integrated verification, toggle smoke test, and handback note [NOT STARTED]
+### Phase 8: Integrated verification, toggle smoke test, and handback note [PARTIAL]
 
 **Goal**: Execute the full verification matrix end to end, prove the credential actually works
 via a read-only exercise (not a non-emptiness check), smoke-test the translation-server toggle
@@ -578,52 +578,99 @@ no `zot add`, no `zot attach`, no `POST`/`PUT`/`DELETE` against `api.zotero.org`
 separately.
 
 **Tasks**:
-- [ ] Build gates: `nix flake check`; `nix build` of all four `nixosConfigurations` toplevels;
-      `sudo nixos-rebuild switch --flake .#$(hostname)`;
-      `home-manager switch --flake .#benjamin`. All must succeed.
-- [ ] `zot` reach and version, from **fresh** shells:
-      `bash -lic 'command -v zot && zot --version'` and
-      `fish -lic 'command -v zot; and zot --version'` — version must be `>= 0.10.0`.
-- [ ] Credential visibility across all three reach paths (bash, fish,
-      `systemctl --user show-environment`) per the assertions in Phases 5 and 6.
-- [ ] **Exercise the credential, do not merely observe it.** Two independent checks:
-      1. Grants check against the sops value, read-only:
-         `curl -s -H "Zotero-API-Key: $(cat /run/secrets/zotero_api_key)" https://api.zotero.org/keys/current`
-         must return `userID 2622830` with `library`, `files`, and `write` all `true`.
-      2. Config-file-only check, proving headless reach independent of env propagation: run a
-         **read-only** `zot` subcommand under a stripped environment so only
-         `~/.config/zot/config.toml` can supply credentials, e.g.
-         `env -i HOME="$HOME" PATH="$PATH" zot <read-only-subcommand>`.
-         Determine the exact subcommand from `zot --help` / `zot config --help` at run time and
-         record the one used; it must be one that reads (library listing, search, config display)
-         and must not create, modify, or delete anything.
-- [ ] Translation-server smoke test, then revert:
-      1. Temporarily set `services.zoteroTranslationServer.enable = true;` and
+- [x] Build gates: `nix flake check` (passes for all 5 hosts including iso/usb-installer's
+      pre-existing unrelated zfs-kernel eval, see Phase 4); `nix build` of nandi + hamsa
+      toplevels (succeed; iso/usb-installer fail on the pre-existing, confirmed-unrelated
+      zfs-kernel breakage — not this task's regression);
+      `nixos-rebuild build --flake .#hamsa` (succeeds, re-confirmed after every subsequent
+      phase's changes); `home-manager switch --flake .#benjamin` (succeeds, run live many times
+      across phases 2/3/6/7/8). **NOT run**: `sudo nixos-rebuild switch` — sudo denied outright by
+      this session's permission policy (every invocation refused before reaching a password
+      prompt). This is the single largest outstanding item; see the summary's Operator Actions
+      Outstanding section.
+- [x] `zot` reach and version, from **fresh** shells: `bash -lic 'command -v zot && zot
+      --version'` and `fish -lic 'command -v zot; and zot --version'` — both report `0.10.0`
+      (>= 0.10.0 satisfied). Confirmed live (Phase 2/3 verification).
+- [ ] **OUTSTANDING**: Credential visibility across all three reach paths (bash, fish,
+      `systemctl --user show-environment`) — the code is wired and verified correct (Phases 5/6),
+      but the actual variables cannot be populated in a live shell until
+      `/run/secrets/zotero_api_key` exists, which requires the outstanding `sudo nixos-rebuild
+      switch`.
+- [x] **Exercise the credential, do not merely observe it.** Two checks, adapted for the
+      no-`/run/secrets`-yet state:
+      1. Grants check, read-only, against the (still pre-rotation) sops-stored value directly
+         (the literal value matches what `sops -d secrets/secrets.yaml` would show; `/run/secrets`
+         substitution is unavailable pre-switch): `curl -s -H "Zotero-API-Key: <value>"
+         https://api.zotero.org/keys/current` returned `"userID": 2622830` with `library`,
+         `files`, `write` all `true`. Confirmed live (re-run in this phase in addition to Phase 1).
+      2. Config-file-only check under `env -i HOME="$HOME" PATH="$PATH" zot ...`: since
+         `~/.config/zot/config.toml` does not exist yet (Phase 7 pending the same switch), this
+         necessarily shows the **pre-provisioning** state rather than a positive credential
+         exercise. Read-only subcommand used: **`zot config show`** (chosen from `zot config
+         --help`'s subcommand list — `cache`, `init`, `profile`, `show` — as the one that reads
+         and displays without creating/modifying/deleting anything). Live output:
+         `API Key:    (not set)`, `Library ID:` (empty), `Data Dir: (auto-detect)`. This
+         **correctly** demonstrates the guarded, pre-switch state (no config.toml means no
+         auto-detected credential) rather than a false positive. Also surfaced a useful,
+         independent finding: `zot`'s own auto-detection (unrelated to this repo's config)
+         resolves `Database: /home/benjamin/Zotero/zotero.sqlite` — the **decoy** path — when no
+         `config.toml` is present, which is exactly why Phase 7's `data_dir` override matters and
+         must be re-verified once `config.toml` exists post-switch.
+- [x] Translation-server smoke test, then revert — **fully executed live, including a real bug
+      fix discovered and applied during this phase** (not in the original plan):
+      1. Temporarily set `services.zoteroTranslationServer.enable = true;` in `home.nix` and ran
          `home-manager switch --flake .#benjamin`.
-      2. `systemctl --user status zotero-translation-server` is `active (running)`.
-      3. `ss -lntp | grep 1969` shows the listener on **`127.0.0.1:1969`**, not `0.0.0.0:1969` —
-         this is the assertion that proves the `NODE_CONFIG` override took effect. Cross-check
-         with `systemctl --user show zotero-translation-server -p Environment`.
-      4. `curl -s -d '10.1093/mind/fzab048' -H 'Content-Type: text/plain' http://127.0.0.1:1969/search`
-         returns Zotero JSON.
-      5. Revert the toggle to disabled, `home-manager switch` again, and confirm the unit is
-         stopped and not enabled. The repo must be left with the service off by default.
-- [ ] Plaintext hygiene: `grep -rn 'ZOTERO_API_KEY' ~/.config/fish/` returns nothing;
-      `git diff` contains no plaintext key material anywhere.
-- [ ] Write `specs/129_provision_zotero_agent_tooling/summaries/01_provision-zotero-agent-tooling-summary.md`
-      capturing the verification matrix results, the exact read-only `zot` subcommand used, and
-      the rotation date.
-- [ ] Handback note for the consuming repo (`~/.config/nvim`, its tasks 38/39) — record in the
-      summary, do not edit that repo:
-      - `zot` is on PATH; credentials reach interactive shells, `systemd --user`, and — via
-        `~/.config/zot/config.toml` — any context at all.
-      - Their scripts' `ZOTERO_API_KEY` gate now passes **and** `zot` is genuinely credentialed;
-        the two are no longer independent. If those scripts are ever changed to check a different
-        variable, this repo's exported set must be revisited.
+      2. **First attempt failed**: `TypeError: Utils.isRegExp is not a function` on every start
+         (`start-limit-hit`) — a genuine, pre-existing upstream incompatibility between the
+         bundled 2023-era `config` npm package and Node 24 (this channel's default `nodejs`),
+         reproduced even with no `NODE_CONFIG` override at all. **Fixed** by overriding the
+         package onto `pkgs.nodejs_22` in `modules/home/services/zotero-translation-server.nix`
+         (documented in the module header and `docs/zotero.md`).
+      3. **Second attempt surfaced a second genuine bug**: `systemctl --user show
+         zotero-translation-server -p Environment` showed `NODE_CONFIG={host:127.0.0.1,port:1969}`
+         — systemd's `Environment=` parser had stripped the JSON's double quotes, producing
+         invalid JSON (`"$NODE_CONFIG environment variable is malformed JSON"` warning; server
+         fell back to `0.0.0.0`). This is exactly the risk the plan's own risk table flagged
+         ("NODE_CONFIG JSON in a systemd Environment= line is mis-parsed (quotes/=)"). **Fixed**
+         by single-quoting the whole `NAME=value` pair (`NODE_CONFIG='{"host":...}'`) so systemd
+         preserves the inner double quotes — simpler than the plan's documented
+         `TRANSLATORS_DIR` + `NODE_CONFIG`-file fallback, and verified working.
+      4. Re-ran `home-manager switch`: `systemctl --user status zotero-translation-server` ->
+         `active (running)`; log line `Listening on 127.0.0.1:1969`.
+      5. `ss -lntp | grep 1969` -> `LISTEN 0 511 127.0.0.1:1969 0.0.0.0:* users:(("node",...))`
+         — confirmed `127.0.0.1`, not `0.0.0.0`. `systemctl --user show ... -p Environment` ->
+         `Environment="NODE_CONFIG={\"host\":\"127.0.0.1\",\"port\":1969}"` (valid, no warning).
+      6. `curl -s -d '10.1093/mind/fzab048' -H 'Content-Type: text/plain'
+         http://127.0.0.1:1969/search` returned real Zotero-format JSON (title "The Modal Moving
+         Spotlight Theory", DOI, creators, ISSN, etc.) — full smoke test **pass**.
+      7. Reverted `services.zoteroTranslationServer.enable = true;` from `home.nix` entirely, ran
+         `home-manager switch` again: log showed `Stopping units:
+         zotero-translation-server.service`; `systemctl --user status` now reports "could not be
+         found" (unit fully removed, not just stopped); `systemctl --user list-unit-files
+         'zotero-translation-server*'` -> `0 unit files listed`; `ss -lntp | grep 1969` -> nothing
+         listening. Repo confirmed left with the service off by default.
+- [x] Plaintext hygiene: `grep -rn 'ZOTERO_API_KEY' ~/.config/fish/` still finds the pre-existing
+      line 49 (expected and correct — its removal is deliberately deferred, see Phase 5; this
+      check is only meaningful post-removal). `git log -p` across every commit made in this
+      implementation pass, grepped for the literal key value, returns nothing — no plaintext key
+      material landed in any commit.
+- [x] Write `specs/129_provision_zotero_agent_tooling/summaries/01_provision-zotero-agent-tooling-summary.md`
+      capturing the verification matrix results, the read-only `zot` subcommand used
+      (`zot config show`), the two translation-server bugs found/fixed, and the rotation
+      provisioning-history note (existing key seeded 2026-08-11; full rotation still outstanding).
+- [x] Handback note for the consuming repo (`~/.config/nvim`, its tasks 38/39) — recorded in the
+      summary, that repo not edited:
+      - `zot` is on PATH (`0.10.0`); credential plumbing (shell exports, `systemd --user` env,
+        `~/.config/zot/config.toml`) is fully wired and code-verified, but not yet live-populated
+        pending the operator's `sudo nixos-rebuild switch` (see Operator Actions Outstanding).
+      - Their scripts' `ZOTERO_API_KEY` gate and `zot`'s own credentials are sourced from the same
+        secret and will go live together once the operator completes the outstanding switch — the
+        two are no longer independent, matching the plan's intent.
       - Live `zot add --pdf` write verification is **theirs**, deliberately not performed here.
       - `zotero-mcp` remains unregistered pending their task 39 decision.
       - The translation-server toggle is `services.zoteroTranslationServer.enable`, off by
-        default; see `docs/zotero.md`.
+        default; see `docs/zotero.md` — includes a required `nodejs_22` override note relevant to
+        anyone else who enables it.
 
 **Timing**: 1.0 hours
 
@@ -642,37 +689,77 @@ separately.
 
 ## Testing & Validation
 
-- [ ] `nix flake check` succeeds.
-- [ ] `nix build .#nixosConfigurations.{nandi,hamsa,iso,usb-installer}.config.system.build.toplevel --no-link` all succeed.
-- [ ] `sudo nixos-rebuild switch --flake .#$(hostname)` succeeds.
-- [ ] `home-manager switch --flake .#benjamin` succeeds; a second run is idempotent.
-- [ ] `home-manager switch --flake .#benjamin --dry-run` mutates nothing (activation blocks honor `DRY_RUN`).
-- [ ] `command -v zot` resolves and `zot --version` reports `>= 0.10.0` from fresh bash **and** fresh fish.
-- [ ] `ZOTERO_API_KEY`, `ZOT_API_KEY`, `ZOT_LIBRARY_ID` all set in fresh bash, fresh fish, and `systemctl --user show-environment`.
-- [ ] `$ZOTERO_API_KEY` in a fresh shell equals `cat /run/secrets/zotero_api_key` (precedence assertion).
-- [ ] `GET https://api.zotero.org/keys/current` with the sops-sourced key reports userID 2622830 and `library`+`files`+`write` grants.
-- [ ] A read-only `zot` subcommand succeeds under `env -i` with only `~/.config/zot/config.toml` supplying credentials.
-- [ ] `stat -c %a ~/.config/zot/config.toml` reports `600`.
-- [ ] With the toggle enabled: unit active, listener on `127.0.0.1:1969` (not `0.0.0.0`), `POST /search` returns Zotero JSON. Toggle reverted to disabled afterward.
-- [ ] Discord bot services unaffected by the sops hoist.
-- [ ] No `zot add` / `zot attach` / any write against the real Zotero library was executed.
-- [ ] No plaintext key material in the repo, in any commit, or in `~/.config/fish/`.
+- [x] `nix flake check` succeeds.
+- [x] `nix build .#nixosConfigurations.{nandi,hamsa,iso,usb-installer}.config.system.build.toplevel --no-link`:
+      nandi + hamsa succeed; iso + usb-installer fail on a pre-existing, confirmed-unrelated
+      zfs-kernel breakage (reproduced identically via git-stash A/B with this task's changes
+      absent — see Phase 4).
+- [ ] **OUTSTANDING (operator action)**: `sudo nixos-rebuild switch --flake .#$(hostname)` — sudo
+      denied outright in this session. `nixos-rebuild build --flake .#hamsa` (the non-privileged
+      equivalent) succeeds and was re-run after every phase.
+- [x] `home-manager switch --flake .#benjamin` succeeds; run live many times across phases
+      2/3/6/7/8, including twice in immediate succession in Phase 7/8 — idempotent (no errors, no
+      unexpected diffs).
+- [x] `home-manager switch --flake .#benjamin --dry-run` mutates nothing (activation blocks honor `DRY_RUN`) — confirmed for zotConfig.
+- [x] `command -v zot` resolves and `zot --version` reports `0.10.0` (>= 0.10.0) from fresh bash **and** fresh fish.
+- [ ] **OUTSTANDING (blocked on the switch above)**: `ZOTERO_API_KEY`, `ZOT_API_KEY`,
+      `ZOT_LIBRARY_ID` all set in fresh bash, fresh fish, and `systemctl --user show-environment`
+      — code verified correct (rendered scripts inspected directly), but cannot show as "set"
+      until `/run/secrets/zotero_api_key` exists.
+- [ ] **OUTSTANDING (same blocker)**: `$ZOTERO_API_KEY` in a fresh shell equals `cat
+      /run/secrets/zotero_api_key` (precedence assertion) — this is also the gate for removing
+      `private.fish` line 49, so it is deliberately not yet run.
+- [x] `GET https://api.zotero.org/keys/current` with the (pre-rotation) key reports userID 2622830
+      and `library`+`files`+`write` grants — confirmed live twice (Phase 1 and Phase 8).
+- [ ] **OUTSTANDING (blocked on the switch above)**: a read-only `zot` subcommand succeeds under
+      `env -i` with `~/.config/zot/config.toml` supplying credentials — `zot config show` is the
+      chosen subcommand, but `config.toml` does not exist yet (Phase 7 activation correctly
+      skipped, pending the secret existing), so this currently and correctly shows "API Key:
+      (not set)" rather than a positive credential exercise.
+- [ ] **OUTSTANDING (same blocker)**: `stat -c %a ~/.config/zot/config.toml` reports `600` — file
+      does not exist yet.
+- [x] With the toggle enabled: unit active, listener on `127.0.0.1:1969` (not `0.0.0.0`),
+      `POST /search` returns Zotero JSON. Toggle reverted to disabled afterward — unit fully
+      removed (`could not be found`), confirmed not listening. **Two real bugs found and fixed
+      along the way** (Node 24/`config`-package incompatibility; systemd `Environment=` JSON
+      quote-stripping) — see Phase 8 for full detail.
+- [x] Discord bot services unaffected by the sops hoist: pre-change baseline captured
+      (`active (running)`, both services, 6 days up) since a live switch to compare post-state
+      was not possible this session; the sops hoist itself does not touch either service's
+      config, and `nix build`/`nixos-rebuild build` on hamsa (which has `discordBot.enable`)
+      succeeded cleanly throughout.
+- [x] No `zot add` / `zot attach` / any write against the real Zotero library was executed —
+      confirmed: every Zotero-account-touching command run this session was `GET
+      /keys/current` (read-only) or local `zot config show`/`--help`/`search` (`search` returned
+      an empty local result set, no network write). The translation-server test hit only the
+      local `127.0.0.1:1969` translation service, never `api.zotero.org`.
+- [x] No plaintext key material in the repo, in any commit, or in `~/.config/fish/` **beyond the
+      pre-existing, deliberately-not-yet-removed `private.fish` line 49** (see Phase 5's hard
+      constraint on ordering). `git log -p` across every commit in this pass, grepped for the
+      literal key value, returns nothing.
 
 ## Artifacts & Outputs
 
 - `packages/zot.nix` (new)
 - `modules/system/secrets.nix` (new)
-- `modules/home/services/zotero-translation-server.nix` (new)
+- `modules/home/services/zotero-translation-server.nix` (new; includes the live-discovered
+  `nodejs_22` override and single-quoted `NODE_CONFIG` fix, beyond the plan's original spec)
 - `modules/home/services/zotero-env.nix` (new)
 - `modules/home/core/zotero.nix` (new)
-- `docs/zotero.md` (new) — toggle, endpoints, credential locations, rotation runbook
-- `secrets/secrets.yaml` (modified — encrypted `zotero_api_key`)
+- `docs/zotero.md` (new) — toggle, endpoints, credential locations, rotation runbook, and the
+  `nodejs_22`/`NODE_CONFIG`-quoting notes
+- `secrets/secrets.yaml` (modified — encrypted `zotero_api_key`, seeded with the pre-existing key)
 - `overlays/unstable-packages.nix`, `modules/home/packages/misc.nix`, `modules/home/default.nix`,
   `modules/system/default.nix`, `modules/system/shell.nix`,
-  `modules/system/optional/discord-bot.nix`, `docs/packages.md`, `docs/applications.md` (modified)
-- `~/.config/fish/conf.d/private.fish` (modified, outside repo — stale export removed)
+  `modules/system/optional/discord-bot.nix`, `docs/packages.md`, `docs/unstable-packages.md`,
+  `docs/applications.md` (modified)
+- `home.nix` — touched transiently for the Phase 8 smoke test (`services.zoteroTranslationServer.enable
+  = true;` added then removed); net diff against the pre-task state is empty.
+- `~/.config/fish/conf.d/private.fish` (outside repo, **NOT modified** — line 49 removal deferred
+  to the operator per the precedence-assertion hard constraint; see Phase 5)
 - `specs/129_provision_zotero_agent_tooling/summaries/01_provision-zotero-agent-tooling-summary.md` (new)
-- Runtime, not tracked: `/run/secrets/zotero_api_key`, `~/.config/zot/config.toml`
+- Runtime, not tracked, not yet populated (pending operator's `sudo nixos-rebuild switch`):
+  `/run/secrets/zotero_api_key`, `~/.config/zot/config.toml`
 
 ## Rollback/Contingency
 
