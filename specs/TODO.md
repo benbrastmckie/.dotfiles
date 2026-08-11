@@ -1,5 +1,5 @@
 ---
-next_project_number: 129
+next_project_number: 130
 ---
 
 # TODO
@@ -24,6 +24,7 @@ next_project_number: 129
 125 [PARTIAL] — Contain every Claude Code session in its own systemd user scope a
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the result
 128 [NOT STARTED] — Correct this repo's Claude Code MCP registration and permission c
+129 [NOT STARTED] — Provision Zotero agent tooling: zot CLI on PATH, managed API key,
 
 ### Nix Infrastructure
 
@@ -53,6 +54,27 @@ next_project_number: 129
 42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
 
 ## Tasks
+
+### 129. Provision zotero agent tooling
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+- **Research**: [129_provision_zotero_agent_tooling/reports/01_zotero-tooling-provisioning-research.md]
+
+**Description**: Provision the machine-level tooling that unblocks the literature extension's Zotero write-back path in the agent-system repo (~/.config/nvim — its tasks 38 and 39 are the consumers). All facts verified live on 2026-08-11 (see seed report); re-confirm before editing since the environment may have moved on.
+
+ITEM 1 — PUT `zot` ON PATH (the single hard blocker). Package `zotero-cli-cc` (PyPI, 0.10.0 released 2026-07-15, "Zotero CLI for Claude Code — SQLite reads + Web API writes"). The consuming scripts invoke bare `zot`, so it must resolve from interactive shells AND agent-spawned bash. KNOWN PATH GAP in this configuration (recorded in task 128's research): `uv tool install` drops binaries in ~/.local/bin, which is NOT on PATH here — that gap is why setup-lean-mcp.sh needed a wrapper. Preferred: a Nix-built wrapper on home.packages (the playwright-mcp pattern), e.g. writeShellScriptBin "zot" exec-ing `uvx --from zotero-cli-cc zot "$@"` (uvx resolves at /run/current-system/sw/bin/uvx, reliably on PATH). Avoid changing global PATH policy for this.
+
+ITEM 2 — MANAGE ZOTERO_API_KEY. It is currently hardcoded in ~/.config/fish/conf.d/private.fish (line 49), unmanaged by Nix, and therefore visible to fish sessions but NOT to non-fish login shells or systemd user services — headless/scheduled agent runs cannot see it. Verified via GET https://api.zotero.org/keys/current: full library+files+write access. Move it into the repo's secrets mechanism (secrets/) and export it to all shells plus the systemd user environment (environment.d drop-in, import-environment at session start, or home-manager session variables — match existing repo practice). The key has sat in plaintext and appeared in session logs: decide explicitly whether to rotate it at zotero.org/settings/keys during migration (a replacement needs the same library+files+write grants).
+
+ITEM 3 — TRANSLATION-SERVER SERVICE (optional but recommended; the agent-system repo's metadata-resolution task consumes it and degrades gracefully without it). Official zotero/translation-server (Node; official Docker image; port 1969; POST /search for DOI/ISBN/PMID/arXiv → Zotero JSON, POST /web for URL). Stateless, no credentials. Provision as a localhost-only service via virtualisation.oci-containers/podman user service (or packaged Node service if container-free is preferred); disabled-by-default with a documented enable toggle is acceptable.
+
+ITEM 4 — DO NOT REGISTER zotero-mcp YET. The adoption decision lives in the agent-system repo (its task 39). If it lands on adopt, registration belongs in the claudeMcpServers activation block in modules/home/core/dotfiles.nix with grants at the same scope, per the grant-at-registration-scope principle in task 128's description.
+
+VERIFICATION (all required): home-manager switch and nix flake check succeed; `command -v zot` resolves and `zot --version` reports >=0.10.0 from fresh bash AND fish; ZOTERO_API_KEY non-empty in fresh bash, fish, and `systemctl --user show-environment` (or the chosen headless path demonstrated otherwise); when the translation-server toggle is enabled, a POST /search smoke test returns Zotero JSON. Do NOT run `zot add` writes against the real library as part of this task — the live write verification belongs to the agent-system repo's task and must be coordinated deliberately.
+
+---
 
 ### 128. Claude mcp registration and permission scope
 - **Status**: [NOT STARTED]
