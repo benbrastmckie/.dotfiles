@@ -1,7 +1,21 @@
-# Implementation Summary: Task #127
+# Implementation Summary: Add Playwright MCP server to Nix config
 
-**Completed**: 2026-08-11
-**Duration**: ~45 minutes
+- **Task**: 127 - add_playwright_mcp_server_to_nix_config
+- **Status**: [COMPLETED]
+- **Started**: 2026-08-11T02:36:39Z
+- **Completed**: 2026-08-11T02:50:01Z
+- **Effort**: ~45 minutes agent time (6 phases)
+- **Dependencies**: None
+- **Artifacts**:
+  - `specs/127_add_playwright_mcp_server_to_nix_config/plans/01_playwright-mcp-nix-declaration.md`
+  - `specs/127_add_playwright_mcp_server_to_nix_config/reports/01_playwright-mcp-nix-integration.md`
+  - `packages/playwright-mcp.nix`
+  - `overlays/unstable-packages.nix`
+  - `modules/home/packages/misc.nix`
+  - `modules/home/core/dotfiles.nix`
+  - `config/README.md`
+  - `docs/packages.md`
+- **Standards**: `.claude/context/formats/summary-format.md`, `.claude/rules/nix.md`
 
 ## Overview
 
@@ -50,6 +64,21 @@ new merge-only `home.activation` block that idempotently registers `mcpServers.p
   zero-maintenance convention; the smoke test in Phase 5 passed cleanly against the resolved
   0.0.79 CLI, so the version-pin contingency in the plan's risk table was not needed.
 
+## Impacts
+
+- Every `home-manager switch` now performs a read-modify-write on `~/.claude.json` via the new
+  `activation.claudeMcpServers` block. The merge is additive and key-scoped, but `~/.claude.json`
+  is app-owned mutable state (OAuth, session, project list), so this is the first activation step
+  in this config that writes into a file Claude Code itself rewrites at runtime.
+- `playwright-mcp` is now on `PATH` for the `benjamin` home configuration, and Claude Code
+  discovers the `playwright` MCP server automatically on next start — no `claude mcp add` step.
+- `~/.cache/ms-playwright` becomes an undeclared runtime dependency: the wrapper resolves the
+  newest `chromium-*` build there at invocation time. Nix does not manage or populate that cache,
+  so it is imperative state the declarative config now relies on (see Follow-ups).
+- `config/README.md`'s `claude` collision table grew from three-way to four-way, and its
+  `dotfiles.nix` line-range citations were refreshed — future edits to `dotfiles.nix` will stale
+  them again.
+
 ## Plan Deviations
 
 - **Phase 3** (`run` / `$DRY_RUN_CMD` helper choice): altered from a literal `run`-wrapped form to
@@ -83,6 +112,30 @@ new merge-only `home.activation` block that idempotently registers `mcpServers.p
   version. No "download" text appeared on stdout/stderr, and the cache directory's revision set
   (`chromium-1217`, `chromium-1234`) and total size (1.3G) were unchanged before and after.
 - Task-number citation grep: clean across all six touched non-`specs/**` files.
+
+## Follow-ups
+
+- **Empty/cleared browser cache is unhandled**: if `~/.cache/ms-playwright` is pruned or the
+  machine is re-provisioned, the wrapper has no `chromium-*` directory to resolve and the MCP
+  server will fail at launch. No bootstrap path (`playwright install chromium`) is wired in.
+  Decide whether to add one or document the manual recovery step.
+- **`@playwright/mcp@latest` is unpinned**: `npx` will silently resolve a newer CLI over time, so
+  a future upstream change to `--executable-path` semantics would surface as a runtime failure
+  rather than a build failure. This matches the `claude-code.nix`/`opencode.nix` convention, so
+  the trade-off is deliberate — revisit only if drift causes breakage.
+- **Browser/CLI version skew is unchecked**: the wrapper picks the newest cached Chromium
+  regardless of what the resolved `@playwright/mcp` expects. Verified compatible at
+  Chromium 151.0.7922.34 / CLI 0.0.79, with no assertion guarding future skew.
+- **`config/README.md` line-range citations remain manually maintained** — no check keeps them in
+  sync with `dotfiles.nix`.
+
+## References
+
+- Plan: `specs/127_add_playwright_mcp_server_to_nix_config/plans/01_playwright-mcp-nix-declaration.md`
+- Research report: `specs/127_add_playwright_mcp_server_to_nix_config/reports/01_playwright-mcp-nix-integration.md`
+- Implementation commit: `004fbd5`
+- Precedent for the jq-merge technique: `.claude/scripts/setup-lean-mcp.sh`
+- Package conventions followed: `packages/claude-code.nix`, `packages/opencode.nix`
 
 ## Notes
 

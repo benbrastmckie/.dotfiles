@@ -133,6 +133,42 @@ No existing doc covers Claude Code MCP servers, `~/.claude.json`, or Playwright.
 4. Use **`--executable-path`** (verified-present CLI flag) resolved dynamically against the newest `chromium-*` directory in `~/.cache/ms-playwright`, rather than `PLAYWRIGHT_BROWSERS_PATH` alone or a hardcoded revision path, to guarantee no browser download regardless of which `playwright-core` version the MCP server package pins.
 5. Document the addition by **extending** `config/README.md` (new Mechanism 4 + fourth collision-table entry) and `docs/packages.md` (one bullet), not by creating a new standalone doc file.
 
+## Recommendations
+
+Prioritized for the planning and implementation phases. P1 items gate the rest: both are cheap
+checks that invalidate the chosen approach if they fail, so neither should be deferred until
+after code is written.
+
+1. **P1 — Confirm the two unverified preconditions before writing any code** (owner:
+   implementation). Run `npx @playwright/mcp@latest --help` and confirm `--executable-path` is
+   present in the resolved 0.0.79 CLI (only verified against the nixpkgs-built 0.0.69 binary
+   here), and record the exact executable filename under `~/.cache/ms-playwright/chromium-*`.
+   If `--executable-path` is absent, fall back to the nixpkgs derivation and re-open the
+   package-choice decision.
+2. **P2 — Add `packages/playwright-mcp.nix`** (owner: implementation), an npx wrapper matching
+   the `claude-code.nix`/`opencode.nix` form, resolving the newest `chromium-*` directory
+   dynamically rather than hardcoding a revision. Register it in `overlays/unstable-packages.nix`
+   and `modules/home/packages/misc.nix`.
+3. **P3 — Add the `home.activation` registration block** (owner: implementation), using the
+   `jq` read-modify-write technique from `setup-lean-mcp.sh`. This must **merge**, never
+   `rm -f` + `cp`: `~/.claude.json` holds OAuth, session, and project-list state, and the
+   pre-existing `mcpServers.lean-lsp` entry must survive. Back the file up before the first
+   switch.
+4. **P3 — Planner must pick the module location and record it** (owner: planning). Extending
+   `modules/home/core/dotfiles.nix` and creating `modules/home/core/claude-mcp.nix` are equally
+   consistent with repo conventions; the choice is arbitrary but must be made once and reflected
+   in `config/README.md`'s Mechanism list.
+5. **P4 — Verify with the no-download property as the explicit success criterion** (owner:
+   implementation). Beyond `nix flake check` and `home-manager build`, assert that the built
+   closure contains no `playwright-browsers`/`playwright-chromium` store paths, run
+   `home-manager switch` twice and diff `~/.claude.json` for idempotency, and finish with a live
+   navigate + screenshot smoke test confirming the spawned browser process runs from
+   `~/.cache/ms-playwright` with no download and no cache growth.
+6. **P5 — Extend the existing docs rather than adding a file** (owner: implementation): a fourth
+   `claude` collision-table row and a new Mechanism 4 subsection in `config/README.md`, plus one
+   Custom Packages entry in `docs/packages.md`. Refresh the stale `dotfiles.nix` line-range
+   citations while editing.
+
 ## Risks & Mitigations
 
 | Risk | Mitigation |
