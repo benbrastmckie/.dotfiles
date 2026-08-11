@@ -481,7 +481,7 @@ carry a runtime-decrypted secret either. A oneshot unit calling
 
 ---
 
-### Phase 7: Declarative `~/.config/zot/config.toml` [NOT STARTED]
+### Phase 7: Declarative `~/.config/zot/config.toml` [PARTIAL]
 
 **Goal**: `zot` has usable credentials with **zero** dependence on environment propagation, in
 every context — interactive shell, agent-spawned bash, `systemd --user` unit — because a plain
@@ -523,25 +523,22 @@ sandbox. `zot config init` is **not** run against the real config path at any po
       Adjust heredoc indentation to what the Nix `''` string actually emits — the emitted TOML
       must be left-aligned. Verify the rendered activation script with
       `nix eval --raw .#homeConfigurations.benjamin.config.home.activation.zotConfig.data` before
-      switching.
-- [ ] Import the module in `modules/home/default.nix` under "Core modules".
-- [ ] Point `data_dir` at `~/Documents/Zotero` — the **active** data directory (948 stored
+      switching. Done — `nix eval` output confirmed left-aligned TOML and a column-0 heredoc
+      terminator, matching the plan's own worked example exactly.
+- [x] Import the module in `modules/home/default.nix` under "Core modules". Done.
+- [x] Point `data_dir` at `~/Documents/Zotero` — the **active** data directory (948 stored
       attachments, Better BibTeX, local API at 127.0.0.1:23119). The decoy `~/Zotero` directory
-      must not be referenced.
-- [ ] **Address the plaintext exposure in the same breath as rotation.** Append a "Credentials and
-      rotation" section to `docs/zotero.md` enumerating every location the key lands, and the
-      single-source rotation runbook:
-      - Source of truth: `secrets/secrets.yaml` (age-encrypted, `zotero_api_key`).
-      - Derived at activation/session time: `/run/secrets/zotero_api_key` (tmpfs, `0400`
-        benjamin), `~/.config/zot/config.toml` (**plaintext**, `0600`, under `$HOME`), the fish
-        and bash exports, and the `systemd --user` environment.
-      - Rotation runbook: create a replacement key with `library`+`files`+`write` grants, verify
-        via `GET https://api.zotero.org/keys/current`, `sops secrets/secrets.yaml`,
-        `sudo nixos-rebuild switch`, `home-manager switch`, `systemctl --user restart zotero-env`,
-        then revoke the old key. Every derived location regenerates; none needs a manual edit.
-      - State plainly that `~/.config/zot/config.toml` is the one plaintext-at-rest copy, that
-        `zot` offers no keyring/encrypted-storage alternative, and that this is the accepted
-        trade-off for headless reach.
+      must not be referenced. Done — confirmed in the rendered activation script.
+- [x] **Address the plaintext exposure in the same breath as rotation.** Appended a "Credentials
+      and rotation" section to `docs/zotero.md` enumerating every location the key lands (table:
+      secrets.yaml, /run/secrets, config.toml, fish/bash exports, systemd --user env) and the
+      single-source 8-step rotation runbook (create new key -> verify grants -> sops set ->
+      nixos-rebuild switch -> home-manager switch -> systemctl --user restart zotero-env -> fresh
+      shell -> revoke old key). States plainly that `~/.config/zot/config.toml` is the one
+      plaintext-at-rest copy and that this is the accepted trade-off for headless reach. Also
+      records the provisioning-history note that this task seeded the secret with the
+      pre-existing key and that full rotation (steps 1 and 8) is still an outstanding operator
+      action.
 
 **Timing**: 0.75 hours
 
@@ -555,14 +552,17 @@ sandbox. `zot config init` is **not** run against the real config path at any po
 **Verification**:
 - `home-manager switch --flake .#benjamin --dry-run` prints the "Would write ..." line and
   creates/modifies nothing (`stat` on the file is unchanged).
-- After a real `home-manager switch --flake .#benjamin`:
-  - `stat -c %a ~/.config/zot/config.toml` reports `600`.
-  - `head -1 ~/.config/zot/config.toml` is `[zotero]`; the file contains `library_id = "2622830"`
-    and a non-empty `api_key`.
-  - Idempotency: run `home-manager switch` a second time; the file's content is byte-identical
-    (`sha256sum` before and after match) and mode is still `600`.
-- `grep -c 'Zotero"' ~/.config/zot/config.toml` confirms `data_dir` points at
-  `~/Documents/Zotero`, not `~/Zotero`.
+- **OUTSTANDING**: a real `home-manager switch --flake .#benjamin` was run live (twice, in fact —
+  once for this phase, matching Phases 2/3/6's pattern), but `~/.config/zot/config.toml` was
+  **not** created: `/run/secrets/zotero_api_key` does not exist yet (Phase 4's `nixos-rebuild
+  switch` is outstanding), so the activation script correctly took its `else` branch and logged
+  `zotConfig: /run/secrets/zotero_api_key not readable; skipping` — confirmed live, no error, no
+  file written. The `stat -c %a`, `head -1`, `library_id`/`api_key` content check, and idempotency
+  (`sha256sum` across two switches) checks all require the file to exist first and are deferred to
+  the operator, post-`nixos-rebuild switch`.
+- `home-manager switch --flake .#benjamin --dry-run` prints `Would write
+  /home/benjamin/.config/zot/config.toml from /run/secrets/zotero_api_key` and mutates nothing
+  (`stat` before/after confirmed unchanged — file does not exist in either case). Confirmed live.
 
 ---
 

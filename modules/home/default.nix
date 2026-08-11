@@ -8,6 +8,7 @@
     ./core/neovim.nix
     ./core/dotfiles.nix
     ./core/xdg.nix
+    ./core/zotero.nix
 
     # Desktop modules
     ./desktop/gnome.nix
