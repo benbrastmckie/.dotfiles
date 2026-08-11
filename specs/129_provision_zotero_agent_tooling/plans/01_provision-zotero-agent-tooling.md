@@ -291,7 +291,7 @@ available on the pinned `nixos-26.05` channel.
 
 ---
 
-### Phase 4: Always-on sops wiring for `zotero_api_key` [NOT STARTED]
+### Phase 4: Always-on sops wiring for `zotero_api_key` [PARTIAL]
 
 **Goal**: Decrypt the secret to `/run/secrets/zotero_api_key` on every real host, **without**
 that availability being accidentally coupled to `services.discordBot.enable`.
@@ -301,7 +301,7 @@ that availability being accidentally coupled to `services.discordBot.enable`.
 so it works today by coincidence. A new always-on secret must not inherit that coincidence.
 
 **Tasks**:
-- [ ] Create `modules/system/secrets.nix` (always-on) holding the hoisted, unconditional
+- [x] Create `modules/system/secrets.nix` (always-on) holding the hoisted, unconditional
       `sops.defaultSopsFile = ../../secrets/secrets.yaml;` and
       `sops.age.keyFile = "${config.users.users.${username}.home}/.config/sops/age/keys.txt";`
       (`username` is already a `specialArgs` value — see `flake.nix`), plus:
@@ -311,16 +311,25 @@ so it works today by coincidence. A new always-on secret must not inherit that c
         mode = "0400";
       };
       ```
-      Header comment must state why these two lines were hoisted out of `discord-bot.nix`.
-- [ ] Remove the now-duplicated `defaultSopsFile` and `age.keyFile` lines from the `mkIf` block in
+      Header comment must state why these two lines were hoisted out of `discord-bot.nix`. Done.
+- [x] Remove the now-duplicated `defaultSopsFile` and `age.keyFile` lines from the `mkIf` block in
       `modules/system/optional/discord-bot.nix`, leaving its `sops.secrets.*` declarations
-      untouched. Update that file's header comment to point at the new always-on module.
-- [ ] Import `./secrets.nix` from `modules/system/default.nix`.
-- [ ] **Resolve the installer-image question explicitly** (do not leave it to chance): build
-      `.#nixosConfigurations.iso` and `.#nixosConfigurations.usb-installer`. If the always-on
-      secrets module is inappropriate for them (no age key present on an installer image), move
-      the import out of `modules/system/default.nix` and into `hosts/nandi/default.nix` and
-      `hosts/hamsa/default.nix` instead, and record the reason in the module header.
+      untouched. Update that file's header comment to point at the new always-on module. Done.
+- [x] Import `./secrets.nix` from `modules/system/default.nix`. Done.
+- [x] **Resolve the installer-image question explicitly** (do not leave it to chance): build
+      `.#nixosConfigurations.iso` and `.#nixosConfigurations.usb-installer`. **Finding**: both
+      fail with `error: Refusing to evaluate package 'zfs-kernel-2.4.2-7.1.3' ... broken` at
+      `nix build` time (forced during the ZFS-import-enabled `installation-cd-minimal.nix`
+      module's kernel evaluation). This is confirmed **pre-existing and unrelated** to the
+      always-on secrets module: `git stash`-ing this phase's changes and rebuilding both
+      `.#nixosConfigurations.iso` and `.#nixosConfigurations.usb-installer` reproduces the
+      *identical* error at the *identical* evaluation point with the always-on secrets module
+      absent. `nix flake check` (which fully evaluates the config tree, including
+      `config.sops.secrets`, without forcing the broken zfs-kernel derivation) passes cleanly for
+      all four hosts. Since the secrets hoist introduces no new or different failure, the
+      per-host-import fallback described below was **not** needed and the always-on
+      `modules/system/default.nix` import was kept as planned. The pre-existing zfs-kernel
+      breakage on installer images is a separate, out-of-scope defect worth a follow-up task.
 
 **Timing**: 0.5 hours
 
@@ -334,14 +343,25 @@ so it works today by coincidence. A new always-on secret must not inherit that c
   forces per-host import
 
 **Verification**:
-- `nix flake check` succeeds.
-- `nix build .#nixosConfigurations.{nandi,hamsa,iso,usb-installer}.config.system.build.toplevel --no-link`
-  all succeed.
-- After `sudo nixos-rebuild switch --flake .#$(hostname)`:
-  `sudo test -r /run/secrets/zotero_api_key` succeeds and `stat -c '%a %U' /run/secrets/zotero_api_key`
-  reports `400 benjamin`.
-- The Discord bot is unaffected: `systemctl status discord-bot opencode-serve` shows the same
-  state as before the change.
+- `nix flake check` succeeds. Confirmed for all four hosts (nandi, hamsa, garuda, iso,
+  usb-installer).
+- `nix build .#nixosConfigurations.{nandi,hamsa,iso,usb-installer}.config.system.build.toplevel --no-link`:
+  nandi and hamsa succeed. iso and usb-installer fail on the pre-existing, unrelated zfs-kernel
+  breakage documented above (reproduced identically without this phase's changes) — **not** a
+  regression introduced here. `nixos-rebuild build --flake .#hamsa` (the live host) also
+  succeeds independently, confirming the same result via the operator-facing build path.
+- **OUTSTANDING — operator action required**: `sudo nixos-rebuild switch --flake .#$(hostname)`
+  was not run. `sudo` is unavailable to this implementing agent in this session (every `sudo`
+  invocation was denied by the environment's permission policy, not merely unauthenticated) — an
+  explicit, anticipated capability boundary, not an oversight. Consequently
+  `/run/secrets/zotero_api_key` does not yet exist on this host and the `stat -c '%a %U'`
+  assertion and the "Discord bot unaffected" `systemctl status` comparison could not be executed
+  post-switch. Pre-change baseline recorded for the operator's post-switch comparison:
+  `systemctl status discord-bot opencode-serve` — both `active (running)`, discord-bot up 6 days,
+  opencode-serve up 6 days (captured 2026-08-11 before any switch in this session). After the
+  operator runs `sudo nixos-rebuild switch --flake .#hamsa`, both services are expected to remain
+  `active (running)` (this phase does not touch their config), and
+  `stat -c '%a %U' /run/secrets/zotero_api_key` is expected to report `400 benjamin`.
 
 ---
 

@@ -3,6 +3,15 @@
 # services.discordBot.enable (see hosts/nandi/default.nix, hosts/hamsa/default.nix +
 # flake.nix extraModules).
 # See: specs/053_nixos_discord_bot_prerequisites/
+#
+# NOTE: `sops.defaultSopsFile` and `sops.age.keyFile` used to be declared here, inside
+# `lib.mkIf cfg.enable` below — meaning sops secrets availability was accidentally coupled to
+# this optional service's enable toggle. Both real hosts happened to enable this service, so it
+# worked by coincidence. Those two lines have been hoisted out to the always-on
+# `modules/system/secrets.nix` (imported unconditionally by `modules/system/default.nix`), so a
+# secret consumed independently of the Discord bot (e.g. `zotero_api_key`) does not depend on
+# `services.discordBot.enable`. This module's own `sops.secrets.*` declarations (below) are
+# unchanged — only the two file-scoped `sops.*` settings moved.
 {
   config,
   lib,
@@ -37,8 +46,7 @@ in
   config = lib.mkIf cfg.enable {
 
     sops = {
-      defaultSopsFile = ../../../secrets/secrets.yaml;
-      age.keyFile = "${config.users.users.${username}.home}/.config/sops/age/keys.txt";
+      # defaultSopsFile / age.keyFile now declared unconditionally in modules/system/secrets.nix.
 
       secrets = {
         "discord_bot_token" = {

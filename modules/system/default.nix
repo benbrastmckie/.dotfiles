@@ -18,6 +18,7 @@
     ./display.nix
     ./packages.nix
     ./shell.nix
+    ./secrets.nix
 
     # Optional modules are intentionally excluded here (opt-in per host).
   ];
