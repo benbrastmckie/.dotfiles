@@ -24,7 +24,7 @@ next_project_number: 130
 125 [PARTIAL] — Contain every Claude Code session in its own systemd user scope a
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the result
 128 [NOT STARTED] — Correct this repo's Claude Code MCP registration and permission c
-129 [BLOCKED] — Provision the machine-level tooling that unblocks the literature 
+129 [IMPLEMENTING] — Provision the machine-level tooling that unblocks the literature 
 
 ### Nix Infrastructure
 
@@ -56,7 +56,7 @@ next_project_number: 130
 ## Tasks
 
 ### 129. Provision zotero agent tooling
-- **Status**: [BLOCKED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
