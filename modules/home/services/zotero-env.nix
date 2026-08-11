@@ -13,6 +13,24 @@
 #
 # Ordering caveat: `set-environment` affects units started *after* it runs; already-running units
 # keep their old environment until restarted.
+#
+# Latch hazard (why ConditionPathExists and the non-zero skip below both exist): this unit is a
+# `oneshot` with `RemainAfterExit = true`, so whatever terminal state it reaches on its first run
+# persists for the life of the user manager. An earlier revision's skip path echoed a message and
+# exited 0, which systemd recorded as `active (exited)` — indistinguishable from a real success.
+# When the secret was provisioned later by a subsequent `nixos-rebuild switch`, nothing
+# re-triggered the unit (its own definition had not changed), so the user environment stayed
+# silently empty while `systemctl status` reported success. Observed live: the unit "succeeded"
+# at 09:32 against a secret that did not exist until 13:56.
+#
+# The two guards split the two distinct failure modes so neither can masquerade as success:
+#   - ConditionPathExists: the secret does not exist yet (first provisioning, pre-switch state).
+#     systemd re-evaluates conditions on EVERY start attempt and reports `condition failed`
+#     without entering an active state, so the unit never latches and recovers cleanly once the
+#     secret appears.
+#   - Non-zero exit below: the secret exists but is unreadable (wrong owner/mode — a genuine
+#     misconfiguration, not a bootstrap-ordering artifact). This surfaces as a real unit failure,
+#     because it is one.
 { config, pkgs, ... }:
 let
   script = pkgs.writeShellScript "zotero-env" ''
@@ -20,7 +38,11 @@ let
       key="$(cat /run/secrets/zotero_api_key)"
       systemctl --user set-environment ZOTERO_API_KEY="$key" ZOT_API_KEY="$key" ZOT_LIBRARY_ID=2622830
     else
-      echo "zotero-env: /run/secrets/zotero_api_key not readable; skipping (secret not yet provisioned on this host, or this is a pre-Phase-4 state)" >&2
+      # Reachable only when the file exists (ConditionPathExists passed) but is not readable.
+      # Exit non-zero deliberately: `RemainAfterExit` would otherwise latch this skip as a
+      # permanent success. See the latch-hazard note above.
+      echo "zotero-env: /run/secrets/zotero_api_key exists but is not readable (check owner/mode; expected 0400 benjamin)" >&2
+      exit 1
     fi
   '';
 in
@@ -28,6 +50,9 @@ in
   systemd.user.services.zotero-env = {
     Unit = {
       Description = "Propagate Zotero credentials into the systemd --user environment";
+      # Re-evaluated on every start; keeps the not-yet-provisioned case out of the active state
+      # entirely rather than latching it as a false success.
+      ConditionPathExists = "/run/secrets/zotero_api_key";
     };
     Service = {
       Type = "oneshot";

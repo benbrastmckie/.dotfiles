@@ -51,3 +51,23 @@ specs/tmp/*
 # plus its advisory lock.
 specs/events.jsonl
 specs/.events.lock
+
+# Orchestrator per-cycle runtime state — ephemeral, machine-local, never committed.
+# See .claude/context/standards/orchestrator-runtime-files.md for the two-class policy.
+#
+# These are read back with no freshness check: skill-orchestrate trusts any syntactically valid
+# .orchestrator-loop-guard it finds, comparing neither session_id nor mtime against the current
+# dispatch. A git-restored copy therefore resumes a WRONG cycle_count/infra_failures pair
+# silently, which is exactly the hazard this coverage prevents. The handoff files carry the same
+# risk in the other direction: a restored stale handoff reports a previous cycle's status and
+# phase counts as if they were the current dispatch's.
+specs/**/.orchestrator-handoff.json
+specs/**/.orchestrator-loop-guard
+specs/**/.return-meta.json
+specs/**/.drift-inspection.json
+specs/**/.stray-handoff-*.json
+specs/.return-meta-multi.json
+specs/.orchestrator-multi-state.json
+
+# Per-task advisory lock directories (task-lock.sh).
+specs/**/.lock/
