@@ -365,42 +365,37 @@ so it works today by coincidence. A new always-on secret must not inherit that c
 
 ---
 
-### Phase 5: Interactive-shell exports (fish + bash) and stale-key removal [NOT STARTED]
+### Phase 5: Interactive-shell exports (fish + bash) and stale-key removal [PARTIAL]
 
 **Goal**: `ZOTERO_API_KEY`, `ZOT_API_KEY`, and `ZOT_LIBRARY_ID` are set in fresh fish **and**
 fresh bash, sourced from `/run/secrets/zotero_api_key`, with the unmanaged plaintext export gone
 and the precedence contest explicitly settled.
 
 **Tasks**:
-- [ ] Extend `programs.fish.interactiveShellInit` in `modules/system/shell.nix`, mirroring the
-      existing `link_api_token` block:
-      ```fish
-      # Zotero credentials for the literature write-back path (read from sops-nix secret).
-      # ZOTERO_API_KEY is what the consuming repo's gate-check scripts test; ZOT_API_KEY /
-      # ZOT_LIBRARY_ID are what the zot CLI itself reads. Both are required.
-      if test -r /run/secrets/zotero_api_key
-        set -gx ZOTERO_API_KEY (cat /run/secrets/zotero_api_key)
-        set -gx ZOT_API_KEY $ZOTERO_API_KEY
-        set -gx ZOT_LIBRARY_ID 2622830
-      end
-      ```
-- [ ] Add a **new** `programs.bash.interactiveShellInit` block to the same file (no precedent
-      exists in this repo — the file currently configures `programs.fish` only). Prefer the
-      Bash-specific option over the shell-agnostic `environment.interactiveShellInit`:
-      ```bash
-      if [ -r /run/secrets/zotero_api_key ]; then
-        ZOTERO_API_KEY="$(cat /run/secrets/zotero_api_key)"; export ZOTERO_API_KEY
-        ZOT_API_KEY="$ZOTERO_API_KEY"; export ZOT_API_KEY
-        export ZOT_LIBRARY_ID=2622830
-      fi
-      ```
-- [ ] Record `2622830` as a plain, non-secret constant with a comment noting it is the Zotero
+- [x] Extend `programs.fish.interactiveShellInit` in `modules/system/shell.nix`, mirroring the
+      existing `link_api_token` block. Done; verified rendered correctly into a built
+      `config.fish` (comments + `if test -r ... set -gx ...` block present, in the same shape as
+      planned).
+- [x] Add a **new** `programs.bash.interactiveShellInit` block to the same file (no precedent
+      existed in this repo — the file previously configured `programs.fish` only). Used the
+      Bash-specific option over the shell-agnostic `environment.interactiveShellInit`. Done;
+      verified rendered correctly into the built `/etc/bashrc` (inside the `if [ -n "$PS1" ]`
+      interactive guard, ahead of the prompt-init code — `programs.bash.interactiveShellInit` is
+      a `types.lines` option, so this repo's definition and `bash.nix`'s own internal definition
+      concatenate rather than collide).
+- [x] Record `2622830` as a plain, non-secret constant with a comment noting it is the Zotero
       userID for `benbrastmckie`, derived from `GET https://api.zotero.org/keys/current` on
-      2026-08-11. Do not re-derive it on every rebuild.
-- [ ] Remove the `ZOTERO_API_KEY` export at `~/.config/fish/conf.d/private.fish` line 49. This
-      file is outside the repo and is not Nix-managed; edit it in place. Removing it in the same
-      step that adds the managed export is deliberate — a stale `conf.d` export can otherwise
-      shadow `/etc/fish/config.fish`, and the old key is dead after Phase 1 anyway.
+      2026-08-11. Do not re-derive it on every rebuild. Done (comment present in both blocks).
+- [ ] **BLOCKED — deferred pending operator switch**: Remove the `ZOTERO_API_KEY` export at
+      `~/.config/fish/conf.d/private.fish` line 49. *(deviation: skipped — per the explicit hard
+      constraint that this removal must be paired with a live precedence assertion proving the
+      sops-sourced value is actually present first, and per Phase 4's finding that `sudo
+      nixos-rebuild switch` could not be run this session (sudo denied), `/run/secrets/
+      zotero_api_key` does not yet exist on this host. Removing line 49 now would strand the
+      environment with no working `ZOTERO_API_KEY` in any shell. The line is left in place,
+      unmodified, exactly as the plan's own risk mitigation intends for this scenario.)*
+      **OPERATOR ACTION**: after running `sudo nixos-rebuild switch --flake .#hamsa`, run the
+      precedence assertion below; only once it prints `MATCH` should line 49 be removed.
 
 **Timing**: 0.5 hours
 
@@ -411,15 +406,25 @@ and the precedence contest explicitly settled.
 - `~/.config/fish/conf.d/private.fish` - remove line 49 (outside repo, not Nix-managed)
 
 **Verification**:
-- After `sudo nixos-rebuild switch --flake .#$(hostname)`, from a **fresh** shell in each case:
+- `nix flake check` succeeds. Confirmed. `nixos-rebuild build --flake .#hamsa` succeeds.
+  Confirmed — rendered `config.fish` and `/etc/bashrc` inspected directly (see task notes above).
+- **OUTSTANDING — requires the operator's `sudo nixos-rebuild switch --flake .#$(hostname)`**
+  (not run this session, see Phase 4): the fresh-shell env-var checks, the precedence assertion,
+  and the `private.fish` plaintext-grep cannot be executed until `/run/secrets/zotero_api_key`
+  exists. Recorded here verbatim for the operator to run post-switch:
   - `bash -lic 'printf "%s|%s|%s\n" "${ZOTERO_API_KEY:+set}" "${ZOT_API_KEY:+set}" "$ZOT_LIBRARY_ID"'`
-    prints `set|set|2622830`.
+    should print `set|set|2622830`.
   - `fish -lic 'printf "%s|%s|%s\n" (test -n "$ZOTERO_API_KEY"; and echo set) (test -n "$ZOT_API_KEY"; and echo set) $ZOT_LIBRARY_ID'`
-    prints the same.
-- **Precedence assertion** (this is the point of the phase, not a nicety):
-  `fish -lic 'test "$ZOTERO_API_KEY" = (cat /run/secrets/zotero_api_key); and echo MATCH'`
-  prints `MATCH`. Same assertion in bash.
-- `grep -rn 'ZOTERO_API_KEY' ~/.config/fish/` returns no plaintext key material.
+    should print the same.
+  - **Precedence assertion** (the point of the phase, not a nicety — run this BEFORE removing
+    `private.fish` line 49): `fish -lic 'test "$ZOTERO_API_KEY" = (cat /run/secrets/zotero_api_key); and echo MATCH'`
+    should print `MATCH`. Same assertion in bash. Only after `MATCH` is confirmed, remove
+    `~/.config/fish/conf.d/private.fish` line 49 and re-run the checks above.
+  - `grep -rn 'ZOTERO_API_KEY' ~/.config/fish/` should return no plaintext key material — this
+    check is only meaningful **after** line 49 is removed.
+- Note: `private.fish` line 49 currently still contains the (still-live, unrotated) key value in
+  plaintext, unchanged from before this task. This is not a regression — it is the pre-existing
+  exposure this task exists to remove, deliberately left in place pending the precedence proof.
 
 ---
 
