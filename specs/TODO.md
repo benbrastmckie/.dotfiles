@@ -1,17 +1,17 @@
 ---
-next_project_number: 127
+next_project_number: 128
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-08-05. Generated from state.json dependency graph.*
+*Updated 2026-08-11. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,127 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -23,6 +23,7 @@ next_project_number: 127
   └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
 125 [PARTIAL] — Contain every Claude Code session in its own systemd user scope a
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the result
+127 [NOT STARTED] — Add the Playwright MCP server to the Nix configuration so Claude 
 
 ### Nix Infrastructure
 
@@ -52,6 +53,16 @@ next_project_number: 127
 42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
 
 ## Tasks
+
+### 127. Add playwright mcp server to nix config
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Add the Playwright MCP server to the Nix configuration so Claude Code can drive a browser, declared in the same module/option style used elsewhere in the config rather than registered ad-hoc via the CLI. Reuse the existing nix-ld Chromium dependency set in modules/system/nix.nix and the already-populated ~/.cache/ms-playwright browsers instead of re-downloading them. Include concise documentation for the addition matching surrounding conventions.
+
+---
 
 ### 126. Nix fmt whole tree formatter drift
 - **Status**: [NOT STARTED]
