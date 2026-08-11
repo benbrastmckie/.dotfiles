@@ -428,7 +428,7 @@ and the precedence contest explicitly settled.
 
 ---
 
-### Phase 6: systemd `--user` environment reach [NOT STARTED]
+### Phase 6: systemd `--user` environment reach [PARTIAL]
 
 **Goal**: `systemctl --user show-environment` carries the three variables, so headless and
 agent-spawned units started after activation inherit them.
@@ -441,7 +441,7 @@ carry a runtime-decrypted secret either. A oneshot unit calling
 `systemctl --user set-environment` is the mechanism.
 
 **Tasks**:
-- [ ] Create `modules/home/services/zotero-env.nix` following the `cache-cleanup.nix` shape
+- [x] Create `modules/home/services/zotero-env.nix` following the `cache-cleanup.nix` shape
       (`pkgs.writeShellScript` bound in a `let`, referenced from `ExecStart`):
       - `Type = "oneshot"`, `RemainAfterExit = true`, `Install.WantedBy = [ "default.target" ]`.
       - Script guards on `[ -r /run/secrets/zotero_api_key ]` and exits 0 with a logged notice if
@@ -451,10 +451,10 @@ carry a runtime-decrypted secret either. A oneshot unit calling
         `systemctl --user set-environment ZOTERO_API_KEY="$key" ZOT_API_KEY="$key" ZOT_LIBRARY_ID=2622830`.
       - Header comment must cite home-manager #5542 and state why `home.sessionVariables` and
         `systemd.user.sessionVariables` were both rejected — otherwise a future editor will
-        "simplify" this back into a broken form.
-- [ ] Import the module in `modules/home/default.nix` under "Service modules".
-- [ ] Note the ordering caveat in the header: `set-environment` affects units started *after* it
-      runs; already-running units keep their old environment until restarted.
+        "simplify" this back into a broken form. Done.
+- [x] Import the module in `modules/home/default.nix` under "Service modules". Done.
+- [x] Note the ordering caveat in the header: `set-environment` affects units started *after* it
+      runs; already-running units keep their old environment until restarted. Done.
 
 **Timing**: 0.5 hours
 
@@ -465,12 +465,19 @@ carry a runtime-decrypted secret either. A oneshot unit calling
 - `modules/home/default.nix` - import the module
 
 **Verification**:
-- `nix flake check` succeeds.
-- After `home-manager switch --flake .#benjamin`:
-  `systemctl --user status zotero-env` shows `active (exited)` with no errors.
-- `systemctl --user show-environment | grep -E '^(ZOTERO_API_KEY|ZOT_API_KEY|ZOT_LIBRARY_ID)='`
-  returns all three lines.
-- `systemctl --user show-environment | grep '^ZOT_LIBRARY_ID=2622830$'` matches exactly.
+- `nix flake check` succeeds. Confirmed.
+- After `home-manager switch --flake .#benjamin`: `systemctl --user status zotero-env` shows
+  `active (exited)` with no errors. Confirmed live — real switch run, service ran, exited 0
+  (`code=exited, status=0/SUCCESS`).
+- **OUTSTANDING**: `systemctl --user show-environment | grep -E '^(ZOTERO_API_KEY|ZOT_API_KEY|ZOT_LIBRARY_ID)='`
+  currently returns nothing — confirmed live, and this is the *expected*, correctly-guarded
+  outcome: `/run/secrets/zotero_api_key` does not exist yet (Phase 4's `nixos-rebuild switch` is
+  outstanding), so the script's `[ -r /run/secrets/zotero_api_key ]` guard took the skip branch
+  and logged `zotero-env: /run/secrets/zotero_api_key not readable; skipping ...` via
+  `journalctl --user -u zotero-env` (also confirmed present). Once the operator runs `sudo
+  nixos-rebuild switch --flake .#hamsa`, re-running `systemctl --user restart zotero-env` (or the
+  next `home-manager switch`, which restarts changed units) will populate all three variables;
+  `systemctl --user show-environment | grep '^ZOT_LIBRARY_ID=2622830$'` should then match exactly.
 
 ---
 

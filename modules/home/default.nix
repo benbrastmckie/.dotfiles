@@ -44,6 +44,7 @@
     ./services/mail-sync-timer.nix
     ./services/claude-session-reaper.nix
     ./services/zotero-translation-server.nix
+    ./services/zotero-env.nix
 
     # Memory monitoring (co-located: scripts + systemd services, three-tier system)
     ./memory/monitor.nix
