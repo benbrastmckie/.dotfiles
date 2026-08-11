@@ -11,7 +11,7 @@ next_project_number: 130
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128,129 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -24,7 +24,6 @@ next_project_number: 130
 125 [PARTIAL] — Contain every Claude Code session in its own systemd user scope a
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the result
 128 [NOT STARTED] — Correct this repo's Claude Code MCP registration and permission c
-129 [IMPLEMENTING] — Provision the machine-level tooling that unblocks the literature 
 
 ### Nix Infrastructure
 
@@ -56,7 +55,7 @@ next_project_number: 130
 ## Tasks
 
 ### 129. Provision zotero agent tooling
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
