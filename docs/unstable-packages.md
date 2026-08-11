@@ -37,6 +37,7 @@ The following packages are currently pulled from the unstable channel (in `flake
 | opencode             | Custom build (packages/opencode.nix) |
 | loogle               | Custom Lean 4 Mathlib search wrapper |
 | aristotle            | Custom AI theorem prover wrapper |
+| zot                  | Custom Zotero CLI wrapper (zotero-cli-cc, uvx-fetched) |
 | slidev               | Custom presentation tool wrapper |
 | kooha                | Screen recorder with full GStreamer support |
 | vosk-model-small-en-us | Vosk STT language model |

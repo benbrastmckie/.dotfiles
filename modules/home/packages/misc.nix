@@ -20,5 +20,6 @@
     gemini-cli # Google Gemini AI CLI tool
     gh # GitHub CLI (required by claude-squad)
     playwright-mcp # Playwright MCP server, reuses cached ~/.cache/ms-playwright Chromium
+    zot # Zotero CLI (zotero-cli-cc), consumed by the literature extension's write-back path
   ];
 }

@@ -191,13 +191,13 @@ dependency. Do not fall back to reusing the compromised key.
 
 ---
 
-### Phase 2: Package `zot` and put it on PATH [NOT STARTED]
+### Phase 2: Package `zot` and put it on PATH [COMPLETED]
 
 **Goal**: `zot` resolves from every shell and from agent-spawned bash, via the repo's established
 `writeShellScriptBin` + overlay + `home.packages` wiring — no PATH policy change.
 
 **Tasks**:
-- [ ] Create `packages/zot.nix`, mirroring `packages/aristotle.nix` exactly in shape:
+- [x] Create `packages/zot.nix`, mirroring `packages/aristotle.nix` exactly in shape:
       ```nix
       # zot (zotero-cli-cc) - Zotero CLI for Claude Code, fetched via uvx on each invocation.
       # Custom because zotero-cli-cc is a PyPI/uvx-distributed tool, not packaged in nixpkgs.
@@ -209,12 +209,12 @@ dependency. Do not fall back to reusing the compromised key.
       ```
       Note in the header that `@latest` matches the `aristotle` precedent and that pinning
       (`zotero-cli-cc@0.10.0`) is a one-line change if version drift becomes a problem.
-- [ ] Register in `overlays/unstable-packages.nix` next to the `aristotle`/`loogle` lines:
+- [x] Register in `overlays/unstable-packages.nix` next to the `aristotle`/`loogle` lines:
       `zot = final.callPackage ../packages/zot.nix { }; # Zotero CLI (zotero-cli-cc wrapper, uvx-fetched)`
-- [ ] Add `zot` to `home.packages` in `modules/home/packages/misc.nix` under the
+- [x] Add `zot` to `home.packages` in `modules/home/packages/misc.nix` under the
       "AI and coding assistant tools" group, with a trailing comment naming the consumer.
-- [ ] Add an entry to `docs/packages.md` (or `docs/unstable-packages.md`, matching where the
-      other `writeShellScriptBin` wrappers are listed).
+- [x] Add an entry to `docs/packages.md` (or `docs/unstable-packages.md`, matching where the
+      other `writeShellScriptBin` wrappers are listed). Added to both.
 
 **Timing**: 0.5 hours
 

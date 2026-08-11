@@ -78,6 +78,19 @@ NPX wrapper for the Playwright MCP server that automatically uses the latest ver
   `home.activation.claudeMcpServers` in `modules/home/core/dotfiles.nix` (see
   `config/README.md`'s Mechanism 4 for the merge-not-overwrite activation detail)
 
+#### Zot / zotero-cli-cc (packages/zot.nix)
+
+`writeShellScriptBin` wrapper for the Zotero CLI, matching the `aristotle.nix` shape exactly:
+- PyPI/uvx-distributed tool (`zotero-cli-cc`), not packaged in nixpkgs
+- Zero-maintenance `@latest` resolution via `uvx --from zotero-cli-cc@latest zot "$@"` on every
+  invocation (first run may take a moment while `uvx` populates its cache)
+- Consumed by the literature extension's Zotero write-back path (`~/.config/nvim`)
+- Credentials are provisioned separately — see [`docs/zotero.md`](zotero.md) for the sops secret,
+  the `ZOTERO_API_KEY`/`ZOT_API_KEY`/`ZOT_LIBRARY_ID` exports, and the declarative
+  `~/.config/zot/config.toml`
+
+Usage: `zot --version` or `zot --help`
+
 #### Package Structure
 
 - Package derivations and build instructions
