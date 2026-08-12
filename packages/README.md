@@ -120,6 +120,35 @@ loogle --help                  # Show all options
 
 See [Development Guide](../docs/development.md#lean-4-development) for detailed usage examples.
 
+### python-check-wheel-contents.nix
+Custom Python package for the `check-wheel-contents` wheel linter (v0.6.3), used to audit built
+wheels during PyPI release rehearsals. Nixpkgs packages it in neither the stable channel nor
+unstable, so it is built here from the PyPI sdist.
+
+**Implementation**: Plain `buildPythonPackage` with `pyproject = true` and a `hatchling`
+build backend. Runtime dependencies (`attrs`, `click`, `packaging`, `pydantic`) come from
+nixpkgs.
+
+**Privately pinned `wheel-filename`**: nixpkgs ships wheel-filename 2.x, whose 2.0 release
+replaced `parse_wheel_filename`/`InvalidFilenameError` with `WheelFilename.parse`/`ParseError`.
+check-wheel-contents 0.6.3 still imports the 1.x names, so its `wheel-filename ~= 1.1` pin is
+real and must not be relaxed. A 1.4.2 build is defined in a `let` binding inside this file and
+used only by this derivation, so nothing else in the Python environment is dragged back to 1.x.
+
+**Deselected tests**: seven `test_from_local_tree*` cases in `test/test_directory.py` compare a
+directory walk against an expected tree containing `foo.pyc` and `__pycache__` entries, but
+hatchling's default exclusions keep bytecode out of the sdist. They cannot pass in any
+sdist-based build and are deselected by exact node id; 952 tests still run.
+
+**Usage**: Available in `python3.withPackages` via `overlays/python-packages.nix`; the
+`check-wheel-contents` executable lands on `PATH` through the resulting Python environment.
+
+**Update Process**:
+1. Check new version on [PyPI](https://pypi.org/project/check-wheel-contents/)
+2. Get hash: `nix-prefetch-url --unpack https://files.pythonhosted.org/packages/.../check_wheel_contents-VERSION.tar.gz`
+3. Update `version` and `hash`, and re-check whether the `wheel-filename` pin still applies
+4. Rebuild and test: `check-wheel-contents dist/*.whl`
+
 ### python-cvc5.nix
 Custom Python package for CVC5 v1.3.1 SMT solver bindings. Nixpkgs does not provide `python3Packages.cvc5`, so this package builds from the PyPI wheel.
 

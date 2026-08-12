@@ -1,9 +1,11 @@
 # Overlay providing custom Python package overrides.
-# Adds cvc5, pymupdf4llm, vosk, and patches httplib2/pymupdf to skip flaky tests.
+# Adds check-wheel-contents, cvc5, pymupdf4llm, vosk, and patches httplib2/pymupdf to
+# skip flaky tests.
 # deadnix: skip
 final: prev:
 let
   customPythonPackages = pySelf: pySuper: {
+    check-wheel-contents = pySelf.callPackage ../packages/python-check-wheel-contents.nix { };
     cvc5 = pySelf.callPackage ../packages/python-cvc5.nix { };
     pymupdf4llm = pySelf.callPackage ../packages/pymupdf4llm.nix { };
     vosk = pySelf.callPackage ../packages/python-vosk.nix { };

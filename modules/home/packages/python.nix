@@ -12,9 +12,12 @@
         build
         cvc5
         twine
+        wheel # required by `python -m build --no-isolation`
+        check-wheel-contents # wheel content audit for PyPI release rehearsals (custom package)
         pytest
         pytest-cov
         pytest-timeout
+        pytest-xdist # parallel test runs (pytest -n N) outside project devShells
         # model-checker  # don't install when in development
         tqdm
         pip

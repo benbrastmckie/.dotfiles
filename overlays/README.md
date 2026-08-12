@@ -33,9 +33,10 @@ Currently provides:
 
 ### python-packages.nix
 
-Extends `python3` with custom package overrides via `packageOverrides`. Adds `cvc5`,
-`pymupdf4llm`, and `vosk` (none available in nixpkgs, or not in the form needed) as
-`pySelf.callPackage`d derivations from `packages/`, and patches `httplib2` and `pymupdf` to skip
+Extends `python3` with custom package overrides via `packageOverrides`. Adds
+`check-wheel-contents`, `cvc5`, `pymupdf4llm`, and `vosk` (none available in nixpkgs, or not in
+the form needed) as `pySelf.callPackage`d derivations from `packages/`, and patches `httplib2`
+and `pymupdf` to skip
 their (flaky, in this environment) test suites via `overridePythonAttrs { doCheck = false; }`.
 Wired into `flake.nix` as `pythonPackagesOverlay = import ./overlays/python-packages.nix;`.
 
