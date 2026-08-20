@@ -45,12 +45,12 @@ writeShellScriptBin "claude" ''
     if [ -n "''${CLAUDE_NO_SCOPE:-}" ] \
       || ! command -v systemd-run >/dev/null 2>&1 \
       || [ -z "''${XDG_RUNTIME_DIR:-}" ]; then
-      ${nodejs}/bin/npx @anthropic-ai/claude-code@latest "$@"
+      ${nodejs}/bin/npx @anthropic-ai/claude-code@2.1.236 "$@"
       return
     fi
 
     systemd-run --user --scope --unit="claude-$$-$(date +%s)" --quiet -- \
-      ${nodejs}/bin/npx @anthropic-ai/claude-code@latest "$@"
+      ${nodejs}/bin/npx @anthropic-ai/claude-code@2.1.236 "$@"
   }
 
   # Finish any npx install that is missing its native binary. Returns 0 only if it actually
