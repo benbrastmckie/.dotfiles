@@ -17,7 +17,7 @@ inside `~/.claude.json` rather than a `config/`-sourced file — see its subsect
 is grouped here anyway. Always check `dotfiles.nix` itself for the authoritative, current line
 numbers — the ranges below are current as of this writing but will drift as the file is edited.
 
-### Mechanism 1: `home.file.*.source` store symlinks (`dotfiles.nix:22-45`, plus `:62`)
+### Mechanism 1: `home.file.*.source` store symlinks (`dotfiles.nix:22-46`, plus `:63`)
 
 The majority of `config/` files are deployed via `home.file.<target>.source = ../../../config/<file>;`
 entries. Home Manager places an **immutable symlink** into the Nix store at the target path
@@ -27,7 +27,7 @@ deployed via a rebuild. This is the default/most common mechanism and covers mos
 tables below (terminal emulators, fish, tmux, zathura, niri, sioyek, opencode, fastfetch,
 himalaya, latexmkrc, and `.zuliprc` at line 59 — see the stale-row fix in the Chat section).
 
-### Mechanism 2: `builtins.readFile` mirrors into `~/.config/config-files/` (`dotfiles.nix:48-54`)
+### Mechanism 2: `builtins.readFile` mirrors into `~/.config/config-files/` (`dotfiles.nix:49-55`)
 
 A second, independent mechanism copies exactly **7** of the mechanism-1 files' contents into a
 parallel `~/.config/config-files/` directory using `builtins.readFile`, producing plain
@@ -48,29 +48,51 @@ mechanism-2 mirror. The purpose of the mirror is to keep a version-control-frien
 diffable plain-text copy alongside the store symlink; it is not itself the canonical deployed
 config for any application.
 
-### Mechanism 3: `home.activation.claudeSettings` copy (`dotfiles.nix:65-73`)
+### Mechanism 3: `home.activation.claudeSettings` merge + copy (`dotfiles.nix:65-127`)
 
 `config/claude/settings.json` and `config/claude/keybindings.json` are deployed by an
-**activation script**, not a symlink. On every `home-manager switch`, the
-`home.activation.claudeSettings` block unconditionally:
-1. `rm -f`s the existing `~/.claude/settings.json` and `~/.claude/keybindings.json`,
-2. `cp`s the current `config/claude/{settings,keybindings}.json` over them, and
-3. `chmod u+w`s the copies.
+**activation script**, not a symlink, so that they are plain writable files Claude Code can
+write runtime changes to — which a read-only store symlink would not allow.
 
-This produces plain, writable (non-symlink) files at `~/.claude/settings.json` and
-`~/.claude/keybindings.json` so that Claude Code can write runtime changes to them, which a
-read-only store symlink would not allow.
+The two files are handled differently, because only one of them is written back by Claude Code.
 
-> **WARNING — intended force-overwrite behavior, not a bug**: because step 1 above is an
-> unconditional `rm -f` + `cp` with no diff/merge, **any manual edit made directly to
-> `~/.claude/settings.json` or `~/.claude/keybindings.json` that has not been copied back into
-> `config/claude/` is silently destroyed on the next `home-manager switch`.** This is intended,
-> documented behavior — the source of truth is `config/claude/`, not the deployed runtime files —
-> and is not something this documentation update changes or "fixes". If you edit the runtime
-> files directly, copy your changes into `config/claude/` before the next rebuild or they will be
-> lost.
+**`keybindings.json` — plain copy.** `rm -f`, `cp`, `chmod u+w`, unconditionally. Claude Code
+does not rewrite this file, so there is nothing to preserve; `config/claude/` is the source of
+truth outright.
 
-### Mechanism 4: `home.activation.claudeMcpServers` jq merge (`dotfiles.nix:82-109`)
+**`settings.json` — three-way merge.** Claude Code persists interactive settings here: every
+change made through `/config` or `/model` (`editorMode`, `autoCompactEnabled`,
+`agentPushNotifEnabled`, `remoteControlAtStartup`, and so on) is written straight into this file.
+A `cp` over the top would therefore erase, on every rebuild, exactly the settings the "writable
+regular file" choice exists to allow. The merge precedence is:
+
+```
+source defaults  <  live values  <  source ENFORCED keys
+```
+
+- **ENFORCED** (`_NOTE`, `env`, `hooks`, `model`, `permissions`, `statusLine`) are reset to the
+  source value on every activation. These define system behaviour, or are referenced by the repo
+  by path, so the repo owns them. `model` is enforced deliberately: Opus is the intended default.
+  A per-session `/model` switch still works — only the *persisted default* is reset.
+- **Everything else in the source acts as a seed.** It populates a fresh machine, but a live
+  value wins thereafter, so preferences set from inside Claude Code survive rebuilds.
+- **Keys the source does not mention are always preserved.**
+
+Adding a key to ENFORCED makes it repo-owned and un-changeable from inside Claude Code — the next
+rebuild reverts it — so add deliberately.
+
+Failure is fail-safe: if the live file is missing (fresh machine), unparseable, or the `jq` merge
+errors, the source is copied verbatim rather than leaving a broken or absent settings file. The
+merge writes to a temp file in the same directory and `mv`s it over the original, so a partially
+written `settings.json` is never observable.
+
+> **Note — this replaced an unconditional `rm -f` + `cp`.** Previously any setting changed inside
+> Claude Code was silently destroyed on the next `home-manager switch`, and the only remedy was to
+> notice the loss and hand-fold each key back into `config/claude/settings.json`. That is no
+> longer the case for `settings.json`. It remains true for `keybindings.json`: edit the source,
+> not the deployed file.
+
+### Mechanism 4: `home.activation.claudeMcpServers` jq merge (`dotfiles.nix:136-164`)
 
 `~/.claude.json` (see the four-way collision table below) is Claude Code's master user-scope
 config file: `mcpServers`, the project list, OAuth state, and session history all live there. The
@@ -80,10 +102,11 @@ technique already proven by `.claude/scripts/setup-lean-mcp.sh` (create the file
 does not exist, `jq` the new key into a temp file in the same directory, then `mv` the temp file
 over the original).
 
-This is the **deliberate counterpoint** to Mechanism 3's force-overwrite: because `~/.claude.json`
-carries OAuth/session/project-list state that must survive every rebuild, this block never
-`rm -f`s or `cp`s the file — it merges a single key and leaves every other key (including the
-pre-existing `mcpServers.lean-lsp` entry) untouched. If the `jq` merge fails for any reason (a
+Both this and Mechanism 3 now merge rather than overwrite, but they differ in ownership: because
+`~/.claude.json` carries OAuth/session/project-list state that must survive every rebuild, this
+block claims **no** keys as repo-owned — it writes a single key and leaves every other key
+(including the pre-existing `mcpServers.lean-lsp` entry) untouched, where Mechanism 3 resets its
+ENFORCED set on every activation. If the `jq` merge fails for any reason (a
 missing or malformed source file), the temp file is discarded and `~/.claude.json` is left
 completely unmodified rather than partially written.
 
@@ -113,8 +136,8 @@ never be conflated:
 | Path | What it is | Scope |
 |------|------------|-------|
 | `.claude/` (repo root) | The Claude Code agent-orchestration system for this repo (commands, skills, agents, context) | Out of scope for this document and for the `config/` tree generally |
-| `config/claude/` | The dotfiles *source* for Claude Code CLI settings (`settings.json`, `keybindings.json`), tracked in this repo | In scope — this is what deployment mechanism 3 copies from |
-| `~/.claude/` (user's `$HOME`, a directory) | The deployed *runtime* target directory that the actual Claude Code CLI reads/writes at `$HOME`, outside this repo | The destination mechanism 3 copies to; not itself version-controlled |
+| `config/claude/` | The dotfiles *source* for Claude Code CLI settings (`settings.json`, `keybindings.json`), tracked in this repo | In scope — this is what deployment mechanism 3 merges/copies from |
+| `~/.claude/` (user's `$HOME`, a directory) | The deployed *runtime* target directory that the actual Claude Code CLI reads/writes at `$HOME`, outside this repo | The destination mechanism 3 merges `settings.json` into and copies `keybindings.json` to; not itself version-controlled |
 | `~/.claude.json` (user's `$HOME`, a single file, no trailing slash) | Claude Code's master user-scope config file: `mcpServers`, project list, OAuth state, session history — distinct from, and outside, the `~/.claude/` directory above | The destination mechanism 4 merges `mcpServers.playwright` into; not itself version-controlled, and never fully overwritten |
 
 `.claude/` and `config/claude/` are both inside this git repository but serve completely
@@ -177,7 +200,7 @@ doubt, name the full path.
 
 | File | Deployed To | Description |
 |------|-------------|-------------|
-| `zuliprc` | `~/.zuliprc` | Zulip API client configuration (mechanism 1: plain `home.file.".zuliprc".source` store symlink, `dotfiles.nix:62` — not an activation script) |
+| `zuliprc` | `~/.zuliprc` | Zulip API client configuration (mechanism 1: plain `home.file.".zuliprc".source` store symlink, `dotfiles.nix:63` — not an activation script) |
 
 ## System Information
 
@@ -192,8 +215,9 @@ doubt, name the full path.
 - Changes to these files require running `home-manager switch` to take effect
 - Most configs are deployed as mechanism-1 symlinks (including `.zuliprc`); only
   `config/claude/{settings,keybindings}.json` use an activation script (mechanism 3) that copies
-  instead of symlinks, so Claude Code can write to them at runtime — see the force-overwrite
-  WARNING under mechanism 3 above. `~/.claude.json` (mechanism 4) is a separate, unrelated
+  instead of symlinks, so Claude Code can write to them at runtime — `settings.json` is merged
+  (enforced keys reset, the rest preserved) and `keybindings.json` is copied outright; see
+  mechanism 3 above. `~/.claude.json` (mechanism 4) is a separate, unrelated
   activation script that merges a single key rather than deploying a `config/`-sourced file —
   see mechanism 4 above. `rclone.conf` is out of scope for this reference (see
   `## Cloud Storage` above)

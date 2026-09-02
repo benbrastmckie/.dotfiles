@@ -1,5 +1,5 @@
 {
-  "_NOTE": "Managed by Home Manager via ~/.dotfiles/config/claude/settings.json. Edit the source, then run 'home-manager switch'. Runtime changes persist until next rebuild.",
+  "_NOTE": "Managed by Home Manager via ~/.dotfiles/config/claude/settings.json. On \"home-manager switch\" this file is MERGED into ~/.claude/settings.json, not copied over it: keys listed as enforced in modules/home/core/dotfiles.nix (_NOTE, env, hooks, model, permissions, statusLine) are forced back to the values here, and every other key keeps whatever the live file has. So settings you change interactively via /config now survive rebuilds, while the repo still owns system behaviour. Values here for non-enforced keys are seeds for a fresh machine.",
   "env": {
     "_MODEL_NOTE": "ANTHROPIC_DEFAULT_OPUS_MODEL and ANTHROPIC_DEFAULT_SONNET_MODEL are the single source of truth for the default Opus/Sonnet models. Do not set them elsewhere (e.g. packages/claude-code.nix wrapper).",
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-5[1m]",
@@ -87,5 +87,9 @@
         ]
       }
     ]
-  }
+  },
+  "agentPushNotifEnabled": true,
+  "autoCompactEnabled": false,
+  "editorMode": "vim",
+  "remoteControlAtStartup": false
 }
