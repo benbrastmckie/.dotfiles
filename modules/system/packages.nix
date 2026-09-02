@@ -42,7 +42,13 @@
 
     # Browsers & Communication
     vivaldi # Feature-rich web browser with built-in tools
-    brave # Privacy-focused web browser based on Chromium
+    # Privacy-focused web browser based on Chromium.
+    # ScreenWakeLock is disabled so a page holding navigator.wakeLock cannot pin the
+    # session awake: Brave's wake lock registers a GNOME SessionManager idle inhibitor
+    # (flag 8), which suppresses the 5-minute screen blank. See docs/no-sleep-agents.md.
+    (brave.override {
+      commandLineArgs = "--disable-blink-features=ScreenWakeLock";
+    })
     discord # Voice, video, and text chat platform
 
     # Appearance

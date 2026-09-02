@@ -46,6 +46,7 @@
     ./services/claude-session-reaper.nix
     ./services/zotero-translation-server.nix
     ./services/zotero-env.nix
+    ./services/screen-blank-watchdog.nix
 
     # Memory monitoring (co-located: scripts + systemd services, three-tier system)
     ./memory/monitor.nix

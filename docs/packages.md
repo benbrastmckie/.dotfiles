@@ -77,6 +77,22 @@ NPX wrapper for the Playwright MCP server that automatically uses the latest ver
 - Registered as `mcpServers.playwright` in `~/.claude.json` by
   `home.activation.claudeMcpServers` in `modules/home/core/dotfiles.nix` (see
   `config/README.md`'s Mechanism 4 for the merge-not-overwrite activation detail)
+- **Runs the browser headless**, via a generated `--config` file (`--config` is the only route
+  the MCP server exposes for browser settings; it has no `--browser-arg` equivalent). The same
+  config also passes `--disable-blink-features=ScreenWakeLock`. Navigation, snapshots, and
+  screenshots all work headless; what changes is that no browser window appears on screen.
+
+  The reason is screen blanking: a headed browser owns a Wayland surface and can pin the display
+  awake through `zwp_idle_inhibitor_v1`, which mutter relays into a GNOME SessionManager idle
+  inhibitor. A headless browser has no surface and cannot inhibit by any route. Measurement on
+  this machine found Playwright browsers were *not* in fact holding inhibitors (see
+  `no-sleep-agents.md`, mechanism 5), so this is a forward-looking guarantee rather than a fix
+  for an observed problem — it keeps agent-driven browsing structurally incapable of affecting
+  the display, no matter what a page does.
+
+  To get a visible browser back, drop `headless` from `mcpConfig` in `packages/playwright-mcp.nix`
+  and rebuild, or pass a different config at invocation: `playwright-mcp --config /path/to.json`
+  (the wrapper's trailing `"$@"` means a later `--config` wins).
 
 #### Zot / zotero-cli-cc (packages/zot.nix)
 

@@ -12,7 +12,11 @@ The mechanisms are layered rather than being one setting, because they protect a
 different things: an idle Claude Code session, an idle GNOME/niri desktop, a closed lid, and a
 laptop battery draining to zero in a bag. None of them alone covers all four cases.
 
-## The four mechanisms
+Mechanism 5 pulls the other way, and is listed here because it is routinely mistaken for a bug
+in the first four: **keeping the machine awake and keeping the screen lit are separate
+concerns**, and this system deliberately wants the first without the second.
+
+## The mechanisms
 
 ### 1. Claude Code session inhibitors (the everyday layer)
 
@@ -20,13 +24,22 @@ Every time a Claude Code session starts, a `SessionStart` hook (configured in
 `config/claude/settings.json`, deployed to `~/.claude/settings.json` by Home Manager) launches:
 
 ```
-systemd-inhibit --what=sleep:idle --who=claude-code --why="Claude Code session" --mode=block \
+systemd-inhibit --what=sleep --who=claude-code --why="Claude Code session" --mode=block \
   tail --pid=$PPID -f /dev/null
 ```
 
 in the background, and records the resulting PID in `/tmp/claude-inhibitor-${SESSION_ID}.pid`.
-This holds a logind **block** inhibitor on both `sleep` and `idle` for as long as the session is
-open — including while the session sits completely idle at the prompt. It is **session-scoped,
+This holds a logind **block** inhibitor on `sleep` for as long as the session is
+open — including while the session sits completely idle at the prompt.
+
+**Why `sleep` and not `sleep:idle`.** An earlier version also took the `idle` lock. That was
+dropped because it bought nothing and misdescribed the intent: blocking suspend is entirely the
+job of the `sleep` lock, while logind's `idle` lock only suppresses the session's idle *hint*.
+Screen blanking on this system is not driven by logind at all — it is driven by mutter's idle
+monitor and by **GNOME SessionManager** inhibitors (see mechanism 5), so the `idle` lock never
+actually held the screen on. Keeping it made `systemd-inhibit --list` look like the culprit
+whenever the screen failed to blank, which sent at least one debugging session down the wrong
+path. It is **session-scoped,
 not activity-scoped**: opening a terminal and doing nothing still blocks the machine from
 idle-suspending, because the intent is to protect a background agent that might resume work at
 any moment, not just active typing.
@@ -118,7 +131,7 @@ purely visual blanking, unrelated to sleep, and is not part of the no-sleep stor
 
 On AC power, idle-based auto-suspend is bounded at an explicit 12-hour ceiling rather than
 disabled outright — a plugged-in machine stays awake through any single Claude Code session (the
-session's own `sleep:idle` block inhibitor takes precedence for as long as it's held) and only
+session's own `sleep` block inhibitor takes precedence for as long as it's held) and only
 idle-suspends once 12 hours of continuous input-idle time have elapsed with no inhibitor held. On
 battery, idle-suspend is retained at 60 minutes as a courtesy/battery-protection measure, and,
 like the AC leg, it only fires when no logind block inhibitor is held — which means it is inert
@@ -211,11 +224,103 @@ re-arming) would just mean more awake time below the safety margin.
   re-enables automatically at the next boot or the next `nixos-rebuild switch`, so this is not a
   persistent opt-out).
 
-## How the four mechanisms compose
+### 5. Keeping the screen blanking (the opposite guarantee)
+
+The intent of this system is a machine that never *suspends* while agents work — not a machine
+whose display stays lit. The 5-minute screen blank (`org.gnome.desktop.session idle-delay = 300`)
+is wanted, and should keep working no matter how long an agent session runs.
+
+Nothing in mechanisms 1-4 keeps the screen on, and it is worth being precise about why, because
+`systemd-inhibit --list` is a misleading place to look. Blanking is **not** driven by logind. It
+is driven by mutter's idle monitor together with **GNOME SessionManager** inhibitors, which are a
+separate DBus registry:
+
+```bash
+busctl --user call org.gnome.SessionManager /org/gnome/SessionManager \
+  org.gnome.SessionManager GetInhibitors
+```
+
+Each returned object path can then be queried for `GetAppId`, `GetReason`, and `GetFlags`. The
+flags are a bitmask — `1` logout, `2` switch-user, `4` suspend, `8` idle, `16` auto-mount — and
+**flag `8` is the one that suppresses blanking**. A logind `sleep` inhibitor (mechanism 1) never
+sets it.
+
+In practice the flag-8 holders on this machine are Chromium-family browsers. A page calling
+`navigator.wakeLock` makes the browser register a `Blink Wake Lock` inhibitor, and mutter
+registers a matching `idle-inhibit` entry on the client's behalf via the Wayland
+`zwp_idle_inhibitor_v1` protocol — two entries, one underlying cause. The lock outlives whatever
+prompted it for as long as the tab stays open, so a single forgotten tab silently disables screen
+blanking indefinitely.
+
+**The guarantee is enforced by a watchdog, not by trusting applications.**
+`modules/home/services/screen-blank-watchdog.nix` defines a user timer that fires every 30
+seconds, reads real-input idle time from mutter's idle monitor, compares it against
+`org.gnome.desktop.session idle-delay`, and calls `org.gnome.ScreenSaver.SetActive(true)`
+directly once the delay is exceeded.
+
+This works because of an asymmetry in GNOME's behaviour: idle inhibitors block only the
+*automatic*, idle-triggered activation of the screensaver. An *explicit* `SetActive(true)` is
+honoured even while flag-8 inhibitors are held — verified on this host by activating the
+screensaver successfully with two inhibitors outstanding. The watchdog therefore reimplements
+the idle trigger in the one form that cannot be vetoed.
+
+Reading the threshold from `idle-delay` at each tick rather than hardcoding it means changing the
+blank timeout in GNOME Settings changes the watchdog too, with no rebuild; `idle-delay = 0`
+("never") is honoured as a no-op. On niri the GNOME DBus names are absent, every call fails, and
+the script exits 0 without acting — swayidle owns locking there (mechanism 3).
+
+Blanking is not suspending: this unit never suspends anything, and mechanisms 1-4 are unaffected.
+Agents keep working with the screen dark, which is the whole point.
+
+Belt and braces, both browser entry points additionally disable the wake-lock feature outright, so
+the common case never reaches the watchdog:
+
+- `modules/system/packages.nix` overrides `brave` with
+  `commandLineArgs = "--disable-blink-features=ScreenWakeLock"`.
+- `packages/playwright-mcp.nix` passes the same flag through a generated `--config` file, and
+  additionally runs the browser **headless**. Headless is the load-bearing setting there: a
+  headed browser owns a Wayland surface and can inhibit through `zwp_idle_inhibitor_v1`
+  regardless of any Blink flag, whereas a surface-less browser cannot inhibit by any route.
+
+This distinction matters for agent workloads specifically. GNOME needs an **uninterrupted**,
+inhibitor-free idle stretch to reach the blank timeout, so agents launching short-lived headed
+browsers on a loop can hold the screen on indefinitely while showing no persistent inhibitor in
+any point-in-time check. Sampling over time (a few minutes of `GetInhibitors` at a fixed
+interval) is the way to tell that pattern apart from a single stuck lock; a snapshot cannot.
+
+**What was actually measured here** (worth recording, because Playwright was the initial
+suspect and was wrong): sampling `GetInhibitors`, mutter's `GetIdletime`, and the count of live
+`ms-playwright` browser processes every 2 seconds for ~2.5 minutes produced 76 samples, 24 of
+which had Playwright browsers running (8 processes at peak). The inhibitor set was byte-identical
+in every sample, and `GetIdletime` climbed monotonically straight through the Playwright activity.
+So agent-driven Playwright browsers registered no idle inhibitors and did not reset the idle
+timer. The two constant flag-8 holders — Brave's `Blink Wake Lock` and mutter's `idle-inhibit`
+relay — were the entire cause; the Brave process had been up for over two days, holding a wake
+lock from a page long since forgotten. The lesson generalizes: check `GetAppId` on each inhibitor
+before blaming a process, and note that a mutter `idle-inhibit` entry names mutter, not the client
+that requested it, so it must be attributed by correlation over time rather than by reading it.
+
+The tradeoff is accepted deliberately: pages that legitimately want to hold the screen on (video,
+presentations, recipes) no longer can, and the screen blanks on them after 5 minutes. That is the
+desired behavior here — blanking the display costs a running agent nothing, since blanking is not
+suspending.
+
+To check the guarantee is live, confirm no flag-8 inhibitor is held while the browser is open:
+
+```bash
+busctl --user call org.gnome.SessionManager /org/gnome/SessionManager \
+  org.gnome.SessionManager GetInhibitors
+```
+
+Expected: no entry whose `GetAppId` is a browser and whose `GetFlags` is `8`. Note that the flag
+only takes effect for browser processes started *after* the rebuild — an already-running browser
+keeps whatever locks it holds until it is restarted.
+
+## How the mechanisms compose
 
 | Scenario | What happens |
 |---|---|
-| AC power, Claude Code session open, lid open | Nothing sleeps — the session's `sleep:idle` block inhibitor prevents idle-suspend for as long as it's held, regardless of elapsed idle time. |
+| AC power, Claude Code session open, lid open | Nothing sleeps — the session's `sleep` block inhibitor prevents idle-suspend for as long as it's held, regardless of elapsed idle time. The screen still blanks on the ordinary 5-minute `idle-delay`; blanking and suspend are independent (mechanism 5). |
 | AC power, no Claude Code session, lid open, idle 12+ hours | The machine idle-suspends — the explicit 12-hour AC ceiling has elapsed with no inhibitor held. |
 | Battery, Claude Code session open (inhibitor held), idle 60+ minutes | The idle-suspend watch fires but is denied by logind (blocked by the inhibitor) and does not retry until a re-arm event. Machine stays awake. |
 | Battery, no Claude Code session, idle 60+ minutes | Idle-suspend succeeds normally — the machine suspends. |
@@ -289,7 +394,7 @@ held:
 systemd-inhibit --list | grep claude-code
 ```
 
-Expected: a `sleep:idle` `block` entry with `who` set to `claude-code`. It should disappear
+Expected: a `sleep` `block` entry with `who` set to `claude-code`. It should disappear
 within moments of the session ending (or the owning process dying, via the `tail --pid`
 tether).
 
