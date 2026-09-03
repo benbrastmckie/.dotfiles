@@ -155,6 +155,7 @@
     gnome-tweaks # Tool to customize advanced GNOME settings
     gnomeExtensions.unite # GNOME extension to remove title bars and merge elements
     kooha # Screen recorder (custom override with MP4 support via overlay)
+    gpu-screen-recorder-gtk # Screen recorder GUI (VAAPI hardware encode, explicit audio device selection)
 
     # Multimedia
     alsa-tools # HDA codec tools (hda-verb) for audio hardware control

@@ -89,6 +89,12 @@
     xwayland.enable = true;
 
     dconf.enable = true;
+
+    # Screen recorder using GPU-only capture (VAAPI on the Radeon iGPU).
+    # Enabling this installs the CLI and generates the setcap wrappers that let
+    # it record without a permission prompt on every start. The GTK front-end is
+    # installed separately as gpu-screen-recorder-gtk in system/packages.nix.
+    gpu-screen-recorder.enable = true;
   };
 
   # Configure Wayland properly
