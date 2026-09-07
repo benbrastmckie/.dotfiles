@@ -310,7 +310,7 @@ tree and `fake-landrun.sh` the sibling tasks need — not a `loogle.nix`-style w
 
 ---
 
-### Phase 5: comparator-lean4export-resolve toolchain-keyed resolver [NOT STARTED]
+### Phase 5: comparator-lean4export-resolve toolchain-keyed resolver [COMPLETED]
 
 **Goal**: A standalone resolver script that returns a `lean4export` binary matched to a *target
 project's* Lean toolchain, with a sidecar making a mismatch structurally hard to produce and
@@ -318,24 +318,36 @@ trivially detectable by a caller.
 
 **Tasks**:
 
-- [ ] Write `packages/lean4export.nix` as a `writeShellScriptBin`-style package defining
-      `comparator-lean4export-resolve`
-- [ ] Accept a target project directory (or an explicit toolchain string) as its argument
-- [ ] Read the exact contents of the target's `lean-toolchain` file — reuse this existing
-      convention rather than inventing a second toolchain-detection mechanism
-- [ ] Derive a filesystem-safe cache key from that exact string; cache under
-      `~/.cache/comparator/lean4export/<slug>/`
-- [ ] On a cache miss: check out `leanprover/lean4export` at a documented default pinned rev,
+- [x] Write `packages/lean4export.nix` as a `writeShellScriptBin`-style package defining
+      `comparator-lean4export-resolve` *(completed; used `writeShellApplication` instead of the
+      lower-level `writeShellScriptBin` for the free `shellcheck` build-time check — same
+      package family, stricter build)*
+- [x] Accept a target project directory (or an explicit toolchain string) as its argument
+      *(completed; `<target-dir>` reads `<target-dir>/lean-toolchain`, `--toolchain <string>`
+      takes an explicit string)*
+- [x] Read the exact contents of the target's `lean-toolchain` file — reuse this existing
+      convention rather than inventing a second toolchain-detection mechanism *(completed)*
+- [x] Derive a filesystem-safe cache key from that exact string; cache under
+      `~/.cache/comparator/lean4export/<slug>/` *(completed)*
+- [x] On a cache miss: check out `leanprover/lean4export` at a documented default pinned rev,
       overwrite its `lean-toolchain` with the **target's** string so elan/lake build it under the
       target's Lean version, `lake build`, and install the binary plus a sidecar
       `lean4export.toolchain` containing the exact toolchain string it was built against
-- [ ] Print only the resolved binary path on stdout, so
-      `COMPARATOR_LEAN4EXPORT=$(comparator-lean4export-resolve "$dir")` works
-- [ ] Exit non-zero with a clear, distinguishable message on build failure — never return a stale
-      or unmatched binary silently
-- [ ] Provide an env-var or flag override for the pinned lean4export rev, for target projects whose
-      toolchain predates what the default rev can read
-- [ ] Register in `overlays/unstable-packages.nix`
+      *(completed; default rev pinned to lean4export's current HEAD
+      411dce7db58a3afc60ecab2d211acd1042b593dc, captured 2026-09-07)*
+- [x] Print only the resolved binary path on stdout, so
+      `COMPARATOR_LEAN4EXPORT=$(comparator-lean4export-resolve "$dir")` works *(completed; all
+      diagnostic output goes to stderr)*
+- [x] Exit non-zero with a clear, distinguishable message on build failure — never return a stale
+      or unmatched binary silently *(completed; verified live against a deliberately-nonexistent
+      Lean release `v0.0.0-does-not-exist` — exits 1, stderr shows the real `lake`/elan error,
+      stdout is empty)*
+- [x] Provide an env-var or flag override for the pinned lean4export rev, for target projects whose
+      toolchain predates what the default rev can read *(completed;
+      `COMPARATOR_LEAN4EXPORT_REV` env var; `COMPARATOR_LEAN4EXPORT_CACHE` also added to override
+      the cache root, useful for the Phase 7 fixture runs)*
+- [x] Register in `overlays/unstable-packages.nix` *(completed, as
+      `comparator-lean4export-resolve`)*
 
 **Timing**: 2 hours
 
