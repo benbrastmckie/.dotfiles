@@ -294,25 +294,34 @@ establish that it cannot and that the FOD fallback is required.
 
 ---
 
-### Phase 4: packages/comparator.nix real pinned derivation [NOT STARTED]
+### Phase 4: packages/comparator.nix real pinned derivation [COMPLETED]
 
 **Goal**: A real, reproducible Nix derivation producing the `comparator` binary plus the fixture
 tree and `fake-landrun.sh` the sibling tasks need — not a `loogle.nix`-style wrapper.
 
 **Tasks**:
 
-- [ ] Write `packages/comparator.nix` transcribing the Phase 3 vendoring recipe, using the Phase 2
-      toolchain as a build input
-- [ ] Install `bin/comparator`
-- [ ] Ship `tests/projects/` from the pinned checkout into the derivation output so Phase 7's
-      fixture runs need no second network fetch
-- [ ] Ship `scripts/fake-landrun.sh` into the output, since sibling task 153 depends on it as its
+- [x] Write `packages/comparator.nix` transcribing the Phase 3 vendoring recipe, using the Phase 2
+      toolchain as a build input *(completed; two `fetchFromGitHub` srcs -- comparator @
+      `2312244ac716564a61cc0bf4e107d9abf1757a61`, lean4export @
+      `cacf989bd75f608700820f6afc595f32e7a99a4d` -- assembled as siblings, `lakefile.toml`
+      patched to a `path`-style require, `lean-toolchain-bin` as `nativeBuildInputs`. One
+      implementation detail not anticipated by the Phase 3 recipe text: `fetchFromGitHub`
+      defaults both srcs to the generic directory name `source`, which collided in `srcs`-list
+      unpacking ("Cannot copy ... to source: destination already exists") -- fixed by giving each
+      fetch an explicit distinct `name` attribute (`comparator-src` / `lean4export-src`))*
+- [x] Install `bin/comparator` *(completed)*
+- [x] Ship `tests/projects/` from the pinned checkout into the derivation output so Phase 7's
+      fixture runs need no second network fetch *(completed; `$out/share/comparator/tests/projects/`)*
+- [x] Ship `scripts/fake-landrun.sh` into the output, since sibling task 153 depends on it as its
       development substitute and should not need a second copy of Comparator's source tree
-- [ ] Add a header comment recording the real-derivation-vs-wrapper decision and its reasoning
+      *(completed; `$out/share/comparator/scripts/fake-landrun.sh`, executable)*
+- [x] Add a header comment recording the real-derivation-vs-wrapper decision and its reasoning
       (trust semantics of a checker whose provenance must be auditable; Mathlib-free dependency
       footprint making a real derivation tractable where loogle's was not; no upstream `flake.nix`
-      to delegate to), and the `nanoda` deferral
-- [ ] Register in `overlays/unstable-packages.nix`
+      to delegate to), and the `nanoda` deferral *(completed; full argument in the file header,
+      nanoda deferral noted there and expanded in Phase 8's packages/README.md)*
+- [x] Register in `overlays/unstable-packages.nix` *(completed)*
 
 **Timing**: 2 hours
 

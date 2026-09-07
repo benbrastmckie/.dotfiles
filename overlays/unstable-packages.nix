@@ -19,6 +19,7 @@ pkgs-unstable: final: prev: {
   landrun = final.callPackage ../packages/landrun.nix { }; # Pinned v0.1.17 (deliberately shadows nixpkgs' 0.1.15 -- recursive ELF ldd resolution Comparator's sandboxed calls depend on; see packages/landrun.nix and packages/README.md)
   lean-toolchain-bin = final.callPackage ../packages/lean-toolchain-bin.nix { }; # Prebuilt Lean v4.34.0-rc2 (FOD fetch + offline unpack), pinned to Comparator's own lean-toolchain
   comparator-lean4export-resolve = final.callPackage ../packages/lean4export.nix { }; # Toolchain-keyed lean4export resolver (not a fixed binary) for Comparator's COMPARATOR_LEAN4EXPORT contract
+  comparator = final.callPackage ../packages/comparator.nix { }; # Real pinned Lean proof-verification checker derivation (binary + fixtures + fake-landrun.sh)
 
   # Custom wrappers extracted from modules/system/packages.nix.
   # zathura/sioyek are self-referential (wrapper name == wrapped package name), so use
