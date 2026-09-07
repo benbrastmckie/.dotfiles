@@ -1,17 +1,17 @@
 ---
-next_project_number: 130
+next_project_number: 131
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-08-24. Generated from state.json dependency graph.*
+*Updated 2026-09-07. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128,130 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -51,8 +51,115 @@ next_project_number: 130
 
 41 [BLOCKED] — reenable_pdf2docx_nixpkgs_fix
 42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
+130 [NOT STARTED] — Provision the three (optionally four) binaries the Comparator pro
 
 ## Tasks
+
+### 130. Provision the Comparator Lean proof-verification toolchain (landrun, lean4export, comparator)
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: packaging
+- **Dependencies**: None
+
+**Description**: Provision the three (optionally four) binaries the Comparator proof-verification
+toolchain needs, so that the Lean agent system's forthcoming --compare verification path has
+something to call. Today none of them are installed on this host.
+
+WHAT COMPARATOR IS AND WHY THESE BINARIES. leanprover/comparator (Apache-2.0,
+github.com/leanprover/comparator, default branch master, last push 2026-08-30, its own
+lean-toolchain pinned to leanprover/lean4:v4.34.0-rc2) is Lean FRO's trustworthy judge for Lean
+proofs from untrusted sources, built with AIMO feedback expressly to enable trustworthy LLM Lean
+evaluation. Given a trusted Challenge.lean and an untrusted Solution.lean it builds each under a
+sandbox, exports both declaration environments, verifies the Solution proves the same statements
+under a permitted-axiom whitelist, and replays the Solution into the Lean kernel. Its README
+names its dependencies exactly:
+  1. landrun (github.com/Zouuup/landrun), compiled from the main branch, present in PATH --
+     the Landlock-based sandbox each build and export runs inside.
+  2. lean4export (github.com/leanprover/lean4export, default branch master, last push
+     2026-08-25) "at a version that is compatible with whatever Lean version your project is
+     targeting", present in PATH -- the plain-text declaration exporter. Comparator deliberately
+     never loads .olean files, on the stated grounds that they are mmapped into the address space
+     and dereferenced and are therefore an attack surface; lean4export is how it reads an
+     environment instead.
+  3. nanoda (github.com/ammkrn/nanoda_lib), OPTIONAL, built with a recent Rust; cargo build
+     --release places nanoda_bin in target/release, which must be in PATH. Only needed to check
+     with a second, independent kernel alongside Lean's own.
+  4. the comparator binary itself, built from its lakefile.toml
+     (defaultTargets = ["comparator"], lean_exe comparator with root Main, requiring
+     leanprover/lean4export at rev master).
+Full paths may be supplied instead of PATH entries via the environment variables
+COMPARATOR_LANDRUN, COMPARATOR_LEAN4EXPORT and COMPARATOR_NANODA.
+
+MEASURED STATE ON THIS HOST, 2026-09-07.
+  lake, lean, elan   present, under ~/.elan/bin
+  landrun            MISSING -- but packaged in nixpkgs at version 0.1.15
+  lean4export        MISSING
+  nanoda_bin         MISSING
+  comparator         MISSING
+  kernel             Linux 7.1.3
+
+EXISTING PRECEDENT IN THIS REPO -- read these before choosing an approach.
+  - flake.nix already carries a lean4 input (url github:leanprover/lean4, nixpkgs follows).
+  - packages/loogle.nix is the closest existing analogue: a Lean 4 tool with no nixpkgs package,
+    handled as a self-bootstrapping writeShellScriptBin wrapper that clones into ~/.cache and
+    builds via the upstream project's own flake with lake. That pattern trades reproducibility
+    for not having to package a lake build in Nix. Decide deliberately whether Comparator should
+    follow it or be a real derivation; state the reasoning either way. A wrapper that silently
+    rebuilds on first use is a poor fit for something whose entire purpose is being a trustworthy
+    checker, so this decision deserves an argument rather than a copy-paste.
+  - modules/home/packages/dev-tools.nix is the conventional home.packages home for developer
+    tooling.
+  - modules/system/nix.nix already notes that foreign binaries (elan/Lean toolchains among them)
+    need special handling on NixOS -- relevant to anything elan-built landing in PATH.
+
+WORK.
+  (a) landrun: package from nixpkgs 0.1.15, OR from the main branch if the README's "compiled
+      from the main branch's source" requirement is not satisfied by 0.1.15. CHECK THIS RATHER
+      THAN ASSUMING -- the README is explicit about main, and a release tag may lag. Record what
+      you found.
+  (b) lean4export: must be built at a version compatible with the LEAN VERSION OF THE PROJECT
+      BEING CHECKED, not Comparator's own v4.34.0-rc2 and not whatever is newest. This is the
+      awkward requirement: it is per-target-project, so a single fixed system-wide build is
+      likely wrong. Decide and document how a caller obtains a version-matched lean4export --
+      candidates include building it per project on demand, providing several pinned builds, or
+      exposing a helper that resolves it from a project's lean-toolchain. Whatever is chosen, the
+      consuming agent system must be able to detect a MISMATCH loudly rather than run and produce
+      a confusing failure.
+  (c) comparator itself, built from its lakefile.
+  (d) nanoda: optional. Decide whether to include it now. Its only benefit is a second kernel,
+      so it is reasonable to defer -- but say so explicitly rather than omitting it silently.
+  (e) Expose the resolved paths so that COMPARATOR_LANDRUN, COMPARATOR_LEAN4EXPORT and
+      COMPARATOR_NANODA can be set, since the consuming side prefers env-var resolution over PATH
+      probing.
+
+SANDBOX CAVEAT WORTH RECORDING. Comparator's README recommends wrapping invocation in
+  systemd-run --property=RestrictAddressFamilies=~AF_UNIX --user --pty -E PATH="$PATH" \
+    --working-directory $(pwd) -- bash -c 'lake env <comparator> <config.json>'
+to guard against a landrun sandbox-escape vulnerability that the README states "will be fixed in
+Linux 7.1". This host runs 7.1.3 and is therefore past that fix, but the wrapper is still
+required for portability and should not be dropped on the strength of this host's kernel alone.
+Note this in whatever documentation accompanies the packaging.
+
+CONSUMER. Four sibling tasks in ~/.config/nvim/ build the agent-system side: a clean-room runner
+script, a trusted-Challenge snapshot mechanism, an advisory --compare flag threaded through the
+Lean implementation agent, and the trust-boundary documentation. Those tasks can make partial
+progress against Comparator's own scripts/fake-landrun.sh development substitute, but their
+end-to-end acceptance depends on this task. Coordinate the env-var contract with them rather
+than inventing a second one.
+
+ACCEPTANCE.
+  - landrun, lean4export and comparator are all invocable after a rebuild, demonstrated by
+    actually running each with a version or help flag -- not by showing the derivation evaluates.
+  - Comparator runs successfully against at least one of its own tests/projects fixtures
+    (tests/projects/ ships Challenge/Solution/config triples including simple_mismatch, def_hole,
+    def_hole_axiom_issue, def_hole_type_mismatch, olean_issue and opaque_value), producing the
+    fixture's expected verdict. A pass on a matching pair AND a rejection on a mismatching pair,
+    both demonstrated -- a checker that only ever accepts proves nothing.
+  - The lean4export version-matching decision from (b) is written down with its reasoning, and a
+    mismatch is detectable by a caller.
+  - The landrun main-branch-versus-0.1.15 question from (a) is answered with evidence.
+
+---
 
 ### 128. Claude mcp registration and permission scope
 - **Status**: [NOT STARTED]
