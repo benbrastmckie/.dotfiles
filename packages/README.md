@@ -325,6 +325,43 @@ This is exactly the contract already relied upon by the sibling agent-system tas
   "$project_dir")`.
 - `COMPARATOR_NANODA` is deliberately left **unset** globally, per the nanoda deferral above.
 
+**How `COMPARATOR_LANDRUN` actually reaches a shell on this host, and why the propagation delay
+is harmless**: `home.sessionVariables` on a NixOS-integrated home-manager setup is **not**
+auto-sourced into a plain login shell by `/etc/profile`/`set-environment` -- that chain (and
+`/etc/bashrc`, `~/.profile`, `~/.bashrc`) does not source `hm-session-vars.sh` on this host, and
+this repo does not enable home-manager's own `programs.bash`/`programs.zsh` (the mechanism that
+would normally add that sourcing line). What actually propagates it here is the **graphical
+session**: it sources `hm-session-vars.sh` once at login via systemd's user-environment import,
+and every terminal spawned from that session inherits it as a child process. Consequence: after a
+`sudo nixos-rebuild switch` that changes a session variable, the new value is visible in *new*
+terminals only once the graphical session itself has re-logged-in or the host has rebooted -- not
+immediately, and not in a bare non-graphical shell (SSH, a TTY console, a systemd service) ever,
+absent that per-shell integration. This is ordinary home-manager behavior on this configuration,
+not specific to Comparator.
+
+This is deliberately **not** treated as a defect worth a config change, because Comparator's own
+upstream code already tolerates `COMPARATOR_LANDRUN` being unset: `Main.lean:335` reads
+`let whichLandrun := (← IO.getEnv "COMPARATOR_LANDRUN").getD "landrun"` and falls back to spawning
+the bare name `"landrun"`, which Lean's `IO.Process.spawn` resolves via a `PATH` search exactly
+like a shell would -- and `landrun` is unconditionally on `PATH` via `~/.nix-profile/bin`
+regardless of whether `sessionVariables` has been sourced into the current shell. This was
+verified empirically, not just read from source: a fixture re-run (both `simple_match` and
+`simple_mismatch`) was performed in a shell with `COMPARATOR_LANDRUN` deliberately left unset, and
+both produced correct, content-based verdicts.
+
+**Decision**: accept the standard graphical-session propagation delay for the pinned
+`COMPARATOR_LANDRUN` value (option (a)) rather than making a config change to force
+`home.sessionVariables` into non-graphical shells (option (c) -- e.g. enabling home-manager's
+`programs.bash`/`programs.zsh` repo-wide). That change would still not help genuinely
+non-graphical contexts (SSH, systemd services) and is a larger surface change than this gap
+justifies. Instead, rely on Comparator's own already-correct PATH-fallback behavior (option (b),
+already true upstream -- no code change needed) as the safety net: callers, including the sibling
+agent-system tasks in `~/.config/nvim/` that consume this env-var contract, should not treat
+`COMPARATOR_LANDRUN` being unset as broken -- `landrun` remains reachable via `PATH` either way.
+The fixed `COMPARATOR_LANDRUN` value still matters for pinning exactly which `landrun` build is
+invoked (auditability), which is why it is kept rather than removed in favor of the fallback
+alone.
+
 ### python-check-wheel-contents.nix
 Custom Python package for the `check-wheel-contents` wheel linter (v0.6.3), used to audit built
 wheels during PyPI release rehearsals. Nixpkgs packages it in neither the stable channel nor
