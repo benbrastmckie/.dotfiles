@@ -405,26 +405,45 @@ trivially detectable by a caller.
 
 ---
 
-### Phase 6: Home Manager wiring and rebuild [NOT STARTED]
+### Phase 6: Home Manager wiring and rebuild [PARTIAL]
 
 **Goal**: All three binaries on `PATH` after a real rebuild, with the env-var contract exposed
 exactly as the sibling tasks assume — and each binary demonstrated by an actual invocation.
 
 **Tasks**:
 
-- [ ] Add `landrun`, `comparator`, and the resolver package to `home.packages` in
-      `modules/home/packages/dev-tools.nix`
-- [ ] Set `home.sessionVariables.COMPARATOR_LANDRUN = "${pkgs.landrun}/bin/landrun";` (safe as a
-      fixed path — landrun is not per-project-versioned)
-- [ ] Do **not** set `COMPARATOR_LEAN4EXPORT`; add a comment at that exact site explaining that a
+- [x] Add `landrun`, `comparator`, and the resolver package to `home.packages` in
+      `modules/home/packages/dev-tools.nix` *(completed)*
+- [x] Set `home.sessionVariables.COMPARATOR_LANDRUN = "${pkgs.landrun}/bin/landrun";` (safe as a
+      fixed path — landrun is not per-project-versioned) *(completed)*
+- [x] Do **not** set `COMPARATOR_LEAN4EXPORT`; add a comment at that exact site explaining that a
       fixed global value would be silently *wrong* for any project whose toolchain differs from
       whatever the resolver last cached, and that the calling harness must set it per-invocation
-      from the resolver's output
-- [ ] Do **not** set `COMPARATOR_NANODA`; add a comment recording the deliberate `nanoda` deferral
+      from the resolver's output *(completed)*
+- [x] Do **not** set `COMPARATOR_NANODA`; add a comment recording the deliberate `nanoda` deferral
       and that leaving it unset makes `enable_nanoda: true` fail loudly (binary-not-found) rather
-      than silently skip
-- [ ] Rebuild (`nixos-rebuild switch` / `home-manager switch`) and start a fresh login shell so
-      `sessionVariables` is actually in effect
+      than silently skip *(completed)*
+- [x] Rebuild (`nixos-rebuild switch` / `home-manager switch`) and start a fresh login shell so
+      `sessionVariables` is actually in effect *(altered/partial -- see deviation note below)*
+      *(deviation: altered — `nixos-rebuild build --flake .#hamsa` succeeded in full (all 31
+      derivations, including the home-manager-integrated `hm-session-vars.sh` carrying
+      `COMPARATOR_LANDRUN`), and `nix eval` confirms
+      `nixosConfigurations.hamsa.config.home-manager.users.benjamin.home.sessionVariables.COMPARATOR_LANDRUN`
+      resolves to the correct store path. `home-manager switch --flake .#benjamin` (the
+      standalone, non-root path) was ALSO run successfully and put `landrun`, `comparator`, and
+      `comparator-lean4export-resolve` on `PATH` immediately (verified by real invocation from a
+      login shell below). However, `sudo nixos-rebuild switch --flake .#hamsa` -- the step that
+      activates the NixOS-integrated home-manager generation and is the ONLY mechanism this
+      specific host's shell startup chain uses to auto-source `sessionVariables` into a plain
+      login shell (confirmed by inspecting `/etc/profile`, `/etc/bashrc`, `~/.profile`,
+      `~/.bashrc`: none of them source `~/.nix-profile/etc/profile.d/*.sh`, only the
+      system-level, `nixos-rebuild`-generated `set-environment` is auto-sourced) -- is BLOCKED in
+      this agent session: the sandbox's permission system categorically denies `sudo` (confirmed
+      via `sudo -n true` -> "Permission ... has been denied", a harness-level block, not a
+      sudoers/password failure). This is an environment/permission boundary of the implementing
+      agent session, not a defect in the packaging or wiring -- the value is correct and will
+      take effect automatically on the user's next `sudo nixos-rebuild switch --flake .#hamsa`.
+      Recorded as a required follow-up in the implementation summary's Notes and next_steps.)*
 
 **Timing**: 1.5 hours
 

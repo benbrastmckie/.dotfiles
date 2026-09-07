@@ -53,5 +53,35 @@
     python3Packages.cocotb # Python cosimulation testbench framework
 
     nodejs # Required runtime dependency
+
+    # Comparator Lean proof-verification toolchain (landrun, comparator, and the
+    # per-project lean4export resolver). See packages/README.md for the full decision
+    # record (landrun v0.1.17-vs-nixpkgs-0.1.15 evidence, lean4export version-matching
+    # design, real-derivation-vs-wrapper argument for comparator, nanoda deferral, and the
+    # systemd-run sandbox-escape wrapper caveat).
+    landrun
+    comparator
+    comparator-lean4export-resolve
   ];
+
+  # COMPARATOR_LANDRUN is safe as a fixed global path: landrun itself is not
+  # per-project-versioned (unlike lean4export, which must match each checked project's own
+  # Lean toolchain -- see the COMPARATOR_LEAN4EXPORT comment below).
+  home.sessionVariables.COMPARATOR_LANDRUN = "${pkgs.landrun}/bin/landrun";
+
+  # COMPARATOR_LEAN4EXPORT is deliberately NOT set here. A fixed global value would be
+  # silently WRONG for any checked project whose Lean toolchain differs from whatever
+  # `comparator-lean4export-resolve` last cached -- lean4export's binary format is tied to
+  # the exact Lean version that produced the .olean files it reads (see
+  # packages/lean4export.nix's header). The calling harness must resolve and export this
+  # per invocation, e.g.:
+  #   export COMPARATOR_LEAN4EXPORT=$(comparator-lean4export-resolve "$project_dir")
+  # before invoking comparator.
+
+  # COMPARATOR_NANODA is deliberately NOT set here. nanoda (a second, independent Lean
+  # kernel implementation) is explicitly deferred -- see packages/README.md's decision
+  # record. Comparator's own fallback for an unset override is a bare `nanoda_bin` looked
+  # up on PATH; since nanoda is not packaged here, `enable_nanoda: true` in any config will
+  # fail LOUDLY (binary-not-found) rather than silently skip the check, which is the
+  # correct "degrade loudly, not silently" behavior for a trust-critical checker.
 }
