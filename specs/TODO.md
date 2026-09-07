@@ -51,15 +51,17 @@ next_project_number: 131
 
 41 [BLOCKED] — reenable_pdf2docx_nixpkgs_fix
 42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
-130 [NOT STARTED] — Provision the three (optionally four) binaries the Comparator pro
+130 [IMPLEMENTING] — Provision the three (optionally four) binaries the Comparator pro
 
 ## Tasks
 
 ### 130. Provision the Comparator Lean proof-verification toolchain (landrun, lean4export, comparator)
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: packaging
 - **Dependencies**: None
+- **Research**: [130_provision_comparator_verification_toolchain/reports/01_comparator-toolchain-provisioning.md]
+- **Plan**: [130_provision_comparator_verification_toolchain/plans/01_comparator-toolchain-provisioning.md]
 
 **Description**: Provision the three (optionally four) binaries the Comparator proof-verification
 toolchain needs, so that the Lean agent system's forthcoming --compare verification path has

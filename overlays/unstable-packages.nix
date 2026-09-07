@@ -16,6 +16,7 @@ pkgs-unstable: final: prev: {
   slidev = final.callPackage ../packages/slidev.nix { }; # Presentation slides from Markdown
   playwright-mcp = final.callPackage ../packages/playwright-mcp.nix { }; # Latest version, reuses cached browser (deliberately shadows nixpkgs' derivation)
   kooha = import ../packages/kooha.nix prev.kooha final.gst_all_1; # Screen recorder with full GStreamer plugin support
+  landrun = final.callPackage ../packages/landrun.nix { }; # Pinned v0.1.17 (deliberately shadows nixpkgs' 0.1.15 -- recursive ELF ldd resolution Comparator's sandboxed calls depend on; see packages/landrun.nix and packages/README.md)
 
   # Custom wrappers extracted from modules/system/packages.nix.
   # zathura/sioyek are self-referential (wrapper name == wrapped package name), so use
