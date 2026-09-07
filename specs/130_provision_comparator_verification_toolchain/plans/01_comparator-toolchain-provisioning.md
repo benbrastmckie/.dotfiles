@@ -466,29 +466,62 @@ exactly as the sibling tasks assume — and each binary demonstrated by an actua
 
 ---
 
-### Phase 7: End-to-end fixture verification, pass and rejection [NOT STARTED]
+### Phase 7: End-to-end fixture verification, pass and rejection [COMPLETED]
 
 **Goal**: Demonstrate Comparator producing a correct verdict in **both** directions against its own
 shipped fixtures — a checker that only ever accepts proves nothing.
 
 **Tasks**:
 
-- [ ] Choose a matching Challenge/Solution fixture from `tests/projects/` expected to **pass**
-- [ ] Choose `simple_mismatch` (and optionally one of `def_hole` /
+- [x] Choose a matching Challenge/Solution fixture from `tests/projects/` expected to **pass**
+      *(completed; `simple_match`, `test.json` expects `exit_code: 0`)*
+- [x] Choose `simple_mismatch` (and optionally one of `def_hole` /
       `def_hole_axiom_issue` / `def_hole_type_mismatch` / `olean_issue` / `opaque_value`) as the
-      **rejection** case
-- [ ] For each run, resolve the export binary first:
+      **rejection** case *(completed; `simple_mismatch`, `test.json` expects `exit_code: 1`)*
+- [x] For each run, resolve the export binary first:
       `export COMPARATOR_LEAN4EXPORT=$(comparator-lean4export-resolve "$fixture_dir")`
-- [ ] Invoke under the README's recommended wrapper form:
+      *(completed; both fixtures resolve to the same cache slot,
+      `leanprover-lean4-v4.34.0-rc2`, since both are checked against Comparator's own
+      `v4.34.0-rc2` toolchain -- built once in Phase 5, reused for both runs)*
+- [x] Invoke under the README's recommended wrapper form:
       `systemd-run --property=RestrictAddressFamilies=~AF_UNIX --user --pty -E PATH="$PATH"
-      --working-directory $(pwd) -- bash -c 'lake env comparator config.json'`
-- [ ] Capture full stdout/stderr transcripts for both runs
-- [ ] Confirm the pass case produces the fixture's expected accepting verdict, and the mismatch case
+      --working-directory $(pwd) -- bash -c 'lake env comparator config.json'` *(completed for
+      both fixtures)*
+- [x] Capture full stdout/stderr transcripts for both runs *(completed; see summary)*
+- [x] Confirm the pass case produces the fixture's expected accepting verdict, and the mismatch case
       produces an explicit **rejection** — not a crash, not a tooling error. A non-zero exit from a
       missing binary or a sandbox setup failure does NOT count as a rejection; distinguish these in
-      the transcript
-- [ ] If a run fails for an environment reason, fix and re-run rather than recording the failure as
-      a verdict
+      the transcript *(completed: accept -> "Your solution is okay!", exit 0; reject -> "uncaught
+      exception: Challenge and solution constant kind don't match: 'comm'", exit 1 -- a genuine
+      content-based verdict naming the actual mismatch, not a missing-binary/sandbox-setup error)*
+- [x] If a run fails for an environment reason, fix and re-run rather than recording the failure as
+      a verdict *(completed -- see the landrun/elan-wrapper-script finding below, which WAS an
+      environment failure, correctly not recorded as a verdict, and fixed before the accepted
+      transcripts above were captured)*
+
+**Environment-failure-vs-verdict finding (recorded per the task's own instruction to distinguish
+these)**: the first attempt failed with `[landrun:error] permission denied` /
+`uncaught exception: Child exited with 1` during the `lake build Challenge` step -- BEFORE any
+verdict was reached. Root-caused via `LANDRUN_LOG_LEVEL=debug`: this host's `elan`-installed Lean
+toolchains ship `bin/lake` as a **bash wrapper script** (`#!/nix/store/.../bash; ... exec
+"$dir/lake.orig" "$@"`, injecting `LEAN_CC`), not a raw ELF binary. Comparator's hardcoded
+`--ldd` dependency-detection (`elfdeps.GetLibraryDependencies`) parses ELF `DT_NEEDED`/interpreter
+entries only -- it does not follow shebang lines -- so the wrapper's bash interpreter
+(`/nix/store/.../bash-5.3p9/bin/bash`) is never added to landrun's executable grant list, and the
+kernel's nested `execve` of that interpreter is denied by Landlock. This reproduced identically
+and deterministically outside Comparator too (`landrun --best-effort --ro / --rw /dev --ldd
+--add-exec -- lake --version` against an elan-managed toolchain fails the same way). Using
+Phase 2's `lean-toolchain-bin` (a real ELF `bin/lake`/`bin/lean` via `autoPatchelfHook`, no
+wrapper script) instead of elan's toolchain on `PATH` resolved it immediately -- `--ldd` then
+correctly detected and granted the real dynamic linker and `libleanshared*.so` paths, and the
+build/export/verdict pipeline completed end to end. This is recorded as a load-bearing
+operational requirement for Phase 8's documentation: any caller of `comparator` on this host
+should ensure `lake`/`lean` resolve to a non-wrapper-script toolchain (e.g. by preferring
+`lean-toolchain-bin`-style raw-ELF toolchains on `PATH` ahead of `elan`'s own installed
+toolchains) when the checked project's toolchain is `v4.34.0-rc2` -- for other toolchain
+versions a caller would need an equivalent raw-ELF acquisition, which is outside this task's
+scope (Non-Goals: "Making comparator a general-purpose multi-Lean-version checker beyond what
+the resolver provides").
 
 **Timing**: 2 hours
 
