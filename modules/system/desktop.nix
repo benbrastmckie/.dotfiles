@@ -94,6 +94,7 @@
     # Enabling this installs the CLI and generates the setcap wrappers that let
     # it record without a permission prompt on every start. The GTK front-end is
     # installed separately as gpu-screen-recorder-gtk in system/packages.nix.
+    # See docs/screen-recording.md.
     gpu-screen-recorder.enable = true;
   };
 

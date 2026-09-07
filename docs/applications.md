@@ -148,6 +148,11 @@ PulseAudio client tools for audio capture.
 timeout 10s parecord --channels=1 --rate=16000 --file-format=wav recording.wav
 ```
 
+**Note**: a compressed and level-corrected microphone source, `mic_boosted`
+("Mic (Boosted)"), is also available system-wide. It is defined as a PipeWire filter chain in
+`modules/system/audio.nix`. See [screen-recording.md](screen-recording.md) for the rationale
+and measured levels.
+
 ### Integration Use Cases
 
 - **Claude Code**: TTS notifications via Stop hooks

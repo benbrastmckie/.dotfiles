@@ -33,6 +33,7 @@
       # and the fast lookahead limiter used by the mic chain below. Plugins are
       # referenced by bare filename (no path, no .so) because PipeWire resolves
       # them against LADSPA_PATH, not as absolute paths.
+      # See docs/screen-recording.md.
       extraLadspaPackages = [ pkgs.ladspaPlugins ];
 
       # Virtual source "Mic (Boosted)": compressor + limiter over the HyperX
@@ -46,6 +47,7 @@
       # This is a separate source, NOT a replacement for the raw device: any app
       # (Kooha, gpu-screen-recorder, OBS, Zoom) can select "Mic (Boosted)", and
       # the untouched SoloCast stays available for A/B comparison.
+      # See docs/screen-recording.md.
       extraConfig.pipewire."99-mic-boost" = {
         "context.modules" = [
           {

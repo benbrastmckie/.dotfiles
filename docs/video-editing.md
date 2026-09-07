@@ -15,6 +15,9 @@ All installed via Home Manager (`home.nix`):
 
 Whisper model location: `~/.local/share/whisper/ggml-base.bin`
 
+This workflow starts from clips recorded elsewhere. For capturing the screen directly,
+including the boosted-microphone audio source, see [screen-recording.md](screen-recording.md).
+
 ## Workflow
 
 ### 1. Transfer clips

@@ -27,6 +27,7 @@ This directory contains comprehensive documentation for the NixOS configuration 
 - **[himalaya.md](himalaya.md)** - Himalaya email client setup and configuration
 - **[neovim.md](neovim.md)** - Neovim configuration, package choice, and sideloadInitLua gotcha
 - **[niri.md](niri.md)** - Niri window manager keybindings and configuration
+- **[screen-recording.md](screen-recording.md)** - Screen capture tools, the Mic (Boosted) PipeWire filter chain, and the volume-keys-after-PipeWire-restart gotcha
 - **[no-sleep-agents.md](no-sleep-agents.md)** - Keeping the system awake for long-running AI agent sessions (Claude Code inhibitors, GNOME/logind, niri, battery backstop)
 - **[claude-session-scopes.md](claude-session-scopes.md)** - Per-session cgroup containment for Claude Code and the orphan reaper (how to keep work alive, escape hatch, rollback)
 - **[terminal.md](terminal.md)** - WezTerm and Kitty terminal configuration

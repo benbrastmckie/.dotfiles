@@ -89,6 +89,7 @@ These dotfiles provide a complete NixOS setup with:
 - [`docs/applications.md`](docs/applications.md): Application-specific configurations
 - [`docs/neovim.md`](docs/neovim.md): Neovim configuration, package choice, and sideloadInitLua gotcha
 - [`docs/packages.md`](docs/packages.md): Package management and custom packages
+- [`docs/screen-recording.md`](docs/screen-recording.md): Screen capture tools and the boosted-microphone PipeWire filter chain
 - [`docs/testing.md`](docs/testing.md): Testing and validation procedures
 
 See [`docs/README.md`](docs/README.md) for complete documentation index.
