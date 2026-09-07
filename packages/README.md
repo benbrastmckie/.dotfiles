@@ -120,6 +120,211 @@ loogle --help                  # Show all options
 
 See [Development Guide](../docs/development.md#lean-4-development) for detailed usage examples.
 
+## Comparator Lean Proof-Verification Toolchain
+
+`landrun`, `lean-toolchain-bin`, `comparator`, and `comparator-lean4export-resolve` together
+provision a working install of [Comparator](https://github.com/leanprover/comparator), a
+trustworthy checker for Lean proof submissions, plus the version-matched `lean4export` it
+requires. Comparator's own README documents the trust model in full; this section records the
+five packaging decisions this repo made and why, plus one load-bearing operational finding
+discovered while verifying it end to end.
+
+### landrun.nix
+Pinned `v0.1.17` `buildGoModule` derivation for [landrun](https://github.com/Zouuup/landrun), a
+Landlock-based sandbox. Deliberately shadows nixpkgs' own `landrun` (pinned at `0.1.15`) in
+`overlays/unstable-packages.nix` -- this is the "landrun `main`-vs-`0.1.15`" decision the task
+asked to have answered with evidence, not a stylistic preference:
+
+- Comparator hardcodes `--best-effort --ro / --rw /dev --ldd --add-exec` on **every** sandboxed
+  invocation (`Main.lean`'s `buildLandrunArgs`). `--ldd`'s implementation changed between
+  `0.1.15` and `v0.1.16`/`v0.1.17`/`main`:
+  - `0.1.15`: shells out to the system `ldd` binary and parses its text output -- a **shallow**
+    (non-recursive) dependency scan.
+  - `v0.1.16`+: an internal ELF parser (`elfdeps.GetLibraryDependencies`) that walks dependencies
+    breadth-first and **recursively** (landrun PRs #38, #40). This sits directly in the flag
+    combination Comparator exercises, and matters more on NixOS specifically, where binaries
+    commonly have several layers of `/nix/store` shared-library indirection a shallow scan is
+    prone to miss.
+  - PR #49 ("use Restrict() to avoid REFER permission denial") fixes cross-directory rename/link
+    failing with `EXDEV` even when the target directory is granted `--rw` -- plausibly relevant
+    to `lake build`'s write-then-rename artifact production, present in `0.1.15` and fixed after
+    it.
+  - `go-landlock` was bumped to `v0.9.0` (Landlock ABI **V9**) between `v0.1.16` and `v0.1.17` (a
+    documented upstream BREAKING CHANGE). Since Comparator always passes `--best-effort`, older
+    kernels degrade gracefully rather than hard-failing, but `0.1.15` enforces a materially
+    weaker sandbox on any kernel that supports more.
+  - `main` (as pinned) is only 4 purely cosmetic commits ahead of the `v0.1.17` tag -- so a tagged
+    commit is pinned rather than a floating branch, since they are functionally identical.
+- **This host's probed Landlock ABI level is 9** (probed via a
+  `landlock_create_ruleset(NULL, 0, LANDLOCK_CREATE_RULESET_VERSION)` syscall on `hamsa`),
+  matching `v0.1.17`'s `go-landlock v0.9.0` ceiling exactly -- this pin buys the full sandboxing
+  strength `v0.1.17` offers on this host, not just a degraded `--best-effort` fallback.
+
+**Wired via**: `overlays/unstable-packages.nix` (`landrun = final.callPackage
+../packages/landrun.nix { };`).
+
+### lean-toolchain-bin.nix
+Deterministic, content-addressed acquisition of the exact Lean toolchain Comparator's own
+`lean-toolchain` pins (`leanprover/lean4:v4.34.0-rc2`), for use as a **build-time** dependency
+of `comparator.nix`. Does not build Lean 4 from source: `fetchurl`s the official prebuilt Linux
+x86_64 release tarball (`lean-4.34.0-rc2-linux.tar.zst`, confirmed present via `gh api
+repos/leanprover/lean4/releases/tags/v4.34.0-rc2`) as a fixed-output derivation, then unpacks and
+relocates it offline via `autoPatchelfHook`.
+
+**flake.nix's `lean4` input**: this repo already declared an unused `lean4` input
+(`github:leanprover/lean4`, unpinned). It is deliberately left as comment-and-keep, NOT
+pin-and-use: it floats on `leanprover/lean4`'s default branch, and building Lean 4 from source
+via that input is unnecessary weight this task does not need (see the comment at that input in
+`flake.nix`). `lean-toolchain-bin.nix` is the actual toolchain source of truth for Comparator.
+
+**Load-bearing operational finding (elan-toolchain wrapper scripts break landrun)**: `elan`
+installs a Lean toolchain's `bin/lake` as a **bash wrapper script**
+(`#!/nix/store/.../bash; ... exec "$dir/lake.orig" "$@"`, injecting `LEAN_CC`), not a raw ELF
+binary. landrun's `--ldd` dependency detection (`elfdeps.GetLibraryDependencies`) parses ELF
+`DT_NEEDED`/interpreter entries only -- it does not follow shebang lines -- so the wrapper's bash
+interpreter is never added to landrun's executable grant list, and the kernel's nested `execve`
+of that interpreter is denied by Landlock (a generic, easily-misread `[landrun:error] permission
+denied` with no verdict). This was reproduced deterministically outside Comparator too
+(`landrun --best-effort --ro / --rw /dev --ldd --add-exec -- lake --version` against an
+elan-managed toolchain fails identically) and root-caused via `LANDRUN_LOG_LEVEL=debug`.
+`lean-toolchain-bin.nix`'s `autoPatchelfHook`-based binaries are raw ELF (no wrapper script), so
+`--ldd` correctly detects and grants the real dynamic linker and `libleanshared*.so` paths, and
+the sandboxed build/export pipeline completes. **Operational consequence for any caller of
+`comparator` on this host**: `lean`/`lake` must resolve (via `PATH`) to a raw-ELF toolchain, not
+one of `elan`'s own installed toolchains, whenever the checked project's toolchain is
+`v4.34.0-rc2` -- prefer `lean-toolchain-bin`'s output ahead of `~/.elan/bin` and
+`~/.elan/toolchains/*/bin` on `PATH`. For any other Lean version, a caller would need an
+equivalent raw-ELF acquisition of that version; providing one generically is out of this task's
+scope (see comparator.nix's Non-Goals).
+
+**Wired via**: `overlays/unstable-packages.nix` (`lean-toolchain-bin = final.callPackage
+../packages/lean-toolchain-bin.nix { };`); consumed as `nativeBuildInputs` by `comparator.nix`.
+
+### comparator.nix
+Real, pinned Nix derivation for [Comparator](https://github.com/leanprover/comparator) itself
+-- deliberately **not** a `loogle.nix`-style silent-rebuild wrapper. The task asked for this
+argument to be made explicitly rather than the loogle pattern copied by default:
+
+1. **Trust semantics.** Comparator's entire purpose is to be the trustworthy party in an
+   adversarial check. A wrapper that clones `master` and silently rebuilds on first use (or after
+   a cache wipe) means the binary actually being trusted at verification time is whatever
+   `leanprover/comparator@master` happened to be on some unrecorded date, with no Nix-store
+   provenance and no way to reproduce or audit exactly what ran for a past verdict -- a bad fit
+   for a component whose green/red verdict downstream consumers rely on for a Lean
+   proof-verification trust boundary.
+2. **Tractability differs from loogle's case.** loogle depends on Mathlib (thousands of files, a
+   long first build) -- a real derivation there is a much heavier undertaking, which is why the
+   wrapper trade-off was reasonable for it. Comparator's own `lakefile.toml` has exactly one
+   `[[require]]` (`lean4export`) and no Mathlib -- light enough that a pinned, offline-buildable
+   derivation is realistic.
+3. **No upstream Nix entry point.** Neither `leanprover/comparator` nor `leanprover/lean4export`
+   ships a `flake.nix` (confirmed 404 on both via the GitHub API), so unlike loogle there is no
+   upstream flake to delegate version-resolution to even if desired.
+
+**Offline vendoring vs. FOD fallback (stated explicitly, per the task's "state the reasoning
+either way" instruction): the FOD fallback was NOT used.** Comparator's own `[[require]]` for
+`lean4export` floats on `rev = "master"`. Rather than making the whole build a network-permitted
+fixed-output derivation (which trades away Nix's usual build-sandbox auditability), this
+derivation rewrites that require to a local `path`-style dependency pointing at a separately
+`fetchFromGitHub`-pinned `lean4export` source (pinned at the exact commit Comparator's own stock
+`lake-manifest.json` already resolves `master` to), assembled offline. This was proven in a
+scratch harness under `unshare -rn` (network confirmed blocked) before the derivation was written,
+and worked cleanly on the first real attempt.
+
+**Runtime toolchain**: `lean-toolchain-bin` is a **build-time** dependency only. At runtime,
+`comparator`'s own binary resolves `lean`/`lake`/`git` from whatever is on the invoker's `PATH`
+(normally `elan`'s per-project shims), exactly as its own README assumes -- hardcoding this
+derivation's own pinned toolchain into a runtime wrapper would be actively wrong for callers
+checking projects on a different Lean version. See the `lean-toolchain-bin.nix` section above for
+the operational caveat this implies when the checked project targets `v4.34.0-rc2` specifically.
+
+**nanoda deferral**: this derivation does not build or reference `nanoda_bin`. See the dedicated
+"nanoda deferral" note below.
+
+**Wired via**: `overlays/unstable-packages.nix` (`comparator = final.callPackage
+../packages/comparator.nix { };`). Ships `bin/comparator`,
+`share/comparator/tests/projects/` (fixtures, including `simple_mismatch`), and
+`share/comparator/scripts/fake-landrun.sh` (development substitute for real `landrun`, consumed
+by sibling agent-system tooling in `~/.config/nvim/`).
+
+### lean4export.nix (comparator-lean4export-resolve)
+Despite the filename (kept to match the task's declared file scope), this defines a **resolver
+script**, `comparator-lean4export-resolve` -- not a fixed `lean4export` binary. This is the
+"lean4export version-matching" decision:
+
+**Why one system-wide `lean4export` build is structurally wrong**: `lean4export` loads a target
+Lean project's compiled environment (`.olean` files) through Lean's own environment/import
+machinery, so the `lean4export` binary itself must be built against a Lean toolchain that is
+ABI/format-compatible with whatever Lean version produced those `.olean` files. A binary built
+once (e.g. as part of Comparator's own Lake workspace, fixed to Comparator's own `v4.34.0-rc2`)
+is correct only for target projects on that exact toolchain and silently wrong for any other.
+
+**Why resolution can't happen inside Comparator's own sandboxed call**: Comparator's `safeExport`
+invokes the `lean4export`-pointed binary under `landrun` with `writablePaths := #[]` (no writable
+paths at all) and no network passthrough. Nothing can build or fetch a toolchain from inside that
+sandboxed call -- resolution MUST happen in the calling harness, before `lake env comparator
+config.json` runs.
+
+**Design**: cache key = the target project's exact `lean-toolchain` string (filesystem-safe
+slug), cached under `~/.cache/comparator/lean4export/<slug>/`. A sidecar file
+(`lean4export.toolchain`) records the exact string the cached binary was built against,
+byte-for-byte. Keying the cache path by the version string makes a mismatch structurally hard to
+produce; the sidecar makes it cheaply, mechanically detectable by any caller -- **including one
+that overrides `COMPARATOR_LEAN4EXPORT` by hand**: a caller doing that should require the same
+sidecar convention alongside its override, or refuse to certify a match. This expectation is
+recorded here for the consuming side (the nvim-side "doctor mode" and runner script in sibling
+agent-system tasks), which lives outside this repository.
+
+On a cache miss, the resolver checks out `leanprover/lean4export` at a documented default pinned
+rev (`411dce7db58a3afc60ecab2d211acd1042b593dc`, overridable via `COMPARATOR_LEAN4EXPORT_REV`),
+overwrites its `lean-toolchain` with the **target's** exact string, runs `lake build`, and
+installs the binary plus the sidecar. A build failure exits non-zero with the real error on
+stderr and nothing on stdout -- verified live against a deliberately-nonexistent Lean release.
+
+**Wired via**: `overlays/unstable-packages.nix` (`comparator-lean4export-resolve =
+final.callPackage ../packages/lean4export.nix { };`).
+
+### nanoda deferral
+`nanoda` (an independent, second Lean kernel implementation) is **explicitly deferred** -- not
+silently omitted. It buys exactly one thing: catching the case where Lean's own kernel (used
+identically by Comparator's built-in `runBuiltinKernel` path) has a bug that both proves and
+"verifies" a bad solution. None of this task's acceptance criteria require it -- they are all
+demonstrable using Comparator's built-in kernel path. Concretely:
+- `packages/nanoda.nix` does not exist.
+- `COMPARATOR_NANODA` is not set in `modules/home/packages/dev-tools.nix` (see the comment at
+  that exact site).
+- Comparator's own fallback for an unset override is a bare `nanoda_bin` looked up on `PATH`;
+  since `nanoda_bin` is not packaged here, `enable_nanoda: true` in any config will fail
+  **loudly** (binary-not-found) rather than silently skip the check -- the correct
+  "degrade loudly, not silently" behavior for a trust-critical checker.
+
+### systemd-run sandbox-escape wrapper caveat
+Comparator's own README recommends invoking it under:
+```bash
+systemd-run --property=RestrictAddressFamilies=~AF_UNIX --user --pty -E PATH="$PATH" \
+  --working-directory $(pwd) -- bash -c 'lake env path/to/comparator/binary path/to/config.json'
+```
+This guards against a **landrun sandbox-escape vulnerability** that Comparator's README states is
+fixed in Linux 7.1. This host (`hamsa`) runs kernel `7.1.3`, past that fix -- but the wrapper is
+retained here and in all verification runs (Phase 7) regardless, and **must not be dropped on the
+strength of this one host's kernel alone**: the packaging is meant to be portable to hosts on
+older kernels, where the wrapper remains load-bearing. Both fixture verification runs (accept and
+reject) in this task were performed under this wrapper form and confirmed compatible with this
+packaging.
+
+### Env-var contract (`COMPARATOR_LANDRUN` / `COMPARATOR_LEAN4EXPORT` / `COMPARATOR_NANODA`)
+This is exactly the contract already relied upon by the sibling agent-system tasks in
+`~/.config/nvim/` that call Comparator -- no second contract is invented here:
+- `COMPARATOR_LANDRUN` is set to a fixed path in `home.sessionVariables`
+  (`modules/home/packages/dev-tools.nix`) -- safe as a fixed global, since `landrun` is not
+  per-project-versioned.
+- `COMPARATOR_LEAN4EXPORT` is deliberately left **unset** globally. A fixed value would be
+  silently wrong for any project whose toolchain differs from whatever
+  `comparator-lean4export-resolve` last cached. The calling harness must resolve and export it
+  per invocation: `export COMPARATOR_LEAN4EXPORT=$(comparator-lean4export-resolve
+  "$project_dir")`.
+- `COMPARATOR_NANODA` is deliberately left **unset** globally, per the nanoda deferral above.
+
 ### python-check-wheel-contents.nix
 Custom Python package for the `check-wheel-contents` wheel linter (v0.6.3), used to audit built
 wheels during PyPI release rehearsals. Nixpkgs packages it in neither the stable channel nor

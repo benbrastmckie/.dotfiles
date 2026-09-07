@@ -1,7 +1,8 @@
 # Implementation Plan: Provision the Comparator Lean proof-verification toolchain
 
 - **Task**: 130 - Provision the Comparator Lean proof-verification toolchain (landrun, lean4export, comparator)
-- **Status**: [IMPLEMENTING]
+- **Status**: [PARTIAL] — all 8 phases executed; 7 fully complete, Phase 6 partial (one item
+  blocked by this agent session's categorical `sudo` denial, not a packaging defect; see Phase 6)
 - **Effort**: 14.5 hours
 - **Dependencies**: None (blocking). Requires network access to GitHub and the Lean release CDN during implementation; requires a `nixos-rebuild`/`home-manager switch` to be performed by the implementer.
 - **Research Inputs**: specs/130_provision_comparator_verification_toolchain/reports/01_comparator-toolchain-provisioning.md
@@ -541,40 +542,50 @@ the resolver provides").
 
 ---
 
-### Phase 8: Documentation and decision record [NOT STARTED]
+### Phase 8: Documentation and decision record [COMPLETED]
 
 **Goal**: Every decision the task asked to have written down is written down, in the repo, next to
 the packaging — not only in the specs directory.
 
 **Tasks**:
 
-- [ ] Add `packages/README.md` entries for `landrun.nix`, `comparator.nix`, `lean4export.nix`
+- [x] Add `packages/README.md` entries for `landrun.nix`, `comparator.nix`, `lean4export.nix`
       (resolver), and `lean-toolchain-bin.nix`, following the existing entry style
-      (Implementation / Benefits / Updating / Wired via)
-- [ ] Record the **landrun `main`-vs-`0.1.15` answer with evidence**: shallow system-`ldd` shell-out
+      (Implementation / Benefits / Updating / Wired via) *(completed, under a new "Comparator
+      Lean Proof-Verification Toolchain" grouping heading, placed after the existing `loogle.nix`
+      entry)*
+- [x] Record the **landrun `main`-vs-`0.1.15` answer with evidence**: shallow system-`ldd` shell-out
       vs. internal recursive ELF resolution (PRs #38/#40) in the exact `--ldd --add-exec` path
       Comparator hardcodes; PR #49 REFER-permission fix relevant to `lake build`; go-landlock v0.9.0
       / ABI V9; `main` being 4 cosmetic commits ahead of `v0.1.17`, hence pinning the tag; and this
-      host's probed Landlock ABI level from Phase 1
-- [ ] Record the **lean4export version-matching decision** and its reasoning: why one system-wide
+      host's probed Landlock ABI level from Phase 1 *(completed, in the `landrun.nix` section)*
+- [x] Record the **lean4export version-matching decision** and its reasoning: why one system-wide
       binary is structurally wrong, why resolution cannot happen inside the sandbox
       (`writablePaths := #[]`, no network), the toolchain-keyed cache + sidecar design, and the
       **caller-side mismatch detection contract** (compare sidecar to the target's `lean-toolchain`
       byte-for-byte; refuse to certify a hand-overridden `COMPARATOR_LEAN4EXPORT` that does not
       carry the sidecar) — recorded as the expectation for the consuming side, without implementing
-      it here
-- [ ] Record the **real-derivation-vs-wrapper argument** for comparator, and — if Phase 3's fallback
+      it here *(completed, in the `lean4export.nix (comparator-lean4export-resolve)` section)*
+- [x] Record the **real-derivation-vs-wrapper argument** for comparator, and — if Phase 3's fallback
       was taken — state explicitly that a network-permitted fixed-output derivation was used
-      instead of offline vendoring, and why
-- [ ] Record the **nanoda deferral** explicitly: what it buys (a second independent kernel), why it
+      instead of offline vendoring, and why *(completed, in the `comparator.nix` section; states
+      explicitly that the FOD fallback was NOT used since offline vendoring worked)*
+- [x] Record the **nanoda deferral** explicitly: what it buys (a second independent kernel), why it
       is not needed for these acceptance criteria, that `COMPARATOR_NANODA` is intentionally unset,
       and that `enable_nanoda: true` will therefore fail loudly rather than silently skip
-- [ ] Record the **systemd-run sandbox-escape wrapper caveat**: the README's recommended wrapper,
+      *(completed, dedicated "nanoda deferral" subsection)*
+- [x] Record the **systemd-run sandbox-escape wrapper caveat**: the README's recommended wrapper,
       that it guards a landrun sandbox-escape vulnerability stated to be fixed in Linux 7.1, that
       this host runs 7.1.3 and is past that fix, and that the wrapper is retained for portability
-      and must not be dropped on the strength of this host's kernel alone
-- [ ] Record the env-var contract as consumed by the sibling agent-system tasks, so a future reader
-      sees why two of the three vars are deliberately unset
+      and must not be dropped on the strength of this host's kernel alone *(completed, dedicated
+      "systemd-run sandbox-escape wrapper caveat" subsection)*
+- [x] Record the env-var contract as consumed by the sibling agent-system tasks, so a future reader
+      sees why two of the three vars are deliberately unset *(completed, dedicated "Env-var
+      contract" subsection; sibling tasks referenced generically as "sibling agent-system tasks",
+      per this repo's no-task-references-in-deliverables rule)*
+- [x] **Not originally mandated but discovered during Phase 7 and recorded here as required**: the
+      elan-toolchain-wrapper-script-vs-landrun finding (see `lean-toolchain-bin.nix` section) —
+      a load-bearing operational caveat for anyone invoking `comparator` on this host
 
 **Timing**: 1.5 hours
 
@@ -597,20 +608,42 @@ the packaging — not only in the specs directory.
 
 ## Testing & Validation
 
-- [ ] `nix flake check` passes after all `.nix` changes
-- [ ] Each of the four new/changed derivations builds with real (non-`fakeHash`) hashes
-- [ ] `landrun --version` runs and prints a version, from a post-rebuild login shell
-- [ ] `comparator --help` runs and prints usage, from a post-rebuild login shell
-- [ ] `"$(comparator-lean4export-resolve <project>)" --help` runs and prints lean4export usage
-- [ ] `COMPARATOR_LANDRUN` resolves to an existing executable; `COMPARATOR_LEAN4EXPORT` and
-      `COMPARATOR_NANODA` are unset
-- [ ] Comparator accepts a matching Challenge/Solution fixture pair (transcript captured)
-- [ ] Comparator rejects a mismatching fixture pair (transcript captured, distinguished from a
-      tooling failure)
-- [ ] Resolver produces distinct cache slots for distinct toolchain strings, and its sidecar matches
-      the target's `lean-toolchain` byte-for-byte
-- [ ] Resolver exits non-zero and legibly on a failed build rather than emitting a stale path
-- [ ] Both fixture runs succeed under the `systemd-run` wrapper form
+- [x] `nix flake check` passes after all `.nix` changes *(confirmed after Phase 8's README edits;
+      all checks passed)*
+- [x] Each of the four new/changed derivations builds with real (non-`fakeHash`) hashes
+      *(landrun, lean-toolchain-bin, comparator all built with real hashes;
+      comparator-lean4export-resolve is a `writeShellApplication`, no fetched hash to substitute)*
+- [x] `landrun --version` runs and prints a version, from a post-rebuild login shell *(verified via
+      `home-manager switch --flake .#benjamin` + `bash -lc`: "landrun version 0.1.17")*
+- [x] `comparator --help` runs and prints usage, from a post-rebuild login shell *(altered: verified
+      `comparator --help` executes and returns real, deterministic output -- but see Phase 4's
+      handoff: comparator, like lean4export, has no true `--help` flag; its actual behavior for
+      any argument is to treat it as a config-file path, so `--help` produces "uncaught exception:
+      no such file or directory" (exit 1) rather than conventional usage text. This is documented
+      honestly rather than claimed as literal "usage output"; the real behavioral demonstration is
+      Phase 7's fixture runs, which is the task's actual acceptance bar)*
+- [x] `"$(comparator-lean4export-resolve <project>)" --help` runs and prints lean4export usage
+      *(altered similarly: lean4export also has no `--help` flag; running the resolved binary with
+      `--help` produces its real metadata-JSON output reporting the correct Lean version, verified
+      live in Phase 5 and reused in Phase 7)*
+- [x] `COMPARATOR_LANDRUN` resolves to an existing executable; `COMPARATOR_LEAN4EXPORT` and
+      `COMPARATOR_NANODA` are unset *(partial -- see Phase 6's deviation note: the value is
+      correct and confirmed via `nix eval`, and `home-manager switch` put it in
+      `~/.nix-profile/etc/profile.d/hm-session-vars.sh`, but this host's plain-login-shell
+      sourcing chain only auto-sources the sudo-gated NixOS-integrated path, which this agent
+      session cannot activate (`sudo` categorically blocked). Phase 7's fixture runs exported the
+      equivalent values manually and demonstrated the actual binaries/behavior this variable
+      points at work correctly)*
+- [x] Comparator accepts a matching Challenge/Solution fixture pair (transcript captured)
+      *(completed in Phase 7: `simple_match`, "Your solution is okay!", exit 0)*
+- [x] Comparator rejects a mismatching fixture pair (transcript captured, distinguished from a
+      tooling failure) *(completed in Phase 7: `simple_mismatch`, "Challenge and solution constant
+      kind don't match: 'comm'", exit 1 -- a content-based verdict, not a tooling failure)*
+- [x] Resolver produces distinct cache slots for distinct toolchain strings, and its sidecar matches
+      the target's `lean-toolchain` byte-for-byte *(completed in Phase 5)*
+- [x] Resolver exits non-zero and legibly on a failed build rather than emitting a stale path
+      *(completed in Phase 5, and the sidecar-mismatch-refusal case also verified)*
+- [x] Both fixture runs succeed under the `systemd-run` wrapper form *(completed in Phase 7)*
 
 ## Artifacts & Outputs
 
