@@ -11,7 +11,7 @@ next_project_number: 131
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128,130 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -51,12 +51,11 @@ next_project_number: 131
 
 41 [BLOCKED] — reenable_pdf2docx_nixpkgs_fix
 42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
-130 [IMPLEMENTING] — Provision the three (optionally four) binaries the Comparator pro
 
 ## Tasks
 
 ### 130. Provision the Comparator Lean proof-verification toolchain (landrun, lean4export, comparator)
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: packaging
 - **Dependencies**: None
