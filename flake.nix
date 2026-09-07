@@ -7,6 +7,13 @@
     # unstable to feed pkgs-unstable + nix-ai-tools.
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # NOTE: this input floats on leanprover/lean4's default branch and is NOT the toolchain
+    # source for the Comparator proof-verification packaging (packages/comparator.nix,
+    # packages/lean-toolchain-bin.nix). That packaging fetches a specific, pinned release
+    # tarball for the exact tag Comparator's own lean-toolchain file names
+    # (v4.34.0-rc2) directly via fetchurl, since building Lean 4 from source via this input
+    # is unnecessary weight for that use case. This input is kept, unpinned, for a possible
+    # future consumer that wants to build Lean HEAD from source; it is currently unused.
     lean4 = {
       url = "github:leanprover/lean4";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -177,7 +177,7 @@ run successfully, with the `0.1.15`-vs-`main` evidence captured for the eventual
 
 ---
 
-### Phase 2: Deterministic Lean v4.34.0-rc2 toolchain acquisition [NOT STARTED]
+### Phase 2: Deterministic Lean v4.34.0-rc2 toolchain acquisition [COMPLETED]
 
 **Goal**: A reproducible, content-addressed way to obtain the exact Lean toolchain Comparator's own
 `lean-toolchain` pins (`leanprover/lean4:v4.34.0-rc2`), usable as a build input by the Phase 4
@@ -185,20 +185,32 @@ derivation, plus a resolved answer for `flake.nix`'s currently-unused `lean4` in
 
 **Tasks**:
 
-- [ ] Determine whether the `v4.34.0-rc2` tag has a GitHub Release carrying a prebuilt
-      `linux x86_64` toolchain tarball
-- [ ] Route (i), preferred: `fetchurl` that tarball as a fixed-output derivation, unpack it, and
-      expose `bin/lean`, `bin/lake` — no source build of Lean
-- [ ] Route (ii), fallback if no prebuilt release exists: wrap `elan`'s acquisition step as a
+- [x] Determine whether the `v4.34.0-rc2` tag has a GitHub Release carrying a prebuilt
+      `linux x86_64` toolchain tarball *(completed; confirmed via `gh api
+      repos/leanprover/lean4/releases/tags/v4.34.0-rc2` -- `lean-4.34.0-rc2-linux.tar.zst` asset
+      exists)*
+- [x] Route (i), preferred: `fetchurl` that tarball as a fixed-output derivation, unpack it, and
+      expose `bin/lean`, `bin/lake` — no source build of Lean *(completed)*
+- [x] Route (ii), fallback if no prebuilt release exists: wrap `elan`'s acquisition step as a
       fixed-output (network-permitted, hash-pinned) derivation, keeping the *build* step in Phase 4
-      offline and pure
-- [ ] Compute the real fixed-output hash via a `lib.fakeHash` iteration
-- [ ] Add nix-ld / patchelf handling only if the unpacked binaries actually fail to execute
+      offline and pure *(not needed; route (i) succeeded)*
+- [x] Compute the real fixed-output hash via a `lib.fakeHash` iteration *(the GitHub Releases API
+      response includes a `digest: sha256:...` field for the asset; converted directly to SRI via
+      `nix hash convert` and confirmed correct on the first `nix build` -- no fakeHash mismatch
+      iteration was needed since the true hash was obtained from the API rather than guessed)*
+- [x] Add nix-ld / patchelf handling only if the unpacked binaries actually fail to execute
       (`modules/system/nix.nix` already runs `programs.nix-ld` for elan toolchains; do not duplicate)
-- [ ] Resolve `flake.nix`'s `lean4` input: either pin its `rev` and use it as the toolchain source,
+      *(completed; used `autoPatchelfHook` + `stdenv.cc.cc.lib`/`gmp`/`libuv` instead of nix-ld,
+      since this is a Nix derivation with buildInputs available at build time, not a
+      user-`~/.elan`-managed binary -- autoPatchelfHook is the standard in-derivation mechanism;
+      `lean --version` and `lake --version` both execute successfully post-patch)*
+- [x] Resolve `flake.nix`'s `lean4` input: either pin its `rev` and use it as the toolchain source,
       or leave it in place with an explicit comment stating it is not the source for the Comparator
-      toolchain and why. Do not leave the ambiguity unaddressed
-- [ ] Record which route was taken, for Phase 8
+      toolchain and why. Do not leave the ambiguity unaddressed *(completed; comment-and-keep --
+      see flake.nix)*
+- [x] Record which route was taken, for Phase 8 *(completed; recorded in this checklist and in
+      packages/lean-toolchain-bin.nix's header comment, to be cross-referenced from
+      packages/README.md in Phase 8)*
 
 **Timing**: 2 hours
 
