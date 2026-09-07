@@ -231,7 +231,7 @@ derivation, plus a resolved answer for `flake.nix`'s currently-unused `lean4` in
 
 ---
 
-### Phase 3: Offline lake-dependency vendoring for comparator [NOT STARTED]
+### Phase 3: Offline lake-dependency vendoring for comparator [COMPLETED]
 
 **Goal**: Prove, before writing the derivation, that Comparator's Lake workspace can build with its
 `lean4export` dependency supplied from a pinned local path and with no network access — or
@@ -239,18 +239,41 @@ establish that it cannot and that the FOD fallback is required.
 
 **Tasks**:
 
-- [ ] Fetch `leanprover/comparator` and `leanprover/lean4export` at pinned commits via
+- [x] Fetch `leanprover/comparator` and `leanprover/lean4export` at pinned commits via
       `fetchFromGitHub` (comparator: current `master` HEAD; lean4export: a commit compatible with
-      Comparator's own `v4.34.0-rc2` toolchain), computing real hashes
-- [ ] Resolve Comparator's `[[require]] rev = "master"` floating dependency into the pinned
+      Comparator's own `v4.34.0-rc2` toolchain), computing real hashes *(completed for the scratch
+      harness via plain `git clone`/`git checkout`; comparator pinned at its current `master` HEAD
+      `2312244ac716564a61cc0bf4e107d9abf1757a61`, lean4export pinned at
+      `cacf989bd75f608700820f6afc595f32e7a99a4d` -- the exact commit Comparator's OWN
+      `lake-manifest.json` already resolved `rev = "master"` to at that same comparator commit, so
+      this is not a new pin invented here, just made explicit and Nix-fetched. Real
+      `fetchFromGitHub` hashes are computed in Phase 4, since that's where they become
+      derivation inputs)*
+- [x] Resolve Comparator's `[[require]] rev = "master"` floating dependency into the pinned
       lean4export source — via a local `path`-style override in the Lake manifest, a pre-populated
-      `.lake/packages/` layout, or an equivalent offline-assembly step
-- [ ] In a scratch harness using the Phase 2 toolchain, run `lake build lean4export comparator`
-      with the network unavailable and confirm it completes without attempting a fetch
+      `.lake/packages/` layout, or an equivalent offline-assembly step *(completed; the `path`-style
+      override works cleanly: replacing the `[[require]] scope/rev` block with
+      `[[require]] name = "lean4export" \n path = "../lean4export"` and deleting the stale
+      `lake-manifest.json` -- lake regenerates a fresh manifest locally, no fetch)*
+- [x] In a scratch harness using the Phase 2 toolchain, run `lake build lean4export comparator`
+      with the network unavailable and confirm it completes without attempting a fetch *(completed;
+      ran under `unshare -rn` (unprivileged user+network namespace, confirmed to actually block
+      network via a failed `curl` probe first) with `PATH` pointed at the Phase 2
+      `lean-toolchain-bin` output -- NOT elan -- and `lake build lean4export comparator` completed
+      all 20/20 build jobs successfully, producing both `comparator` and `lean4export` executables.
+      No files under `$HOME` were touched during the build)*
 - [ ] If offline vendoring proves impractical, stop and record the specific failure verbatim
       (lake's error, the manifest shape that resisted) — the FOD fallback is then permitted, but
       Phase 8 MUST state it explicitly per the task's "state the reasoning either way" instruction
-- [ ] Capture the exact vendoring recipe that worked, so Phase 4 transcribes rather than rediscovers it
+      *(not applicable -- offline vendoring worked; no FOD fallback needed. Recorded explicitly per
+      the task's "state the reasoning either way" instruction: the path-style require was
+      sufficient and the network-permitted FOD fallback was NOT used)*
+- [x] Capture the exact vendoring recipe that worked, so Phase 4 transcribes rather than
+      rediscovers it *(completed; recipe: fetch both sources via fetchFromGitHub at the pinned
+      commits above, `cp -r` each into sibling writable directories inside the derivation's build
+      dir, rewrite comparator's `[[require]]` block to `path = "../lean4export"` via
+      `substituteInPlace`/`sed` on `lakefile.toml`, delete `lake-manifest.json`, put the Phase 2
+      `lean-toolchain-bin` on `PATH`, run `lake build lean4export comparator`)*
 
 **Timing**: 2 hours
 
