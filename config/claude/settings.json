@@ -74,6 +74,15 @@
             "async": true
           }
         ]
+      },
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $HOME/.claude/hooks/lean-lsp-register-project.sh 2>/dev/null || echo '{}'"
+          }
+        ]
       }
     ],
     "SessionEnd": [
