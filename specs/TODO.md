@@ -1,17 +1,17 @@
 ---
-next_project_number: 131
+next_project_number: 132
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-09-07. Generated from state.json dependency graph.*
+*Updated 2026-09-15. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128,131 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -19,40 +19,71 @@ next_project_number: 131
 
 ### Nixos Config
 
-124 [PARTIAL] — Fix the battery-backstop wake-mark resume hook, which has never f
-  └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep (keep AI
-125 [PARTIAL] — Contain every Claude Code session in its own systemd user scope a
-126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the result
-128 [NOT STARTED] — Correct this repo's Claude Code MCP registration and permission c
+124 [PARTIAL] — Fix the battery-backstop wake-mark resume hook, which has...
+  └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep...
+125 [PARTIAL] — Contain every Claude Code session in its own systemd user...
+126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the...
+128 [NOT STARTED] — Correct this repo's Claude Code MCP registration and...
 
 ### Nix Infrastructure
 
-67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05 fix
-68 [NOT STARTED] — The iso and usb-installer nixosConfigurations fail to build becau
+67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05...
+68 [NOT STARTED] — The iso and usb-installer nixosConfigurations fail to build...
 
 ### Services
 
-19 [RESEARCHED] — install_setup_mcp_servers_web_development
-23 [PLANNED] — install_simple_webcam_recording_software
-43 [RESEARCHED] — install_forgejo_self_hosted_git
-46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep expir
+19 [RESEARCHED] — installsetupmcpserverswebdevelopment
+23 [PLANNED] — installsimplewebcamrecordingsoftware
+43 [RESEARCHED] — installforgejoselfhostedgit
+46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep...
+131 [NOT STARTED] — Install claude-refresh timer via home-manager and make mako...
 
 ### Desktop
 
-77 [NOT STARTED] — Verify and reconcile background-service behavior in the niri+GNOM
-  └─ 120 [NOT STARTED] — Give the niri session AC/battery-conditional idle suspend (12h on
-    └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled niri+GNOME-stac
+77 [NOT STARTED] — Verify and reconcile background-service behavior in the...
+  └─ 120 [NOT STARTED] — Give the niri session AC/battery-conditional idle suspend...
+    └─ 78 [NOT STARTED] — Rewrite docs/niri.md to match the actual, settled...
 
 ### Maintenance
 
-15 [RESEARCHED] — configure_timezone_location_based
+15 [RESEARCHED] — configuretimezonelocationbased
 
 ### Packaging
 
-41 [BLOCKED] — reenable_pdf2docx_nixpkgs_fix
-42 [BLOCKED] — reenable_jupytext_nixpkgs_fix
+41 [BLOCKED] — reenablepdf2docxnixpkgsfix
+42 [BLOCKED] — reenablejupytextnixpkgsfix
 
 ## Tasks
+
+### 131. Install claude-refresh timer via home-manager and make mako idle-Lean-tree prompts actionable
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: services
+- **Dependencies**: None
+
+**Description**: Install the claude-refresh hourly timer via home-manager and configure mako so its idle Lean LSP tree Kill/Keep prompts are actionable and do not auto-expire.
+
+BACKGROUND. On 2026-09-15 /refresh found a 22h-idle Lean LSP process tree (lake serve -> lean --server -> 4-5 lean --worker) left alive by a still-open Logos/Theory Claude session; lean-lsp-mcp has no idle timeout. The agent-system side (~/.config/nvim, agent-system/extensions/core/scripts/claude-refresh.sh) is being reworked in sibling nvim tasks: PSS-based memory accounting (Pss_Anon + SwapPss via /proc/PID/smaps_rollup), CPU-delta idle tracking in ~/.local/state/claude-refresh/lean-trees.json, a 1 GB reclaimable-memory floor, and a desktop-notification prompt. The hourly run stays --dry-run; when a tree is idle >= 240 min AND >= 1 GB reclaimable it launches a detached `systemd-run --user --unit=claude-refresh-prompt-<rootpid>-<starttime>` that calls `notify-send -a claude-refresh -u critical -t 0 -A default=Kill ...`. Clicking (mako invoke-default-action) runs a re-verified targeted kill; dismissing snoozes 4h.
+
+FINDINGS ON THIS HOST (measured 2026-09-15).
+  - claude-refresh.timer is NOT installed at all (`systemctl --user list-timers` shows only claude-session-reaper.timer). The /refresh docs' "hourly cadence" therefore never runs here.
+  - The generic unit shipped in ~/.config/nvim/agent-system/extensions/core/systemd/claude-refresh.service sets `Environment=PATH=/usr/bin:/bin`, which is broken on NixOS (no procps/jq/gawk/notify-send/systemd-run there) and `User=%u` is invalid in a user unit.
+  - modules/home/desktop/mako.nix sets default-timeout = 5000, which would auto-dismiss the prompt after 5 s (read as "Keep"), and no dmenu-style launcher exists for `makoctl menu`, so only the default action is clickable.
+
+WORK.
+  (a) New home-manager module modules/home/services/claude-refresh.nix modeled on services/claude-session-reaper.nix (oneshot service + calendar timer, OnCalendar=hourly, RandomizedDelaySec=300, Persistent=true). ExecStart = %h/.config/nvim/.claude/scripts/claude-refresh.sh --dry-run guarded by ConditionPathExists on the same path. Export a PATH containing ~/.nix-profile/bin and /run/current-system/sw/bin (procps, gawk, jq, coreutils, libnotify, systemd). The service must never end up `failed` (see the gmail-oauth2.nix precedent). Import it in modules/home/default.nix.
+  (b) The service needs the graphical session's DBus for the spawned notification: ensure DBUS_SESSION_BUS_ADDRESS / WAYLAND_DISPLAY reach the transient unit (systemd --user environment import under niri is the likely mechanism; verify, do not assume).
+  (c) mako: add a criteria section for app-name=claude-refresh with default-timeout = 0 (and optionally a distinct border colour), keeping left-click = invoke-default-action and right-click = dismiss. Verify with `makoctl` and a real `notify-send -a claude-refresh -A default=Kill` round trip that the action name prints on click and nothing prints on dismiss.
+  (d) Confirm the transient prompt unit name does not match `claude-*.scope`, so claude-session-reaper never stops it.
+
+DEPENDENCY. The prompt-launching logic lands in the nvim-side notification-prompt task; (a), (c) and (d) can land first (the timer is useful for dry-run logging on its own), but end-to-end acceptance of (b) waits on it.
+
+ACCEPTANCE.
+  - After a home-manager switch, `systemctl --user list-timers` shows claude-refresh.timer; a manual `systemctl --user start claude-refresh.service` succeeds and journal output contains the Lean LSP pass report.
+  - A notify-send with app-name claude-refresh stays on screen until clicked; click prints the default action, dismiss prints nothing.
+  - No regression to claude-session-reaper or memory-monitor units.
+
+---
 
 ### 130. Provision the Comparator Lean proof-verification toolchain (landrun, lean4export, comparator)
 - **Status**: [COMPLETED]
