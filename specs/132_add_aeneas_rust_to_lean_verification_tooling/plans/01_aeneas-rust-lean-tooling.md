@@ -1,7 +1,7 @@
 # Implementation Plan: Task #132
 
 - **Task**: 132 - Add Aeneas Rust-to-Lean verification tooling
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 2.5 hours (plus unattended first-build time for charon/aeneas from source)
 - **Dependencies**: None
 - **Research Inputs**: specs/132_add_aeneas_rust_to_lean_verification_tooling/reports/01_aeneas-rust-lean-tooling.md
@@ -86,32 +86,36 @@ No ROADMAP.md consulted (no roadmap_path in dispatch).
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Add aeneas flake input and thread packages [NOT STARTED]
+### Phase 1: Add aeneas flake input and thread packages [COMPLETED]
 
 **Goal**: Declare the input and make resolved `charon`/`aeneas` derivations available as
 home-manager specialArgs on both home-manager paths.
 
 **Tasks**:
-- [ ] In `flake.nix` `inputs`, add `aeneas.url = "github:AeneasVerif/aeneas";` with NO
+- [x] In `flake.nix` `inputs`, add `aeneas.url = "github:AeneasVerif/aeneas";` with NO
   `inputs.nixpkgs.follows`, preceded by a comment (matching the `lean4` input's comment style)
   explaining: upstream pins its own nixpkgs for OCaml 5.2 and Charon pins its own Rust nightly,
   so following our nixpkgs would break the build; no public binary cache is documented, so the
-  first build is from source.
-- [ ] Add `aeneas` to the `outputs` function argument set.
-- [ ] Add to `hmExtraSpecialArgs`: `aeneas-charon = aeneas.packages.${system}.charon;` and
+  first build is from source. *(completed)*
+- [x] Add `aeneas` to the `outputs` function argument set. *(completed)*
+- [x] Add to `hmExtraSpecialArgs`: `aeneas-charon = aeneas.packages.${system}.charon;` and
   `aeneas-aeneas = aeneas.packages.${system}.aeneas;` (or equivalent clear names; pick one naming
   and use it consistently — must not shadow the flake input name inside `flake.nix`).
-- [ ] Pass `aeneas` into the `import ./lib/mkHost.nix { ... }` inherit list.
-- [ ] In `lib/mkHost.nix`, add `aeneas` to the argument set and add the same two resolved
+  *(completed)*
+- [x] Pass `aeneas` into the `import ./lib/mkHost.nix { ... }` inherit list. *(completed)*
+- [x] In `lib/mkHost.nix`, add `aeneas` to the argument set and add the same two resolved
   entries to the home-manager `extraSpecialArgs` block (the NixOS-level `specialArgs` does not
-  need them; only home modules consume them).
-- [ ] Run `nix flake lock --update-input aeneas` (or `nix flake lock`) so `flake.lock` records the
+  need them; only home modules consume them). *(completed)*
+- [x] Run `nix flake lock --update-input aeneas` (or `nix flake lock`) so `flake.lock` records the
   pinned revision; confirm with `nix flake metadata` that only the `aeneas` subtree was added.
-- [ ] Re-confirm output names against the locked revision: run
+  *(completed)*
+- [x] Re-confirm output names against the locked revision: run
   `nix flake show github:AeneasVerif/aeneas/<locked-rev>` (rev from
   `jq -r '.nodes.aeneas.locked.rev' flake.lock`) and check `packages.x86_64-linux.charon` and
-  `.aeneas` exist.
-- [ ] `nixfmt` the two edited files (repo uses the RFC 166 formatter declared in `flake.nix`).
+  `.aeneas` exist. *(completed: confirmed packages.x86_64-linux.charon and .aeneas exist at rev
+  86158eb2)*
+- [x] `nixfmt` the two edited files (repo uses the RFC 166 formatter declared in `flake.nix`).
+  *(completed: no additional formatting changes needed)*
 
 **Timing**: 45 minutes
 

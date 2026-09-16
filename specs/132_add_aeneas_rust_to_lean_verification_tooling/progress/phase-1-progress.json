@@ -1,0 +1,17 @@
+{
+  "phase": 1,
+  "phase_name": "Add aeneas flake input and thread packages",
+  "started_at": "2026-09-16T18:11:18Z",
+  "last_updated": "2026-09-16T18:30:00Z",
+  "objectives": [
+    {"id": 1, "description": "Add aeneas flake input with comment (no nixpkgs.follows)", "status": "done", "files_touched": ["flake.nix"]},
+    {"id": 2, "description": "Add aeneas to outputs function args; add hmExtraSpecialArgs entries; pass aeneas to mkHost inherit list", "status": "done", "files_touched": ["flake.nix"]},
+    {"id": 3, "description": "Add aeneas arg and extraSpecialArgs entries to lib/mkHost.nix", "status": "done", "files_touched": ["lib/mkHost.nix"]},
+    {"id": 4, "description": "Run nix flake lock --update-input aeneas; confirm only aeneas subtree added", "status": "done", "files_touched": ["flake.lock"]},
+    {"id": 5, "description": "Re-confirm output names against locked revision via nix flake show", "status": "done", "files_touched": []},
+    {"id": 6, "description": "nixfmt the two edited files", "status": "done", "files_touched": ["flake.nix", "lib/mkHost.nix"]}
+  ],
+  "current_objective": null,
+  "approaches_tried": [],
+  "handoff_count": 0
+}

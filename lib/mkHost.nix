@@ -13,6 +13,7 @@
   pkgs-unstable,
   lectic,
   nix-ai-tools,
+  aeneas,
   system,
   # root: absolute path to the dotfiles repository root (pass as `self` or `./.` from flake.nix)
   root,
@@ -47,6 +48,10 @@ nixpkgs.lib.nixosSystem {
           inherit pkgs-unstable;
           lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
           inherit nix-ai-tools;
+          # Resolved Aeneas-flake packages; see flake.nix's hmExtraSpecialArgs for the
+          # matching entries used by the standalone home-manager path.
+          aeneas-charon = aeneas.packages.${system}.charon;
+          aeneas-aeneas = aeneas.packages.${system}.aeneas;
         };
       };
     }

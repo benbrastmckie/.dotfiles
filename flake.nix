@@ -27,6 +27,12 @@
       url = "github:gleachkr/lectic";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Aeneas (Charon + Aeneas): Rust MIR -> LLBC -> Lean/Coq/F*/HOL4 verification pipeline.
+    # Deliberately NOT `inputs.nixpkgs.follows`-ed: upstream pins its own nixpkgs for the
+    # OCaml 5.2 toolchain Aeneas needs, and Charon pins its own Rust nightly; following our
+    # nixpkgs (nixos-26.05) would break the build. No public binary cache is documented for
+    # these outputs, so the first build compiles both packages from source.
+    aeneas.url = "github:AeneasVerif/aeneas";
     nix-ai-tools = {
       url = "github:numtide/nix-ai-tools";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -53,6 +59,7 @@
       lectic,
       nix-ai-tools,
       sops-nix,
+      aeneas,
       ...
     }:
 
@@ -104,6 +111,10 @@
         inherit pkgs-unstable;
         lectic = lectic.packages.${system}.lectic or lectic.packages.${system}.default or lectic;
         inherit nix-ai-tools;
+        # Resolved Aeneas-flake packages, named to avoid shadowing pkgs.charon/pkgs.aeneas
+        # (nixpkgs may carry same-named attributes).
+        aeneas-charon = aeneas.packages.${system}.charon;
+        aeneas-aeneas = aeneas.packages.${system}.aeneas;
       };
 
       # mkHost: factory for standard NixOS host configurations.
@@ -117,6 +128,7 @@
           pkgs-unstable
           lectic
           nix-ai-tools
+          aeneas
           system
           ;
         root = self;
