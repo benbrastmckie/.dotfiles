@@ -1,7 +1,7 @@
 # Implementation Plan: Task #132
 
 - **Task**: 132 - Add Aeneas Rust-to-Lean verification tooling
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 2.5 hours (plus unattended first-build time for charon/aeneas from source)
 - **Dependencies**: None
 - **Research Inputs**: specs/132_add_aeneas_rust_to_lean_verification_tooling/reports/01_aeneas-rust-lean-tooling.md
@@ -245,18 +245,23 @@ itself (the Lean side), placed in this repo's user-facing development docs.
 
 ---
 
-### Phase 4: Final gate and cleanup review [IN PROGRESS]
+### Phase 4: Final gate and cleanup review [COMPLETED]
 
 **Goal**: Confirm the whole change set is consistent and nothing out of scope was touched.
 
 **Tasks**:
-- [ ] `nix flake check --no-build` (or the repo's usual evaluation check) passes.
-- [ ] `statix check` (repo has `statix.toml`) reports no new warnings in edited files.
-- [ ] Re-run `charon --help` and `aeneas -help`.
-- [ ] Review full `git diff` / `git status --short`: only `flake.nix`, `flake.lock`,
-  `lib/mkHost.nix`, `modules/home/packages/misc.nix`, `docs/development.md` changed.
-- [ ] If Phase 3 docs embed a rev placeholder, confirm the lookup command against the real
-  `flake.lock`.
+- [x] `nix flake check --no-build` (or the repo's usual evaluation check) passes. *(completed:
+  "all checks passed!")*
+- [x] `statix check` (repo has `statix.toml`) reports no new warnings in edited files.
+  *(completed: no warnings on flake.nix, lib/mkHost.nix, modules/home/packages/misc.nix,
+  docs/development.md)*
+- [x] Re-run `charon --help` and `aeneas -help`. *(completed: both exit 0)*
+- [x] Review full `git diff` / `git status --short`: only `flake.nix`, `flake.lock`,
+  `lib/mkHost.nix`, `modules/home/packages/misc.nix`, `docs/development.md` changed. *(completed:
+  confirmed via `git diff --stat` across the task's phase commits)*
+- [x] If Phase 3 docs embed a rev placeholder, confirm the lookup command against the real
+  `flake.lock`. *(completed: `jq -r '.nodes.aeneas.locked.rev' flake.lock` returns
+  86158eb2e18944c5225959712efb96bce188f40d, matching Phase 1)*
 
 **Timing**: 30 minutes
 
