@@ -1,5 +1,5 @@
 ---
-next_project_number: 133
+next_project_number: 134
 ---
 
 # TODO
@@ -11,7 +11,7 @@ next_project_number: 133
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128,131,132 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128,131,132,133 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -24,7 +24,8 @@ next_project_number: 133
 125 [PARTIAL] — Contain every Claude Code session in its own systemd user...
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the...
 128 [NOT STARTED] — Correct this repo's Claude Code MCP registration and...
-132 [PLANNED] — Add Aeneas Rust-to-Lean verification tooling (Charon and...
+132 [IMPLEMENTING] — Add Aeneas Rust-to-Lean verification tooling (Charon and...
+133 [NOT STARTED] — Conduct systematic research, both locally (audit current...
 
 ### Nix Infrastructure
 
@@ -56,8 +57,18 @@ next_project_number: 133
 
 ## Tasks
 
+### 133. Restructure nix configuration layout
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Conduct systematic research, both locally (audit current split between configuration.nix, home.nix, lib/mkHost.nix, modules/, hosts, flake.nix outputs) and online (NixOS/Home Manager/flake structuring best practices, e.g. flake-parts, dendritic/aspect-oriented patterns, NixOS-integrated vs standalone home-manager, system vs home package placement), to rethink how this Nix configuration is structured; identify the best, most maintainable structure going forward, then design and implement a systematic refactor
+
+---
+
 ### 132. Add aeneas rust to lean verification tooling
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: meta
 - **Topic**: nixos-config
 - **Dependencies**: None

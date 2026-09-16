@@ -245,7 +245,7 @@ itself (the Lean side), placed in this repo's user-facing development docs.
 
 ---
 
-### Phase 4: Final gate and cleanup review [NOT STARTED]
+### Phase 4: Final gate and cleanup review [IN PROGRESS]
 
 **Goal**: Confirm the whole change set is consistent and nothing out of scope was touched.
 
