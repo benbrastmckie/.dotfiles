@@ -78,7 +78,7 @@ concrete example already present in this tree.
   `unsubscribe-extract.nix`, `lib.nix`, its own `default.nix`)
 - `memory/` — `monitor.nix`, `services.nix`
 - `packages/` — `dev-tools.nix`, `email-tools.nix`, `media-dictation.nix`, `misc.nix`,
-  `python.nix`
+  `python.nix`, `rust.nix`
 - `scripts/` — `gmail-oauth2.nix`, `sioyek-theme.nix`, `whisper.nix`
 - `services/` — `cache-cleanup.nix`, `gmail-oauth2.nix`, `screenshot.nix`, `ydotool.nix`
 - `misc.nix` — top-level miscellaneous settings (activation, autoExpire, sessionVariables,

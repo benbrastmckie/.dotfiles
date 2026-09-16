@@ -11,7 +11,7 @@ Is it a system-level tool needed for all users or system services?
 
 Is it a personal productivity or development tool for the benjamin user?
   YES → home.packages in modules/home/packages/*.nix (grouped by category: dev-tools, email-tools,
-        media-dictation, misc, python)
+        media-dictation, misc, python, rust)
   NO  ↓
 
 Is it a program with an official NixOS/Home Manager module?

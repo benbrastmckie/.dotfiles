@@ -30,6 +30,7 @@
     ./packages/media-dictation.nix
     ./packages/email-tools.nix
     ./packages/python.nix
+    ./packages/rust.nix
     ./packages/misc.nix
 
     # Script modules (inline shell scripts)

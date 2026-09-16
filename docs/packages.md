@@ -307,6 +307,36 @@ NuSMV -help                   # usage output; may exit non-zero (expected)
 python3 -c "import cocotb; print(cocotb.__version__)"
 ```
 
+### Rust Toolchain (home.nix)
+
+**Standard Rust tooling from nixpkgs** (defined in `modules/home/packages/rust.nix`). This is the
+same set rustup installs in its default profile, plus the language server, all built against one
+pinned compiler version:
+
+- `rustc` - Compiler (links through the system `cc`)
+- `cargo` - Build tool and package manager
+- `clippy` - Linter, run as `cargo clippy`
+- `rustfmt` - Formatter, run as `cargo fmt`
+- `rust-analyzer` - Language server (LSP)
+
+`RUST_SRC_PATH` is set to `rustPlatform.rustLibSrc`: the nixpkgs `rustc` ships without standard
+library sources, which rust-analyzer needs for std resolution and completion.
+
+`rustup` is deliberately not installed; it would manage a second, unpatched set of toolchains
+outside the Nix store. Projects needing nightly or extra cross-compilation targets should pin
+their toolchain in their own flake `devShell`.
+
+**Example usage:**
+```bash
+cargo clippy --all-targets -- -D warnings   # lint, failing on any warning
+cargo fmt --check                           # verify formatting without rewriting
+
+# Verify installed versions
+rustc --version && cargo --version
+cargo clippy --version && cargo fmt --version
+rust-analyzer --version
+```
+
 ### Email Testing (home.nix)
 
 - `swaks` - Swiss Army Knife for SMTP - comprehensive email testing tool
