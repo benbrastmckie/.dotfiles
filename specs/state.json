@@ -4,18 +4,23 @@
     {
       "project_number": 132,
       "project_name": "add_aeneas_rust_to_lean_verification_tooling",
-      "status": "researched",
+      "status": "planned",
       "task_type": "meta",
       "description": "Add Aeneas Rust-to-Lean verification tooling (Charon and Aeneas) to support formal verification of Rust in Lean for the Verification project at /home/benjamin/Projects/Logos/Verification. Decide between two integration approaches: (1) a NixOS system-level flake input (aeneas.url = github:AeneasVerif/aeneas, without inputs.nixpkgs.follows since Aeneas pins its own Rust nightly and OCaml versions, exposing aeneas.packages.${pkgs.system}.charon and .aeneas via whichever of home.packages or environment.systemPackages this config already uses for dev tools, checked against real output names from `nix flake show github:AeneasVerif/aeneas`), or (2) a project-local flake.nix dev shell in the Verification repo pinning the same two packages via `nix develop`. Leave Lean (managed via elan) and the existing Rust toolchain (cargo/rustc/rustfmt/clippy) untouched; do not add lean4 or rustup. Check whether Aeneas or Charon document a binary cache (e.g. Cachix) and add it to nix.settings.substituters/trusted-public-keys only if documented. Verify with `charon --help` and `aeneas -help` after rebuild. Survey the existing NixOS config's dev-tooling conventions to integrate Aeneas naturally, and produce specific instructions for what should be configured locally in the Verification repo instead (e.g. the Lean side of Aeneas, which Lake fetches per-project via `require aeneas from git ... / backends/lean`, not via this NixOS config). A pending recommendation task in the Verification repo may bear on which of the two integration approaches (system-wide vs project-local) to choose",
       "topic": "nixos-config",
       "created": "2026-09-16T17:52:43Z",
-      "last_updated": "2026-09-16T18:08:55Z",
+      "last_updated": "2026-09-16T18:10:53Z",
       "session_id": "sess_1789581776_7ffa81",
       "artifacts": [
         {
           "path": "specs/132_add_aeneas_rust_to_lean_verification_tooling/reports/01_aeneas-rust-lean-tooling.md",
           "type": "report",
           "summary": "Recommends adding Aeneas as a system-level flake input (no nixpkgs.follows) exposing charon/aeneas via home.packages in misc.nix, with real flake output names verified live, confirmation no binary cache is documented, and Verification-repo Lake require instructions for the Lean side."
+        },
+        {
+          "path": "specs/132_add_aeneas_rust_to_lean_verification_tooling/plans/01_aeneas-rust-lean-tooling.md",
+          "type": "plan",
+          "summary": "4-phase plan: add aeneas flake input (no nixpkgs.follows) threaded via hmExtraSpecialArgs/mkHost to home.packages in misc.nix, verify charon --help / aeneas -help, document Verification-repo Lake require steps in docs/development.md, final gate."
         }
       ],
       "next_artifact_number": 2
