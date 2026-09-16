@@ -143,35 +143,41 @@ block.
 
 ---
 
-### Phase 2: Install charon and aeneas via home.packages and verify [IN PROGRESS]
+### Phase 2: Install charon and aeneas via home.packages and verify [COMPLETED]
 
 **Goal**: Put both binaries on PATH through home-manager and confirm they run.
 
 **Tasks**:
-- [ ] In `modules/home/packages/misc.nix`, extend the module signature with the two new
+- [x] In `modules/home/packages/misc.nix`, extend the module signature with the two new
   specialArgs and add both to the "Lean 4 and formal mathematics tools" group with one-line
   comments (Charon: Rust MIR -> LLBC extractor; Aeneas: LLBC -> Lean/Coq/F*/HOL4 translator).
   Since the list uses `with pkgs;`, reference the specialArg names directly (hyphenated names are
   valid Nix identifiers; if a name would be shadowed by a `pkgs` attribute, rename to avoid it —
   e.g. `pkgs.charon` may exist in nixpkgs, which is why the non-colliding `aeneas-charon` naming
-  is preferred).
-- [ ] Update `misc.nix`'s header comment only if needed to mention Rust-to-Lean tooling.
-- [ ] Build the two packages alone first to absorb the from-source compile, in the background
+  is preferred). *(completed)*
+- [x] Update `misc.nix`'s header comment only if needed to mention Rust-to-Lean tooling.
+  *(completed)*
+- [x] Build the two packages alone first to absorb the from-source compile, in the background
   with a long timeout, e.g.
   `nix build --no-link --print-out-paths .#homeConfigurations.benjamin.activationPackage`
-  (this builds charon/aeneas as dependencies). Expect a long first build.
-- [ ] Evaluate the NixOS path for the current host:
+  (this builds charon/aeneas as dependencies). Expect a long first build. *(completed: built
+  successfully, output /nix/store/cwj9xjkhr10s3whznwcs5ipwrfi0q1wl-home-manager-generation)*
+- [x] Evaluate the NixOS path for the current host:
   `nix build --no-link .#nixosConfigurations.$(hostname).config.system.build.toplevel` (or at
-  minimum `nix eval ...drvPath` if a full build is too costly).
-- [ ] Activate without sudo: `home-manager switch --flake .#benjamin`.
-- [ ] Run `charon --help` and `aeneas -help`; both must exit successfully and print usage.
-  Record `which charon aeneas` output.
-- [ ] Confirm untouched toolchains: `rustc --version`, `cargo --version`, `elan --version` still
+  minimum `nix eval ...drvPath` if a full build is too costly). *(completed: full build succeeded
+  for host hamsa)*
+- [x] Activate without sudo: `home-manager switch --flake .#benjamin`. *(completed)*
+- [x] Run `charon --help` and `aeneas -help`; both must exit successfully and print usage.
+  Record `which charon aeneas` output. *(completed: both exit 0;
+  /home/benjamin/.nix-profile/bin/charon and /home/benjamin/.nix-profile/bin/aeneas)*
+- [x] Confirm untouched toolchains: `rustc --version`, `cargo --version`, `elan --version` still
   resolve to the same paths as before (capture before/after), and no `rustup`/`lean4` entries
-  were added (`git diff` review).
+  were added (`git diff` review). *(completed: identical paths/versions before and after; no
+  rustup/lean4 additions in the diff)*
 - [ ] If `sudo nixos-rebuild switch --flake .#<host>` is not runnable by the agent, state in the
   summary that the user should run `scripts/update.sh` (which runs both paths) to sync the
-  NixOS-integrated profile.
+  NixOS-integrated profile. *(deviation: skipped — sudo unavailable to the agent per the plan's
+  own risk mitigation; noted for the summary instead)*
 
 **Timing**: 45 minutes of active work (build wall-clock time may be substantially longer)
 

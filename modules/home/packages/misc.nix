@@ -1,9 +1,16 @@
-# Miscellaneous small package groups: fonts, Lean 4/formal-math tools, AI coding assistants.
-# Merged from fonts.nix + lean-math.nix + ai-tools.nix, each too small to justify its
-# own file. NOTE: this is unrelated to the top-level `../misc.nix` (home.activation/autoExpire/
-# sessionVariables/startServices settings) — the basename collision is deliberate (see
-# design/target-layout.md); do not confuse the two files when editing.
-{ pkgs, lectic, ... }:
+# Miscellaneous small package groups: fonts, Lean 4/formal-math tools (including the
+# Rust-to-Lean Aeneas verification pipeline), AI coding assistants. Merged from fonts.nix +
+# lean-math.nix + ai-tools.nix, each too small to justify its own file. NOTE: this is unrelated
+# to the top-level `../misc.nix` (home.activation/autoExpire/sessionVariables/startServices
+# settings) — the basename collision is deliberate (see design/target-layout.md); do not confuse
+# the two files when editing.
+{
+  pkgs,
+  lectic,
+  aeneas-charon,
+  aeneas-aeneas,
+  ...
+}:
 {
   home.packages = with pkgs; [
     # Fonts
@@ -13,6 +20,8 @@
     # Lean 4 and formal mathematics tools
     lectic # Formal logic and proof tool
     loogle # Lean 4 Mathlib search tool (wrapper script)
+    aeneas-charon # Charon: Rust MIR -> LLBC extractor (Aeneas pipeline, front end)
+    aeneas-aeneas # Aeneas: LLBC -> Lean/Coq/F*/HOL4 translator (Aeneas pipeline, back end)
 
     # AI and coding assistant tools
     claude-code # Using overlaid unstable package

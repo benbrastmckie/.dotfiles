@@ -2,16 +2,25 @@
   "phase": 2,
   "phase_name": "Install charon and aeneas via home.packages and verify",
   "started_at": "2026-09-16T18:35:00Z",
-  "last_updated": "2026-09-16T18:35:00Z",
+  "last_updated": "2026-09-16T19:20:00Z",
   "objectives": [
-    {"id": 1, "description": "Extend misc.nix module signature with aeneas-charon/aeneas-aeneas and add to Lean tools group", "status": "not_started", "files_touched": []},
-    {"id": 2, "description": "Build the two packages first via nix build activationPackage in background with long timeout", "status": "not_started", "files_touched": []},
-    {"id": 3, "description": "Evaluate/build NixOS toplevel for current host", "status": "not_started", "files_touched": []},
-    {"id": 4, "description": "Activate via home-manager switch --flake .#benjamin", "status": "not_started", "files_touched": []},
-    {"id": 5, "description": "Run charon --help and aeneas -help; record which output", "status": "not_started", "files_touched": []},
-    {"id": 6, "description": "Confirm untouched toolchains (rustc/cargo/elan) before/after and no rustup/lean4 added", "status": "not_started", "files_touched": []}
+    {"id": 1, "description": "Extend misc.nix module signature with aeneas-charon/aeneas-aeneas and add to Lean tools group", "status": "done", "files_touched": ["modules/home/packages/misc.nix"]},
+    {"id": 2, "description": "Build the two packages first via nix build activationPackage in background with long timeout", "status": "done", "files_touched": []},
+    {"id": 3, "description": "Evaluate/build NixOS toplevel for current host", "status": "done", "files_touched": []},
+    {"id": 4, "description": "Activate via home-manager switch --flake .#benjamin", "status": "done", "files_touched": []},
+    {"id": 5, "description": "Run charon --help and aeneas -help; record which output", "status": "done", "files_touched": []},
+    {"id": 6, "description": "Confirm untouched toolchains (rustc/cargo/elan) before/after and no rustup/lean4 added", "status": "done", "files_touched": []}
   ],
-  "current_objective": 1,
+  "current_objective": null,
   "approaches_tried": [],
+  "deviations": [
+    {
+      "task_id": "2.7",
+      "description": "If sudo nixos-rebuild switch is not runnable by the agent, state in the summary that the user should run scripts/update.sh",
+      "type": "skipped",
+      "reason": "sudo unavailable to the agent (plan's own anticipated risk mitigation); NixOS toplevel was verified via nix build instead, and the note is carried into the implementation summary as documented.",
+      "annotation": "*(deviation: skipped — sudo unavailable to the agent per the plan's own risk mitigation; noted for the summary instead)*"
+    }
+  ],
   "handoff_count": 0
 }
