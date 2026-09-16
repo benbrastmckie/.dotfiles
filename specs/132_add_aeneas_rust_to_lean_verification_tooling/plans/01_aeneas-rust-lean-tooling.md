@@ -143,7 +143,7 @@ block.
 
 ---
 
-### Phase 2: Install charon and aeneas via home.packages and verify [NOT STARTED]
+### Phase 2: Install charon and aeneas via home.packages and verify [IN PROGRESS]
 
 **Goal**: Put both binaries on PATH through home-manager and confirm they run.
 
@@ -189,13 +189,13 @@ block.
 
 ---
 
-### Phase 3: Document Verification-repo local configuration [NOT STARTED]
+### Phase 3: Document Verification-repo local configuration [COMPLETED]
 
 **Goal**: Produce specific, durable instructions for what the Verification repo must configure
 itself (the Lean side), placed in this repo's user-facing development docs.
 
 **Tasks**:
-- [ ] Add an "Aeneas (Rust-to-Lean verification)" subsection to `docs/development.md`, under or
+- [x] Add an "Aeneas (Rust-to-Lean verification)" subsection to `docs/development.md`, under or
   next to the existing "Lean 4 Development" section, covering:
   - What this config provides (`charon`, `aeneas` on PATH via home-manager; from the Aeneas
     flake, pinned in `flake.lock`; update with `nix flake lock --update-input aeneas`; first
@@ -218,10 +218,11 @@ itself (the Lean side), placed in this repo's user-facing development docs.
     the network, which should be called out in that project's README; run `lake update aeneas`
     then `lake build`.
   - Explicit non-actions: Lean stays elan-managed, no `lean4`/`rustup` from Nix.
-- [ ] Use durable anchors only (file paths, section names) — no task-number references in this
-  deliverable (`.claude/rules/no-task-references-in-deliverables.md`).
-- [ ] Reference the helper command for reading the locked rev, e.g.
-  `jq -r '.nodes.aeneas.locked.rev' flake.lock`.
+  *(completed)*
+- [x] Use durable anchors only (file paths, section names) — no task-number references in this
+  deliverable (`.claude/rules/no-task-references-in-deliverables.md`). *(completed)*
+- [x] Reference the helper command for reading the locked rev, e.g.
+  `jq -r '.nodes.aeneas.locked.rev' flake.lock`. *(completed)*
 
 **Timing**: 30 minutes
 

@@ -190,6 +190,82 @@ loogle --read-index /tmp/loogle.idx 'query'
 loogle --path /path/to/lean/files 'query'
 ```
 
+### Aeneas (Rust-to-Lean verification)
+
+[Aeneas](https://github.com/AeneasVerif/aeneas) (with its front end, [Charon](https://github.com/AeneasVerif/charon)) translates verified Rust code into Lean (also Coq, F*, and HOL4) so Rust
+programs can be formally verified.
+
+#### What this config provides
+
+`charon` and `aeneas` are installed on `PATH` via home-manager (see
+`modules/home/packages/misc.nix`, "Lean 4 and formal mathematics tools" group), sourced from the
+`aeneas` flake input in `flake.nix` (`aeneas.url = "github:AeneasVerif/aeneas"`, deliberately
+without `inputs.nixpkgs.follows` — see the input's comment in `flake.nix` for why). The exact
+revision is pinned in `flake.lock`; update it with:
+
+```bash
+nix flake lock --update-input aeneas
+```
+
+There is no documented public binary cache for these packages, so the first build compiles both
+`charon` (Rust) and `aeneas` (OCaml) from source, which is slow but one-time.
+
+#### Why system-wide rather than a project-local dev shell
+
+The Verification project has no `flake.nix` of its own, this repo already threads a similar
+externally-pinned tool (`lectic`) to home-manager the same way, and the Aeneas/Charon closures
+are hermetic (their own pinned nixpkgs, Rust nightly, and OCaml 5.2), so they do not collide with
+this config's own Rust toolchain (`modules/home/packages/rust.nix`).
+
+#### Pipeline usage
+
+From the Rust crate directory:
+
+```bash
+# 1. Extract Rust MIR to LLBC
+charon cargo --preset=aeneas
+
+# 2. Translate LLBC to Lean
+aeneas -backend lean <file>.llbc
+```
+
+#### Verification-repo-local configuration (not managed by this config)
+
+The Lean side of Aeneas is a Lake dependency the Verification project's own Lean project must
+declare — it is fetched per-project by Lake, not installed by this config. Add to that project's
+`lakefile.toml`:
+
+```toml
+[[require]]
+name = "aeneas"
+git = { url = "https://github.com/AeneasVerif/aeneas", subDir = "backends/lean" }
+rev = "<commit>"
+```
+
+Pin `rev` to the same Aeneas commit this repo's `flake.lock` uses, so the Lean code Aeneas
+generates and the Aeneas Lean library agree. Find the locked revision with:
+
+```bash
+jq -r '.nodes.aeneas.locked.rev' flake.lock
+```
+
+Before adding the `require`, check `backends/lean/lean-toolchain` at that commit against the
+Verification project's own `lean-toolchain` file — a mismatch must be reconciled in that project,
+not here. Adding this `require` makes a currently dependency-free Lake build fetch from the
+network on first use; call that out in the Verification project's own README. After adding it,
+run:
+
+```bash
+lake update aeneas
+lake build
+```
+
+#### Explicit non-actions
+
+Lean itself stays managed by `elan` (unaffected by this change), and this config does not add
+`lean4` or `rustup` — the existing Rust toolchain
+(`cargo`/`rustc`/`rustfmt`/`clippy` in `modules/home/packages/rust.nix`) is untouched.
+
 ## Related Documentation
 
 - [Installation Guide](installation.md) - Detailed setup instructions
