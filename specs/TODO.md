@@ -1,17 +1,17 @@
 ---
-next_project_number: 132
+next_project_number: 133
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-09-15. Generated from state.json dependency graph.*
+*Updated 2026-09-16. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128,131 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128,131,132 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -24,6 +24,7 @@ next_project_number: 132
 125 [PARTIAL] — Contain every Claude Code session in its own systemd user...
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the...
 128 [NOT STARTED] — Correct this repo's Claude Code MCP registration and...
+132 [NOT STARTED] — Add Aeneas Rust-to-Lean verification tooling (Charon and...
 
 ### Nix Infrastructure
 
@@ -54,6 +55,16 @@ next_project_number: 132
 42 [BLOCKED] — reenablejupytextnixpkgsfix
 
 ## Tasks
+
+### 132. Add aeneas rust to lean verification tooling
+- **Status**: [NOT STARTED]
+- **Task Type**: meta
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Add Aeneas Rust-to-Lean verification tooling (Charon and Aeneas) to support formal verification of Rust in Lean for the Verification project at /home/benjamin/Projects/Logos/Verification. Decide between two integration approaches: (1) a NixOS system-level flake input (aeneas.url = github:AeneasVerif/aeneas, without inputs.nixpkgs.follows since Aeneas pins its own Rust nightly and OCaml versions, exposing aeneas.packages.${pkgs.system}.charon and .aeneas via whichever of home.packages or environment.systemPackages this config already uses for dev tools, checked against real output names from `nix flake show github:AeneasVerif/aeneas`), or (2) a project-local flake.nix dev shell in the Verification repo pinning the same two packages via `nix develop`. Leave Lean (managed via elan) and the existing Rust toolchain (cargo/rustc/rustfmt/clippy) untouched; do not add lean4 or rustup. Check whether Aeneas or Charon document a binary cache (e.g. Cachix) and add it to nix.settings.substituters/trusted-public-keys only if documented. Verify with `charon --help` and `aeneas -help` after rebuild. Survey the existing NixOS config's dev-tooling conventions to integrate Aeneas naturally, and produce specific instructions for what should be configured locally in the Verification repo instead (e.g. the Lean side of Aeneas, which Lake fetches per-project via `require aeneas from git ... / backends/lean`, not via this NixOS config). A pending recommendation task in the Verification repo may bear on which of the two integration approaches (system-wide vs project-local) to choose
+
+---
 
 ### 131. Install claude-refresh timer via home-manager and make mako idle-Lean-tree prompts actionable
 - **Status**: [NOT STARTED]
