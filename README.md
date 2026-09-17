@@ -39,8 +39,8 @@ These dotfiles provide a complete NixOS setup with:
 │
 ├── packages/                      # Custom derivations (not in nixpkgs)
 │   ├── claude-code.nix            # Claude Code AI assistant (NPX wrapper)
-│   ├── opencode.nix               # OpenCode AI coding agent (custom build)
-│   ├── opencode-discord-bot.nix   # OpenCode Discord bot relay (buildPythonApplication)
+│   ├── opencode.nix               # OpenCode AI coding agent (custom build; currently not installed)
+│   ├── opencode-discord-bot.nix   # OpenCode Discord bot relay (buildPythonApplication; currently disabled)
 │   ├── opencode-discord-bot/      # Bot source (co-located with the derivation above)
 │   ├── loogle.nix                 # Lean 4 Mathlib search tool
 │   ├── aristotle.nix              # AI theorem prover wrapper
@@ -143,7 +143,7 @@ Modern CLI email client with Gmail OAuth2 authentication and mbsync synchronizat
 Model Context Protocol integration for AI tools with Neovim. Architecture details in [`docs/applications.md`](docs/applications.md#mcp-hub-integration).
 
 ### Discord Bot (OpenCode Relay)
-Nextcord bot bridging Discord to a headless OpenCode agent server. Secrets managed with sops-nix/age encryption, injected via systemd LoadCredential. Never touches disk unencrypted. Complete guide at [`docs/discord-bot.md`](docs/discord-bot.md).
+**Currently disabled on all hosts** (host opt-ins and the `opencode` CLI are commented out; see the status note in the guide to re-enable). Nextcord bot bridging Discord to a headless OpenCode agent server. Secrets managed with sops-nix/age encryption, injected via systemd LoadCredential. Never touches disk unencrypted. Complete guide at [`docs/discord-bot.md`](docs/discord-bot.md).
 
 ### PDF Viewers
 Custom Zathura and Sioyek configurations with title bar removal. Implementation details in [`docs/applications.md`](docs/applications.md#pdf-viewers).

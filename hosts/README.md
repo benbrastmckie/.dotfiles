@@ -28,8 +28,8 @@ Each host directory contains:
 Some host directories also carry:
 - `default.nix` - Optional, host-toggled NixOS module (opt-in only, wired in explicitly via
   `extraModules` in `flake.nix`; see `.claude/rules/nix.md`'s Optional/Host-Toggled Modules
-  convention). Present on `nandi/` (opts into the Discord bot relay) and `usb-installer/`
-  (installer-specific overrides).
+  convention). Present on `hamsa/` and `nandi/` (Discord bot relay opt-in, currently commented
+  out) and `usb-installer/` (installer-specific overrides).
 - `README.md` - Per-host notes on hardware details and building. Present on `garuda/`, `hamsa/`,
   and `nandi/`.
 

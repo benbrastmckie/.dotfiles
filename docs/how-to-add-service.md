@@ -87,9 +87,10 @@ is then imported explicitly only by the hosts that need it — never wired into
 `modules/system/optional/discord-bot.nix` is the worked example (this is also the same code the
 "Discord-Bot Style Service" section below uses): it defines
 `options.services.discordBot.enable`, gates both its `opencode-serve` and `discord-bot`
-`systemd.services` entries under `lib.mkIf cfg.enable`, and is imported + enabled only by
-`hosts/nandi/default.nix` (wired through `extraModules` in `flake.nix`) — `hamsa`, `garuda`, and
-`iso` never import it.
+`systemd.services` entries under `lib.mkIf cfg.enable`, and is imported + enabled per host from
+`hosts/hamsa/default.nix` / `hosts/nandi/default.nix` (wired through `extraModules` in
+`flake.nix`) — `garuda` and `iso` never import it. Both host opt-ins are currently commented out,
+so the bot is disabled everywhere.
 
 ## User Services (Home Manager)
 
@@ -132,8 +133,8 @@ Home Manager must have `systemd.user.startServices = "sd-switch"` set (already c
 | `services.pipewire` | `modules/system/audio.nix` | Audio/video routing |
 | `services.gnome.*` | `modules/system/desktop.nix` | GNOME desktop services |
 | `services.openssh` | `hosts/usb-installer/default.nix` | SSH daemon (usb-installer host only, not always-on) |
-| `systemd.services.discord-bot` | `modules/system/optional/discord-bot.nix` | Discord AI bot (sops secrets); optional, nandi only |
-| `systemd.services.opencode-serve` | `modules/system/optional/discord-bot.nix` | OpenCode API server; optional, nandi only |
+| `systemd.services.discord-bot` | `modules/system/optional/discord-bot.nix` | Discord AI bot (sops secrets); optional, hamsa/nandi opt-in (currently disabled) |
+| `systemd.services.opencode-serve` | `modules/system/optional/discord-bot.nix` | OpenCode API server; optional, hamsa/nandi opt-in (currently disabled) |
 
 ### User Services (modules/home/)
 

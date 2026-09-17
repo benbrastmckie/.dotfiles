@@ -23,5 +23,10 @@ _: {
 
     # Enable touchpad support (enabled default in most desktopManager).
     libinput.enable = true;
+
+    # Cap persistent journal size (was growing to ~4G unbounded)
+    journald.extraConfig = ''
+      SystemMaxUse=500M
+    '';
   };
 }

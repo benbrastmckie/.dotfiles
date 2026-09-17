@@ -160,4 +160,4 @@ Tuned for desktop responsiveness with zram:
 - Home Manager integrates with NixOS for user configuration
 - Custom modules extend functionality
 - Environment variables bridge NixOS and user applications
-- Discord bot infrastructure (sops-nix secrets, systemd services, Python environment) — see [`discord-bot.md`](discord-bot.md)
+- Discord bot infrastructure (sops-nix secrets, systemd services, Python environment; currently disabled on all hosts) — see [`discord-bot.md`](discord-bot.md)

@@ -50,10 +50,10 @@ when it should apply to some hosts but not others.
 one file: `discord-bot.nix`. It defines `options.services.discordBot.enable` (an
 `mkEnableOption`) and gates its entire `config` block under `lib.mkIf cfg.enable`. It is
 deliberately excluded from `modules/system/default.nix` and wired in explicitly per host:
-`hosts/nandi/default.nix` and `hosts/hamsa/default.nix` each import it and set
-`services.discordBot.enable = true;`, and `flake.nix`'s `extraModules` for the `nandi` and
-`hamsa` `mkHost` calls carry it through; `garuda` and `iso` do not import it and so never
-evaluate it.
+`hosts/nandi/default.nix` and `hosts/hamsa/default.nix` are where a host imports it and sets
+`services.discordBot.enable = true;` (carried through `flake.nix`'s `extraModules` for the
+`nandi` and `hamsa` `mkHost` calls); `garuda` and `iso` do not import it and so never evaluate
+it. Both host opt-ins are currently commented out, so the bot is disabled on every host.
 
 **There is no `modules/home/optional/` yet.** The optional/host-toggled convention currently
 exists on the system side only — do not assume Home Manager modules have an equivalent opt-in

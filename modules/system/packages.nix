@@ -77,7 +77,7 @@
     # stylua is managed by home-manager (home.packages)
     tree # Display directory structure in a tree-like format
     # cvc5 is managed by home-manager (python environment via overlay)
-    opencode # AI coding agent for terminal
+    # opencode # AI coding agent for terminal (currently disabled; uncomment to reinstall)
     aristotle # AI theorem prover with Lean
     lsof # Tool to list open files
     # u-root-cmds

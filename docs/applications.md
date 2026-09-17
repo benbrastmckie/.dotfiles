@@ -4,6 +4,8 @@
 
 Nextcord Discord bot that bridges Discord to a headless OpenCode agent server. Systemd services (`opencode-serve` + `discord-bot`) handle the bot lifecycle with secrets injected from sops-nix.
 
+**Status**: currently disabled on all hosts (host opt-ins and the `opencode` CLI are commented out). See the status note in `docs/discord-bot.md` to re-enable.
+
 **Complete documentation**: [`docs/discord-bot.md`](discord-bot.md)
 
 ## Zotero Agent Tooling

@@ -2,6 +2,12 @@
 
 NixOS systemd services and Python environment for the OpenCode Discord bot relay — a Nextcord bot that bridges Discord to a headless OpenCode agent server.
 
+> **Status: currently disabled on all hosts.** The module, package, and encrypted secrets remain in
+> the repo, but no host imports `modules/system/optional/discord-bot.nix`, and the `opencode` CLI is
+> commented out of `modules/system/packages.nix`. To re-enable, uncomment the `imports` and `services.discordBot.enable` lines in `hosts/hamsa/default.nix` and/or `hosts/nandi/default.nix`, uncomment `opencode` in
+> `modules/system/packages.nix`, and rebuild. The rest of this document describes the enabled
+> configuration.
+
 ## Architecture
 
 ```
@@ -272,8 +278,8 @@ Before running `nixos-rebuild switch`:
    ```bash
    sudo nixos-rebuild switch --flake .#hamsa   # or .#nandi
    ```
-   Both hamsa and nandi opt in via `services.discordBot.enable = true` (see
-   `hosts/hamsa/default.nix` and `hosts/nandi/default.nix`).
+   Hosts opt in via `services.discordBot.enable = true` in `hosts/hamsa/default.nix` and/or
+   `hosts/nandi/default.nix`. Both opt-ins are currently commented out; uncomment them to enable.
 
 ## Verification
 
@@ -323,7 +329,12 @@ journalctl -fu discord-bot
 
 ## Rollback
 
-To remove the Discord bot infrastructure:
+To temporarily disable the bot (the current state), comment out the `imports` and
+`services.discordBot.enable` lines in each host's `default.nix` and rebuild; reverse that to
+re-enable. Disabling leaves the sops secrets defined in `modules/system/secrets.nix` (such as
+`zotero_api_key`) untouched, since that module is always imported.
+
+To remove the Discord bot infrastructure entirely:
 
 ```bash
 # 1. Remove sops-nix flake input from flake.nix and all 4 host module imports

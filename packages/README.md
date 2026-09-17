@@ -49,6 +49,8 @@ source directory, relocated here from the repo root) share a stem but are not a
 naming conflict — the file is the derivation, the directory is its `src`. This is the first
 co-located source directory under `packages/`.
 
+**Status**: currently disabled on all hosts (see `docs/discord-bot.md`).
+
 **Runtime**: The `discord-bot` systemd service runs `${opencodeDiscordBot}/bin/opencode-discord-bot` directly (no working-tree `PYTHONPATH` import). Session state is persisted under a systemd `StateDirectory` (`/var/lib/discord-bot`, `SESSION_STORE_PATH=%S/discord-bot/sessions.json`) rather than a nix-store-relative path, since the nix store is read-only at runtime.
 
 **Future work**: extracting `opencode-discord-bot/` to its own repository (consumed as a flake input) is documented — but not implemented — as a header comment in `opencode-discord-bot.nix`, mirroring the email extension's wrapper-binary/own-source precedent. The current in-tree `src = ./opencode-discord-bot` shape is the deliberate near-term choice.
@@ -69,6 +71,9 @@ custom `unpackPhase` extracts the single binary directly (no wrapper directory i
 itself), and update the hash in `opencode.nix`.
 
 **Wired via**: `overlays/unstable-packages.nix` (`opencode = final.callPackage ../packages/opencode.nix { };`).
+
+**Status**: currently not installed — the `opencode` entry in `modules/system/packages.nix` is
+commented out. Uncomment it to reinstall.
 
 ### kooha.nix
 `overrideAttrs` wrapper around nixpkgs' `kooha` (screen recorder) that adds GStreamer plugins
