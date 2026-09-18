@@ -11,7 +11,7 @@ next_project_number: 135
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128,131,133,134 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128,131,133 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -25,7 +25,6 @@ next_project_number: 135
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the...
 128 [NOT STARTED] — Correct this repo's Claude Code MCP registration and...
 133 [NOT STARTED] — Conduct systematic research, both locally (audit current...
-134 [IMPLEMENTING] — Update the aeneas flake input so the installed charon and...
 
 ### Nix Infrastructure
 
@@ -58,7 +57,7 @@ next_project_number: 135
 ## Tasks
 
 ### 134. Pin aeneas charon to verification revision
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
