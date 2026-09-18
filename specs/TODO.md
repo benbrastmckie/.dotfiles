@@ -1,17 +1,17 @@
 ---
-next_project_number: 134
+next_project_number: 135
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-09-16. Generated from state.json dependency graph.*
+*Updated 2026-09-18. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128,131,133 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,128,131,133,134 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -25,6 +25,7 @@ next_project_number: 134
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the...
 128 [NOT STARTED] — Correct this repo's Claude Code MCP registration and...
 133 [NOT STARTED] — Conduct systematic research, both locally (audit current...
+134 [NOT STARTED] — Update the aeneas flake input so the installed charon and...
 
 ### Nix Infrastructure
 
@@ -55,6 +56,16 @@ next_project_number: 134
 42 [BLOCKED] — reenablejupytextnixpkgsfix
 
 ## Tasks
+
+### 134. Pin aeneas charon to verification revision
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: nixos-config
+- **Dependencies**: None
+
+**Description**: Update the aeneas flake input so the installed charon and aeneas (exposed as aeneas-charon/aeneas-aeneas via flake.nix and lib/mkHost.nix, installed in modules/home/packages/misc.nix) match the pin used by ~/Projects/Logos/Verification: aeneas 227f4e7ac70d687a6b1a4871b3304f5a1c6994bf, with charon a5591f6b94c8575a6ba2ae71090614a722f2b011 (the charon revision that aeneas pins). flake.lock currently locks aeneas at 86158eb2e18944c5225959712efb96bce188f40d and the installed charon reports b104e24, so Verification framed_channel/check.sh refuses to run with "the extraction's pinned revisions disagree". Pin aeneas.url to the exact revision (github:AeneasVerif/aeneas/227f4e7ac70d687a6b1a4871b3304f5a1c6994bf) rather than following the default branch, so future drift is deliberate; confirm the resulting charon matches a5591f6. Also consider adding hacl.cachix.org (key hacl.cachix.org-1:FzsZ2xsByOwKwIWNPII7yMOelJNDZ12mDAj3d1eGX0c=) as a trusted substituter in nix.settings so these packages are fetched instead of compiled from source (hours), and update the flake.nix comment that says no public binary cache exists. Acceptance: after rebuild, `aeneas --version`/`charon version` on PATH report the pinned revisions and Verification check.sh passes its aeneas revision coherence stage without a scratch Nix store.
+
+---
 
 ### 133. Restructure nix configuration layout
 - **Status**: [NOT STARTED]

@@ -1,6 +1,16 @@
 {
-  "next_project_number": 134,
+  "next_project_number": 135,
   "active_projects": [
+    {
+      "project_number": 134,
+      "project_name": "pin_aeneas_charon_to_verification_revision",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Update the aeneas flake input so the installed charon and aeneas (exposed as aeneas-charon/aeneas-aeneas via flake.nix and lib/mkHost.nix, installed in modules/home/packages/misc.nix) match the pin used by ~/Projects/Logos/Verification: aeneas 227f4e7ac70d687a6b1a4871b3304f5a1c6994bf, with charon a5591f6b94c8575a6ba2ae71090614a722f2b011 (the charon revision that aeneas pins). flake.lock currently locks aeneas at 86158eb2e18944c5225959712efb96bce188f40d and the installed charon reports b104e24, so Verification framed_channel/check.sh refuses to run with \"the extraction's pinned revisions disagree\". Pin aeneas.url to the exact revision (github:AeneasVerif/aeneas/227f4e7ac70d687a6b1a4871b3304f5a1c6994bf) rather than following the default branch, so future drift is deliberate; confirm the resulting charon matches a5591f6. Also consider adding hacl.cachix.org (key hacl.cachix.org-1:FzsZ2xsByOwKwIWNPII7yMOelJNDZ12mDAj3d1eGX0c=) as a trusted substituter in nix.settings so these packages are fetched instead of compiled from source (hours), and update the flake.nix comment that says no public binary cache exists. Acceptance: after rebuild, `aeneas --version`/`charon version` on PATH report the pinned revisions and Verification check.sh passes its aeneas revision coherence stage without a scratch Nix store.",
+      "topic": "nixos-config",
+      "created": "2026-09-18T22:19:51Z",
+      "last_updated": "2026-09-18T22:19:51Z"
+    },
     {
       "project_number": 133,
       "project_name": "restructure_nix_configuration_layout",
