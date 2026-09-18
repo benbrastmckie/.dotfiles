@@ -1,7 +1,7 @@
 # Implementation Plan: Task #134
 
 - **Task**: 134 - Pin aeneas/charon to Verification revision
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 1.5 hours (excluding any unexpected source build)
 - **Dependencies**: None
 - **Research Inputs**: specs/134_pin_aeneas_charon_to_verification_revision/reports/01_pin-aeneas-charon-revision.md
@@ -77,29 +77,30 @@ No ROADMAP.md consulted (not provided in dispatch).
 
 Phases are strictly sequential (the substituter must be live before the pinned build).
 
-### Phase 1: Edit configuration and re-lock aeneas [NOT STARTED]
+### Phase 1: Edit configuration and re-lock aeneas [COMPLETED]
 
 **Goal**: Land all source changes: pin, comment, substituter, narrow lock update.
 
 **Tasks**:
-- [ ] `flake.nix`: change `aeneas.url = "github:AeneasVerif/aeneas";` to
+- [x] `flake.nix`: change `aeneas.url = "github:AeneasVerif/aeneas";` to
       `aeneas.url = "github:AeneasVerif/aeneas/227f4e7ac70d687a6b1a4871b3304f5a1c6994bf";`
-- [ ] `flake.nix`: rewrite the comment block above it — keep the "not nixpkgs-follows" rationale
+- [x] `flake.nix`: rewrite the comment block above it — keep the "not nixpkgs-follows" rationale
       (own OCaml 5.2 / Rust nightly toolchains), replace the "no public binary cache" sentence
       with: pinned to the exact revision the Logos Verification toolchain expects (its
       `charon-pin` names charon a5591f6) so any move is deliberate and made in lockstep; binaries
       are substituted from hacl.cachix.org (configured in `modules/system/nix.nix`).
-- [ ] `modules/system/nix.nix`: inside `nix.settings`, add
+- [x] `modules/system/nix.nix`: inside `nix.settings`, add
       `substituters = [ "https://hacl.cachix.org" ];` and
       `trusted-public-keys = [ "hacl.cachix.org-1:FzsZ2xsByOwKwIWNPII7yMOelJNDZ12mDAj3d1eGX0c=" ];`
       with a short comment (HACL*/Aeneas project cache; serves aeneas/charon outputs).
-- [ ] Re-lock only aeneas: `nix flake update aeneas` (or `nix flake lock` if the former is
+- [x] Re-lock only aeneas: `nix flake update aeneas` (or `nix flake lock` if the former is
       unavailable).
-- [ ] Confirm lock: `jq -r '.nodes.aeneas.locked.rev, .nodes.charon.locked.rev' flake.lock`
+- [x] Confirm lock: `jq -r '.nodes.aeneas.locked.rev, .nodes.charon.locked.rev' flake.lock`
       prints `227f4e7...` and `a5591f6...` (node names may be suffixed, e.g. `charon_2`; resolve
       via `.nodes.aeneas.inputs.charon`).
-- [ ] `nix fmt`/formatter if the repo uses one (check flake `formatter` output); keep style.
-- [ ] Commit `flake.nix`, `flake.lock`, `modules/system/nix.nix` (explicit file list).
+- [x] `nix fmt`/formatter if the repo uses one (check flake `formatter` output); keep style.
+      *(verified via `nix fmt -- --check flake.nix modules/system/nix.nix`, no diff reported)*
+- [x] Commit `flake.nix`, `flake.lock`, `modules/system/nix.nix` (explicit file list).
 
 **Timing**: 30 minutes
 

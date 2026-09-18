@@ -19,6 +19,10 @@
       # build budget (~2GB/unit for onnxruntime-class packages).
       max-jobs = 2;
       cores = 6;
+      # HACL*/Aeneas project cache; serves the pinned aeneas/charon outputs so they are
+      # fetched instead of compiled from source (see the aeneas flake input comment).
+      substituters = [ "https://hacl.cachix.org" ];
+      trusted-public-keys = [ "hacl.cachix.org-1:FzsZ2xsByOwKwIWNPII7yMOelJNDZ12mDAj3d1eGX0c=" ];
     };
     gc = {
       automatic = true;

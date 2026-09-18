@@ -25,7 +25,7 @@ next_project_number: 135
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the...
 128 [NOT STARTED] — Correct this repo's Claude Code MCP registration and...
 133 [NOT STARTED] — Conduct systematic research, both locally (audit current...
-134 [PLANNED] — Update the aeneas flake input so the installed charon and...
+134 [IMPLEMENTING] — Update the aeneas flake input so the installed charon and...
 
 ### Nix Infrastructure
 
@@ -58,7 +58,7 @@ next_project_number: 135
 ## Tasks
 
 ### 134. Pin aeneas charon to verification revision
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None

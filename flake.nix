@@ -30,9 +30,11 @@
     # Aeneas (Charon + Aeneas): Rust MIR -> LLBC -> Lean/Coq/F*/HOL4 verification pipeline.
     # Deliberately NOT `inputs.nixpkgs.follows`-ed: upstream pins its own nixpkgs for the
     # OCaml 5.2 toolchain Aeneas needs, and Charon pins its own Rust nightly; following our
-    # nixpkgs (nixos-26.05) would break the build. No public binary cache is documented for
-    # these outputs, so the first build compiles both packages from source.
-    aeneas.url = "github:AeneasVerif/aeneas";
+    # nixpkgs (nixos-26.05) would break the build. Pinned to the exact revision the Logos
+    # Verification toolchain expects (its charon-pin names charon a5591f6), so any move is
+    # deliberate and made in lockstep with Verification's own pin. Binaries are substituted
+    # from hacl.cachix.org (configured in modules/system/nix.nix) rather than compiled.
+    aeneas.url = "github:AeneasVerif/aeneas/227f4e7ac70d687a6b1a4871b3304f5a1c6994bf";
     nix-ai-tools = {
       url = "github:numtide/nix-ai-tools";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
