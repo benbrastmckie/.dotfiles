@@ -21,6 +21,11 @@
           "path": "specs/134_pin_aeneas_charon_to_verification_revision/plans/01_pin-aeneas-charon-revision.md",
           "type": "plan",
           "summary": "4-phase sequential plan: pin aeneas.url to 227f4e7 + narrow re-lock + hacl.cachix.org substituter + comment fix, activate cache before pinned build, verify PATH revisions, run Verification coherence gate."
+        },
+        {
+          "path": "specs/134_pin_aeneas_charon_to_verification_revision/summaries/01_pin-aeneas-charon-revision-summary.md",
+          "type": "summary",
+          "summary": "Implementation summary: 01_pin-aeneas-charon-revision-summary.md"
         }
       ],
       "next_artifact_number": 2
