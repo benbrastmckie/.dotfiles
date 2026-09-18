@@ -1,7 +1,7 @@
 # Implementation Plan: Task #134
 
 - **Task**: 134 - Pin aeneas/charon to Verification revision
-- **Status**: [IMPLEMENTING]
+- **Status**: [BLOCKED]
 - **Effort**: 1.5 hours (excluding any unexpected source build)
 - **Dependencies**: None
 - **Research Inputs**: specs/134_pin_aeneas_charon_to_verification_revision/reports/01_pin-aeneas-charon-revision.md
@@ -125,22 +125,27 @@ Confirm with `git status --short`; flake.lock diff must touch only the aeneas su
 
 ---
 
-### Phase 2: Activate the substituter in the daemon [NOT STARTED]
+### Phase 2: Activate the substituter in the daemon [BLOCKED]
 
 **Goal**: Make hacl.cachix.org live in `/etc/nix/nix.conf` before the pinned packages are built.
 
 **Tasks**:
-- [ ] Check `sudo -n true`; if sudo is unavailable non-interactively, mark this and later phases
-      [BLOCKED] and hand the user the exact command sequence (below).
+- [x] Check `sudo -n true`; if sudo is unavailable non-interactively, mark this and later phases
+      [BLOCKED] and hand the user the exact command sequence (below). *(deviation: `sudo -n true`
+      was denied outright by the implementing agent's tool permission layer — not merely a
+      missing password — so this and phases 3-4 are marked [BLOCKED]; exact commands for the
+      user are in
+      specs/134_pin_aeneas_charon_to_verification_revision/handoffs/phase-1-handoff-20260918T224900Z.md)*
 - [ ] Preferred single-step path: `sudo nixos-rebuild switch --flake .#hamsa --option extra-substituters https://hacl.cachix.org --option extra-trusted-public-keys hacl.cachix.org-1:FzsZ2xsByOwKwIWNPII7yMOelJNDZ12mDAj3d1eGX0c=`
       (root is trusted, so the options apply to this build; this also completes Phase 3's build).
       Before running, preview with `nixos-rebuild dry-build --flake .#hamsa` plus the same options
       and confirm charon/aeneas appear under "will be fetched", not "will be built".
+      *(deviation: deferred to the user — requires sudo, unavailable to the implementing agent)*
 - [ ] If the dry-build preview still shows charon/aeneas "will be built", do NOT proceed with a
       multi-hour source build: check the narinfo is still served
       (`curl -sI https://hacl.cachix.org/8psy457ay66wy4flknrfbh6ddzw9k93z.narinfo`), and if the
       cache no longer has the paths, stop and report (user decides whether to accept the
-      source build).
+      source build). *(deviation: deferred to the user alongside the switch above)*
 
 **Timing**: 20 minutes
 
@@ -159,16 +164,20 @@ Confirm with `git status --short`; flake.lock diff must touch only the aeneas su
 
 ---
 
-### Phase 3: Confirm pinned binaries on PATH [NOT STARTED]
+### Phase 3: Confirm pinned binaries on PATH [BLOCKED]
 
 **Goal**: Verify the installed tools report the pinned revisions.
 
 **Tasks**:
 - [ ] Open a fresh shell (or `hash -r`); `readlink -f "$(command -v charon)"` and
       `readlink -f "$(command -v aeneas)"` resolve to the research store paths.
+      *(deviation: blocked on Phase 2's rebuild, which requires sudo unavailable to the
+      implementing agent)*
 - [ ] `charon version` parenthesized suffix == `a5591f6b94c8575a6ba2ae71090614a722f2b011`
       (parse with `sed -n 's/.*(\([0-9a-f]*\)).*/\1/p'`, the same parsing `aeneas-revs.sh` uses).
+      *(deviation: blocked on Phase 2)*
 - [ ] `aeneas -version` output is a prefix of `227f4e7ac70d687a6b1a4871b3304f5a1c6994bf`.
+      *(deviation: blocked on Phase 2)*
 
 **Timing**: 10 minutes
 
@@ -184,7 +193,7 @@ Confirm with `git status --short`; flake.lock diff must touch only the aeneas su
 
 ---
 
-### Phase 4: Run Verification coherence gate [NOT STARTED]
+### Phase 4: Run Verification coherence gate [BLOCKED]
 
 **Goal**: Meet the acceptance criterion in the real Verification repo, using the normal store.
 
@@ -192,9 +201,12 @@ Confirm with `git status --short`; flake.lock diff must touch only the aeneas su
 - [ ] From `~/Projects/Logos/Verification`, run `bash framed_channel/check.sh` in the
       environment that repo's preflight requires (its own `nix develop` if charon/aeneas/jq must
       come from there; otherwise the rebuilt system PATH), with no scratch/alternate Nix store.
+      *(deviation: blocked on Phase 2/3, which require sudo unavailable to the implementing
+      agent)*
 - [ ] Confirm the `== aeneas revision coherence ==` section prints only `[ok]` lines (notably
       "aeneas on PATH" and "charon on PATH matches Aeneas's charon-pin"). Later, unrelated stages
       failing is out of scope; record them in the summary but do not fix them here.
+      *(deviation: blocked on Phase 2/3)*
 - [ ] Do not modify any file in the Verification repo.
 
 **Timing**: 20 minutes
