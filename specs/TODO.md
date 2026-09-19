@@ -6,7 +6,7 @@ next_project_number: 135
 
 ## Task Order
 
-*Updated 2026-09-18. Generated from state.json dependency graph.*
+*Updated 2026-09-19. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
@@ -23,7 +23,7 @@ next_project_number: 135
   └─ 117 [PARTIAL] — Configure laptop lid-close to blank screen but not sleep...
 125 [PARTIAL] — Contain every Claude Code session in its own systemd user...
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the...
-128 [NOT STARTED] — Correct this repo's Claude Code MCP registration and...
+128 [RESEARCHED] — Correct this repo's Claude Code MCP registration and...
 133 [NOT STARTED] — Conduct systematic research, both locally (audit current...
 
 ### Nix Infrastructure
@@ -232,10 +232,11 @@ ACCEPTANCE.
 ---
 
 ### 128. Claude mcp registration and permission scope
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
+- **Research**: [128_claude_mcp_registration_and_permission_scope/reports/01_mcp-registration-permission-scope.md]
 
 **Description**: Correct this repo's Claude Code MCP registration and permission configuration on three counts, and register the NixOS MCP server. All four items below were empirically verified, not inferred -- do not re-derive them, but DO re-confirm before editing since this config may have moved on.
 
