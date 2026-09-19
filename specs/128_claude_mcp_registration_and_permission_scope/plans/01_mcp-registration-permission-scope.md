@@ -184,36 +184,36 @@ removal, nine playwright additions, two nixos additions), with no other diff lin
 
 ---
 
-### Phase 3: Rebuild and verify end to end [NOT STARTED]
+### Phase 3: Rebuild and verify end to end [COMPLETED]
 
 **Goal**: Deploy and run every verification step the task requires.
 
 **Tasks**:
-- [ ] Record the pre-switch baseline:
+- [x] Record the pre-switch baseline:
   - `cp ~/.claude.json` to the scratchpad as a backup.
   - Record `jq 'keys' ~/.claude.json`.
   - Record `jq '[.projects[] | .mcpServers["lean-lsp"] // empty] | length' ~/.claude.json`.
-- [ ] `nix flake check` (from the repo root). New files are not involved, so a git-add of
+- [x] `nix flake check` (from the repo root). New files are not involved, so a git-add of
       untracked files is not needed.
-- [ ] `home-manager switch --flake .#benjamin`.
-- [ ] `claude mcp list`: both `playwright` and `nixos` show Connected.
-- [ ] Check what survived the switch:
+- [x] `home-manager switch --flake .#benjamin`.
+- [x] `claude mcp list`: both `playwright` and `nixos` show Connected.
+- [x] Check what survived the switch:
   - The post-switch top-level key set of `~/.claude.json` is a superset of the baseline
     (OAuth, `projects`, and similar keys intact).
   - The per-project lean-lsp count is unchanged.
   - `.mcpServers.nixos` equals the specified config.
   - No `mcp-nixos` key exists.
-- [ ] Check that the deployed `~/.claude/settings.json` `permissions.allow` matches the source
+- [x] Check that the deployed `~/.claude/settings.json` `permissions.allow` matches the source
       (the ENFORCED reset applied).
-- [ ] In a NEW Claude Code process started after the switch, run a headless `claude -p` from a
+- [x] In a NEW Claude Code process started after the switch, run a headless `claude -p` from a
       neutral directory (or the user's interactive check), since headless mode denies
       un-granted tools rather than prompting. Confirm:
   - A playwright `browser_navigate` call and an `mcp__nixos__nix` search both run without a
     permission prompt or denial.
   - A `browser_evaluate` call is denied or prompts. Check `permission_denials` in
     `--output-format json`.
-- [ ] `nixos-rebuild build --flake .#hamsa` (build only, no sudo, no switch).
-- [ ] Record the lean-lsp prompting behavior change in the implementation summary.
+- [x] `nixos-rebuild build --flake .#hamsa` (build only, no sudo, no switch).
+- [x] Record the lean-lsp prompting behavior change in the implementation summary.
 
 **Timing**: 1 hour
 
@@ -231,12 +231,12 @@ removal, nine playwright additions, two nixos additions), with no other diff lin
 
 ## Testing & Validation
 
-- [ ] `nix flake check` passes
-- [ ] `home-manager switch --flake .#benjamin` succeeds; `--dry-run` path still non-destructive (echo only)
-- [ ] `claude mcp list` shows `playwright` and `nixos` Connected
-- [ ] `~/.claude.json` pre-existing keys and per-project lean-lsp entries preserved
-- [ ] New session: playwright navigate + `mcp__nixos__nix` unprompted; `browser_evaluate` still gated
-- [ ] `nixos-rebuild build --flake .#hamsa` succeeds
+- [x] `nix flake check` passes
+- [x] `home-manager switch --flake .#benjamin` succeeds; `--dry-run` path still non-destructive (echo only)
+- [x] `claude mcp list` shows `playwright` and `nixos` Connected
+- [x] `~/.claude.json` pre-existing keys and per-project lean-lsp entries preserved
+- [x] New session: playwright navigate + `mcp__nixos__nix` unprompted; `browser_evaluate` still gated
+- [x] `nixos-rebuild build --flake .#hamsa` succeeds
 
 ## Artifacts & Outputs
 
