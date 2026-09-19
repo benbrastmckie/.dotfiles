@@ -1,7 +1,7 @@
 # Implementation Plan: Task #128
 
 - **Task**: 128 - Claude MCP registration and permission scope
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 2 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/128_claude_mcp_registration_and_permission_scope/reports/01_mcp-registration-permission-scope.md
