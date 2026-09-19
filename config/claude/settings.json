@@ -41,8 +41,18 @@
       "TaskCreate",
       "TaskUpdate",
       "Skill",
-      "mcp__lean-lsp__*",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_network_requests",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_find",
+      "mcp__playwright__browser_wait_for",
+      "mcp__nixos__nix",
+      "mcp__nixos__nix_versions"
     ],
     "deny": [
       "Bash(rm -rf /)",

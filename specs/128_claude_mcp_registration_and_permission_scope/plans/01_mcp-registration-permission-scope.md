@@ -141,13 +141,13 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 2: Rewrite machine-scope permission grants in settings.json [NOT STARTED]
+### Phase 2: Rewrite machine-scope permission grants in settings.json [COMPLETED]
 
 **Goal**: Fix items 2 and 3, plus item 4's optional grants, in `config/claude/settings.json`.
 
 **Tasks**:
-- [ ] Remove `"mcp__lean-lsp__*"` from `permissions.allow`.
-- [ ] Add exactly these nine entries:
+- [x] Remove `"mcp__lean-lsp__*"` from `permissions.allow`.
+- [x] Add exactly these nine entries:
   - `mcp__playwright__browser_navigate`
   - `mcp__playwright__browser_snapshot`
   - `mcp__playwright__browser_take_screenshot`
@@ -157,9 +157,9 @@ Phases within the same wave can execute in parallel.
   - `mcp__playwright__browser_type`
   - `mcp__playwright__browser_find`
   - `mcp__playwright__browser_wait_for`
-- [ ] Add `mcp__nixos__nix` and `mcp__nixos__nix_versions`. These are exact names, not a
+- [x] Add `mcp__nixos__nix` and `mcp__nixos__nix_versions`. These are exact names, not a
       wildcard, following the grant-at-registration-scope principle.
-- [ ] Leave every other key and entry untouched. Preserve the file's existing 2-space
+- [x] Leave every other key and entry untouched. Preserve the file's existing 2-space
       formatting.
 
 **Timing**: 15 minutes
