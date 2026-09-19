@@ -133,27 +133,47 @@
       fi
     '';
 
-    # Idempotently merge the playwright MCP server into ~/.claude.json (user scope; subagents
-    # cannot see project-scoped .mcp.json). Deliberate counterpoint to claudeSettings above:
-    # this file also carries Claude Code's OAuth/session/project-list state, which must survive
-    # every rebuild, so this block merges via jq (like .claude/scripts/setup-lean-mcp.sh). It
-    # preserves every key unconditionally, where claudeSettings above resets its ENFORCED set --
-    # nothing here is repo-owned. The existing mcpServers.lean-lsp
-    # entry (and every other key) is left untouched. jq output needs shell redirection, which the
-    # `run` helper (a plain "$@" exec, no shell) cannot express directly, so — unlike uvTools'
-    # `run`-wrapped form — this block guards its own mutating body behind the same `DRY_RUN`
-    # variable `run` itself checks, keeping `home-manager switch --dry-run` non-destructive
-    # without fighting `run`'s argument-vector-only interface.
+    # Idempotently merge the playwright and nixos MCP servers into ~/.claude.json, both at user
+    # (machine) scope. Deliberate counterpoint to claudeSettings above: this file also carries
+    # Claude Code's OAuth/session/project-list state, which must survive every rebuild, so this
+    # block merges via jq (like .claude/scripts/setup-lean-mcp.sh). It preserves every key
+    # unconditionally, where claudeSettings above resets its ENFORCED set -- nothing here is
+    # repo-owned. The per-project mcpServers.lean-lsp entries (and every other key) are left
+    # untouched.
+    #
+    # playwright stays at user scope because it is a Nix-built `playwright-mcp` wrapper binary on
+    # PATH via home.packages, depends on the machine-level ~/.cache/ms-playwright browser cache,
+    # needs no per-project arguments, and is useful across every repository -- not because
+    # subagents can't see a project-scoped .mcp.json (that belief was disproven by direct
+    # experiment: a .mcp.json-registered stdio server was reachable from a filesystem-based
+    # subagent, including via the agent system's own custom agent class, with permission
+    # pre-granted. The earlier belief came from a confounded observation -- an already-running
+    # session cannot see a server added to .mcp.json after that session started, which is a
+    # session-start snapshot effect that affects the main session identically and has nothing to
+    # do with subagents or scope).
+    #
+    # nixos (mcp-nixos, run via uvx) is registered under the server name "nixos", not
+    # "mcp-nixos": tools are addressed as mcp__<server-name>__<tool-name>, and the agent system's
+    # existing grants and docs already use mcp__nixos__nix / mcp__nixos__nix_versions. It is
+    # invoked via the system-level `uvx` (resolves at /run/current-system/sw/bin/uvx) rather than
+    # `uv tool install`, whose ~/.local/bin is not on PATH in this configuration.
+    #
+    # jq output needs shell redirection, which the `run` helper (a plain "$@" exec, no shell)
+    # cannot express directly, so — unlike uvTools' `run`-wrapped form — this block guards its
+    # own mutating body behind the same `DRY_RUN` variable `run` itself checks, keeping
+    # `home-manager switch --dry-run` non-destructive without fighting `run`'s
+    # argument-vector-only interface.
     activation.claudeMcpServers = config.lib.dag.entryAfter [ "writeBoundary" ] ''
       claudeJson="${config.home.homeDirectory}/.claude.json"
       if [[ -v DRY_RUN ]]; then
-        echo "Would merge mcpServers.playwright into $claudeJson"
+        echo "Would merge mcpServers.playwright and mcpServers.nixos into $claudeJson"
       else
         [ -f "$claudeJson" ] || echo '{}' > "$claudeJson"
         tmpFile="$(mktemp "${config.home.homeDirectory}/.claude.json.XXXXXX")"
         if ${pkgs.jq}/bin/jq \
-          --argjson cfg '{"type":"stdio","command":"playwright-mcp","args":[]}' \
-          '.mcpServers.playwright = $cfg' \
+          --argjson pw '{"type":"stdio","command":"playwright-mcp","args":[]}' \
+          --argjson nixos '{"type":"stdio","command":"uvx","args":["mcp-nixos"]}' \
+          '.mcpServers.playwright = $pw | .mcpServers.nixos = $nixos' \
           "$claudeJson" > "$tmpFile"; then
           mv "$tmpFile" "$claudeJson"
           chmod u+w "$claudeJson"

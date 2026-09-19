@@ -1,7 +1,7 @@
 # Implementation Plan: Task #128
 
 - **Task**: 128 - Claude MCP registration and permission scope
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 2 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/128_claude_mcp_registration_and_permission_scope/reports/01_mcp-registration-permission-scope.md
@@ -91,14 +91,14 @@ No ROADMAP.md consulted (not provided in delegation context).
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Fix comment and register nixos server in dotfiles.nix [NOT STARTED]
+### Phase 1: Fix comment and register nixos server in dotfiles.nix [COMPLETED]
 
 **Goal**: Fix item 1 (comment) and item 4 (registration) in `activation.claudeMcpServers`.
 
 **Tasks**:
-- [ ] Re-confirm the block's location (`grep -n claudeMcpServers modules/home/core/dotfiles.nix`)
+- [x] Re-confirm the block's location (`grep -n claudeMcpServers modules/home/core/dotfiles.nix`)
       and that `~/.claude.json` still has no `nixos` or `mcp-nixos` top-level entry.
-- [ ] Rewrite the comment header of the block:
+- [x] Rewrite the comment header of the block:
   - Say it merges both servers (`playwright`, `nixos`).
   - Remove the false subagent-visibility clause.
   - State the true user-scope rationale for playwright: Nix-built `playwright-mcp` wrapper on
@@ -112,13 +112,13 @@ Phases within the same wave can execute in parallel.
     project and is left untouched, like every other key.
   - Keep the existing (accurate) OAuth-preservation and `DRY_RUN`/`run` explanation.
   - Use no task-number references in the comment.
-- [ ] Extend the jq merge with a second `--argjson`. Recommended shape: one jq pass,
+- [x] Extend the jq merge with a second `--argjson`. Recommended shape: one jq pass,
       `--argjson pw '{...playwright...}' --argjson nixos '{"type":"stdio","command":"uvx","args":["mcp-nixos"]}'`
       with filter `.mcpServers.playwright = $pw | .mcpServers.nixos = $nixos`. This is one
       tmpfile and one `mv`, and stays idempotent because it uses assignment, not append.
       Decision: a single pass is preferred over chaining two jq calls, because it keeps a single
       failure path.
-- [ ] Update the `DRY_RUN` echo to name both `mcpServers.playwright` and `mcpServers.nixos`.
+- [x] Update the `DRY_RUN` echo to name both `mcpServers.playwright` and `mcpServers.nixos`.
 
 **Timing**: 30 minutes
 
