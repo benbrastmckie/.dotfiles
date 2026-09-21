@@ -1,0 +1,18 @@
+{
+  "status": "partial",
+  "session_id": "sess_1789770143_89003c",
+  "metadata": {
+    "tasks_completed": [],
+    "tasks_failed": [
+      134
+    ],
+    "deferred_self_modifying": [],
+    "deferred_deploy_checkpoint": [],
+    "forward_progress_violated": false,
+    "defer_ledger": [],
+    "idle_overlap_ledger": [],
+    "detected_defects": [],
+    "verify_deploy_baseline_notices": [],
+    "cycles_used": 3
+  }
+}

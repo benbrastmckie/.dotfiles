@@ -3,7 +3,7 @@ _: {
   programs.git = {
     enable = true;
     settings.user.name = "benbrastmckie";
-    settings.user.email = "benbrastmckie@gmail.com";
+    settings.user.email = "64314593+benbrastmckie@users.noreply.github.com";
     signing.format = null;
   };
 }
