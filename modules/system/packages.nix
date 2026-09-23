@@ -65,7 +65,10 @@
     nodejs_22 # JavaScript runtime environment
     uv # Fast Python package installer and resolver
     bun # Fast all-in-one JavaScript runtime
-    pnpm_9 # Fast, disk space efficient package manager
+    # Unversioned attribute, not a pinned major: pnpm_9 (9.15.9) is marked insecure in
+    # nixpkgs (CVE-2026-48995 and six others) and refuses to evaluate, which fails the
+    # whole system build. Pinned majors reach that state eventually; this one floats.
+    pnpm # Fast, disk space efficient package manager
     wrangler # Cloudflare Workers CLI for serverless deployment
     sqlite # SQL database engine library and CLI
     fd # Simple, fast alternative to 'find'
