@@ -33,7 +33,9 @@ $max_repeat = 5;  # Maximum recompilation attempts
 
 # BibTeX Configuration
 # Use traditional BibTeX by default (projects using biblatex can override)
-$bibtex_use = 1;  # Use bibtex (not biber)
+$bibtex_use = 1.5;  # Use bibtex (not biber); 1.5 (not 1) lets `latexmk -c`
+                    # delete the .bbl when the .bib exists, so a stale/corrupt .bbl
+                    # does not survive :VimtexClean. Precious .bbl without .bib is kept.
 
 # File Watcher Debounce
 # Wait 2 seconds after file change before rebuilding
