@@ -1,0 +1,28 @@
+{
+  "$schema": "orchestrator-handoff-v1",
+  "phase": "implement",
+  "status": "implemented",
+  "summary": "Phase 6 re-verified against the live post-rebuild system: landrun/comparator/resolver on PATH, COMPARATOR_LANDRUN correctly generated. Corrected a wrong claim about how home.sessionVariables propagates on this host (graphical-session sourcing, not /etc/profile). Re-ran both Phase 7 fixtures against installed binaries with COMPARATOR_LANDRUN unset -- both produced correct verdicts, confirming Comparator's PATH fallback. All 8 phases now [COMPLETED].",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/130_provision_comparator_verification_toolchain/plans/01_comparator-toolchain-provisioning.md"
+    },
+    {
+      "type": "summary",
+      "path": "specs/130_provision_comparator_verification_toolchain/summaries/01_comparator-toolchain-provisioning-summary.md"
+    }
+  ],
+  "next_action_hint": "none",
+  "files_modified": [
+    "packages/README.md",
+    "specs/130_provision_comparator_verification_toolchain/plans/01_comparator-toolchain-provisioning.md",
+    "specs/130_provision_comparator_verification_toolchain/summaries/01_comparator-toolchain-provisioning-summary.md"
+  ],
+  "decisions_made": [
+    "Accept the standard graphical-session propagation delay for COMPARATOR_LANDRUN rather than a config change; rely on Comparator's own PATH-fallback (Main.lean:335) as the safety net, verified live."
+  ],
+  "phases_completed": 8,
+  "phases_total": 8,
+  "plan_markers_verified": true
+}

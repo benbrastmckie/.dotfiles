@@ -1,0 +1,35 @@
+{
+  "status": "implemented",
+  "summary": "Added maildir-store = ~/Mail and multi-file-strategy = act-dir to both [gmail] and [logos] accounts.conf sections in modules/home/email/aerc.nix, plus a forward-compat comment (upstream maildir-store -> enable-maildir deprecation) and an a-unprompted design-decision comment. home-manager build --flake .#benjamin passed (exit 0) and the rendered accounts.conf was confirmed correct. Live-mail verification (Phases 3-6 of the plan) requires driving aerc's interactive TUI and mutating real Gmail/Logos mail via mail-sync, which this autonomous agent must not do; those phases are marked [PARTIAL] with deviation notes and translated into a manual verification checklist in the implementation summary.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "modules/home/email/aerc.nix",
+      "summary": "Added maildir-store/multi-file-strategy to [gmail] and [logos] accounts.conf sections plus forward-compat and a-unprompted comments"
+    },
+    {
+      "type": "summary",
+      "path": "specs/112_aerc_enable_folder_move_archive/summaries/01_enable-archive-action-summary.md",
+      "summary": "Implementation summary with build verification results and a manual live-mail verification checklist for the user"
+    },
+    {
+      "type": "handoff",
+      "path": "specs/112_aerc_enable_folder_move_archive/handoffs/phase-2-handoff-20260714T000626Z.md",
+      "summary": "Phase-end handoff after completing the autonomous config-edit and build phases"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Enabled aerc's notmuch-backend archive/delete file moves by adding maildir-store and multi-file-strategy = act-dir to both Gmail and Logos accounts.conf sections; home-manager build verified. Live-mail verification against real Gmail/Logos mailboxes is deferred to the user via a manual checklist, since it requires interactive TUI use and real mail mutation that an autonomous agent must not perform."
+  },
+  "metadata": {
+    "session_id": "orchestrator-task112",
+    "duration_seconds": 192,
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 2,
+    "phases_total": 6,
+    "modified_files": ["modules/home/email/aerc.nix"]
+  },
+  "next_steps": "User must run home-manager switch --flake .#benjamin (or equivalent activation) and then follow the manual verification checklist in summaries/01_enable-archive-action-summary.md to complete live-mail verification (Phases 3-6)."
+}

@@ -1,0 +1,29 @@
+{
+  "status": "implemented",
+  "summary": "Changed the two aerc INBOX querymap entries in modules/home/email/aerc.nix from tag:inbox AND folder:/Gmail|Logos/ to the bare exact-match form INBOX=folder:Gmail / INBOX=folder:Logos, added a documenting comment recording why Unread/Flagged/Proposed-* deliberately stay account-wide, and verified with a successful home-manager build.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "modules/home/email/aerc.nix",
+      "summary": "Fixed INBOX querymap entries for gmail and logos accounts; added scope-decision comment"
+    },
+    {
+      "type": "summary",
+      "path": "specs/110_aerc_inbox_querymap_real_folder/summaries/01_inbox-querymap-real-folder-summary.md",
+      "summary": "Implementation summary with verification details"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Fixed the aerc INBOX virtual folder to reflect true maildir-folder membership (folder:Gmail / folder:Logos) instead of the permanent tag:inbox marker combined with an over-matching account regex, with rationale documented inline and home-manager build verified."
+  },
+  "metadata": {
+    "session_id": "sess_1783985072_1a21fb_110",
+    "duration_seconds": 600,
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 2,
+    "phases_total": 2
+  },
+  "next_steps": "Activate with home-manager switch --flake .#benjamin to apply; INBOX tab should then show ~tens of messages instead of ~12k. Archived mail leaving the INBOX view depends on task 112."
+}

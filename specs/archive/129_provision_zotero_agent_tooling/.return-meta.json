@@ -1,0 +1,34 @@
+{
+  "status": "implemented",
+  "summary": "All eight phases of the Zotero agent tooling provisioning plan are complete and independently re-verified live: the operator rotated the Zotero API key (new key working, old key confirmed revoked via HTTP 403), ran sudo nixos-rebuild switch and home-manager switch, and removed the last plaintext credential from ~/.config/fish/conf.d/private.fish. zot CLI resolves from every shell context, credentials are populated in fresh bash, fresh fish, systemd --user environment, and ~/.config/zot/config.toml, and a headless env -i zot search proved config.toml alone supplies working credentials with zero environment variables.",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/129_provision_zotero_agent_tooling/plans/01_provision-zotero-agent-tooling.md",
+      "summary": "All 8 phases promoted to [COMPLETED] after live re-verification"
+    },
+    {
+      "type": "summary",
+      "path": "specs/129_provision_zotero_agent_tooling/summaries/01_provision-zotero-agent-tooling-summary.md",
+      "summary": "Final implementation summary; no operator actions remain outstanding"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Provisioned machine-level Zotero agent tooling: a zot CLI wrapper on PATH resolving from every shell and headless context; a single sops-encrypted zotero_api_key source of truth wired into shell exports, systemd --user environment, and a declarative ~/.config/zot/config.toml; and an optional, disabled-by-default, localhost-only zotero-translation-server with two live-discovered bugs fixed (Node 24/config-package incompatibility, systemd Environment= JSON quote-stripping). The API key was rotated (old key confirmed revoked, HTTP 403) and the last plaintext credential in ~/.config/fish/conf.d/private.fish was removed after a precedence assertion confirmed the managed export was live and correct."
+  },
+  "modified_files": [
+    "specs/129_provision_zotero_agent_tooling/plans/01_provision-zotero-agent-tooling.md",
+    "specs/129_provision_zotero_agent_tooling/summaries/01_provision-zotero-agent-tooling-summary.md",
+    "specs/TODO.md",
+    "specs/state.json"
+  ],
+  "metadata": {
+    "session_id": "sess_1786463534_5dd56b",
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 8,
+    "phases_total": 8
+  },
+  "next_steps": "None. Downstream consumers in ~/.config/nvim (its tasks 38 and 39) can now proceed: zot CLI and credentials are fully live. Live zot add --pdf write verification remains theirs to perform, deliberately not done here. Follow-up (out of scope): the pre-existing, confirmed-unrelated zfs-kernel build breakage on iso/usb-installer images is worth its own task."
+}

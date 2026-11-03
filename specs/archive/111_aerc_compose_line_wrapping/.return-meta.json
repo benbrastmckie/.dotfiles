@@ -1,0 +1,19 @@
+{
+  "status": "planned",
+  "task_number": 111,
+  "agent_type": "planner-agent",
+  "delegation_path": ["orchestrator", "plan", "planner-agent"],
+  "session_id": "sess_1783985072_1a21fb_111",
+  "artifact_path": "specs/111_aerc_compose_line_wrapping/plans/01_verify-compose-flowed.md",
+  "artifact_type": "plan",
+  "phase_count": 3,
+  "estimated_hours": 0.5,
+  "dependency_waves": [
+    {"wave": 1, "phases": [1]},
+    {"wave": 2, "phases": [2]},
+    {"wave": 3, "phases": [3]}
+  ],
+  "memory_candidates": [],
+  "next_steps": "Run /implement 111 to execute the plan",
+  "completed_at": "2026-07-13T23:52:00Z"
+}

@@ -1,0 +1,77 @@
+{
+  "status": "implemented",
+  "task": 110,
+  "task_slug": "aerc_inbox_querymap_real_folder",
+  "phases_completed": 2,
+  "phases_total": 2,
+  "modified_files": [
+    "modules/home/email/aerc.nix"
+  ],
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/110_aerc_inbox_querymap_real_folder/plans/01_inbox-querymap-real-folder.md",
+      "summary": "Two-phase implementation plan for the aerc INBOX querymap real-folder fix (both phases marked COMPLETED)."
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/email/aerc.nix",
+      "summary": "INBOX querymap entries for gmail and logos changed to bare exact-match form; scope-decision comment added."
+    },
+    {
+      "type": "summary",
+      "path": "specs/110_aerc_inbox_querymap_real_folder/summaries/01_inbox-querymap-real-folder-summary.md",
+      "summary": "Implementation summary with verification details."
+    }
+  ],
+  "plan_path": "specs/110_aerc_inbox_querymap_real_folder/plans/01_inbox-querymap-real-folder.md",
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Fix INBOX querymap entries and document scope decision",
+      "depends_on": [],
+      "status": "COMPLETED",
+      "summary": "In modules/home/email/aerc.nix changed INBOX=tag:inbox AND folder:/Gmail/ -> INBOX=folder:Gmail and INBOX=tag:inbox AND folder:/Logos/ -> INBOX=folder:Logos; added an inline comment recording why Unread/Flagged/Proposed-* stay account-wide. No other querymap lines changed. Pre-existing uncommitted edits for tasks 111 (compose block) and 113 (hooks block) left untouched."
+    },
+    {
+      "phase": 2,
+      "name": "Build verification",
+      "depends_on": [1],
+      "status": "COMPLETED",
+      "summary": "Ran home-manager build --flake .#benjamin -- succeeded (exit 0, 4 derivations built). Confirmed rendered querymap-gmail/querymap-logos store outputs match expected content exactly via nix-store -q --outputs."
+    }
+  ],
+  "fix": {
+    "file": "modules/home/email/aerc.nix",
+    "change_gmail": "INBOX=tag:inbox AND folder:/Gmail/  ->  INBOX=folder:Gmail",
+    "change_logos": "INBOX=tag:inbox AND folder:/Logos/  ->  INBOX=folder:Logos",
+    "no_other_lines_change": true
+  },
+  "decision_unread_flagged_proposed": {
+    "recommendation": "keep_account_wide",
+    "documented_in_plan": true,
+    "implemented": true,
+    "rationale": "Tag-driven triage/search views (status), not folder-membership views (location); scoping Proposed-* to inbox would hide proposed-tagged messages and undermine the /email review gate. Inline comment added in aerc.nix recording this asymmetry."
+  },
+  "non_goals": [
+    "Enabling archive itself (task 112)",
+    "Periodic sync (task 113)",
+    "Changing Unread/Flagged/Proposed-* querymap scope",
+    "Modifying notmuch.nix postNew or census.nix"
+  ],
+  "verification": {
+    "home_manager_build": "success",
+    "querymap_gmail_inbox_line": "INBOX=folder:Gmail (confirmed via nix-store -q --outputs on built derivation)",
+    "querymap_logos_inbox_line": "INBOX=folder:Logos (confirmed via nix-store -q --outputs on built derivation)",
+    "other_lines_unchanged": true,
+    "scope_decision_comment_present": true,
+    "mbsync_or_mail_mutation_run": false
+  },
+  "next_steps": "Activate with home-manager switch --flake .#benjamin to apply. INBOX tab should then show ~tens of messages (matching notmuch count folder:Gmail) instead of ~12k. Archived mail leaving the INBOX view depends on task 112.",
+  "metadata": {
+    "session_id": "sess_1783985072_1a21fb_110",
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"]
+  }
+}

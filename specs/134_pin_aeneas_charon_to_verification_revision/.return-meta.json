@@ -1,0 +1,46 @@
+{
+  "status": "implemented",
+  "summary": "All four phases complete. Phase 1 pinned aeneas.url to 227f4e7, re-locked the aeneas/charon subtree to a5591f6, added the hacl.cachix.org substituter, and fixed the flake.nix comment (committed previously). This dispatch resumed at Phase 2, independently re-verifying (rather than redoing) that the user's prior `sudo nixos-rebuild switch` activated the substituter, that charon/aeneas on PATH report the pinned revisions, and that the Logos Verification repo's framed_channel/check.sh passes its aeneas revision coherence gate with no changes to that repo.",
+  "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/134_pin_aeneas_charon_to_verification_revision/summaries/01_pin-aeneas-charon-revision-summary.md",
+      "summary": "Full implementation summary covering all four phases, with verification evidence"
+    },
+    {
+      "type": "handoff",
+      "path": "specs/134_pin_aeneas_charon_to_verification_revision/handoffs/phase-1-handoff-20260918T224900Z.md",
+      "summary": "Phase 1 completion handoff"
+    },
+    {
+      "type": "handoff",
+      "path": "specs/134_pin_aeneas_charon_to_verification_revision/handoffs/phase-4-handoff-20260918T225654Z.md",
+      "summary": "Final handoff confirming all phases complete"
+    }
+  ],
+  "partial_progress": {
+    "stage": "all_phases_completed",
+    "details": "Phases 1-4 all complete and verified.",
+    "phases_completed": 4,
+    "phases_total": 4
+  },
+  "errors": [],
+  "modified_files": [
+    "flake.nix",
+    "flake.lock",
+    "modules/system/nix.nix"
+  ],
+  "completion_data": {
+    "completion_summary": "Pinned aeneas.url to 227f4e7ac70d687a6b1a4871b3304f5a1c6994bf (locking charon to a5591f6b94c8575a6ba2ae71090614a722f2b011) and added hacl.cachix.org as a trusted substituter; after the rebuild, charon and aeneas on PATH report the pinned revisions and the Logos Verification repo's check.sh passes its aeneas revision coherence gate."
+  },
+  "metadata": {
+    "session_id": "sess_1789772046_5fd901",
+    "duration_seconds": 900,
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 4,
+    "phases_total": 4
+  },
+  "next_steps": "None — task complete. Optional future maintenance: re-pin aeneas.url deliberately if Verification's toolchain moves again."
+}

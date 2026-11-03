@@ -1,0 +1,38 @@
+{
+  "status": "implemented",
+  "dispatch_seq": 3,
+  "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/132_add_aeneas_rust_to_lean_verification_tooling/summaries/01_aeneas-rust-lean-tooling-summary.md",
+      "summary": "All 4 phases completed: aeneas flake input threaded to both home-manager paths, charon/aeneas installed and verified (both --help exit 0), Verification-repo Lake instructions documented, final gate (flake check, statix, diff-scope) all green."
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Added the Aeneas flake input (Charon + Aeneas Rust-to-Lean verification tooling) to this NixOS/home-manager config, threaded resolved packages to both home-manager paths, installed both binaries via home.packages, verified charon --help and aeneas -help both succeed after activation, and documented the Verification-repo-local Lake configuration steps in docs/development.md."
+  },
+  "modified_files": [
+    "flake.nix",
+    "flake.lock",
+    "lib/mkHost.nix",
+    "modules/home/packages/misc.nix",
+    "docs/development.md"
+  ],
+  "memory_candidates": [
+    {
+      "content": "This repo's pattern for threading an externally-pinned flake package (own nixpkgs, no `inputs.nixpkgs.follows`) into home-manager: (1) add the input with a comment explaining why it doesn't follow nixpkgs; (2) resolve `input.packages.${system}.<pkg>` into `hmExtraSpecialArgs` in flake.nix (covers the standalone homeConfigurations path and the iso config); (3) pass the flake input into `lib/mkHost.nix`'s argument set and add the same resolved entries to its home-manager `extraSpecialArgs` block (covers the NixOS-integrated path); (4) consume the specialArg by name in the target home module's `{ pkgs, <name>, ... }:` signature. If the resolved package's natural name would collide with an existing `pkgs.<name>` attribute (checked via `with pkgs;` lists), rename it (e.g. `aeneas-charon` instead of `charon`) to avoid silent shadowing. `lectic` is the precedent; `aeneas-charon`/`aeneas-aeneas` follow the same shape.",
+      "category": "PATTERN",
+      "source_artifact": "specs/132_add_aeneas_rust_to_lean_verification_tooling/summaries/01_aeneas-rust-lean-tooling-summary.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["flake-input", "home-manager", "specialArgs", "mkHost", "nixpkgs-follows"]
+    }
+  ],
+  "metadata": {
+    "session_id": "sess_1789581776_7ffa81",
+    "agent_type": "general-implementation-agent",
+    "delegation_depth": 2,
+    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
+    "phases_completed": 4,
+    "phases_total": 4
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "orchestrator-handoff-v1",
+  "phase": "implement",
+  "status": "implemented",
+  "summary": "All 8 plan phases verified COMPLETED. Operator rotated the Zotero API key (new key confirmed working, old key confirmed revoked via HTTP 403), ran sudo nixos-rebuild switch and home-manager switch, and removed the plaintext private.fish export. Every previously-deferred check re-verified live: fresh-shell env vars, systemd --user show-environment, config.toml, and a headless env -i zot search proving config.toml-only credential reach.",
+  "artifacts": [
+    {"type": "summary", "path": "specs/129_provision_zotero_agent_tooling/summaries/01_provision-zotero-agent-tooling-summary.md"}
+  ],
+  "blockers": [],
+  "next_action_hint": "none",
+  "files_modified": [
+    "specs/129_provision_zotero_agent_tooling/plans/01_provision-zotero-agent-tooling.md",
+    "specs/129_provision_zotero_agent_tooling/summaries/01_provision-zotero-agent-tooling-summary.md"
+  ],
+  "decisions_made": [
+    "Reconciled Phase 6's zotero-env description with the post-dispatch latch-defect fix (commit 11d7d7b): ConditionPathExists plus non-zero exit on readable-but-unreadable, so a skip can no longer masquerade as success under RemainAfterExit."
+  ],
+  "dead_ends": [],
+  "phases_completed": 8,
+  "phases_total": 8,
+  "plan_markers_verified": true
+}

@@ -1,0 +1,34 @@
+{
+  "task_number": 112,
+  "task_name": "aerc_enable_folder_move_archive",
+  "phase_completed": "implement",
+  "status": "implemented",
+  "phases_completed": 2,
+  "phases_total": 6,
+  "modified_files": [
+    "modules/home/email/aerc.nix"
+  ],
+  "artifacts": [
+    "specs/112_aerc_enable_folder_move_archive/reports/01_enable-archive-action.md",
+    "specs/112_aerc_enable_folder_move_archive/plans/01_enable-archive-action.md",
+    "specs/112_aerc_enable_folder_move_archive/summaries/01_enable-archive-action-summary.md",
+    "specs/112_aerc_enable_folder_move_archive/handoffs/phase-2-handoff-20260714T000626Z.md"
+  ],
+  "summary": "Executed Phases 1-2 of the plan autonomously: added maildir-store = ~/Mail and multi-file-strategy = act-dir to both [gmail] and [logos] sections of the accounts.conf home.file block in modules/home/email/aerc.nix, directly after each source = line, plus the forward-compat comment (maildir-store deprecated on upstream aerc master via enable-maildir, but required on the installed 0.21.0) and the one-line comment recording that single-message a is deliberately left unprompted. home-manager build --flake .#benjamin passed (exit 0); the rendered accounts.conf was inspected directly and confirmed correct in both account sections, archive = unchanged, no maildir-account-path added. Phases 3-6 (live single/multi-file archive verification against real Gmail and Logos mailboxes, the finding-7 act-dir/INBOX-tab risk, and the follow-up decisions that depend on those live results) require driving aerc's interactive TUI and running mail-sync/mbsync against real mail -- both explicitly prohibited for this autonomous agent -- so they are marked [PARTIAL] in the plan with per-task deviation annotations and translated into a manual verification checklist in the implementation summary for the user to run themselves.",
+  "definition_of_done_note": "Config applied + home-manager build passing is the autonomous definition-of-done here, per explicit task instructions. Full task completion (status COMPLETED) additionally requires the user to run the manual verification checklist against live mail.",
+  "build_verification": {
+    "command": "home-manager build --flake .#benjamin",
+    "result": "success",
+    "exit_code": 0
+  },
+  "next_command": "User: home-manager switch --flake .#benjamin, then follow the manual verification checklist in summaries/01_enable-archive-action-summary.md",
+  "blockers": [],
+  "open_questions": [
+    "Does archiving a known multi-file message succeed from the INBOX tab, or does it fail with 'refusing to act on multiple files' and require a :cf Gmail<Enter> switch? Deferred to the user's manual checklist run (Phase 4); determines whether a follow-up keybind change belongs in this task or a new one.",
+    "Does the act-dir multi-file archive leave an unpushed UID-stripped local duplicate (gmail-all is Create-Near-only), or does mbsync push a server-side duplicate? To be confirmed via the Gmail web UI after mail-sync gmail, per the manual checklist."
+  ],
+  "commit_note": "No git add/commit was run by this agent. The working tree holds intermingled uncommitted hunks for tasks 111/113 in modules/home/email/aerc.nix; the final commit is handled by the orchestrator's consolidated commit.",
+  "git_commit_performed": false,
+  "session_id": "orchestrator-task112",
+  "timestamp": "2026-07-14T00:06:40Z"
+}

@@ -1,0 +1,44 @@
+{
+  "status": "implemented",
+  "task": 115,
+  "task_slug": "aerc_config_consolidation_refactor",
+  "phase_completed": "implement",
+  "task_type": "nix",
+  "summary": "All 4 phases completed. modules/home/email/aerc.nix refactored behavior-preservingly: let-bound mkQuerymap generator + shared foldersExclude (Phase 2 gate: entire home-manager-files derivation hash identical to baseline), 16 Task-NN citations consolidated into 11 rationale clusters with task numbers demoted to trailing citations (Phase 3), accounts.conf in-string comments hoisted to Nix level per D8 (comment-stripped diff empty, raw diff only removed #-lines, 0 non-# changes), rationale-preservation audit 11/11 PASS (Phase 4). home-manager build green after every phase; nix flake check --no-build passed. Finding-7 risk carried forward as flagged OPEN RISK comment (D7); all five KEEP decisions recorded in-file. One reported deviation: line count 384 -> 431 (+47) instead of the expected net reduction, driven by plan-mandated additions (contract header, KEEP records, finding-7 pointer, let block); no gate affected.",
+  "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/115_aerc_config_consolidation_refactor/summaries/01_aerc-config-consolidation-summary.md",
+      "summary": "Implementation summary: D1-D8 outcomes, sha256 diff-verification table (4 byte-identical files + D8-gated accounts.conf), 11/11 rationale-preservation audit table, line-count deviation note, and the manual user checklist for TUI/live-mail items (sidebar cleanliness, ~85-message INBOX scale, reply->send->archive->focus flow, Enter part-cycling, u check-mail toast, carried-forward live archive end-to-end and finding-7 probes)."
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/email/aerc.nix",
+      "summary": "Refactored aerc config (431 lines): top-level let with foldersExclude + mkQuerymap generator, cross-file contract header, 11 consolidated rationale clusters, five KEEP decisions and finding-7 OPEN RISK recorded in-file; rendered output behavior-identical to baseline."
+    }
+  ],
+  "phases_completed": 4,
+  "phases_total": 4,
+  "commits": [
+    "d202892 task 115 phase 1: capture rendered-config baseline",
+    "5d9c8d9 task 115 phase 2: querymap and folders-exclude generator",
+    "a178885 task 115 phase 3: consolidate rationale clusters"
+  ],
+  "blockers": [],
+  "invariants_held": [
+    "Build-only: home-manager build --flake .#benjamin (exit 0 every phase); never switch",
+    "No live-mail action of any kind; no himalaya/notmuch/msmtp/mbsync mutation",
+    "Wrapper-only /email mutation semantics and folder: token scoping preserved (binds and querymaps byte-identical to baseline)",
+    "No double-archive / tag:inbox regressions (rendered binds.conf and querymaps byte-identical)",
+    "Task 114 untouched; finding-7 carried forward as flagged open risk (D7), not resolved",
+    ".baseline/ left uncommitted; pre-existing dirty modules/system/packages.nix left alone; targeted staging only"
+  ],
+  "next_action_hint": "Implementation complete; final commit 'task 115: complete implementation' includes summary + plan + handoff. User-pending: manual TUI checklist in the summary (requires home-manager switch first). .baseline/ retained uncommitted for user re-verification.",
+  "metadata": {
+    "session_id": "sess_1784060900_29066a",
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 2,
+    "delegation_path": ["orchestrator", "orchestrate", "skill-orchestrate", "nix-implementation-agent"]
+  },
+  "timestamp": "2026-07-14T13:54:03-07:00"
+}

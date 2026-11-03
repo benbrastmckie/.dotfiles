@@ -1,0 +1,26 @@
+{
+  "orchestrator_mode": true,
+  "status": "implemented",
+  "task_number": 109,
+  "task_type": "nix",
+  "lit_flag": false,
+  "session_id": "sess_1783976264_c5539a",
+  "phases_completed": 5,
+  "phases_total": 5,
+  "modified_files": [
+    "modules/home/email/mail-sync.nix",
+    "modules/home/default.nix",
+    "modules/home/email/notmuch.nix",
+    "modules/home/email/aerc.nix",
+    "specs/109_serialized_group_scoped_mail_sync_wrapper/concurrency-test.sh",
+    "specs/109_serialized_group_scoped_mail_sync_wrapper/plans/01_serialized-mail-sync-wrapper.md",
+    "specs/109_serialized_group_scoped_mail_sync_wrapper/summaries/01_serialized-mail-sync-wrapper-summary.md"
+  ],
+  "verification": {
+    "nix_flake_check": "pass (all checks passed!)",
+    "home_manager_build": "pass (7 derivations built incl. mail-sync.drv; result symlink produced)",
+    "concurrency_test": "pass (run twice, non-overlapping [START,END] windows both times, exit 0, lockfile present, no reentrancy)"
+  },
+  "completion_summary": "Created a single canonical, flock-serialized, group-scoped mail-sync wrapper (modules/home/email/mail-sync.nix) structurally incapable of mbsync -a, wired it into modules/home/default.nix, repointed notmuch.nix's preNew hook and aerc.nix's $ keybind to call it, and verified via nix flake check, home-manager build --flake .#benjamin, and a credential-free stub-mbsync concurrency test proving serialization.",
+  "next_steps": "Run 'home-manager switch --flake .#benjamin' to activate, then exercise mail-sync gmail/logos/both manually against the real account before relying on it in production triggers."
+}

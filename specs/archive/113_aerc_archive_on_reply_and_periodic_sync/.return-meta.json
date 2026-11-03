@@ -1,0 +1,37 @@
+{
+  "status": "implemented",
+  "summary": "Rebound aerc's compose::review y key to native ':send -a flat<Enter>' archive-on-reply and removed the superseded uncommitted [hooks] mail-sent draft; created modules/home/services/mail-sync-timer.nix (systemd.user oneshot service+timer running 'mail-sync both' every 15 minutes) and wired it into modules/home/default.nix; wired [gmail] check-mail/check-mail-cmd/check-mail-timeout in aerc.nix's accounts.conf, fixing the broken 'u' keybind. home-manager build --flake .#benjamin exits 0, verified against store outputs. Live end-to-end verification deferred to a manual user checklist in the implementation summary.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "modules/home/email/aerc.nix",
+      "summary": "Rebound compose::review.y to ':send -a flat<Enter>'; deleted the draft [hooks] mail-sent block; added [gmail] check-mail/check-mail-cmd/check-mail-timeout"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/services/mail-sync-timer.nix",
+      "summary": "New oneshot systemd.user service + timer running 'mail-sync both' every 15 minutes, modeled on cache-cleanup.nix"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/default.nix",
+      "summary": "Added ./services/mail-sync-timer.nix to the Service modules imports"
+    },
+    {
+      "type": "summary",
+      "path": "specs/113_aerc_archive_on_reply_and_periodic_sync/summaries/01_archive-on-reply-periodic-sync-summary.md",
+      "summary": "Implementation summary with build verification evidence and the manual user end-to-end checklist"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Implemented native archive-on-reply (aerc compose::review y -> ':send -a flat') and a periodic systemd.user mail-sync-timer (every 15 min, mail-sync both), plus [gmail] check-mail wiring that also fixes the broken u keybind; removed the superseded draft [hooks] mail-sent block; home-manager build --flake .#benjamin verified green."
+  },
+  "metadata": {
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 4,
+    "phases_total": 5
+  },
+  "next_steps": "User: home-manager switch --flake .#benjamin, then follow the manual verification checklist in the implementation summary (reply-archive, non-reply non-archive, sync-to-Gmail-web, timer health)."
+}

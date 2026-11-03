@@ -1,0 +1,36 @@
+{
+  "$schema": "orchestrator-handoff-v1",
+  "phase": "implement",
+  "status": "implemented",
+  "summary": "COMPLETE. All four phases done. Narrow security.polkit.extraConfig rule grants root org.freedesktop.login1.suspend-ignore-inhibit only; offline suite committed at tests/battery-suspend-backstop-offline.sh with stub caveat and a non-stubbed pkcheck assertion; two false polkit-authorization claims corrected in docs. USER CHECKLIST U1-U4 all executed and PASSING: root pkcheck exit 0, session-less root systemctl suspend -i actually suspends with five block inhibitors held (PM: suspend exit 17:18:51), and a fully non-stubbed run drove both the real notify helper (runuser PAM pair 17:32:30) and a real suspend (17:32:34). Unprivileged pkcheck still denied, so no over-grant.",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/123_fix_backstop_polkit_denial_live_verification/plans/01_backstop-polkit-fix.md"
+    },
+    {
+      "type": "summary",
+      "path": "specs/123_fix_backstop_polkit_denial_live_verification/summaries/01_backstop-polkit-fix-summary.md"
+    }
+  ],
+  "blockers": [],
+  "next_action_hint": "none",
+  "files_modified": [
+    "modules/system/power.nix",
+    "tests/battery-suspend-backstop-offline.sh",
+    "docs/no-sleep-agents.md",
+    "docs/testing.md",
+    "specs/123_fix_backstop_polkit_denial_live_verification/plans/01_backstop-polkit-fix.md",
+    "specs/123_fix_backstop_polkit_denial_live_verification/summaries/01_backstop-polkit-fix-summary.md"
+  ],
+  "decisions_made": [
+    "security.polkit.extraConfig used (not environment.etc symlink to the shipped .example) -- matches in-tree nixpkgs precedent and narrows the grant to suspend only.",
+    "Offline suite committed at tests/battery-suspend-backstop-offline.sh, 108 lines (~8% over the 70-100 soft envelope, annotated as a deviation), with mandatory caveat header and known-gap footer.",
+    "Doc corrections in docs/ omit task-number/specs/ path citations per .claude/rules/no-task-references-in-deliverables.md (docs/ is outside specs/**); annotated as deviations.",
+    "nix flake check passed clean this round (exit 0) -- not a known-expected-failure case; reported honestly rather than presumed."
+  ],
+  "dead_ends": [
+    "No agent-side substitute exists for the root pkcheck / real suspend probes -- polkit's cross-identity CheckAuthorization() refusal is a security boundary, not a tooling gap; do not attempt to work around it."
+  ],
+  "continuation_context": null
+}

@@ -61,9 +61,7 @@ specs/.events.lock
 # silently, which is exactly the hazard this coverage prevents. The handoff files carry the same
 # risk in the other direction: a restored stale handoff reports a previous cycle's status and
 # phase counts as if they were the current dispatch's.
-specs/**/.orchestrator-handoff.json
 specs/**/.orchestrator-loop-guard
-specs/**/.return-meta.json
 specs/**/.drift-inspection.json
 specs/**/.stray-handoff-*.json
 specs/.return-meta-multi.json

@@ -1,0 +1,32 @@
+{
+  "$schema": "orchestrator-handoff-v1",
+  "phase": "implement",
+  "status": "implemented",
+  "summary": "The Phase 3 sudo blocker from the prior dispatch has dissolved: the user activated the configuration on the machine. This dispatch independently re-verified all four live gsettings reads plus IdleAction/HandleLidSwitch/HandleLidSwitchExternalPower, and confirmed both Home Manager activation paths (NixOS-integrated and standalone) agree via a byte-identical generated dconf keyfile. Phases 3 and 5 marked [COMPLETED] in the plan; the summary was rewritten to replace the NOT-COMPLETE live-verification section with actual post-activation evidence. All 5 phases of task 119 are now complete. No sudo was run by this agent.",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/119_fix_ac_vs_battery_idle_sleep_timeouts/plans/01_ac-battery-idle-sleep.md"
+    },
+    {
+      "type": "summary",
+      "path": "specs/119_fix_ac_vs_battery_idle_sleep_timeouts/summaries/01_ac-battery-idle-sleep-summary.md"
+    }
+  ],
+  "blockers": [],
+  "next_action_hint": "none",
+  "files_modified": [
+    "specs/119_fix_ac_vs_battery_idle_sleep_timeouts/plans/01_ac-battery-idle-sleep.md",
+    "specs/119_fix_ac_vs_battery_idle_sleep_timeouts/summaries/01_ac-battery-idle-sleep-summary.md"
+  ],
+  "decisions_made": [
+    "Verified Phase 3 by tracing both Home Manager activation paths to a shared, byte-identical hm-dconf.ini rather than trusting gsettings reads alone",
+    "niri follow-up work is already tracked as task 120, so no new /task invocation is needed from this dispatch"
+  ],
+  "dead_ends": [],
+  "continuation_context": {
+    "phases_completed": 5,
+    "phases_total": 5
+  },
+  "plan_markers_verified": true
+}

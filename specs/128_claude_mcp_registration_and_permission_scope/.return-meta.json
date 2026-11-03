@@ -1,0 +1,37 @@
+{
+  "status": "implemented",
+  "summary": "Fixed the false subagent-visibility rationale in modules/home/core/dotfiles.nix's claudeMcpServers comment, registered the mcp-nixos server there under the name 'nixos' (uvx mcp-nixos, idempotent jq merge), removed the domain-specific mcp__lean-lsp__* grant from machine-scope config/claude/settings.json, and added the nine enumerated playwright tool grants plus mcp__nixos__nix / mcp__nixos__nix_versions. Rebuilt with home-manager switch --flake .#benjamin and nixos-rebuild build --flake .#hamsa, both succeeded; claude mcp list shows both servers Connected; ~/.claude.json pre-existing keys and per-project lean-lsp entries survived intact; headless verification in a fresh Claude Code process confirmed playwright navigate and mcp__nixos__nix ran unprompted while browser_evaluate was correctly denied.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "modules/home/core/dotfiles.nix",
+      "summary": "Fixed false comment rationale, registered nixos MCP server alongside playwright in activation.claudeMcpServers"
+    },
+    {
+      "type": "implementation",
+      "path": "config/claude/settings.json",
+      "summary": "Removed mcp__lean-lsp__* machine-scope grant; added nine playwright tool grants and two mcp__nixos__* grants"
+    },
+    {
+      "type": "summary",
+      "path": "specs/128_claude_mcp_registration_and_permission_scope/summaries/01_mcp-registration-permission-scope-summary.md",
+      "summary": "Implementation summary with full verification evidence"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Corrected Claude Code MCP registration and permission scope: fixed a false design comment, dropped a domain-specific lean-lsp grant from machine scope, added missing playwright grants (nine tools, no wildcard), and registered the nixos (mcp-nixos) MCP server. Verified via home-manager switch, nixos-rebuild build, claude mcp list, and headless permission checks in a fresh session."
+  },
+  "modified_files": [
+    "modules/home/core/dotfiles.nix",
+    "config/claude/settings.json"
+  ],
+  "metadata": {
+    "session_id": "sess_1789780462_1339df",
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 3,
+    "phases_total": 3
+  },
+  "next_steps": "Start a fresh interactive Claude Code session in an ordinary repo to confirm playwright and nixos MCP tools are usable without prompting there too; be aware lean-lsp-only repos without their own project grant will now prompt for lean-lsp tools."
+}
