@@ -23,6 +23,7 @@ nothing is uploaded until you do both.
 | `sapience` | Reimplemented | Same subcommand dispatch as the vendor's `~/bin` shim |
 | `sf1` | Reimplemented | Terminal chat with the vault |
 | `sapience-bootstrap` | This repo | No vendor counterpart; replaces the installer's macOS half |
+| `sapience-progress` | This repo | No vendor counterpart; makes a silent run observable |
 | `sapience-sync.service` / `.timer` | This repo | Replaces the launchd plist; hourly |
 | `ollama.service` / `ollama-model-loader.service` | This repo | `modules/home/services/ollama.nix` |
 | `mcpServers.sapience` in `~/.claude.json` | This repo | Merged on activation, preserving every other key |
@@ -81,7 +82,27 @@ model on CPU, one chunk at a time.
 `sapience help` lists every subcommand; `sapience review`, `coverage`, `pending` and
 `sf1 "a question"` are the ones used day to day.
 
-What the vendor docs get wrong here is scheduling, which is systemd rather than launchd:
+### Watching a run
+
+Extraction is **silent by design**: the vendor prints "Extracting knowledge from N sources" and
+then nothing until it finishes. There is no verbose flag, nothing is flushed per source, and the
+staging queue is written only at the end, so mid-run there is no file to inspect either. On a
+local model a capped run is roughly 50 model calls at tens of seconds each, so several silent
+minutes are normal and indistinguishable from a hang.
+
+`sapience-progress` exists for that. It reports which run is active and for how long, completed
+and started model calls, mean seconds per call, and the staged count once the queue appears:
+
+```bash
+sapience-progress            # one snapshot
+sapience-progress --watch    # refresh every 5s; --watch 10 for a slower tick
+```
+
+Its numbers come from the Ollama journal, which logs one `processing task` per model call and
+one `release` per completion — the only live signal available. That is server-wide, so if two
+extractions overlap the counts are shared; the output says so when it detects more than one.
+
+Scheduling is systemd rather than launchd, which is the other thing the vendor docs get wrong:
 
 ```bash
 systemctl --user status sapience-sync.timer
@@ -161,6 +182,24 @@ would import twenty-odd near-identical copies of scaffolding at the highest trus
 outranking real findings. Turn it on only if the source store itself becomes the selected
 project, where those files are authored rather than deployed.
 
+### One run at a time, and never during a switch
+
+Two separate hazards, both found by running this for real.
+
+`extract_local.py` takes its own `.run.lock` only for `--sync` and `--backfill`, so the
+interactive onboarding run is unprotected. Since bootstrap writes `config.json` before
+onboarding, and the timer's `ConditionPathExists` is satisfied the moment that file appears, the
+timer can fire straight into an in-progress onboarding — two extractions then share one local
+model and both crawl. `sapience-bootstrap` therefore re-execs itself under `flock` on the
+vendor's own lock file, holding it across the whole run rather than inventing a second mutex, so
+the vendor's guard sees it held and skips. If a scheduled run already holds it, bootstrap refuses
+with the command to stop that run.
+
+Separately, `sapience-sync.service` is marked `X-SwitchMethod = "keep-old"`. Without it
+`sd-switch` restarts the unit on every activation, which kills an in-flight extraction *and*
+blocks `home-manager switch` until the replacement finishes — tens of minutes on CPU. The timer
+picks up a changed definition on its next fire instead.
+
 ### The token never enters the Nix store
 
 Every client falls back to `~/.sapience/config.json` when `SAPIENCE_TOKEN` is unset, so the
@@ -230,6 +269,9 @@ journalctl --user -u ollama-model-loader -n 20
 ls ~/.sapience/
 jq '.mcpServers.sapience' ~/.claude.json
 
+# Is a run in progress, and how fast?
+sapience-progress --watch
+
 # What did the last sync actually read?
 sapience coverage
 journalctl --user -u sapience-sync -n 50
@@ -252,6 +294,10 @@ carry `.claude/` trees, so untick that one in the folder picker.
 
 **The hourly run skips the per-run keep prompt.** `--sync` is non-interactive by design, so
 staging is all-or-nothing until you run `sapience review`.
+
+**A run is capped at 50 chunks.** `MAX_CHUNKS` defaults to 50, so a first pass over a large
+backlog covers only part of it and the rest waits for later runs; files are left un-marked, so
+nothing is lost. `sapience backfill 365` raises the cap for one wide pass.
 
 ## Rollback
 
