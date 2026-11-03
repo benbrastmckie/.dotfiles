@@ -45,6 +45,8 @@
     ./services/cache-cleanup.nix
     ./services/mail-sync-timer.nix
     ./services/claude-session-reaper.nix
+    ./services/ollama.nix
+    ./services/sapience.nix
     ./services/zotero-translation-server.nix
     ./services/zotero-env.nix
     ./services/screen-blank-watchdog.nix
