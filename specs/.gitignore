@@ -24,6 +24,10 @@
 **/.scope-lock/
 **/.commit-lock/
 **/.errors.lock
+**/.decisions.lock
+**/.issues.lock
+**/.metrics.lock
 /tmp/
 **/.orchestrator-deploy-ledger.json
+**/.orchestration/
 # END managed block: runtime-file-patterns.sh
