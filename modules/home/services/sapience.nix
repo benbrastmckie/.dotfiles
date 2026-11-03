@@ -162,20 +162,28 @@ let
 
     mkdir -p "${stateDir}"
 
-    # Critical: hold the vendor's own .run.lock across the whole bootstrap, config.json write
-    # included. extract_local.py only takes that lock for --sync/--backfill, so an interactive
-    # onboarding run is otherwise unprotected -- and writing config.json satisfies the timer's
-    # ConditionPathExists, arming it mid-onboarding. Re-exec under flock rather than inventing a
-    # second mutex, so the timer's own guard sees it held and skips. See docs/sapience.md.
+    # Note: a dedicated lock, NOT the vendor's shared .run.lock, so the only thing that can turn
+    # a bootstrap away is another bootstrap. flock releases on process exit by any route --
+    # normal, Ctrl-C, crash, SIGKILL -- so an interrupted run never leaves this held and there is
+    # never a cooldown before retrying. See docs/sapience.md.
     if [ -z "''${SAPIENCE_BOOTSTRAP_LOCKED:-}" ]; then
-      if ! flock -n "${stateDir}/.run.lock" true 2>/dev/null; then
-        echo "sapience-bootstrap: an extraction run already holds ${stateDir}/.run.lock." >&2
-        echo "  Watch it:  journalctl --user -fu sapience-sync" >&2
-        echo "  Or stop the scheduled one and retry:" >&2
-        echo "    systemctl --user stop sapience-sync.service" >&2
+      if ! flock -n "${stateDir}/.bootstrap.lock" true 2>/dev/null; then
+        echo "sapience-bootstrap: another sapience-bootstrap is running; only one at a time." >&2
+        echo "  Nothing to wait out: this lock is held by that live process and frees the" >&2
+        echo "  instant it exits." >&2
         exit 1
       fi
-      exec env SAPIENCE_BOOTSTRAP_LOCKED=1 flock -n "${stateDir}/.run.lock" "$0" "$@"
+      exec env SAPIENCE_BOOTSTRAP_LOCKED=1 \
+        flock -n "${stateDir}/.bootstrap.lock" "$0" "$@"
+    fi
+
+    # An interactive run the user just typed takes precedence over the background one: stopping
+    # the scheduled sync loses no work (the vendor leaves its files un-marked, so the next run
+    # re-reads them) and frees the local model, rather than making the user wait or compete.
+    if systemctl --user is-active --quiet sapience-sync.service 2>/dev/null; then
+      echo "sapience-bootstrap: stopping the scheduled sync so this run has the model to itself"
+      echo "  (its work is not lost; the timer picks it up again on schedule)."
+      systemctl --user stop sapience-sync.service 2>/dev/null || true
     fi
 
     umask 077
@@ -273,8 +281,18 @@ let
       ticker_pid=$!
     fi
 
+    # Hold the vendor's own .run.lock for the extraction only, so a timer firing mid-run is
+    # skipped by the vendor's guard instead of competing. Best-effort: if it cannot be had we
+    # continue anyway, because being slow beats refusing a run the user asked for.
+    runner=()
+    if flock -n "${stateDir}/.run.lock" true 2>/dev/null; then
+      runner=(flock -n "${stateDir}/.run.lock")
+    else
+      echo "  note: a scheduled run holds .run.lock; continuing anyway (both will be slower)." >&2
+    fi
+
     rc=0
-    SAPIENCE_HOST="${cfg.host}" ${python} "${stateDir}/extract_local.py" \
+    SAPIENCE_HOST="${cfg.host}" "''${runner[@]}" ${python} "${stateDir}/extract_local.py" \
       --backend "${cfg.backend}" || rc=$?
     cleanup
     ticker_pid=""

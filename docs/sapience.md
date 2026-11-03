@@ -184,18 +184,21 @@ would import twenty-odd near-identical copies of scaffolding at the highest trus
 outranking real findings. Turn it on only if the source store itself becomes the selected
 project, where those files are authored rather than deployed.
 
-### One run at a time, and never during a switch
+### One bootstrap at a time, and never during a switch
 
 Two separate hazards, both found by running this for real.
 
-`extract_local.py` takes its own `.run.lock` only for `--sync` and `--backfill`, so the
-interactive onboarding run is unprotected. Since bootstrap writes `config.json` before
-onboarding, and the timer's `ConditionPathExists` is satisfied the moment that file appears, the
-timer can fire straight into an in-progress onboarding — two extractions then share one local
-model and both crawl. `sapience-bootstrap` therefore re-execs itself under `flock` on the
-vendor's own lock file, holding it across the whole run rather than inventing a second mutex, so
-the vendor's guard sees it held and skips. If a scheduled run already holds it, bootstrap refuses
-with the command to stop that run.
+`sapience-bootstrap` takes a dedicated `.bootstrap.lock`, deliberately **not** the vendor's
+shared `.run.lock`, so the only thing that can turn a bootstrap away is another bootstrap. A
+scheduled sync never blocks it: bootstrap stops that sync instead and takes precedence, which
+loses no work because the vendor leaves its files un-marked for the next run. It then holds
+`.run.lock` for the extraction alone, so a timer firing mid-run is skipped by the vendor's own
+guard rather than competing for the model; if that lock cannot be had it continues anyway, since
+being slower beats refusing a run you asked for.
+
+There is no cooldown and no stale-lock state to clear. `flock` holds nothing on disk — the lock
+lives only as long as some process holds the open file descriptor — so an interrupted, crashed
+or killed bootstrap frees it the instant the process goes, and the next run starts immediately.
 
 Separately, `sapience-sync.service` is marked `X-SwitchMethod = "keep-old"`. Without it
 `sd-switch` restarts the unit on every activation, which kills an in-flight extraction *and*
