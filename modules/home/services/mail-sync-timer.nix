@@ -42,7 +42,10 @@
   systemd.user.timers.mail-sync-timer = {
     Unit = {
       Description = "Timer for periodic mail-sync (every 15 minutes)";
-      Requires = [ "mail-sync-timer.service" ];
+      # Note: no `Requires = [ "mail-sync-timer.service" ]` here. Requires= stop-propagates, so
+      # `systemctl --user stop mail-sync-timer.service` would also deactivate this timer and
+      # silently end the schedule. A timer activates its same-named service through
+      # Timer.Unit by default, so the dependency only ever cost us that footgun.
     };
     Timer = {
       OnCalendar = "*:0/15";

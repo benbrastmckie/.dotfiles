@@ -82,7 +82,10 @@
   systemd.user.timers.screen-blank-watchdog = {
     Unit = {
       Description = "Periodic check that the screen blanks despite idle inhibitors";
-      Requires = [ "screen-blank-watchdog.service" ];
+      # Note: no `Requires = [ "screen-blank-watchdog.service" ]` here. Requires= stop-propagates, so
+      # `systemctl --user stop screen-blank-watchdog.service` would also deactivate this timer and
+      # silently end the schedule. A timer activates its same-named service through
+      # Timer.Unit by default, so the dependency only ever cost us that footgun.
     };
     Timer = {
       # 30s granularity: the blank lands within 30s of the configured delay, which is well

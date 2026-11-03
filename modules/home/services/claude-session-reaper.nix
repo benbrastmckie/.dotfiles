@@ -149,7 +149,10 @@
   systemd.user.timers.claude-session-reaper = {
     Unit = {
       Description = "Timer for periodic claude-*.scope reaping (liveness-only)";
-      Requires = [ "claude-session-reaper.service" ];
+      # Note: no `Requires = [ "claude-session-reaper.service" ]` here. Requires= stop-propagates, so
+      # `systemctl --user stop claude-session-reaper.service` would also deactivate this timer and
+      # silently end the schedule. A timer activates its same-named service through
+      # Timer.Unit by default, so the dependency only ever cost us that footgun.
     };
     Timer = {
       OnCalendar = "*:0/10";

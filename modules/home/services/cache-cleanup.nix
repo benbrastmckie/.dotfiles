@@ -29,7 +29,10 @@
   systemd.user.timers.cache-cleanup = {
     Unit = {
       Description = "Weekly timer for regenerable cache cleanup";
-      Requires = [ "cache-cleanup.service" ];
+      # Note: no `Requires = [ "cache-cleanup.service" ]` here. Requires= stop-propagates, so
+      # `systemctl --user stop cache-cleanup.service` would also deactivate this timer and
+      # silently end the schedule. A timer activates its same-named service through
+      # Timer.Unit by default, so the dependency only ever cost us that footgun.
     };
     Timer = {
       OnCalendar = "weekly";
