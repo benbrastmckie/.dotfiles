@@ -291,6 +291,12 @@ and on a local 8B model they would dominate both runtime and the vault.
 neither word is on that list, and `Applications` is only denied as a top-level folder. Both
 carry `.claude/` trees, so untick that one in the folder picker.
 
+**Stopping the sync service does not stop the timer**, deliberately. The sibling timer modules
+in this repo carry `Requires = [ "<name>.service" ]`, which stop-propagates: stopping the
+service would also deactivate the timer and silently end background learning. This module's
+timer omits it, because its own lock-refusal message tells you to stop the service. A timer
+activates its same-named service by default, so the dependency bought nothing.
+
 **The hourly run skips the per-run keep prompt.** `--sync` is non-interactive by design, so
 staging is all-or-nothing until you run `sapience review`.
 
