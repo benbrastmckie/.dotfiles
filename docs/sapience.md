@@ -23,7 +23,6 @@ nothing is uploaded until you do both.
 | `sapience` | Reimplemented | Same subcommand dispatch as the vendor's `~/bin` shim |
 | `sf1` | Reimplemented | Terminal chat with the vault |
 | `sapience-bootstrap` | This repo | No vendor counterpart; replaces the installer's macOS half |
-| `sapience-progress` | This repo | No vendor counterpart; makes a silent run observable |
 | `sapience-sync.service` / `.timer` | This repo | Replaces the launchd plist; hourly |
 | `ollama.service` / `ollama-model-loader.service` | This repo | `modules/home/services/ollama.nix` |
 | `mcpServers.sapience` in `~/.claude.json` | This repo | Merged on activation, preserving every other key |
@@ -90,17 +89,20 @@ staging queue is written only at the end, so mid-run there is no file to inspect
 local model a capped run is roughly 50 model calls at tens of seconds each, so several silent
 minutes are normal and indistinguishable from a hang.
 
-`sapience-progress` exists for that. It reports which run is active and for how long, completed
-and started model calls, mean seconds per call, and the staged count once the queue appears:
+`sapience-bootstrap` therefore shows progress itself, with nothing extra to run:
 
-```bash
-sapience-progress            # one snapshot
-sapience-progress --watch    # refresh every 5s; --watch 10 for a slower tick
+```
+  extracting: 96 chunks done (~36s each), 40m00s elapsed
 ```
 
-Its numbers come from the Ollama journal, which logs one `processing task` per model call and
-one `release` per completion — the only live signal available. That is server-wide, so if two
-extractions overlap the counts are shared; the output says so when it detects more than one.
+It rewrites that single line every ten seconds, counting completed model calls from the Ollama
+journal — which logs one `release:` per completion, the only live signal there is. The line goes
+to stderr so it cannot corrupt the vendor's stdout, appears only when stderr is a terminal, and
+stays silent until the first call completes, which keeps it clear of the interactive folder
+picker that runs first.
+
+The hourly timer run has no equivalent, since nothing is watching it; use
+`journalctl --user -fu sapience-sync` for that, and `sapience pending` afterwards.
 
 Scheduling is systemd rather than launchd, which is the other thing the vendor docs get wrong:
 
@@ -268,9 +270,6 @@ journalctl --user -u ollama-model-loader -n 20
 # Is the payload seeded, and is the MCP server registered?
 ls ~/.sapience/
 jq '.mcpServers.sapience' ~/.claude.json
-
-# Is a run in progress, and how fast?
-sapience-progress --watch
 
 # What did the last sync actually read?
 sapience coverage

@@ -156,112 +156,6 @@ let
   # Interactive first-run: mint config.json, seed the payload, then hand off to the vendor's own
   # folder-selection flow. Writing config.json directly is what lets this skip the vendor
   # installer's invite claim, exactly as their published one-liner does. See docs/sapience.md.
-  # Note: extraction prints nothing between "Extracting knowledge from N sources" and the staged
-  # result, and the queue is written only at the end, so the ollama journal is the one live
-  # signal: one `processing task` per model call, one `slot release` per completed call.
-  sapienceProgress = pkgs.writeShellScriptBin "sapience-progress" ''
-    export PATH="${runtimePath}:$PATH"
-
-    interval=5
-    watch=0
-    while [ $# -gt 0 ]; do
-      case "$1" in
-        --watch)
-          watch=1
-          shift
-          case "''${1:-}" in
-            [0-9]*) interval="$1"; shift ;;
-          esac
-          ;;
-        -h | --help)
-          echo "sapience-progress [--watch [seconds]]"
-          echo "  Live view of a Sapience extraction run, which is otherwise silent."
-          exit 0
-          ;;
-        *)
-          echo "sapience-progress: unknown argument '$1'" >&2
-          exit 2
-          ;;
-      esac
-    done
-
-    report() {
-      echo "Sapience extraction"
-      echo ""
-
-      # The interactive onboarding run and the timer's --sync run are distinguishable only by
-      # argv. A for-loop, not `while read`, so the counters below stay in this shell.
-      found=0
-      oldest=0
-      for pid in $(pgrep -f 'extract_local\.py' 2>/dev/null); do
-        args="$(tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null || true)"
-        [ -n "$args" ] || continue
-        found=$((found + 1))
-        case "$args" in
-          *--backfill*) mode="backfill" ;;
-          *--sync*) mode="hourly sync" ;;
-          *) mode="interactive onboarding" ;;
-        esac
-        secs="$(ps -p "$pid" -o etimes= 2>/dev/null | tr -d ' ')"
-        [ -n "$secs" ] || secs=0
-        [ "$secs" -gt "$oldest" ] && oldest="$secs"
-        printf "  running      %s (pid %s, elapsed %dm%02ds)\n" \
-          "$mode" "$pid" "$((secs / 60))" "$((secs % 60))"
-      done
-
-      if [ "$found" -eq 0 ]; then
-        echo "  running      nothing (no extract_local.py process)"
-        oldest=600
-      elif [ "$found" -gt 1 ]; then
-        echo "  warning      $found runs at once; they share one local model and both crawl."
-        echo "               Stop the scheduled one: systemctl --user stop sapience-sync.service"
-      fi
-
-      # Model calls over the window the oldest run has been alive.
-      since="@$(($(date +%s) - oldest - 5))"
-      jlog="$(journalctl --user -u ollama --no-pager -o cat --since "$since" 2>/dev/null || true)"
-      begun="$(printf '%s' "$jlog" | grep -c 'processing task' || true)"
-      ended="$(printf '%s' "$jlog" | grep -cE 'slot[[:space:]]+release:' || true)"
-      printf "  model calls  %s completed / %s started\n" "''${ended:-0}" "''${begun:-0}"
-
-      # Mean wall time per call from the timing lines, as a throughput hint.
-      avg="$(printf '%s' "$jlog" \
-        | grep -oE 'total time =[[:space:]]*[0-9.]+' \
-        | grep -oE '[0-9.]+' \
-        | tail -20 \
-        | awk '{ t += $1; n++ } END { if (n) printf "%.1f", t / n / 1000 }')"
-      if [ -n "$avg" ]; then
-        printf "  throughput   ~%ss per call\n" "$avg"
-      fi
-
-      # The queue is written when the run finishes, so its absence mid-run is expected.
-      if [ -f "${stateDir}/pending_kos.jsonl" ]; then
-        printf "  staged       %s findings awaiting 'sapience review'\n" \
-          "$(wc -l < "${stateDir}/pending_kos.jsonl" 2>/dev/null || echo 0)"
-      elif [ "$found" -gt 0 ]; then
-        echo "  staged       nothing yet (the queue is written when the run finishes)"
-      else
-        echo "  staged       nothing (no queue file)"
-      fi
-
-      echo ""
-      echo "  Per-run cap is 50 chunks (MAX_CHUNKS); 'sapience backfill 365' raises it."
-      echo "  Raw model activity: journalctl --user -fu ollama"
-    }
-
-    if [ "$watch" -eq 1 ]; then
-      while :; do
-        printf '\033[2J\033[H'
-        report
-        echo ""
-        printf "  refreshing every %ss -- Ctrl-C to stop\n" "$interval"
-        sleep "$interval"
-      done
-    else
-      report
-    fi
-  '';
-
   sapienceBootstrap = pkgs.writeShellScriptBin "sapience-bootstrap" ''
     set -euo pipefail
     export PATH="${runtimePath}:$PATH"
@@ -276,7 +170,7 @@ let
     if [ -z "''${SAPIENCE_BOOTSTRAP_LOCKED:-}" ]; then
       if ! flock -n "${stateDir}/.run.lock" true 2>/dev/null; then
         echo "sapience-bootstrap: an extraction run already holds ${stateDir}/.run.lock." >&2
-        echo "  Watch it:  sapience-progress --watch" >&2
+        echo "  Watch it:  journalctl --user -fu sapience-sync" >&2
         echo "  Or stop the scheduled one and retry:" >&2
         echo "    systemctl --user stop sapience-sync.service" >&2
         exit 1
@@ -331,12 +225,60 @@ let
     echo ""
     echo "Next: choose which projects Sapience may read (vendor's own interactive flow)."
     echo "Then run 'home-manager switch' once so the MCP server picks up the token."
-    echo "Extraction after that is silent -- it prints nothing until it finishes."
-    echo "Watch it from another terminal:  sapience-progress --watch"
     echo ""
     ${lib.optionalString (!cfg.memoryFiles) "export NO_MEMFILES=1"}
-    SAPIENCE_HOST="${cfg.host}" exec ${python} "${stateDir}/extract_local.py" \
-      --backend "${cfg.backend}"
+
+    # Note: the vendor's extraction prints nothing between "Extracting knowledge from N sources"
+    # and its result, and writes the staging queue only at the end, so a run that is working is
+    # indistinguishable from one that has hung. This ticker is the stand-in: the ollama journal
+    # logs one `release:` per completed model call, which is the only live signal there is.
+    #
+    # It writes a single rewritten line to stderr so it cannot corrupt the vendor's stdout, and
+    # stays silent until the first call completes -- which keeps it out of the way of the
+    # interactive folder picker that runs first.
+    ticker() {
+      started="$1"
+      while :; do
+        sleep 10
+        jlog="$(journalctl --user -u ollama --no-pager -o cat --since "@$started" 2>/dev/null || true)"
+        ended="$(printf '%s' "$jlog" | grep -cE 'slot[[:space:]]+release:' 2>/dev/null || true)"
+        [ -n "$ended" ] || ended=0
+        [ "$ended" -gt 0 ] || continue
+        avg="$(printf '%s' "$jlog" \
+          | grep -oE 'total time =[[:space:]]*[0-9.]+' \
+          | grep -oE '[0-9.]+' \
+          | tail -20 \
+          | awk '{ t += $1; n++ } END { if (n) printf "%.0f", t / n / 1000 }' 2>/dev/null || true)"
+        elapsed=$(($(date +%s) - started))
+        printf '\r  extracting: %s chunks done%s, %dm%02ds elapsed   ' \
+          "$ended" \
+          "$([ -n "$avg" ] && printf ' (~%ss each)' "$avg")" \
+          "$((elapsed / 60))" "$((elapsed % 60))" >&2
+      done
+    }
+
+    ticker_pid=""
+    cleanup() {
+      if [ -n "$ticker_pid" ]; then
+        kill "$ticker_pid" 2>/dev/null || true
+        wait "$ticker_pid" 2>/dev/null || true
+        printf '\r%*s\r' 60 "" >&2
+      fi
+    }
+    trap cleanup EXIT INT TERM
+
+    # Only when stderr is a terminal: a rewritten line is noise in a pipe or a log.
+    if [ -t 2 ]; then
+      ticker "$(date +%s)" &
+      ticker_pid=$!
+    fi
+
+    rc=0
+    SAPIENCE_HOST="${cfg.host}" ${python} "${stateDir}/extract_local.py" \
+      --backend "${cfg.backend}" || rc=$?
+    cleanup
+    ticker_pid=""
+    exit "$rc"
   '';
 in
 {
@@ -430,7 +372,6 @@ in
       sapienceCli
       sf1Cli
       sapienceBootstrap
-      sapienceProgress
     ];
 
     # Seed only what is absent -- see the MUTABLE STATE note in this file's header. A failed
