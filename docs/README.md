@@ -30,6 +30,7 @@ This directory contains comprehensive documentation for the NixOS configuration 
 - **[screen-recording.md](screen-recording.md)** - Screen capture tools, the Mic (Boosted) PipeWire filter chain, and the volume-keys-after-PipeWire-restart gotcha
 - **[no-sleep-agents.md](no-sleep-agents.md)** - Keeping the system awake for long-running AI agent sessions (Claude Code inhibitors, GNOME/logind, niri, battery backstop)
 - **[claude-session-scopes.md](claude-session-scopes.md)** - Per-session cgroup containment for Claude Code and the orphan reaper (how to keep work alive, escape hatch, rollback)
+- **[sapience.md](sapience.md)** - Sapience knowledge vault on NixOS: setup, local Ollama backend, what leaves the machine per backend, and rollback
 - **[terminal.md](terminal.md)** - WezTerm and Kitty terminal configuration
 - **[dictation.md](dictation.md)** - Whisper dictation system setup
 - **[video-editing.md](video-editing.md)** - Video editing tools and workflow

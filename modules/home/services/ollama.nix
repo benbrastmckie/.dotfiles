@@ -1,29 +1,16 @@
-# Local Ollama server for on-device LLM inference, plus a declarative model loader.
+# Local Ollama server plus a declarative model loader. Sole consumer at present is
+# programs.sapience with backend = "ollama", which keeps transcript text on this machine;
+# nothing here is coupled to Sapience. See docs/sapience.md.
 #
-# Sole consumer at present: programs.sapience with backend = "ollama", which keeps AI-session
-# transcript text on this machine instead of relaying it to a third party. Ollama is useful
-# independently, so this module carries its own enable flag rather than being folded into
-# services/sapience.nix -- but nothing here is coupled to Sapience, and the two can be enabled
-# separately in either order.
+# Note: home-manager rather than NixOS, so the whole feature stays on one rebuild path -- the
+# cost is that the NixOS module's loadModels is unavailable and the pull below is hand-rolled.
 #
-# HOME-MANAGER, NOT NIXOS (deliberate): nixpkgs' NixOS `services.ollama` has `loadModels` /
-# `syncModels` / `modelsDir`, which the home-manager module lacks, so the model pull below is
-# hand-rolled. That cost is worth paying to keep this in the home profile: the server then runs
-# as this user against ~/.ollama, needs no sudo, and -- the point that decided it -- the whole
-# Sapience feature stays on ONE rebuild path (`home-manager switch`, <leader>nh) instead of
-# splitting across a system rebuild for the model store and a home rebuild for its only client.
+# Note: CPU-only. ROCm on this gfx1150 iGPU is experimental and the workload is an hourly
+# background job on 24 cores. See docs/sapience.md.
 #
-# CPU INFERENCE (deliberate): this machine is a Radeon 890M (gfx1150, RDNA 3.5) integrated GPU.
-# ROCm support for gfx1150 is experimental and typically needs an HSA_OVERRIDE_GFX_VERSION fudge
-# via rocmOverrideGfx, while pulling a multi-gigabyte ROCm closure. The only workload here is an
-# hourly background extraction over transcript deltas, where latency is irrelevant and 24 Ryzen
-# cores are ample. To revisit later, set `services.ollama.acceleration = "rocm"` -- the
-# home-manager module exposes it -- and expect to tune the gfx override.
-#
-# Module shape follows services/cache-cleanup.nix and services/zotero-translation-server.nix:
-# oneshot + guarded external calls + `starting`/`done` echo bracketing, with the
-# scripts/gmail-oauth2.nix precedent in mind (a unit that fails every run degrades the whole
-# user systemd session), so the loader always exits 0.
+# Module shape follows services/cache-cleanup.nix: oneshot with guarded external calls, and the
+# loader always exits 0 so a failed pull cannot degrade the user systemd session (the
+# scripts/gmail-oauth2.nix precedent).
 {
   config,
   lib,
@@ -125,12 +112,9 @@ in
               present="$(ollama list 2>/dev/null || true)"
 
               ${lib.concatMapStringsSep "\n" (m: ''
-                # Exact match on the NAME column, not a regex: a model name contains dots
-                # ("llama3.1"), which an -E pattern would treat as wildcards, and
-                # lib.escapeShellArg quotes for the shell without escaping regex metacharacters.
-                # awk NR>1 drops the header row; both the bare name and the resolved :latest
-                # form count as present, since `ollama list` prints the tag while the declared
-                # name here is usually untagged.
+                # Critical: exact match on the NAME column, never a regex -- a model name
+                # contains dots, and escapeShellArg does not escape regex metacharacters.
+                # awk NR>1 drops the header; bare and :latest forms both count as present.
                 names="$(echo "$present" | awk 'NR > 1 { print $1 }')"
                 if echo "$names" | grep -qxF ${lib.escapeShellArg m} \
                   || echo "$names" | grep -qxF ${lib.escapeShellArg "${m}:latest"}; then

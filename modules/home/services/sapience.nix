@@ -1,53 +1,21 @@
-# Sapience (https://app.spnc.ai) on NixOS: CLI wrappers, payload bootstrap, hourly sync timer,
-# and MCP registration -- a Linux-native replacement for the vendor's macOS-only installer
-# (`bash <(curl -sL 'https://app.spnc.ai/install-local')`).
+# Sapience (https://app.spnc.ai) on NixOS: CLI wrappers, bootstrap, hourly sync timer and MCP
+# registration, replacing the vendor's macOS-only installer.
 #
-# Imported but OFF by default (the services/zotero-translation-server.nix precedent), because
-# enabling it is a privacy decision about who processes this machine's AI transcripts. Enable
-# with:
-#   programs.sapience.enable = true;
-#   programs.sapience.backend = "ollama";   # or "relay" / "anthropic" / "openai"
-# then run `sapience-bootstrap` once to mint ~/.sapience/config.json and pick folders, and
-# `home-manager switch` again so the MCP registration picks up the token.
+# Critical: do not "fix" the payload into a fetchurl derivation. Upstream ships no releases or
+# hashes and self-updates in the background, so ~/.sapience/*.py is deliberately mutable state
+# that activation seeds only when absent. See docs/sapience.md.
 #
-# The Claude Code hooks (SessionStart briefing, SessionEnd receipt, Stop effect line) and the
-# mcp__sapience__* permission grants live in config/claude/settings.json, NOT here: `hooks` and
-# `permissions` are enforced keys in home.activation.claudeSettings (modules/home/core/
-# dotfiles.nix), so anything the vendor installer wrote into the live file would be reverted on
-# the next switch. They are guarded to be inert no-ops until sapience-bootstrap has run.
+# Note: the token is the entire credential for the account, so it never enters the Nix store or
+# this repo -- every client falls back to ~/.sapience/config.json when SAPIENCE_TOKEN is unset.
+# See docs/sapience.md.
 #
-# WHY NOT A DERIVATION (do not "fix" this into a fetchurl package in a future pass): upstream
-# ships no releases, tags, or hashes. The payload is ten .py files served live from
-# app.spnc.ai/<name>.py, and the client self-updates two ways -- `sapience update` and a
-# background `sapience_upkeep.py --auto-update` that mcp.py spawns on its own. A pinned
-# fetchurl derivation would break its hash on every upstream push AND be fought by the
-# self-updater on every run. So ~/.sapience/*.py is deliberately MUTABLE STATE here: the
-# activation script below seeds the files only when they are ABSENT and never overwrites them.
-# Nix owns the wrappers, the timer, and the registration; upstream owns the payload.
+# Note: the Claude Code hooks and mcp__sapience__* grants live in config/claude/settings.json
+# because `hooks` and `permissions` are enforced keys in home.activation.claudeSettings;
+# `statusLine` is deliberately left to hooks/statusline-push.sh. See docs/sapience.md.
 #
-# The payload itself needs no packaging work: all ten files are pure Python 3 stdlib (urllib for
-# HTTP, no third-party imports -- the `import mcp` lines refer to the vendor's own
-# ~/.sapience/mcp.py, not the MCP SDK). The only external binary any of them invokes is an
-# optional `git rev-parse` for a branch name, hence gitMinimal on the wrapper PATH.
-#
-# TOKEN HANDLING: the token is the ENTIRE credential for the account (app.spnc.ai/?token=<tok>
-# signs you in with no second factor), so it is never placed in the Nix store or in this repo.
-# Every client resolves it from ~/.sapience/config.json (mode 600) when SAPIENCE_TOKEN is unset
-# -- see mcp.py:44, upload.py:57 -- so the wrappers and the timer pass no token at all, and the
-# `tokenFile` option below is read at ACTIVATION time from a path outside the store.
-#
-# NOT WIRED (deliberate): the vendor installer also sets settings.json `statusLine` to
-# `mcp.py --statusline`. That slot is already taken by hooks/statusline-push.sh, and the
-# composite would have to be edited in the agent-system source store rather than the deployed
-# .claude/ artifact (see rules/source-store-deploy-boundary.md). The three Claude Code hooks
-# ARE wired, in config/claude/settings.json. To add the status segment by hand later, append
-# `python3 ~/.sapience/mcp.py --statusline` output to that script in its source store.
-#
-# Module shape follows the services/cache-cleanup.nix and services/claude-session-reaper.nix
-# precedent: oneshot service + timer, explicit PATH export, `starting`/`done` echo bracketing,
-# and -- per the scripts/gmail-oauth2.nix cautionary precedent noted in claude-session-reaper.nix
-# -- every external call guarded so a transient network failure can never leave the unit in a
-# `failed` state and degrade the user systemd session.
+# Module shape follows services/cache-cleanup.nix and services/claude-session-reaper.nix:
+# oneshot plus timer, explicit PATH export, and every external call guarded so a transient
+# network failure cannot leave the unit `failed` (the scripts/gmail-oauth2.nix precedent).
 {
   config,
   lib,
@@ -180,13 +148,9 @@ let
     exec ${python} "${stateDir}/sf1.py" "$@"
   '';
 
-  # Interactive first-run: mint config.json (token + backend), seed the payload, then hand off to
-  # the vendor's own folder-selection flow. Replaces install-local's macOS half entirely.
-  #
-  # The vendor's generic install-local carries INV="" / INVITE_OK="0" and REFUSES to run without
-  # an invite code -- their published one-liner only works because it pre-writes config.json with
-  # the token, which sends the installer down its REINSTALL=1 path. This does the same thing
-  # directly, so no invite claim or install-report telemetry round-trip is involved.
+  # Interactive first-run: mint config.json, seed the payload, then hand off to the vendor's own
+  # folder-selection flow. Writing config.json directly is what lets this skip the vendor
+  # installer's invite claim, exactly as their published one-liner does. See docs/sapience.md.
   sapienceBootstrap = pkgs.writeShellScriptBin "sapience-bootstrap" ''
     set -euo pipefail
     export PATH="${runtimePath}:$PATH"
@@ -297,28 +261,14 @@ in
       type = lib.types.bool;
       default = false;
       description = ''
-        Whether to let Sapience ingest "curated memory files" alongside session transcripts.
-        When false, NO_MEMFILES=1 is exported for every client invocation.
+        Whether to let Sapience ingest "curated memory files" (CLAUDE.md, AGENTS.md,
+        .claude/rules/*.md and similar) alongside session transcripts. When false,
+        NO_MEMFILES=1 is exported for every client invocation.
 
-        Defaults to FALSE here, against the vendor default, for a reason specific to this setup.
-        Sapience's memory_files() (upload.py) walks each selected project root and ingests
-        CLAUDE.md, MEMORY.md, AGENTS.md, EXTRACTED_MEMORY.md, docs/BACKLOG.md and
-        .claude/rules/*.md, then tags the result with MEMFILE_CONF = 0.9 -- a confidence tier
-        its own comment describes as "curated truth: rank/trust above session-extracted KOs".
-
-        In this configuration those files are not curated truth. Every .claude/ tree in every
-        repository is a generated deploy artifact, produced from the single source store at
-        ~/.config/nvim/agent-system by the extension loader in
-        ~/.config/nvim/lua/neotex/plugins/ai/shared/extensions/ -- which is exactly what
-        rules/source-store-deploy-boundary.md is about. Over 20 repositories on this machine
-        carry such a tree, and the generated CLAUDE.md even says so in its own header ("This
-        file is generated automatically from loaded extensions"). Leaving this on would import
-        twenty-odd near-identical copies of generated agent-system boilerplate at the HIGHEST
-        trust tier, outranking real findings extracted from actual work. The transcripts are
-        the signal here; the memory files are duplicated scaffolding.
-
-        Turn this on only if the agent-system source store itself becomes the single selected
-        project, where the files are authored rather than deployed.
+        Defaults to false, against the vendor default: every .claude/ tree here is a generated
+        deploy artifact from the agent-system source store, duplicated across 20+ repositories,
+        and Sapience would import all of them at its highest trust tier, outranking real
+        findings. See docs/sapience.md.
       '';
     };
 
@@ -374,14 +324,10 @@ in
       fi
     '';
 
-    # Registers WITHOUT the token when config.json has none yet, since mcp.py falls back to
-    # config.json (mcp.py:44); the env entry exists so `sapience status` can report a matching
-    # per-surface token prefix, which it reads back out of this file (mcp.py:1713).
-    #
-    # Ordered after claudeMcpServers (modules/home/core/dotfiles.nix), which mutates the same
-    # ~/.claude.json: activation entries run sequentially and both are read-modify-write jq
-    # merges that preserve every other key, so either order is correct -- the explicit edge just
-    # makes that independence intentional rather than incidental on DAG tie-breaking.
+    # Registers without a token until config.json has one, since mcp.py falls back to that file;
+    # the env entry exists so `sapience status` reports matching per-surface fingerprints.
+    # Ordered after claudeMcpServers, which merges into the same ~/.claude.json -- either order
+    # is correct, the edge just makes that independence intentional. See docs/sapience.md.
     home.activation.sapienceMcpServer = lib.mkIf cfg.registerMcpServer (
       config.lib.dag.entryAfter [ "writeBoundary" "claudeMcpServers" "sapiencePayload" ] ''
         claudeJson="${config.home.homeDirectory}/.claude.json"
@@ -417,13 +363,9 @@ in
       ''
     );
 
-    # Replaces ~/Library/LaunchAgents/ai.coretx.sapience.plist. `--sync --yes` extracts and
-    # redacts on-device and STAGES findings for review; it only posts when auto_approve is on in
-    # config.json (`sapience auto-approve on|off`).
-    #
-    # No token is passed, exactly as the vendor LaunchAgent does it: its plist writer pops
-    # SAPIENCE_TOKEN from the environment on purpose (install-local.sh:178) so the client reads
-    # the single source of truth in config.json.
+    # Replaces the vendor's launchd plist. `--sync --yes` extracts and redacts on-device and
+    # stages findings; it only posts when auto_approve is on in config.json. No token is passed,
+    # matching the vendor plist, so config.json stays the single source of truth.
     systemd.user.services.sapience-sync = {
       Unit = {
         Description = "Sapience: extract and redact new AI session transcripts on-device";

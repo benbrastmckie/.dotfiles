@@ -169,6 +169,16 @@ Offline TTS and STT tools for AI assistant integration with declaratively manage
 
 Models are reproducibly installed to `~/.local/share/` after `home-manager switch`. See [`docs/applications.md`](docs/applications.md#text-to-speech--speech-to-text) for usage.
 
+### Sapience (AI Knowledge Vault)
+Extracts durable facts from Claude Code and Codex session transcripts into a searchable vault,
+exposed to Claude Code as an MCP server. Replaces the vendor's macOS-only installer with a
+home-manager module: store-resolved CLI wrappers, a systemd user timer in place of the launchd
+plist, and a declarative `~/.claude.json` registration.
+
+Extraction runs on-device against a local Ollama server, so transcript text does not leave the
+machine, and findings stay staged until reviewed. Run `sapience-bootstrap` once to set up. See
+[`docs/sapience.md`](docs/sapience.md) for setup, what each backend transmits, and rollback.
+
 For complete application configurations and setup instructions, see [`docs/applications.md`](docs/applications.md).
 
 ## Maintenance
