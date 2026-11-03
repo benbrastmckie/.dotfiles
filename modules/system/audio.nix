@@ -125,6 +125,43 @@
           }
         ];
       };
+
+      # Keep the internal analog sink out of automatic default-device
+      # selection. The disable-speaker-amp service below holds the ALC256
+      # speaker pin's EAPD off to stop idle EMI static, so this sink is
+      # physically silent -- but WirePlumber still ranks it a normal
+      # candidate (priority.session 1009, just under a connected A2DP
+      # headset at 1010). Any fallback that lands here produces no sound
+      # and no audible clue as to why.
+      #
+      # This lowers the ranking rather than setting node.disabled because
+      # the single node carries BOTH routes on this card,
+      # analog-output-speaker AND analog-output-headphones. Only the
+      # speaker pin (0x14) is amp-disabled, so the 3.5mm jack still works;
+      # disabling the node would take the working jack down with it.
+      #
+      # Automatic selection now prefers Bluetooth and HDMI, and falls back
+      # here only when nothing else exists. Note this governs automatic
+      # ranking only: an explicit pick is recorded as
+      # default.configured.audio.sink in ~/.local/state/wireplumber/
+      # default-nodes and still wins over priority, so a stale pin on this
+      # sink must be cleared by selecting another output.
+      #
+      # node.name is hamsa's card; other hosts keep stock priorities.
+      wireplumber.extraConfig."99-internal-speaker-priority" = {
+        "monitor.alsa.rules" = [
+          {
+            matches = [
+              { "node.name" = "alsa_output.pci-0000_c1_00.6.analog-stereo"; }
+            ];
+            actions = {
+              update-props = {
+                "priority.session" = 100;
+              };
+            };
+          }
+        ];
+      };
     };
   };
 
