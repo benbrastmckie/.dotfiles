@@ -9,7 +9,9 @@
     "CLAUDE_CODE_FORK_SUBAGENT": "1",
     "_MAX_OUTPUT_NOTE": "128000 is the model ceiling for Opus 5 / Sonnet 5 / Opus 4.x; Claude Code's own default is 64000. Haiku 4.5 caps at 64000, so a Haiku subagent may reject this value.",
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "128000",
-    "LITERATURE_DIR": "/home/benjamin/Projects/Literature"
+    "LITERATURE_DIR": "/home/benjamin/Projects/Literature",
+    "_PG_EXPIRY_NOTE": "PG_EXPIRY_WINDOW is the freshness window, in seconds, of a /please git-action grant (default 600 in the agent-system's scripts/lib/push-grant-lib.sh). Freshness is evaluated when the push wrapper runs, not when the grant is minted, so the hook and the wrapper must both see the same value -- which a session-wide env var gives them. 1800 leaves room for a confirmation prompt and a short interruption between typing /please and the push. The grant stays single-use and bound to remote, branch, commit SHA and force-flag regardless; this only widens how long it may be consumed.",
+    "PG_EXPIRY_WINDOW": "1800"
   },
   "permissions": {
     "allow": [
