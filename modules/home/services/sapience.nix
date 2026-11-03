@@ -507,8 +507,8 @@ in
         Description = "Timer for the Sapience on-device transcript sync";
         # Critical: deliberately NO `Requires = [ "sapience-sync.service" ]`, which the sibling
         # timer modules here do carry. Requires= stop-propagates, so `systemctl --user stop
-        # sapience-sync.service` -- which this module's own lock-refusal message tells you to run
-        # -- would also deactivate this timer and silently end background learning. A timer
+        # sapience-sync.service` -- which sapience-bootstrap itself runs to claim the model --
+        # would also deactivate this timer and silently end background learning. A timer
         # activates its same-named service through Timer.Unit by default, so the dependency buys
         # nothing. See docs/sapience.md.
       };

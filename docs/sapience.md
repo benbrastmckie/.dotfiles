@@ -12,8 +12,8 @@ installer's plumbing and leaves the payload alone.
 
 **If you are setting this up for the first time, skip to [First-time
 setup](#first-time-setup).** The short version is `sapience-bootstrap`, then
-`home-manager switch` a second time, then `sapience review`. Nothing reads a transcript and
-nothing is uploaded until you do both.
+`home-manager switch` a second time, then `sapience review`. Nothing reads a transcript until
+you bootstrap, and nothing is uploaded until you review.
 
 ## What is installed
 
@@ -43,7 +43,9 @@ rather than running or failing.
    private link. The token is that link's `token=` parameter. It is the entire credential for
    the account — there is no password or second factor — so treat it like one.
 
-2. **Bootstrap.** Needs a real TTY for the folder picker, so run it in a terminal:
+2. **Bootstrap.** Run it in a terminal — the vendor refuses onboarding without a TTY, to avoid
+   silently replacing your folder choices (`SAPIENCE_ALLOW_ONBOARD=1` overrides, but then it
+   picks for you):
 
    ```bash
    sapience-bootstrap                      # prompts for the token
@@ -53,6 +55,10 @@ rather than running or failing.
    This writes `~/.sapience/config.json` (mode 600) with the token, backend and host, confirms
    the payload is present, then hands off to the vendor's own onboarding, which lists every
    candidate project folder with file counts for you to tick.
+
+   If a scheduled sync is running, bootstrap says so and stops it, so your run has the local
+   model to itself. Nothing is lost by that; the timer picks the work up again on schedule.
+   Re-running bootstrap later skips the token step and just re-opens the picker.
 
 3. **Switch again.**
 
@@ -101,8 +107,10 @@ to stderr so it cannot corrupt the vendor's stdout, appears only when stderr is 
 stays silent until the first call completes, which keeps it clear of the interactive folder
 picker that runs first.
 
-The hourly timer run has no equivalent, since nothing is watching it; use
-`journalctl --user -fu sapience-sync` for that, and `sapience pending` afterwards.
+Only bootstrap has this. `sapience sync` and `sapience backfill` go straight to the vendor
+script and are as silent as it is, as is the timer; for those, watch the model directly with
+`journalctl --user -fu ollama`, or the unit with `journalctl --user -fu sapience-sync`, and
+check `sapience pending` afterwards.
 
 Scheduling is systemd rather than launchd, which is the other thing the vendor docs get wrong:
 
@@ -281,13 +289,22 @@ journalctl --user -u sapience-sync -n 50
 
 ## Known gaps
 
-**Most sessions here will be skipped.** The vendor filters transcripts through a predicate
-requiring at least two distinct substantive human turns, which exists to drop "benchmark loops,
-agent runs, probes". Orchestrated dispatches and subagent runs read as headless, and
-`sapience coverage` reports them as `skipped (headless/agent)`. Widen a single run with
-`sapience sync --include-agents`. The hourly unit would need `SAPIENCE_INCLUDE_HEADLESS=1` in
-its environment, which is not currently an option: agent transcripts are long and repetitive,
-and on a local 8B model they would dominate both runtime and the vault.
+**Most sessions here will be skipped, by two separate filters.** Expect coverage well below
+the session counts the folder picker shows.
+
+The first is overridable. A transcript must have at least two distinct substantive human turns,
+a predicate that exists to drop "benchmark loops, agent runs, probes"; `sapience coverage`
+reports these as `skipped (headless/agent)`. Widen one run with `sapience sync
+--include-agents`. The hourly unit would need `SAPIENCE_INCLUDE_HEADLESS=1` in its environment,
+which is deliberately not an option here: agent transcripts are long and repetitive, and on a
+local 8B model they would dominate both runtime and the vault.
+
+The second is not overridable at all. `source_skip()` in `upload.py` classifies each transcript
+as `subagent` or `harness-started` from its opening turns and those are never read — the run
+logs them as `skipped (subagent / harness-started transcripts) ... thread mechanics; never
+read`, and the message states outright that `SAPIENCE_INCLUDE_HEADLESS=1` does not override it.
+Verdicts are cached in `~/.sapience/source_rules.json`. Given how much work here runs through
+orchestrated dispatch, this filter removes more than the first one does.
 
 **One deny-list gap worth knowing.** `~/Documents/Personal/...` is correctly refused, because
 `personal` is on the vendor's denied-names list. `~/Documents/Employment/Applications` is not:
@@ -297,8 +314,9 @@ carry `.claude/` trees, so untick that one in the folder picker.
 **Stopping the sync service does not stop the timer**, deliberately. The sibling timer modules
 in this repo carry `Requires = [ "<name>.service" ]`, which stop-propagates: stopping the
 service would also deactivate the timer and silently end background learning. This module's
-timer omits it, because its own lock-refusal message tells you to stop the service. A timer
-activates its same-named service by default, so the dependency bought nothing.
+timer omits it, because the service does get stopped in normal use — `sapience-bootstrap` stops
+it to claim the model, and the pause recipe above stops it by hand. A timer activates its
+same-named service by default, so the dependency bought nothing.
 
 **The hourly run skips the per-run keep prompt.** `--sync` is non-interactive by design, so
 staging is all-or-nothing until you run `sapience review`.
