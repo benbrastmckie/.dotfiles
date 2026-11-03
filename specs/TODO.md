@@ -1,17 +1,17 @@
 ---
-next_project_number: 135
+next_project_number: 137
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-09-19. Generated from state.json dependency graph.*
+*Updated 2026-11-03. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,135,136 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -37,6 +37,8 @@ next_project_number: 135
 43 [RESEARCHED] — installforgejoselfhostedgit
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep...
 131 [NOT STARTED] — Install claude-refresh timer via home-manager and make mako...
+135 [NOT STARTED] — Evaluate ROCm GPU acceleration for the local Ollama server on...
+136 [NOT STARTED] — Evaluate Sapience vault coverage after a week of real hourly...
 
 ### Desktop
 
@@ -54,6 +56,26 @@ next_project_number: 135
 42 [BLOCKED] — reenablejupytextnixpkgsfix
 
 ## Tasks
+
+### 136. Evaluate sapience coverage and tune extraction scope
+- **Status**: [NOT STARTED]
+- **Task Type**: general
+- **Topic**: services
+- **Dependencies**: None
+
+**Description**: Evaluate Sapience vault coverage after a week of real hourly runs and tune the extraction scope accordingly. Two independent filters drop transcripts: an overridable predicate requiring two distinct substantive human turns (reported as skipped headless/agent, widened per-run by --include-agents or SAPIENCE_INCLUDE_HEADLESS), and a non-overridable source_skip() rule that classifies transcripts as subagent or harness-started and never reads them. On an orchestration-heavy workflow the second removes more than the first, so measured coverage may be far below the session counts the folder picker shows. Separately, MAX_CHUNKS defaults to 50 per run against a backlog of roughly 198 sources, so decide whether the hourly cadence catches up or a wider backfill is needed. Collect sapience coverage and pending output over several days, review what the vault actually holds, then decide whether to add a programs.sapience.includeAgentSessions option wiring SAPIENCE_INCLUDE_HEADLESS into the sync unit, adjust the cap, or leave both as they are. Requires observation over time, not a one-shot change.
+
+---
+
+### 135. Evaluate rocm acceleration for local ollama
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: services
+- **Dependencies**: None
+
+**Description**: Evaluate ROCm GPU acceleration for the local Ollama server on this gfx1150 (Radeon 890M) machine and decide whether to switch services.ollama.acceleration from CPU-only to rocm. On-device Sapience extraction currently runs at roughly 40 seconds per model call, which bounds a capped run at about 30 minutes; modules/home/services/ollama.nix chose CPU deliberately because gfx1150 ROCm support is experimental and typically needs an HSA_OVERRIDE_GFX_VERSION override plus a multi-gigabyte closure. Research current nixpkgs ROCm/gfx1150 status, whether the home-manager acceleration option works on this iGPU, which override value applies, and the closure cost; then benchmark tokens-per-second against the CPU baseline before deciding. Requires hardware testing, not only reading.
+
+---
 
 ### 134. Pin aeneas charon to verification revision
 - **Status**: [COMPLETED]

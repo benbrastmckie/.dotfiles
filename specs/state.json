@@ -1,6 +1,26 @@
 {
-  "next_project_number": 135,
+  "next_project_number": 137,
   "active_projects": [
+    {
+      "project_number": 136,
+      "project_name": "evaluate_sapience_coverage_and_tune_extraction_scope",
+      "status": "not_started",
+      "task_type": "general",
+      "description": "Evaluate Sapience vault coverage after a week of real hourly runs and tune the extraction scope accordingly. Two independent filters drop transcripts: an overridable predicate requiring two distinct substantive human turns (reported as skipped headless/agent, widened per-run by --include-agents or SAPIENCE_INCLUDE_HEADLESS), and a non-overridable source_skip() rule that classifies transcripts as subagent or harness-started and never reads them. On an orchestration-heavy workflow the second removes more than the first, so measured coverage may be far below the session counts the folder picker shows. Separately, MAX_CHUNKS defaults to 50 per run against a backlog of roughly 198 sources, so decide whether the hourly cadence catches up or a wider backfill is needed. Collect sapience coverage and pending output over several days, review what the vault actually holds, then decide whether to add a programs.sapience.includeAgentSessions option wiring SAPIENCE_INCLUDE_HEADLESS into the sync unit, adjust the cap, or leave both as they are. Requires observation over time, not a one-shot change.",
+      "topic": "services",
+      "created": "2026-11-03T23:50:08Z",
+      "last_updated": "2026-11-03T23:50:08Z"
+    },
+    {
+      "project_number": 135,
+      "project_name": "evaluate_rocm_acceleration_for_local_ollama",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "Evaluate ROCm GPU acceleration for the local Ollama server on this gfx1150 (Radeon 890M) machine and decide whether to switch services.ollama.acceleration from CPU-only to rocm. On-device Sapience extraction currently runs at roughly 40 seconds per model call, which bounds a capped run at about 30 minutes; modules/home/services/ollama.nix chose CPU deliberately because gfx1150 ROCm support is experimental and typically needs an HSA_OVERRIDE_GFX_VERSION override plus a multi-gigabyte closure. Research current nixpkgs ROCm/gfx1150 status, whether the home-manager acceleration option works on this iGPU, which override value applies, and the closure cost; then benchmark tokens-per-second against the CPU baseline before deciding. Requires hardware testing, not only reading.",
+      "topic": "services",
+      "created": "2026-11-03T23:49:45Z",
+      "last_updated": "2026-11-03T23:49:45Z"
+    },
     {
       "project_number": 134,
       "project_name": "pin_aeneas_charon_to_verification_revision",
