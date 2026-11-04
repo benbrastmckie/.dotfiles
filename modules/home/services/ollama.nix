@@ -7,7 +7,7 @@
 # makes this daemon authenticate against ollama.com, forward the call and run nothing locally.
 # In that mode the daemon is a credential-holding transport, which is the only way a consumer
 # that sends no Authorization header can reach a remote model at all. Sapience currently names
-# beam:cloud, so no inference happens here today.
+# gemma4:cloud, so no inference happens here today.
 #
 # Note: home-manager rather than NixOS, so the whole feature stays on one rebuild path -- the
 # cost is that the NixOS module's loadModels is unavailable and the pull below is hand-rolled.

@@ -15,7 +15,7 @@ installer's plumbing and leaves the payload alone.
 | Setting | Value | Meaning |
 |---------|-------|---------|
 | `programs.sapience.backend` | `"ollama"` | All traffic goes through the local Ollama daemon |
-| `programs.sapience.model` | `"beam:cloud"` | …which forwards it to `ollama.com`; nothing is inferred locally |
+| `programs.sapience.model` | `"gemma4:cloud"` | …which forwards it to `ollama.com`; nothing is inferred locally |
 | `services.ollamaModels.load` | `[ ]` | A cloud model has no weights to pull |
 | `programs.sapience.memoryFiles` | `false` | `CLAUDE.md` and friends are not ingested |
 | `config.json: auto_approve` | `false` | Findings stage until `sapience review` |
@@ -63,7 +63,7 @@ rather than running or failing.
 
    ```bash
    curl -sS http://127.0.0.1:11434/api/chat -H 'content-type: application/json' \
-     -d '{"model":"beam:cloud","messages":[{"role":"user","content":"say OK"}],"stream":false}'
+     -d '{"model":"gemma4:cloud","messages":[{"role":"user","content":"say OK"}],"stream":false}'
    ```
 
 2. **Get a Sapience token.** In the web app: Settings, then "Sign in on another device", then
@@ -136,6 +136,10 @@ It rewrites that line every ten seconds, on stderr so it cannot corrupt the vend
 stays silent until the first call completes — which keeps it clear of the interactive folder
 picker that runs first.
 
+One caveat: it counts *every* call the daemon serves, and cannot tell Sapience's apart from any
+other client's. Running a `curl` probe or another tool against `127.0.0.1:11434` during a run
+inflates the count, and the percentage with it.
+
 The count comes from the Ollama journal's GIN access log, one line per completed HTTP call.
 (Not from `slot release:`, which only a *local* inference slot emits and which a `:cloud` model
 never produces.) The denominator is sources + the 50-chunk cap, where sources is `--coverage`'s
@@ -185,9 +189,9 @@ config values, decisions and their reason", so they are not a summary that drops
 Under the configuration here: redacted chunks reach `ollama.com` during extraction, and approved
 findings reach `app.spnc.ai` when you run `sapience review`. Nothing reaches either before that.
 
-## How extraction reaches beam:cloud
+## How extraction reaches the cloud model
 
-`backend = "ollama"` with `model = "beam:cloud"`. The local daemon authenticates, forwards to
+`backend = "ollama"` with `model = "gemma4:cloud"`. The local daemon authenticates, forwards to
 `ollama.com`, and runs no inference; it is a credential-holding proxy.
 
 ### Why the backend stays "ollama"
@@ -231,25 +235,45 @@ exchange for removing one once-per-machine command.
 
 ### Model choice
 
-`beam:cloud` is Reflection's 501B-total / 23B-active Apache-2.0 model, picked over the two
-other plausible open-weight options:
+What this workload needs is compact JSON inside a fixed reply budget, not reasoning depth.
+`llm()` caps replies at `num_predict` 8000 and never sends `think: false`, so on a reasoning
+model the thinking tokens compete with the JSON for that budget — and losing that race produces
+no output at all.
 
-| | beam | gemma4 | nemotron-3-super |
-|---|---|---|---|
-| Price per Mtok | **free** (no pricing-table row) | $0.14 / $0.40 | $0.015 / $0.60 |
-| GPQA Diamond | 90.5 (self-reported) | 84.3 | 79.2 |
-| Artificial Analysis index | not listed | 29 | 25 |
-| Context on Ollama | 1M | 256K | 256K |
+Ollama's usage page lists seven models as free-usage eligible: `beam`, `gemma4:31b`,
+`gpt-oss:120b`, `gpt-oss:20b`, `nemotron-3-nano:30b`, `nemotron-3-super`, `nemotron-3-ultra`.
+Probed with a trivial prompt capped at 32 output tokens, **only gemma4 emitted no thinking**;
+`gpt-oss` (both sizes) and the nemotrons spent the whole budget thinking and returned *empty
+content*.
 
-Privacy does not separate them: all three are open-weight models served on Ollama's "NCPs to
+On a realistic extraction prompt at the client's actual `num_predict` of 8000:
+
+| | `gemma4:cloud` | `beam:cloud` |
+|---|---|---|
+| Wall time | **1.7s** | 20.5s |
+| Output tokens | **552** | 2152 |
+| Thinking | **0 chars** | 6156 chars |
+| Facts returned | 9 | 20 |
+
+beam was tried first and abandoned for this reason. On real chunks it overran the 8000 cap
+repeatedly, logging *"the cut-off reply had 0"* — the whole budget spent before any JSON — and
+each overrun costs two further calls through the re-split path, recursively to depth 2.
+Extraction calls were taking 37–86s each. gemma4's 552 tokens leave roughly 15× headroom.
+
+The cost of the swap is recall: 9 facts against 20 on the same chunk. Revisit if `sapience
+review` shows findings are too thin — but beam's extra facts were not reliably realised, since
+a truncated reply yields none.
+
+Privacy does not separate these models: all are open-weight and served on Ollama's "NCPs to
 host open models" track under one policy — *"Prompt or response data is never logged or trained
 on"*, and partners *"must have no logging, no training, and zero data retention policies in
 place"*. Hosting is US-primary and *"may route to Europe for additional capacity"*. These are
 contractual assurances, not architectural ones; unlike a local model they cannot be verified
 from here.
 
-`free` reads as a launch promotion, and Ollama retires cloud models with notice in its usage
-settings. `gemma4:cloud` is the drop-in fallback — one word in `home.nix`.
+Free status is a promotion, not a guarantee, and Ollama retires cloud models with notice in its
+usage settings. `gemma4:cloud` follows whatever size the tag points at (31b today); pin
+`gemma4:31b-cloud` if that ever matters.
 
 ### Performance and failure modes
 
@@ -259,7 +283,11 @@ chunks:
 | Phase | Calls | Latency |
 |-------|-------|---------|
 | Work/personal classification | one per session (203 here) | ~1.2s each |
-| Chunk extraction | 50-chunk cap, >1 call per chunk | median 2.3s, mean 10.6s, max 78s |
+| Chunk extraction | 50-chunk cap, ≥1 call per chunk | ~2s on a representative prompt |
+
+So while a backlog exists the classifier phase dominates the call count, and a run spends its
+first few minutes there before the slower chunk work begins. A ticker that appears to stall has
+usually just crossed that boundary.
 
 For comparison, local `llama3.1` on this CPU ran ~40s per call and some calls exceeded the
 client's hardcoded 180s `urlopen` timeout outright, surfacing as HTTP 500s — which is why the
@@ -267,11 +295,13 @@ local configuration never managed to ingest anything.
 
 Two things to watch:
 
-**Reply truncation.** Every current cloud model is a reasoning model, while `llm()` caps replies
-at `num_predict` 8000 and never sends `think: false`, so thinking tokens compete with the JSON
-for that budget. When it trips, stderr says *"a cut-off reply was re-extracted as two halves"*
-and `_extract_chunk` recovers by splitting. Occasional warnings are the safety net working;
-a steady stream means the model is too verbose for the cap, and `gemma4:cloud` is the swap.
+**Reply truncation.** `llm()` caps replies at `num_predict` 8000 and never sends
+`think: false`, so on a reasoning model the thinking competes with the JSON for that budget.
+When it trips, stderr says *"a cut-off reply was re-extracted as two halves"* and
+`_extract_chunk` recovers by re-extracting each half, recursively to depth 2 — so one overrun
+can cost up to seven calls. Occasional warnings are the safety net working; a steady stream
+means the model is too verbose for the cap. This is what ruled beam out (see
+[Model choice](#model-choice)); `gemma4` emits no thinking and has not tripped it.
 
 **No retry.** The `anthropic` and `openai` branches wrap their call in `_llm_call(...)`; the
 `ollama` branch calls `urlopen` bare. Against localhost that was sound — nothing about a
@@ -381,7 +411,7 @@ rather not have it; nothing else depends on it.
 |--------|---------|----------|---------|
 | `enable` | `false` | `true` | CLI, timer, payload seed, MCP registration |
 | `backend` | `"ollama"` | `"ollama"` | `relay`, `anthropic`, `openai`, `ollama` |
-| `model` | `""` | `"beam:cloud"` | `--model`; empty keeps the client's per-backend default |
+| `model` | `""` | `"gemma4:cloud"` | `--model`; empty keeps the client's per-backend default |
 | `host` | `"https://app.spnc.ai"` | default | API host, also the payload source |
 | `apiKeyFile` | `""` | default | Provider key for `anthropic`/`openai`; no role under `ollama` |
 | `tokenFile` | `null` | default | Path outside the store for non-interactive bootstrap |
@@ -414,7 +444,7 @@ systemctl --user show sapience-sync.service -p ConditionResult -p Result
 
 # Does the cloud model answer? (Unauthorized here means `ollama signin` is needed.)
 curl -sS http://127.0.0.1:11434/api/chat -H 'content-type: application/json' \
-  -d '{"model":"beam:cloud","messages":[{"role":"user","content":"say OK"}],"stream":false}'
+  -d '{"model":"gemma4:cloud","messages":[{"role":"user","content":"say OK"}],"stream":false}'
 
 # Confirm nothing is running locally: all three should be empty or zero.
 ollama ps

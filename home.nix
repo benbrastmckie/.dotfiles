@@ -45,22 +45,29 @@
     # this to "openai" would pin extraction to api.openai.com. docs/sapience.md has the detail.
     backend = "ollama";
 
-    # Reflection's 501B/23B-active Apache-2.0 model, forwarded to ollama.com by the local daemon.
-    # Chosen over gemma4:cloud and nemotron-3-super:cloud on all three axes that were compared:
-    # strongest (GPQA Diamond 90.5 self-reported, against 84.3 and 79.2; Artificial Analysis puts
-    # those two at 29 and 25 and has no entry for beam), cheapest (the cloud catalogue marks it
-    # `free` with a dedicated badge and it has no row in the pricing table at all), and no worse
-    # on privacy -- all three are open-weight models served on the same NVIDIA Cloud Provider
-    # track under one contractual no-logging/no-training/zero-retention policy.
+    # Google's Gemma 4, forwarded to ollama.com by the local daemon. Chosen on measured
+    # behaviour rather than benchmark scores, because what this workload needs is compact JSON
+    # inside a fixed reply budget, not reasoning depth.
     #
-    # Its emphasis on token-efficient reasoning also matters mechanically: llm() caps replies at
-    # num_predict 8000 and never sends `think: false`, so a verbose reasoner can spend that
-    # budget on thinking before emitting JSON and trip the re-split path in _extract_chunk.
+    # llm() caps replies at num_predict 8000 and never sends `think: false`, so thinking tokens
+    # compete with the JSON for that budget. gemma4 is the only model on Ollama's free list that
+    # emits NO thinking at all: on one extraction prompt it answered in 1.7s with 552 output
+    # tokens, against beam:cloud's 20.5s and 2152 tokens (6156 characters of which were
+    # thinking). beam, both gpt-oss sizes and all three nemotrons think by default, and on a
+    # 32-token probe four of them spent the whole budget thinking and returned empty content.
     #
-    # `free` reads as a launch promotion on a model two weeks old, and Ollama retires cloud
-    # models with notice in its usage settings. If it starts billing or is withdrawn,
-    # gemma4:cloud ($0.14/$0.40 per Mtok) is the drop-in fallback: this one word is the change.
-    model = "beam:cloud";
+    # That is not academic. Under beam a dense chunk overran the 8000 cap repeatedly, logging
+    # "the cut-off reply had 0" -- the entire budget spent before any JSON -- and each overrun
+    # costs two more calls through the re-split path in _extract_chunk, recursively to depth 2.
+    # Extraction calls were running 37-86s each. gemma4's 552 tokens leave ~15x headroom.
+    #
+    # The cost is recall: on the same chunk beam returned 20 facts to gemma4's 9. Revisit if
+    # review shows findings are too thin -- but beam's extra facts were not reliably realised,
+    # since a truncated reply yields none at all.
+    #
+    # Free on Ollama's usage page, same as beam. `gemma4:cloud` tracks whatever size Ollama
+    # points the tag at (31b today); pin `gemma4:31b-cloud` if that ever matters.
+    model = "gemma4:cloud";
   };
 
   home = {
