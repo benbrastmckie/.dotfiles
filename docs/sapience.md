@@ -169,8 +169,8 @@ read zero, which is not a failure. `sapience-bootstrap` therefore shows progress
 line per thirty seconds of actual progress:
 
 ```
-  extracting: 19 model calls (~253 est.) ~4.4s each, 1m00s elapsed
-  extracting: 26 model calls (~253 est.) ~4.3s each, 1m30s elapsed
+  classifying: 151/~255 (59%) ~0.3s each, 1m01s elapsed
+  extracting: 222/~255 (87%) ~3.5s each, 3m01s elapsed
 ```
 
 Each line is appended whole, on stderr so it cannot corrupt the vendor's stdout, and only when
@@ -182,18 +182,28 @@ silent by itself once the last call lands — so nothing follows the prompt, and
 liveness probe exists that could stop it for the wrong reason. A slow call simply produces no
 line until it completes.
 
+**The phase word explains the rate.** A run classifies every source first, one call each at a
+six-token reply budget, which lands in tenths of a second; only then does it enter the chunk
+loop at an 8,000-token budget, where calls take seconds. Seeing the rate drop ten-fold partway
+through is that handover, not a stall. The label flips when the count passes the source
+estimate, so it can lag the real handover by a few calls — `--coverage` counts sources before
+the delta and interactivity filters the run itself applies, so it tends to over-count slightly.
+
+**The percentage is against an estimate, and the estimate is a floor.** It is sources plus the
+50-chunk cap, resolved lazily after the picker since your selection changes it. The cap counts
+chunks, not calls: a chunk costs one call per 12,000-character window, and a reply that stops at
+the 8,000-token limit is re-extracted as two halves recursively to depth 2, so one chunk can
+spend 1, 3 or 7 calls. A run can therefore pass its own denominator — `284/~255` is a normal
+sight and means truncation re-splits happened. The `~` marks the denominator as approximate, and
+the percentage is clamped to 99 while the run is live, so a progress line never claims
+completion; only the closing message gets to say a run finished.
+
+One more thing the count cannot do: it cannot tell Sapience's calls apart from any other
+client's, so a `curl` probe against `127.0.0.1:11434` mid-run inflates it.
+
 The count comes from the Ollama journal's GIN access log, one line per completed HTTP call. A
 `slot release:` grep would not do: only a *local* inference slot emits it, and a `:cloud` model
 never does.
-
-Two things the count cannot do. It cannot tell Sapience's calls apart from any other client's,
-so a `curl` probe against `127.0.0.1:11434` mid-run inflates it. And its companion estimate —
-sources plus the 50-chunk cap, where sources is `--coverage`'s "would ingest now", resolved
-lazily after the picker since your selection changes it — is a **floor, not a cap**, which is
-why it is shown as context and never as a fraction or a percentage. The cap counts chunks, not
-calls: a chunk costs one call per 12,000-character window, and a reply that stops at the 8,000
-token reply limit is re-extracted as two halves recursively to depth 2, so one chunk can spend
-1, 3 or 7 calls. Overshooting the estimate is normal and means truncation re-splits happened.
 
 Only bootstrap has this, and only on the `ollama` backend — the signal is the local daemon's own
 access log, and on `relay`, `anthropic` or `openai` no call transits this machine. `sapience

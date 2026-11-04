@@ -359,17 +359,19 @@ let
     # ":cloud" model nothing is scheduled on this machine. Every call transits this daemon in
     # either mode, so its access log is the signal that holds for both.
     #
-    # ESTIMATE, carried as context rather than as a fraction, because it is a FLOOR and not a
-    # cap. A run makes one model call per session to classify it work-vs-personal
-    # (extract_local.py:2199), then one or more per chunk in a loop capped at MAXCH (:166, 50
-    # unless --backfill raises it, which bootstrap never passes). The cap counts CHUNKS, not
-    # calls: _extract_chunk (:1606) issues one call per split_long_text window and, when a reply
-    # stops at num_predict (8000), re-extracts the chunk as two halves recursively to depth 2,
-    # so one chunk costs 1, 3 or 7 calls. Sessions chunk at 10000 characters against a 12000
-    # character window, making windowing a no-op for them and truncation recursion the whole
-    # excess; memory files chunk differently and can split as well. A truthful denominator is
-    # therefore not computable from this side, so the line reports what is exactly observable --
-    # the count, the mean rate and the elapsed time -- and nothing is ever shown as a percentage.
+    # ESTIMATE, marked "~" and clamped, because it is a FLOOR and not a cap. A run makes one
+    # model call per session to classify it work-vs-personal (extract_local.py:2199), then one
+    # or more per chunk in a loop capped at MAXCH (:166, 50 unless --backfill raises it, which
+    # bootstrap never passes). The cap counts CHUNKS, not calls: _extract_chunk (:1606) issues
+    # one call per split_long_text window and, when a reply stops at num_predict (8000),
+    # re-extracts the chunk as two halves recursively to depth 2, so one chunk costs 1, 3 or 7
+    # calls. Sessions chunk at 10000 characters against a 12000 character window, making
+    # windowing a no-op for them and truncation recursion the whole excess; memory files chunk
+    # differently and can split as well.
+    #
+    # So a run can pass its own denominator, and "284/~255" is a correct reading rather than a
+    # defect. What the display must not do is claim completion before the run is over, which is
+    # why the percentage is capped at 99 and only the closing message declares a run finished.
     #
     # The source count is resolved lazily on the first completed call, never up front: the
     # folder picker runs first and a selection made there changes it. Cached, since it walks
@@ -378,6 +380,7 @@ let
       started="$1"
       watch_pid="$2"   # this script's own shell; see the launch site below
       total=""
+      srcs_n=0
       budget="''${MAX_CHUNKS:-50}"
       shown=-1
       while kill -0 "$watch_pid" 2>/dev/null; do
@@ -400,7 +403,13 @@ let
             | grep -oE 'would ingest now:[[:space:]]*[0-9]+' \
             | grep -oE '[0-9]+' \
             | head -1)"
-          if [ -n "$srcs" ]; then total=$((srcs + budget)); else total=0; fi
+          if [ -n "$srcs" ]; then
+            srcs_n="$srcs"
+            total=$((srcs + budget))
+          else
+            srcs_n=0
+            total=0
+          fi
         fi
 
         # Mean latency of the last 20 calls, normalised from GIN's own unit suffix.
@@ -413,10 +422,30 @@ let
                    t += v; n++ }
                  END { if (n) printf "%.1f", t / n }' 2>/dev/null || true)"
 
+        # Which phase, because the two differ in cost by an order of magnitude and the label is
+        # what makes a sudden rate change legible rather than alarming. A run classifies every
+        # source first, one call each at max_tokens=6 (extract_local.py:1630, tenths of a
+        # second), and only then enters the chunk loop at max_tokens=8000 (:1612, seconds).
+        phase="extracting"
+        if [ "$srcs_n" -gt 0 ] && [ "$calls" -le "$srcs_n" ]; then
+          phase="classifying"
+        fi
+
+        # Clamped to 99 while the run is live. The denominator is an estimate the run can
+        # exceed, so only the completion message gets to say a run finished -- a progress line
+        # that reads 100% while work continues is the one thing worse than no percentage.
+        if [ "$total" -gt 0 ]; then
+          pct=$((calls * 100 / total))
+          [ "$pct" -le 99 ] || pct=99
+          prog="$(printf '%s/~%d (%d%%)' "$calls" "$total" "$pct")"
+        else
+          prog="$(printf '%s model calls' "$calls")"
+        fi
+
         elapsed=$(($(date +%s) - started))
-        printf '  extracting: %s model calls%s%s, %dm%02ds elapsed\n' \
-          "$calls" \
-          "$([ "$total" -gt 0 ] && printf ' (~%d est.)' "$total")" \
+        printf '  %s: %s%s, %dm%02ds elapsed\n' \
+          "$phase" \
+          "$prog" \
           "$([ -n "$avg" ] && printf ' ~%ss each' "$avg")" \
           "$((elapsed / 60))" "$((elapsed % 60))" >&2
       done
