@@ -1,12 +1,21 @@
 # Local Ollama server plus a declarative model loader. Sole consumer at present is
-# programs.sapience with backend = "ollama", which keeps transcript text on this machine;
-# nothing here is coupled to Sapience. See docs/sapience.md.
+# programs.sapience with backend = "ollama"; nothing here is coupled to Sapience. See
+# docs/sapience.md.
+#
+# Whether transcript text stays on this machine is decided by the CONSUMER's model name, not by
+# this module. A plain name (llama3.1) is served from local weights; a name ending in ":cloud"
+# makes this daemon authenticate against ollama.com, forward the call and run nothing locally.
+# In that mode the daemon is a credential-holding transport, which is the only way a consumer
+# that sends no Authorization header can reach a remote model at all. Sapience currently names
+# beam:cloud, so no inference happens here today.
 #
 # Note: home-manager rather than NixOS, so the whole feature stays on one rebuild path -- the
 # cost is that the NixOS module's loadModels is unavailable and the pull below is hand-rolled.
 #
-# Note: CPU-only. ROCm on this gfx1150 iGPU is experimental and the workload is an hourly
-# background job on 24 cores. See docs/sapience.md.
+# Note: CPU-only whenever a model does run here. ROCm on this gfx1150 iGPU is experimental and
+# the workload was an hourly background job on 24 cores. Moot while the consumer names a
+# ":cloud" model, which is also why the ROCm question stopped being urgent. See
+# docs/sapience.md.
 #
 # Module shape follows services/cache-cleanup.nix: oneshot with guarded external calls, and the
 # loader always exits 0 so a failed pull cannot degrade the user systemd session (the
@@ -37,6 +46,13 @@ in
         extract_local.py maps backend "ollama" to model "llama3.1"); changing this list without
         also setting a matching model on the consumer will leave that consumer pulling a model
         on first use. Roughly 4.7 GB on disk for llama3.1 at the default quantisation.
+
+        Cloud models do NOT belong here. A ":cloud" name carries no weights, the server
+        resolves it remotely on first use, and listing it only makes the loader log a
+        pointless pull. An empty list is correct when every consumer names a cloud model.
+
+        Note this list only ever adds: removing an entry stops it being re-pulled but
+        never deletes it. Use `ollama rm <name>` to reclaim the disk.
       '';
     };
 
