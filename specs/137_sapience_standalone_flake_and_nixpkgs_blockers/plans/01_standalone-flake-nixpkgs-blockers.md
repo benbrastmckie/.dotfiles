@@ -372,37 +372,40 @@ hits, which mechanically proves the argument list is complete rather than relyin
 
 ---
 
-### Phase 5: Author the standalone flake.nix [NOT STARTED]
+### Phase 5: Author the standalone flake.nix [COMPLETED]
 
 **Goal**: Give the directory its own `flake.nix` exposing `homeManagerModules.sapience` and
 `packages.<system>.{sapience,sf1,sapience-bootstrap}`, with a minimal input set so the artifact is
 genuinely standalone and cheap for a stranger to evaluate.
 
 **Tasks**:
-- [ ] Write `packages/sapience-flake/flake.nix` with a single input (`nixpkgs`, pinned to a stable
+- [x] Write `packages/sapience-flake/flake.nix` with a single input (`nixpkgs`, pinned to a stable
       release channel) and no `flake-utils` dependency — iterate systems with
       `nixpkgs.lib.genAttrs` over an explicit list (`x86_64-linux`, `aarch64-linux`,
-      `x86_64-darwin`, `aarch64-darwin`), keeping the input set to one entry
-- [ ] Export `homeManagerModules.sapience = ./modules/sapience.nix;` and
+      `x86_64-darwin`, `aarch64-darwin`), keeping the input set to one entry — pinned to
+      `github:NixOS/nixpkgs/nixos-26.05`, matching this repo's own pinned stable channel
+- [x] Export `homeManagerModules.sapience = ./modules/sapience.nix;` and
       `homeManagerModules.default = self.homeManagerModules.sapience;`
-- [ ] Export `packages.<system>.{sapience,sf1,sapience-bootstrap}` by importing
+- [x] Export `packages.<system>.{sapience,sf1,sapience-bootstrap}` by importing
       `./lib/wrappers.nix` with vendor defaults (`host` = the vendor host the module already
       defaults to, `backend = "relay"`, `model = ""`, `memoryFiles = true`, `tokenFile = null`,
       `backgroundSync = false`, `syncInterval` = the module's default) and
       `stateDir = "$HOME/.sapience"` so path resolution happens at runtime
-- [ ] Set `packages.<system>.default = packages.<system>.sapience;`
-- [ ] Export `lib.mkSapienceWrappers = import ./lib/wrappers.nix;` so a consumer can build the
+- [x] Set `packages.<system>.default = packages.<system>.sapience;`
+- [x] Export `lib.mkSapienceWrappers = import ./lib/wrappers.nix;` so a consumer can build the
       wrappers with their own values without the home-manager module
-- [ ] Add a `description` and a top-of-file comment stating the directory is shareable as-is, that
+- [x] Add a `description` and a top-of-file comment stating the directory is shareable as-is, that
       the payload is deliberately unpinned mutable state, and that
       `packages.<system>.*` consumers get no systemd timer and no MCP registration (both are
       home-manager-module-only concerns)
-- [ ] Confirm the flake declares no dependency on this repository: grep for `..`-escaping paths and
-      for any reference outside `packages/sapience-flake/`
-- [ ] `nixfmt --check packages/sapience-flake/flake.nix`
-- [ ] Generate `packages/sapience-flake/flake.lock` with `nix flake lock` (best effort — if the
+- [x] Confirm the flake declares no dependency on this repository: grep for `..`-escaping paths and
+      for any reference outside `packages/sapience-flake/` — `grep -n '\.\./\|/home/'
+      packages/sapience-flake/flake.nix` returns nothing
+- [x] `nixfmt --check packages/sapience-flake/flake.nix` — passes
+- [x] Generate `packages/sapience-flake/flake.lock` with `nix flake lock` (best effort — if the
       network is unavailable, record that the lock is absent and that a consumer's first evaluation
-      will create it, rather than hand-writing one)
+      will create it, rather than hand-writing one) — network was available; lock generated
+      pinning `nixpkgs` to the `nixos-26.05` commit current as of this task
 
 **Timing**: 1.5 hours
 
