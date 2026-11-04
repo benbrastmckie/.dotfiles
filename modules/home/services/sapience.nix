@@ -829,6 +829,40 @@ in
         dash is attributed to Sapience or to sf1 rather than to the terminal.
       '';
     };
+
+    webAppCommand = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [
+        "/run/current-system/sw/bin/brave"
+        "--class=sapience-web"
+        "--app=${cfg.host}"
+      ];
+      defaultText = lib.literalExpression ''
+        [ "/run/current-system/sw/bin/brave" "--class=sapience-web" "--app=''${cfg.host}" ]
+      '';
+      description = ''
+        argv for the `Sapience Web` launcher, which opens the hosted interface at `host` as an
+        app window rather than a browser tab. This is the only graphical client that exists --
+        the Python payload carries no GUI toolkit on any platform, macOS included, where the
+        vendor ships the same CLI plus a LaunchAgent and no application bundle.
+
+        `--app=` is what makes it an application rather than a tab: no tab strip, no address
+        bar, its own window, its own entry in the dash. `--class=` then matches `StartupWMClass`
+        in the entry so GNOME attributes that window to Sapience Web rather than to Brave.
+
+        The absolute `/run/current-system/sw/bin` path is deliberate and matches what
+        `core/xdg.nix` does for sioyek. Brave is a *system* package here, carrying a
+        `--disable-blink-features=ScreenWakeLock` override (see `docs/no-sleep-agents.md`); a
+        `''${pkgs.brave}/bin/brave` reference from this home-manager module would quietly resolve
+        to a second, unoverridden Brave in the store and drop that mitigation.
+
+        No credential appears here, and none should. The client prints a private link of the form
+        `host/?token=...`, but a desktop entry is world-readable and anything Nix generates lands
+        in the world-readable store -- the one place this module's token must never reach. The
+        hosted app also accepts a Google sign-in or an emailed link, so a plain `host` URL
+        reaches the same account with the credential kept in the browser profile.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -1058,6 +1092,21 @@ in
           Keywords=sapience;sf1;chat;ask;knowledge;memory;vault;recall;
         '';
 
+        "applications/sapience-web.desktop".text = ''
+          [Desktop Entry]
+          Type=Application
+          Name=Sapience Web
+          GenericName=Knowledge Vault
+          Comment=The hosted Sapience interface -- Now, pending findings, project settings
+          Exec=${lib.concatStringsSep " " cfg.webAppCommand}
+          Icon=sapience-web
+          Terminal=false
+          StartupNotify=true
+          StartupWMClass=sapience-web
+          Categories=Utility;
+          Keywords=sapience;web;vault;now;findings;review;
+        '';
+
         # Hand-drawn because the vendor ships no Linux icon, and the stock Adwaita candidates
         # (accessories-dictionary, applications-science) exist only as symbolic variants, which
         # render as a flat monochrome glyph in the app grid next to every full-colour neighbour.
@@ -1100,6 +1149,26 @@ in
             <path d="M38 44 L62 66 L38 88" fill="none" stroke="#ffffff" stroke-width="10"
                   stroke-linecap="round" stroke-linejoin="round"/>
             <rect x="70" y="79" width="28" height="9" rx="4.5" fill="#ffffff"/>
+          </svg>
+        '';
+
+        # Third in the same family: one square, one palette, three glyphs. A globe for the hosted
+        # interface, against the graph for the CLI and the prompt for the chat -- three tiles
+        # sharing a caption prefix need to be told apart at a glance, not read.
+        "icons/hicolor/scalable/apps/sapience-web.svg".text = ''
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+            <defs>
+              <linearGradient id="sapience-web-bg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#5b4bdb"/>
+                <stop offset="1" stop-color="#8b3fd4"/>
+              </linearGradient>
+            </defs>
+            <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#sapience-web-bg)"/>
+            <g fill="none" stroke="#ffffff" stroke-width="6">
+              <circle cx="64" cy="64" r="30"/>
+              <ellipse cx="64" cy="64" rx="13" ry="30"/>
+              <path d="M36 54 H92 M36 74 H92" stroke-linecap="round"/>
+            </g>
           </svg>
         '';
       };

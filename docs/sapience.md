@@ -41,7 +41,7 @@ until you bootstrap, nothing re-reads one until you ask
 | `sapience-adddir-sources` | This repo | `adddir` over `sourceDirs`; installed only when that list is non-empty |
 | `sapience-sync.service` | This repo | On-demand detached run; replaces the launchd plist |
 | `ollama.service` / `ollama-model-loader.service` | This repo | `modules/home/services/ollama.nix` |
-| `Sapience` and `sf1` in the GNOME app grid | This repo | Two `.desktop` entries plus icons; the CLI and the chat |
+| `Sapience`, `sf1`, `Sapience Web` in the app grid | This repo | Three `.desktop` entries plus icons; CLI, chat, hosted interface |
 | `mcpServers.sapience` in `~/.claude.json` | This repo | Merged on activation, preserving every other key |
 | Token shape repair in `config.json` | This repo | Activation entry; runs before the MCP merge |
 | Three hooks and seven tool grants | This repo | In `config/claude/settings.json`; see [below](#why-the-hooks-live-in-the-repo) |
@@ -151,32 +151,36 @@ system, since it sends only what changed. See
 
 ### Opening it from the desktop
 
-Searching GNOME for "sapience" finds two launchers, because the two sessions are not the same
-thing:
+Searching GNOME for "sapience" finds three launchers, because the three things are not the same
+session:
 
 | Entry | Opens |
 |-------|-------|
 | **Sapience** | The CLI — `sapience help`, then a shell prompt to run `review`, `sync`, `coverage` or anything else from |
 | **sf1** | The chat REPL directly, which is where a question goes |
+| **Sapience Web** | The hosted interface at `host`, as an app window rather than a browser tab |
 
-Both are files, not a side effect of the binaries being on `$PATH`: GNOME indexes `.desktop`
+All three are files, not a side effect of the binaries being on `$PATH`: GNOME indexes `.desktop`
 entries, so a wrapper in `home.packages` is invisible to the Activities search no matter what it
 is called. The module writes them, and a hand-drawn icon each, into `~/.local/share`:
 
 ```bash
-ls -l ~/.local/share/applications/{sapience,sf1}.desktop
-ls -l ~/.local/share/icons/hicolor/scalable/apps/{sapience,sf1}.svg
+ls -l ~/.local/share/applications/{sapience,sf1,sapience-web}.desktop
+ls -l ~/.local/share/icons/hicolor/scalable/apps/{sapience,sf1,sapience-web}.svg
 ```
+
+All three are searchable under "sapience" — `sf1` and `Sapience Web` carry it as a keyword, so
+neither hides behind its own name. The icons share a square and a palette but differ in their
+glyph (a knowledge graph, a shell prompt, a globe), since at app-grid size the glyph is all that
+tells them apart.
+
+#### The two terminal entries
 
 The **Sapience** entry runs a small wrapper rather than `sapience` itself, because `sapience`
 with no subcommand prints its help and returns — pointed straight at it, a launcher would open a
 window and close it in the same instant. Printing the help and then handing over to an
 interactive shell turns that into what the help is for: a prompt with every subcommand listed
 above it. `sf1` needs no such wrapper; it is a REPL and holds its own window.
-
-Searching "sapience" turns up both — the `sf1` entry carries it as a keyword, so the chat is not
-hidden behind its own name. The icons share a square and a palette but differ in their glyph (a
-knowledge graph, a shell prompt), since at app-grid size the glyph is all that tells them apart.
 
 Two details in the `terminal` default earn their place, and a replacement wants the equivalents.
 `--always-new-process` stops wezterm handing the command to an already-running GUI instance,
@@ -189,6 +193,38 @@ ones and the flag that sets one is not spelled the same everywhere — a foot us
 
 ```nix
 programs.sapience.terminal = class: [ "${pkgs.kitty}/bin/kitty" "--class" class "--" ];
+```
+
+#### There is no native desktop application
+
+Not on Linux, and not on macOS either — worth stating plainly, because the vendor's macOS-only
+framing invites the opposite assumption. The client payload in `~/.sapience/` carries no GUI
+toolkit at all: no tkinter, Qt, GTK, webview, Electron or menu-bar binding. The one
+macOS-specific artifact is `~/Library/LaunchAgents/ai.coretx.sapience.plist`, a background sync
+scheduler — which is precisely what `sapience-sync.service` and its timer replace here. The
+vendor's install line, "Mac + Python 3 · about ten minutes", installs the same Python CLI this
+module wraps.
+
+So **Sapience Web** is the graphical client, and `--app=` is what makes it an application rather
+than a tab: no tab strip, no address bar, its own window, its own entry in the dash.
+
+Its default carries two decisions worth keeping through any replacement. The absolute
+`/run/current-system/sw/bin/brave` path matches what `core/xdg.nix` does for sioyek — Brave is a
+*system* package here carrying a `--disable-blink-features=ScreenWakeLock` override (see
+[no-sleep-agents](no-sleep-agents.md)), and a `${pkgs.brave}/bin/brave` reference from a
+home-manager module would quietly resolve to a second, unoverridden Brave and drop that
+mitigation. And the URL is a bare `host`, carrying **no credential**: the client prints a private
+link shaped `host/?token=...`, but a desktop entry is world-readable and anything Nix generates
+lands in the world-readable store — the one place this module's token must never reach. The
+hosted app accepts a Google sign-in or an emailed link, so the plain URL reaches the same account
+with the credential kept in the browser profile instead.
+
+To point it at a different browser, replace the whole argv:
+
+```nix
+programs.sapience.webAppCommand = [
+  "/run/current-system/sw/bin/firefox" "--kiosk" "https://app.spnc.ai"
+];
 ```
 
 Set `programs.sapience.desktopEntry = false` to install no launchers at all.
@@ -631,8 +667,9 @@ rather not have it; nothing else depends on it.
 | `sourceDirs` | `[ ]` | the source store | `adddir` targets; see [above](#the-source-store-goes-in-by-name) |
 | `sourceDirInclude` | `"md"` | default | Extensions passed to `adddir --include` |
 | `registerMcpServer` | `true` | default | Merge into `~/.claude.json` |
-| `desktopEntry` | `true` | default | The two GNOME launchers; see [below](#opening-it-from-the-desktop) |
-| `terminal` | wezterm argv | default | `class: argv` prefix each launcher puts in front of its command |
+| `desktopEntry` | `true` | default | The three GNOME launchers; see [below](#opening-it-from-the-desktop) |
+| `terminal` | wezterm argv | default | `class: argv` prefix each terminal launcher puts in front of its command |
+| `webAppCommand` | brave `--app=` argv | default | Opens `host` as an app window; carries no token |
 
 `services.ollamaModels`:
 
