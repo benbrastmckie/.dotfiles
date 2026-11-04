@@ -160,6 +160,23 @@ let
     set -euo pipefail
     export PATH="${runtimePath}:$PATH"
 
+    # Reduce a paste to a bare token. Accepts the token itself, the whole private link
+    # ("https://app.spnc.ai/?token=XXXX"), a quoted paste, or a <...>-wrapped one, because the
+    # link is what the invite email actually puts on the clipboard. Prints "" when nothing
+    # token-shaped can be recovered.
+    sap_token_clean() {
+      printf '%s' "$1" \
+        | tr -d '[:space:]' \
+        | sed -e 's/^[<"'"'"']*//' -e 's/[>"'"'"']*$//' \
+        | sed -e 's/.*[?&]token=//' -e 's/^token=//' -e 's/[&#].*$//'
+    }
+
+    # A token is letters, digits and underscores only. This is what separates a real token from
+    # a pasted link: a URL keeps its ':' '/' '?' '=' and fails here.
+    sap_token_ok() {
+      printf '%s' "$1" | grep -qE '^[A-Za-z0-9_-]{8,}$'
+    }
+
     mkdir -p "${stateDir}"
 
     # Note: a dedicated lock, NOT the vendor's shared .run.lock, so the only thing that can turn
@@ -190,33 +207,104 @@ let
     mkdir -p "${stateDir}"
     chmod 700 "${stateDir}"
 
-    if [ -f "${configFile}" ] && ${pkgs.jq}/bin/jq -e '.token // "" | length > 0' \
-        "${configFile}" >/dev/null 2>&1; then
+    # Note: the stored-token guard VALIDATES rather than merely testing for non-emptiness.
+    # Pasting the whole private link ("https://app.spnc.ai/?token=XXXX") instead of its token=
+    # value writes a 43-character URL into the token field. Every client then authenticates with
+    # it: /v1/stats answers 401 and /ingest-kos answers 403 "an invite code is needed to build a
+    # new Sapience", because a token that opens no brain reads server-side as a request to make
+    # one. A bare length test called that a token and left it in place forever, so the failure
+    # only surfaced after a full extraction had already run. See docs/sapience.md.
+    if [ -f "${configFile}" ] && \
+        TOKEN="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null)" && \
+        [ -n "$TOKEN" ] && sap_token_ok "$TOKEN"; then
       echo "sapience-bootstrap: ${configFile} already carries a token; leaving it alone."
     else
-      TOKEN="''${SAPIENCE_TOKEN:-}"
+      if [ -n "''${TOKEN:-}" ]; then
+        # A stored token that failed the shape test: repair it in place when the paste was a
+        # link, rather than making the user find and re-enter it.
+        REPAIRED="$(sap_token_clean "$TOKEN")"
+        if [ -n "$REPAIRED" ] && sap_token_ok "$REPAIRED"; then
+          echo "sapience-bootstrap: ${configFile} stored a link rather than a token; repairing it."
+          TOKEN="$REPAIRED"
+        else
+          echo "sapience-bootstrap: ${configFile} stores something that is not a token; replacing it."
+          TOKEN=""
+        fi
+      fi
+
+      if [ -z "''${TOKEN:-}" ]; then
+        TOKEN="''${SAPIENCE_TOKEN:-}"
+      fi
       ${lib.optionalString (cfg.tokenFile != null) ''
         if [ -z "$TOKEN" ] && [ -r "${toString cfg.tokenFile}" ]; then
           TOKEN="$(tr -d '[:space:]' < "${toString cfg.tokenFile}")"
         fi
       ''}
       if [ -z "$TOKEN" ]; then
-        echo "Paste your Sapience token (the token= value from your private app.spnc.ai link)."
-        printf "Token: "
+        echo "Paste your Sapience token, or the whole private app.spnc.ai link -- either works."
+        printf "Token or link: "
         read -r TOKEN
       fi
+
+      # Normalise before validating: accept the bare token, the full link, a quoted paste, or a
+      # <...>-wrapped one, so the single most likely first-run mistake is simply absorbed.
+      TOKEN="$(sap_token_clean "$TOKEN")"
+
       if [ -z "$TOKEN" ]; then
         echo "sapience-bootstrap: no token given; nothing written." >&2
         exit 1
       fi
+      if ! sap_token_ok "$TOKEN"; then
+        echo "sapience-bootstrap: that does not look like a Sapience token." >&2
+        echo "  Expected the token= value from your private app.spnc.ai link (letters, digits" >&2
+        echo "  and underscores only), or that whole link so this can read the value out of it." >&2
+        exit 1
+      fi
+
+      # Verify against the server BEFORE writing anything. A bad paste used to cost a full
+      # extraction (~15 minutes) before failing at upload; this fails in about a second.
+      printf "sapience-bootstrap: checking the token with %s ... " "${cfg.host}"
+      code="$(curl -sS -o /dev/null -w '%{http_code}' -m 20 \
+        -A 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) sapience-client/1.0' \
+        "${cfg.host}/v1/stats?token=$TOKEN" 2>/dev/null || echo "000")"
+      case "$code" in
+        200)
+          echo "ok."
+          ;;
+        000)
+          echo "could not reach the host."
+          echo "sapience-bootstrap: ${cfg.host} is unreachable, so the token could not be checked."
+          echo "  Continuing anyway -- the token looks well formed and an outage must not block setup."
+          ;;
+        *)
+          echo "rejected (HTTP $code)."
+          echo "sapience-bootstrap: the server does not recognise that token, so nothing was written." >&2
+          echo "  Open your private app.spnc.ai link again and copy the token= value (or the whole" >&2
+          echo "  link). A token that opens no Sapience cannot upload: extraction would run for" >&2
+          echo "  minutes and then fail with HTTP 403 at the end." >&2
+          exit 1
+          ;;
+      esac
 
       tmp="$(mktemp "${stateDir}/config.json.XXXXXX")"
-      ${pkgs.jq}/bin/jq -n \
-        --arg token "$TOKEN" \
-        --arg backend "${cfg.backend}" \
-        --arg host "${cfg.host}" \
-        '{token: $token, backend: $backend, host: $host, auto_approve: false, hooks: true}' \
-        > "$tmp"
+      if [ -f "${configFile}" ]; then
+        # Preserve the folder selection, capture map and auto_approve choice when only the token
+        # was wrong; a fresh object would silently discard the onboarding work.
+        ${pkgs.jq}/bin/jq \
+          --arg token "$TOKEN" \
+          --arg backend "${cfg.backend}" \
+          --arg host "${cfg.host}" \
+          '.token = $token | .backend = $backend | .host = $host
+           | .auto_approve = (.auto_approve // false) | .hooks = (.hooks // true)' \
+          "${configFile}" > "$tmp"
+      else
+        ${pkgs.jq}/bin/jq -n \
+          --arg token "$TOKEN" \
+          --arg backend "${cfg.backend}" \
+          --arg host "${cfg.host}" \
+          '{token: $token, backend: $backend, host: $host, auto_approve: false, hooks: true}' \
+          > "$tmp"
+      fi
       mv "$tmp" "${configFile}"
       chmod 600 "${configFile}"
       echo "sapience-bootstrap: wrote ${configFile} (backend ${cfg.backend})."
@@ -268,10 +356,25 @@ let
     # Resolved lazily on the first completed call, never up front: the folder picker runs first
     # and a selection made there changes the source count. Cached, since it walks every
     # candidate file. If it cannot be parsed the line degrades to a bare count and elapsed time.
+    # The estimate is a FLOOR, not a cap, so it is never rendered as "N/total (pct%)".
+    #
+    # The earlier version printed exactly that and reached "284/253 (100%)": MAXCH caps CHUNKS,
+    # not model calls, and the per-chunk cost is not one call. extract_local.py:1612 runs
+    # _extract_chunk per chunk, which issues one call per split_long_text window and, when a
+    # reply stops at num_predict (8000), re-extracts the chunk as two halves recursively to
+    # depth 2 -- so a single chunk costs 1, 3 or 7 calls. Sessions chunk at 10000 characters
+    # against a 12000-character window, so windowing is a no-op for them and truncation
+    # recursion is the whole overshoot; memory files chunk differently and can split as well.
+    #
+    # A truthful denominator is therefore not computable from this side, so the line shows the
+    # count, the rate and the elapsed time -- all exactly observable -- and carries the estimate
+    # as context ("~253 est.") rather than as a fraction pretending to be progress.
     ticker() {
       started="$1"
       total=""
       budget="''${MAX_CHUNKS:-50}"
+      last_calls=-1
+      idle_polls=0
       while :; do
         sleep 10
         jlog="$(journalctl --user -u ollama --no-pager -o cat --since "@$started" 2>/dev/null || true)"
@@ -279,6 +382,22 @@ let
         calls="$(printf '%s' "$chat" | grep -c . 2>/dev/null || true)"
         [ -n "$calls" ] || calls=0
         [ "$calls" -gt 0 ] || continue
+
+        # STOP ON PLATEAU, the fix for the clobbered prompt. extract_local.py ends with an
+        # interactive review() (extract_local.py:1898) whose input() prompt this \r-rewritten
+        # line painted over, so a finished run looked like a hung one and the question that was
+        # waiting was invisible. Thirty seconds without a completed call means the model is done
+        # and the vendor owns the terminal from here: clear the line and never write again.
+        if [ "$calls" -eq "$last_calls" ]; then
+          idle_polls=$((idle_polls + 1))
+          if [ "$idle_polls" -ge 3 ]; then
+            printf '\r%*s\r' 80 "" >&2
+            return 0
+          fi
+        else
+          idle_polls=0
+          last_calls="$calls"
+        fi
 
         # Lazy, cached: onboarding has certainly finished by the first completed call.
         if [ -z "$total" ]; then
@@ -300,17 +419,10 @@ let
                    t += v; n++ }
                  END { if (n) printf "%.1f", t / n }' 2>/dev/null || true)"
 
-        pct=""
-        if [ "$total" -gt 0 ]; then
-          pct=$((calls * 100 / total))
-          [ "$pct" -le 100 ] || pct=100
-        fi
-
         elapsed=$(($(date +%s) - started))
-        printf '\r  extracting: %s%s model calls%s%s, %dm%02ds elapsed   ' \
+        printf '\r  extracting: %s model calls%s%s, %dm%02ds elapsed   ' \
           "$calls" \
-          "$([ "$total" -gt 0 ] && printf '/%d' "$total")" \
-          "$([ -n "$pct" ] && printf ' (%d%%)' "$pct")" \
+          "$([ "$total" -gt 0 ] && printf ' (~%d est.)' "$total")" \
           "$([ -n "$avg" ] && printf ' ~%ss each' "$avg")" \
           "$((elapsed / 60))" "$((elapsed % 60))" >&2
       done
@@ -321,18 +433,25 @@ let
       if [ -n "$ticker_pid" ]; then
         kill "$ticker_pid" 2>/dev/null || true
         wait "$ticker_pid" 2>/dev/null || true
-        # 80, not 60: the progress line grew a denominator, a percentage and a rate, and a
-        # clear narrower than the line leaves its tail on screen.
+        # 80, not 60: the progress line grew an estimate and a rate, and a clear narrower than
+        # the line leaves its tail on screen.
         printf '\r%*s\r' 80 "" >&2
       fi
     }
     trap cleanup EXIT INT TERM
 
+    run_started="$(date +%s)"
+
     # Only when stderr is a terminal: a rewritten line is noise in a pipe or a log.
-    if [ -t 2 ]; then
-      ticker "$(date +%s)" &
-      ticker_pid=$!
-    fi
+    # Only on the ollama backend: the signal is the local daemon's own access log, so on
+    # relay/anthropic/openai -- where no call transits this machine -- there is nothing to count
+    # and the ticker would print a line stuck at zero forever.
+    ${lib.optionalString (cfg.backend == "ollama") ''
+      if [ -t 2 ]; then
+        ticker "$run_started" &
+        ticker_pid=$!
+      fi
+    ''}
 
     # Hold the vendor's own .run.lock for the extraction only, so a timer firing mid-run is
     # skipped by the vendor's guard instead of competing. Best-effort: if it cannot be had we
@@ -350,6 +469,40 @@ let
       ${lib.optionalString (cfg.model != "") ''--model "${cfg.model}"''} || rc=$?
     cleanup
     ticker_pid=""
+
+    # Say how it ended. The vendor's own last word is either a review prompt or an upload error,
+    # and neither states what the run achieved or what to do next; a bootstrap that simply
+    # returned to the shell left the user unable to tell success from silent failure.
+    #
+    # The staged count is the honest measure of a run's yield: extraction is local, so findings
+    # survive a failed upload, and "staged but not sent" is a normal outcome rather than a loss.
+    staged=""
+    if [ -f "${stateDir}/extract_local.py" ]; then
+      staged="$(SAPIENCE_HOST="${cfg.host}" ${python} "${stateDir}/extract_local.py" --pending \
+        2>/dev/null | grep -oE '^[0-9]+' | head -1 || true)"
+    fi
+    total_elapsed=$(($(date +%s) - run_started))
+
+    echo ""
+    if [ "$rc" -eq 0 ]; then
+      printf 'sapience-bootstrap: done in %dm%02ds.\n' \
+        "$((total_elapsed / 60))" "$((total_elapsed % 60))"
+    else
+      printf 'sapience-bootstrap: extraction exited %d after %dm%02ds.\n' \
+        "$rc" "$((total_elapsed / 60))" "$((total_elapsed % 60))"
+      echo "  Nothing extracted so far is lost: the ledger only advances over work that was"
+      echo "  staged, so the next run re-reads whatever this one did not finish."
+    fi
+
+    if [ -n "$staged" ] && [ "$staged" -gt 0 ] 2>/dev/null; then
+      echo "  $staged findings are staged on this machine, waiting for your review."
+      echo "  Next: sapience review        approve them and upload to your Sapience"
+    elif [ "$rc" -eq 0 ]; then
+      echo "  Nothing is staged: every finding this run produced was already approved and sent,"
+      echo "  or the window held no new work."
+    fi
+
+    echo "  Background sync is live: systemctl --user status sapience-sync.timer"
     exit "$rc"
   '';
 in
@@ -508,11 +661,49 @@ in
       fi
     '';
 
+    # Self-heal a token field that holds the private LINK rather than its token= value.
+    #
+    # This is the failure the stored-token guard in sapience-bootstrap now prevents at the
+    # source, but it has to be repaired here too: config.json is mutable state that the vendor
+    # client, the web onboarding and an older bootstrap all write, and every consumer reads the
+    # field verbatim -- including sapienceMcpServer below, which copies it into ~/.claude.json,
+    # so one bad paste silently breaks Claude Code's sapience tools as well as the sync. The
+    # server answers 401 on /v1/stats and 403 "an invite code is needed to build a new Sapience"
+    # on /ingest-kos, neither of which names the real problem. Ordered before sapienceMcpServer
+    # so the registration always copies a repaired value. See docs/sapience.md.
+    home.activation.sapienceTokenRepair = config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" ] ''
+      if [[ -v DRY_RUN ]]; then
+        echo "Would repair a link-shaped token in ${configFile}"
+      elif [ -f "${configFile}" ]; then
+        raw="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null || true)"
+        if [ -n "$raw" ] && ! printf '%s' "$raw" | ${pkgs.gnugrep}/bin/grep -qE '^[A-Za-z0-9_-]+$'; then
+          fixed="$(printf '%s' "$raw" \
+            | ${pkgs.coreutils}/bin/tr -d '[:space:]' \
+            | ${pkgs.gnused}/bin/sed -e 's/.*[?&]token=//' -e 's/^token=//' -e 's/[&#].*$//')"
+          if printf '%s' "$fixed" | ${pkgs.gnugrep}/bin/grep -qE '^[A-Za-z0-9_-]{8,}$'; then
+            tmp="$(${pkgs.coreutils}/bin/mktemp "${stateDir}/config.json.XXXXXX")"
+            if ${pkgs.jq}/bin/jq --arg t "$fixed" '.token = $t' "${configFile}" > "$tmp" \
+              && [ -s "$tmp" ]; then
+              ${pkgs.coreutils}/bin/mv "$tmp" "${configFile}"
+              ${pkgs.coreutils}/bin/chmod 600 "${configFile}"
+              echo "sapience: ${configFile} stored a link rather than a token; repaired it."
+            else
+              ${pkgs.coreutils}/bin/rm -f "$tmp"
+              echo "sapience: could not repair the token in ${configFile}"
+            fi
+          else
+            echo "sapience: ${configFile} holds a token that is not token-shaped and could not"
+            echo "  be repaired automatically. Re-run sapience-bootstrap to replace it."
+          fi
+        fi
+      fi
+    '';
+
     # Merges the provider key into config.json as the api_key/api_key_env pair the client reads.
     # Takes the vendor's .run.lock first: an extraction persists its own config.json (folders,
     # capture map), so an unsynchronised read-modify-write here could drop those choices.
     home.activation.sapienceApiKey = lib.mkIf (cfg.apiKeyFile != "") (
-      config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" ] ''
+      config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" "sapienceTokenRepair" ] ''
         keyFile="${cfg.apiKeyFile}"
         keyEnv="${
           if cfg.backend == "openai" then
@@ -562,7 +753,12 @@ in
     # Ordered after claudeMcpServers, which merges into the same ~/.claude.json -- either order
     # is correct, the edge just makes that independence intentional. See docs/sapience.md.
     home.activation.sapienceMcpServer = lib.mkIf cfg.registerMcpServer (
-      config.lib.dag.entryAfter [ "writeBoundary" "claudeMcpServers" "sapiencePayload" ] ''
+      config.lib.dag.entryAfter [
+        "writeBoundary"
+        "claudeMcpServers"
+        "sapiencePayload"
+        "sapienceTokenRepair"
+      ] ''
         claudeJson="${config.home.homeDirectory}/.claude.json"
         if [[ -v DRY_RUN ]]; then
           echo "Would merge mcpServers.sapience into $claudeJson"
