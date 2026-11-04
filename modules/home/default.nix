@@ -35,6 +35,7 @@
 
     # Script modules (inline shell scripts)
     ./scripts/sioyek-theme.nix
+    ./scripts/sioyek-sync.nix
     ./scripts/gmail-oauth2.nix
     ./scripts/whisper.nix
 

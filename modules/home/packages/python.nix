@@ -24,6 +24,9 @@
         pylatexenc
         pyyaml
         requests
+        # Speaks tinymist's preview protocol for the Neovim Typst<->PDF sync daemon
+        # (nvim scripts/typst-sync-daemon.py)
+        websockets
         markdown
         jupyter
         jupyter-core
