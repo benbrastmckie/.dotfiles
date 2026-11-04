@@ -468,19 +468,40 @@ let
 
     # Only when stderr is a terminal: progress lines are noise in a pipe or a log.
     #
-    # Only on the ollama backend: the signal is the local daemon's own access log, so on
-    # relay/anthropic/openai -- where no call transits this machine -- there is nothing to count
-    # and the ticker would never have anything to say.
+    # Gated two ways, both required. Eval-time: cfg.backend == "ollama" AND
+    # config.services.ollama.enable, mirroring the existing build-time `warnings` predicate above
+    # exactly -- the ticker's signal source, journalctl --user -u ollama, is a systemd --user
+    # unit's log, which exists only when home-manager's own services.ollama module (what
+    # config.services.ollama.enable names here) is what is running. A NixOS SYSTEM-level
+    # services.ollama (a different, system-scope option of the same dotted name) logs to the
+    # system journal under a system-scope unit instead, so journalctl --user -u ollama against
+    # that setup finds nothing and the ticker would fork a 30-second polling loop for the whole
+    # run with nothing to ever print -- functionally dead code that still costs a background
+    # process and a trap/cleanup path. Runtime: a `systemctl --user is-active` probe immediately
+    # below, because the eval-time gate only proves the unit is *defined*, not that it is
+    # currently *running* (stopped, not yet started, or started-then-crashed all evaluate to
+    # `true` for cfg.services.ollama.enable but would still leave the ticker printing nothing).
+    # The negative branch prints one notice instead of silently starting a loop that will never
+    # emit, and deliberately leaves ticker_pid empty so the existing cleanup/trap path stays a
+    # no-op.
+    #
+    # On relay/anthropic/openai, where no call transits this machine at all, there is nothing to
+    # count either and the whole block above is omitted from the generated script (not merely
+    # skipped at runtime), since cfg.backend == "ollama" is already false at eval time.
     #
     # The extraction itself stays in the FOREGROUND, because it reads stdin: backgrounding it
     # would take it out of the terminal's foreground process group and its first prompt would
     # raise SIGTTIN. The ticker therefore watches this shell rather than the extraction, which
     # bounds it to the run and also reaps it if this script is killed outright and the EXIT trap
     # never fires.
-    ${lib.optionalString (cfg.backend == "ollama") ''
+    ${lib.optionalString (cfg.backend == "ollama" && config.services.ollama.enable) ''
       if [ -t 2 ]; then
-        ticker "$run_started" "$$" &
-        ticker_pid=$!
+        if systemctl --user is-active --quiet ollama.service 2>/dev/null; then
+          ticker "$run_started" "$$" &
+          ticker_pid=$!
+        else
+          echo "  progress ticker unavailable: no user-scope ollama.service found" >&2
+        fi
       fi
     ''}
 

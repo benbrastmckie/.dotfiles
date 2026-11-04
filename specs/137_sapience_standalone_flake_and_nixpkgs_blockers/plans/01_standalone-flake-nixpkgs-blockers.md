@@ -232,7 +232,7 @@ sweep finds no fourth occurrence beyond `apiKeyFile`'s example.
 
 ---
 
-### Phase 3: Fix the ollama progress-ticker gating [NOT STARTED]
+### Phase 3: Fix the ollama progress-ticker gating [COMPLETED]
 
 **Goal**: Stop the bootstrap ticker from forking a 30-second polling loop that can never print a
 line — both in the module (where a system-level `services.ollama` leaves
@@ -240,23 +240,24 @@ line — both in the module (where a system-level `services.ollama` leaves
 output will reuse (where there is no `config.*` to evaluate at all).
 
 **Tasks**:
-- [ ] In the vendored module, widen the ticker launch gate from
+- [x] In the vendored module, widen the ticker launch gate from
       `lib.optionalString (cfg.backend == "ollama")` to also require
       `config.services.ollama.enable`, mirroring the existing build-time `warnings` predicate
       exactly (same reasoning: that option is only true when home-manager's own `services.ollama`
       module — a user-scope unit — is what runs)
-- [ ] Add a runtime guard immediately before the `ticker "$run_started" "$$" &` launch:
+- [x] Add a runtime guard immediately before the `ticker "$run_started" "$$" &` launch:
       `systemctl --user is-active --quiet ollama.service 2>/dev/null`, so the generated script is
       correct even when it is produced without any evaluation-time knowledge of the consumer's
       Ollama setup
-- [ ] On the runtime guard's negative branch, print one line to stderr
+- [x] On the runtime guard's negative branch, print one line to stderr
       (`progress ticker unavailable: no user-scope ollama.service found`) instead of silently
       starting a loop that will never emit
-- [ ] Confirm the guard cannot leave a stale `ticker_pid`: `ticker_pid` must stay empty on the
+- [x] Confirm the guard cannot leave a stale `ticker_pid`: `ticker_pid` must stay empty on the
       negative branch so the existing `cleanup`/`trap` path remains a no-op
-- [ ] Re-read the surrounding comment block (it explains why the ticker watches the shell rather
+- [x] Re-read the surrounding comment block (it explains why the ticker watches the shell rather
       than the extraction) and extend it to state why the gate is now two-part
-- [ ] `nixfmt --check packages/sapience-flake/modules/sapience.nix`
+- [x] `nixfmt --check packages/sapience-flake/modules/sapience.nix` — passes, no reformatting
+      needed
 
 **Timing**: 1 hour
 
