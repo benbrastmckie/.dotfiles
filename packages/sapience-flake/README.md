@@ -126,6 +126,57 @@ This builds the identical three wrapper scripts, with `stateDir` resolved at **r
 unit) and no MCP registration (merge `mcpServers.sapience` into your own `~/.claude.json` by hand
 if you want it; `sapience-bootstrap`'s activation does not do this for you on this path).
 
+## Verifying it
+
+Run the hermetic checks yourself — this is the point of them. They need no credentials, no
+network beyond the Nix cache, and never contact the vendor:
+
+```bash
+nix flake check -L        # from this directory
+```
+
+| Check | What it establishes |
+|-------|---------------------|
+| `shellcheck` | Every generated wrapper passes shellcheck at **default severity, no exclusions**, plus `bash -n`. The scripts are assembled by Nix string interpolation, so a quoting bug is invisible in the `.nix` source and only becomes shell at build time; this reads what is actually produced. |
+| `help-output` | Byte-for-byte golden files for `sapience help` across both scheduling settings × both platforms, plus that the two WSL detection signals produce identical text, plus that `help` works before the payload exists and that a real subcommand refuses without it. |
+| `token-functions` | 25 table-driven cases over `sap_token_clean`/`sap_token_ok` — every paste shape the invite email produces, and the rejections that stop a pasted *link* from reaching `config.json` and turning into a misleading 401/403. |
+| `wsl-probe` | The platform helpers, including a **regression test**: a degraded-but-live systemd user manager must still count as present. Reverting the probe to `systemctl --user is-system-running` makes this check fail by name. |
+| `hm-module` | The module evaluated across six option combinations, asserting which units and activation steps exist, that `syncInterval` reaches the timer verbatim, that `registerMcpServer` gates the `~/.claude.json` merge, and that `host` redirects every payload fetch. Two generations are **built**, not just evaluated. |
+
+### The end-to-end install test
+
+```bash
+bash tests/install-test.sh
+```
+
+A real `home-manager` activation against a throwaway `$HOME`, on an ordinary non-NixOS Linux. The
+vendor is stubbed by a local HTTP server, which `programs.sapience.host` redirects every fetch to,
+so it needs no token and cannot flake on a vendor outage. It asserts the payload is seeded from
+the stub, the state directory is mode 700, `~/.claude.json` gains `mcpServers.sapience`, the
+wrappers run, and the WSL branch prints its prerequisites. It is a script rather than a flake
+check because it needs a live `$HOME` and a network port, which a Nix build sandbox has neither of.
+
+CI runs exactly these two commands and nothing else, on `x86_64-linux` and `aarch64-linux`, plus
+weekly — nixpkgs moves under the pinned release branch and the vendor rewrites the payload without
+notice, so a green commit says little three months later.
+
+### What is NOT verified, and cannot be
+
+Worth stating plainly, because the checks above could otherwise be read as covering more than
+they do:
+
+- **The vendor.** Sapience is an invite-only private beta with no CI-accessible credentials, and
+  the payload self-updates with no versions or hashes. Nothing here proves `sapience sync` really
+  extracts, redacts and uploads. Every test stops at the boundary of code this flake owns; the
+  payload in the install test is a stub.
+- **A timer actually firing.** `hm-module` proves the timer is generated with the right
+  `OnCalendar`. Proving one *fires* needs a live systemd user manager, which a build sandbox has
+  not got. That would want a VM test.
+- **WSL2 end to end.** The WSL code paths are covered by forcing detection, which tests this
+  flake's logic, not WSL. GitHub-hosted Windows runners cannot be relied on for WSL2 — it needs
+  nested virtualization that the hosted images lack — so there is deliberately no WSL job rather
+  than a job that might silently pass on WSL1. End-to-end WSL verification is manual.
+
 ## Defaults
 
 Three option defaults were generalized from the repository this was forked out of, so a stranger

@@ -1,0 +1,33 @@
+sapience review [--all]       review pending notes and sync approved notes
+sapience pending              how many new findings are waiting
+sapience sync                 extract from new work now (stages for review)
+sapience coverage             see which work was read or skipped, and why
+sapience backfill [days]      catch up over a wide window (default 365)
+sapience auto-approve on|off  sync new notes without review
+sapience projects             choose which projects sync and require review
+sapience reset                fresh local start (hosted Sapience untouched)
+sapience stats                see how your Sapience is helping you
+sapience status               per-surface token check (terminal / Claude Code / Codex)
+sapience adddoc <file>        add a PDF/.txt/.md to your Sapience
+sapience adddir <dir>         add a directory of papers and notes
+sapience share <project> --with <name>   sync a workstream with a collaborator
+sapience join <channel-id> <project>     join a workstream shared with you
+sapience shares               list your sync channels
+sapience unshare <channel-id> leave a channel (pauses it for both sides)
+sapience recall <channel-id>  withdraw what you shared through a channel
+sapience company              your team workspace membership
+sapience update               fetch the latest client files from the vendor
+sf1 ["question"]              chat with your Sapience in the terminal
+
+Linux notes: scheduled sync is systemd.user (sapience-sync.timer), not launchd.
+  schedule: hourly
+  status:   systemctl --user status sapience-sync.timer
+  pause:    systemctl --user disable --now sapience-sync.timer
+  run now:  systemctl --user start sapience-sync.service
+
+WSL2 detected. The timer above is DEFINED but may never FIRE here.
+  WSL needs two one-time steps before any systemd --user timer can fire:
+    1. put [boot] systemd=true in /etc/wsl.conf, then run: wsl --shutdown
+    2. loginctl enable-linger testuser
+  Until both are done, 'systemctl --user status' reports no user manager
+  and the only sync that happens is the one you run: sapience sync

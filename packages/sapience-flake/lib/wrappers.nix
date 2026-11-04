@@ -68,9 +68,11 @@ let
     pkgs.util-linux
   ];
 
-  # Two shell helpers -- "am I on WSL2?" and "is a systemd user manager reachable?" -- injected
-  # into every wrapper that would otherwise print `systemctl --user` instructions as though they
-  # were guaranteed to work.
+  # Two single-purpose shell helpers -- "am I on WSL2?" and "is a systemd user manager
+  # reachable?" -- injected into the wrappers that would otherwise print `systemctl --user`
+  # instructions as though they were guaranteed to work. Kept separate rather than as one block
+  # because the call sites differ: sapienceCli's help needs only the detector, while the
+  # bootstrap summary and the module's activation notice need both.
   #
   # WHY this exists: Windows consumers reach this flake through WSL2 (there is no native-Windows
   # Nix), and under WSL2 a systemd USER manager is not a given the way it is on any ordinary
@@ -85,13 +87,21 @@ let
   # processes descended from a `wsl.exe` launch (a systemd unit or a cron job has no such
   # ancestor and sees it unset), while the osrelease marker is written by the WSL kernel itself
   # and survives every launch path. Both are cheap and neither can false-positive on real Linux.
-  wslShellHelpers = ''
+  # SAPIENCE_OSRELEASE is a deliberate test seam, not a user-facing knob. Without it the
+  # "I am not on WSL" case is untestable by construction: ../checks/help-output.nix would read
+  # the REAL /proc/sys/kernel/osrelease, so its golden files would pass on an ordinary Linux
+  # host and fail for anyone running `nix flake check` from inside WSL -- the exact platform
+  # this flake now claims to support. Overriding the path makes both branches deterministic
+  # everywhere. Unset in all normal use, where it falls back to the real kernel marker.
+  wslDetect = ''
     sapience_is_wsl() {
       [ -n "''${WSL_DISTRO_NAME:-}" ] && return 0
-      grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null && return 0
+      grep -qi microsoft "''${SAPIENCE_OSRELEASE:-/proc/sys/kernel/osrelease}" 2>/dev/null && return 0
       return 1
     }
+  '';
 
+  userManagerProbe = ''
     # True when a systemd USER manager is reachable, which is the only question that matters
     # for whether a user timer can ever fire.
     #
@@ -109,6 +119,30 @@ let
     }
   '';
 
+  # The paste-reduction pair, lifted out of sapienceBootstrap so ../checks/token-functions.nix
+  # can exercise them as the pure functions they are, against a table of real pastes, without
+  # running the bootstrap around them. They are the highest-traffic logic in this flake -- every
+  # install passes a clipboard through them -- and the only part testable with no network, no
+  # systemd and no vendor.
+  tokenShellHelpers = ''
+    # Reduce a paste to a bare token. Accepts the token itself, the whole private link
+    # ("https://app.spnc.ai/?token=XXXX"), a quoted paste, or a <...>-wrapped one, because the
+    # link is what the invite email actually puts on the clipboard. Prints "" when nothing
+    # token-shaped can be recovered.
+    sap_token_clean() {
+      printf '%s' "$1" \
+        | tr -d '[:space:]' \
+        | sed -e 's/^[<"'"'"']*//' -e 's/[>"'"'"']*$//' \
+        | sed -e 's/.*[?&]token=//' -e 's/^token=//' -e 's/[&#].*$//'
+    }
+
+    # A token is letters, digits and underscores only. This is what separates a real token from
+    # a pasted link: a URL keeps its ':' '/' '?' '=' and fails here.
+    sap_token_ok() {
+      printf '%s' "$1" | grep -qE '^[A-Za-z0-9_-]{8,}$'
+    }
+  '';
+
   # The two WSL prerequisites, as printed lines. One definition, reused by the help text and the
   # bootstrap summary, so the two can never drift apart.
   wslPrereqLines = ''
@@ -123,7 +157,7 @@ let
     export PATH="${runtimePath}:$PATH"
     export SAPIENCE_HOST="${host}"
 
-    ${wslShellHelpers}
+    ${wslDetect}
     ${lib.optionalString (!memoryFiles) "export NO_MEMFILES=1"}
 
     SUB="''${1:-}"
@@ -243,24 +277,8 @@ let
     set -euo pipefail
     export PATH="${runtimePath}:$PATH"
 
-    ${wslShellHelpers}
-
-    # Reduce a paste to a bare token. Accepts the token itself, the whole private link
-    # ("https://app.spnc.ai/?token=XXXX"), a quoted paste, or a <...>-wrapped one, because the
-    # link is what the invite email actually puts on the clipboard. Prints "" when nothing
-    # token-shaped can be recovered.
-    sap_token_clean() {
-      printf '%s' "$1" \
-        | tr -d '[:space:]' \
-        | sed -e 's/^[<"'"'"']*//' -e 's/[>"'"'"']*$//' \
-        | sed -e 's/.*[?&]token=//' -e 's/^token=//' -e 's/[&#].*$//'
-    }
-
-    # A token is letters, digits and underscores only. This is what separates a real token from
-    # a pasted link: a URL keeps its ':' '/' '?' '=' and fails here.
-    sap_token_ok() {
-      printf '%s' "$1" | grep -qE '^[A-Za-z0-9_-]{8,}$'
-    }
+    ${lib.optionalString backgroundSync (wslDetect + userManagerProbe)}
+    ${tokenShellHelpers}
 
     mkdir -p "${stateDir}"
 
@@ -448,6 +466,12 @@ let
     # The source count is resolved lazily on the first completed call, never up front: the
     # folder picker runs first and a selection made there changes it. Cached, since it walks
     # every candidate file. If it cannot be parsed the line degrades to a bare count.
+    # shellcheck disable=SC2329
+    # Invoked only from the `backend == "ollama" && ollamaEnabled` branch below, which is omitted
+    # at EVAL time on every other backend -- so on the default relay backend this definition is
+    # genuinely never called and shellcheck is correct to say so. Suppressed rather than wrapped
+    # in the same lib.optionalString: that would re-indent 70-odd lines of load-bearing comment
+    # for a cosmetic gain, and the gate is already documented at the launch site.
     ticker() {
       started="$1"
       watch_pid="$2"   # this script's own shell; see the launch site below
@@ -658,16 +682,19 @@ in
   # here rather than redefining them in the caller is what keeps there being exactly one
   # definition of each.
   #
-  # `wslShellHelpers`/`wslPrereqLines` are exported for exactly that reason: ../modules/sapience.nix
-  # warns about the same defined-but-dead timer at activation time, and a second copy of the
-  # detection logic or of the two prerequisite steps there is precisely the drift this inherit
-  # block exists to prevent.
+  # `wslDetect`/`userManagerProbe`/`wslPrereqLines` are exported for exactly that reason:
+  # ../modules/sapience.nix warns about the same defined-but-dead timer at activation time, and a
+  # second copy of the detection logic or of the two prerequisite steps there is precisely the
+  # drift this inherit block exists to prevent. `tokenShellHelpers` is exported for ../checks/,
+  # which tests those two functions directly.
   inherit
     python
     runtimePath
     requiredPayload
     optionalPayload
-    wslShellHelpers
+    wslDetect
+    userManagerProbe
     wslPrereqLines
+    tokenShellHelpers
     ;
 }

@@ -1,0 +1,80 @@
+# CI for sapience-flake as a STANDALONE repository.
+#
+# This file lives inside the flake directory so it travels with it: the directory is designed to
+# be copied out and published on its own (see ../../README.md), and at that point this becomes the
+# repository's own workflow. While the directory still sits inside a larger configuration repo,
+# GitHub reads workflows only from the repo root, so this file is inert there and the parent
+# repo's own ci.yml runs the same two commands against this subdirectory instead.
+#
+# Deliberately thin. Everything it runs is a command a consumer can run themselves --
+# `nix flake check` and one shell script -- because evidence only the CI can reproduce is not
+# evidence. See ../../checks/default.nix for what the checks cover and, more importantly, what
+# they deliberately do not.
+name: ci
+
+on:
+  push:
+  pull_request:
+  # Weekly, because this flake's correctness depends on a THIRD PARTY that changes without
+  # notice: nixpkgs moves under the pinned release branch, and the vendor rewrites the payload
+  # with no versioning at all. A green commit says little three months later, so the schedule is
+  # what turns these checks into a standing claim rather than a snapshot.
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The hermetic checks, on both supported systems. `nix flake check` without --all-systems
+  # checks the CURRENT system only, so running it on two runners is what gives aarch64-linux a
+  # real build rather than a bare evaluation. ubuntu-24.04-arm is free for public repositories;
+  # on a private repo it is billed, so drop that matrix entry if this stays private.
+  flake-check:
+    name: flake check (${{ matrix.system }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            system: x86_64-linux
+          - runner: ubuntu-24.04-arm
+            system: aarch64-linux
+    steps:
+      - uses: actions/checkout@v7
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: nix flake check
+        run: nix flake check -L
+      - name: formatting
+        # An explicit file list, not directories: nixfmt deprecated directory arguments.
+        run: find . -name '*.nix' -not -path './.git/*' -print0 | xargs -0 nix run nixpkgs#nixfmt-rfc-style -- --check
+
+  # The end-to-end install, on a genuinely non-NixOS Linux. This is the job that answers "does it
+  # work for someone who just installed Nix on Ubuntu" -- it performs a real home-manager
+  # activation against a real $HOME, with the vendor stubbed by a local HTTP server, so it needs
+  # no credentials and cannot flake on a vendor outage.
+  install-test:
+    name: install test on Ubuntu (stubbed vendor)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: install test
+        run: bash tests/install-test.sh
+
+  # NOT PRESENT, on purpose: a WSL2 job.
+  #
+  # GitHub-hosted Windows runners cannot be relied on for WSL2 -- it needs nested virtualization,
+  # the setup-wsl maintainer has stated the hosted runners lack it, and actions/runner-images#10563
+  # carries contradictory claims about which images support it at all. A job that silently ran
+  # WSL1, or that passed on only part of the fleet, would be worse than no job: it would make a
+  # claim this repo cannot back. The WSL CODE PATHS are covered hermetically by
+  # checks/help-output.nix and checks/wsl-probe.nix, which force detection; end-to-end WSL
+  # verification is manual and recorded in README.md's "Platforms" section.

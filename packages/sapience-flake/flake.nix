@@ -27,8 +27,26 @@
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
+  # TEST-ONLY input, reached from `checks.<system>.hm-module` and from nowhere else. Neither
+  # output set touches it: `homeManagerModules.sapience` is a bare module file that the
+  # consumer's OWN home-manager evaluates, and `packages.<system>.*` has nothing to do with
+  # home-manager at all.
+  #
+  # It is an input rather than an ad-hoc `builtins.getFlake` so the module test is PINNED by
+  # flake.lock and reproducible, which is the whole claim these checks are making. Nix fetches
+  # inputs lazily, so building a package does not download it. A consumer who would rather not
+  # carry a second home-manager node in their own lock can collapse it onto theirs:
+  #
+  #   inputs.sapience-flake.inputs.home-manager.follows = "home-manager";
+  inputs.home-manager.url = "github:nix-community/home-manager/release-26.05";
+  inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
   outputs =
-    { self, nixpkgs }:
+    {
+      self,
+      nixpkgs,
+      home-manager,
+    }:
     let
       # Linux only -- which is also the whole Windows story, not a gap in it. There is no
       # native-Windows Nix (the upstream project ships none; nova-nix and libnix are third-party
@@ -89,6 +107,22 @@
         {
           inherit (wrappers) sapience sf1 sapience-bootstrap;
           default = wrappers.sapience;
+        }
+      );
+
+      # Hermetic behavioural tests of the generated wrappers: shellcheck + bash -n, golden help
+      # output on both platforms and both scheduling configurations, and unit tests for the token
+      # and platform helpers. `nix flake check` runs all of them, which is the point -- the
+      # evidence is reproducible by anyone evaluating this flake, not just by its CI.
+      # ./checks/default.nix documents what these deliberately do NOT cover (the vendor, a timer
+      # actually firing, WSL end-to-end).
+      checks = forAllSystems (
+        system:
+        import ./checks {
+          pkgs = nixpkgs.legacyPackages.${system};
+          inherit (nixpkgs) lib;
+          inherit home-manager;
+          module = self.homeManagerModules.sapience;
         }
       );
     };

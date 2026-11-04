@@ -59,7 +59,8 @@ let
     runtimePath
     requiredPayload
     optionalPayload
-    wslShellHelpers
+    wslDetect
+    userManagerProbe
     wslPrereqLines
     ;
 
@@ -102,10 +103,15 @@ in
       default = null;
       example = "/run/secrets/sapience_token";
       description = ''
-        Optional path to a file containing only the account token, read at activation time for a
-        non-interactive bootstrap. Must be a path OUTSIDE the Nix store (a sops secret, or a
-        mode-600 file in $HOME): the token is the whole credential for the account, so a store
-        path would make it world-readable. When null, sapience-bootstrap prompts instead.
+        Optional path to a file containing only the account token, which makes
+        `sapience-bootstrap` non-interactive. Read by `sapience-bootstrap` WHEN YOU RUN IT, not
+        during home-manager activation: activation seeds the payload and registers the MCP
+        server, while ~/.sapience/config.json is created by the bootstrap. Setting this option
+        alone therefore leaves no token on disk until the bootstrap runs once.
+
+        Must be a path OUTSIDE the Nix store (a sops secret, or a mode-600 file in $HOME): the
+        token is the whole credential for the account, so a store path would make it
+        world-readable. When null, sapience-bootstrap prompts instead.
       '';
     };
 
@@ -402,7 +408,8 @@ in
       config.lib.dag.entryAfter [ "writeBoundary" ] ''
         export PATH="${runtimePath}:$PATH"
 
-        ${wslShellHelpers}
+        ${wslDetect}
+        ${userManagerProbe}
 
         if sapience_is_wsl && ! sapience_has_user_manager; then
           echo "sapience: backgroundSync is on, but no systemd user manager is running (WSL2)."

@@ -24,3 +24,22 @@ jobs:
         # a "Do not modify this file!" header — excluded by path since deadnix has no
         # config-file mechanism (unlike statix.toml above the flake check step).
         run: nix develop --command deadnix --exclude 'hosts/*/hardware-configuration.nix' .
+
+  # packages/sapience-flake/ is its OWN flake, so the repo-root `nix flake check` above does not
+  # reach it. It ships packages/sapience-flake/.github/workflows/ci.yml for when that directory
+  # is published as a standalone repository; GitHub reads workflows only from the repo root, so
+  # that file is inert here and this job runs the same two commands against the subdirectory.
+  sapience-flake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: flake check
+        run: nix flake check -L ./packages/sapience-flake
+      # A real home-manager activation against a throwaway $HOME on a non-NixOS Linux, with the
+      # vendor stubbed by a local HTTP server. No credentials, and no network beyond the Nix
+      # cache. See packages/sapience-flake/tests/install-test.sh for what it asserts.
+      - name: install test (stubbed vendor)
+        run: bash packages/sapience-flake/tests/install-test.sh
