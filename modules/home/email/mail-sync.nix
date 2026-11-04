@@ -5,12 +5,12 @@
 # delete-confirmed/unsubscribe-extract in agent-tools/); `mail-guard.sh`'s allowlist is
 # untouched by this module.
 #
-# Motivation: there were previously TWO independent, unsynchronized entry points into
-# mbsync -- the notmuch preNew hook (`mbsync gmail logos || true`) and aerc's `$` keybind
-# (`mbsync gmail && notmuch new --no-hooks`) -- with no lock between them, so a preNew-triggered
-# reindex could race a manual aerc sync against the same Maildir. `mail-sync` is the single
-# choke point both triggers now call through: it takes one blocking flock before EVER invoking
-# mbsync, so at most one mbsync run is in flight system-wide regardless of which trigger fired.
+# Why a single choke point: there are two independent triggers into mbsync -- the notmuch
+# preNew hook and aerc's `$` keybind -- and nothing orders them against each other, so a
+# preNew-triggered reindex can race a manual aerc sync over the same Maildir. Both triggers
+# therefore call through `mail-sync`, which takes one blocking flock before EVER invoking
+# mbsync, so at most one mbsync run is in flight system-wide no matter which trigger fired.
+# Any new trigger must come through here too, for the same reason.
 #
 # Structurally incapable of `mbsync -a`: the allowlist `case` below branches only to hardcoded
 # `mbsync gmail` / `mbsync logos` -- mirroring the `--account {gmail,logos}` allowlist `case` in

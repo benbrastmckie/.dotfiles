@@ -69,12 +69,11 @@ echo "===> Detected hostname: $HOSTNAME"
 MAX_JOBS="${NIX_MAX_JOBS:-4}"
 echo "===> Build job cap: --max-jobs $MAX_JOBS"
 
-# --no-check is retained as an accepted no-op. Both rebuilds below pass
+# --no-check is accepted but has no effect. Both rebuilds below pass
 # `--option allow-import-from-derivation false` UNCONDITIONALLY -- docs/testing.md and
-# docs/unstable-packages.md document it as the standing build flag for this repo -- so there
-# is nothing left for the flag to turn on. The SKIP_CHECK variable it used to set was never
-# interpolated into either command, making the flag silently inert; shellcheck (SC2034) names
-# it, which is why this is a flake check now rather than a decorative CI step.
+# docs/unstable-packages.md document it as the standing build flag for this repo -- so there is
+# nothing for the flag to switch on. It is kept, and says so out loud, because the spelling is
+# in those docs and in muscle memory.
 if [ "$DO_NO_CHECK" = "1" ]; then
   echo "===> Note: --no-check is a no-op (import-from-derivation is always disabled)."
 fi

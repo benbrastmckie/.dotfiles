@@ -1,21 +1,19 @@
-# Gmail OAuth2 token refresh service and timer
+# Gmail OAuth2 token refresh service and timer — PARKED. The entire body below is commented
+# out deliberately; this module contributes nothing to the configuration as it stands. See
+# specs/072_email_workflow_infrastructure_prereqs/handoffs/oauth-gate.md for the decision.
 #
-# DISABLED 2026-07-02 (see
-# specs/072_email_workflow_infrastructure_prereqs/handoffs/oauth-gate.md).
+# Why it has no consumer: this service exists only to keep a Gmail XOAUTH2 access token fresh
+# for `mbsync`, and mbsync authenticates with the Gmail app password instead (AuthMechs LOGIN —
+# see modules/home/email/mbsync.nix). himalaya and aerc use that same app password. Nothing on
+# this machine reads an XOAUTH2 token.
 #
-# Why this is no longer needed:
-#   - This service existed ONLY to keep a Gmail XOAUTH2 access token fresh for `mbsync`.
-#   - mbsync now authenticates with the Gmail app password (AuthMechs LOGIN) — see
-#     modules/home/email/mbsync.nix — and himalaya/aerc were already on the app password.
-#     Nothing reads the OAuth2 tokens anymore, so this refresh has no consumer.
-#   - The underlying refresh token is expired/revoked (`invalid_grant`), so the timer was
-#     re-running this oneshot every 45 min only to FAIL every time, leaving the user systemd
-#     session permanently "degraded" (visible on each `home-manager switch`).
-#   - Publishing the OAuth app to Production to fix XOAUTH2 would require a Google CASA Tier 2
-#     assessment (multi-week, paid, annual); the app-password path avoids that entirely.
+# Do NOT re-enable casually. The stored refresh token is expired/revoked (`invalid_grant`), so
+# the timer would re-run this oneshot every 45 min and fail every time, leaving the user systemd
+# session permanently "degraded" — visible on every `home-manager switch`. Restoring XOAUTH2
+# properly means publishing the OAuth app to Production, which requires a Google CASA Tier 2
+# assessment (multi-week, paid, annual); the app-password path avoids that entirely.
 #
-# Kept (commented, not deleted) so re-enabling XOAUTH2 later is a one-block revert. To restore:
-# uncomment below and re-point mbsync.nix's Gmail store back to AuthMechs XOAUTH2.
+# To restore anyway: uncomment below and re-point mbsync.nix's Gmail store to AuthMechs XOAUTH2.
 # deadnix: skip
 { config, ... }:
 {

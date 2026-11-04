@@ -67,9 +67,9 @@
 
     # Audio and WiFi kernel module options
     # snd_hda_intel power_save=1: allow codec to idle after 1s of silence.
-    #   Previously set to 0, but the EAPD speaker-amp is already disabled by the
-    #   disable-speaker-amp service, so clicks from power-state transitions won't
-    #   come through internal speakers. Enabling saves meaningful battery.
+    #   Safe to leave on here because the EAPD speaker-amp is already disabled by the
+    #   disable-speaker-amp service, so clicks from power-state transitions never reach
+    #   the internal speakers. Idling the codec saves meaningful battery.
     # battery cache_time=10000: poll battery hardware every 10s (default ~1s).
     #   At 1s the kernel fires power_supply change events ~60/min, keeping udevd
     #   and journald busy. 10s gives accurate-enough readings while cutting

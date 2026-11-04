@@ -1,12 +1,10 @@
-# Always-on sops-nix wiring. Hoisted out of modules/system/optional/discord-bot.nix, where
-# `sops.defaultSopsFile` and `sops.age.keyFile` previously lived inside `lib.mkIf cfg.enable` —
-# secrets availability was accidentally coupled to `services.discordBot.enable`. Both real hosts
-# (nandi, hamsa) happen to enable that service, so it "worked" by coincidence, but a new
-# always-on secret (zotero_api_key, consumed by modules/system/shell.nix,
-# modules/home/services/zotero-env.nix, and modules/home/core/zotero.nix) must not inherit that
-# coincidence. This module is imported unconditionally by modules/system/default.nix so
+# Always-on sops-nix wiring: `sops.defaultSopsFile` and `sops.age.keyFile`, held here rather
+# than in any optional module so that secrets availability is never coupled to an optional
+# service's enable toggle. Imported unconditionally by modules/system/default.nix, so
 # /run/secrets/zotero_api_key exists on every real host regardless of which optional services
-# are enabled.
+# are on — which is what lets zotero_api_key be consumed by modules/system/shell.nix,
+# modules/home/services/zotero-env.nix and modules/home/core/zotero.nix. Keep these two
+# file-scoped settings here; a per-service module declares only its own `sops.secrets.*`.
 {
   config,
   username,

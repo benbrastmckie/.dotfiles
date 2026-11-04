@@ -26,9 +26,8 @@
 # Gmail's label model); the non-dot `INBOX`/`Sent`/`Drafts`/`Trash`/`Archive` subdirectories
 # under `~/Mail/Logos/` are stray, always-empty directories and must never be queried.
 #
-# Split out of the former monolithic `email/agent-tools.nix` (761 lines). Carries
-# ONLY the shared pure-string helpers used by the five per-binary modules in this directory
-# (census/classify/unsubscribe-extract/archive-confirmed/delete-confirmed, wired by
+# Carries ONLY the shared pure-string helpers used by the five per-binary modules in this
+# directory (census/classify/unsubscribe-extract/archive-confirmed/delete-confirmed, wired by
 # default.nix). PLAIN Nix expression, not a Home Manager module — no `pkgs`/`config` args;
 # consumers `import ./lib.nix` directly and `inherit` the helpers they need.
 let
@@ -328,7 +327,7 @@ let
           else
             log "mbsync $ACCOUNT_MBSYNC_GROUP exited non-zero for a reason OTHER than an auth"
             log "failure (exit $status). This may be the known gmail-spam NONEXISTENT-mailbox"
-            log "issue (task-46/mbsync scope; see handoffs/verification-baseline.md §6a) —"
+            log "issue (mbsync scope; see handoffs/verification-baseline.md §6a) —"
             log "inspect the output above."
           fi
           return 1

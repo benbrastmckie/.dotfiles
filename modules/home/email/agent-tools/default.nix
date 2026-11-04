@@ -1,5 +1,5 @@
-# Aggregator for the task-88 split of the former monolithic email/agent-tools.nix (761 lines)
-# into per-binary modules. See lib.nix for the full contract provenance and shared helpers.
+# Aggregator for the per-binary agent-tool modules in this directory. See lib.nix for the
+# shared helpers and the frozen wrapper contract.
 { ... }:
 {
   imports = [

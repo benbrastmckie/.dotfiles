@@ -1,7 +1,7 @@
 # Zotero Agent Tooling
 
-Machine-level tooling that unblocks the literature extension's Zotero write-back path
-(`~/.config/nvim`, its tasks 38/39): the `zot` CLI on PATH, managed credentials reachable from
+Machine-level tooling that unblocks the literature extension's Zotero write-back path (the
+extension lives in `~/.config/nvim`): the `zot` CLI on PATH, managed credentials reachable from
 every context that needs them, and an optional local metadata-resolution service.
 
 ## `zot` CLI
@@ -113,15 +113,13 @@ derived location above regenerates automatically; none needs a manual edit.
 8. Only after steps 1-7 are confirmed working, revoke the **old** key at
    `https://www.zotero.org/settings/keys`.
 
-**Provisioning history**: this tooling was initially seeded with the pre-existing key, then fully
-rotated on 2026-08-11. The replacement key was verified against `GET /keys/current`
-(`library`/`files`/`notes`/`write` on userID 2622830) and propagated to all five derived locations
-in the table above; the superseded key is revoked and returns HTTP 403. The unmanaged plaintext
-export that previously lived in `~/.config/fish/conf.d/private.fish` has been removed — that file
-now carries only a comment pointing here.
+**Key provenance**: the key in use is verified against `GET /keys/current`
+(`library`/`files`/`notes`/`write` on userID 2622830) and propagated to all five derived
+locations in the table above. There is deliberately no plaintext export of it anywhere outside
+those locations — in particular `~/.config/fish/conf.d/private.fish` carries only a comment
+pointing here, and must stay that way.
 
-**Sequencing warning, learned the hard way during that rotation**: run the runbook steps *in
-order*. Revoking the old key (step 8) before running the rebuild (steps 4-6) leaves the new key
+**Sequencing warning**: run the runbook steps *in order*. Revoking the old key (step 8) before running the rebuild (steps 4-6) leaves the new key
 encrypted in `secrets/secrets.yaml` while every deployed location still holds a key the API has
 already rejected — which breaks Zotero access everywhere until the rebuild lands. Step 8 is last
 for a reason.

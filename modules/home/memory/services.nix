@@ -24,10 +24,8 @@
     };
   };
 
-  # Process memory tracker service - logs the top RSS consumers system-wide
-  #
-  # Supersedes the former claude-memory-tracker unit. Home Manager's sd-switch
-  # stops and removes the old unit on activation, since it is no longer declared.
+  # Process memory tracker service - logs the top RSS consumers system-wide.
+  # This is the single memory-tracking unit; nothing else should declare one.
   systemd.user.services.process-memory-tracker = {
     Unit = {
       Description = "Top-N process memory tracker";

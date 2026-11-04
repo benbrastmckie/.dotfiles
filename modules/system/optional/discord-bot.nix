@@ -4,14 +4,11 @@
 # flake.nix extraModules).
 # See: specs/053_nixos_discord_bot_prerequisites/
 #
-# NOTE: `sops.defaultSopsFile` and `sops.age.keyFile` used to be declared here, inside
-# `lib.mkIf cfg.enable` below — meaning sops secrets availability was accidentally coupled to
-# this optional service's enable toggle. Both real hosts happened to enable this service, so it
-# worked by coincidence. Those two lines have been hoisted out to the always-on
-# `modules/system/secrets.nix` (imported unconditionally by `modules/system/default.nix`), so a
-# secret consumed independently of the Discord bot (e.g. `zotero_api_key`) does not depend on
-# `services.discordBot.enable`. This module's own `sops.secrets.*` declarations (below) are
-# unchanged — only the two file-scoped `sops.*` settings moved.
+# NOTE: this module declares only its own `sops.secrets.*` entries. The file-scoped
+# `sops.defaultSopsFile` and `sops.age.keyFile` settings belong in the always-on
+# `modules/system/secrets.nix` and must NOT be declared here: inside `lib.mkIf cfg.enable`
+# they would couple every secret's availability to `services.discordBot.enable`, breaking any
+# secret consumed independently of the bot (e.g. `zotero_api_key`).
 {
   config,
   lib,
@@ -25,8 +22,8 @@ let
   # Discord Bot packaged application
   # buildPythonApplication derivation for the Nextcord bot service, callPackage'd directly
   # here (not via overlays/python-packages.nix, which is scoped to library overrides
-  # composed via python3.withPackages). Replaces the pre-task-89 ad-hoc interpreter
-  # environment and manual working-tree sys.path wiring with a real nix-store binary.
+  # composed via python3.withPackages). The bot runs as a real nix-store binary, so it needs
+  # no interpreter environment of its own and no working-tree sys.path wiring.
   opencodeDiscordBot =
     pkgs.python3Packages.callPackage ../../../packages/opencode-discord-bot.nix
       { };

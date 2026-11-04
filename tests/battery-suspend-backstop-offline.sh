@@ -4,17 +4,20 @@
 # ============================================================================
 # CAVEAT, read before trusting a green run: every case below stubs
 # BACKSTOP_SYSTEMCTL_BIN and BACKSTOP_NOTIFY_BIN with recording scripts, so
-# this suite exercises the backstop script's DECISION LOGIC ONLY. It CANNOT
-# detect an authorization failure on the real `systemctl suspend -i` (the
-# session-less-root polkit denial fixed by the
-# security.polkit.extraConfig rule in modules/system/power.nix), nor a
-# failure in the real root-to-session notify path (the `runuser` defect
-# fixed in a later revision). Both of those defects passed this exact suite
-# before their respective fixes. A green run here is NOT evidence the
-# backstop works end to end -- see the known-gap footer this script prints,
-# and Phase 4 of
+# this suite exercises the backstop script's DECISION LOGIC ONLY. Two whole
+# classes of defect are invisible to it, and a green run is NOT evidence the
+# backstop works end to end:
+#
+#   1. An authorization failure on the real `systemctl suspend -i` for a
+#      session-less root caller -- what the security.polkit.extraConfig rule
+#      in modules/system/power.nix exists to permit.
+#   2. A failure in the real root-to-session notify path, which needs
+#      `runuser` to reach the user's session bus.
+#
+# Both can be broken while every case here passes. See the known-gap footer
+# this script prints, and Phase 4 of
 # specs/123_fix_backstop_polkit_denial_live_verification/plans/01_backstop-polkit-fix.md
-# for the checks that actually prove it (they require sudo and a real
+# for the checks that actually prove them (they require sudo and a real
 # suspend cycle; this script never uses sudo and never suspends anything).
 # ============================================================================
 set -u

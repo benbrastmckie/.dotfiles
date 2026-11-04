@@ -9,11 +9,6 @@ the same lints CI runs (`statix`, `deadnix`, `nixfmt`, `shellcheck`), evaluates 
 `nixosConfigurations` entry, and evaluates the standalone home-manager generation — see the
 README's [Local pre-push gate](../README.md#local-pre-push-gate) section.
 
-> An earlier version of this document said flake-check errors were "expected ... for packages
-> with complex wrapper scripts like Neovim". That is no longer true, and treating a red check as
-> normal is how five consecutive pushes were left failing. If `nix flake check` fails, something
-> is actually wrong.
-
 ### Testing Methods
 
 1. **Run the gate:**
@@ -22,9 +17,9 @@ README's [Local pre-push gate](../README.md#local-pre-push-gate) section.
    nix flake check -L
    ```
 
-   Note: `./scripts/update.sh --no-check` is accepted but does nothing. The flag never had an
-   effect (the variable it set was never passed to either rebuild); both rebuilds pass
-   `--option allow-import-from-derivation false` unconditionally instead.
+   Note: `./scripts/update.sh --no-check` is accepted but has no effect. Both rebuilds pass
+   `--option allow-import-from-derivation false` unconditionally, so there is nothing for the
+   flag to switch on.
 
 2. **Apply configuration directly:**
    ```bash

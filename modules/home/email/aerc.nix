@@ -353,8 +353,8 @@ in
     # rather than hanging aerc's "Checking for new mail..." indicator for up
     # to 300s; check-mail-timeout is raised from its 10s default so a normal,
     # uncontended network mbsync round-trip is not spuriously killed. Wiring
-    # check-mail-cmd also makes the `u = ":check-mail<Enter>"` keybind
-    # functional (it previously errored "checkmail: no command specified").
+    # check-mail-cmd is also what makes the `u = ":check-mail<Enter>"` keybind
+    # work at all: without it, aerc errors "checkmail: no command specified".
     # DECISION: [logos] check-mail is deliberately left UNWIRED pending a
     # decided check-mail failure-surfacing policy; wiring it now
     # would add a second undifferentiated failure surface.

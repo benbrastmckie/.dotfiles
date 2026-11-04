@@ -32,12 +32,12 @@ in the background, and records the resulting PID in `/tmp/claude-inhibitor-${SES
 This holds a logind **block** inhibitor on `sleep` for as long as the session is
 open — including while the session sits completely idle at the prompt.
 
-**Why `sleep` and not `sleep:idle`.** An earlier version also took the `idle` lock. That was
-dropped because it bought nothing and misdescribed the intent: blocking suspend is entirely the
-job of the `sleep` lock, while logind's `idle` lock only suppresses the session's idle *hint*.
-Screen blanking on this system is not driven by logind at all — it is driven by mutter's idle
-monitor and by **GNOME SessionManager** inhibitors (see mechanism 5), so the `idle` lock never
-actually held the screen on. Keeping it made `systemd-inhibit --list` look like the culprit
+**Why `sleep` and not `sleep:idle`.** Do not add the `idle` lock: it buys nothing here and
+misdescribes the intent. Blocking suspend is entirely the job of the `sleep` lock, while
+logind's `idle` lock only suppresses the session's idle *hint*. Screen blanking on this system
+is not driven by logind at all — it is driven by mutter's idle monitor and by **GNOME
+SessionManager** inhibitors (see mechanism 5), so an `idle` lock cannot hold the screen on.
+Taking it makes `systemd-inhibit --list` look like the culprit
 whenever the screen failed to blank, which sent at least one debugging session down the wrong
 path. It is **session-scoped,
 not activity-scoped**: opening a terminal and doing nothing still blocks the machine from
@@ -155,10 +155,9 @@ spawn-at-startup "swayidle" "-w" "timeout" "300" "swaylock -f" "before-sleep" "s
 ```
 
 This locks the screen after 5 minutes idle and on `before-sleep`/`lock` signals — but it never
-triggers an auto-suspend on its own. An earlier version of this configuration had a
-`"timeout" "600" "systemctl suspend"` clause that auto-suspended the niri session after 10
-minutes idle; that clause has been removed, so the niri session now has **zero idle-based
-auto-suspend on any power state** — its only idle behavior is locking. This is a deliberate,
+triggers an auto-suspend on its own. There is deliberately no `"timeout" "600" "systemctl
+suspend"` clause, so the niri session has **zero idle-based auto-suspend on any power state**
+— its only idle behavior is locking. This is a deliberate,
 acknowledged divergence from the GNOME session's 12h-AC/1h-battery split above, not an oversight:
 `swayidle`'s `timeout` clause has no AC/battery-conditional concept of its own (a single
 `timeout N command` applies unconditionally regardless of power source), so giving niri the same

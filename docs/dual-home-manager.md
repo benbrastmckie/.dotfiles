@@ -38,18 +38,20 @@ standalone profile is effectively the "active" one for interactive shell session
   (`{ pkgs-unstable, lectic, nix-ai-tools }` plus `username`/`name`), and `lectic`'s
   *value* is identical across both: every path resolves `lectic` to the built package via the
   shared expression `lectic.packages.${system}.lectic or lectic.packages.${system}.default or
-  lectic`. This was previously a real asymmetry, not an intentional design choice — the
-  NixOS-integrated path (`lib/mkHost.nix`'s `home-manager.extraSpecialArgs`, and `flake.nix`'s
-  `hmExtraSpecialArgs` consumed raw by the `iso` config) passed the raw, unbuilt `lectic` flake
-  input straight into `home.packages`, silently installing an inert reference (no `bin/lectic`).
-  This was the same defect class as an earlier `lectic` regression, which was fixed for the
-  standalone path only; the later fix applied that path's existing resolution expression to
-  the NixOS-integrated and `iso` paths as well, so all home-manager evaluation paths now ship the
-  real `lectic` derivation.
+  lectic`. Keeping that expression in every path matters: `lib/mkHost.nix`'s
+  `home-manager.extraSpecialArgs` and `flake.nix`'s `hmExtraSpecialArgs` (consumed raw by the
+  `iso` config) must not pass the unbuilt `lectic` flake input straight into `home.packages`,
+  which installs an inert reference carrying no `bin/lectic` and fails silently rather than at
+  evaluation.
 
-## QUESTION for User: Which Path to Keep?
+## Which Path to Keep
 
-**Three options**:
+**Decided: keep both — Option A below.** The double evaluation costs roughly 30 extra seconds on
+a full rebuild, which is negligible here, and the sync risk stays low because
+`scripts/update.sh` always runs both paths. If build times ever become a pain point, Option B is
+the cleanest migration: it removes complexity without changing any system behavior the user sees.
+
+**The three options, on their merits**:
 
 ### Option A: Keep both (current state)
 
@@ -72,26 +74,12 @@ updates the user profile; requires all user services to be managed via standalon
 **Action required**: Remove `home-manager.nixosModules.home-manager` from all `nixosConfigurations`;
 update `scripts/update.sh` to call only `home-manager switch`.
 
-## Current Recommendation
-
-Keep both paths (Option A) until the workflow impact of dropping one is measured. The double
-evaluation cost is negligible on modern hardware (~30 extra seconds per full rebuild). The sync
-risk is low given `scripts/update.sh` always runs both.
-
-If build times become a pain point, Option B (drop standalone) is the cleanest migration:
-it removes complexity without changing the system behavior visible to the user.
-
 ## Notes on Unmanaged Secrets
 
 The Gmail app password is not managed by sops-nix or home-manager — it is stored by hand in the
 libsecret keyring (`secret-tool` service `gmail-app-password`). This is intentional: it is a
 long-lived secret with no rotation, so no Nix-declared file or refresh job is involved. Do not
 attempt to declare secrets in `home.file` without a secrets backend.
-
-> Legacy (pre-2026-07-02): `~/.config/himalaya/gmail-oauth2.env` held hand-created Gmail OAuth2
-> credentials rotated by the `refresh-gmail-oauth2` script. Gmail now uses the app password (see
-> `docs/himalaya.md`) and the refresh unit is disabled, so that env file is no longer part of the
-> active setup.
 
 ## Related Files
 

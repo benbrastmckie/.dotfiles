@@ -1,5 +1,5 @@
-# Part of the task-88 split of the former monolithic email/agent-tools.nix; see lib.nix in
-# this directory for the full contract provenance and shared helpers (wrapper-contract.md).
+# One of the five per-binary agent-tool modules in this directory; see lib.nix for the shared
+# helpers and the frozen wrapper contract (wrapper-contract.md) they all implement.
 #
 # =======================================================================================
 # email-unsubscribe-extract (read-only) — List-Unsubscribe header harvest, never fetches

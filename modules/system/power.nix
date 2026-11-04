@@ -330,15 +330,14 @@ in
       # Resume hook: marks the wake timestamp + capacity that the backstop
       # script above reads to decide whether a wake-grace applies.
       #
-      # post-resume.target does NOT exist on this host (`systemctl show
-      # post-resume.target` reports LoadState=not-found) -- this unit
-      # previously targeted it via wantedBy and was therefore never pulled
-      # in by a resume, despite a populated .wants/ directory (systemd
+      # Do NOT target post-resume.target: it does not exist on this host
+      # (`systemctl show post-resume.target` reports LoadState=not-found),
+      # so a unit wanted by it is never pulled in by a resume -- and the
+      # .wants/ directory is no evidence to the contrary, because systemd
       # writes [Install] symlinks from a unit's static WantedBy= list
-      # regardless of whether the target resolves; a populated .wants/ dir
-      # is NOT evidence a unit fires).
+      # whether or not the target resolves.
       #
-      # Rewired to sleep.target, the documented systemd integration point
+      # Wired to sleep.target instead, the documented systemd integration point
       # for post-resume hooks (man systemd.special: "hook program code
       # after the actual system sleep operation ... place the command in
       # ExecStop=, enable StopWhenUnneeded= and RemainAfterExit="). This is
