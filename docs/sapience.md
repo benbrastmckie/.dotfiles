@@ -142,7 +142,12 @@ Backend choice decides what crosses the wire:
 |---------|------------------------|------------------|
 | `ollama` (configured here) | No | — |
 | `relay` (vendor default) | Yes, redacted chunks via `app.spnc.ai` | **No** |
-| `anthropic` / `openai` | Yes, raw, to that provider on your own API key | No |
+| `anthropic` / `openai` | Yes, redacted, to that provider on your own API key | No |
+
+Redaction applies on every path, including the API backends — `extract_local.py:2264` redacts
+each chunk before the provider call, with the comment "keep secrets out of the model's view (and
+your own provider)". The installer's phrase "raw text goes straight to your provider" means
+*direct rather than via us*, not *unredacted*.
 
 The `relay` row is the one that surprises people: extraction happens server-side, so chunks are
 POSTed before the review gate applies. Auto-approve controls whether facts are *stored in your
