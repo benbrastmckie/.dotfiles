@@ -69,16 +69,19 @@ echo "===> Detected hostname: $HOSTNAME"
 MAX_JOBS="${NIX_MAX_JOBS:-4}"
 echo "===> Build job cap: --max-jobs $MAX_JOBS"
 
-# Option to skip checks (useful for testing problematic packages)
-SKIP_CHECK=""
+# --no-check is retained as an accepted no-op. Both rebuilds below pass
+# `--option allow-import-from-derivation false` UNCONDITIONALLY -- docs/testing.md and
+# docs/unstable-packages.md document it as the standing build flag for this repo -- so there
+# is nothing left for the flag to turn on. The SKIP_CHECK variable it used to set was never
+# interpolated into either command, making the flag silently inert; shellcheck (SC2034) names
+# it, which is why this is a flake check now rather than a decorative CI step.
 if [ "$DO_NO_CHECK" = "1" ]; then
-  echo "===> Skipping build checks for problematic packages..."
-  SKIP_CHECK="--option allow-import-from-derivation false"
+  echo "===> Note: --no-check is a no-op (import-from-derivation is always disabled)."
 fi
 
 # Rebuild NixOS configuration (includes NixOS-integrated home-manager -> /etc/profiles/per-user/)
 echo "===> Rebuilding NixOS configuration..."
-sudo nixos-rebuild switch --flake .#$HOSTNAME --max-jobs "$MAX_JOBS" --option allow-import-from-derivation false
+sudo nixos-rebuild switch --flake ".#$HOSTNAME" --max-jobs "$MAX_JOBS" --option allow-import-from-derivation false
 
 # Rebuild standalone home-manager (-> ~/.nix-profile/, takes PATH priority)
 # Both paths evaluate the same home.nix; running both keeps them in sync.

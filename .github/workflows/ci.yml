@@ -1,8 +1,34 @@
+# CI for this configuration repo.
+#
+# Deliberately thin, and that is the point: every check this runs is a flake check, so
+# `nix flake check` reproduces this workflow EXACTLY on any machine with Nix -- by hand, or
+# automatically from the pre-push hook (scripts/install-git-hooks.sh). Nothing is defined here
+# that cannot be run locally.
+#
+# It did not used to be. The lints lived here as `nix develop --command <linter>` shell steps,
+# which meant the only way to learn they were unhappy was to push and wait; this repo went five
+# consecutive pushes red that way. They are now checks.<system>.* in ../../flake.nix. Two of
+# them were also quietly broken as shell steps -- see the deadnix comment in flake.nix for what
+# `--exclude <glob> .` actually did.
+#
+# WHAT `nix flake check` COVERS: statix, deadnix, nixfmt, shellcheck over scripts/ and tests/,
+# EVALUATION of all five nixosConfigurations entries, and evaluation of the standalone
+# home-manager generation. It does NOT build any system closure: those are multi-gigabyte and
+# do not fit a hosted runner's disk. The real build happens on the machine via scripts/update.sh.
 name: nix-flake-check
 
 on:
+  # master only. `pull_request` already covers branch work, so also firing on every push ran
+  # each PR commit through CI twice.
   push:
+    branches: [master]
   pull_request:
+  # Weekly, because a green commit ages: nixpkgs moves under the pinned nixos-26.05 branch and
+  # several flake inputs float on upstream default branches. A scheduled run turns these checks
+  # into a standing claim rather than a snapshot taken whenever something was last pushed.
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -10,27 +36,30 @@ concurrency:
 
 jobs:
   flake-check:
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest: that label began migrating to Ubuntu 26 on 2026-10-19, and a
+    # runner image changing under a config repo is a failure mode worth not having. Bump
+    # deliberately.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-      - run: nix flake check
-      - name: statix
-        run: nix develop --command statix check
-      - name: deadnix
-        # hosts/*/hardware-configuration.nix is auto-generated (nixos-generate-config) and carries
-        # a "Do not modify this file!" header — excluded by path since deadnix has no
-        # config-file mechanism (unlike statix.toml above the flake check step).
-        run: nix develop --command deadnix --exclude 'hosts/*/hardware-configuration.nix' .
+      - name: nix flake check
+        run: nix flake check -L
 
-  # packages/sapience-flake/ is its OWN flake, so the repo-root `nix flake check` above does not
-  # reach it. It ships packages/sapience-flake/.github/workflows/ci.yml for when that directory
-  # is published as a standalone repository; GitHub reads workflows only from the repo root, so
-  # that file is inert here and this job runs the same two commands against the subdirectory.
+  # packages/sapience-flake/ is its OWN flake with its own flake.lock, so the root
+  # `nix flake check` above does not reach its checks (its .nix files ARE covered by the root
+  # statix/deadnix/nixfmt checks, which walk the whole tree -- it is the sub-flake's six
+  # behavioural checks that need their own invocation).
+  #
+  # It ships packages/sapience-flake/.github/workflows/ci.yml for when that directory is
+  # published as a standalone repository; GitHub reads workflows only from the repo root, so
+  # that file is inert here and this job runs the equivalent against the subdirectory.
   sapience-flake:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: cachix/install-nix-action@v31

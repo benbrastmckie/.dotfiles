@@ -198,28 +198,43 @@ Both commands install `home.nix` packages to separate profile paths. `scripts/up
 both in sequence to keep them in sync. For quick home-only changes, `home-manager switch`
 alone is sufficient since `~/.nix-profile/` takes PATH priority.
 
-### Optional: local flake-check hook
+### Local pre-push gate
 
-Every push and pull request is gated by a `nix-flake-check` GitHub Actions workflow
-(`.github/workflows/ci.yml`) that runs `nix flake check` — this is the authoritative gate for
-the repo, and CI failures are the source of truth.
-
-If you'd like earlier local feedback before pushing, you can opt in to a local `pre-push` hook
-that runs the same check. This is **not installed by default** and is entirely optional — it
-does not conflict with the repo's frequent-commit cadence, since it only runs on `push`, not on
-every commit. To opt in:
+Every push to `master` and every pull request is gated by the `nix-flake-check` GitHub Actions
+workflow ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)), which does nothing but run
+`nix flake check`. The lints are defined as `checks.<system>.*` in
+[`flake.nix`](flake.nix) rather than as workflow steps, so **one command reproduces CI exactly**:
 
 ```bash
-cat > .git/hooks/pre-push <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-echo "Running 'nix flake check' before push..."
-nix flake check
-EOF
-chmod +x .git/hooks/pre-push
+nix flake check -L
 ```
 
-To remove it later, delete `.git/hooks/pre-push`.
+What it covers: `statix`, `deadnix`, `nixfmt --check`, `shellcheck` over `scripts/`, `tests/` and
+`.githooks/`, evaluation of all five `nixosConfigurations` entries, and evaluation of the
+standalone home-manager generation. It does not *build* any system closure — that is what
+`./scripts/update.sh` does on the machine itself.
+
+To catch a failure before it reaches CI, install the tracked pre-push hook (once per clone):
+
+```bash
+./scripts/install-git-hooks.sh
+```
+
+This points `core.hooksPath` at [`.githooks/`](.githooks), so the hook is version-controlled
+instead of hand-copied into `.git/hooks/`. On push it runs only the four lint checks — about a
+second when cached, versus minutes for the full evaluation set — and refuses the push if any
+fail. It does not run on commit, so the frequent-commit cadence is unaffected.
+
+Escape hatches:
+
+```bash
+git push --no-verify           # skip every hook, once
+SKIP_FLAKE_CHECK=1 git push    # skip just the lint checks, once
+git config --unset core.hooksPath   # uninstall
+```
+
+When something does fail: `nix fmt` fixes formatting and
+`nix develop --command statix fix` fixes most statix findings.
 
 ## License
 

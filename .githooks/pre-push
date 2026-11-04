@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Tracked git hook. Activated by `scripts/install-git-hooks.sh`, which points
+# core.hooksPath at this directory -- so the hook is version-controlled and a
+# fresh clone needs one command rather than a hand-copied file.
+#
+# The logic lives in scripts/pre-push-checks.sh to keep this file a one-liner;
+# both are covered by the repo's own static-analysis check (see flake.nix).
+exec "$(git rev-parse --show-toplevel)/scripts/pre-push-checks.sh" "$@"

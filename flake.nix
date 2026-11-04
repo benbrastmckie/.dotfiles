@@ -231,6 +231,104 @@
       # avoid the deprecation warning. Run via `nix fmt`.
       formatter.${system} = pkgs.nixfmt;
 
+      # -------------------------------------------------------------------------------------
+      # The CI gate, expressed as flake checks rather than as steps in .github/workflows/ci.yml.
+      #
+      # WHY HERE AND NOT THERE: a lint that exists only in a workflow file cannot be run locally
+      # without re-typing it, so the first time you learn it is unhappy is after the push. That
+      # is precisely how this repo went five consecutive pushes red. As checks, `nix flake check`
+      # becomes ONE command that reproduces CI exactly -- by hand, from the pre-push hook
+      # (scripts/install-git-hooks.sh), or on a runner, where ci.yml now does nothing else.
+      #
+      # The same argument is already written out in packages/sapience-flake/checks/default.nix
+      # for that flake ("evidence only the CI can reproduce is not evidence"); this is the root
+      # flake catching up to its own sub-flake.
+      #
+      # DELIBERATELY NOT COVERED: building a host's system closure or the home-manager
+      # generation. `nix flake check` already EVALUATES every nixosConfigurations.* entry, which
+      # is what catches a mistyped option or a broken module; BUILDING them pulls multi-gigabyte
+      # closures that do not fit a GitHub runner's disk. The real build is what
+      # scripts/update.sh does on the machine itself.
+      # -------------------------------------------------------------------------------------
+      checks.${system} =
+        let
+          # Each check sees only the files its linter actually reads, so it is rerun when those
+          # change and reused from the store otherwise.
+          nixSrc = lib.fileset.toSource {
+            root = ./.;
+            fileset = lib.fileset.unions [
+              (lib.fileset.fileFilter (f: f.hasExt "nix") ./.)
+              ./statix.toml # statix reads its config from the working directory
+            ];
+          };
+
+          shellSrc = lib.fileset.toSource {
+            root = ./.;
+            fileset = lib.fileset.unions [
+              (lib.fileset.fileFilter (f: f.hasExt "sh") ./scripts)
+              (lib.fileset.fileFilter (f: f.hasExt "sh") ./tests)
+              ./.githooks # tracked git hooks; named for git, so they carry no .sh extension
+            ];
+          };
+
+          mkCheck =
+            name: src: deps: script:
+            pkgs.runCommandLocal "check-${name}" { nativeBuildInputs = deps; } ''
+              cd ${src}
+              ${script}
+              touch "$out"
+            '';
+        in
+        {
+          statix = mkCheck "statix" nixSrc [ pkgs.statix ] "statix check";
+
+          # Two things here are LOAD-BEARING, and the step this replaces had neither, which is
+          # why deadnix never once reported anything in this repo:
+          #
+          #   1. --fail. Without it deadnix prints its findings and still exits 0.
+          #   2. Feeding paths via `find` rather than `--exclude <glob> .`. `--exclude` takes a
+          #      VARIADIC list, so a trailing `.` is parsed as one more exclude pattern (which
+          #      excludes the entire tree), and its matching is literal-path, not glob -- so
+          #      'hosts/*/hardware-configuration.nix' never matched anything either way.
+          #
+          # hosts/*/hardware-configuration.nix is skipped because nixos-generate-config writes
+          # it and stamps it "Do not modify this file!"; its unused `pkgs` argument is upstream's
+          # to make. The find predicate covers any host added later with no edit here.
+          deadnix = mkCheck "deadnix" nixSrc [ pkgs.deadnix ] ''
+            find . -name '*.nix' -not -path './hosts/*/hardware-configuration.nix' -print0 \
+              | xargs -0 deadnix --fail
+          '';
+
+          # An explicit file list, not a directory argument: nixfmt deprecated the latter.
+          nixfmt = mkCheck "nixfmt" nixSrc [ pkgs.nixfmt ] ''
+            find . -name '*.nix' -print0 | xargs -0 nixfmt --check
+          '';
+
+          # `nix flake check` traverses nixosConfigurations, so home.nix IS evaluated -- but only
+          # through the NixOS-integrated home-manager path. `homeConfigurations` is not a
+          # standard flake output, so Nix prints "checking flake output 'homeConfigurations'"
+          # and then traverses nothing. scripts/update.sh builds that standalone path too (it is
+          # what owns ~/.nix-profile), so without this check a `home-manager switch --flake
+          # .#benjamin` could break with CI fully green.
+          #
+          # unsafeDiscardStringContext is what keeps this an EVALUATION check. Reading .drvPath
+          # forces the generation to be evaluated end to end -- which is the coverage wanted,
+          # since that is where a bad option or missing attribute surfaces -- but interpolating
+          # it with its string context intact would make the check depend on the derivation's
+          # OUTPUTS, i.e. actually build the multi-gigabyte closure. Discarding the context
+          # keeps the evaluation and drops the build.
+          home-eval = pkgs.runCommandLocal "check-home-eval" { } ''
+            printf '%s\n' ${lib.escapeShellArg (builtins.unsafeDiscardStringContext self.homeConfigurations.benjamin.activationPackage.drvPath)} > "$out"
+          '';
+
+          # scripts/ and tests/ had no static analysis at all before this. The first run found a
+          # silently inert --no-check flag in scripts/update.sh (SC2034).
+          shellcheck = mkCheck "shellcheck" shellSrc [ pkgs.shellcheck ] ''
+            find . -type f \( -name '*.sh' -o -path './.githooks/*' \) -print0 \
+              | xargs -0 shellcheck --external-sources
+          '';
+        };
+
       devShells.${system}.default = pkgs.mkShellNoCC {
         packages = [
           pkgs.nixfmt

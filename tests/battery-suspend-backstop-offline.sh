@@ -31,7 +31,12 @@ state="$work/state"; bat="$work/bat/BAT0"
 mkdir -p "$state" "$bat"
 sysctl_log="$work/systemctl.log"; notify_log="$work/notify.log"
 
+# The single-quoted format strings below are the SOURCE TEXT of the two stub scripts being
+# written, so $@ and ${NOTIFY_EXIT:-0} must reach the file unexpanded -- that is the point,
+# not an oversight.
+# shellcheck disable=SC2016
 printf '#!/usr/bin/env bash\necho "$@" >> %q\n' "$sysctl_log" > "$work/systemctl"
+# shellcheck disable=SC2016
 printf '#!/usr/bin/env bash\necho "$@" >> %q\nexit "${NOTIFY_EXIT:-0}"\n' "$notify_log" > "$work/notify"
 chmod +x "$work/systemctl" "$work/notify"
 

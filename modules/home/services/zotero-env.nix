@@ -31,7 +31,7 @@
 #   - Non-zero exit below: the secret exists but is unreadable (wrong owner/mode — a genuine
 #     misconfiguration, not a bootstrap-ordering artifact). This surfaces as a real unit failure,
 #     because it is one.
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 let
   script = pkgs.writeShellScript "zotero-env" ''
     if [ -r /run/secrets/zotero_api_key ]; then

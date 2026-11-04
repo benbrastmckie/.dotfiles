@@ -4,15 +4,27 @@ This document provides instructions for testing the NixOS configuration, with a 
 
 ## Testing the Configuration
 
-Due to complexities with Nix's evaluation, you might encounter errors when running `nix flake check`. This is expected for packages with complex wrapper scripts like Neovim.
+`nix flake check` is the authoritative gate for this repo and it is expected to PASS. It runs
+the same lints CI runs (`statix`, `deadnix`, `nixfmt`, `shellcheck`), evaluates every
+`nixosConfigurations` entry, and evaluates the standalone home-manager generation — see the
+README's [Local pre-push gate](../README.md#local-pre-push-gate) section.
+
+> An earlier version of this document said flake-check errors were "expected ... for packages
+> with complex wrapper scripts like Neovim". That is no longer true, and treating a red check as
+> normal is how five consecutive pushes were left failing. If `nix flake check` fails, something
+> is actually wrong.
 
 ### Testing Methods
 
-1. **Use the update script with no-check option:**
+1. **Run the gate:**
    ```bash
    cd ~/.dotfiles
-   ./scripts/update.sh --no-check
+   nix flake check -L
    ```
+
+   Note: `./scripts/update.sh --no-check` is accepted but does nothing. The flag never had an
+   effect (the variable it set was never passed to either rebuild); both rebuilds pass
+   `--option allow-import-from-derivation false` unconditionally instead.
 
 2. **Apply configuration directly:**
    ```bash

@@ -16,7 +16,7 @@ echo "===> Detected hostname: $HOSTNAME"
 
 # Build NixOS configuration
 echo "===> Building and switching to NixOS configuration..."
-sudo nixos-rebuild switch --flake .#$HOSTNAME
+sudo nixos-rebuild switch --flake ".#$HOSTNAME"
 
 # Build home-manager configuration
 echo "===> Building and switching to Home Manager configuration..."
