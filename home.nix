@@ -68,6 +68,12 @@
     # Free on Ollama's usage page, same as beam. `gemma4:cloud` tracks whatever size Ollama
     # points the tag at (31b today); pin `gemma4:31b-cloud` if that ever matters.
     model = "gemma4:cloud";
+
+    # The agent system's source store, ingested explicitly rather than by the implicit
+    # memory-file walk that `memoryFiles = false` shuts off. One authored tree gets in; the 20+
+    # generated .claude/ deploys it produces stay out. Run `sapience-adddir-sources` by hand --
+    # nothing about this is scheduled.
+    sourceDirs = [ "/home/benjamin/.config/nvim/agent-system" ];
   };
 
   home = {

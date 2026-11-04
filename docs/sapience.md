@@ -17,7 +17,8 @@ installer's plumbing and leaves the payload alone.
 | `programs.sapience.backend` | `"ollama"` | All traffic goes through the local Ollama daemon |
 | `programs.sapience.model` | `"gemma4:cloud"` | …which forwards it to `ollama.com`; nothing is inferred locally |
 | `services.ollamaModels.load` | `[ ]` | A cloud model has no weights to pull |
-| `programs.sapience.memoryFiles` | `false` | `CLAUDE.md` and friends are not ingested |
+| `programs.sapience.memoryFiles` | `false` | Generated `CLAUDE.md` trees are not walked |
+| `programs.sapience.sourceDirs` | `~/.config/nvim/agent-system` | The authored source store, ingested by name instead |
 | `config.json: auto_approve` | `false` | Findings stage until `sapience review` |
 | `programs.sapience.backgroundSync` | `false` | No timer; extraction runs only when asked |
 
@@ -37,6 +38,7 @@ until you bootstrap, nothing re-reads one until you ask
 | `sapience` | Reimplemented | Same subcommand dispatch as the vendor's `~/bin` shim |
 | `sf1` | Reimplemented | Terminal chat with the vault |
 | `sapience-bootstrap` | This repo | No vendor counterpart; replaces the installer's macOS half |
+| `sapience-adddir-sources` | This repo | `adddir` over `sourceDirs`; installed only when that list is non-empty |
 | `sapience-sync.service` | This repo | On-demand detached run; replaces the launchd plist |
 | `ollama.service` / `ollama-model-loader.service` | This repo | `modules/home/services/ollama.nix` |
 | `mcpServers.sapience` in `~/.claude.json` | This repo | Merged on activation, preserving every other key |
@@ -138,7 +140,13 @@ nothing. Reach for it only after a long gap.
 sapience sync                                # extract now, in this terminal
 systemctl --user start sapience-sync.service # or detached, logging to the journal
 journalctl --user -fu sapience-sync          # logs (not ~/.sapience/sync.log)
+sapience-adddir-sources --dry-run            # re-read the source store after editing it
 ```
+
+`sapience sync` covers session transcripts. `sapience-adddir-sources` is the separate, manual
+pass over `programs.sapience.sourceDirs` — worth running after a round of edits to the agent
+system, since it sends only what changed. See
+[The source store goes in by name](#the-source-store-goes-in-by-name).
 
 ### Nothing extracts on a schedule
 
@@ -450,8 +458,56 @@ artifact, produced from the source store at `~/.config/nvim/agent-system` by the
 loader in `~/.config/nvim/lua/neotex/plugins/ai/shared/extensions/`, and over twenty
 repositories carry one — the generated `CLAUDE.md` says so in its own header. Ingesting them
 would import twenty-odd near-identical copies of scaffolding at the highest trust tier,
-outranking real findings. Turn it on only if the source store itself becomes the selected
-project, where those files are authored rather than deployed.
+outranking real findings.
+
+Leaving it off does not mean giving up on that content, because the source store goes in by a
+different door.
+
+### The source store goes in by name
+
+`memoryFiles` has no path counterpart. The vendor's only knob is the `NO_MEMFILES` kill switch
+the option toggles; discovery in `memory_files()` is entirely implicit — `~/.claude/CLAUDE.md`,
+`~/.codex/*.md`, then per enabled capture project the recorded `cwd` root, its `MEMFILE_NAMES`,
+`docs/BACKLOG.md`, `.claude/rules/*.md` and a recursive walk. No environment variable and no
+`config.json` key accepts a memory-file path. So it cannot be narrowed to the one tree where
+that content is authored.
+
+`sapience adddir` can: it takes an explicit path. `programs.sapience.sourceDirs` names the
+directories and installs `sapience-adddir-sources`, which runs `adddir` over each of them. The
+authored tree at `~/.config/nvim/agent-system` gets in; the twenty-odd generated copies stay
+out. That is the division `memoryFiles = false` exists to draw, so the two settings are
+complements rather than alternatives.
+
+```bash
+sapience-adddir-sources --dry-run      # what would be sent
+sapience-adddir-sources                # prompts before reading anything
+sapience-adddir-sources --max-files 50 # cap a first pass
+```
+
+Three things worth knowing before the first real run.
+
+**It is a hidden path, which the deny list refuses by default.**
+`sapience_capture.deny_reason` rejects any path whose first component under `$HOME` starts with
+a dot — "hidden settings and credentials, never read" — exempting only `~/.claude` and
+`~/.codex`. That is a macOS premise, where real configuration lives in `~/Library` and is denied
+separately; here it locks out `~/.config` and `~/.dotfiles`, which is exactly where
+configuration-as-source lives. The wrapper points `$HOME` at `~/.sapience/adddir-home` for the
+call, which puts the named directory under neither `$HOME` nor a system root, so the test
+passes. This narrows one over-broad path check and nothing else: `deny_below` still prunes
+Personal-type folder names, Photos and keychain suffixes, and secrets files (`.env`, ssh keys,
+`*.pem`) beneath each named root, per file, on every run.
+
+**The relocated home is persistent on purpose.** `adddir` keys an incremental ledger by content
+sha at `$HOME/.sapience/adddir-<sha>.json`, so a re-run sends only files that changed — the
+point for a store under active edit. A throwaway home would re-send all ~900 files every time.
+Its `config.json` is only the capture map's scratch copy; the real one is read once for the
+token and never written, so the account credential is untouched.
+
+**This route is not local.** Each file's text is POSTed to the hosted brain's `/extract-doc`
+endpoint, where the server extracts with its own key — a different path from `backend`-driven
+extraction, which runs on this machine. The rest of
+[Where your data goes](#where-your-data-goes) still holds: findings wait for `sapience review`
+before they enter the vault. The upload itself does not wait.
 
 ### One bootstrap at a time, and never during a switch
 
@@ -526,6 +582,8 @@ rather not have it; nothing else depends on it.
 | `backgroundSync` | `false` | default | Install the timer at all; off means on-request only |
 | `syncInterval` | `"hourly"` | default | `OnCalendar`, only when `backgroundSync` is true |
 | `memoryFiles` | `false` | default | See [above](#memory-file-ingestion-is-off) |
+| `sourceDirs` | `[ ]` | the source store | `adddir` targets; see [above](#the-source-store-goes-in-by-name) |
+| `sourceDirInclude` | `"md"` | default | Extensions passed to `adddir --include` |
 | `registerMcpServer` | `true` | default | Merge into `~/.claude.json` |
 
 `services.ollamaModels`:

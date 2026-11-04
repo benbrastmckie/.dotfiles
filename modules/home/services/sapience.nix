@@ -537,6 +537,80 @@ let
     }
     exit "$rc"
   '';
+
+  # `sapience adddir` over the directories named in sourceDirs, which is the only ingestion
+  # route that takes a path AND can reach a hidden one.
+  #
+  # Why the relocated HOME: sapience_capture.deny_reason refuses any path whose first component
+  # under $HOME begins with a dot -- "hidden settings and credentials, never read" -- exempting
+  # only ~/.claude and ~/.codex as session folders. That rule is a macOS premise (there, real
+  # config lives in ~/Library, which is separately denied); on NixOS it locks out ~/.config and
+  # ~/.dotfiles, which is where configuration-as-source actually lives. sapience_adddir.main
+  # resolves the home it checks against as `home or os.path.expanduser('~')`, so a $HOME pointed
+  # at denyHome for this one call puts the named directory outside "home" entirely, and
+  # deny_reason returns allowed for it (a path under neither $HOME nor a system root).
+  #
+  # This narrows ONE over-broad path test. It does not disable the deny list: deny_below still
+  # prunes Personal-type folder names, Photos/keychain suffixes and secrets files (.env, ssh
+  # keys, *.pem) beneath each named root, per file, on every run.
+  #
+  # denyHome is persistent, not a tempdir, because adddir keys its incremental ledger by content
+  # sha at $HOME/.sapience/adddir-<sha>.json. A throwaway home would re-send every file on every
+  # run; this way a re-run sends only what changed, which is the point for a store under active
+  # edit. Its config.json is the capture map's scratch copy -- the real one at configFile is
+  # read once for the token and never written, so the account credential stays untouched.
+  sapienceAddDirSources = pkgs.writeShellScriptBin "sapience-adddir-sources" ''
+    set -euo pipefail
+    export PATH="${runtimePath}:$PATH"
+    export SAPIENCE_HOST="${cfg.host}"
+
+    # Not a memory-file route: adddir never consults NO_MEMFILES, so memoryFiles is irrelevant
+    # here and deliberately not exported. See docs/sapience.md.
+
+    denyHome="${stateDir}/adddir-home"
+
+    if [ ! -f "${stateDir}/sapience_adddir.py" ]; then
+      echo "sapience-adddir-sources: ${stateDir}/sapience_adddir.py is missing" >&2
+      echo "  run: sapience-bootstrap" >&2
+      exit 1
+    fi
+
+    # Env wins over config.json in every client, and mcp.py's own _saved_config() reads
+    # ~/.sapience/config.json through expanduser, which the relocated HOME would redirect. So
+    # the token is read from the real path here and handed over explicitly.
+    if [ -z "''${SAPIENCE_TOKEN:-}" ]; then
+      SAPIENCE_TOKEN="$(${python} -c \
+        'import json,sys; print(json.load(open(sys.argv[1])).get("token",""))' \
+        "${configFile}" 2>/dev/null || true)"
+      export SAPIENCE_TOKEN
+    fi
+
+    if [ -z "''${SAPIENCE_TOKEN:-}" ]; then
+      echo "sapience-adddir-sources: no token in ${configFile} -- run: sapience-bootstrap" >&2
+      exit 1
+    fi
+
+    mkdir -p "$denyHome/.sapience"
+    chmod 700 "$denyHome" "$denyHome/.sapience"
+
+    rc=0
+    ${
+      lib.concatMapStringsSep "\n" (dir: ''
+        if [ ! -d "${dir}" ]; then
+          echo "sapience-adddir-sources: skipping ${dir} (not a directory)" >&2
+          rc=1
+        else
+          echo "sapience-adddir-sources: ${dir}"
+          if ! HOME="$denyHome" ${python} "${stateDir}/mcp.py" --adddir "${dir}" \
+            --include "${cfg.sourceDirInclude}" "$@"; then
+            echo "sapience-adddir-sources: ${dir} did not complete" >&2
+            rc=1
+          fi
+        fi
+      '') cfg.sourceDirs
+    }
+    exit "$rc"
+  '';
 in
 {
   options.programs.sapience = {
@@ -649,6 +723,44 @@ in
       '';
     };
 
+    sourceDirs = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      example = [ "/home/you/.config/nvim/agent-system" ];
+      description = ''
+        Directories to feed to the vault with `sapience adddir`, via the
+        `sapience-adddir-sources` wrapper this option installs. Run it by hand; nothing here is
+        scheduled and activation never ingests anything.
+
+        This is the counterpart to `memoryFiles`, not a variant of it. `memoryFiles` is the
+        vendor's implicit walk (every enabled capture project's own CLAUDE.md, AGENTS.md and
+        .claude/rules/*.md), which here would mean the 20+ generated deploy trees; the vendor
+        exposes no way to aim it at a path, since NO_MEMFILES is its only knob. `adddir` takes an
+        explicit path instead, so one authored source store can be ingested while every
+        generated copy of it stays out. Leave `memoryFiles` false and name the source here.
+
+        A hidden path is fine and is the expected case -- see the wrapper's own comment for how
+        the deny list's home test is narrowed, and what stays enforced.
+
+        Each run uploads file text to the hosted brain's /extract-doc endpoint, which is a
+        different path from `backend`-driven extraction: that is local, this is not. Findings
+        still wait for `sapience review` unless auto-approve is on for the project. Pass
+        `--dry-run` to see what would be sent, or `--max-files N` to cap a first pass.
+      '';
+    };
+
+    sourceDirInclude = lib.mkOption {
+      type = lib.types.str;
+      default = "md";
+      example = "md,tex,pdf";
+      description = ''
+        Comma-separated file extensions `sapience-adddir-sources` passes to `adddir --include`
+        for every entry in `sourceDirs`. Narrower than the vendor default
+        (tex,pdf,md,html,txt) because a configuration source store's prose is markdown; its
+        .py/.sh/.nix files are not a supported document type in any case.
+      '';
+    };
+
     registerMcpServer = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -684,7 +796,8 @@ in
       sapienceCli
       sf1Cli
       sapienceBootstrap
-    ];
+    ]
+    ++ lib.optional (cfg.sourceDirs != [ ]) sapienceAddDirSources;
 
     # Seed only what is absent -- see the MUTABLE STATE note in this file's header. A failed
     # fetch is reported and skipped, never fatal: activation must not break on a vendor outage,
