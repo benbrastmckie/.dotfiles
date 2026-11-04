@@ -15,7 +15,8 @@
 #
 # Module shape follows services/cache-cleanup.nix and services/claude-session-reaper.nix:
 # oneshot plus timer, explicit PATH export, and every external call guarded so a transient
-# network failure cannot leave the unit `failed` (the scripts/gmail-oauth2.nix precedent).
+# network failure cannot leave the unit `failed`, which would degrade the whole systemd --user
+# session rather than just this unit.
 {
   config,
   lib,
@@ -985,7 +986,7 @@ in
               export SAPIENCE_HOST="${cfg.host}"
               ${lib.optionalString (!cfg.memoryFiles) "export NO_MEMFILES=1"}
               # Deliberately no `set -e`: a vendor outage or an in-progress self-update must not
-              # leave this unit `failed` (see the gmail-oauth2.nix precedent cited in the header).
+              # leave this unit `failed` -- see the failure-discipline note in the header.
               # The script always reaches `exit 0`.
 
               echo "sapience-sync: starting (backend ${cfg.backend})"

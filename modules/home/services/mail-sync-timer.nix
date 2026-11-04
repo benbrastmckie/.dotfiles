@@ -10,11 +10,11 @@
 # Interval: deliberately coarse (every 15 minutes) -- "occasional" sync is the
 # explicit goal, not real-time push. Trivially adjustable via OnCalendar below.
 #
-# Failure-visibility precedent: modeled on the proven `cache-cleanup.nix` shape
-# (oneshot service + calendar timer + Persistent = true). Unlike `gmail-oauth2.nix`
-# (a guaranteed-every-run failure that once degraded the systemd --user session),
-# `mail-sync` is expected-success and transient failures (offline laptop, Bridge
-# down) self-clear on the next run -- but the user should still occasionally check
+# Failure visibility: modeled on the proven `cache-cleanup.nix` shape (oneshot
+# service + calendar timer + Persistent = true). `mail-sync` is expected-success,
+# and its transient failures (offline laptop, Bridge down) self-clear on the next
+# run rather than latching -- which matters because a unit that fails every run
+# degrades the whole systemd --user session. The user should still occasionally check
 # `systemctl --user status mail-sync-timer.service` / `journalctl --user -u
 # mail-sync-timer` if Gmail ever appears stale.
 { config, pkgs, ... }:

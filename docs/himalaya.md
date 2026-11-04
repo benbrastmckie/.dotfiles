@@ -4,8 +4,8 @@ This document describes the Himalaya email client setup with dual-account suppor
 
 > **Gmail authenticates with an app password, not OAuth2.** Both `mbsync` IMAP-in and Himalaya
 > SMTP-out read the `gmail-app-password` keyring entry — the same credential aerc uses. XOAUTH2
-> is not in use and `gmail-oauth2-refresh.service`/`.timer` are **disabled**
-> (`modules/home/services/gmail-oauth2.nix`).
+> is not in use, and this configuration declares **no** token-refresh service, timer or refresh
+> script at all.
 >
 > **Why:** publishing the OAuth consent screen to Production for the restricted
 > `mail.google.com` scope requires a multi-week, paid, annually-renewed **CASA Tier 2**
@@ -15,8 +15,10 @@ This document describes the Himalaya email client setup with dual-account suppor
 > `specs/072_email_workflow_infrastructure_prereqs/handoffs/oauth-gate.md`.
 >
 > The XOAUTH2 sections below (SASL plugin, `refresh-gmail-oauth2`, systemd units, OAuth config
-> keys) describe a **revert path**, not the active setup. To take it, re-enable the unit and
-> re-point the auth blocks to XOAUTH2.
+> keys) are a **revert recipe**, not a description of anything in the tree — no module
+> implements them. Taking that path means re-adding the units from the Nix shown below,
+> restoring the refresh script (`git log --diff-filter=D -- modules/home/scripts/gmail-oauth2.nix`
+> finds its last version), and re-pointing the auth blocks to XOAUTH2.
 
 ## Overview
 
@@ -136,7 +138,9 @@ set -gx SASL_PATH "/nix/store/ja75va5vkxrmm0y95gdzk04kxa0pmw1s-cyrus-sasl-xoauth
 
 ### OAuth2 Token Refresh Script
 
-A custom script handles automatic OAuth2 token refresh:
+On the revert path, a custom script handles automatic OAuth2 token refresh. It is **not
+installed** — recover it with
+`git log --diff-filter=D -- modules/home/scripts/gmail-oauth2.nix` and re-add the module:
 
 ```bash
 refresh-gmail-oauth2
@@ -149,6 +153,9 @@ The script:
 - Handles error cases and token rotation
 
 ### Systemd Services
+
+Neither unit below is declared anywhere in this configuration; the Nix is kept here as the
+recipe to re-add them if XOAUTH2 is ever restored.
 
 #### Token Refresh Service
 ```nix
@@ -473,8 +480,9 @@ Channel logos-folders
    mbsync gmail
    ```
 
-   *(Legacy XOAUTH2 setup — only if reverting: `himalaya account configure gmail` for the browser
-   OAuth flow, then `refresh-gmail-oauth2`. Not needed on the app-password path.)*
+   *(XOAUTH2 setup — only if reverting, and only after restoring the refresh script:
+   `himalaya account configure gmail` for the browser OAuth flow, then `refresh-gmail-oauth2`.
+   Not needed on the app-password path.)*
 
 #### Protonmail Account
 1. **Start Protonmail Bridge**:
@@ -568,7 +576,7 @@ If IMAP auth fails, regenerate the app password at
 <https://myaccount.google.com/apppasswords> and re-`secret-tool store` it (2-Step Verification
 must be enabled on the account).
 
-### Legacy XOAUTH2 troubleshooting (only if reverted to OAuth2)
+### XOAUTH2 troubleshooting (only if reverted to OAuth2)
 ```bash
 # OAuth token status
 secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-access-token
@@ -576,14 +584,14 @@ secret-tool lookup service himalaya-cli username gmail-smtp-oauth2-refresh-token
 # Env + SASL plugin
 echo "GMAIL_CLIENT_ID: $GMAIL_CLIENT_ID"; echo "SASL_PATH: $SASL_PATH"
 ls -la (string split ':' $SASL_PATH)
-# Refresh unit (disabled by default — modules/home/services/gmail-oauth2.nix)
+# Refresh unit (only exists once re-added — see "Systemd Services" above)
 systemctl --user status gmail-oauth2-refresh.timer
 journalctl --user -u gmail-oauth2-refresh.service
 refresh-gmail-oauth2
 ```
-Note: on the app-password path there is **no token refresh** and **no `gmail-oauth2-refresh`
-unit** — the app password does not expire, so a degraded/failed `gmail-oauth2-refresh.service` is
-not expected (that unit is disabled).
+Note: on the app-password path there is **no token refresh** and no `gmail-oauth2-refresh` unit
+to inspect — the app password does not expire, so none of the commands above apply unless you
+have re-added the unit yourself.
 
 ### Protonmail Bridge Issues
 

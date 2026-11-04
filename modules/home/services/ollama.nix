@@ -18,8 +18,8 @@
 # docs/sapience.md.
 #
 # Module shape follows services/cache-cleanup.nix: oneshot with guarded external calls, and the
-# loader always exits 0 so a failed pull cannot degrade the user systemd session (the
-# scripts/gmail-oauth2.nix precedent).
+# loader always exits 0, because a user unit that fails degrades the whole systemd --user
+# session rather than just itself.
 {
   config,
   lib,

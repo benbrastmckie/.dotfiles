@@ -15,9 +15,10 @@
 # `cgroup.procs` -- never a system-wide `pgrep`/`ps aux` scan, never anything reached any other
 # way.
 #
-# Cautionary precedent: `scripts/gmail-oauth2.nix` (disabled) degraded the whole user systemd
-# session by failing every run. Every external call here is guarded (`|| true` / existence
-# checks) and the script always exits 0, so it can never end up `failed`.
+# Failure discipline: a user unit that fails on every run degrades the whole systemd --user
+# session, which surfaces as a warning on each `home-manager switch`. Every external call here
+# is therefore guarded (`|| true` / existence checks) and the script always exits 0, so it can
+# never end up `failed`.
 #
 # Opt-out for deliberately-detached work: launch it as its own top-level transient unit whose
 # name does not match `claude-*.scope`, e.g. `systemd-run --user --unit=my-long-job -- <cmd>` --

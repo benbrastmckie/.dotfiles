@@ -433,7 +433,8 @@ in
               export SAPIENCE_HOST="${cfg.host}"
               ${lib.optionalString (!cfg.memoryFiles) "export NO_MEMFILES=1"}
               # Deliberately no `set -e`: a vendor outage or an in-progress self-update must not
-              # leave this unit `failed` (see the gmail-oauth2.nix precedent cited in the header).
+              # leave this unit `failed`: a failing user unit degrades the whole systemd --user
+              # session, not just itself.
               # The script always reaches `exit 0`.
 
               echo "sapience-sync: starting (backend ${cfg.backend})"

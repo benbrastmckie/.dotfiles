@@ -105,8 +105,9 @@ https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=810486121
 ```
 
 This can be helpful for understanding the OAuth2 flow in general. Note: Gmail email is
-configured with a Gmail app password, not OAuth2 (see `docs/himalaya.md`); this example
-illustrates the flow itself and documents the OAuth2 revert path.
+configured with a Gmail app password, not OAuth2 (see `docs/himalaya.md`, whose "XOAUTH2
+troubleshooting" section carries the full revert recipe); this example illustrates the flow
+itself.
 
 ## Host-Specific Configuration
 

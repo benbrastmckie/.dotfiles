@@ -36,13 +36,11 @@
     # Script modules (inline shell scripts)
     ./scripts/sioyek-theme.nix
     ./scripts/sioyek-sync.nix
-    ./scripts/gmail-oauth2.nix
     ./scripts/whisper.nix
 
     # Service modules (systemd user services and timers)
     ./services/screenshot.nix
     ./services/ydotool.nix
-    ./services/gmail-oauth2.nix
     ./services/cache-cleanup.nix
     ./services/mail-sync-timer.nix
     ./services/claude-session-reaper.nix
