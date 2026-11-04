@@ -39,6 +39,7 @@ until you bootstrap, and nothing is uploaded until you review.
 | `sapience-sync.service` / `.timer` | This repo | Replaces the launchd plist; hourly |
 | `ollama.service` / `ollama-model-loader.service` | This repo | `modules/home/services/ollama.nix` |
 | `mcpServers.sapience` in `~/.claude.json` | This repo | Merged on activation, preserving every other key |
+| Token shape repair in `config.json` | This repo | Activation entry; runs before the MCP merge |
 | Three hooks and seven tool grants | This repo | In `config/claude/settings.json`; see [below](#why-the-hooks-live-in-the-repo) |
 
 The vendor docs will tell you to "run the install line again" to re-point a machine or recover a
@@ -67,22 +68,36 @@ rather than running or failing.
    ```
 
 2. **Get a Sapience token.** In the web app: Settings, then "Sign in on another device", then
-   copy the private link. The token is that link's `token=` parameter. It is the entire
-   credential for the account — there is no password or second factor — so treat it like one.
+   copy the private link. It is the entire credential for the account — there is no password or
+   second factor — so treat it like one.
+
+   Paste either the whole link or just its `token=` value; bootstrap reads the value out of a
+   link, and also tolerates surrounding quotes, `<...>` brackets and trailing query parameters.
+   What it stores is always the bare token, because every client sends that field verbatim and a
+   link in its place authenticates as nothing: `/v1/stats` answers 401, and `/ingest-kos`
+   answers 403 `an invite code is needed to build a new Sapience`, since a token that opens no
+   brain reads server-side as a request to create one.
 
 3. **Bootstrap.** Run it in a real terminal; the vendor refuses onboarding without a TTY, to
    avoid silently replacing your folder choices (`SAPIENCE_ALLOW_ONBOARD=1` overrides, but then
    it picks for you):
 
    ```bash
-   sapience-bootstrap                      # prompts for the token
+   sapience-bootstrap                      # prompts for the token or link
    SAPIENCE_TOKEN=<tok> sapience-bootstrap # or skip the prompt
    ```
 
-   This writes `~/.sapience/config.json` (mode 600) with the token, backend and host, confirms
-   the payload is present, then hands off to the vendor's own onboarding, which lists every
-   candidate project folder with file counts for you to tick. Re-running it later skips the
-   token step and just re-opens the picker.
+   It checks the token against `/v1/stats` before writing anything, so one the server does not
+   recognise costs a second rather than a full extraction that fails at the upload. An
+   unreachable host is not fatal: a well-formed token is accepted with a warning, because an
+   outage must not block setup.
+
+   It then writes `~/.sapience/config.json` (mode 600) with the token, backend and host,
+   confirms the payload is present, and hands off to the vendor's own onboarding, which lists
+   every candidate project folder with file counts for you to tick. Re-running it later keeps a
+   valid token and just re-opens the picker; re-running it over a config that stores a link
+   repairs the token in place. Either way the folder selection, capture map and `auto_approve`
+   choice survive — a rewrite preserves them rather than replacing the object.
 
    If a scheduled sync is running, bootstrap stops it so the two do not compete. Nothing is lost
    by that; the timer picks the work up again on schedule.
@@ -96,6 +111,10 @@ rather than running or failing.
    The first switch could not put a token in `~/.claude.json` because none existed. This one
    can. Without it, `sapience status` keeps reporting Claude Code as "not registered". Restart
    Claude Code afterwards: MCP servers are snapshotted at session start.
+
+   Activation also repairs a link-shaped token in `config.json` before registering the MCP
+   server, so the two surfaces cannot disagree. `sapience status` prints a fingerprint per
+   surface; they should match.
 
 5. **Review.** Only this step uploads anything.
 
@@ -126,31 +145,58 @@ journalctl --user -fu sapience-sync                # logs (not ~/.sapience/sync.
 Extraction is **silent by design**: the vendor prints "Extracting knowledge from N sources" and
 then nothing until it finishes. There is no verbose flag, nothing is flushed per source, and the
 staging queue is written only at the end — so mid-run `sapience pending` and `coverage` both
-read zero, which is not a failure. `sapience-bootstrap` therefore shows progress itself:
+read zero, which is not a failure. `sapience-bootstrap` therefore shows progress itself, one
+line per thirty seconds of actual progress:
 
 ```
-  extracting: 143/253 model calls (56%) ~1.1s each, 2m22s elapsed
+  extracting: 19 model calls (~253 est.) ~4.4s each, 1m00s elapsed
+  extracting: 26 model calls (~253 est.) ~4.3s each, 1m30s elapsed
 ```
 
-It rewrites that line every ten seconds, on stderr so it cannot corrupt the vendor's stdout, and
-stays silent until the first call completes — which keeps it clear of the interactive folder
-picker that runs first.
+Each line is appended whole, on stderr so it cannot corrupt the vendor's stdout, and only when
+the call count has moved. Both properties matter, because the vendor's extraction ends with an
+interactive review prompt that carries no trailing newline: a rewritten line would contend with
+that prompt for one physical line and erase the question, making a finished run look like a hung
+one. Appending cannot erase anything, and printing only on a change means the display falls
+silent by itself once the last call lands — so nothing follows the prompt, and no threshold or
+liveness probe exists that could stop it for the wrong reason. A slow call simply produces no
+line until it completes.
 
-One caveat: it counts *every* call the daemon serves, and cannot tell Sapience's apart from any
-other client's. Running a `curl` probe or another tool against `127.0.0.1:11434` during a run
-inflates the count, and the percentage with it.
+The count comes from the Ollama journal's GIN access log, one line per completed HTTP call. A
+`slot release:` grep would not do: only a *local* inference slot emits it, and a `:cloud` model
+never does.
 
-The count comes from the Ollama journal's GIN access log, one line per completed HTTP call.
-(Not from `slot release:`, which only a *local* inference slot emits and which a `:cloud` model
-never produces.) The denominator is sources + the 50-chunk cap, where sources is `--coverage`'s
-"would ingest now", resolved lazily after the picker since your selection changes it. It is an
-upper bound in one term and a lower bound in the other: a session with a tiny delta skips its
-classifier call, while a wide chunk spends several calls on windows and re-splits. So the
-percentage is a guide, not a promise, and can saturate at 100% shortly before the run ends.
+Two things the count cannot do. It cannot tell Sapience's calls apart from any other client's,
+so a `curl` probe against `127.0.0.1:11434` mid-run inflates it. And its companion estimate —
+sources plus the 50-chunk cap, where sources is `--coverage`'s "would ingest now", resolved
+lazily after the picker since your selection changes it — is a **floor, not a cap**, which is
+why it is shown as context and never as a fraction or a percentage. The cap counts chunks, not
+calls: a chunk costs one call per 12,000-character window, and a reply that stops at the 8,000
+token reply limit is re-extracted as two halves recursively to depth 2, so one chunk can spend
+1, 3 or 7 calls. Overshooting the estimate is normal and means truncation re-splits happened.
 
-Only bootstrap has this. `sapience sync`, `sapience backfill` and the timer go straight to the
-vendor script and are as silent as it is; for those, watch `journalctl --user -fu ollama` and
-check `sapience pending` afterwards.
+Only bootstrap has this, and only on the `ollama` backend — the signal is the local daemon's own
+access log, and on `relay`, `anthropic` or `openai` no call transits this machine. `sapience
+sync`, `sapience backfill` and the timer go straight to the vendor script and are as silent as
+it is; for those, watch `journalctl --user -fu ollama` and check `sapience pending` afterwards.
+
+### How a bootstrap ends
+
+The vendor's own last word is either a review prompt or an upload error, neither of which says
+what the run achieved. Bootstrap adds that:
+
+```
+sapience-bootstrap: done in 15m13s.
+  808 findings are staged on this machine, waiting for your review.
+  Next: sapience review        approve them and upload to your Sapience
+  Background sync is live: systemctl --user status sapience-sync.timer
+```
+
+The staged count is the honest measure of a run's yield. Extraction is local, so findings
+survive a failed upload: "staged but not sent" is a normal outcome, not a loss, and
+`sapience review` retries the upload whenever you like. A non-zero exit says so and notes that
+the ledger only advances over work that was staged, so the next run re-reads whatever this one
+did not finish.
 
 ## Where your data goes
 
@@ -321,12 +367,23 @@ out. Raising `MAX_CHUNKS` for a catch-up pass is the alternative.
 
 ### Not packaged as a derivation
 
-Upstream has no releases, tags or content hashes; it serves the payload live from
-`app.spnc.ai/<name>.py` and self-updates two ways (`sapience update`, and a background
-`--auto-update` that `mcp.py` spawns on its own). A pinned `fetchurl` would break its hash on
-every upstream push *and* be fought by the updater. So `~/.sapience/*.py` is deliberately
-mutable state: activation seeds files only when absent and never overwrites them. Nix owns the
-wrappers, the units and the registration; upstream owns the payload.
+Upstream has no releases, tags or content hashes. It serves the payload live from
+`app.spnc.ai/<name>.py` under `cache-control: no-cache`, with no ETag, no `Last-Modified` and no
+version or manifest endpoint; `sapience_upkeep.py` treats a per-file sha256 that the server
+compares against what it currently serves as the client's "version", self-updates two ways
+(`sapience update`, and a background `--auto-update` that `mcp.py` spawns on its own), and
+honours a server-side `CLIENT_AUTO_UPDATE=0` kill switch. A pinned `fetchurl` would break its
+hash on the next upstream push *and* be fought by the updater.
+
+So `~/.sapience/*.py` is deliberately mutable state: activation seeds files only when absent and
+never overwrites them. Nix owns the wrappers, the units and the registration; upstream owns the
+payload.
+
+This is also why there is no nixpkgs package. Beyond the missing hashable artifact, the client
+carries no license grant — no headers in the ten `.py` files, no LICENSE or terms on the site,
+patents claimed, and the vendor's reserved PyPI names (`sapience-ai`, `spnc`) are placeholders
+declaring `License: Proprietary` — and the service is an invite-only private beta, which fails
+nixpkgs' userbase and testability expectations even if the rest were resolved.
 
 ### Home-manager, not NixOS
 
@@ -387,6 +444,20 @@ wrappers and the sync unit pass no token at all. The `~/.claude.json` entry gets
 activation time from that mode-600 file, purely so `sapience status` can report matching
 fingerprints across surfaces. The `tokenFile` option exists for a non-interactive bootstrap and
 must point outside the store — a store path would be world-readable.
+
+### The token is validated, not just stored
+
+`config.json` is mutable state: bootstrap, the vendor client and the web onboarding all write
+it, and every consumer reads `.token` verbatim. A field holding the private link instead of its
+`token=` value therefore breaks every surface at once — the sync, and Claude Code's MCP tools
+via the `~/.claude.json` copy — while the server's answers name neither cause (401 on
+`/v1/stats`; 403 `an invite code is needed to build a new Sapience` on `/ingest-kos`).
+
+So the shape is checked rather than assumed, in two places. Bootstrap normalises a paste,
+refuses anything that is not `[A-Za-z0-9_-]{8,}`, and confirms the token against `/v1/stats`
+before writing. A `sapienceTokenRepair` activation entry heals an already-stored link and is
+ordered before `sapienceMcpServer`, so the registration can never copy one. A value that is
+neither token-shaped nor repairable is reported with the remedy rather than silently kept.
 
 ### Why the hooks live in the repo
 
@@ -456,6 +527,14 @@ journalctl --user -u ollama --since -1h | grep -cE '\[GIN\].*POST +"/api/chat"'
 # Is the payload seeded, and is the MCP server registered?
 ls ~/.sapience/
 jq '.mcpServers.sapience' ~/.claude.json
+
+# Does the token open the account? 200 with a JSON body is healthy; 401 means the
+# stored value is not a token the server knows.
+curl -sS -o /dev/null -w '%{http_code}\n' \
+  "https://app.spnc.ai/v1/stats?token=$(jq -r .token ~/.sapience/config.json)"
+
+# Do all surfaces agree? The fingerprints must match; a token is never printed.
+sapience status
 
 # What did the last sync actually read?
 sapience coverage

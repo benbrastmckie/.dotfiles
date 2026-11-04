@@ -261,8 +261,8 @@ let
         exit 1
       fi
 
-      # Verify against the server BEFORE writing anything. A bad paste used to cost a full
-      # extraction (~15 minutes) before failing at upload; this fails in about a second.
+      # Verify against the server BEFORE writing anything, so a token the server does not
+      # recognise costs a second here rather than a full extraction that fails at the upload.
       printf "sapience-bootstrap: checking the token with %s ... " "${cfg.host}"
       code="$(curl -sS -o /dev/null -w '%{http_code}' -m 20 \
         -A 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) sapience-client/1.0' \
@@ -324,80 +324,61 @@ let
     echo ""
     ${lib.optionalString (!cfg.memoryFiles) "export NO_MEMFILES=1"}
 
-    # Note: the vendor's extraction prints nothing between "Extracting knowledge from N sources"
-    # and its result, and writes the staging queue only at the end, so a run that is working is
+    # The vendor's extraction prints nothing between "Extracting knowledge from N sources" and
+    # its result, and writes the staging queue only at the end, so a run that is working is
     # indistinguishable from one that has hung. This ticker is the stand-in.
     #
-    # It writes a single rewritten line to stderr so it cannot corrupt the vendor's stdout, and
-    # stays silent until the first call completes -- which keeps it out of the way of the
-    # interactive folder picker that runs first.
+    # It writes to stderr, so it cannot corrupt the vendor's stdout, and stays quiet until the
+    # first call completes -- which keeps it clear of the interactive folder picker that runs
+    # first.
     #
-    # SIGNAL: the ollama journal's GIN access log, one line per completed HTTP call. This
-    # replaced a `slot release:` grep, which only a LOCAL inference slot emits -- under a
-    # ":cloud" model nothing is scheduled on this machine, so that line never appeared and the
-    # entire progress display was silently dead while the run worked fine. Every call still
-    # transits this daemon in either mode, so its access log is the signal that survives both.
+    # APPEND-ONLY, and only when the count has moved. Both properties are load-bearing, because
+    # the vendor's extraction ends with an interactive review() whose input() prompt carries no
+    # trailing newline: a carriage-return-rewritten line would contend with that prompt for one
+    # physical line and erase the question, making a finished run look like a hung one. Whole
+    # lines cannot erase anything, and printing only on a change means the ticker falls silent
+    # by itself once the last call lands -- so nothing follows the prompt and there is no
+    # plateau threshold, timer or liveness probe that could stop the display for the wrong
+    # reason. A slow call simply produces no line until it completes.
     #
-    # DENOMINATOR, so the line shows what REMAINS and not just what is done. A run makes one
-    # model call per session to classify it work-vs-personal (extract_local.py:2199), then one
-    # or more per chunk in a loop hard-capped at MAXCH (:166, 50 unless --backfill raises it,
-    # which bootstrap never passes). So the call budget is sources + MAXCH, where sources comes
-    # from `--coverage`'s "would ingest now: N" -- the same window, folder selection and ledger
-    # the run itself uses.
+    # SIGNAL: the ollama journal's GIN access log, one line per completed HTTP call. A
+    # `slot release:` grep would not do, because only a LOCAL inference slot emits it -- under a
+    # ":cloud" model nothing is scheduled on this machine. Every call transits this daemon in
+    # either mode, so its access log is the signal that holds for both.
     #
-    # That total is an UPPER bound in both terms: a session whose delta is under 100 characters
-    # is skipped before its classifier call, memory files are never classified at all, and a run
-    # with fewer than MAXCH chunks available stops early. So the percentage is honest about
-    # never overstating progress, and a run can simply exit before reaching 100%. It is counted
-    # in model calls rather than chunks because calls are exactly observable, while a chunk wide
-    # enough to split into windows -- or a reply cut off at num_predict and re-extracted as two
-    # halves -- silently spends several.
+    # ESTIMATE, carried as context rather than as a fraction, because it is a FLOOR and not a
+    # cap. A run makes one model call per session to classify it work-vs-personal
+    # (extract_local.py:2199), then one or more per chunk in a loop capped at MAXCH (:166, 50
+    # unless --backfill raises it, which bootstrap never passes). The cap counts CHUNKS, not
+    # calls: _extract_chunk (:1606) issues one call per split_long_text window and, when a reply
+    # stops at num_predict (8000), re-extracts the chunk as two halves recursively to depth 2,
+    # so one chunk costs 1, 3 or 7 calls. Sessions chunk at 10000 characters against a 12000
+    # character window, making windowing a no-op for them and truncation recursion the whole
+    # excess; memory files chunk differently and can split as well. A truthful denominator is
+    # therefore not computable from this side, so the line reports what is exactly observable --
+    # the count, the mean rate and the elapsed time -- and nothing is ever shown as a percentage.
     #
-    # Resolved lazily on the first completed call, never up front: the folder picker runs first
-    # and a selection made there changes the source count. Cached, since it walks every
-    # candidate file. If it cannot be parsed the line degrades to a bare count and elapsed time.
-    # The estimate is a FLOOR, not a cap, so it is never rendered as "N/total (pct%)".
-    #
-    # The earlier version printed exactly that and reached "284/253 (100%)": MAXCH caps CHUNKS,
-    # not model calls, and the per-chunk cost is not one call. extract_local.py:1612 runs
-    # _extract_chunk per chunk, which issues one call per split_long_text window and, when a
-    # reply stops at num_predict (8000), re-extracts the chunk as two halves recursively to
-    # depth 2 -- so a single chunk costs 1, 3 or 7 calls. Sessions chunk at 10000 characters
-    # against a 12000-character window, so windowing is a no-op for them and truncation
-    # recursion is the whole overshoot; memory files chunk differently and can split as well.
-    #
-    # A truthful denominator is therefore not computable from this side, so the line shows the
-    # count, the rate and the elapsed time -- all exactly observable -- and carries the estimate
-    # as context ("~253 est.") rather than as a fraction pretending to be progress.
+    # The source count is resolved lazily on the first completed call, never up front: the
+    # folder picker runs first and a selection made there changes it. Cached, since it walks
+    # every candidate file. If it cannot be parsed the line degrades to a bare count.
     ticker() {
       started="$1"
+      watch_pid="$2"   # this script's own shell; see the launch site below
       total=""
       budget="''${MAX_CHUNKS:-50}"
-      last_calls=-1
-      idle_polls=0
-      while :; do
-        sleep 10
+      shown=-1
+      while kill -0 "$watch_pid" 2>/dev/null; do
+        sleep 30
         jlog="$(journalctl --user -u ollama --no-pager -o cat --since "@$started" 2>/dev/null || true)"
         chat="$(printf '%s' "$jlog" | grep -E '\[GIN\].*POST +"/api/chat"' 2>/dev/null || true)"
         calls="$(printf '%s' "$chat" | grep -c . 2>/dev/null || true)"
         [ -n "$calls" ] || calls=0
-        [ "$calls" -gt 0 ] || continue
 
-        # STOP ON PLATEAU, the fix for the clobbered prompt. extract_local.py ends with an
-        # interactive review() (extract_local.py:1898) whose input() prompt this \r-rewritten
-        # line painted over, so a finished run looked like a hung one and the question that was
-        # waiting was invisible. Thirty seconds without a completed call means the model is done
-        # and the vendor owns the terminal from here: clear the line and never write again.
-        if [ "$calls" -eq "$last_calls" ]; then
-          idle_polls=$((idle_polls + 1))
-          if [ "$idle_polls" -ge 3 ]; then
-            printf '\r%*s\r' 80 "" >&2
-            return 0
-          fi
-        else
-          idle_polls=0
-          last_calls="$calls"
-        fi
+        # Nothing completed yet, or nothing new since the last line: say nothing. This is what
+        # makes the ticker self-silencing once extraction is over.
+        [ "$calls" -gt 0 ] || continue
+        [ "$calls" -ne "$shown" ] || continue
+        shown="$calls"
 
         # Lazy, cached: onboarding has certainly finished by the first completed call.
         if [ -z "$total" ]; then
@@ -420,7 +401,7 @@ let
                  END { if (n) printf "%.1f", t / n }' 2>/dev/null || true)"
 
         elapsed=$(($(date +%s) - started))
-        printf '\r  extracting: %s model calls%s%s, %dm%02ds elapsed   ' \
+        printf '  extracting: %s model calls%s%s, %dm%02ds elapsed\n' \
           "$calls" \
           "$([ "$total" -gt 0 ] && printf ' (~%d est.)' "$total")" \
           "$([ -n "$avg" ] && printf ' ~%ss each' "$avg")" \
@@ -433,22 +414,26 @@ let
       if [ -n "$ticker_pid" ]; then
         kill "$ticker_pid" 2>/dev/null || true
         wait "$ticker_pid" 2>/dev/null || true
-        # 80, not 60: the progress line grew an estimate and a rate, and a clear narrower than
-        # the line leaves its tail on screen.
-        printf '\r%*s\r' 80 "" >&2
       fi
     }
     trap cleanup EXIT INT TERM
 
     run_started="$(date +%s)"
 
-    # Only when stderr is a terminal: a rewritten line is noise in a pipe or a log.
+    # Only when stderr is a terminal: progress lines are noise in a pipe or a log.
+    #
     # Only on the ollama backend: the signal is the local daemon's own access log, so on
     # relay/anthropic/openai -- where no call transits this machine -- there is nothing to count
-    # and the ticker would print a line stuck at zero forever.
+    # and the ticker would never have anything to say.
+    #
+    # The extraction itself stays in the FOREGROUND, because it reads stdin: backgrounding it
+    # would take it out of the terminal's foreground process group and its first prompt would
+    # raise SIGTTIN. The ticker therefore watches this shell rather than the extraction, which
+    # bounds it to the run and also reaps it if this script is killed outright and the EXIT trap
+    # never fires.
     ${lib.optionalString (cfg.backend == "ollama") ''
       if [ -t 2 ]; then
-        ticker "$run_started" &
+        ticker "$run_started" "$$" &
         ticker_pid=$!
       fi
     ''}
@@ -663,14 +648,15 @@ in
 
     # Self-heal a token field that holds the private LINK rather than its token= value.
     #
-    # This is the failure the stored-token guard in sapience-bootstrap now prevents at the
-    # source, but it has to be repaired here too: config.json is mutable state that the vendor
-    # client, the web onboarding and an older bootstrap all write, and every consumer reads the
-    # field verbatim -- including sapienceMcpServer below, which copies it into ~/.claude.json,
-    # so one bad paste silently breaks Claude Code's sapience tools as well as the sync. The
-    # server answers 401 on /v1/stats and 403 "an invite code is needed to build a new Sapience"
-    # on /ingest-kos, neither of which names the real problem. Ordered before sapienceMcpServer
-    # so the registration always copies a repaired value. See docs/sapience.md.
+    # sapience-bootstrap rejects that paste at the source, but config.json is mutable state the
+    # vendor client and the web onboarding also write, so the repair belongs here too. Every
+    # consumer reads the field verbatim -- including sapienceMcpServer below, which copies it
+    # into ~/.claude.json -- so one link-shaped value breaks Claude Code's sapience tools as
+    # well as the sync, and the server's answers name neither cause: 401 on /v1/stats, and 403
+    # "an invite code is needed to build a new Sapience" on /ingest-kos, because a token that
+    # opens no brain reads server-side as a request to create one. Ordered before
+    # sapienceMcpServer so the registration always copies a repaired value.
+    # See docs/sapience.md.
     home.activation.sapienceTokenRepair = config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" ] ''
       if [[ -v DRY_RUN ]]; then
         echo "Would repair a link-shaped token in ${configFile}"
