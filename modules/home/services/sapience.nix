@@ -1,4 +1,4 @@
-# Sapience (https://app.spnc.ai) on NixOS: CLI wrappers, bootstrap, hourly sync timer and MCP
+# Sapience (https://app.spnc.ai) on NixOS: CLI wrappers, bootstrap, an opt-in sync timer and MCP
 # registration, replacing the vendor's macOS-only installer.
 #
 # Critical: do not "fix" the payload into a fetchurl derivation. Upstream ships no releases or
@@ -127,10 +127,23 @@ let
         echo "sapience update               fetch the latest client files from the vendor"
         echo "sf1 [\"question\"]              chat with your Sapience in the terminal"
         echo ""
-        echo "NixOS notes: hourly sync is systemd.user (sapience-sync.timer), not launchd."
-        echo "  status:  systemctl --user status sapience-sync.timer"
-        echo "  pause:   systemctl --user disable --now sapience-sync.timer"
-        echo "  run now: systemctl --user start sapience-sync.service"
+        ${
+          if cfg.backgroundSync then
+            ''
+              echo "NixOS notes: scheduled sync is systemd.user (sapience-sync.timer), not launchd."
+              echo "  schedule: ${cfg.syncInterval}"
+              echo "  status:   systemctl --user status sapience-sync.timer"
+              echo "  pause:    systemctl --user disable --now sapience-sync.timer"
+              echo "  run now:  systemctl --user start sapience-sync.service"
+            ''
+          else
+            ''
+              echo "NixOS notes: nothing syncs on a schedule -- extraction runs only when you ask."
+              echo "  run now:  sapience sync"
+              echo "  detached: systemctl --user start sapience-sync.service"
+              echo "  schedule: set programs.sapience.backgroundSync = true in home.nix"
+            ''
+        }
         ;;
       -*)           exec ${python} "${stateDir}/extract_local.py" "$SUB" "$@" ;;
       *)
@@ -487,13 +500,18 @@ let
       echo "  or the window held no new work."
     fi
 
-    echo "  Background sync is live: systemctl --user status sapience-sync.timer"
+    ${
+      if cfg.backgroundSync then
+        ''echo "  Scheduled sync is live (${cfg.syncInterval}): systemctl --user status sapience-sync.timer"''
+      else
+        ''echo "  Nothing syncs on a schedule; run sapience sync when you want another pass."''
+    }
     exit "$rc"
   '';
 in
 {
   options.programs.sapience = {
-    enable = lib.mkEnableOption "Sapience client (CLI wrappers, hourly sync timer, MCP server)";
+    enable = lib.mkEnableOption "Sapience client (CLI wrappers, sync unit, MCP server)";
 
     backend = lib.mkOption {
       type = lib.types.enum [
@@ -562,12 +580,28 @@ in
       '';
     };
 
+    backgroundSync = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Whether to install the timer that runs extraction on a schedule. When false, nothing
+        reads a transcript unless you ask: run `sapience sync` in the terminal, or start
+        `sapience-sync.service` by hand for a run that does not tie up a shell. The unit itself
+        is always defined, so that manual trigger exists either way.
+
+        Defaults to false, against the vendor's hourly LaunchAgent. Extraction spends real
+        money or real CPU on every run and reads whatever the folder picker has selected, so it
+        happens on request rather than because the module was enabled.
+      '';
+    };
+
     syncInterval = lib.mkOption {
       type = lib.types.str;
       default = "hourly";
       description = ''
         systemd OnCalendar expression for the background extract-and-redact sync, matching the
-        vendor LaunchAgent's StartInterval of 3600 seconds.
+        vendor LaunchAgent's StartInterval of 3600 seconds. Takes effect only when
+        `backgroundSync` is true; on its own it schedules nothing.
       '';
     };
 
@@ -605,7 +639,7 @@ in
     warnings =
       lib.optional (cfg.backend == "ollama" && !config.services.ollama.enable) (
         "programs.sapience.backend is \"ollama\" but services.ollama.enable is false, so there is "
-        + "no inference server on 127.0.0.1:11434 and the hourly sync will extract nothing. "
+        + "no inference server on 127.0.0.1:11434, so every sync will extract nothing. "
         + "Enable services.ollamaModels (modules/home/services/ollama.nix), or pick another "
         + "backend."
       )
@@ -778,9 +812,11 @@ in
       ''
     );
 
-    # Replaces the vendor's launchd plist. `--sync --yes` extracts and redacts on-device and
-    # stages findings; it only posts when auto_approve is on in config.json. No token is passed,
-    # matching the vendor plist, so config.json stays the single source of truth.
+    # The on-demand run, and what the timer activates when backgroundSync is on. Always defined,
+    # so `systemctl --user start sapience-sync.service` is available with no schedule in place.
+    # `--sync --yes` extracts and redacts on-device and stages findings; it only posts when
+    # auto_approve is on in config.json. No token is passed, matching the vendor plist, so
+    # config.json stays the single source of truth.
     systemd.user.services.sapience-sync = {
       Unit = {
         Description = "Sapience: extract and redact new AI session transcripts on-device";
@@ -827,7 +863,9 @@ in
       };
     };
 
-    systemd.user.timers.sapience-sync = {
+    # Opt-in, via backgroundSync. The service above stays defined regardless, so a manual
+    # `systemctl --user start sapience-sync.service` works without a schedule existing.
+    systemd.user.timers.sapience-sync = lib.mkIf cfg.backgroundSync {
       Unit = {
         Description = "Timer for the Sapience on-device transcript sync";
         # Critical: deliberately NO `Requires = [ "sapience-sync.service" ]`, which the sibling

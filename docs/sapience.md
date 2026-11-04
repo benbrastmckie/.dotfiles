@@ -19,14 +19,15 @@ installer's plumbing and leaves the payload alone.
 | `services.ollamaModels.load` | `[ ]` | A cloud model has no weights to pull |
 | `programs.sapience.memoryFiles` | `false` | `CLAUDE.md` and friends are not ingested |
 | `config.json: auto_approve` | `false` | Findings stage until `sapience review` |
-| `syncInterval` | `hourly` | Background extraction, capped at 50 chunks per run |
+| `programs.sapience.backgroundSync` | `false` | No timer; extraction runs only when asked |
 
 Two credentials, in two places, neither in the Nix store: the Sapience account token in
 `~/.sapience/config.json` (mode 600), and the Ollama account keypair in `~/.ollama/id_ed25519`.
 
 **Setting up a new machine** is three commands: `ollama signin`, `sapience-bootstrap`,
 `home-manager switch`. See [First-time setup](#first-time-setup). Nothing reads a transcript
-until you bootstrap, and nothing is uploaded until you review.
+until you bootstrap, nothing re-reads one until you ask
+([no schedule](#nothing-extracts-on-a-schedule)), and nothing is uploaded until you review.
 
 ## What is installed
 
@@ -36,7 +37,7 @@ until you bootstrap, and nothing is uploaded until you review.
 | `sapience` | Reimplemented | Same subcommand dispatch as the vendor's `~/bin` shim |
 | `sf1` | Reimplemented | Terminal chat with the vault |
 | `sapience-bootstrap` | This repo | No vendor counterpart; replaces the installer's macOS half |
-| `sapience-sync.service` / `.timer` | This repo | Replaces the launchd plist; hourly |
+| `sapience-sync.service` | This repo | On-demand detached run; replaces the launchd plist |
 | `ollama.service` / `ollama-model-loader.service` | This repo | `modules/home/services/ollama.nix` |
 | `mcpServers.sapience` in `~/.claude.json` | This repo | Merged on activation, preserving every other key |
 | Token shape repair in `config.json` | This repo | Activation entry; runs before the MCP merge |
@@ -99,8 +100,8 @@ rather than running or failing.
    repairs the token in place. Either way the folder selection, capture map and `auto_approve`
    choice survive — a rewrite preserves them rather than replacing the object.
 
-   If a scheduled sync is running, bootstrap stops it so the two do not compete. Nothing is lost
-   by that; the timer picks the work up again on schedule.
+   If a sync unit happens to be running, bootstrap stops it so the two do not compete. Nothing
+   is lost by that: the vendor leaves un-extracted files un-marked, so a later run re-reads them.
 
 4. **Switch again.**
 
@@ -134,11 +135,30 @@ nothing. Reach for it only after a long gap.
 `sf1 "a question"` are the ones used day to day.
 
 ```bash
-systemctl --user status sapience-sync.timer
-systemctl --user start sapience-sync.service       # run now
-systemctl --user disable --now sapience-sync.timer # pause background learning
-journalctl --user -fu sapience-sync                # logs (not ~/.sapience/sync.log)
+sapience sync                                # extract now, in this terminal
+systemctl --user start sapience-sync.service # or detached, logging to the journal
+journalctl --user -fu sapience-sync          # logs (not ~/.sapience/sync.log)
 ```
+
+### Nothing extracts on a schedule
+
+`backgroundSync` is `false`, so no timer is installed and nothing reads a transcript unless you
+ask. Extraction spends real money or real CPU per run and reads whatever the folder picker has
+selected, so it is a decision rather than a consequence of enabling the module. `sapience help`
+prints the current arrangement, whichever way it is set.
+
+The two ways to run one are above: `sapience sync` in the terminal, or
+`sapience-sync.service` for a detached run that logs to the journal. Both stage findings for
+`sapience review`; neither uploads anything on its own unless `auto_approve` is on.
+
+To put it back on a schedule, in `home.nix`:
+
+```nix
+programs.sapience.backgroundSync = true;   # syncInterval then applies, default "hourly"
+```
+
+`syncInterval` on its own schedules nothing — it is the `OnCalendar` expression the timer uses
+once `backgroundSync` turns the timer on.
 
 ### Watching a run
 
@@ -177,8 +197,9 @@ token reply limit is re-extracted as two halves recursively to depth 2, so one c
 
 Only bootstrap has this, and only on the `ollama` backend — the signal is the local daemon's own
 access log, and on `relay`, `anthropic` or `openai` no call transits this machine. `sapience
-sync`, `sapience backfill` and the timer go straight to the vendor script and are as silent as
-it is; for those, watch `journalctl --user -fu ollama` and check `sapience pending` afterwards.
+sync`, `sapience backfill` and `sapience-sync.service` go straight to the vendor script and are
+as silent as it is; for those, watch `journalctl --user -fu ollama` and check `sapience pending`
+afterwards.
 
 ### How a bootstrap ends
 
@@ -189,7 +210,7 @@ what the run achieved. Bootstrap adds that:
 sapience-bootstrap: done in 15m13s.
   808 findings are staged on this machine, waiting for your review.
   Next: sapience review        approve them and upload to your Sapience
-  Background sync is live: systemctl --user status sapience-sync.timer
+  Nothing syncs on a schedule; run sapience sync when you want another pass.
 ```
 
 The staged count is the honest measure of a run's yield. Extraction is local, so findings
@@ -422,11 +443,11 @@ Two separate hazards, both found by running this for real.
 
 `sapience-bootstrap` takes a dedicated `.bootstrap.lock`, deliberately **not** the vendor's
 shared `.run.lock`, so the only thing that can turn a bootstrap away is another bootstrap. A
-scheduled sync never blocks it: bootstrap stops that sync instead and takes precedence, which
+running sync unit never blocks it: bootstrap stops that sync instead and takes precedence, which
 loses no work because the vendor leaves its files un-marked for the next run. It then holds
-`.run.lock` for the extraction alone, so a timer firing mid-run is skipped by the vendor's own
-guard rather than competing; if that lock cannot be had it continues anyway, since being slower
-beats refusing a run you asked for.
+`.run.lock` for the extraction alone, so another run starting mid-extraction is skipped by the
+vendor's own guard rather than competing; if that lock cannot be had it continues anyway, since
+being slower beats refusing a run you asked for.
 
 There is no cooldown and no stale-lock state to clear. `flock` holds nothing on disk — the lock
 lives only as long as some process holds the open file descriptor — so an interrupted, crashed
@@ -434,8 +455,8 @@ or killed bootstrap frees it the instant the process goes, and the next run star
 
 Separately, `sapience-sync.service` is marked `X-SwitchMethod = "keep-old"`. Without it
 `sd-switch` restarts the unit on every activation, which kills an in-flight extraction *and*
-blocks `home-manager switch` until the replacement finishes. The timer picks up a changed
-definition on its next fire instead.
+blocks `home-manager switch` until the replacement finishes. A changed definition is picked up
+by the next run instead.
 
 ### The token never enters the Nix store
 
@@ -480,13 +501,14 @@ rather not have it; nothing else depends on it.
 
 | Option | Default | Set here | Purpose |
 |--------|---------|----------|---------|
-| `enable` | `false` | `true` | CLI, timer, payload seed, MCP registration |
+| `enable` | `false` | `true` | CLI, sync unit, payload seed, MCP registration |
 | `backend` | `"ollama"` | `"ollama"` | `relay`, `anthropic`, `openai`, `ollama` |
 | `model` | `""` | `"gemma4:cloud"` | `--model`; empty keeps the client's per-backend default |
 | `host` | `"https://app.spnc.ai"` | default | API host, also the payload source |
 | `apiKeyFile` | `""` | default | Provider key for `anthropic`/`openai`; no role under `ollama` |
 | `tokenFile` | `null` | default | Path outside the store for non-interactive bootstrap |
-| `syncInterval` | `"hourly"` | default | `OnCalendar` for the background sync |
+| `backgroundSync` | `false` | default | Install the timer at all; off means on-request only |
+| `syncInterval` | `"hourly"` | default | `OnCalendar`, only when `backgroundSync` is true |
 | `memoryFiles` | `false` | default | See [above](#memory-file-ingestion-is-off) |
 | `registerMcpServer` | `true` | default | Merge into `~/.claude.json` |
 
@@ -506,7 +528,7 @@ API backend with no `apiKeyFile` warns the same way.
 
 ```bash
 # Is the whole chain healthy?
-systemctl --user is-active ollama.service sapience-sync.timer
+systemctl --user is-active ollama.service
 systemctl --user show sapience-sync.service -p ConditionResult -p Result
 
 # Pre-bootstrap, the expected answer is ConditionResult=no with Result=success:
@@ -549,7 +571,7 @@ session counts the folder picker shows.
 The first is overridable. A transcript must have at least two distinct substantive human turns,
 a predicate that exists to drop "benchmark loops, agent runs, probes"; `sapience coverage`
 reports these as `skipped (headless/agent)`. Widen one run with `sapience sync
---include-agents`. The hourly unit would need `SAPIENCE_INCLUDE_HEADLESS=1` in its environment,
+--include-agents`. The sync unit would need `SAPIENCE_INCLUDE_HEADLESS=1` in its environment,
 which is deliberately not an option here: agent transcripts are long and repetitive, and would
 dominate both the run's chunk budget and the vault.
 
@@ -566,14 +588,14 @@ transcripts on disk, against 203 eligible.
 neither word is on that list, and `Applications` is only denied as a top-level folder. Both
 carry `.claude/` trees, so untick that one in the folder picker.
 
-**Stopping the sync service does not stop the timer**, deliberately. The sibling timer modules
-in this repo carry `Requires = [ "<name>.service" ]`, which stop-propagates: stopping the
-service would also deactivate the timer and silently end background learning. This module's
-timer omits it, because the service does get stopped in normal use — `sapience-bootstrap` stops
-it to claim the run, and the pause recipe above stops it by hand. A timer activates its
-same-named service by default, so the dependency bought nothing.
+**The timer, when enabled, carries no `Requires` on its service**, deliberately. The sibling
+timer modules in this repo carry `Requires = [ "<name>.service" ]`, which stop-propagates:
+stopping the service would also deactivate the timer and silently end background learning. This
+module's timer omits it, because the service does get stopped in normal use — `sapience-bootstrap`
+stops it to claim the run. A timer activates its same-named service by default, so the
+dependency buys nothing.
 
-**The hourly run skips the per-run keep prompt.** `--sync` is non-interactive by design, so
+**The unit run skips the per-run keep prompt.** `--sync` is non-interactive by design, so
 staging is all-or-nothing until you run `sapience review`.
 
 **A run is capped at 50 chunks.** `MAX_CHUNKS` defaults to 50, so a first pass over a large
