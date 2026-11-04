@@ -1,7 +1,7 @@
 # Implementation Plan: Sapience standalone flake and nixpkgs blockers
 
 - **Task**: 137 - Sapience standalone flake and nixpkgs blockers
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 10 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/137_sapience_standalone_flake_and_nixpkgs_blockers/reports/01_standalone-flake-nixpkgs-blockers.md
@@ -123,21 +123,22 @@ closing gate.
 
 ---
 
-### Phase 1: Scaffold the directory and vendor a verbatim module copy [NOT STARTED]
+### Phase 1: Scaffold the directory and vendor a verbatim module copy [COMPLETED]
 
 **Goal**: Establish `packages/sapience-flake/` with an unmodified copy of the live module, so every
 later generalization shows up as a reviewable diff against a known baseline.
 
 **Tasks**:
-- [ ] `mkdir -p packages/sapience-flake/modules packages/sapience-flake/lib`
-- [ ] Copy `modules/home/services/sapience.nix` to
+- [x] `mkdir -p packages/sapience-flake/modules packages/sapience-flake/lib`
+- [x] Copy `modules/home/services/sapience.nix` to
       `packages/sapience-flake/modules/sapience.nix` byte-for-byte (`cp`, no edits)
-- [ ] Confirm the copy is identical: `diff modules/home/services/sapience.nix
+- [x] Confirm the copy is identical: `diff modules/home/services/sapience.nix
       packages/sapience-flake/modules/sapience.nix` prints nothing
-- [ ] Record the baseline line count and the live module's git blob hash
+- [x] Record the baseline line count and the live module's git blob hash
       (`git hash-object modules/home/services/sapience.nix`) in the vendored copy's commit message,
-      so a future manual diff has a precise anchor
-- [ ] Confirm the live module and `home.nix` are untouched: `git status --short modules/home/services/sapience.nix home.nix`
+      so a future manual diff has a precise anchor — measured: 917 lines, blob hash
+      `467d28ed0d7d4ba23d6b18582b6e47fc38eec05d`
+- [x] Confirm the live module and `home.nix` are untouched: `git status --short modules/home/services/sapience.nix home.nix`
       is empty
 
 **Timing**: 0.5 hours
