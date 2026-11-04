@@ -293,7 +293,8 @@ let
 
     rc=0
     SAPIENCE_HOST="${cfg.host}" "''${runner[@]}" ${python} "${stateDir}/extract_local.py" \
-      --backend "${cfg.backend}" || rc=$?
+      --backend "${cfg.backend}" \
+      ${lib.optionalString (cfg.model != "") ''--model "${cfg.model}"''} || rc=$?
     cleanup
     ticker_pid=""
     exit "$rc"
@@ -339,6 +340,37 @@ in
       '';
     };
 
+    apiKeyFile = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      example = "/home/benjamin/.config/sapience/openai-key";
+      description = ''
+        Path to a file containing ONLY the provider API key, for the "openai" and "anthropic"
+        backends. Read at activation time and merged into ~/.sapience/config.json as the
+        api_key / api_key_env pair the client expects -- which is the vendor's own mechanism
+        (_config_api_key in extract_local.py) and the only one that reaches every invocation
+        path, including the timer, which has no shell environment.
+
+        Typed as str, not path, on purpose: a Nix path literal would be copied into the
+        world-readable store. Give an absolute path as a quoted string -- a mode-600 file in
+        $HOME, or a sops-nix secret under /run/secrets.
+      '';
+    };
+
+    model = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      example = "gpt-4o-mini";
+      description = ''
+        Passed as --model, overriding the client's per-backend default (llama3.1 for ollama,
+        gpt-4o-mini for openai, claude-haiku-4-5 for anthropic). Empty keeps the default.
+
+        Critical for openai: the client sends the deprecated `max_tokens` parameter, which
+        reasoning models (o-series and the GPT-5 family) reject with HTTP 400. Only models that
+        still accept `max_tokens` work without editing vendor code. See docs/sapience.md.
+      '';
+    };
+
     syncInterval = lib.mkOption {
       type = lib.types.str;
       default = "hourly";
@@ -379,12 +411,20 @@ in
     # return and retries next interval rather than failing), so a missing inference server must
     # not block an unrelated rebuild. This surfaces the cross-module dependency without the
     # modules being coupled -- services/ollama.nix is never auto-enabled from here.
-    warnings = lib.optional (cfg.backend == "ollama" && !config.services.ollama.enable) (
-      "programs.sapience.backend is \"ollama\" but services.ollama.enable is false, so there is "
-      + "no inference server on 127.0.0.1:11434 and the hourly sync will extract nothing. "
-      + "Enable services.ollamaModels (modules/home/services/ollama.nix), or pick another "
-      + "backend."
-    );
+    warnings =
+      lib.optional (cfg.backend == "ollama" && !config.services.ollama.enable) (
+        "programs.sapience.backend is \"ollama\" but services.ollama.enable is false, so there is "
+        + "no inference server on 127.0.0.1:11434 and the hourly sync will extract nothing. "
+        + "Enable services.ollamaModels (modules/home/services/ollama.nix), or pick another "
+        + "backend."
+      )
+      ++ lib.optional ((cfg.backend == "openai" || cfg.backend == "anthropic") && cfg.apiKeyFile == "") (
+        "programs.sapience.backend is \""
+        + cfg.backend
+        + "\" but apiKeyFile is unset, so no "
+        + "provider key reaches the timer (which has no shell environment) and every sync will "
+        + "exit \"needs a key\". Set programs.sapience.apiKeyFile."
+      );
 
     home.packages = [
       sapienceCli
@@ -414,6 +454,55 @@ in
         '') (requiredPayload ++ optionalPayload)}
       fi
     '';
+
+    # Merges the provider key into config.json as the api_key/api_key_env pair the client reads.
+    # Takes the vendor's .run.lock first: an extraction persists its own config.json (folders,
+    # capture map), so an unsynchronised read-modify-write here could drop those choices.
+    home.activation.sapienceApiKey = lib.mkIf (cfg.apiKeyFile != "") (
+      config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" ] ''
+        keyFile="${cfg.apiKeyFile}"
+        keyEnv="${
+          if cfg.backend == "openai" then
+            "OPENAI_API_KEY"
+          else if cfg.backend == "anthropic" then
+            "ANTHROPIC_API_KEY"
+          else
+            ""
+        }"
+        if [[ -v DRY_RUN ]]; then
+          echo "Would merge $keyEnv from $keyFile into ${configFile}"
+        elif [ -z "$keyEnv" ]; then
+          echo "sapience: backend ${cfg.backend} takes no provider key; ignoring apiKeyFile"
+        elif [ ! -r "$keyFile" ]; then
+          echo "sapience: $keyFile is not readable yet; no provider key written."
+          echo "  Create it (mode 600, key only), then re-run home-manager switch."
+        elif [ ! -f "${configFile}" ]; then
+          echo "sapience: ${configFile} does not exist yet; run sapience-bootstrap first,"
+          echo "  then re-run home-manager switch to store the provider key."
+        else
+          key="$(${pkgs.coreutils}/bin/tr -d '[:space:]' < "$keyFile")"
+          if [ -z "$key" ]; then
+            echo "sapience: $keyFile is empty; no provider key written."
+          elif ! ${pkgs.util-linux}/bin/flock -w 10 "${stateDir}/.run.lock" true 2>/dev/null; then
+            echo "sapience: an extraction holds .run.lock; provider key not written."
+            echo "  Re-run home-manager switch once it finishes."
+          else
+            tmp="$(${pkgs.coreutils}/bin/mktemp "${stateDir}/config.json.XXXXXX")"
+            if ${pkgs.util-linux}/bin/flock -w 10 "${stateDir}/.run.lock" \
+              ${pkgs.jq}/bin/jq --arg k "$key" --arg e "$keyEnv" \
+                '.api_key = $k | .api_key_env = $e' "${configFile}" > "$tmp" \
+              && [ -s "$tmp" ]; then
+              ${pkgs.coreutils}/bin/mv "$tmp" "${configFile}"
+              ${pkgs.coreutils}/bin/chmod 600 "${configFile}"
+              echo "sapience: stored $keyEnv in ${configFile} (mode 600)"
+            else
+              ${pkgs.coreutils}/bin/rm -f "$tmp"
+              echo "sapience: could not write the provider key into ${configFile}"
+            fi
+          fi
+        fi
+      ''
+    );
 
     # Registers without a token until config.json has one, since mcp.py falls back to that file;
     # the env entry exists so `sapience status` reports matching per-surface fingerprints.
@@ -491,7 +580,8 @@ in
               fi
 
               ${python} "${stateDir}/extract_local.py" \
-                --sync --yes --backend "${cfg.backend}" || \
+                --sync --yes --backend "${cfg.backend}" \
+                ${lib.optionalString (cfg.model != "") ''--model "${cfg.model}"''} || \
                 echo "sapience-sync: sync returned non-zero (will retry next interval)"
 
               echo "sapience-sync: done"

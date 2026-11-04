@@ -158,6 +158,61 @@ instructed to keep "exact numbers, thresholds, config values, decisions and thei
 "conversations never leave this machine" is true under `ollama` and still not the whole story.
 With `auto_approve: false` as configured here, they sit staged until `sapience review`.
 
+## Switching to the OpenAI API backend
+
+CPU extraction runs at roughly 40 seconds per model call. The `openai` backend moves that off
+the machine while still sending only redacted chunks, and a **ChatGPT Pro** subscription can
+fund it: since 28 October 2026 eligible Pro plans can claim a monthly API credit equal to the
+tier price, linked to an API organisation you own. Plus and Go cannot. Measured against this
+repository's corpus a full backlog pass is single-digit dollars, so the credit covers it.
+
+1. **Claim the credit and mint a key.** In ChatGPT billing settings, claim the API credit and
+   link it to your API org (the subscription must be at least seven days old; unused credit
+   expires each cycle). Then create a secret key on the API platform.
+
+2. **Store the key where only you can read it.**
+
+   ```bash
+   install -d -m 700 ~/.config/sapience
+   printf '%s' 'sk-...' > ~/.config/sapience/openai-key
+   chmod 600 ~/.config/sapience/openai-key
+   ```
+
+   Use `printf`, not `echo` — a trailing newline is stripped on read, but `printf` keeps the
+   file exactly one key. A sops-nix secret under `/run/secrets` works equally well; pass its
+   path instead.
+
+3. **Flip the backend** in `home.nix` — `backend = "openai";` — and switch. Activation reads the
+   key file and stores it in `~/.sapience/config.json` as the `api_key`/`api_key_env` pair, which
+   is the only route that reaches the timer, since a systemd user unit has no shell environment.
+   The write takes the vendor's `.run.lock` first, so it cannot clobber the `folders` and
+   `capture` choices an in-flight extraction persists to the same file.
+
+4. **Verify** with one foreground run: `sapience sync`. Calls should drop from ~40s to a few
+   seconds, and `journalctl --user -u ollama` should show no new activity.
+
+### The max_tokens constraint
+
+`extract_local.py` sends the deprecated `max_tokens` parameter and hardcodes
+`https://api.openai.com/v1/chat/completions`. Reasoning models — the o-series and the GPT-5
+family — reject `max_tokens` with HTTP 400, so **they cannot be used without editing vendor
+code**, which this setup deliberately does not do. Leave `model = ""` to get the client's
+default `gpt-4o-mini`, which works; anything newer needs testing for a 400 before being relied
+on.
+
+If a model you want is blocked this way, the escape hatch is `OLLAMA_HOST`
+(`extract_local.py:167`): a local proxy speaking Ollama's `/api/chat` and forwarding to any
+provider would let you use any model with the key never reaching Sapience and no vendor file
+touched. That is real software to build and maintain, not a config change.
+
+### Cost and the extra classifier call
+
+Each chunk also triggers a short `is_personal` work-versus-personal classifier call, roughly
+doubling the call count. `NO_CLASSIFY=1` skips it — cheap to leave on at API prices, and worth
+keeping unless the selected projects are all work, since turning it off means personal
+conversations are no longer filtered out. The client's own comment is that "redaction is the
+privacy guarantee, not this filter".
+
 ## Design decisions
 
 ### Not packaged as a derivation

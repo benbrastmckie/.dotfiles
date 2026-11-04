@@ -16,15 +16,31 @@
 
   # Sapience knowledge vault (modules/home/services/sapience.nix). The "ollama" backend keeps
   # AI-session transcript text on this machine: "relay" would transit redacted transcript chunks
-  # through app.spnc.ai BEFORE any review gate, and "anthropic"/"openai" need a pay-as-you-go
-  # API key, which a Claude subscription does not provide.
+  # through app.spnc.ai BEFORE any review gate. "anthropic" needs a pay-as-you-go API key, which
+  # a Claude subscription does not provide; "openai" needs one too, but a ChatGPT Pro
+  # subscription can fund it from its monthly API credit (claimed in ChatGPT billing settings).
   #
   # Enabling the module installs the CLI, the hourly timer and the MCP registration, but reads
   # nothing: the sync unit is gated on ~/.sapience/config.json via ConditionPathExists, so no
   # transcript is touched until `sapience-bootstrap` is run by hand and projects are ticked.
   programs.sapience = {
     enable = true;
+
+    # "ollama" runs extraction on this machine's CPU at roughly 40s per model call. To move it
+    # to the OpenAI API instead -- redacted chunks only, and funded by the ChatGPT Pro monthly
+    # API credit rather than the CPU -- create the key file below, then change this one word to
+    # "openai". Walkthrough and the max_tokens caveat: docs/sapience.md.
     backend = "ollama";
+
+    # Read at activation and stored as config.json's api_key/api_key_env pair, which is the only
+    # route that reaches the timer (it has no shell environment). Unused while backend is
+    # "ollama"; harmless if the file does not exist yet.
+    apiKeyFile = "/home/benjamin/.config/sapience/openai-key";
+
+    # Empty keeps the client's per-backend default, which for openai is gpt-4o-mini -- the one
+    # model known to work, because the client sends the deprecated `max_tokens` that o-series
+    # and GPT-5 models reject with HTTP 400.
+    model = "";
   };
 
   home = {
