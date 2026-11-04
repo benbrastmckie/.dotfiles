@@ -1,0 +1,19 @@
+{
+  "status": "researched",
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/137_sapience_standalone_flake_and_nixpkgs_blockers/reports/01_standalone-flake-nixpkgs-blockers.md",
+      "summary": "Research report: generalization plan for the vendored sapience module (backend/memoryFiles defaults, dropped hardcoded path, ticker-gating fix), the Claude Code hooks/statusline gap, and live-verified evidence for the three nixpkgs blockers (no license grant, nothing hashable upstream, invite-only beta) plus the two concrete vendor asks."
+    }
+  ],
+  "next_steps": "Run /plan 137 to design the packages/sapience-flake/ directory layout (flake.nix outputs, vendored module.nix, package wrappers) and the nixpkgs-blockers README from this report's findings.",
+  "metadata": {
+    "session_id": "sess_1793760214_5053a6_137",
+    "agent_type": "nix-research-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
+    "findings_count": 10
+  },
+  "dispatch_seq": 1
+}
