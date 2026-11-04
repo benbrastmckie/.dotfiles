@@ -1,21 +1,25 @@
-# Sapience (https://app.spnc.ai) on NixOS: CLI wrappers, bootstrap, an opt-in sync timer and MCP
-# registration, replacing the vendor's macOS-only installer.
+# Sapience (https://app.spnc.ai) client packaging for NixOS/Home Manager: CLI wrappers, bootstrap,
+# an opt-in sync timer and MCP registration, replacing the vendor's macOS-only installer.
+#
+# This file is a generalized fork of modules/home/services/sapience.nix, forked out as of this
+# standalone, vendor-shareable flake. The two copies are NOT kept in sync automatically -- diff
+# manually against that source module if you want any later upstream fixes.
 #
 # Critical: do not "fix" the payload into a fetchurl derivation. Upstream ships no releases or
 # hashes and self-updates in the background, so ~/.sapience/*.py is deliberately mutable state
-# that activation seeds only when absent. See docs/sapience.md.
+# that activation seeds only when absent. See ../README.md.
 #
-# Note: the token is the entire credential for the account, so it never enters the Nix store or
-# this repo -- every client falls back to ~/.sapience/config.json when SAPIENCE_TOKEN is unset.
-# See docs/sapience.md.
+# Note: the token is the entire credential for the account, so it never enters the Nix store --
+# every client falls back to ~/.sapience/config.json when SAPIENCE_TOKEN is unset. See
+# ../README.md.
 #
-# Note: the Claude Code hooks and mcp__sapience__* grants live in config/claude/settings.json
-# because `hooks` and `permissions` are enforced keys in home.activation.claudeSettings;
-# `statusLine` is deliberately left to hooks/statusline-push.sh. See docs/sapience.md.
+# Note: this module does not deliver Claude Code's SessionStart/SessionEnd/Stop hooks or the
+# mcp__sapience__* permission grants -- those are Claude Code *settings* concerns with no
+# equivalent delivery mechanism in this flake. See ../README.md's "Known gap" section for the
+# exact commands to add them to your own settings file yourself.
 #
-# Module shape follows services/cache-cleanup.nix and services/claude-session-reaper.nix:
-# oneshot plus timer, explicit PATH export, and every external call guarded so a transient
-# network failure cannot leave the unit `failed` (the scripts/gmail-oauth2.nix precedent).
+# Module shape: oneshot service plus timer, explicit PATH export, and every external call guarded
+# so a transient network failure cannot leave the unit `failed`.
 {
   config,
   lib,
@@ -168,7 +172,7 @@ let
 
   # Interactive first-run: mint config.json, seed the payload, then hand off to the vendor's own
   # folder-selection flow. Writing config.json directly is what lets this skip the vendor
-  # installer's invite claim, exactly as their published one-liner does. See docs/sapience.md.
+  # installer's invite claim, exactly as their published one-liner does. See ../README.md.
   sapienceBootstrap = pkgs.writeShellScriptBin "sapience-bootstrap" ''
     set -euo pipefail
     export PATH="${runtimePath}:$PATH"
@@ -195,7 +199,7 @@ let
     # Note: a dedicated lock, NOT the vendor's shared .run.lock, so the only thing that can turn
     # a bootstrap away is another bootstrap. flock releases on process exit by any route --
     # normal, Ctrl-C, crash, SIGKILL -- so an interrupted run never leaves this held and there is
-    # never a cooldown before retrying. See docs/sapience.md.
+    # never a cooldown before retrying. See ../README.md.
     if [ -z "''${SAPIENCE_BOOTSTRAP_LOCKED:-}" ]; then
       if ! flock -n "${stateDir}/.bootstrap.lock" true 2>/dev/null; then
         echo "sapience-bootstrap: another sapience-bootstrap is running; only one at a time." >&2
@@ -226,7 +230,7 @@ let
     # it: /v1/stats answers 401 and /ingest-kos answers 403 "an invite code is needed to build a
     # new Sapience", because a token that opens no brain reads server-side as a request to make
     # one. A bare length test called that a token and left it in place forever, so the failure
-    # only surfaced after a full extraction had already run. See docs/sapience.md.
+    # only surfaced after a full extraction had already run. See ../README.md.
     if [ -f "${configFile}" ] && \
         TOKEN="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null)" && \
         [ -n "$TOKEN" ] && sap_token_ok "$TOKEN"; then
@@ -549,14 +553,16 @@ in
         "openai"
         "ollama"
       ];
-      default = "ollama";
+      default = "relay";
       description = ''
-        Where transcript text is processed into knowledge objects. "relay" (the vendor default)
-        sends redacted chunks through app.spnc.ai to Anthropic at the vendor's expense;
-        "anthropic"/"openai" send raw text from this machine to that provider on your own API
-        key; "ollama" keeps conversation text on this machine entirely and requires an Ollama
-        server on 127.0.0.1:11434. Defaults to "ollama" here rather than the vendor's "relay"
-        because this repository's Claude Code transcripts are the input corpus.
+        Where transcript text is processed into knowledge objects. "relay" (this default, and
+        the vendor's own default) sends redacted chunks through app.spnc.ai to Anthropic at the
+        vendor's expense -- no local server and no API key required, the zero-setup choice for a
+        stranger enabling this module. "anthropic"/"openai" send raw text from this machine to
+        that provider on your own API key; "ollama" keeps conversation text on this machine
+        entirely and requires an Ollama server on 127.0.0.1:11434. "relay" is also the one
+        backend where the vendor itself sees redacted transcript chunks before any review gate --
+        see ../README.md's "Privacy" section.
       '';
     };
 
@@ -581,7 +587,7 @@ in
     apiKeyFile = lib.mkOption {
       type = lib.types.str;
       default = "";
-      example = "/home/benjamin/.config/sapience/openai-key";
+      example = "/run/secrets/sapience_openai_key";
       description = ''
         Path to a file containing ONLY the provider API key, for the "openai" and "anthropic"
         backends. Read at activation time and merged into ~/.sapience/config.json as the
@@ -605,7 +611,7 @@ in
 
         Critical for openai: the client sends the deprecated `max_tokens` parameter, which
         reasoning models (o-series and the GPT-5 family) reject with HTTP 400. Only models that
-        still accept `max_tokens` work without editing vendor code. See docs/sapience.md.
+        still accept `max_tokens` work without editing vendor code. See ../README.md.
       '';
     };
 
@@ -636,16 +642,17 @@ in
 
     memoryFiles = lib.mkOption {
       type = lib.types.bool;
-      default = false;
+      default = true;
       description = ''
         Whether to let Sapience ingest "curated memory files" (CLAUDE.md, AGENTS.md,
         .claude/rules/*.md and similar) alongside session transcripts. When false,
         NO_MEMFILES=1 is exported for every client invocation.
 
-        Defaults to false, against the vendor default: every .claude/ tree here is a generated
-        deploy artifact from the agent-system source store, duplicated across 20+ repositories,
-        and Sapience would import all of them at its highest trust tier, outranking real
-        findings. See docs/sapience.md.
+        Defaults to true, matching the vendor default. Consider setting this false if your own
+        CLAUDE.md/AGENTS.md files are generated scaffolding rather than hand-authored "curated
+        truth" -- Sapience ingests memory files at its highest trust tier, outranking
+        session-extracted findings, which is the wrong call for scaffolding duplicated across
+        many repositories. See ../README.md.
       '';
     };
 
@@ -719,34 +726,36 @@ in
     # "an invite code is needed to build a new Sapience" on /ingest-kos, because a token that
     # opens no brain reads server-side as a request to create one. Ordered before
     # sapienceMcpServer so the registration always copies a repaired value.
-    # See docs/sapience.md.
-    home.activation.sapienceTokenRepair = config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" ] ''
-      if [[ -v DRY_RUN ]]; then
-        echo "Would repair a link-shaped token in ${configFile}"
-      elif [ -f "${configFile}" ]; then
-        raw="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null || true)"
-        if [ -n "$raw" ] && ! printf '%s' "$raw" | ${pkgs.gnugrep}/bin/grep -qE '^[A-Za-z0-9_-]+$'; then
-          fixed="$(printf '%s' "$raw" \
-            | ${pkgs.coreutils}/bin/tr -d '[:space:]' \
-            | ${pkgs.gnused}/bin/sed -e 's/.*[?&]token=//' -e 's/^token=//' -e 's/[&#].*$//')"
-          if printf '%s' "$fixed" | ${pkgs.gnugrep}/bin/grep -qE '^[A-Za-z0-9_-]{8,}$'; then
-            tmp="$(${pkgs.coreutils}/bin/mktemp "${stateDir}/config.json.XXXXXX")"
-            if ${pkgs.jq}/bin/jq --arg t "$fixed" '.token = $t' "${configFile}" > "$tmp" \
-              && [ -s "$tmp" ]; then
-              ${pkgs.coreutils}/bin/mv "$tmp" "${configFile}"
-              ${pkgs.coreutils}/bin/chmod 600 "${configFile}"
-              echo "sapience: ${configFile} stored a link rather than a token; repaired it."
-            else
-              ${pkgs.coreutils}/bin/rm -f "$tmp"
-              echo "sapience: could not repair the token in ${configFile}"
+    # See ../README.md.
+    home.activation.sapienceTokenRepair =
+      config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" ]
+        ''
+          if [[ -v DRY_RUN ]]; then
+            echo "Would repair a link-shaped token in ${configFile}"
+          elif [ -f "${configFile}" ]; then
+            raw="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null || true)"
+            if [ -n "$raw" ] && ! printf '%s' "$raw" | ${pkgs.gnugrep}/bin/grep -qE '^[A-Za-z0-9_-]+$'; then
+              fixed="$(printf '%s' "$raw" \
+                | ${pkgs.coreutils}/bin/tr -d '[:space:]' \
+                | ${pkgs.gnused}/bin/sed -e 's/.*[?&]token=//' -e 's/^token=//' -e 's/[&#].*$//')"
+              if printf '%s' "$fixed" | ${pkgs.gnugrep}/bin/grep -qE '^[A-Za-z0-9_-]{8,}$'; then
+                tmp="$(${pkgs.coreutils}/bin/mktemp "${stateDir}/config.json.XXXXXX")"
+                if ${pkgs.jq}/bin/jq --arg t "$fixed" '.token = $t' "${configFile}" > "$tmp" \
+                  && [ -s "$tmp" ]; then
+                  ${pkgs.coreutils}/bin/mv "$tmp" "${configFile}"
+                  ${pkgs.coreutils}/bin/chmod 600 "${configFile}"
+                  echo "sapience: ${configFile} stored a link rather than a token; repaired it."
+                else
+                  ${pkgs.coreutils}/bin/rm -f "$tmp"
+                  echo "sapience: could not repair the token in ${configFile}"
+                fi
+              else
+                echo "sapience: ${configFile} holds a token that is not token-shaped and could not"
+                echo "  be repaired automatically. Re-run sapience-bootstrap to replace it."
+              fi
             fi
-          else
-            echo "sapience: ${configFile} holds a token that is not token-shaped and could not"
-            echo "  be repaired automatically. Re-run sapience-bootstrap to replace it."
           fi
-        fi
-      fi
-    '';
+        '';
 
     # Merges the provider key into config.json as the api_key/api_key_env pair the client reads.
     # Takes the vendor's .run.lock first: an extraction persists its own config.json (folders,
@@ -800,45 +809,47 @@ in
     # Registers without a token until config.json has one, since mcp.py falls back to that file;
     # the env entry exists so `sapience status` reports matching per-surface fingerprints.
     # Ordered after claudeMcpServers, which merges into the same ~/.claude.json -- either order
-    # is correct, the edge just makes that independence intentional. See docs/sapience.md.
+    # is correct, the edge just makes that independence intentional. See ../README.md.
     home.activation.sapienceMcpServer = lib.mkIf cfg.registerMcpServer (
-      config.lib.dag.entryAfter [
-        "writeBoundary"
-        "claudeMcpServers"
-        "sapiencePayload"
-        "sapienceTokenRepair"
-      ] ''
-        claudeJson="${config.home.homeDirectory}/.claude.json"
-        if [[ -v DRY_RUN ]]; then
-          echo "Would merge mcpServers.sapience into $claudeJson"
-        else
-          sapToken=""
-          if [ -r "${configFile}" ]; then
-            sapToken="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null || true)"
-          fi
-          [ -f "$claudeJson" ] || echo '{}' > "$claudeJson"
-          tmpFile="$(${pkgs.coreutils}/bin/mktemp "${config.home.homeDirectory}/.claude.json.XXXXXX")"
-          if ${pkgs.jq}/bin/jq \
-            --arg tok "$sapToken" \
-            --arg py "${python}" \
-            --arg script "${stateDir}/mcp.py" \
-            --arg host "${cfg.host}" \
-            '.mcpServers.sapience = ({
-               type: "stdio",
-               command: $py,
-               args: [$script],
-               env: ({ SAPIENCE_HOST: $host }
-                     + (if ($tok | length) > 0 then { SAPIENCE_TOKEN: $tok } else {} end))
-             })' \
-            "$claudeJson" > "$tmpFile"; then
-            ${pkgs.coreutils}/bin/mv "$tmpFile" "$claudeJson"
-            ${pkgs.coreutils}/bin/chmod u+w "$claudeJson"
+      config.lib.dag.entryAfter
+        [
+          "writeBoundary"
+          "claudeMcpServers"
+          "sapiencePayload"
+          "sapienceTokenRepair"
+        ]
+        ''
+          claudeJson="${config.home.homeDirectory}/.claude.json"
+          if [[ -v DRY_RUN ]]; then
+            echo "Would merge mcpServers.sapience into $claudeJson"
           else
-            ${pkgs.coreutils}/bin/rm -f "$tmpFile"
-            echo "sapience: could not merge mcpServers.sapience into $claudeJson"
+            sapToken=""
+            if [ -r "${configFile}" ]; then
+              sapToken="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null || true)"
+            fi
+            [ -f "$claudeJson" ] || echo '{}' > "$claudeJson"
+            tmpFile="$(${pkgs.coreutils}/bin/mktemp "${config.home.homeDirectory}/.claude.json.XXXXXX")"
+            if ${pkgs.jq}/bin/jq \
+              --arg tok "$sapToken" \
+              --arg py "${python}" \
+              --arg script "${stateDir}/mcp.py" \
+              --arg host "${cfg.host}" \
+              '.mcpServers.sapience = ({
+                 type: "stdio",
+                 command: $py,
+                 args: [$script],
+                 env: ({ SAPIENCE_HOST: $host }
+                       + (if ($tok | length) > 0 then { SAPIENCE_TOKEN: $tok } else {} end))
+               })' \
+              "$claudeJson" > "$tmpFile"; then
+              ${pkgs.coreutils}/bin/mv "$tmpFile" "$claudeJson"
+              ${pkgs.coreutils}/bin/chmod u+w "$claudeJson"
+            else
+              ${pkgs.coreutils}/bin/rm -f "$tmpFile"
+              echo "sapience: could not merge mcpServers.sapience into $claudeJson"
+            fi
           fi
-        fi
-      ''
+        ''
     );
 
     # The on-demand run, and what the timer activates when backgroundSync is on. Always defined,
@@ -902,7 +913,7 @@ in
         # sapience-sync.service` -- which sapience-bootstrap itself runs to claim the model --
         # would also deactivate this timer and silently end background learning. A timer
         # activates its same-named service through Timer.Unit by default, so the dependency buys
-        # nothing. See docs/sapience.md.
+        # nothing. See ../README.md.
       };
       Timer = {
         OnCalendar = cfg.syncInterval;

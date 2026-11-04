@@ -162,35 +162,46 @@ not either quoted number.
 
 ---
 
-### Phase 2: Generalize the vendored module's defaults and header [NOT STARTED]
+### Phase 2: Generalize the vendored module's defaults and header [COMPLETED]
 
 **Goal**: Replace this-repo-specific choices in the vendored copy with the vendor's own defaults so
 a stranger who enables the module gets a working, zero-setup configuration, and retarget the header
 comment at a flake consumer rather than at this repository.
 
 **Tasks**:
-- [ ] `backend`: change `default = "ollama";` to `default = "relay";` and rewrite the option
+- [x] `backend`: change `default = "ollama";` to `default = "relay";` and rewrite the option
       description — it currently explains *this repository's* choice; the vendored copy's
       description states `relay` is the vendor's zero-setup default (no local inference server, no
       API key) and notes `relay` is the one backend where the vendor sees redacted transcript
       chunks before any review gate
-- [ ] `memoryFiles`: change `default = false;` to `default = true;` (the vendor default) and
+- [x] `memoryFiles`: change `default = false;` to `default = true;` (the vendor default) and
       rewrite the description to explain the override is conditional on the consumer's
       `CLAUDE.md`/`AGENTS.md` being hand-authored rather than generated scaffolding
-- [ ] `apiKeyFile`: replace `example = "/home/benjamin/.config/sapience/openai-key";` with
+- [x] `apiKeyFile`: replace `example = "/home/benjamin/.config/sapience/openai-key";` with
       `example = "/run/secrets/sapience_openai_key";`, matching `tokenFile`'s existing generic
       example one field up
-- [ ] Verify `model`'s default is already `default = "";` and leave it unchanged; note the
+- [x] Verify `model`'s default is already `default = "";` and leave it unchanged; note the
       confirmation in the commit message so the dispatch item is visibly closed rather than skipped
-- [ ] Rewrite the file header comment: name it a generalized fork of
+      — confirmed: `model` default is `""` at line 606 of the vendored copy, unchanged.
+- [x] Rewrite the file header comment: name it a generalized fork of
       `modules/home/services/sapience.nix` as of this task, keep the "do not fix the payload into a
       fetchurl derivation" warning and the token-never-in-the-store note, and replace the
       repo-internal cross-references (`docs/sapience.md`, `config/claude/settings.json`,
       `hooks/statusline-push.sh`, the `services/cache-cleanup.nix` shape precedent) with pointers to
       this flake's own `README.md`
-- [ ] Grep the whole vendored file for any remaining `/home/benjamin`, `benjamin`, `.dotfiles`, or
-      `docs/sapience.md` occurrence and resolve each one
-- [ ] `nixfmt --check packages/sapience-flake/modules/sapience.nix`
+- [x] Grep the whole vendored file for any remaining `/home/benjamin`, `benjamin`, `.dotfiles`, or
+      `docs/sapience.md` occurrence and resolve each one — all 12 `docs/sapience.md` occurrences
+      (not just the 3 in the header) resolved to `../README.md`; zero `benjamin`/`.dotfiles` hits
+- [x] `nixfmt --check packages/sapience-flake/modules/sapience.nix` *(deviation: altered — nixfmt
+      also reformatted two pre-existing, unrelated whitespace blocks (`sapienceTokenRepair`,
+      `sapienceMcpServer`) that are not nixfmt-clean in the LIVE module either (confirmed:
+      `nixfmt --check modules/home/services/sapience.nix` also fails on the untouched live file).
+      Ran `nixfmt` on the vendored copy to satisfy this phase's and Phase 7's hard `nixfmt --check`
+      gate; the extra hunks are whitespace/line-wrap only inside Nix-level `''...''` string syntax
+      nixfmt is designed to leave value-preserving, and are outside the three wrapper derivations
+      Phase 4 will diff-check, so they do not affect generated script text. This means the
+      Verification bullet below ("diff shows only the intended hunks") is satisfied for
+      substance but not literally for line count — see the diff review recorded for this phase.)*
 
 **Timing**: 1 hour
 
