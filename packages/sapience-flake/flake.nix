@@ -22,7 +22,7 @@
 # `README.md`'s "The payload is deliberately mutable" section for why this is a property to
 # document, not a defect to fix.
 {
-  description = "Sapience (app.spnc.ai) client packaging for Linux/NixOS/Home Manager, WSL2 included -- a standalone, shareable fork";
+  description = "Standalone Sapience (app.spnc.ai) client packaging for Linux/NixOS/Home Manager, WSL2 included";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
