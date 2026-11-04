@@ -10,10 +10,23 @@ no packaging work at all: ten pure-stdlib Python 3 files, no third-party imports
 only external binary any of them invokes. So `modules/home/services/sapience.nix` replaces the
 installer's plumbing and leaves the payload alone.
 
-**If you are setting this up for the first time, skip to [First-time
-setup](#first-time-setup).** The short version is `sapience-bootstrap`, then
-`home-manager switch` a second time, then `sapience review`. Nothing reads a transcript until
-you bootstrap, and nothing is uploaded until you review.
+## How this machine is configured
+
+| Setting | Value | Meaning |
+|---------|-------|---------|
+| `programs.sapience.backend` | `"ollama"` | All traffic goes through the local Ollama daemon |
+| `programs.sapience.model` | `"beam:cloud"` | …which forwards it to `ollama.com`; nothing is inferred locally |
+| `services.ollamaModels.load` | `[ ]` | A cloud model has no weights to pull |
+| `programs.sapience.memoryFiles` | `false` | `CLAUDE.md` and friends are not ingested |
+| `config.json: auto_approve` | `false` | Findings stage until `sapience review` |
+| `syncInterval` | `hourly` | Background extraction, capped at 50 chunks per run |
+
+Two credentials, in two places, neither in the Nix store: the Sapience account token in
+`~/.sapience/config.json` (mode 600), and the Ollama account keypair in `~/.ollama/id_ed25519`.
+
+**Setting up a new machine** is three commands: `ollama signin`, `sapience-bootstrap`,
+`home-manager switch`. See [First-time setup](#first-time-setup). Nothing reads a transcript
+until you bootstrap, and nothing is uploaded until you review.
 
 ## What is installed
 
@@ -39,13 +52,27 @@ The module is enabled in `home.nix`, but it is inert until a token exists. The s
 `ConditionPathExists=~/.sapience/config.json`, so before bootstrap it reports `condition failed`
 rather than running or failing.
 
-1. **Get a token.** In the web app: Settings, then "Sign in on another device", then copy the
-   private link. The token is that link's `token=` parameter. It is the entire credential for
-   the account — there is no password or second factor — so treat it like one.
+1. **Sign in to Ollama**, which is what lets the daemon reach cloud models:
 
-2. **Bootstrap.** Run it in a terminal — the vendor refuses onboarding without a TTY, to avoid
-   silently replacing your folder choices (`SAPIENCE_ALLOW_ONBOARD=1` overrides, but then it
-   picks for you):
+   ```bash
+   ollama signin                             # browser flow; registers ~/.ollama/id_ed25519
+   systemctl --user restart ollama.service   # pick up the credential
+   ```
+
+   Verify before going further — this should answer rather than `{"error":"Unauthorized"}`:
+
+   ```bash
+   curl -sS http://127.0.0.1:11434/api/chat -H 'content-type: application/json' \
+     -d '{"model":"beam:cloud","messages":[{"role":"user","content":"say OK"}],"stream":false}'
+   ```
+
+2. **Get a Sapience token.** In the web app: Settings, then "Sign in on another device", then
+   copy the private link. The token is that link's `token=` parameter. It is the entire
+   credential for the account — there is no password or second factor — so treat it like one.
+
+3. **Bootstrap.** Run it in a real terminal; the vendor refuses onboarding without a TTY, to
+   avoid silently replacing your folder choices (`SAPIENCE_ALLOW_ONBOARD=1` overrides, but then
+   it picks for you):
 
    ```bash
    sapience-bootstrap                      # prompts for the token
@@ -54,13 +81,13 @@ rather than running or failing.
 
    This writes `~/.sapience/config.json` (mode 600) with the token, backend and host, confirms
    the payload is present, then hands off to the vendor's own onboarding, which lists every
-   candidate project folder with file counts for you to tick.
+   candidate project folder with file counts for you to tick. Re-running it later skips the
+   token step and just re-opens the picker.
 
-   If a scheduled sync is running, bootstrap says so and stops it, so your run has the local
-   model to itself. Nothing is lost by that; the timer picks the work up again on schedule.
-   Re-running bootstrap later skips the token step and just re-opens the picker.
+   If a scheduled sync is running, bootstrap stops it so the two do not compete. Nothing is lost
+   by that; the timer picks the work up again on schedule.
 
-3. **Switch again.**
+4. **Switch again.**
 
    ```bash
    cd ~/.dotfiles && home-manager switch --flake .#benjamin
@@ -70,56 +97,56 @@ rather than running or failing.
    can. Without it, `sapience status` keeps reporting Claude Code as "not registered". Restart
    Claude Code afterwards: MCP servers are snapshotted at session start.
 
-4. **Run and review.**
+5. **Review.** Only this step uploads anything.
 
    ```bash
-   systemctl --user start sapience-sync.service   # rather than waiting for the timer
-   sapience coverage                              # what was read, what was skipped, and why
-   sapience pending                               # how many findings are staged
-   sapience review                                # approve; only now does anything upload
+   sapience coverage   # what was read, what was skipped, and why
+   sapience pending    # how many findings are staged
+   sapience review     # approve
    ```
 
-For history rather than only new work, `sapience backfill 365`. Expect it to be slow: an 8B
-model on CPU, one chunk at a time.
+`sapience coverage` currently reports `skipped (outside 30d window): 0`, so every eligible
+transcript already falls inside the default window and `sapience backfill 365` would add
+nothing. Reach for it only after a long gap.
 
 ## Everyday use
 
 `sapience help` lists every subcommand; `sapience review`, `coverage`, `pending` and
 `sf1 "a question"` are the ones used day to day.
 
+```bash
+systemctl --user status sapience-sync.timer
+systemctl --user start sapience-sync.service       # run now
+systemctl --user disable --now sapience-sync.timer # pause background learning
+journalctl --user -fu sapience-sync                # logs (not ~/.sapience/sync.log)
+```
+
 ### Watching a run
 
 Extraction is **silent by design**: the vendor prints "Extracting knowledge from N sources" and
 then nothing until it finishes. There is no verbose flag, nothing is flushed per source, and the
-staging queue is written only at the end, so mid-run there is no file to inspect either. On a
-local model a capped run is roughly 50 model calls at tens of seconds each, so several silent
-minutes are normal and indistinguishable from a hang.
-
-`sapience-bootstrap` therefore shows progress itself, with nothing extra to run:
+staging queue is written only at the end — so mid-run `sapience pending` and `coverage` both
+read zero, which is not a failure. `sapience-bootstrap` therefore shows progress itself:
 
 ```
-  extracting: 96 chunks done (~36s each), 40m00s elapsed
+  extracting: 143/253 model calls (56%) ~1.1s each, 2m22s elapsed
 ```
 
-It rewrites that single line every ten seconds, counting completed model calls from the Ollama
-journal — which logs one `release:` per completion, the only live signal there is. The line goes
-to stderr so it cannot corrupt the vendor's stdout, appears only when stderr is a terminal, and
-stays silent until the first call completes, which keeps it clear of the interactive folder
+It rewrites that line every ten seconds, on stderr so it cannot corrupt the vendor's stdout, and
+stays silent until the first call completes — which keeps it clear of the interactive folder
 picker that runs first.
 
-Only bootstrap has this. `sapience sync` and `sapience backfill` go straight to the vendor
-script and are as silent as it is, as is the timer; for those, watch the model directly with
-`journalctl --user -fu ollama`, or the unit with `journalctl --user -fu sapience-sync`, and
+The count comes from the Ollama journal's GIN access log, one line per completed HTTP call.
+(Not from `slot release:`, which only a *local* inference slot emits and which a `:cloud` model
+never produces.) The denominator is sources + the 50-chunk cap, where sources is `--coverage`'s
+"would ingest now", resolved lazily after the picker since your selection changes it. It is an
+upper bound in one term and a lower bound in the other: a session with a tiny delta skips its
+classifier call, while a wide chunk spends several calls on windows and re-splits. So the
+percentage is a guide, not a promise, and can saturate at 100% shortly before the run ends.
+
+Only bootstrap has this. `sapience sync`, `sapience backfill` and the timer go straight to the
+vendor script and are as silent as it is; for those, watch `journalctl --user -fu ollama` and
 check `sapience pending` afterwards.
-
-Scheduling is systemd rather than launchd, which is the other thing the vendor docs get wrong:
-
-```bash
-systemctl --user status sapience-sync.timer
-systemctl --user start sapience-sync.service      # run now
-systemctl --user disable --now sapience-sync.timer # pause background learning
-journalctl --user -fu sapience-sync                # logs (not ~/.sapience/sync.log)
-```
 
 ## Where your data goes
 
@@ -140,78 +167,125 @@ Backend choice decides what crosses the wire:
 
 | Backend | Transcript text leaves? | Gated by review? |
 |---------|------------------------|------------------|
-| `ollama` (configured here) | No | — |
+| `ollama` + a local model | No | — |
+| `ollama` + a `:cloud` model (configured here) | Yes, redacted chunks to `ollama.com` | No |
 | `relay` (vendor default) | Yes, redacted chunks via `app.spnc.ai` | **No** |
 | `anthropic` / `openai` | Yes, redacted, to that provider on your own API key | No |
 
-Redaction applies on every path, including the API backends — `extract_local.py:2264` redacts
-each chunk before the provider call, with the comment "keep secrets out of the model's view (and
-your own provider)". The installer's phrase "raw text goes straight to your provider" means
-*direct rather than via us*, not *unredacted*.
+Redaction applies on every path — `extract_local.py:2264` redacts each chunk before the provider
+call, with the comment "keep secrets out of the model's view (and your own provider)". The
+installer's phrase "raw text goes straight to your provider" means *direct rather than via us*,
+not *unredacted*.
 
-The `relay` row is the one that surprises people: extraction happens server-side, so chunks are
-POSTed before the review gate applies. Auto-approve controls whether facts are *stored in your
-vault*, not whether transcripts are *transmitted*.
+Auto-approve controls whether facts are *stored in your vault*, not whether transcripts are
+*transmitted* — on the `relay` backend, chunks are POSTed before the review gate applies at all.
+Findings themselves are model-written sentences instructed to keep "exact numbers, thresholds,
+config values, decisions and their reason", so they are not a summary that drops specifics.
 
-On every backend, approved findings are uploaded, and those findings are model-written sentences
-instructed to keep "exact numbers, thresholds, config values, decisions and their reason". So
-"conversations never leave this machine" is true under `ollama` and still not the whole story.
-With `auto_approve: false` as configured here, they sit staged until `sapience review`.
+Under the configuration here: redacted chunks reach `ollama.com` during extraction, and approved
+findings reach `app.spnc.ai` when you run `sapience review`. Nothing reaches either before that.
 
-## Switching to the OpenAI API backend
+## How extraction reaches beam:cloud
 
-CPU extraction runs at roughly 40 seconds per model call. The `openai` backend moves that off
-the machine while still sending only redacted chunks, and a **ChatGPT Pro** subscription can
-fund it: since 28 October 2026 eligible Pro plans can claim a monthly API credit equal to the
-tier price, linked to an API organisation you own. Plus and Go cannot. Measured against this
-repository's corpus a full backlog pass is single-digit dollars, so the credit covers it.
+`backend = "ollama"` with `model = "beam:cloud"`. The local daemon authenticates, forwards to
+`ollama.com`, and runs no inference; it is a credential-holding proxy.
 
-1. **Claim the credit and mint a key.** In ChatGPT billing settings, claim the API credit and
-   link it to your API org (the subscription must be at least seven days old; unused credit
-   expires each cycle). Then create a secret key on the API platform.
+### Why the backend stays "ollama"
 
-2. **Store the key where only you can read it.**
+Four facts about `extract_local.py` decide the design:
 
-   ```bash
-   install -d -m 700 ~/.config/sapience
-   printf '%s' 'sk-...' > ~/.config/sapience/openai-key
-   chmod 600 ~/.config/sapience/openai-key
-   ```
+| Line | Fact |
+|------|------|
+| `:167` | The `ollama` endpoint is `OLLAMA_HOST` + `/api/chat` — overridable |
+| `:1511` | That request carries **only** `content-type`. No `Authorization` header, ever |
+| `:1526` | The `anthropic` URL is a hardcoded literal |
+| `:1537` | The `openai` URL is a hardcoded literal |
 
-   Use `printf`, not `echo` — a trailing newline is stripped on read, but `printf` keeps the
-   file exactly one key. A sops-nix secret under `/run/secrets` works equally well; pass its
-   path instead.
+The two backends built for remote providers cannot be aimed at a different one, and the one
+backend with a configurable endpoint cannot authenticate to anything. So the only route to a
+remote model that touches no vendor code is something local holding the credential — and the
+Ollama daemon already is that, for free: a model name ending in `:cloud` makes it authenticate
+against `ollama.com` and forward the call.
 
-3. **Flip the backend** in `home.nix` — `backend = "openai";` — and switch. Activation reads the
-   key file and stores it in `~/.sapience/config.json` as the `api_key`/`api_key_env` pair, which
-   is the only route that reaches the timer, since a systemd user unit has no shell environment.
-   The write takes the vendor's `.run.lock` first, so it cannot clobber the `folders` and
-   `capture` choices an in-flight extraction persists to the same file.
+### The credential is a keypair, not an API key
 
-4. **Verify** with one foreground run: `sapience sync`. Calls should drop from ~40s to a few
-   seconds, and `journalctl --user -u ollama` should show no new activity.
+`ollama signin` registers `~/.ollama/id_ed25519` with your account, and the daemon signs cloud
+requests with it. The subcommand has no flags, so this one step is interactive and not
+declarative.
 
-### The max_tokens constraint
+An `ollama.com` API key cannot replace it, and `sops-nix` therefore has no role here, despite
+`opencode-serve` already receiving `sops.secrets."ollama_api_key"`:
 
-`extract_local.py` sends the deprecated `max_tokens` parameter and hardcodes
-`https://api.openai.com/v1/chat/completions`. Reasoning models — the o-series and the GPT-5
-family — reject `max_tokens` with HTTP 400, so **they cannot be used without editing vendor
-code**, which this setup deliberately does not do. Leave `model = ""` to get the client's
-default `gpt-4o-mini`, which works; anything newer needs testing for a 400 before being relied
-on.
+- `OLLAMA_API_KEY` does not appear in the daemon's own `"server config"` env dump
+  (`routes.go:1947`), which enumerates every variable it recognises. A daemon started with it
+  set still answers `401`.
+- In the binary that string occurs only under `cmd/launch` — *"OLLAMA_API_KEY is required for
+  Claude Desktop"*. It is a **client-side** variable for pointing other apps at `ollama.com`,
+  which is exactly what `opencode-serve` uses it for. It is not a server credential.
 
-If a model you want is blocked this way, the escape hatch is `OLLAMA_HOST`
-(`extract_local.py:167`): a local proxy speaking Ollama's `/api/chat` and forwarding to any
-provider would let you use any model with the key never reaching Sapience and no vendor file
-touched. That is real software to build and maintain, not a config change.
+The key's only use is a direct `Authorization: Bearer` call to `https://ollama.com/api/chat` —
+the one call the vendor client cannot make. If the interactive step ever becomes intolerable, a
+local listener could inject that header and forward upstream with `OLLAMA_HOST` aimed at it; the
+API shape is identical, so no translation is needed. That is still a new daemon to own, in
+exchange for removing one once-per-machine command.
 
-### Cost and the extra classifier call
+### Model choice
 
-Each chunk also triggers a short `is_personal` work-versus-personal classifier call, roughly
-doubling the call count. `NO_CLASSIFY=1` skips it — cheap to leave on at API prices, and worth
-keeping unless the selected projects are all work, since turning it off means personal
-conversations are no longer filtered out. The client's own comment is that "redaction is the
-privacy guarantee, not this filter".
+`beam:cloud` is Reflection's 501B-total / 23B-active Apache-2.0 model, picked over the two
+other plausible open-weight options:
+
+| | beam | gemma4 | nemotron-3-super |
+|---|---|---|---|
+| Price per Mtok | **free** (no pricing-table row) | $0.14 / $0.40 | $0.015 / $0.60 |
+| GPQA Diamond | 90.5 (self-reported) | 84.3 | 79.2 |
+| Artificial Analysis index | not listed | 29 | 25 |
+| Context on Ollama | 1M | 256K | 256K |
+
+Privacy does not separate them: all three are open-weight models served on Ollama's "NCPs to
+host open models" track under one policy — *"Prompt or response data is never logged or trained
+on"*, and partners *"must have no logging, no training, and zero data retention policies in
+place"*. Hosting is US-primary and *"may route to Europe for additional capacity"*. These are
+contractual assurances, not architectural ones; unlike a local model they cannot be verified
+from here.
+
+`free` reads as a launch promotion, and Ollama retires cloud models with notice in its usage
+settings. `gemma4:cloud` is the drop-in fallback — one word in `home.nix`.
+
+### Performance and failure modes
+
+Measured on this corpus. A run makes one small classifier call per session, then works through
+chunks:
+
+| Phase | Calls | Latency |
+|-------|-------|---------|
+| Work/personal classification | one per session (203 here) | ~1.2s each |
+| Chunk extraction | 50-chunk cap, >1 call per chunk | median 2.3s, mean 10.6s, max 78s |
+
+For comparison, local `llama3.1` on this CPU ran ~40s per call and some calls exceeded the
+client's hardcoded 180s `urlopen` timeout outright, surfacing as HTTP 500s — which is why the
+local configuration never managed to ingest anything.
+
+Two things to watch:
+
+**Reply truncation.** Every current cloud model is a reasoning model, while `llm()` caps replies
+at `num_predict` 8000 and never sends `think: false`, so thinking tokens compete with the JSON
+for that budget. When it trips, stderr says *"a cut-off reply was re-extracted as two halves"*
+and `_extract_chunk` recovers by splitting. Occasional warnings are the safety net working;
+a steady stream means the model is too verbose for the cap, and `gemma4:cloud` is the swap.
+
+**No retry.** The `anthropic` and `openai` branches wrap their call in `_llm_call(...)`; the
+`ollama` branch calls `urlopen` bare. Against localhost that was sound — nothing about a
+loopback socket is transient — but against `ollama.com` a passing 502 raises, is caught by the
+chunk loop's `except Exception`, and logs `extract error`. Nothing is lost: the file is left
+un-marked and retried next run. But each blip costs one chunk from that run's budget of 50.
+Fixing it properly means editing vendor code, which this setup does not do; the right place
+would be the proxy layer described above, if it is ever built.
+
+**The classifier re-runs across the whole backlog.** It classifies every not-yet-extracted
+session on every run, so while a backlog exists most of a run's calls are classification rather
+than extraction. `NO_CLASSIFY=1` skips it — the client's own comment is that "redaction is the
+privacy guarantee, not this filter" — at the cost of no longer filtering personal conversations
+out. Raising `MAX_CHUNKS` for a catch-up pass is the alternative.
 
 ## Design decisions
 
@@ -231,12 +305,15 @@ pull is hand-rolled here. That cost buys one rebuild path: the server runs as th
 `~/.ollama`, needs no sudo, and the whole feature applies with `home-manager switch` rather than
 splitting the model store across a system rebuild and its only consumer across a home rebuild.
 
-### CPU inference
+### The Ollama daemon stays enabled with nothing to serve
 
-This machine's GPU is a Radeon 890M (`gfx1150`, RDNA 3.5), where ROCm is experimental and
-typically needs an `HSA_OVERRIDE_GFX_VERSION` override plus a multi-gigabyte closure. The
-workload is an hourly background job on 24 Ryzen cores, where latency is irrelevant. To revisit,
-set `services.ollama.acceleration = "rocm"` and expect to tune the gfx override.
+It holds the credential and proxies to `ollama.com`, so disabling it would break extraction even
+though it loads no weights and sits at roughly 20 MB resident. Whether anything runs locally is
+decided by the *consumer's* model name, not by `services.ollamaModels`.
+
+This also retires the GPU question. This machine's Radeon 890M (`gfx1150`, RDNA 3.5) has only
+experimental ROCm support, typically needing an `HSA_OVERRIDE_GFX_VERSION` override plus a
+multi-gigabyte closure. With extraction remote there is nothing left for it to accelerate.
 
 ### Memory-file ingestion is off
 
@@ -261,8 +338,8 @@ shared `.run.lock`, so the only thing that can turn a bootstrap away is another 
 scheduled sync never blocks it: bootstrap stops that sync instead and takes precedence, which
 loses no work because the vendor leaves its files un-marked for the next run. It then holds
 `.run.lock` for the extraction alone, so a timer firing mid-run is skipped by the vendor's own
-guard rather than competing for the model; if that lock cannot be had it continues anyway, since
-being slower beats refusing a run you asked for.
+guard rather than competing; if that lock cannot be had it continues anyway, since being slower
+beats refusing a run you asked for.
 
 There is no cooldown and no stale-lock state to clear. `flock` holds nothing on disk — the lock
 lives only as long as some process holds the open file descriptor — so an interrupted, crashed
@@ -270,8 +347,8 @@ or killed bootstrap frees it the instant the process goes, and the next run star
 
 Separately, `sapience-sync.service` is marked `X-SwitchMethod = "keep-old"`. Without it
 `sd-switch` restarts the unit on every activation, which kills an in-flight extraction *and*
-blocks `home-manager switch` until the replacement finishes — tens of minutes on CPU. The timer
-picks up a changed definition on its next fire instead.
+blocks `home-manager switch` until the replacement finishes. The timer picks up a changed
+definition on its next fire instead.
 
 ### The token never enters the Nix store
 
@@ -292,36 +369,37 @@ in the repo file for that reason, each guarded with a `[ -f ~/.sapience/mcp.py ]
 `statusLine` is deliberately not wired: that slot belongs to `hooks/statusline-push.sh`, and
 composing them would mean editing the agent-system source store rather than the deployed
 artifact. Append `python3 ~/.sapience/mcp.py --statusline` output to that script there if you
-want the segment.
-
-The `Stop` hook makes one outbound request per assistant turn. It uploads no content — a session
-id out, a line back — but it is a continuous activity signal. Drop that entry if you would
+want the segment. The `Stop` hook makes one outbound request per assistant turn — no content, a
+session id out and a line back, but a continuous activity signal. Drop that entry if you would
 rather not have it; nothing else depends on it.
 
 ## Module options
 
 `programs.sapience`:
 
-| Option | Default | Purpose |
-|--------|---------|---------|
-| `enable` | `false` | CLI, timer, payload seed, MCP registration |
-| `backend` | `"ollama"` | `relay`, `anthropic`, `openai`, `ollama` |
-| `host` | `"https://app.spnc.ai"` | API host, also the payload source |
-| `tokenFile` | `null` | Path outside the store for non-interactive bootstrap |
-| `syncInterval` | `"hourly"` | `OnCalendar` for the background sync |
-| `memoryFiles` | `false` | See [above](#memory-file-ingestion-is-off) |
-| `registerMcpServer` | `true` | Merge into `~/.claude.json` |
+| Option | Default | Set here | Purpose |
+|--------|---------|----------|---------|
+| `enable` | `false` | `true` | CLI, timer, payload seed, MCP registration |
+| `backend` | `"ollama"` | `"ollama"` | `relay`, `anthropic`, `openai`, `ollama` |
+| `model` | `""` | `"beam:cloud"` | `--model`; empty keeps the client's per-backend default |
+| `host` | `"https://app.spnc.ai"` | default | API host, also the payload source |
+| `apiKeyFile` | `""` | default | Provider key for `anthropic`/`openai`; no role under `ollama` |
+| `tokenFile` | `null` | default | Path outside the store for non-interactive bootstrap |
+| `syncInterval` | `"hourly"` | default | `OnCalendar` for the background sync |
+| `memoryFiles` | `false` | default | See [above](#memory-file-ingestion-is-off) |
+| `registerMcpServer` | `true` | default | Merge into `~/.claude.json` |
 
 `services.ollamaModels`:
 
-| Option | Default | Purpose |
-|--------|---------|---------|
-| `enable` | `false` | Local server plus the model loader |
-| `load` | `[ "llama3.1" ]` | Models to pull; roughly 4.9 GB for this one |
-| `pullTimeoutSec` | `3600` | Ceiling for a cold multi-gigabyte pull |
+| Option | Default | Set here | Purpose |
+|--------|---------|----------|---------|
+| `enable` | `false` | `true` | Local server plus the model loader |
+| `load` | `[ "llama3.1" ]` | `[ ]` | Models to pull; cloud models need none |
+| `pullTimeoutSec` | `3600` | default | Ceiling for a cold multi-gigabyte pull |
 
 Setting `backend = "ollama"` without `services.ollamaModels.enable` emits a build warning rather
-than an assertion, so a missing inference server never blocks an unrelated rebuild.
+than an assertion, so a missing inference server never blocks an unrelated rebuild. Selecting an
+API backend with no `apiKeyFile` warns the same way.
 
 ## Inspection recipes
 
@@ -334,9 +412,16 @@ systemctl --user show sapience-sync.service -p ConditionResult -p Result
 # condition-failed, so the unit never latches a false success and recovers once
 # config.json appears.
 
-# Did the model land, and does inference actually work?
-curl -fsS http://127.0.0.1:11434/api/tags | jq -r '.models[].name'
-journalctl --user -u ollama-model-loader -n 20
+# Does the cloud model answer? (Unauthorized here means `ollama signin` is needed.)
+curl -sS http://127.0.0.1:11434/api/chat -H 'content-type: application/json' \
+  -d '{"model":"beam:cloud","messages":[{"role":"user","content":"say OK"}],"stream":false}'
+
+# Confirm nothing is running locally: all three should be empty or zero.
+ollama ps
+journalctl --user -u ollama --since -1h | grep -cE 'slot[[:space:]]+release:|llama_model_loader'
+
+# Call volume and latency for the last hour.
+journalctl --user -u ollama --since -1h | grep -cE '\[GIN\].*POST +"/api/chat"'
 
 # Is the payload seeded, and is the MCP server registered?
 ls ~/.sapience/
@@ -349,22 +434,23 @@ journalctl --user -u sapience-sync -n 50
 
 ## Known gaps
 
-**Most sessions here will be skipped, by two separate filters.** Expect coverage well below
-the session counts the folder picker shows.
+**Most sessions here will be skipped, by two separate filters.** Expect coverage well below the
+session counts the folder picker shows.
 
 The first is overridable. A transcript must have at least two distinct substantive human turns,
 a predicate that exists to drop "benchmark loops, agent runs, probes"; `sapience coverage`
 reports these as `skipped (headless/agent)`. Widen one run with `sapience sync
 --include-agents`. The hourly unit would need `SAPIENCE_INCLUDE_HEADLESS=1` in its environment,
-which is deliberately not an option here: agent transcripts are long and repetitive, and on a
-local 8B model they would dominate both runtime and the vault.
+which is deliberately not an option here: agent transcripts are long and repetitive, and would
+dominate both the run's chunk budget and the vault.
 
 The second is not overridable at all. `source_skip()` in `upload.py` classifies each transcript
 as `subagent` or `harness-started` from its opening turns and those are never read — the run
 logs them as `skipped (subagent / harness-started transcripts) ... thread mechanics; never
 read`, and the message states outright that `SAPIENCE_INCLUDE_HEADLESS=1` does not override it.
 Verdicts are cached in `~/.sapience/source_rules.json`. Given how much work here runs through
-orchestrated dispatch, this filter removes more than the first one does.
+orchestrated dispatch, this filter removes more than the first one does: 1013 of 1295
+transcripts on disk, against 203 eligible.
 
 **One deny-list gap worth knowing.** `~/Documents/Personal/...` is correctly refused, because
 `personal` is on the vendor's denied-names list. `~/Documents/Employment/Applications` is not:
@@ -375,7 +461,7 @@ carry `.claude/` trees, so untick that one in the folder picker.
 in this repo carry `Requires = [ "<name>.service" ]`, which stop-propagates: stopping the
 service would also deactivate the timer and silently end background learning. This module's
 timer omits it, because the service does get stopped in normal use — `sapience-bootstrap` stops
-it to claim the model, and the pause recipe above stops it by hand. A timer activates its
+it to claim the run, and the pause recipe above stops it by hand. A timer activates its
 same-named service by default, so the dependency bought nothing.
 
 **The hourly run skips the per-run keep prompt.** `--sync` is non-interactive by design, so
@@ -395,14 +481,15 @@ services.ollamaModels.enable = false;  # removes the server and the model loader
 ```
 
 Disabling `programs.sapience` leaves three things behind on purpose, since none are Nix-managed
-state: `~/.sapience/` (payload, token, folder choices, review queue), the
-`mcpServers.sapience` key in `~/.claude.json`, and the models in `~/.ollama`. Remove them by
-hand if you want them gone:
+state: `~/.sapience/` (payload, token, folder choices, review queue), the `mcpServers.sapience`
+key in `~/.claude.json`, and anything still in `~/.ollama`. Remove them by hand if you want them
+gone:
 
 ```bash
 rm -rf ~/.sapience
 jq 'del(.mcpServers.sapience)' ~/.claude.json > /tmp/cj && mv /tmp/cj ~/.claude.json
-ollama rm llama3.1
+ollama signout
+ollama rm llama3.1          # the old local model, still on disk at ~4.9 GB
 ```
 
 The hooks and tool grants go away by deleting their entries from
