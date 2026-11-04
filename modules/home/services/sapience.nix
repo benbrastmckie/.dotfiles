@@ -238,29 +238,80 @@ let
 
     # Note: the vendor's extraction prints nothing between "Extracting knowledge from N sources"
     # and its result, and writes the staging queue only at the end, so a run that is working is
-    # indistinguishable from one that has hung. This ticker is the stand-in: the ollama journal
-    # logs one `release:` per completed model call, which is the only live signal there is.
+    # indistinguishable from one that has hung. This ticker is the stand-in.
     #
     # It writes a single rewritten line to stderr so it cannot corrupt the vendor's stdout, and
     # stays silent until the first call completes -- which keeps it out of the way of the
     # interactive folder picker that runs first.
+    #
+    # SIGNAL: the ollama journal's GIN access log, one line per completed HTTP call. This
+    # replaced a `slot release:` grep, which only a LOCAL inference slot emits -- under a
+    # ":cloud" model nothing is scheduled on this machine, so that line never appeared and the
+    # entire progress display was silently dead while the run worked fine. Every call still
+    # transits this daemon in either mode, so its access log is the signal that survives both.
+    #
+    # DENOMINATOR, so the line shows what REMAINS and not just what is done. A run makes one
+    # model call per session to classify it work-vs-personal (extract_local.py:2199), then one
+    # or more per chunk in a loop hard-capped at MAXCH (:166, 50 unless --backfill raises it,
+    # which bootstrap never passes). So the call budget is sources + MAXCH, where sources comes
+    # from `--coverage`'s "would ingest now: N" -- the same window, folder selection and ledger
+    # the run itself uses.
+    #
+    # That total is an UPPER bound in both terms: a session whose delta is under 100 characters
+    # is skipped before its classifier call, memory files are never classified at all, and a run
+    # with fewer than MAXCH chunks available stops early. So the percentage is honest about
+    # never overstating progress, and a run can simply exit before reaching 100%. It is counted
+    # in model calls rather than chunks because calls are exactly observable, while a chunk wide
+    # enough to split into windows -- or a reply cut off at num_predict and re-extracted as two
+    # halves -- silently spends several.
+    #
+    # Resolved lazily on the first completed call, never up front: the folder picker runs first
+    # and a selection made there changes the source count. Cached, since it walks every
+    # candidate file. If it cannot be parsed the line degrades to a bare count and elapsed time.
     ticker() {
       started="$1"
+      total=""
+      budget="''${MAX_CHUNKS:-50}"
       while :; do
         sleep 10
         jlog="$(journalctl --user -u ollama --no-pager -o cat --since "@$started" 2>/dev/null || true)"
-        ended="$(printf '%s' "$jlog" | grep -cE 'slot[[:space:]]+release:' 2>/dev/null || true)"
-        [ -n "$ended" ] || ended=0
-        [ "$ended" -gt 0 ] || continue
-        avg="$(printf '%s' "$jlog" \
-          | grep -oE 'total time =[[:space:]]*[0-9.]+' \
-          | grep -oE '[0-9.]+' \
+        chat="$(printf '%s' "$jlog" | grep -E '\[GIN\].*POST +"/api/chat"' 2>/dev/null || true)"
+        calls="$(printf '%s' "$chat" | grep -c . 2>/dev/null || true)"
+        [ -n "$calls" ] || calls=0
+        [ "$calls" -gt 0 ] || continue
+
+        # Lazy, cached: onboarding has certainly finished by the first completed call.
+        if [ -z "$total" ]; then
+          srcs="$(SAPIENCE_HOST="${cfg.host}" ${python} "${stateDir}/extract_local.py" --coverage \
+            2>/dev/null \
+            | grep -oE 'would ingest now:[[:space:]]*[0-9]+' \
+            | grep -oE '[0-9]+' \
+            | head -1)"
+          if [ -n "$srcs" ]; then total=$((srcs + budget)); else total=0; fi
+        fi
+
+        # Mean latency of the last 20 calls, normalised from GIN's own unit suffix.
+        avg="$(printf '%s' "$chat" \
+          | sed -E 's/.*\| *([0-9.]+)(µs|ms|s) +\|.*/\1 \2/' \
           | tail -20 \
-          | awk '{ t += $1; n++ } END { if (n) printf "%.0f", t / n / 1000 }' 2>/dev/null || true)"
+          | awk '{ v = $1
+                   if ($2 == "µs") v /= 1000000
+                   else if ($2 == "ms") v /= 1000
+                   t += v; n++ }
+                 END { if (n) printf "%.1f", t / n }' 2>/dev/null || true)"
+
+        pct=""
+        if [ "$total" -gt 0 ]; then
+          pct=$((calls * 100 / total))
+          [ "$pct" -le 100 ] || pct=100
+        fi
+
         elapsed=$(($(date +%s) - started))
-        printf '\r  extracting: %s chunks done%s, %dm%02ds elapsed   ' \
-          "$ended" \
-          "$([ -n "$avg" ] && printf ' (~%ss each)' "$avg")" \
+        printf '\r  extracting: %s%s model calls%s%s, %dm%02ds elapsed   ' \
+          "$calls" \
+          "$([ "$total" -gt 0 ] && printf '/%d' "$total")" \
+          "$([ -n "$pct" ] && printf ' (%d%%)' "$pct")" \
+          "$([ -n "$avg" ] && printf ' ~%ss each' "$avg")" \
           "$((elapsed / 60))" "$((elapsed % 60))" >&2
       done
     }
@@ -270,7 +321,9 @@ let
       if [ -n "$ticker_pid" ]; then
         kill "$ticker_pid" 2>/dev/null || true
         wait "$ticker_pid" 2>/dev/null || true
-        printf '\r%*s\r' 60 "" >&2
+        # 80, not 60: the progress line grew a denominator, a percentage and a rate, and a
+        # clear narrower than the line leaves its tail on screen.
+        printf '\r%*s\r' 80 "" >&2
       fi
     }
     trap cleanup EXIT INT TERM
