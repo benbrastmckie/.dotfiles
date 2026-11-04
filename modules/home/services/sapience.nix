@@ -769,6 +769,47 @@ in
         store. Set false to leave ~/.claude.json untouched.
       '';
     };
+
+    desktopEntry = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Install a `Sapience` application launcher (and its icon) under
+        $XDG_DATA_HOME/applications, so the vault is reachable from the GNOME Activities search
+        and the app grid rather than only from a shell.
+
+        The entry runs `sf1`, the interactive session, because it is the only client subcommand
+        that holds a window open on its own: bare `sapience` prints its help and exits, and the
+        rest (`review`, `sync`, `stats`) are one-shot commands that would close the terminal the
+        moment they finished.
+      '';
+    };
+
+    terminal = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [
+        "${pkgs.wezterm}/bin/wezterm"
+        "start"
+        "--always-new-process"
+        "--class"
+        "sapience"
+        "--"
+      ];
+      defaultText = lib.literalExpression ''
+        [ "''${pkgs.wezterm}/bin/wezterm" "start" "--always-new-process" "--class" "sapience" "--" ]
+      '';
+      description = ''
+        argv prefix the `desktopEntry` launcher puts in front of `sf1`. A terminal emulator is
+        needed because `sf1` is a readline REPL with no GUI of its own, and a desktop entry is
+        launched by the session with no terminal attached.
+
+        Two details in the default are load-bearing rather than decorative, and a replacement
+        wants the equivalents. `--always-new-process` keeps wezterm from handing the command to
+        an already-running GUI instance, which would otherwise own the window and its class.
+        `--class sapience` then matches `StartupWMClass` in the entry, so the window GNOME shows
+        in the dash is attributed to Sapience instead of to the terminal.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -956,6 +997,58 @@ in
               fi
             ''
         );
+      };
+    };
+
+    # A launcher rather than just a binary on PATH: GNOME indexes .desktop entries, not $PATH, so
+    # a wrapper in home.packages is invisible to the Activities search no matter how it is named.
+    #
+    # Written to $XDG_DATA_HOME/applications, the location core/xdg.nix also uses for its sioyek
+    # entry for the reason recorded there, rather than to a share/applications directory inside
+    # the wrapper derivation -- the profile's own share/applications is not dependably on the
+    # GNOME session's XDG_DATA_DIRS.
+    xdg = lib.mkIf cfg.desktopEntry {
+      dataFile = {
+        "applications/sapience.desktop".text = ''
+          [Desktop Entry]
+          Type=Application
+          Name=Sapience
+          GenericName=Knowledge Vault
+          Comment=Ask your Sapience vault about your own decisions, findings and open threads
+          Exec=${lib.concatStringsSep " " (cfg.terminal ++ [ "${sf1Cli}/bin/sf1" ])}
+          Icon=sapience
+          Terminal=false
+          StartupNotify=true
+          StartupWMClass=sapience
+          Categories=Utility;
+          Keywords=sapience;sf1;knowledge;memory;vault;notes;recall;
+        '';
+
+        # Hand-drawn because the vendor ships no Linux icon, and the stock Adwaita candidates
+        # (accessories-dictionary, applications-science) exist only as symbolic variants, which
+        # render as a flat monochrome glyph in the app grid next to every full-colour neighbour.
+        "icons/hicolor/scalable/apps/sapience.svg".text = ''
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+            <defs>
+              <linearGradient id="sapience-bg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#5b4bdb"/>
+                <stop offset="1" stop-color="#8b3fd4"/>
+              </linearGradient>
+            </defs>
+            <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#sapience-bg)"/>
+            <g stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.92" fill="none">
+              <path d="M64 64 L64 36"/>
+              <path d="M64 64 L37 91"/>
+              <path d="M64 64 L91 91"/>
+            </g>
+            <g fill="#ffffff">
+              <circle cx="64" cy="64" r="8"/>
+              <circle cx="64" cy="36" r="10"/>
+              <circle cx="37" cy="91" r="10"/>
+              <circle cx="91" cy="91" r="10"/>
+            </g>
+          </svg>
+        '';
       };
     };
 
