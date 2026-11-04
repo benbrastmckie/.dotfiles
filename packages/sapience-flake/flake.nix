@@ -24,21 +24,23 @@
 {
   description = "Standalone Sapience (app.spnc.ai) client packaging for Linux/NixOS/Home Manager, WSL2 included";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
-  # TEST-ONLY input, reached from `checks.<system>.hm-module` and from nowhere else. Neither
-  # output set touches it: `homeManagerModules.sapience` is a bare module file that the
-  # consumer's OWN home-manager evaluates, and `packages.<system>.*` has nothing to do with
-  # home-manager at all.
-  #
-  # It is an input rather than an ad-hoc `builtins.getFlake` so the module test is PINNED by
-  # flake.lock and reproducible, which is the whole claim these checks are making. Nix fetches
-  # inputs lazily, so building a package does not download it. A consumer who would rather not
-  # carry a second home-manager node in their own lock can collapse it onto theirs:
-  #
-  #   inputs.sapience-flake.inputs.home-manager.follows = "home-manager";
-  inputs.home-manager.url = "github:nix-community/home-manager/release-26.05";
-  inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    # TEST-ONLY input, reached from `checks.<system>.hm-module` and from nowhere else. Neither
+    # output set touches it: `homeManagerModules.sapience` is a bare module file that the
+    # consumer's OWN home-manager evaluates, and `packages.<system>.*` has nothing to do with
+    # home-manager at all.
+    #
+    # It is an input rather than an ad-hoc `builtins.getFlake` so the module test is PINNED by
+    # flake.lock and reproducible, which is the whole claim these checks are making. Nix fetches
+    # inputs lazily, so building a package does not download it. A consumer who would rather not
+    # carry a second home-manager node in their own lock can collapse it onto theirs:
+    #
+    #   inputs.sapience-flake.inputs.home-manager.follows = "home-manager";
+    home-manager.url = "github:nix-community/home-manager/release-26.05";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+  };
 
   outputs =
     {

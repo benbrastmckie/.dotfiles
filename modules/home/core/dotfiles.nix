@@ -62,126 +62,128 @@
     # Zulip configuration
     file.".zuliprc".source = ../../../config/zuliprc;
 
-    # Claude config files are regular files (not symlinks) so Claude Code can write to them.
-    #
-    # settings.json is MERGED rather than overwritten, because Claude Code writes this file
-    # itself: every setting changed through /config or /model (editorMode, autoCompactEnabled,
-    # agentPushNotifEnabled, remoteControlAtStartup, ...) is persisted here. The previous
-    # rm -f + cp defeated the very writability the "regular files" choice was made for -- each
-    # rebuild silently reverted every interactive change, and the only remedy was to notice the
-    # loss and hand-fold each key back into the source.
-    #
-    # The merge is three-way, so the repo keeps ownership of what it actually cares about:
-    #   source defaults  <  live values  <  source enforced keys
-    # Keys in ENFORCED are forced back to the source value on every activation (system
-    # behaviour and anything the repo references by path). Every other key in the source acts
-    # as a seed: it populates a fresh machine, but a live value wins thereafter, so preferences
-    # set interactively survive. Keys the source does not mention are always preserved.
-    #
-    # Adding a key to ENFORCED makes it repo-owned and un-changeable from inside Claude Code
-    # (the next rebuild reverts it), so add deliberately. model is enforced on purpose: Opus is
-    # the intended default, and a per-session /model switch is still free -- only the persisted
-    # default is reset.
-    #
-    # Failure mode is fail-safe: if the live file is missing or unparseable, or jq errors, the
-    # source is copied verbatim rather than leaving a broken or absent settings file. Guarded
-    # by the same DRY_RUN variable the claudeMcpServers block below uses, for the same reason.
-    #
-    # keybindings.json keeps the plain copy: it is not written back by Claude Code the way
-    # settings.json is, so there is nothing to preserve.
-    activation.claudeSettings = config.lib.dag.entryAfter [ "writeBoundary" ] ''
-      claudeDir="${config.home.homeDirectory}/.claude"
-      settingsSrc="${../../../config/claude/settings.json}"
-      settingsDst="$claudeDir/settings.json"
+    activation = {
+      # Claude config files are regular files (not symlinks) so Claude Code can write to them.
+      #
+      # settings.json is MERGED rather than overwritten, because Claude Code writes this file
+      # itself: every setting changed through /config or /model (editorMode, autoCompactEnabled,
+      # agentPushNotifEnabled, remoteControlAtStartup, ...) is persisted here. The previous
+      # rm -f + cp defeated the very writability the "regular files" choice was made for -- each
+      # rebuild silently reverted every interactive change, and the only remedy was to notice the
+      # loss and hand-fold each key back into the source.
+      #
+      # The merge is three-way, so the repo keeps ownership of what it actually cares about:
+      #   source defaults  <  live values  <  source enforced keys
+      # Keys in ENFORCED are forced back to the source value on every activation (system
+      # behaviour and anything the repo references by path). Every other key in the source acts
+      # as a seed: it populates a fresh machine, but a live value wins thereafter, so preferences
+      # set interactively survive. Keys the source does not mention are always preserved.
+      #
+      # Adding a key to ENFORCED makes it repo-owned and un-changeable from inside Claude Code
+      # (the next rebuild reverts it), so add deliberately. model is enforced on purpose: Opus is
+      # the intended default, and a per-session /model switch is still free -- only the persisted
+      # default is reset.
+      #
+      # Failure mode is fail-safe: if the live file is missing or unparseable, or jq errors, the
+      # source is copied verbatim rather than leaving a broken or absent settings file. Guarded
+      # by the same DRY_RUN variable the claudeMcpServers block below uses, for the same reason.
+      #
+      # keybindings.json keeps the plain copy: it is not written back by Claude Code the way
+      # settings.json is, so there is nothing to preserve.
+      claudeSettings = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+        claudeDir="${config.home.homeDirectory}/.claude"
+        settingsSrc="${../../../config/claude/settings.json}"
+        settingsDst="$claudeDir/settings.json"
 
-      if [[ -v DRY_RUN ]]; then
-        echo "Would merge $settingsSrc into $settingsDst (enforced keys reset, others preserved)"
-        echo "Would copy keybindings.json into $claudeDir"
-      else
-        mkdir -p "$claudeDir"
+        if [[ -v DRY_RUN ]]; then
+          echo "Would merge $settingsSrc into $settingsDst (enforced keys reset, others preserved)"
+          echo "Would copy keybindings.json into $claudeDir"
+        else
+          mkdir -p "$claudeDir"
 
-        merged=0
-        if [ -f "$settingsDst" ] && ${pkgs.jq}/bin/jq -e . "$settingsDst" >/dev/null 2>&1; then
-          tmpFile="$(mktemp "$claudeDir/settings.json.XXXXXX")"
-          if ${pkgs.jq}/bin/jq -s             --argjson enforced '["_NOTE","env","hooks","model","permissions","statusLine"]'             '.[0] as $src | .[1] as $live
-             | ($src * $live)
-             | reduce $enforced[] as $k (.;
-                 if ($src | has($k)) then .[$k] = $src[$k] else . end)'             "$settingsSrc" "$settingsDst" > "$tmpFile" 2>/dev/null && [ -s "$tmpFile" ]; then
-            mv "$tmpFile" "$settingsDst"
-            merged=1
+          merged=0
+          if [ -f "$settingsDst" ] && ${pkgs.jq}/bin/jq -e . "$settingsDst" >/dev/null 2>&1; then
+            tmpFile="$(mktemp "$claudeDir/settings.json.XXXXXX")"
+            if ${pkgs.jq}/bin/jq -s             --argjson enforced '["_NOTE","env","hooks","model","permissions","statusLine"]'             '.[0] as $src | .[1] as $live
+               | ($src * $live)
+               | reduce $enforced[] as $k (.;
+                   if ($src | has($k)) then .[$k] = $src[$k] else . end)'             "$settingsSrc" "$settingsDst" > "$tmpFile" 2>/dev/null && [ -s "$tmpFile" ]; then
+              mv "$tmpFile" "$settingsDst"
+              merged=1
+            else
+              rm -f "$tmpFile"
+            fi
+          fi
+
+          # No live file, unparseable live file, or a failed merge: fall back to the source.
+          if [ "$merged" -eq 0 ]; then
+            cp "$settingsSrc" "$settingsDst"
+          fi
+          chmod u+w "$settingsDst"
+
+          rm -f "$claudeDir/keybindings.json"
+          cp ${../../../config/claude/keybindings.json} "$claudeDir/keybindings.json"
+          chmod u+w "$claudeDir/keybindings.json"
+        fi
+      '';
+
+      # Reinstall uv tools after rebuild (Python interpreter path changes break virtualenvs)
+      uvTools = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+        if command -v uv &>/dev/null; then
+          run uv tool install --force lean-lsp-mcp 2>/dev/null || true
+        fi
+      '';
+
+      # Idempotently merge the playwright and nixos MCP servers into ~/.claude.json, both at user
+      # (machine) scope. Deliberate counterpoint to claudeSettings above: this file also carries
+      # Claude Code's OAuth/session/project-list state, which must survive every rebuild, so this
+      # block merges via jq (like .claude/scripts/setup-lean-mcp.sh). It preserves every key
+      # unconditionally, where claudeSettings above resets its ENFORCED set -- nothing here is
+      # repo-owned. The per-project mcpServers.lean-lsp entries (and every other key) are left
+      # untouched.
+      #
+      # playwright stays at user scope because it is a Nix-built `playwright-mcp` wrapper binary on
+      # PATH via home.packages, depends on the machine-level ~/.cache/ms-playwright browser cache,
+      # needs no per-project arguments, and is useful across every repository -- not because
+      # subagents can't see a project-scoped .mcp.json (that belief was disproven by direct
+      # experiment: a .mcp.json-registered stdio server was reachable from a filesystem-based
+      # subagent, including via the agent system's own custom agent class, with permission
+      # pre-granted. The earlier belief came from a confounded observation -- an already-running
+      # session cannot see a server added to .mcp.json after that session started, which is a
+      # session-start snapshot effect that affects the main session identically and has nothing to
+      # do with subagents or scope).
+      #
+      # nixos (mcp-nixos, run via uvx) is registered under the server name "nixos", not
+      # "mcp-nixos": tools are addressed as mcp__<server-name>__<tool-name>, and the agent system's
+      # existing grants and docs already use mcp__nixos__nix / mcp__nixos__nix_versions. It is
+      # invoked via the system-level `uvx` (resolves at /run/current-system/sw/bin/uvx) rather than
+      # `uv tool install`, whose ~/.local/bin is not on PATH in this configuration.
+      #
+      # jq output needs shell redirection, which the `run` helper (a plain "$@" exec, no shell)
+      # cannot express directly, so — unlike uvTools' `run`-wrapped form — this block guards its
+      # own mutating body behind the same `DRY_RUN` variable `run` itself checks, keeping
+      # `home-manager switch --dry-run` non-destructive without fighting `run`'s
+      # argument-vector-only interface.
+      claudeMcpServers = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+        claudeJson="${config.home.homeDirectory}/.claude.json"
+        if [[ -v DRY_RUN ]]; then
+          echo "Would merge mcpServers.playwright and mcpServers.nixos into $claudeJson"
+        else
+          [ -f "$claudeJson" ] || echo '{}' > "$claudeJson"
+          tmpFile="$(mktemp "${config.home.homeDirectory}/.claude.json.XXXXXX")"
+          if ${pkgs.jq}/bin/jq \
+            --argjson pw '{"type":"stdio","command":"playwright-mcp","args":[]}' \
+            --argjson nixos '{"type":"stdio","command":"uvx","args":["mcp-nixos"]}' \
+            '.mcpServers.playwright = $pw | .mcpServers.nixos = $nixos' \
+            "$claudeJson" > "$tmpFile"; then
+            mv "$tmpFile" "$claudeJson"
+            chmod u+w "$claudeJson"
           else
             rm -f "$tmpFile"
           fi
         fi
-
-        # No live file, unparseable live file, or a failed merge: fall back to the source.
-        if [ "$merged" -eq 0 ]; then
-          cp "$settingsSrc" "$settingsDst"
-        fi
-        chmod u+w "$settingsDst"
-
-        rm -f "$claudeDir/keybindings.json"
-        cp ${../../../config/claude/keybindings.json} "$claudeDir/keybindings.json"
-        chmod u+w "$claudeDir/keybindings.json"
-      fi
-    '';
-
-    # Reinstall uv tools after rebuild (Python interpreter path changes break virtualenvs)
-    activation.uvTools = config.lib.dag.entryAfter [ "writeBoundary" ] ''
-      if command -v uv &>/dev/null; then
-        run uv tool install --force lean-lsp-mcp 2>/dev/null || true
-      fi
-    '';
-
-    # Idempotently merge the playwright and nixos MCP servers into ~/.claude.json, both at user
-    # (machine) scope. Deliberate counterpoint to claudeSettings above: this file also carries
-    # Claude Code's OAuth/session/project-list state, which must survive every rebuild, so this
-    # block merges via jq (like .claude/scripts/setup-lean-mcp.sh). It preserves every key
-    # unconditionally, where claudeSettings above resets its ENFORCED set -- nothing here is
-    # repo-owned. The per-project mcpServers.lean-lsp entries (and every other key) are left
-    # untouched.
-    #
-    # playwright stays at user scope because it is a Nix-built `playwright-mcp` wrapper binary on
-    # PATH via home.packages, depends on the machine-level ~/.cache/ms-playwright browser cache,
-    # needs no per-project arguments, and is useful across every repository -- not because
-    # subagents can't see a project-scoped .mcp.json (that belief was disproven by direct
-    # experiment: a .mcp.json-registered stdio server was reachable from a filesystem-based
-    # subagent, including via the agent system's own custom agent class, with permission
-    # pre-granted. The earlier belief came from a confounded observation -- an already-running
-    # session cannot see a server added to .mcp.json after that session started, which is a
-    # session-start snapshot effect that affects the main session identically and has nothing to
-    # do with subagents or scope).
-    #
-    # nixos (mcp-nixos, run via uvx) is registered under the server name "nixos", not
-    # "mcp-nixos": tools are addressed as mcp__<server-name>__<tool-name>, and the agent system's
-    # existing grants and docs already use mcp__nixos__nix / mcp__nixos__nix_versions. It is
-    # invoked via the system-level `uvx` (resolves at /run/current-system/sw/bin/uvx) rather than
-    # `uv tool install`, whose ~/.local/bin is not on PATH in this configuration.
-    #
-    # jq output needs shell redirection, which the `run` helper (a plain "$@" exec, no shell)
-    # cannot express directly, so — unlike uvTools' `run`-wrapped form — this block guards its
-    # own mutating body behind the same `DRY_RUN` variable `run` itself checks, keeping
-    # `home-manager switch --dry-run` non-destructive without fighting `run`'s
-    # argument-vector-only interface.
-    activation.claudeMcpServers = config.lib.dag.entryAfter [ "writeBoundary" ] ''
-      claudeJson="${config.home.homeDirectory}/.claude.json"
-      if [[ -v DRY_RUN ]]; then
-        echo "Would merge mcpServers.playwright and mcpServers.nixos into $claudeJson"
-      else
-        [ -f "$claudeJson" ] || echo '{}' > "$claudeJson"
-        tmpFile="$(mktemp "${config.home.homeDirectory}/.claude.json.XXXXXX")"
-        if ${pkgs.jq}/bin/jq \
-          --argjson pw '{"type":"stdio","command":"playwright-mcp","args":[]}' \
-          --argjson nixos '{"type":"stdio","command":"uvx","args":["mcp-nixos"]}' \
-          '.mcpServers.playwright = $pw | .mcpServers.nixos = $nixos' \
-          "$claudeJson" > "$tmpFile"; then
-          mv "$tmpFile" "$claudeJson"
-          chmod u+w "$claudeJson"
-        else
-          rm -f "$tmpFile"
-        fi
-      fi
-    '';
+      '';
+    };
   };
 
   # Let Home Manager install and manage itself.

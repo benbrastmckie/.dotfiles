@@ -223,54 +223,54 @@ in
         + "exit \"needs a key\". Set programs.sapience.apiKeyFile."
       );
 
-    home.packages = [
-      sapienceCli
-      sf1Cli
-      sapienceBootstrap
-      # Shipped even though activation registers the server automatically: the entry carries the
-      # token, and at FIRST activation there is usually no token yet (sapience-bootstrap has not
-      # run). Re-running this command afterwards is how the token gets in without a full
-      # `home-manager switch`.
-      sapienceRegisterMcp
-    ];
+    home = {
+      packages = [
+        sapienceCli
+        sf1Cli
+        sapienceBootstrap
+        # Shipped even though activation registers the server automatically: the entry carries the
+        # token, and at FIRST activation there is usually no token yet (sapience-bootstrap has not
+        # run). Re-running this command afterwards is how the token gets in without a full
+        # `home-manager switch`.
+        sapienceRegisterMcp
+      ];
 
-    # Seed only what is absent -- see the MUTABLE STATE note in this file's header. A failed
-    # fetch is reported and skipped, never fatal: activation must not break on a vendor outage,
-    # and sapience-bootstrap / `sapience update` can always complete the set later.
-    home.activation.sapiencePayload = config.lib.dag.entryAfter [ "writeBoundary" ] ''
-      if [[ -v DRY_RUN ]]; then
-        echo "Would seed missing Sapience client files into ${stateDir}"
-      else
-        $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p "${stateDir}"
-        $DRY_RUN_CMD ${pkgs.coreutils}/bin/chmod 700 "${stateDir}"
-        ${lib.concatMapStringsSep "\n" (f: ''
-          if [ ! -f "${stateDir}/${f}" ]; then
-            if ${pkgs.curl}/bin/curl -fsSL -m 30 "${cfg.host}/${f}" \
-                -o "${stateDir}/${f}.tmp" 2>/dev/null; then
-              ${pkgs.coreutils}/bin/mv "${stateDir}/${f}.tmp" "${stateDir}/${f}"
-            else
-              ${pkgs.coreutils}/bin/rm -f "${stateDir}/${f}.tmp"
-              echo "sapience: could not fetch ${f} (run 'sapience update' later)"
-            fi
+      activation = {
+        # Seed only what is absent -- see the MUTABLE STATE note in this file's header. A failed
+        # fetch is reported and skipped, never fatal: activation must not break on a vendor
+        # outage, and sapience-bootstrap / `sapience update` can always complete the set later.
+        sapiencePayload = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+          if [[ -v DRY_RUN ]]; then
+            echo "Would seed missing Sapience client files into ${stateDir}"
+          else
+            $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p "${stateDir}"
+            $DRY_RUN_CMD ${pkgs.coreutils}/bin/chmod 700 "${stateDir}"
+            ${lib.concatMapStringsSep "\n" (f: ''
+              if [ ! -f "${stateDir}/${f}" ]; then
+                if ${pkgs.curl}/bin/curl -fsSL -m 30 "${cfg.host}/${f}" \
+                    -o "${stateDir}/${f}.tmp" 2>/dev/null; then
+                  ${pkgs.coreutils}/bin/mv "${stateDir}/${f}.tmp" "${stateDir}/${f}"
+                else
+                  ${pkgs.coreutils}/bin/rm -f "${stateDir}/${f}.tmp"
+                  echo "sapience: could not fetch ${f} (run 'sapience update' later)"
+                fi
+              fi
+            '') (requiredPayload ++ optionalPayload)}
           fi
-        '') (requiredPayload ++ optionalPayload)}
-      fi
-    '';
+        '';
 
-    # Self-heal a token field that holds the private LINK rather than its token= value.
-    #
-    # sapience-bootstrap rejects that paste at the source, but config.json is mutable state the
-    # vendor client and the web onboarding also write, so the repair belongs here too. Every
-    # consumer reads the field verbatim -- including sapienceMcpServer below, which copies it
-    # into ~/.claude.json -- so one link-shaped value breaks Claude Code's sapience tools as
-    # well as the sync, and the server's answers name neither cause: 401 on /v1/stats, and 403
-    # "an invite code is needed to build a new Sapience" on /ingest-kos, because a token that
-    # opens no brain reads server-side as a request to create one. Ordered before
-    # sapienceMcpServer so the registration always copies a repaired value.
-    # See ../README.md.
-    home.activation.sapienceTokenRepair =
-      config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" ]
-        ''
+        # Self-heal a token field that holds the private LINK rather than its token= value.
+        #
+        # sapience-bootstrap rejects that paste at the source, but config.json is mutable state the
+        # vendor client and the web onboarding also write, so the repair belongs here too. Every
+        # consumer reads the field verbatim -- including sapienceMcpServer below, which copies it
+        # into ~/.claude.json -- so one link-shaped value breaks Claude Code's sapience tools as
+        # well as the sync, and the server's answers name neither cause: 401 on /v1/stats, and 403
+        # "an invite code is needed to build a new Sapience" on /ingest-kos, because a token that
+        # opens no brain reads server-side as a request to create one. Ordered before
+        # sapienceMcpServer so the registration always copies a repaired value.
+        # See ../README.md.
+        sapienceTokenRepair = config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" ] ''
           if [[ -v DRY_RUN ]]; then
             echo "Would repair a link-shaped token in ${configFile}"
           elif [ -f "${configFile}" ]; then
@@ -298,111 +298,113 @@ in
           fi
         '';
 
-    # Merges the provider key into config.json as the api_key/api_key_env pair the client reads.
-    # Takes the vendor's .run.lock first: an extraction persists its own config.json (folders,
-    # capture map), so an unsynchronised read-modify-write here could drop those choices.
-    home.activation.sapienceApiKey = lib.mkIf (cfg.apiKeyFile != "") (
-      config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" "sapienceTokenRepair" ] ''
-        keyFile="${cfg.apiKeyFile}"
-        keyEnv="${
-          if cfg.backend == "openai" then
-            "OPENAI_API_KEY"
-          else if cfg.backend == "anthropic" then
-            "ANTHROPIC_API_KEY"
-          else
-            ""
-        }"
-        if [[ -v DRY_RUN ]]; then
-          echo "Would merge $keyEnv from $keyFile into ${configFile}"
-        elif [ -z "$keyEnv" ]; then
-          echo "sapience: backend ${cfg.backend} takes no provider key; ignoring apiKeyFile"
-        elif [ ! -r "$keyFile" ]; then
-          echo "sapience: $keyFile is not readable yet; no provider key written."
-          echo "  Create it (mode 600, key only), then re-run home-manager switch."
-        elif [ ! -f "${configFile}" ]; then
-          echo "sapience: ${configFile} does not exist yet; run sapience-bootstrap first,"
-          echo "  then re-run home-manager switch to store the provider key."
-        else
-          key="$(${pkgs.coreutils}/bin/tr -d '[:space:]' < "$keyFile")"
-          if [ -z "$key" ]; then
-            echo "sapience: $keyFile is empty; no provider key written."
-          elif ! ${pkgs.util-linux}/bin/flock -w 10 "${stateDir}/.run.lock" true 2>/dev/null; then
-            echo "sapience: an extraction holds .run.lock; provider key not written."
-            echo "  Re-run home-manager switch once it finishes."
-          else
-            tmp="$(${pkgs.coreutils}/bin/mktemp "${stateDir}/config.json.XXXXXX")"
-            if ${pkgs.util-linux}/bin/flock -w 10 "${stateDir}/.run.lock" \
-              ${pkgs.jq}/bin/jq --arg k "$key" --arg e "$keyEnv" \
-                '.api_key = $k | .api_key_env = $e' "${configFile}" > "$tmp" \
-              && [ -s "$tmp" ]; then
-              ${pkgs.coreutils}/bin/mv "$tmp" "${configFile}"
-              ${pkgs.coreutils}/bin/chmod 600 "${configFile}"
-              echo "sapience: stored $keyEnv in ${configFile} (mode 600)"
+        # Merges the provider key into config.json as the api_key/api_key_env pair the client reads.
+        # Takes the vendor's .run.lock first: an extraction persists its own config.json (folders,
+        # capture map), so an unsynchronised read-modify-write here could drop those choices.
+        sapienceApiKey = lib.mkIf (cfg.apiKeyFile != "") (
+          config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" "sapienceTokenRepair" ] ''
+            keyFile="${cfg.apiKeyFile}"
+            keyEnv="${
+              if cfg.backend == "openai" then
+                "OPENAI_API_KEY"
+              else if cfg.backend == "anthropic" then
+                "ANTHROPIC_API_KEY"
+              else
+                ""
+            }"
+            if [[ -v DRY_RUN ]]; then
+              echo "Would merge $keyEnv from $keyFile into ${configFile}"
+            elif [ -z "$keyEnv" ]; then
+              echo "sapience: backend ${cfg.backend} takes no provider key; ignoring apiKeyFile"
+            elif [ ! -r "$keyFile" ]; then
+              echo "sapience: $keyFile is not readable yet; no provider key written."
+              echo "  Create it (mode 600, key only), then re-run home-manager switch."
+            elif [ ! -f "${configFile}" ]; then
+              echo "sapience: ${configFile} does not exist yet; run sapience-bootstrap first,"
+              echo "  then re-run home-manager switch to store the provider key."
             else
-              ${pkgs.coreutils}/bin/rm -f "$tmp"
-              echo "sapience: could not write the provider key into ${configFile}"
+              key="$(${pkgs.coreutils}/bin/tr -d '[:space:]' < "$keyFile")"
+              if [ -z "$key" ]; then
+                echo "sapience: $keyFile is empty; no provider key written."
+              elif ! ${pkgs.util-linux}/bin/flock -w 10 "${stateDir}/.run.lock" true 2>/dev/null; then
+                echo "sapience: an extraction holds .run.lock; provider key not written."
+                echo "  Re-run home-manager switch once it finishes."
+              else
+                tmp="$(${pkgs.coreutils}/bin/mktemp "${stateDir}/config.json.XXXXXX")"
+                if ${pkgs.util-linux}/bin/flock -w 10 "${stateDir}/.run.lock" \
+                  ${pkgs.jq}/bin/jq --arg k "$key" --arg e "$keyEnv" \
+                    '.api_key = $k | .api_key_env = $e' "${configFile}" > "$tmp" \
+                  && [ -s "$tmp" ]; then
+                  ${pkgs.coreutils}/bin/mv "$tmp" "${configFile}"
+                  ${pkgs.coreutils}/bin/chmod 600 "${configFile}"
+                  echo "sapience: stored $keyEnv in ${configFile} (mode 600)"
+                else
+                  ${pkgs.coreutils}/bin/rm -f "$tmp"
+                  echo "sapience: could not write the provider key into ${configFile}"
+                fi
+              fi
             fi
-          fi
-        fi
-      ''
-    );
+          ''
+        );
 
-    # Registers without a token until config.json has one, since mcp.py falls back to that file;
-    # the env entry exists so `sapience status` reports matching per-surface fingerprints.
-    # Ordered after claudeMcpServers, which merges into the same ~/.claude.json -- either order
-    # is correct, the edge just makes that independence intentional. See ../README.md.
-    home.activation.sapienceMcpServer = lib.mkIf cfg.registerMcpServer (
-      config.lib.dag.entryAfter
-        [
-          "writeBoundary"
-          "claudeMcpServers"
-          "sapiencePayload"
-          "sapienceTokenRepair"
-        ]
-        ''
-          if [[ -v DRY_RUN ]]; then
-            echo "Would merge mcpServers.sapience into ${config.home.homeDirectory}/.claude.json"
-          else
-            # Delegated to the shared wrapper, which is the single definition of this merge and
-            # is also installed as a user-runnable command. Non-fatal on failure: a malformed
-            # ~/.claude.json must not break `home-manager switch`, and the command can be re-run.
-            ${sapienceRegisterMcp}/bin/sapience-register-mcp \
-              || echo "sapience: MCP registration failed; re-run sapience-register-mcp to retry"
-          fi
-        ''
-    );
+        # Registers without a token until config.json has one, since mcp.py falls back to that file;
+        # the env entry exists so `sapience status` reports matching per-surface fingerprints.
+        # Ordered after claudeMcpServers, which merges into the same ~/.claude.json -- either order
+        # is correct, the edge just makes that independence intentional. See ../README.md.
+        sapienceMcpServer = lib.mkIf cfg.registerMcpServer (
+          config.lib.dag.entryAfter
+            [
+              "writeBoundary"
+              "claudeMcpServers"
+              "sapiencePayload"
+              "sapienceTokenRepair"
+            ]
+            ''
+              if [[ -v DRY_RUN ]]; then
+                echo "Would merge mcpServers.sapience into ${config.home.homeDirectory}/.claude.json"
+              else
+                # Delegated to the shared wrapper, which is the single definition of this merge and
+                # is also installed as a user-runnable command. Non-fatal on failure: a malformed
+                # ~/.claude.json must not break `home-manager switch`, and the command can be re-run.
+                ${sapienceRegisterMcp}/bin/sapience-register-mcp \
+                  || echo "sapience: MCP registration failed; re-run sapience-register-mcp to retry"
+              fi
+            ''
+        );
 
-    # Tell a WSL2 user, at activation, that the timer they just turned on will not fire yet.
-    #
-    # This is the one place where the home-manager module cannot deliver what the option
-    # promises. `backgroundSync = true` defines a systemd.user timer, and under WSL2 a user
-    # manager exists only after two steps that are both outside this module's reach:
-    # `[boot] systemd=true` in /etc/wsl.conf (the Windows side of the boundary, not a path
-    # home-manager owns) and `loginctl enable-linger $USER` (a host-level grant a user activation
-    # cannot make for itself). home-manager will report the timer as created either way, so
-    # without this warning the failure mode is silent and slow: weeks of nothing syncing, with a
-    # config that looks correct and a `home-manager switch` that reported success.
-    #
-    # Deliberately NOT fatal and deliberately not a `warnings` entry. Eval-time `warnings` cannot
-    # see the WSL kernel marker at all -- whether a user manager is up is a property of the
-    # machine at activation, not of the configuration -- so the probe has to run here. Read-only,
-    # so no $DRY_RUN_CMD: there is nothing to not-do in a dry run, and a dry run is exactly when
-    # a user most wants to see this.
-    home.activation.sapienceWslSyncNotice = lib.mkIf cfg.backgroundSync (
-      config.lib.dag.entryAfter [ "writeBoundary" ] ''
-        export PATH="${runtimePath}:$PATH"
+        # Tell a WSL2 user, at activation, that the timer they just turned on will not fire yet.
+        #
+        # This is the one place where the home-manager module cannot deliver what the option
+        # promises. `backgroundSync = true` defines a systemd.user timer, and under WSL2 a user
+        # manager exists only after two steps that are both outside this module's reach:
+        # `[boot] systemd=true` in /etc/wsl.conf (the Windows side of the boundary, not a path
+        # home-manager owns) and `loginctl enable-linger $USER` (a host-level grant a user activation
+        # cannot make for itself). home-manager will report the timer as created either way, so
+        # without this warning the failure mode is silent and slow: weeks of nothing syncing, with a
+        # config that looks correct and a `home-manager switch` that reported success.
+        #
+        # Deliberately NOT fatal and deliberately not a `warnings` entry. Eval-time `warnings` cannot
+        # see the WSL kernel marker at all -- whether a user manager is up is a property of the
+        # machine at activation, not of the configuration -- so the probe has to run here. Read-only,
+        # so no $DRY_RUN_CMD: there is nothing to not-do in a dry run, and a dry run is exactly when
+        # a user most wants to see this.
+        sapienceWslSyncNotice = lib.mkIf cfg.backgroundSync (
+          config.lib.dag.entryAfter [ "writeBoundary" ] ''
+            export PATH="${runtimePath}:$PATH"
 
-        ${wslDetect}
-        ${userManagerProbe}
+            ${wslDetect}
+            ${userManagerProbe}
 
-        if sapience_is_wsl && ! sapience_has_user_manager; then
-          echo "sapience: backgroundSync is on, but no systemd user manager is running (WSL2)."
-          echo "  sapience-sync.timer is defined and will NOT fire until this is fixed."
-        ${wslPrereqLines}
-          echo "  Meanwhile 'sapience sync' works normally and loses nothing."
-        fi
-      ''
-    );
+            if sapience_is_wsl && ! sapience_has_user_manager; then
+              echo "sapience: backgroundSync is on, but no systemd user manager is running (WSL2)."
+              echo "  sapience-sync.timer is defined and will NOT fire until this is fixed."
+            ${wslPrereqLines}
+              echo "  Meanwhile 'sapience sync' works normally and loses nothing."
+            fi
+          ''
+        );
+      };
+    };
 
     # The on-demand run, and what the timer activates when backgroundSync is on. Always defined,
     # so `systemctl --user start sapience-sync.service` is available with no schedule in place.

@@ -594,21 +594,19 @@ let
     chmod 700 "$denyHome" "$denyHome/.sapience"
 
     rc=0
-    ${
-      lib.concatMapStringsSep "\n" (dir: ''
-        if [ ! -d "${dir}" ]; then
-          echo "sapience-adddir-sources: skipping ${dir} (not a directory)" >&2
+    ${lib.concatMapStringsSep "\n" (dir: ''
+      if [ ! -d "${dir}" ]; then
+        echo "sapience-adddir-sources: skipping ${dir} (not a directory)" >&2
+        rc=1
+      else
+        echo "sapience-adddir-sources: ${dir}"
+        if ! HOME="$denyHome" ${python} "${stateDir}/mcp.py" --adddir "${dir}" \
+          --include "${cfg.sourceDirInclude}" "$@"; then
+          echo "sapience-adddir-sources: ${dir} did not complete" >&2
           rc=1
-        else
-          echo "sapience-adddir-sources: ${dir}"
-          if ! HOME="$denyHome" ${python} "${stateDir}/mcp.py" --adddir "${dir}" \
-            --include "${cfg.sourceDirInclude}" "$@"; then
-            echo "sapience-adddir-sources: ${dir} did not complete" >&2
-            rc=1
-          fi
         fi
-      '') cfg.sourceDirs
-    }
+      fi
+    '') cfg.sourceDirs}
     exit "$rc"
   '';
 in
@@ -792,167 +790,173 @@ in
         + "exit \"needs a key\". Set programs.sapience.apiKeyFile."
       );
 
-    home.packages = [
-      sapienceCli
-      sf1Cli
-      sapienceBootstrap
-    ]
-    ++ lib.optional (cfg.sourceDirs != [ ]) sapienceAddDirSources;
+    home = {
+      packages = [
+        sapienceCli
+        sf1Cli
+        sapienceBootstrap
+      ]
+      ++ lib.optional (cfg.sourceDirs != [ ]) sapienceAddDirSources;
 
-    # Seed only what is absent -- see the MUTABLE STATE note in this file's header. A failed
-    # fetch is reported and skipped, never fatal: activation must not break on a vendor outage,
-    # and sapience-bootstrap / `sapience update` can always complete the set later.
-    home.activation.sapiencePayload = config.lib.dag.entryAfter [ "writeBoundary" ] ''
-      if [[ -v DRY_RUN ]]; then
-        echo "Would seed missing Sapience client files into ${stateDir}"
-      else
-        $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p "${stateDir}"
-        $DRY_RUN_CMD ${pkgs.coreutils}/bin/chmod 700 "${stateDir}"
-        ${lib.concatMapStringsSep "\n" (f: ''
-          if [ ! -f "${stateDir}/${f}" ]; then
-            if ${pkgs.curl}/bin/curl -fsSL -m 30 "${cfg.host}/${f}" \
-                -o "${stateDir}/${f}.tmp" 2>/dev/null; then
-              ${pkgs.coreutils}/bin/mv "${stateDir}/${f}.tmp" "${stateDir}/${f}"
-            else
-              ${pkgs.coreutils}/bin/rm -f "${stateDir}/${f}.tmp"
-              echo "sapience: could not fetch ${f} (run 'sapience update' later)"
+      activation = {
+        # Seed only what is absent -- see the MUTABLE STATE note in this file's header. A failed
+        # fetch is reported and skipped, never fatal: activation must not break on a vendor
+        # outage, and sapience-bootstrap / `sapience update` can always complete the set later.
+        sapiencePayload = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+          if [[ -v DRY_RUN ]]; then
+            echo "Would seed missing Sapience client files into ${stateDir}"
+          else
+            $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p "${stateDir}"
+            $DRY_RUN_CMD ${pkgs.coreutils}/bin/chmod 700 "${stateDir}"
+            ${lib.concatMapStringsSep "\n" (f: ''
+              if [ ! -f "${stateDir}/${f}" ]; then
+                if ${pkgs.curl}/bin/curl -fsSL -m 30 "${cfg.host}/${f}" \
+                    -o "${stateDir}/${f}.tmp" 2>/dev/null; then
+                  ${pkgs.coreutils}/bin/mv "${stateDir}/${f}.tmp" "${stateDir}/${f}"
+                else
+                  ${pkgs.coreutils}/bin/rm -f "${stateDir}/${f}.tmp"
+                  echo "sapience: could not fetch ${f} (run 'sapience update' later)"
+                fi
+              fi
+            '') (requiredPayload ++ optionalPayload)}
+          fi
+        '';
+
+        # Self-heal a token field that holds the private LINK rather than its token= value.
+        #
+        # sapience-bootstrap rejects that paste at the source, but config.json is mutable state the
+        # vendor client and the web onboarding also write, so the repair belongs here too. Every
+        # consumer reads the field verbatim -- including sapienceMcpServer below, which copies it
+        # into ~/.claude.json -- so one link-shaped value breaks Claude Code's sapience tools as
+        # well as the sync, and the server's answers name neither cause: 401 on /v1/stats, and 403
+        # "an invite code is needed to build a new Sapience" on /ingest-kos, because a token that
+        # opens no brain reads server-side as a request to create one. Ordered before
+        # sapienceMcpServer so the registration always copies a repaired value.
+        # See docs/sapience.md.
+        sapienceTokenRepair = config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" ] ''
+          if [[ -v DRY_RUN ]]; then
+            echo "Would repair a link-shaped token in ${configFile}"
+          elif [ -f "${configFile}" ]; then
+            raw="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null || true)"
+            if [ -n "$raw" ] && ! printf '%s' "$raw" | ${pkgs.gnugrep}/bin/grep -qE '^[A-Za-z0-9_-]+$'; then
+              fixed="$(printf '%s' "$raw" \
+                | ${pkgs.coreutils}/bin/tr -d '[:space:]' \
+                | ${pkgs.gnused}/bin/sed -e 's/.*[?&]token=//' -e 's/^token=//' -e 's/[&#].*$//')"
+              if printf '%s' "$fixed" | ${pkgs.gnugrep}/bin/grep -qE '^[A-Za-z0-9_-]{8,}$'; then
+                tmp="$(${pkgs.coreutils}/bin/mktemp "${stateDir}/config.json.XXXXXX")"
+                if ${pkgs.jq}/bin/jq --arg t "$fixed" '.token = $t' "${configFile}" > "$tmp" \
+                  && [ -s "$tmp" ]; then
+                  ${pkgs.coreutils}/bin/mv "$tmp" "${configFile}"
+                  ${pkgs.coreutils}/bin/chmod 600 "${configFile}"
+                  echo "sapience: ${configFile} stored a link rather than a token; repaired it."
+                else
+                  ${pkgs.coreutils}/bin/rm -f "$tmp"
+                  echo "sapience: could not repair the token in ${configFile}"
+                fi
+              else
+                echo "sapience: ${configFile} holds a token that is not token-shaped and could not"
+                echo "  be repaired automatically. Re-run sapience-bootstrap to replace it."
+              fi
             fi
           fi
-        '') (requiredPayload ++ optionalPayload)}
-      fi
-    '';
+        '';
 
-    # Self-heal a token field that holds the private LINK rather than its token= value.
-    #
-    # sapience-bootstrap rejects that paste at the source, but config.json is mutable state the
-    # vendor client and the web onboarding also write, so the repair belongs here too. Every
-    # consumer reads the field verbatim -- including sapienceMcpServer below, which copies it
-    # into ~/.claude.json -- so one link-shaped value breaks Claude Code's sapience tools as
-    # well as the sync, and the server's answers name neither cause: 401 on /v1/stats, and 403
-    # "an invite code is needed to build a new Sapience" on /ingest-kos, because a token that
-    # opens no brain reads server-side as a request to create one. Ordered before
-    # sapienceMcpServer so the registration always copies a repaired value.
-    # See docs/sapience.md.
-    home.activation.sapienceTokenRepair = config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" ] ''
-      if [[ -v DRY_RUN ]]; then
-        echo "Would repair a link-shaped token in ${configFile}"
-      elif [ -f "${configFile}" ]; then
-        raw="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null || true)"
-        if [ -n "$raw" ] && ! printf '%s' "$raw" | ${pkgs.gnugrep}/bin/grep -qE '^[A-Za-z0-9_-]+$'; then
-          fixed="$(printf '%s' "$raw" \
-            | ${pkgs.coreutils}/bin/tr -d '[:space:]' \
-            | ${pkgs.gnused}/bin/sed -e 's/.*[?&]token=//' -e 's/^token=//' -e 's/[&#].*$//')"
-          if printf '%s' "$fixed" | ${pkgs.gnugrep}/bin/grep -qE '^[A-Za-z0-9_-]{8,}$'; then
-            tmp="$(${pkgs.coreutils}/bin/mktemp "${stateDir}/config.json.XXXXXX")"
-            if ${pkgs.jq}/bin/jq --arg t "$fixed" '.token = $t' "${configFile}" > "$tmp" \
-              && [ -s "$tmp" ]; then
-              ${pkgs.coreutils}/bin/mv "$tmp" "${configFile}"
-              ${pkgs.coreutils}/bin/chmod 600 "${configFile}"
-              echo "sapience: ${configFile} stored a link rather than a token; repaired it."
+        # Merges the provider key into config.json as the api_key/api_key_env pair the client reads.
+        # Takes the vendor's .run.lock first: an extraction persists its own config.json (folders,
+        # capture map), so an unsynchronised read-modify-write here could drop those choices.
+        sapienceApiKey = lib.mkIf (cfg.apiKeyFile != "") (
+          config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" "sapienceTokenRepair" ] ''
+            keyFile="${cfg.apiKeyFile}"
+            keyEnv="${
+              if cfg.backend == "openai" then
+                "OPENAI_API_KEY"
+              else if cfg.backend == "anthropic" then
+                "ANTHROPIC_API_KEY"
+              else
+                ""
+            }"
+            if [[ -v DRY_RUN ]]; then
+              echo "Would merge $keyEnv from $keyFile into ${configFile}"
+            elif [ -z "$keyEnv" ]; then
+              echo "sapience: backend ${cfg.backend} takes no provider key; ignoring apiKeyFile"
+            elif [ ! -r "$keyFile" ]; then
+              echo "sapience: $keyFile is not readable yet; no provider key written."
+              echo "  Create it (mode 600, key only), then re-run home-manager switch."
+            elif [ ! -f "${configFile}" ]; then
+              echo "sapience: ${configFile} does not exist yet; run sapience-bootstrap first,"
+              echo "  then re-run home-manager switch to store the provider key."
             else
-              ${pkgs.coreutils}/bin/rm -f "$tmp"
-              echo "sapience: could not repair the token in ${configFile}"
+              key="$(${pkgs.coreutils}/bin/tr -d '[:space:]' < "$keyFile")"
+              if [ -z "$key" ]; then
+                echo "sapience: $keyFile is empty; no provider key written."
+              elif ! ${pkgs.util-linux}/bin/flock -w 10 "${stateDir}/.run.lock" true 2>/dev/null; then
+                echo "sapience: an extraction holds .run.lock; provider key not written."
+                echo "  Re-run home-manager switch once it finishes."
+              else
+                tmp="$(${pkgs.coreutils}/bin/mktemp "${stateDir}/config.json.XXXXXX")"
+                if ${pkgs.util-linux}/bin/flock -w 10 "${stateDir}/.run.lock" \
+                  ${pkgs.jq}/bin/jq --arg k "$key" --arg e "$keyEnv" \
+                    '.api_key = $k | .api_key_env = $e' "${configFile}" > "$tmp" \
+                  && [ -s "$tmp" ]; then
+                  ${pkgs.coreutils}/bin/mv "$tmp" "${configFile}"
+                  ${pkgs.coreutils}/bin/chmod 600 "${configFile}"
+                  echo "sapience: stored $keyEnv in ${configFile} (mode 600)"
+                else
+                  ${pkgs.coreutils}/bin/rm -f "$tmp"
+                  echo "sapience: could not write the provider key into ${configFile}"
+                fi
+              fi
             fi
-          else
-            echo "sapience: ${configFile} holds a token that is not token-shaped and could not"
-            echo "  be repaired automatically. Re-run sapience-bootstrap to replace it."
-          fi
-        fi
-      fi
-    '';
+          ''
+        );
 
-    # Merges the provider key into config.json as the api_key/api_key_env pair the client reads.
-    # Takes the vendor's .run.lock first: an extraction persists its own config.json (folders,
-    # capture map), so an unsynchronised read-modify-write here could drop those choices.
-    home.activation.sapienceApiKey = lib.mkIf (cfg.apiKeyFile != "") (
-      config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" "sapienceTokenRepair" ] ''
-        keyFile="${cfg.apiKeyFile}"
-        keyEnv="${
-          if cfg.backend == "openai" then
-            "OPENAI_API_KEY"
-          else if cfg.backend == "anthropic" then
-            "ANTHROPIC_API_KEY"
-          else
-            ""
-        }"
-        if [[ -v DRY_RUN ]]; then
-          echo "Would merge $keyEnv from $keyFile into ${configFile}"
-        elif [ -z "$keyEnv" ]; then
-          echo "sapience: backend ${cfg.backend} takes no provider key; ignoring apiKeyFile"
-        elif [ ! -r "$keyFile" ]; then
-          echo "sapience: $keyFile is not readable yet; no provider key written."
-          echo "  Create it (mode 600, key only), then re-run home-manager switch."
-        elif [ ! -f "${configFile}" ]; then
-          echo "sapience: ${configFile} does not exist yet; run sapience-bootstrap first,"
-          echo "  then re-run home-manager switch to store the provider key."
-        else
-          key="$(${pkgs.coreutils}/bin/tr -d '[:space:]' < "$keyFile")"
-          if [ -z "$key" ]; then
-            echo "sapience: $keyFile is empty; no provider key written."
-          elif ! ${pkgs.util-linux}/bin/flock -w 10 "${stateDir}/.run.lock" true 2>/dev/null; then
-            echo "sapience: an extraction holds .run.lock; provider key not written."
-            echo "  Re-run home-manager switch once it finishes."
-          else
-            tmp="$(${pkgs.coreutils}/bin/mktemp "${stateDir}/config.json.XXXXXX")"
-            if ${pkgs.util-linux}/bin/flock -w 10 "${stateDir}/.run.lock" \
-              ${pkgs.jq}/bin/jq --arg k "$key" --arg e "$keyEnv" \
-                '.api_key = $k | .api_key_env = $e' "${configFile}" > "$tmp" \
-              && [ -s "$tmp" ]; then
-              ${pkgs.coreutils}/bin/mv "$tmp" "${configFile}"
-              ${pkgs.coreutils}/bin/chmod 600 "${configFile}"
-              echo "sapience: stored $keyEnv in ${configFile} (mode 600)"
-            else
-              ${pkgs.coreutils}/bin/rm -f "$tmp"
-              echo "sapience: could not write the provider key into ${configFile}"
-            fi
-          fi
-        fi
-      ''
-    );
-
-    # Registers without a token until config.json has one, since mcp.py falls back to that file;
-    # the env entry exists so `sapience status` reports matching per-surface fingerprints.
-    # Ordered after claudeMcpServers, which merges into the same ~/.claude.json -- either order
-    # is correct, the edge just makes that independence intentional. See docs/sapience.md.
-    home.activation.sapienceMcpServer = lib.mkIf cfg.registerMcpServer (
-      config.lib.dag.entryAfter [
-        "writeBoundary"
-        "claudeMcpServers"
-        "sapiencePayload"
-        "sapienceTokenRepair"
-      ] ''
-        claudeJson="${config.home.homeDirectory}/.claude.json"
-        if [[ -v DRY_RUN ]]; then
-          echo "Would merge mcpServers.sapience into $claudeJson"
-        else
-          sapToken=""
-          if [ -r "${configFile}" ]; then
-            sapToken="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null || true)"
-          fi
-          [ -f "$claudeJson" ] || echo '{}' > "$claudeJson"
-          tmpFile="$(${pkgs.coreutils}/bin/mktemp "${config.home.homeDirectory}/.claude.json.XXXXXX")"
-          if ${pkgs.jq}/bin/jq \
-            --arg tok "$sapToken" \
-            --arg py "${python}" \
-            --arg script "${stateDir}/mcp.py" \
-            --arg host "${cfg.host}" \
-            '.mcpServers.sapience = ({
-               type: "stdio",
-               command: $py,
-               args: [$script],
-               env: ({ SAPIENCE_HOST: $host }
-                     + (if ($tok | length) > 0 then { SAPIENCE_TOKEN: $tok } else {} end))
-             })' \
-            "$claudeJson" > "$tmpFile"; then
-            ${pkgs.coreutils}/bin/mv "$tmpFile" "$claudeJson"
-            ${pkgs.coreutils}/bin/chmod u+w "$claudeJson"
-          else
-            ${pkgs.coreutils}/bin/rm -f "$tmpFile"
-            echo "sapience: could not merge mcpServers.sapience into $claudeJson"
-          fi
-        fi
-      ''
-    );
+        # Registers without a token until config.json has one, since mcp.py falls back to that file;
+        # the env entry exists so `sapience status` reports matching per-surface fingerprints.
+        # Ordered after claudeMcpServers, which merges into the same ~/.claude.json -- either order
+        # is correct, the edge just makes that independence intentional. See docs/sapience.md.
+        sapienceMcpServer = lib.mkIf cfg.registerMcpServer (
+          config.lib.dag.entryAfter
+            [
+              "writeBoundary"
+              "claudeMcpServers"
+              "sapiencePayload"
+              "sapienceTokenRepair"
+            ]
+            ''
+              claudeJson="${config.home.homeDirectory}/.claude.json"
+              if [[ -v DRY_RUN ]]; then
+                echo "Would merge mcpServers.sapience into $claudeJson"
+              else
+                sapToken=""
+                if [ -r "${configFile}" ]; then
+                  sapToken="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null || true)"
+                fi
+                [ -f "$claudeJson" ] || echo '{}' > "$claudeJson"
+                tmpFile="$(${pkgs.coreutils}/bin/mktemp "${config.home.homeDirectory}/.claude.json.XXXXXX")"
+                if ${pkgs.jq}/bin/jq \
+                  --arg tok "$sapToken" \
+                  --arg py "${python}" \
+                  --arg script "${stateDir}/mcp.py" \
+                  --arg host "${cfg.host}" \
+                  '.mcpServers.sapience = ({
+                     type: "stdio",
+                     command: $py,
+                     args: [$script],
+                     env: ({ SAPIENCE_HOST: $host }
+                           + (if ($tok | length) > 0 then { SAPIENCE_TOKEN: $tok } else {} end))
+                   })' \
+                  "$claudeJson" > "$tmpFile"; then
+                  ${pkgs.coreutils}/bin/mv "$tmpFile" "$claudeJson"
+                  ${pkgs.coreutils}/bin/chmod u+w "$claudeJson"
+                else
+                  ${pkgs.coreutils}/bin/rm -f "$tmpFile"
+                  echo "sapience: could not merge mcpServers.sapience into $claudeJson"
+                fi
+              fi
+            ''
+        );
+      };
+    };
 
     # The on-demand run, and what the timer activates when backgroundSync is on. Always defined,
     # so `systemctl --user start sapience-sync.service` is available with no schedule in place.

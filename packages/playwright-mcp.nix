@@ -54,12 +54,14 @@ let
   #
   # disable-blink-features=ScreenWakeLock is kept as defence in depth: it blocks the
   # `navigator.wakeLock` route specifically, and still applies if headless is ever turned off.
-  mcpConfig = writeText "playwright-mcp-config.json" (builtins.toJSON {
-    browser.launchOptions = {
-      headless = true;
-      args = [ "--disable-blink-features=ScreenWakeLock" ];
-    };
-  });
+  mcpConfig = writeText "playwright-mcp-config.json" (
+    builtins.toJSON {
+      browser.launchOptions = {
+        headless = true;
+        args = [ "--disable-blink-features=ScreenWakeLock" ];
+      };
+    }
+  );
 in
 
 writeShellScriptBin "playwright-mcp" ''

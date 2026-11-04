@@ -29,9 +29,11 @@ let
       modules = [
         module
         {
-          home.username = "testuser";
-          home.homeDirectory = "/home/testuser";
-          home.stateVersion = "26.05";
+          home = {
+            username = "testuser";
+            homeDirectory = "/home/testuser";
+            stateVersion = "26.05";
+          };
         }
         extra
       ];

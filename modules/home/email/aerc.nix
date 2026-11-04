@@ -32,7 +32,12 @@ let
   # same virtual-folder shape; the intentional asymmetries (Gmail's Spam folder
   # and the Proposed-* triage views) are visible as data at the call sites.
   mkQuerymap =
-    { prefix, archiveName, extraFolders ? [ ], extraTriage ? [ ] }:
+    {
+      prefix,
+      archiveName,
+      extraFolders ? [ ],
+      extraTriage ? [ ],
+    }:
     builtins.concatStringsSep "\n" (
       [
         "INBOX=folder:${prefix}"

@@ -55,40 +55,42 @@
     speechd.enable = false;
   };
 
-  # Hide root user from GDM login screen and GNOME user settings
-  # This prevents "System administrator" from appearing in the user list
-  environment.etc."accountsservice/users/root".text = ''
-    [User]
-    SystemAccount=true
-  '';
+  environment = {
+    # Hide root user from GDM login screen and GNOME user settings
+    # This prevents "System administrator" from appearing in the user list
+    etc."accountsservice/users/root".text = ''
+      [User]
+      SystemAccount=true
+    '';
 
-  environment.etc."wallpapers/riverside.jpg".source = ../../wallpapers/riverside.jpg;
+    etc."wallpapers/riverside.jpg".source = ../../wallpapers/riverside.jpg;
 
-  # Disable the speech-dispatcher stack. Two separate nixpkgs modules turn it on
-  # and both have to be answered, in this order:
-  #
-  #   1. services/misc/graphical-desktop.nix sets
-  #      `services.speechd.enable = lib.mkDefault true` for ANY graphical
-  #      desktop. The plain `false` below overrides that mkDefault.
-  #   2. services/accessibility/orca.nix sets `services.speechd.enable = true`
-  #      unconditionally (not a default) whenever Orca is enabled, and the GNOME
-  #      desktop module enables Orca unless it is excluded. Left in place that
-  #      would conflict with the `false` below and fail evaluation, so Orca is
-  #      excluded here too.
-  #
-  # Excluding Orca is correct independently: it is unused on this host, where
-  # the home-manager dconf settings set toolkit-accessibility = false and Orca
-  # has never been launched.
-  #
-  # The reason to turn any of this off: speech-dispatcher ships a speechd.conf
-  # whose AddModule lines are all commented out, so at startup it falls back to
-  # probing every sd_* binary in its modules directory. Seven of the twelve
-  # shipped modules (voxin, baratinoo, cicero, kali, festival, espeak-ng-mbrola,
-  # openjtalk) wrap engines that are not in the closure; each probe child exits
-  # immediately and the daemon never wait()s on it, leaving seven permanent
-  # zombie processes for as long as the daemon runs. Text-to-speech on this host
-  # goes through piper and espeak-ng directly, not through speech-dispatcher.
-  environment.gnome.excludePackages = [ pkgs.orca ];
+    # Disable the speech-dispatcher stack. Two separate nixpkgs modules turn it on
+    # and both have to be answered, in this order:
+    #
+    #   1. services/misc/graphical-desktop.nix sets
+    #      `services.speechd.enable = lib.mkDefault true` for ANY graphical
+    #      desktop. The plain `false` below overrides that mkDefault.
+    #   2. services/accessibility/orca.nix sets `services.speechd.enable = true`
+    #      unconditionally (not a default) whenever Orca is enabled, and the GNOME
+    #      desktop module enables Orca unless it is excluded. Left in place that
+    #      would conflict with the `false` below and fail evaluation, so Orca is
+    #      excluded here too.
+    #
+    # Excluding Orca is correct independently: it is unused on this host, where
+    # the home-manager dconf settings set toolkit-accessibility = false and Orca
+    # has never been launched.
+    #
+    # The reason to turn any of this off: speech-dispatcher ships a speechd.conf
+    # whose AddModule lines are all commented out, so at startup it falls back to
+    # probing every sd_* binary in its modules directory. Seven of the twelve
+    # shipped modules (voxin, baratinoo, cicero, kali, festival, espeak-ng-mbrola,
+    # openjtalk) wrap engines that are not in the closure; each probe child exits
+    # immediately and the daemon never wait()s on it, leaving seven permanent
+    # zombie processes for as long as the daemon runs. Text-to-speech on this host
+    # goes through piper and espeak-ng directly, not through speech-dispatcher.
+    gnome.excludePackages = [ pkgs.orca ];
+  };
 
   programs = {
     # Set GDM login screen background using proper NixOS dconf profiles

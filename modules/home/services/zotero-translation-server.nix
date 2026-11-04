@@ -44,7 +44,7 @@ let
   # systemd's Environment= parser preserves the inner double quotes verbatim.
   nodeConfigJson = builtins.toJSON {
     host = "127.0.0.1";
-    port = cfg.port;
+    inherit (cfg) port;
   };
 in
 {

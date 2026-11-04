@@ -100,14 +100,14 @@ stdenv.mkDerivation {
   ];
 
   postPatch = ''
-    substituteInPlace comparator/lakefile.toml \
-      --replace-fail '[[require]]
-scope = "leanprover"
-name = "lean4export"
-rev = "master"' '[[require]]
-name = "lean4export"
-path = "../lean4export"'
-    rm -f comparator/lake-manifest.json
+        substituteInPlace comparator/lakefile.toml \
+          --replace-fail '[[require]]
+    scope = "leanprover"
+    name = "lean4export"
+    rev = "master"' '[[require]]
+    name = "lean4export"
+    path = "../lean4export"'
+        rm -f comparator/lake-manifest.json
   '';
 
   dontConfigure = true;
