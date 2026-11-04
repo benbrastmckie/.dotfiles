@@ -55,10 +55,9 @@ let
       };
     };
 
-    # The stub-host configuration. This is the mechanism that makes a hermetic end-to-end install
-    # test possible at all (see ../README.md's "Platforms"): if `host` ever stops reaching the
-    # payload seeder, the real install test would start silently hitting the live vendor instead
-    # of the local stub, and would pass for the wrong reason.
+    # The stub-host configuration, which is what makes a hermetic end-to-end install test
+    # possible: if `host` ever stops reaching the payload seeder, ../tests/install-test.sh would
+    # silently hit the live vendor instead of its local stub and pass for the wrong reason.
     stubHost = mkHome {
       programs.sapience = {
         enable = true;

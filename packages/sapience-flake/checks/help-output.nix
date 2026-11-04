@@ -1,13 +1,11 @@
 # Golden-output tests for `sapience help`, across both scheduling configurations and both
 # platforms.
 #
-# WHY golden files rather than grepping for a phrase: the help text IS the user-facing contract
-# on a platform where the scheduler may not run, and the failure mode being guarded against is
-# advice that is confidently wrong. A grep for "WSL" would have passed against the first version
-# of this flake's user-manager probe, which used `systemctl --user is-system-running` and so
-# printed the WSL prerequisites to any user whose session merely had an unrelated failed unit --
-# true-looking output, wrong audience. A byte-for-byte diff of the whole block catches that; a
-# keyword search does not.
+# Golden files rather than a keyword grep, because the help text IS the user-facing contract on a
+# platform where the scheduler may not run, and the failure guarded against is advice that is
+# confidently wrong -- the right words shown to the wrong audience. A grep for "WSL" passes on
+# output that names the prerequisites to someone whose timer already fires; a byte-for-byte diff
+# of the whole block does not.
 #
 # Determinism: USER is pinned (the text interpolates it into `loginctl enable-linger $USER`) and
 # platform detection is driven through SAPIENCE_OSRELEASE rather than the host's real

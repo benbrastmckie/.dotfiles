@@ -1,14 +1,9 @@
 # sapience-flake
 
-A standalone, shareable NixOS/Home Manager packaging of the [Sapience](https://app.spnc.ai)
-client — a generalized fork of a working flake maintained elsewhere, forked out so this directory
-evaluates and builds entirely on its own. Copy it anywhere, point a flake at it, and it works with
-no other input from the repository it was forked from. It replaces the vendor's macOS-only
-installer on Linux — including Windows, via WSL2. See "Platforms" below.
-
-Fork source: `modules/sapience.nix` in this directory is a generalized fork of a home-manager
-module named `sapience.nix`, maintained in a private configuration repository, as it stood on
-2026-11-04, the date this directory was forked out.
+A standalone NixOS/Home Manager packaging of the [Sapience](https://app.spnc.ai) client. This
+directory evaluates and builds entirely on its own — copy it anywhere, point a flake at it, and
+it works with no other inputs. It extends the vendor's macOS-only installer to Linux, while also
+including Windows via WSL2.
 
 ## What this is
 
@@ -39,8 +34,8 @@ Windows-specific output.
 `runtimePath` in `lib/wrappers.nix` carries `pkgs.systemd`, which refuses to *evaluate* off Linux,
 and every scheduling path here is `systemd.user` with no launchd equivalent written. Supporting it
 would mean guarding that dependency, branching the help text, and writing launchd agents. (The
-vendor's own installer is macOS-only; this fork is the Linux answer to it, which is why the
-direction looks inverted.)
+vendor's own installer is macOS-only; this packaging is the Linux answer to it, which is why
+the direction looks inverted.)
 
 ### The two Windows routes
 
@@ -140,7 +135,7 @@ nix flake check -L        # from this directory
 | `shellcheck` | Every generated wrapper passes shellcheck at **default severity, no exclusions**, plus `bash -n`. The scripts are assembled by Nix string interpolation, so a quoting bug is invisible in the `.nix` source and only becomes shell at build time; this reads what is actually produced. |
 | `help-output` | Byte-for-byte golden files for `sapience help` across both scheduling settings × both platforms, plus that the two WSL detection signals produce identical text, plus that `help` works before the payload exists and that a real subcommand refuses without it. |
 | `token-functions` | 25 table-driven cases over `sap_token_clean`/`sap_token_ok` — every paste shape the invite email produces, and the rejections that stop a pasted *link* from reaching `config.json` and turning into a misleading 401/403. |
-| `wsl-probe` | The platform helpers, including a **regression test**: a degraded-but-live systemd user manager must still count as present. Reverting the probe to `systemctl --user is-system-running` makes this check fail by name. |
+| `wsl-probe` | Both WSL detection signals, their negative cases, and the invariant that a degraded-but-live systemd user manager counts as **present** — which is what keeps the WSL advice away from users whose timer already works. |
 | `hm-module` | The module evaluated across six option combinations, asserting which units and activation steps exist, that `syncInterval` reaches the timer verbatim, that `registerMcpServer` gates the `~/.claude.json` merge, and that `host` redirects every payload fetch. Two generations are **built**, not just evaluated. |
 
 ### The end-to-end install test
@@ -179,25 +174,27 @@ they do:
 
 ## Defaults
 
-Three option defaults were generalized from the repository this was forked out of, so a stranger
-enabling the module gets a working, zero-setup configuration instead of that repository's own
-machine-specific choices:
+`programs.sapience.enable = true;` is enough on its own. Every option already carries a working
+default, and they match the vendor's own zero-setup path:
 
-| Option | Vendor default (this fork) | Why |
-|--------|------------------------------|-----|
-| `backend` | `"relay"` | No local inference server and no API key required — the vendor's own zero-setup path. The forked-from repository overrode this to `"ollama"` because its own Claude Code transcripts were the input corpus and a local model was already available there; that reasoning does not generalize. |
-| `memoryFiles` | `true` | Matches the vendor default. The forked-from repository overrode this to `false` because its own `.claude/` trees are generated deploy scaffolding duplicated across many repositories, which is not true of an arbitrary consumer's project. |
-| `apiKeyFile` (`example`) | `/run/secrets/sapience_openai_key` | The forked-from repository's example string baked in that machine's own home directory; replaced with a generic secrets-manager-shaped path, matching `tokenFile`'s own example one field up. |
-
-`model`'s default (`""`, meaning "use the client's own per-backend default") already matched the
-vendor default and needed no change.
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `backend` | `"relay"` | Inference through `app.spnc.ai` at the vendor's expense — no local model, no API key. See "Privacy". |
+| `model` | `""` | Use the client's own per-backend default. |
+| `host` | `"https://app.spnc.ai"` | Used for the payload seed and every sync call. Point it elsewhere to stub the vendor, which is how `tests/install-test.sh` stays hermetic. |
+| `memoryFiles` | `true` | Let the client ingest curated memory files (`CLAUDE.md`, `AGENTS.md`). |
+| `backgroundSync` | `false` | Nothing syncs on a schedule. Extraction spends real money or real CPU and reads whatever the folder picker selected, so it happens on request rather than because the module was enabled. |
+| `syncInterval` | `"hourly"` | The timer's `OnCalendar`, matching the vendor LaunchAgent's 3600-second interval. Takes effect only when `backgroundSync` is true. |
+| `registerMcpServer` | `true` | Merge `mcpServers.sapience` into `~/.claude.json` so Claude Code can reach the vault. |
+| `tokenFile` | `null` | `sapience-bootstrap` prompts for the token. Set it to a path outside the Nix store (e.g. `/run/secrets/sapience_token`) for a non-interactive bootstrap. |
+| `apiKeyFile` | `""` | Required only for the `anthropic` and `openai` backends; a secrets-manager path such as `/run/secrets/sapience_openai_key`. |
 
 ## Privacy
 
 `backend` controls where transcript text is processed, and that choice has a real privacy
 consequence:
 
-- `"relay"` (this fork's default) sends **redacted** chunks through `app.spnc.ai` to Anthropic at
+- `"relay"` (the default) sends **redacted** chunks through `app.spnc.ai` to Anthropic at
   the vendor's expense. This is the one backend where the **vendor itself** sees those redacted
   chunks, before any local review gate, because the relay is in the request path.
 - `"anthropic"` / `"openai"` send raw text from your machine directly to that provider, on your
@@ -301,7 +298,7 @@ must opt in with `allowUnfree` and build (or fetch) it themselves.
 
 - The site's own root page: *"Sapience is in private beta. Start with your invite code and
   name."*
-- The same page, on the terminal install path this fork replaces: *"Mac + Python 3 · about ten
+- The same page, on the terminal install path this packaging replaces: *"Mac + Python 3 · about ten
   minutes."* — no Linux/NixOS path is mentioned anywhere on the page.
 
 This one is **practical-consequence reasoning**, not a quoted written nixpkgs rule — no such

@@ -1,7 +1,6 @@
 # Standalone, shareable packaging of the Sapience (https://app.spnc.ai) client for
-# NixOS/Home Manager: a generalized fork of a working flake maintained elsewhere, copied out so
-# this directory evaluates and builds entirely on its own -- copy it anywhere, point a flake at
-# it, and it works with no other input from the repository it was forked from.
+# NixOS/Home Manager. This directory evaluates and builds entirely on its own -- copy it
+# anywhere, point a flake at it, and it works with no other inputs.
 #
 # Platforms: Linux (x86_64, aarch64), including Windows via WSL2, which reports those same
 # systems. Not macOS -- see the comment on `systems` below. Scheduled sync carries two

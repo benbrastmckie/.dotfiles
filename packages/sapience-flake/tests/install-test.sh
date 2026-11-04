@@ -135,11 +135,10 @@ echo "==> the state directory is private"
 mode="$(stat -c '%a' "$HOME/.sapience" 2>/dev/null || echo '?')"
 if [ "$mode" = "700" ]; then ok "the state dir is mode 700"; else bad "the state dir is mode $mode, expected 700"; fi
 
-# The division of labour between activation and the bootstrap, asserted in both directions.
-# Activation seeds the payload and registers the MCP server; it does NOT create config.json and
-# does NOT consume tokenFile -- `sapience-bootstrap` does both, when the user runs it. This was
-# genuinely surprising (the tokenFile option used to claim it was "read at activation time"), so
-# it is pinned here in the direction the code actually works.
+# The division of labour between activation and the bootstrap, asserted in both directions:
+# activation seeds the payload and registers the MCP server, while `sapience-bootstrap` is what
+# creates config.json and consumes tokenFile, when the user runs it. Easy to misread as
+# activation's job, so both halves are pinned here.
 echo "==> activation does NOT write config.json (the bootstrap owns it)"
 if [ -e "$HOME/.sapience/config.json" ]; then
   bad "activation wrote config.json; the contract is that sapience-bootstrap creates it"

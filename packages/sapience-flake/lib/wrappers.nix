@@ -1,17 +1,16 @@
 # Builds the three Sapience CLI wrapper derivations (`sapience`, `sf1`, `sapience-bootstrap`)
-# from plain arguments, with no home-manager dependency, so the same script bodies back both
+# from plain arguments, with no home-manager dependency, so one set of script bodies backs both
 # ../modules/sapience.nix's `homeManagerModules.sapience` and this flake's standalone
 # `packages.<system>.*` outputs.
 #
-# Extracted verbatim from ../modules/sapience.nix (itself a generalized fork of
-# modules/home/services/sapience.nix), substituting every per-option module read for a plain
-# argument of the same name, and the home-manager module's own home-directory-derived `stateDir`
-# for a directly-passed `stateDir` string. No other content changed. `stateDir` is passed as a
-# STRING, not a Nix path -- the home-manager module passes an evaluation-time absolute path (the
-# home directory option joined with `/.sapience`) while the standalone package output passes a
-# shell-expanded `"$HOME/.sapience"` -- so every interpolation of it below must stay
-# double-quoted; none of them are shell-expanded at the Nix level, so this holds regardless of
-# which caller is active.
+# Every value this file needs arrives as an argument rather than being read from a module option,
+# which is what lets the non-home-manager output set exist at all.
+#
+# `stateDir` is a STRING, not a Nix path: the home-manager module passes an evaluation-time
+# absolute path (its home-directory option joined with `/.sapience`), while the standalone
+# package output passes a shell-expanded `"$HOME/.sapience"`, resolved at runtime. Nothing here
+# is shell-expanded at the Nix level, so every interpolation of it below must stay
+# double-quoted -- that holds for either caller.
 {
   pkgs,
   lib,
@@ -70,9 +69,10 @@ let
 
   # Two single-purpose shell helpers -- "am I on WSL2?" and "is a systemd user manager
   # reachable?" -- injected into the wrappers that would otherwise print `systemctl --user`
-  # instructions as though they were guaranteed to work. Kept separate rather than as one block
-  # because the call sites differ: sapienceCli's help needs only the detector, while the
-  # bootstrap summary and the module's activation notice need both.
+  # instructions as though they were guaranteed to work. Separate rather than one block because
+  # the call sites differ: sapienceCli's help needs only the detector, while the bootstrap
+  # summary and the module's activation notice need both. Each is injected only where it has a
+  # call site, so no wrapper carries an uncallable definition.
   #
   # WHY this exists: Windows consumers reach this flake through WSL2 (there is no native-Windows
   # Nix), and under WSL2 a systemd USER manager is not a given the way it is on any ordinary
@@ -87,12 +87,10 @@ let
   # processes descended from a `wsl.exe` launch (a systemd unit or a cron job has no such
   # ancestor and sees it unset), while the osrelease marker is written by the WSL kernel itself
   # and survives every launch path. Both are cheap and neither can false-positive on real Linux.
-  # SAPIENCE_OSRELEASE is a deliberate test seam, not a user-facing knob. Without it the
-  # "I am not on WSL" case is untestable by construction: ../checks/help-output.nix would read
-  # the REAL /proc/sys/kernel/osrelease, so its golden files would pass on an ordinary Linux
-  # host and fail for anyone running `nix flake check` from inside WSL -- the exact platform
-  # this flake now claims to support. Overriding the path makes both branches deterministic
-  # everywhere. Unset in all normal use, where it falls back to the real kernel marker.
+  # SAPIENCE_OSRELEASE is a test seam, not a user-facing knob: it lets ../checks/ drive platform
+  # detection deterministically instead of reading the host's real kernel marker, which is what
+  # makes the golden files hold both on an ordinary Linux host and inside WSL. Unset in all
+  # normal use, where it falls back to /proc/sys/kernel/osrelease.
   wslDetect = ''
     sapience_is_wsl() {
       [ -n "''${WSL_DISTRO_NAME:-}" ] && return 0
@@ -102,28 +100,24 @@ let
   '';
 
   userManagerProbe = ''
-    # True when a systemd USER manager is reachable, which is the only question that matters
-    # for whether a user timer can ever fire.
+    # True when a systemd USER manager is REACHABLE, which is the only question that bears on
+    # whether a user timer can fire.
     #
-    # `show --property=Version` and NOT `is-system-running`, which is the obvious choice and the
-    # wrong one: is-system-running answers with the manager's HEALTH, so it exits non-zero and
-    # prints "degraded" whenever any unrelated user unit anywhere has failed, on a session that
-    # is otherwise perfectly alive and running timers. Using it here would print the WSL
-    # prerequisites to users whose setup already works and whose timer fires on schedule --
-    # advice that is both false and unfalsifiable from where they are standing. `show` instead
-    # fails on one condition only, the one being asked about: no bus, no manager, nothing to
-    # talk to ("Failed to connect to user scope bus"). Verified both ways against systemd 260.4:
-    # Version=260.4/rc=0 against a degraded-but-live manager, rc=1 with the bus removed.
+    # Must stay `show --property=Version`, never `is-system-running`: the latter answers with the
+    # manager's HEALTH, so it exits non-zero and prints "degraded" whenever any unrelated user
+    # unit has failed, on a session that is otherwise alive and running timers on schedule. That
+    # would print the WSL prerequisites to users whose setup already works. `show` fails on one
+    # condition only -- no bus, no manager, nothing to answer ("Failed to connect to user scope
+    # bus") -- which is the condition being asked about. ../checks/wsl-probe.nix pins this.
     sapience_has_user_manager() {
       systemctl --user show --property=Version >/dev/null 2>&1
     }
   '';
 
-  # The paste-reduction pair, lifted out of sapienceBootstrap so ../checks/token-functions.nix
-  # can exercise them as the pure functions they are, against a table of real pastes, without
-  # running the bootstrap around them. They are the highest-traffic logic in this flake -- every
-  # install passes a clipboard through them -- and the only part testable with no network, no
-  # systemd and no vendor.
+  # The paste-reduction pair, kept out of sapienceBootstrap's body so
+  # ../checks/token-functions.nix can exercise them as the pure functions they are, against a
+  # table of real pastes, without running the bootstrap around them. Every install passes a
+  # clipboard through these two.
   tokenShellHelpers = ''
     # Reduce a paste to a bare token. Accepts the token itself, the whole private link
     # ("https://app.spnc.ai/?token=XXXX"), a quoted paste, or a <...>-wrapped one, because the
@@ -136,8 +130,8 @@ let
         | sed -e 's/.*[?&]token=//' -e 's/^token=//' -e 's/[&#].*$//'
     }
 
-    # A token is letters, digits and underscores only. This is what separates a real token from
-    # a pasted link: a URL keeps its ':' '/' '?' '=' and fails here.
+    # A token is letters, digits, underscores and hyphens, at least 8 of them. This is what
+    # separates a real token from a pasted link: a URL keeps its ':' '/' '?' '=' and fails here.
     sap_token_ok() {
       printf '%s' "$1" | grep -qE '^[A-Za-z0-9_-]{8,}$'
     }
@@ -469,9 +463,8 @@ let
     # shellcheck disable=SC2329
     # Invoked only from the `backend == "ollama" && ollamaEnabled` branch below, which is omitted
     # at EVAL time on every other backend -- so on the default relay backend this definition is
-    # genuinely never called and shellcheck is correct to say so. Suppressed rather than wrapped
-    # in the same lib.optionalString: that would re-indent 70-odd lines of load-bearing comment
-    # for a cosmetic gain, and the gate is already documented at the launch site.
+    # genuinely never called and shellcheck is right to say so. Suppressed rather than wrapped in
+    # the same lib.optionalString, which would re-indent 70-odd lines for a cosmetic gain.
     ticker() {
       started="$1"
       watch_pid="$2"   # this script's own shell; see the launch site below
@@ -682,11 +675,11 @@ in
   # here rather than redefining them in the caller is what keeps there being exactly one
   # definition of each.
   #
-  # `wslDetect`/`userManagerProbe`/`wslPrereqLines` are exported for exactly that reason:
+  # `wslDetect`/`userManagerProbe`/`wslPrereqLines` are exported for the same reason:
   # ../modules/sapience.nix warns about the same defined-but-dead timer at activation time, and a
-  # second copy of the detection logic or of the two prerequisite steps there is precisely the
-  # drift this inherit block exists to prevent. `tokenShellHelpers` is exported for ../checks/,
-  # which tests those two functions directly.
+  # second copy of the detection logic or of the two prerequisite steps there is exactly the
+  # drift this block exists to prevent. `tokenShellHelpers` is exported for ../checks/, which
+  # tests those two functions directly.
   inherit
     python
     runtimePath

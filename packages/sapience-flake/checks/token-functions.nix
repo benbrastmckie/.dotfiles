@@ -1,13 +1,12 @@
 # Table-driven unit tests for the paste-reduction pair, `sap_token_clean` and `sap_token_ok`.
 #
-# WHY these are worth more than their size suggests: every single install funnels a clipboard
-# through them, and the thing being defended against is a genuinely confusing failure. A user who
-# pastes the whole private link instead of its token= value gets a config that LOOKS populated,
-# and the server answers 401 on /v1/stats and 403 "an invite code is needed to build a new
-# Sapience" on /ingest-kos -- neither of which names the real cause. ../modules/sapience.nix
-# carries a whole activation-time repair step for exactly this. These two functions are the first
-# line of that defence, they are pure, and they need no network, no systemd and no vendor to test,
-# which makes them the single highest-value-per-line check in the flake.
+# Every install funnels a clipboard through these two, and what they defend against is a
+# confusing failure: a user who pastes the whole private link instead of its token= value gets a
+# config that LOOKS populated, and the server answers 401 on /v1/stats and 403 "an invite code is
+# needed to build a new Sapience" on /ingest-kos, neither of which names the cause.
+# ../modules/sapience.nix carries an activation-time repair step for the same problem; these
+# functions are the first line of that defence, and they are pure, so they test with no network,
+# no systemd and no vendor.
 #
 # The functions are injected from ../lib/wrappers.nix's exported `tokenShellHelpers` rather than
 # copied here, so a change to the real implementation cannot silently diverge from what is tested.

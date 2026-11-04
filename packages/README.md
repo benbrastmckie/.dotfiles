@@ -128,20 +128,30 @@ See [Development Guide](../docs/development.md#lean-4-development) for detailed 
 ### sapience-flake/
 
 A nested, independent flake: a standalone, vendor-shareable packaging of the Sapience
-(`https://app.spnc.ai`) client, built as a generalized fork of `modules/home/services/sapience.nix`
-so it evaluates and builds entirely on its own when copied out of this repository. Like
-`opencode-discord-bot/` above, this is a co-located source directory rather than a single `.nix`
-file — but unlike every other entry in this list, it is **deliberately not wired** into this
-repository's own flake outputs or overlays: it carries its own `flake.nix`/`flake.lock` and is
-meant to be copied elsewhere (e.g. handed to the vendor) rather than consumed from here.
+(`https://app.spnc.ai`) client. Like `opencode-discord-bot/` above, this is a co-located source
+directory rather than a single `.nix` file — but unlike every other entry in this list, it is
+**deliberately not wired** into this repository's own flake outputs or overlays: it carries its
+own `flake.nix`/`flake.lock` and is meant to be copied elsewhere (e.g. handed to the vendor)
+rather than consumed from here.
 
-**Outputs**: `homeManagerModules.{sapience,default}`, `packages.<system>.{sapience,sf1,sapience-bootstrap,default}`
-(for `x86_64-linux`, `aarch64-linux`, `x86_64-darwin`, `aarch64-darwin`), and
-`lib.mkSapienceWrappers`. The shared CLI-wrapper script bodies both output sets build from live in
-`lib/wrappers.nix`.
+**Outputs**: `homeManagerModules.{sapience,default}`,
+`packages.<system>.{sapience,sf1,sapience-bootstrap,default}`, `checks.<system>.*` and
+`lib.mkSapienceWrappers`, for `x86_64-linux` and `aarch64-linux` only — Linux-only is also the
+Windows story, since WSL2 reports those same systems and there is no native-Windows Nix. The
+shared CLI-wrapper script bodies both output sets build from live in `lib/wrappers.nix`.
 
-**See**: `packages/sapience-flake/README.md` for usage, the generalized defaults, the Claude Code
-hooks/statusline gap, and the three reasons this is not (yet) submittable to nixpkgs.
+**Maintenance note**: this flake's `modules/sapience.nix` and this repository's
+`modules/home/services/sapience.nix` are **separate copies that can drift**. Nothing syncs them;
+diff the two by hand when changing either.
+
+**Verifying**: `nix flake check -L ./packages/sapience-flake` runs five hermetic checks
+(shellcheck, golden help output, token-function cases, platform probes, a home-manager option
+matrix), and `bash packages/sapience-flake/tests/install-test.sh` performs a real home-manager
+activation against a throwaway `$HOME` with the vendor stubbed. Both run in this repository's CI.
+
+**See**: `packages/sapience-flake/README.md` for usage, the option defaults, platform support and
+the WSL prerequisites, the Claude Code hooks/statusline gap, and the three reasons this is not
+(yet) submittable to nixpkgs.
 
 ## Comparator Lean Proof-Verification Toolchain
 

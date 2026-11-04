@@ -1,10 +1,6 @@
 # Sapience (https://app.spnc.ai) client packaging for NixOS/Home Manager: CLI wrappers, bootstrap,
 # an opt-in sync timer and MCP registration, replacing the vendor's macOS-only installer.
 #
-# This file is a generalized fork of modules/home/services/sapience.nix, forked out as of this
-# standalone, vendor-shareable flake. The two copies are NOT kept in sync automatically -- diff
-# manually against that source module if you want any later upstream fixes.
-#
 # Critical: do not "fix" the payload into a fetchurl derivation. Upstream ships no releases or
 # hashes and self-updates in the background, so ~/.sapience/*.py is deliberately mutable state
 # that activation seeds only when absent. See ../README.md.
@@ -35,9 +31,8 @@ let
   # The three CLI wrappers, plus the handful of constants (python/runtimePath/the payload lists)
   # that this module's OWN config glue below (payload-seed activation, MCP server registration,
   # the sync systemd service) also needs. All of it lives in ../lib/wrappers.nix, parameterized
-  # by plain arguments standing in for every value it used to read directly from this module's
-  # own `cfg`/`config`, so the exact same script bodies back this home-manager module AND this
-  # flake's standalone packages.<system>.* outputs with nothing duplicated.
+  # by plain arguments rather than by module reads, so one set of script bodies backs both this
+  # home-manager module and this flake's standalone packages.<system>.* outputs.
   wrappers = import ../lib/wrappers.nix {
     inherit pkgs lib stateDir;
     inherit (cfg)

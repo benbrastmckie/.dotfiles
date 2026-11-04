@@ -1,20 +1,17 @@
 # Unit tests for the two platform helpers, `sapience_is_wsl` and `sapience_has_user_manager`.
 #
-# The second test group is a REGRESSION TEST with a specific history. The first implementation of
-# the user-manager probe used `systemctl --user is-system-running --quiet`, which is the obvious
-# choice and the wrong one: it reports the manager's HEALTH, so it exits non-zero and prints
-# "degraded" whenever any unrelated user unit anywhere has failed, on a session that is otherwise
-# alive and running timers perfectly well. Shipped, that would have printed WSL prerequisites to
-# users whose setup already worked -- advice both false and unfalsifiable from where they stood.
-# `show --property=Version` fails on exactly one condition, the one being asked about: no bus, no
-# manager, nothing to talk to.
+# The second group pins the invariant that the user-manager probe answers REACHABILITY, not
+# health. `systemctl --user is-system-running` reports health: it exits non-zero and prints
+# "degraded" whenever any unrelated user unit has failed, on a session that is otherwise alive
+# and running timers on schedule. A probe built on it would print the WSL prerequisites to users
+# whose setup already works, so `show --property=Version` is required instead -- it fails on one
+# condition only, the one being asked about.
 #
-# The "degraded but live" case cannot be tested against real systemd here, because a Nix build
-# sandbox has no user manager at all. It is tested against a stub that reproduces the
-# distinguishing behaviour -- `is-system-running` failing while `show` succeeds -- which is
-# precisely what makes a regression to the old subcommand fail this check. Real-systemd
-# confirmation is recorded in ../lib/wrappers.nix's comment and belongs to a VM test or a real
-# machine, not to a sandbox.
+# That case is tested against a stub rather than real systemd, because a Nix build sandbox has no
+# user manager at all to degrade. The stub reproduces the distinguishing behaviour --
+# `is-system-running` failing while `show` succeeds -- which is what makes a switch back to the
+# wrong subcommand fail here. Proving it against live systemd belongs to a VM test or a real
+# machine.
 #
 # Every case runs the helper inside a SUBSHELL with the environment set explicitly, rather than
 # with a `VAR=x helper` assignment prefix: a prefix on a shell function has scoping that differs
@@ -81,8 +78,8 @@ pkgs.runCommand "sapience-check-wsl-probe"
     else bad "osrelease marker was not matched"
     fi
 
-    # The -i on that grep is load-bearing: the marker's capitalisation has varied across WSL
-    # kernel builds, and a case-sensitive match would silently stop detecting WSL on some of them.
+    # The -i on that grep is load-bearing: the marker's capitalisation varies across WSL kernel
+    # builds, and a case-sensitive match would silently stop detecting WSL on some of them.
     if is_wsl "" "$TMPDIR/osrelease-wsl-caps"
     then ok "osrelease match is case-insensitive"
     else bad "capitalised Microsoft marker was not matched"
@@ -108,11 +105,11 @@ pkgs.runCommand "sapience-check-wsl-probe"
     else bad "a reachable manager was reported absent"
     fi
 
-    echo "==> REGRESSION: a DEGRADED but live manager must still count as present"
+    echo "==> a DEGRADED but live manager counts as present (reachability, not health)"
     mk_systemctl 0 1
     if has_manager
     then ok "degraded-but-live manager counts as present (no false WSL advice)"
-    else bad "degraded manager misreported as absent -- probe regressed to is-system-running"
+    else bad "degraded manager read as absent -- the probe must use show, not is-system-running"
     fi
 
     echo "==> sapience_has_user_manager: no manager at all (nothing answers)"
