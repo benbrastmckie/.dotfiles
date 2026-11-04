@@ -41,7 +41,7 @@ until you bootstrap, nothing re-reads one until you ask
 | `sapience-adddir-sources` | This repo | `adddir` over `sourceDirs`; installed only when that list is non-empty |
 | `sapience-sync.service` | This repo | On-demand detached run; replaces the launchd plist |
 | `ollama.service` / `ollama-model-loader.service` | This repo | `modules/home/services/ollama.nix` |
-| `Sapience` in the GNOME app grid | This repo | `.desktop` entry plus icon; runs `sf1` in a terminal |
+| `Sapience` and `sf1` in the GNOME app grid | This repo | Two `.desktop` entries plus icons; the CLI and the chat |
 | `mcpServers.sapience` in `~/.claude.json` | This repo | Merged on activation, preserving every other key |
 | Token shape repair in `config.json` | This repo | Activation entry; runs before the MCP merge |
 | Three hooks and seven tool grants | This repo | In `config/claude/settings.json`; see [below](#why-the-hooks-live-in-the-repo) |
@@ -151,33 +151,47 @@ system, since it sends only what changed. See
 
 ### Opening it from the desktop
 
-Searching GNOME for "Sapience" finds a launcher that opens the `sf1` session in a wezterm
-window. That entry is a file, not a side effect of the binaries being on `$PATH`: GNOME indexes
-`.desktop` entries, so a wrapper in `home.packages` is invisible to the Activities search no
-matter what it is called. The module writes it, and a hand-drawn icon, into `~/.local/share`:
+Searching GNOME for "sapience" finds two launchers, because the two sessions are not the same
+thing:
+
+| Entry | Opens |
+|-------|-------|
+| **Sapience** | The CLI — `sapience help`, then a shell prompt to run `review`, `sync`, `coverage` or anything else from |
+| **sf1** | The chat REPL directly, which is where a question goes |
+
+Both are files, not a side effect of the binaries being on `$PATH`: GNOME indexes `.desktop`
+entries, so a wrapper in `home.packages` is invisible to the Activities search no matter what it
+is called. The module writes them, and a hand-drawn icon each, into `~/.local/share`:
 
 ```bash
-ls -l ~/.local/share/applications/sapience.desktop
-ls -l ~/.local/share/icons/hicolor/scalable/apps/sapience.svg
+ls -l ~/.local/share/applications/{sapience,sf1}.desktop
+ls -l ~/.local/share/icons/hicolor/scalable/apps/{sapience,sf1}.svg
 ```
 
-`sf1` is the launch target because it is the only subcommand that holds a window open on its
-own. Bare `sapience` prints its help and exits; `review`, `sync` and `stats` finish and return,
-which from a launcher means a window that closes as soon as it appears. Those stay terminal
-commands.
+The **Sapience** entry runs a small wrapper rather than `sapience` itself, because `sapience`
+with no subcommand prints its help and returns — pointed straight at it, a launcher would open a
+window and close it in the same instant. Printing the help and then handing over to an
+interactive shell turns that into what the help is for: a prompt with every subcommand listed
+above it. `sf1` needs no such wrapper; it is a REPL and holds its own window.
 
-Two flags in the `terminal` default earn their place, and a replacement wants the equivalents.
+Searching "sapience" turns up both — the `sf1` entry carries it as a keyword, so the chat is not
+hidden behind its own name. The icons share a square and a palette but differ in their glyph (a
+knowledge graph, a shell prompt), since at app-grid size the glyph is all that tells them apart.
+
+Two details in the `terminal` default earn their place, and a replacement wants the equivalents.
 `--always-new-process` stops wezterm handing the command to an already-running GUI instance,
-which would otherwise own the window and its class; `--class sapience` then matches
-`StartupWMClass` in the entry, so GNOME attributes the window to Sapience rather than to the
-terminal. To use a different emulator, or a different subcommand, override the argv prefix in
-`home.nix`:
+which would otherwise own the window and its class; the class then matches `StartupWMClass` in
+each entry, so GNOME attributes the window to Sapience or to sf1 rather than to the terminal.
+
+The option is a function of that class, not a flat list, since the two entries take different
+ones and the flag that sets one is not spelled the same everywhere — a foot user wants
+`--app-id`. To use a different emulator, override it in `home.nix`:
 
 ```nix
-programs.sapience.terminal = [ "${pkgs.kitty}/bin/kitty" "--class" "sapience" "--" ];
+programs.sapience.terminal = class: [ "${pkgs.kitty}/bin/kitty" "--class" class "--" ];
 ```
 
-Set `programs.sapience.desktopEntry = false` to install no launcher at all.
+Set `programs.sapience.desktopEntry = false` to install no launchers at all.
 
 ### Nothing extracts on a schedule
 
@@ -617,8 +631,8 @@ rather not have it; nothing else depends on it.
 | `sourceDirs` | `[ ]` | the source store | `adddir` targets; see [above](#the-source-store-goes-in-by-name) |
 | `sourceDirInclude` | `"md"` | default | Extensions passed to `adddir --include` |
 | `registerMcpServer` | `true` | default | Merge into `~/.claude.json` |
-| `desktopEntry` | `true` | default | GNOME launcher; see [below](#opening-it-from-the-desktop) |
-| `terminal` | wezterm argv | default | argv prefix the launcher puts in front of `sf1` |
+| `desktopEntry` | `true` | default | The two GNOME launchers; see [below](#opening-it-from-the-desktop) |
+| `terminal` | wezterm argv | default | `class: argv` prefix each launcher puts in front of its command |
 
 `services.ollamaModels`:
 

@@ -610,6 +610,19 @@ let
     '') cfg.sourceDirs}
     exit "$rc"
   '';
+
+  # What the `Sapience` launcher runs, and the reason it is a script rather than `sapience` on its
+  # own: `sapience` with no subcommand prints its help and returns, so a launcher pointed straight
+  # at it would open a window and close it in the same instant. Printing the help and then handing
+  # over to an interactive shell turns that into the thing the help is for -- a prompt with every
+  # subcommand listed above it, and the wrappers on PATH whether or not the session's own PATH
+  # carries them.
+  sapienceSession = pkgs.writeShellScript "sapience-session" ''
+    export PATH="${sapienceCli}/bin:${sf1Cli}/bin:${sapienceBootstrap}/bin:$PATH"
+    ${sapienceCli}/bin/sapience help
+    echo
+    exec "''${SHELL:-${pkgs.bashInteractive}/bin/bash}"
+  '';
 in
 {
   options.programs.sapience = {
@@ -774,40 +787,46 @@ in
       type = lib.types.bool;
       default = true;
       description = ''
-        Install a `Sapience` application launcher (and its icon) under
-        $XDG_DATA_HOME/applications, so the vault is reachable from the GNOME Activities search
-        and the app grid rather than only from a shell.
+        Install application launchers (and their icons) under $XDG_DATA_HOME/applications, so the
+        vault is reachable from the GNOME Activities search and the app grid rather than only
+        from a shell.
 
-        The entry runs `sf1`, the interactive session, because it is the only client subcommand
-        that holds a window open on its own: bare `sapience` prints its help and exits, and the
-        rest (`review`, `sync`, `stats`) are one-shot commands that would close the terminal the
-        moment they finished.
+        Two entries, because the two things are not the same session. `Sapience` opens the CLI:
+        the help, then a shell prompt to run `review`, `sync`, `coverage` or anything else from.
+        `sf1` opens the chat REPL directly, which is where a question goes.
+
+        Both are searchable under "sapience" -- the `sf1` entry carries it as a keyword, so one
+        search turns up both rather than hiding the chat behind its own name.
       '';
     };
 
     terminal = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [
+      type = lib.types.functionTo (lib.types.listOf lib.types.str);
+      default = class: [
         "${pkgs.wezterm}/bin/wezterm"
         "start"
         "--always-new-process"
         "--class"
-        "sapience"
+        class
         "--"
       ];
       defaultText = lib.literalExpression ''
-        [ "''${pkgs.wezterm}/bin/wezterm" "start" "--always-new-process" "--class" "sapience" "--" ]
+        class: [ "''${pkgs.wezterm}/bin/wezterm" "start" "--always-new-process" "--class" class "--" ]
       '';
       description = ''
-        argv prefix the `desktopEntry` launcher puts in front of `sf1`. A terminal emulator is
-        needed because `sf1` is a readline REPL with no GUI of its own, and a desktop entry is
-        launched by the session with no terminal attached.
+        argv prefix each `desktopEntry` launcher puts in front of its command. A terminal
+        emulator is needed because both targets are terminal sessions with no GUI of their own,
+        and a desktop entry is launched by the session with no terminal attached.
+
+        A function of the window class rather than a flat list, because the two entries take
+        different classes ("sapience" and "sf1") and because the flag that sets one is not
+        spelled the same everywhere -- a foot user wants `--app-id`, not `--class`.
 
         Two details in the default are load-bearing rather than decorative, and a replacement
         wants the equivalents. `--always-new-process` keeps wezterm from handing the command to
-        an already-running GUI instance, which would otherwise own the window and its class.
-        `--class sapience` then matches `StartupWMClass` in the entry, so the window GNOME shows
-        in the dash is attributed to Sapience instead of to the terminal.
+        an already-running GUI instance, which would otherwise own the window and its class. The
+        class itself then matches `StartupWMClass` in the entry, so the window GNOME shows in the
+        dash is attributed to Sapience or to sf1 rather than to the terminal.
       '';
     };
   };
@@ -1014,14 +1033,29 @@ in
           Type=Application
           Name=Sapience
           GenericName=Knowledge Vault
-          Comment=Ask your Sapience vault about your own decisions, findings and open threads
-          Exec=${lib.concatStringsSep " " (cfg.terminal ++ [ "${sf1Cli}/bin/sf1" ])}
+          Comment=The Sapience CLI: review findings, sync, and check what the vault holds
+          Exec=${lib.concatStringsSep " " (cfg.terminal "sapience" ++ [ "${sapienceSession}" ])}
           Icon=sapience
           Terminal=false
           StartupNotify=true
           StartupWMClass=sapience
           Categories=Utility;
-          Keywords=sapience;sf1;knowledge;memory;vault;notes;recall;
+          Keywords=sapience;knowledge;memory;vault;notes;review;sync;
+        '';
+
+        "applications/sf1.desktop".text = ''
+          [Desktop Entry]
+          Type=Application
+          Name=sf1
+          GenericName=Sapience Chat
+          Comment=Ask your Sapience vault about your own decisions, findings and open threads
+          Exec=${lib.concatStringsSep " " (cfg.terminal "sf1" ++ [ "${sf1Cli}/bin/sf1" ])}
+          Icon=sf1
+          Terminal=false
+          StartupNotify=true
+          StartupWMClass=sf1
+          Categories=Utility;
+          Keywords=sapience;sf1;chat;ask;knowledge;memory;vault;recall;
         '';
 
         # Hand-drawn because the vendor ships no Linux icon, and the stock Adwaita candidates
@@ -1047,6 +1081,25 @@ in
               <circle cx="37" cy="91" r="10"/>
               <circle cx="91" cy="91" r="10"/>
             </g>
+          </svg>
+        '';
+
+        # Same square and palette as the Sapience icon so the two read as a pair, with a shell
+        # prompt in place of the graph -- at app-grid size the glyph is the only thing that
+        # distinguishes them, and two identical tiles with different captions is the failure mode
+        # worth avoiding.
+        "icons/hicolor/scalable/apps/sf1.svg".text = ''
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+            <defs>
+              <linearGradient id="sf1-bg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#5b4bdb"/>
+                <stop offset="1" stop-color="#8b3fd4"/>
+              </linearGradient>
+            </defs>
+            <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#sf1-bg)"/>
+            <path d="M38 44 L62 66 L38 88" fill="none" stroke="#ffffff" stroke-width="10"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="70" y="79" width="28" height="9" rx="4.5" fill="#ffffff"/>
           </svg>
         '';
       };
