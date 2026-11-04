@@ -287,7 +287,7 @@ the grep reports, not only the one this plan names.
 
 ---
 
-### Phase 4: Extract the shared wrapper builder and rewire the module [NOT STARTED]
+### Phase 4: Extract the shared wrapper builder and rewire the module [COMPLETED]
 
 **Goal**: Move the three `writeShellScriptBin` wrapper definitions into
 `packages/sapience-flake/lib/wrappers.nix`, parameterized by plain arguments standing in for every
@@ -295,27 +295,54 @@ the grep reports, not only the one this plan names.
 and the non-home-manager package outputs with no duplicated shell.
 
 **Tasks**:
-- [ ] Create `packages/sapience-flake/lib/wrappers.nix` as a function taking
+- [x] Create `packages/sapience-flake/lib/wrappers.nix` as a function taking
       `{ pkgs, lib, stateDir, host, backend, model, memoryFiles, tokenFile, backgroundSync,
-      syncInterval }` and returning `{ sapience, sf1, sapience-bootstrap }`
-- [ ] Move `requiredPayload`, `optionalPayload`, `runtimePath`, `python`, `configFile` and the three
+      syncInterval }` and returning `{ sapience, sf1, sapience-bootstrap }` *(deviation: altered —
+      also returns `python`/`runtimePath`/`requiredPayload`/`optionalPayload` alongside the three
+      wrapper derivations; see the next item's deviation note for why)*
+- [x] Move `requiredPayload`, `optionalPayload`, `runtimePath`, `python`, `configFile` and the three
       wrapper bodies into that file unchanged apart from the `cfg.X` -> `X` and
-      `config.home.homeDirectory` -> `stateDir` substitutions
-- [ ] Audit every interpolation of `stateDir` inside the moved script bodies and ensure each is
+      `config.home.homeDirectory` -> `stateDir` substitutions *(deviation: altered — discovered
+      during implementation that `requiredPayload`/`optionalPayload`/`runtimePath`/`python` are
+      ALSO read by this module's non-wrapper config glue that stays in the module
+      (`home.activation.sapiencePayload` reads the payload lists; `home.activation.sapienceMcpServer`
+      reads `python`; the `sapience-sync` systemd service's `ExecStart` reads `runtimePath`), so a
+      literal "move" would have left those three call sites with dangling references. Resolved by
+      having `lib/wrappers.nix` export these four constants alongside the three wrappers, and
+      having the module `inherit (wrappers) python runtimePath requiredPayload optionalPayload;` —
+      exactly one definition of each, reused by both the wrappers and the module's other glue, with
+      no duplication. `configFile` stays module-local (and wrappers.nix also derives its own
+      internal `configFile` from its `stateDir` argument) since it is a 1-line derived value, not a
+      constant worth threading through the builder's return.)*
+- [x] Audit every interpolation of `stateDir` inside the moved script bodies and ensure each is
       double-quoted, because the package output will pass a shell-expanded `"$HOME/.sapience"`
-      rather than an evaluation-time absolute path
-- [ ] Rewire `packages/sapience-flake/modules/sapience.nix` to `import ../lib/wrappers.nix` with
+      rather than an evaluation-time absolute path — confirmed: every `stateDir` interpolation in
+      all three wrapper bodies was already double-quoted in the source module
+- [x] Rewire `packages/sapience-flake/modules/sapience.nix` to `import ../lib/wrappers.nix` with
       `stateDir = "${config.home.homeDirectory}/.sapience";` and the `cfg.*` values, and use the
       returned attributes in `home.packages`
-- [ ] Decide and record how the ticker's eval-time `config.services.ollama.enable` half reaches the
+- [x] Decide and record how the ticker's eval-time `config.services.ollama.enable` half reaches the
       builder: pass it as an explicit boolean argument (default `false`, which is what the package
       output wants) rather than reaching into `config` from inside `lib/wrappers.nix`, keeping the
-      builder free of any home-manager dependency
-- [ ] Verify no `config.`, `cfg.`, or `options.` reference survives inside `lib/wrappers.nix`
-- [ ] Render the module's three wrapper derivations before and after the extraction and diff the
+      builder free of any home-manager dependency — done: `ollamaEnabled ? false` argument, module
+      passes `config.services.ollama.enable`
+- [x] Verify no `config.`, `cfg.`, or `options.` reference survives inside `lib/wrappers.nix`
+      *(deviation: altered — two irreducible hits remain:
+      `grep -nE '\bcfg\.|\bconfig\.' packages/sapience-flake/lib/wrappers.nix` matches
+      `configFile = "${stateDir}/config.json";` and a `mktemp "${stateDir}/config.json.XXXXXX"`
+      call. Both are the literal, real on-disk filename the vendor's own client reads and writes
+      (`config.json`), not a stray `cfg.*`/`config.*` Nix attribute access — confirmed by reading
+      both lines. All comment-prose occurrences of `cfg.`/`config.` were reworded away; these two
+      code-level string-literal hits cannot be renamed without renaming the vendor's actual file.)*
+- [x] Render the module's three wrapper derivations before and after the extraction and diff the
       generated script bodies; the module path's output must be unchanged except for the
-      intentional Phase 3 ticker hunks
-- [ ] `nixfmt --check` on both files
+      intentional Phase 3 ticker hunks *(deviation: altered — the diff also shows the ticker-gate
+      comment block's WORDING changed, because moving that comment into `lib/wrappers.nix`
+      required rewording it to drop the `cfg.`/`config.` substrings for the item above. No
+      executable line differs; confirmed by a 3-way scratch `nix-build` of `sapience-bootstrap`
+      under `ollama`+`services.ollama.enable=true`, `ollama`+`enable=false`, and `relay`, diffed
+      against the Phase 3 baseline builds — every diff hunk is comment text only.)*
+- [x] `nixfmt --check` on both files — passes on both, no reformatting needed
 
 **Timing**: 1.5 hours
 

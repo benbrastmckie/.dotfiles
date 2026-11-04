@@ -1,0 +1,11 @@
+{
+  "phase": 4,
+  "phase_name": "Extract the shared wrapper builder and rewire the module",
+  "started_at": "2026-11-04T03:25:00Z",
+  "last_updated": "2026-11-04T04:00:00Z",
+  "objectives": [
+    {"id": 1, "description": "Phase 4 - file changes", "status": "completed", "files_touched": ["packages/sapience-flake/lib/wrappers.nix", "packages/sapience-flake/modules/sapience.nix"]}
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}
