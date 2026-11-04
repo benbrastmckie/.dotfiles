@@ -12,10 +12,13 @@ background sync timer, and MCP server registration for the Sapience client — a
 same shared script bodies in `lib/wrappers.nix`, offered two ways:
 
 - `homeManagerModules.sapience` — the full experience: CLI wrappers, activation-time payload
-  seeding, the opt-in sync timer, and MCP server registration into `~/.claude.json`.
-- `packages.<system>.{sapience,sf1,sapience-bootstrap}` — the same three CLI wrappers alone, for
-  anyone not using home-manager. **No systemd timer and no MCP registration** on this path; both
-  are home-manager-module-only concerns with no equivalent here.
+  seeding, the opt-in sync timer, and MCP server registration into `~/.claude.json` performed for
+  you on every `home-manager switch`.
+- `packages.<system>.{sapience,sf1,sapience-bootstrap,sapience-register-mcp}` — the same wrappers
+  alone, for anyone not using home-manager. You get MCP registration here too, as a command you
+  run (`sapience-register-mcp`) rather than something activation does. The one thing this path has
+  no equivalent for is the **systemd timer**, which is inherently a home-manager concern — run
+  `sapience sync` when you want a pass, or wire up your own cron/systemd unit.
 
 ## Platforms
 
@@ -77,11 +80,57 @@ yourself.
 
 ## Using it
 
+### Quick install
+
+Works on any Linux, and on Windows through WSL2 — see "Platforms" above for why those are the
+same thing. Needs Nix with flakes enabled:
+
+```bash
+nix profile install \
+  'github:benbrastmckie/.dotfiles?dir=packages/sapience-flake#sapience' \
+  'github:benbrastmckie/.dotfiles?dir=packages/sapience-flake#sf1' \
+  'github:benbrastmckie/.dotfiles?dir=packages/sapience-flake#sapience-bootstrap' \
+  'github:benbrastmckie/.dotfiles?dir=packages/sapience-flake#sapience-register-mcp'
+
+sapience-bootstrap        # once: paste your token, or the whole private app.spnc.ai link
+sapience-register-mcp     # once more, after the token exists, to wire up Claude Code
+```
+
+Nothing needs cloning. The `?dir=` fragment points Nix at this subdirectory of a larger
+repository; if you have copied the directory out somewhere, use `path:/absolute/path/to/it`
+instead and every command below works unchanged.
+
+### Starting from Windows
+
+Three extra steps up front, then the quick install above verbatim. In PowerShell as
+Administrator:
+
+```powershell
+wsl --install             # then reboot, and create your Ubuntu username and password
+```
+
+Then inside the Ubuntu shell:
+
+```bash
+curl -fsSL https://install.determinate.systems/nix | sh -s -- install   # flakes on by default
+```
+
+That is the whole Windows-specific part — from here you are an ordinary `x86_64-linux` consumer.
+Two things worth knowing: run Claude Code **from inside WSL** or it will not see the MCP server
+(see "Claude Code must run inside WSL" above), and if you later want scheduled sync, it needs the
+two one-time steps in "Scheduled sync needs two one-time steps on WSL". Neither affects the
+install above.
+
+For a declarative setup rather than a profile install, use **NixOS-WSL** as your WSL distribution
+and import the home-manager module below; systemd is already running there, which is the one
+awkward part of WSL this avoids.
+
 ### `homeManagerModules.sapience`
 
 ```nix
 {
-  inputs.sapience-flake.url = "path:/absolute/path/to/sapience-flake"; # or a git/github URL once hosted
+  inputs.sapience-flake.url = "github:benbrastmckie/.dotfiles?dir=packages/sapience-flake";
+  # or, from a copy of this directory: "path:/absolute/path/to/sapience-flake"
 
   # in your home-manager configuration's imports:
   imports = [ inputs.sapience-flake.homeManagerModules.sapience ];
@@ -104,22 +153,30 @@ Enabling the module adds:
   (`programs.sapience.registerMcpServer`, default `true`), so Claude Code sessions can reach the
   `mcp__sapience__*` tools once a token exists. See "Known gap" below for what this does **not**
   give you.
+- `sapience-register-mcp`, the same registration as a command. Activation runs it for you, but the
+  entry carries your token and at first activation there usually is not one yet — so after
+  `sapience-bootstrap`, run this once to add it without a full `home-manager switch`. It merges
+  into `~/.claude.json` and leaves every other server and setting in that file alone.
 
 ### `packages.<system>.*`
 
 `<system>` is `x86_64-linux` or `aarch64-linux` (see "Platforms" above — WSL2 reports these too).
 
 ```bash
-nix shell path:/absolute/path/to/sapience-flake#sapience path:/absolute/path/to/sapience-flake#sf1 path:/absolute/path/to/sapience-flake#sapience-bootstrap
-# or, once installed into a profile:
-nix profile install path:/absolute/path/to/sapience-flake#sapience
+# try them without installing:
+nix shell 'github:benbrastmckie/.dotfiles?dir=packages/sapience-flake#sapience'
+# or install into your profile (see "Quick install" above for all four at once):
+nix profile install 'github:benbrastmckie/.dotfiles?dir=packages/sapience-flake#sapience'
 ```
 
-This builds the identical three wrapper scripts, with `stateDir` resolved at **runtime** from
-`$HOME/.sapience` rather than an evaluation-time home-manager path. It gives you the CLI and
-`sapience-bootstrap` only — no systemd timer (run `sapience sync` by hand, or your own cron/systemd
-unit) and no MCP registration (merge `mcpServers.sapience` into your own `~/.claude.json` by hand
-if you want it; `sapience-bootstrap`'s activation does not do this for you on this path).
+This builds the identical wrapper scripts, with `stateDir` resolved at **runtime** from
+`$HOME/.sapience` rather than an evaluation-time home-manager path. You get the CLI,
+`sapience-bootstrap`, and `sapience-register-mcp` for Claude Code integration.
+
+The only thing missing relative to the module is the **systemd timer**: nothing syncs on a
+schedule, so run `sapience sync` when you want a pass, or point your own cron job or systemd unit
+at it. Nothing is lost by syncing manually — the vendor leaves unprocessed transcripts un-marked,
+so the next run picks up whatever an earlier one did not.
 
 ## Verifying it
 
@@ -136,6 +193,7 @@ nix flake check -L        # from this directory
 | `help-output` | Byte-for-byte golden files for `sapience help` across both scheduling settings × both platforms, plus that the two WSL detection signals produce identical text, plus that `help` works before the payload exists and that a real subcommand refuses without it. |
 | `token-functions` | 25 table-driven cases over `sap_token_clean`/`sap_token_ok` — every paste shape the invite email produces, and the rejections that stop a pasted *link* from reaching `config.json` and turning into a misleading 401/403. |
 | `wsl-probe` | Both WSL detection signals, their negative cases, and the invariant that a degraded-but-live systemd user manager counts as **present** — which is what keeps the WSL advice away from users whose timer already works. |
+| `register-mcp` | `sapience-register-mcp` against a `~/.claude.json` that already holds another tool's server and unrelated settings — all of it must survive, since that file is Claude Code's and not this flake's. Also that re-running is idempotent, and that a malformed file is refused rather than truncated. |
 | `hm-module` | The module evaluated across six option combinations, asserting which units and activation steps exist, that `syncInterval` reaches the timer verbatim, that `registerMcpServer` gates the `~/.claude.json` merge, and that `host` redirects every payload fetch. Two generations are **built**, not just evaluated. |
 
 ### The end-to-end install test

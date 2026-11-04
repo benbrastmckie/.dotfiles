@@ -50,12 +50,21 @@ let
   # half the help text and the entire bootstrap summary branch untested.
   syncOff = mkWrappers { };
   syncOn = mkWrappers { backgroundSync = true; };
+
+  # For ./register-mcp.nix: stateDir and claudeJson are left as UNEXPANDED shell variable
+  # references, which works because neither is shell-expanded at the Nix level -- so one
+  # derivation covers every case and the test points both wherever it needs at runtime.
+  mcpTest = mkWrappers {
+    stateDir = "\$SAP_STATE";
+    claudeJson = "\$SAP_CLAUDE";
+  };
 in
 {
   shellcheck = import ./shellcheck.nix { inherit pkgs syncOff syncOn; };
   help-output = import ./help-output.nix { inherit pkgs syncOff syncOn; };
   token-functions = import ./token-functions.nix { inherit pkgs syncOff; };
   wsl-probe = import ./wsl-probe.nix { inherit pkgs syncOff; };
+  register-mcp = import ./register-mcp.nix { inherit pkgs mcpTest; };
   hm-module = import ./hm-module.nix {
     inherit
       pkgs

@@ -158,6 +158,18 @@ else
   bad "sapience-bootstrap was not installed onto the profile"
 fi
 
+echo "==> the MCP registration command is installed"
+if [ -x "$HOME/.nix-profile/bin/sapience-register-mcp" ]; then
+  ok "sapience-register-mcp is on the profile"
+  if "$HOME/.nix-profile/bin/sapience-register-mcp" --print | python3 -c        "import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get('type')=='stdio' else 1)"; then
+    ok "--print emits a well-formed stdio entry"
+  else
+    bad "--print did not emit a well-formed entry"
+  fi
+else
+  bad "sapience-register-mcp was not installed onto the profile"
+fi
+
 echo "==> the MCP server was registered for Claude Code"
 if [ -f "$HOME/.claude.json" ]; then
   if python3 -c "

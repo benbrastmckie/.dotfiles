@@ -141,10 +141,10 @@ pkgs.runCommand "sapience-check-hm-module"
     # SAPIENCE packages are present, not about the length of the list.
     OURS='map(select(startswith("sapience") or . == "sf1")) | sort | join(",")'
 
-    echo "==> enable = true installs the three wrappers"
+    echo "==> enable = true installs the four wrappers"
     want ".defaults.packages | $OURS" \
-      "sapience,sapience-bootstrap,sf1" \
-      "home.packages holds sapience, sf1 and sapience-bootstrap"
+      "sapience,sapience-bootstrap,sapience-register-mcp,sf1" \
+      "home.packages holds all four wrappers"
 
     echo "==> enable = false is inert"
     want ".disabled.packages | $OURS"        ''''''  "no sapience packages"

@@ -22,6 +22,11 @@
   tokenFile,
   backgroundSync,
   syncInterval,
+  # Where `sapience-register-mcp` writes Claude Code's MCP server list. Defaults to a
+  # runtime-resolved "$HOME/.claude.json", which is correct for the standalone package output;
+  # ../modules/sapience.nix passes its own evaluation-time home-directory path instead, exactly
+  # as it does for `stateDir`.
+  claudeJson ? "$HOME/.claude.json",
   # Eval-time half of the ollama progress-ticker gate (see the ticker launch site below): true
   # only when the caller's own Ollama server is a systemd --user unit the ticker's
   # `journalctl --user -u ollama` signal source can actually see. The home-manager module passes
@@ -661,11 +666,92 @@ let
     }
     exit "$rc"
   '';
+  # Registers the Sapience MCP server with Claude Code by merging `mcpServers.sapience` into
+  # ~/.claude.json, so the `mcp__sapience__*` tools become reachable in a session.
+  #
+  # ONE implementation, used two ways: as a command in both output sets, and by
+  # ../modules/sapience.nix's activation, which calls this binary rather than carrying a second
+  # copy of the same jq merge. The non-home-manager path would otherwise have no registration at
+  # all -- and that is precisely the path a consumer who installed Nix for this one tool is most
+  # likely to be on.
+  #
+  # MERGES rather than replaces: `.mcpServers.sapience = ...` leaves every other server in the
+  # file untouched, because this file is shared with Claude Code itself and with any other tool
+  # that registers a server. Re-running is idempotent.
+  #
+  # The token is read from config.json at RUN time and never baked into the store -- it is the
+  # whole credential for the account. Registering before a token exists is still useful (the
+  # entry is correct, merely unauthenticated), so that case says what to do rather than failing.
+  sapienceRegisterMcp = pkgs.writeShellScriptBin "sapience-register-mcp" ''
+    set -euo pipefail
+
+    claudeJson="${claudeJson}"
+    printOnly=0
+    case "''${1:-}" in
+      "") ;;
+      --print) printOnly=1 ;;
+      -h | --help)
+        echo "sapience-register-mcp          merge mcpServers.sapience into $claudeJson"
+        echo "sapience-register-mcp --print  show the entry that would be written, change nothing"
+        exit 0
+        ;;
+      *)
+        echo "sapience-register-mcp: unknown argument: ''${1}" >&2
+        exit 2
+        ;;
+    esac
+
+    sapToken=""
+    if [ -r "${configFile}" ]; then
+      sapToken="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null || true)"
+    fi
+
+    entry="$(${pkgs.jq}/bin/jq -n \
+      --arg tok "$sapToken" \
+      --arg py "${python}" \
+      --arg script "${stateDir}/mcp.py" \
+      --arg host "${host}" \
+      '{
+         type: "stdio",
+         command: $py,
+         args: [$script],
+         env: ({ SAPIENCE_HOST: $host }
+               + (if ($tok | length) > 0 then { SAPIENCE_TOKEN: $tok } else {} end))
+       }')"
+
+    if [ "$printOnly" = 1 ]; then
+      printf '%s\n' "$entry"
+      exit 0
+    fi
+
+    [ -f "$claudeJson" ] || echo '{}' > "$claudeJson"
+
+    # Written to a temporary file in the SAME directory and renamed, so an interrupted run cannot
+    # leave Claude Code with a truncated config it will refuse to parse.
+    tmpFile="$(${pkgs.coreutils}/bin/mktemp \
+      "$(${pkgs.coreutils}/bin/dirname "$claudeJson")/.claude.json.XXXXXX")"
+    if ${pkgs.jq}/bin/jq --argjson entry "$entry" \
+         '.mcpServers.sapience = $entry' "$claudeJson" > "$tmpFile"; then
+      ${pkgs.coreutils}/bin/mv "$tmpFile" "$claudeJson"
+      ${pkgs.coreutils}/bin/chmod u+w "$claudeJson"
+      if [ -n "$sapToken" ]; then
+        echo "sapience: MCP server registered in $claudeJson"
+      else
+        echo "sapience: MCP server registered in $claudeJson, but no token is stored yet."
+        echo "  Run sapience-bootstrap, then sapience-register-mcp again to add it."
+      fi
+    else
+      ${pkgs.coreutils}/bin/rm -f "$tmpFile"
+      echo "sapience-register-mcp: could not merge into $claudeJson" >&2
+      exit 1
+    fi
+  '';
 in
 {
   sapience = sapienceCli;
   sf1 = sf1Cli;
   sapience-bootstrap = sapienceBootstrap;
+  sapience-register-mcp = sapienceRegisterMcp;
 
   # Exposed in addition to the three wrapper derivations above (beyond this builder's stated
   # `{ sapience, sf1, sapience-bootstrap }` contract) so a home-manager-module caller can reuse

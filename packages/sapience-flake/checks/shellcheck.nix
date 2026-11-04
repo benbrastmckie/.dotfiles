@@ -23,9 +23,11 @@ pkgs.runCommand "sapience-check-shellcheck"
       ${syncOff.sapience}/bin/sapience \
       ${syncOff.sf1}/bin/sf1 \
       ${syncOff.sapience-bootstrap}/bin/sapience-bootstrap \
+      ${syncOff.sapience-register-mcp}/bin/sapience-register-mcp \
       ${syncOn.sapience}/bin/sapience \
       ${syncOn.sf1}/bin/sf1 \
-      ${syncOn.sapience-bootstrap}/bin/sapience-bootstrap
+      ${syncOn.sapience-bootstrap}/bin/sapience-bootstrap \
+      ${syncOn.sapience-register-mcp}/bin/sapience-register-mcp
     do
       echo "==> shellcheck $(basename "$f") ($(dirname "$(dirname "$f")" | sed 's|.*-||'))"
       if ! shellcheck "$f"; then

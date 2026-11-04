@@ -47,6 +47,10 @@ let
     # Eval-time half of the ticker gate (see ../lib/wrappers.nix for the runtime half) --
     # mirrors the existing `warnings` predicate below exactly.
     ollamaEnabled = config.services.ollama.enable;
+    # The evaluation-time path, rather than the wrapper's runtime "$HOME" default, so the
+    # registration this module performs is identical to what it performed before the merge moved
+    # into a shared wrapper.
+    claudeJson = "${config.home.homeDirectory}/.claude.json";
   };
 
   inherit (wrappers)
@@ -62,6 +66,7 @@ let
   sapienceCli = wrappers.sapience;
   sf1Cli = wrappers.sf1;
   sapienceBootstrap = wrappers.sapience-bootstrap;
+  sapienceRegisterMcp = wrappers.sapience-register-mcp;
 in
 {
   options.programs.sapience = {
@@ -222,6 +227,11 @@ in
       sapienceCli
       sf1Cli
       sapienceBootstrap
+      # Shipped even though activation registers the server automatically: the entry carries the
+      # token, and at FIRST activation there is usually no token yet (sapience-bootstrap has not
+      # run). Re-running this command afterwards is how the token gets in without a full
+      # `home-manager switch`.
+      sapienceRegisterMcp
     ];
 
     # Seed only what is absent -- see the MUTABLE STATE note in this file's header. A failed
@@ -350,35 +360,14 @@ in
           "sapienceTokenRepair"
         ]
         ''
-          claudeJson="${config.home.homeDirectory}/.claude.json"
           if [[ -v DRY_RUN ]]; then
-            echo "Would merge mcpServers.sapience into $claudeJson"
+            echo "Would merge mcpServers.sapience into ${config.home.homeDirectory}/.claude.json"
           else
-            sapToken=""
-            if [ -r "${configFile}" ]; then
-              sapToken="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null || true)"
-            fi
-            [ -f "$claudeJson" ] || echo '{}' > "$claudeJson"
-            tmpFile="$(${pkgs.coreutils}/bin/mktemp "${config.home.homeDirectory}/.claude.json.XXXXXX")"
-            if ${pkgs.jq}/bin/jq \
-              --arg tok "$sapToken" \
-              --arg py "${python}" \
-              --arg script "${stateDir}/mcp.py" \
-              --arg host "${cfg.host}" \
-              '.mcpServers.sapience = ({
-                 type: "stdio",
-                 command: $py,
-                 args: [$script],
-                 env: ({ SAPIENCE_HOST: $host }
-                       + (if ($tok | length) > 0 then { SAPIENCE_TOKEN: $tok } else {} end))
-               })' \
-              "$claudeJson" > "$tmpFile"; then
-              ${pkgs.coreutils}/bin/mv "$tmpFile" "$claudeJson"
-              ${pkgs.coreutils}/bin/chmod u+w "$claudeJson"
-            else
-              ${pkgs.coreutils}/bin/rm -f "$tmpFile"
-              echo "sapience: could not merge mcpServers.sapience into $claudeJson"
-            fi
+            # Delegated to the shared wrapper, which is the single definition of this merge and
+            # is also installed as a user-runnable command. Non-fatal on failure: a malformed
+            # ~/.claude.json must not break `home-manager switch`, and the command can be re-run.
+            ${sapienceRegisterMcp}/bin/sapience-register-mcp \
+              || echo "sapience: MCP registration failed; re-run sapience-register-mcp to retry"
           fi
         ''
     );

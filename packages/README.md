@@ -134,20 +134,31 @@ directory rather than a single `.nix` file — but unlike every other entry in t
 own `flake.nix`/`flake.lock` and is meant to be copied elsewhere (e.g. handed to the vendor)
 rather than consumed from here.
 
+**Platforms**: Linux and Windows. Windows users go through WSL2, which reports `x86_64-linux`
+(or `aarch64-linux` on an ARM machine), so they install from the same outputs as any Linux user —
+there is no native-Windows Nix to target and nothing Windows-specific to add. macOS is not
+supported: `runtimePath` carries `pkgs.systemd`, which refuses to evaluate off Linux.
+
 **Outputs**: `homeManagerModules.{sapience,default}`,
-`packages.<system>.{sapience,sf1,sapience-bootstrap,default}`, `checks.<system>.*` and
-`lib.mkSapienceWrappers`, for `x86_64-linux` and `aarch64-linux` only — Linux-only is also the
-Windows story, since WSL2 reports those same systems and there is no native-Windows Nix. The
+`packages.<system>.{sapience,sf1,sapience-bootstrap,sapience-register-mcp,default}`,
+`checks.<system>.*` and `lib.mkSapienceWrappers`, for `x86_64-linux` and `aarch64-linux`. The
 shared CLI-wrapper script bodies both output sets build from live in `lib/wrappers.nix`.
+
+**Installing it** (the repository is public, so this needs no local clone):
+
+```bash
+nix profile install 'github:benbrastmckie/.dotfiles?dir=packages/sapience-flake#sapience'
+```
 
 **Maintenance note**: this flake's `modules/sapience.nix` and this repository's
 `modules/home/services/sapience.nix` are **separate copies that can drift**. Nothing syncs them;
 diff the two by hand when changing either.
 
-**Verifying**: `nix flake check -L ./packages/sapience-flake` runs five hermetic checks
-(shellcheck, golden help output, token-function cases, platform probes, a home-manager option
-matrix), and `bash packages/sapience-flake/tests/install-test.sh` performs a real home-manager
-activation against a throwaway `$HOME` with the vendor stubbed. Both run in this repository's CI.
+**Verifying**: `nix flake check -L ./packages/sapience-flake` runs six hermetic checks
+(shellcheck, golden help output, token-function cases, platform probes, MCP-registration merge
+safety, and a home-manager option matrix), and `bash packages/sapience-flake/tests/install-test.sh`
+performs a real home-manager activation against a throwaway `$HOME` with the vendor stubbed. Both
+run in this repository's CI.
 
 **See**: `packages/sapience-flake/README.md` for usage, the option defaults, platform support and
 the WSL prerequisites, the Claude Code hooks/statusline gap, and the three reasons this is not

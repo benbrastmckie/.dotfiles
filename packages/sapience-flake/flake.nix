@@ -10,10 +10,10 @@
 # Two output sets:
 #   - `homeManagerModules.sapience` -- CLI wrappers, an opt-in sync timer, activation-time
 #     payload seeding, and MCP server registration into `~/.claude.json`. The full experience.
-#   - `packages.<system>.{sapience,sf1,sapience-bootstrap}` -- the same three CLI wrappers alone,
-#     for a consumer who does not use home-manager. This path installs NO systemd timer and
-#     performs NO MCP registration -- both are home-manager-module-only concerns with no
-#     equivalent here. See `README.md`'s "Using it" section.
+#   - `packages.<system>.{sapience,sf1,sapience-bootstrap,sapience-register-mcp}` -- the same CLI
+#     wrappers alone, for a consumer who does not use home-manager. MCP registration is available
+#     here as a command the user runs; what this path has no equivalent for is the systemd timer,
+#     which is a home-manager concern. See `README.md`'s "Using it" section.
 #
 # The vendor payload (`~/.sapience/*.py`) is deliberately NEVER packaged as a Nix derivation --
 # upstream ships no releases, tags or content hashes and self-updates in the background, so a
@@ -104,7 +104,12 @@
           wrappers = mkWrappers pkgs;
         in
         {
-          inherit (wrappers) sapience sf1 sapience-bootstrap;
+          inherit (wrappers)
+            sapience
+            sf1
+            sapience-bootstrap
+            sapience-register-mcp
+            ;
           default = wrappers.sapience;
         }
       );
