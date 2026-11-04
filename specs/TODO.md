@@ -54,12 +54,12 @@ next_project_number: 138
 
 41 [BLOCKED] — reenablepdf2docxnixpkgsfix
 42 [BLOCKED] — reenablejupytextnixpkgsfix
-137 [PLANNED] — Build a standalone, shareable Nix flake for the Sapience...
+137 [IMPLEMENTING] — Build a standalone, shareable Nix flake for the Sapience...
 
 ## Tasks
 
 ### 137. Sapience standalone flake and nixpkgs blockers
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: packaging
 - **Dependencies**: None

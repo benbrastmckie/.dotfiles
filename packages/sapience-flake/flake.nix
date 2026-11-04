@@ -72,8 +72,7 @@
           wrappers = mkWrappers pkgs;
         in
         {
-          inherit (wrappers) sapience sf1;
-          sapience-bootstrap = wrappers.sapience-bootstrap;
+          inherit (wrappers) sapience sf1 sapience-bootstrap;
           default = wrappers.sapience;
         }
       );

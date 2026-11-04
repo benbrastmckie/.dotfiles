@@ -40,13 +40,15 @@ let
   # flake's standalone packages.<system>.* outputs with nothing duplicated.
   wrappers = import ../lib/wrappers.nix {
     inherit pkgs lib stateDir;
-    host = cfg.host;
-    backend = cfg.backend;
-    model = cfg.model;
-    memoryFiles = cfg.memoryFiles;
-    tokenFile = cfg.tokenFile;
-    backgroundSync = cfg.backgroundSync;
-    syncInterval = cfg.syncInterval;
+    inherit (cfg)
+      host
+      backend
+      model
+      memoryFiles
+      tokenFile
+      backgroundSync
+      syncInterval
+      ;
     # Eval-time half of the ticker gate (see ../lib/wrappers.nix for the runtime half) --
     # mirrors the existing `warnings` predicate below exactly.
     ollamaEnabled = config.services.ollama.enable;

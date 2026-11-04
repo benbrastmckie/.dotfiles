@@ -1,21 +1,43 @@
 {
-  "status": "planned",
-  "dispatch_seq": 2,
-  "phases_completed": 0,
+  "status": "implemented",
+  "dispatch_seq": 3,
+  "phase": "implement",
+  "phases_completed": 7,
   "phases_total": 7,
-  "summary": "Created a 7-phase, ~10-hour implementation plan for the standalone Sapience flake at packages/sapience-flake/. Phases run fully sequential: scaffold plus verbatim module vendoring, the three default generalizations, the two-part ollama ticker gate fix, extraction of a shared parameterized wrapper builder, the standalone flake.nix outputs, the vendor-facing README with the hooks/statusline gap and the three evidenced nixpkgs blockers plus two asks, and a closing phase that proves isolation from an out-of-repo copy and that modules/home/services/sapience.nix and home.nix are byte-identical. validate-artifact.sh passes with 0 warnings.",
+  "summary": "Built packages/sapience-flake/, a standalone vendor-shareable Nix flake packaging the Sapience client, forked out of the live home-manager module with generalized vendor defaults, a widened ollama-ticker gate, a shared wrapper builder, and a README documenting the Claude Code hooks/statusline gap and the three evidenced nixpkgs blockers plus two concrete vendor asks. Verified out-of-repo isolation, all three package builds, a standalone home-manager smoke test with zero Ollama-related warnings, and that the live module and home.nix remain byte-identical.",
   "blockers": [],
+  "plan_markers_verified": true,
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/137_sapience_standalone_flake_and_nixpkgs_blockers/plans/01_standalone-flake-nixpkgs-blockers.md",
-      "summary": "7-phase plan (~10h) building packages/sapience-flake/ with generalized module, shared wrapper builder, flake outputs, and vendor-facing nixpkgs-blockers README."
+      "type": "implementation",
+      "path": "packages/sapience-flake/flake.nix",
+      "summary": "Standalone flake: homeManagerModules.{sapience,default}, packages.<system>.{sapience,sf1,sapience-bootstrap,default}, lib.mkSapienceWrappers"
+    },
+    {
+      "type": "implementation",
+      "path": "packages/sapience-flake/modules/sapience.nix",
+      "summary": "Generalized fork of the live sapience module with vendor defaults and a widened ticker gate"
+    },
+    {
+      "type": "implementation",
+      "path": "packages/sapience-flake/lib/wrappers.nix",
+      "summary": "Parameterized builder for the three CLI wrapper derivations, shared by both output sets"
+    },
+    {
+      "type": "implementation",
+      "path": "packages/sapience-flake/README.md",
+      "summary": "Vendor-facing document: usage, defaults, privacy, mutable payload, hooks/statusline gap, nixpkgs blockers, vendor asks"
+    },
+    {
+      "type": "summary",
+      "path": "specs/137_sapience_standalone_flake_and_nixpkgs_blockers/summaries/01_standalone-flake-nixpkgs-blockers-summary.md",
+      "summary": "Implementation summary covering all 7 phases, deviations, and verification evidence"
     }
   ],
   "metadata": {
-    "session_id": "sess_1793760214_5053a6_137",
-    "agent_type": "planner-agent",
+    "session_id": "sess_1793760214_5053a6",
+    "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"]
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"]
   }
 }

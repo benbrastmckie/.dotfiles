@@ -125,6 +125,24 @@ loogle --help                  # Show all options
 
 See [Development Guide](../docs/development.md#lean-4-development) for detailed usage examples.
 
+### sapience-flake/
+
+A nested, independent flake: a standalone, vendor-shareable packaging of the Sapience
+(`https://app.spnc.ai`) client, built as a generalized fork of `modules/home/services/sapience.nix`
+so it evaluates and builds entirely on its own when copied out of this repository. Like
+`opencode-discord-bot/` above, this is a co-located source directory rather than a single `.nix`
+file — but unlike every other entry in this list, it is **deliberately not wired** into this
+repository's own flake outputs or overlays: it carries its own `flake.nix`/`flake.lock` and is
+meant to be copied elsewhere (e.g. handed to the vendor) rather than consumed from here.
+
+**Outputs**: `homeManagerModules.{sapience,default}`, `packages.<system>.{sapience,sf1,sapience-bootstrap,default}`
+(for `x86_64-linux`, `aarch64-linux`, `x86_64-darwin`, `aarch64-darwin`), and
+`lib.mkSapienceWrappers`. The shared CLI-wrapper script bodies both output sets build from live in
+`lib/wrappers.nix`.
+
+**See**: `packages/sapience-flake/README.md` for usage, the generalized defaults, the Claude Code
+hooks/statusline gap, and the three reasons this is not (yet) submittable to nixpkgs.
+
 ## Comparator Lean Proof-Verification Toolchain
 
 `landrun`, `lean-toolchain-bin`, `comparator`, and `comparator-lean4export-resolve` together

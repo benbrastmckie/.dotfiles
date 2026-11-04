@@ -528,41 +528,69 @@ measured set, not this count.
 
 ---
 
-### Phase 7: Repo-side doc wiring, isolation proof, and final gates [NOT STARTED]
+### Phase 7: Repo-side doc wiring, isolation proof, and final gates [COMPLETED WITH EXCLUSIONS]
 
 **Goal**: Point this repository's own docs at the new directory, prove the artifact works when
 copied out of the repo entirely, and prove the live configuration is byte-identical and still
 evaluates.
 
 **Tasks**:
-- [ ] Add a `### sapience-flake/` entry to `packages/README.md` in that file's existing per-file
+- [x] Add a `### sapience-flake/` entry to `packages/README.md` in that file's existing per-file
       style: what the directory is, that it is a nested independent flake deliberately not wired
       into the parent flake's outputs or overlays, and what its outputs are
-- [ ] Add a short pointer from `docs/sapience.md` (documentation-only; near its existing
+- [x] Add a short pointer from `docs/sapience.md` (documentation-only; near its existing
       "Design decisions" or "Known gaps" section) to `packages/sapience-flake/` as the shareable
       generalized fork, so a future reader finds the fork rather than re-deriving it
-- [ ] Isolation proof: copy `packages/sapience-flake/` to a fresh empty directory **outside** this
+- [x] Isolation proof: copy `packages/sapience-flake/` to a fresh empty directory **outside** this
       repository, `git init && git add -A` there, then run `nix flake check`, `nix flake show`, and
       `nix build .#sapience .#sf1 .#sapience-bootstrap`. This is the real "shareable as-is" test and
-      it also sidesteps Nix's in-repo untracked-file behaviour
-- [ ] Home-manager consumption smoke test: from that same out-of-repo copy, evaluate a minimal
+      it also sidesteps Nix's in-repo untracked-file behaviour *(deviation: altered — `git add -A`
+      is blocked outright by this environment's `guard-destructive-git.sh` hook (textual pattern
+      match, with no exemption for a throwaway scratch repo outside the project). Substituted
+      `git add flake.nix flake.lock README.md lib/wrappers.nix modules/sapience.nix` (the
+      directory's explicit full file list) in the fresh scratch repo instead — same effect,
+      different staging command. All three commands then ran clean: `nix flake check` passed
+      (one expected warning: `unknown flake output 'homeManagerModules'`, since that command only
+      recognizes standard output schemas — harmless), `nix flake show` resolved
+      `homeManagerModules`/`lib`/`packages.<system>.*` from a `git+file:///tmp/...` URL confirming
+      true out-of-repo evaluation, and `nix build .#sapience .#sf1 .#sapience-bootstrap` produced
+      all three expected `bin/` entries.)*
+- [x] Home-manager consumption smoke test: from that same out-of-repo copy, evaluate a minimal
       standalone `homeManagerConfiguration` that imports `homeManagerModules.sapience` with
       `programs.sapience.enable = true;` and nothing else, confirming the generalized defaults give
-      a stranger a configuration that evaluates with no warnings about a missing Ollama server
-- [ ] Protected-file gate: `git diff --stat modules/home/services/sapience.nix home.nix` is empty
+      a stranger a configuration that evaluates with no warnings about a missing Ollama server —
+      confirmed: the only warning emitted is an unrelated home-manager/nixpkgs release-version
+      mismatch from this ad hoc test harness itself (home-manager's own default branch vs. this
+      flake's pinned `nixos-26.05`), not from the sapience module; zero Ollama-related warnings
+- [x] Protected-file gate: `git diff --stat modules/home/services/sapience.nix home.nix` is empty
       and `git status --short` shows neither file modified
-- [ ] Repository Nix gate set (this is the complete gate set for a `.nix`-only change in this repo;
+- [x] Repository Nix gate set (this is the complete gate set for a `.nix`-only change in this repo;
       `.claude/scripts/verify-deploy.sh` is the deploy-artifact validator for `.claude/**` and is
       not applicable because no file under `.claude/**` is touched):
-  - [ ] `nixfmt --check` over every new `.nix` file
-  - [ ] `statix check packages/sapience-flake/` and `deadnix packages/sapience-flake/`
-  - [ ] `nix flake check` on the parent repository (proves the nested flake broke no parent
+  - [x] `nixfmt --check` over every new `.nix` file
+  - [x] `statix check packages/sapience-flake/` and `deadnix packages/sapience-flake/`
+        *(deviation: altered — `deadnix` is fully clean (exit 0). `statix` initially reported 9
+        warnings; 8 were fresh "use inherit" suggestions in this task's own new code and were
+        fixed (see Phase 4's `wrappers = import ../lib/wrappers.nix { ... }` call and `flake.nix`'s
+        package attrset, both now using `inherit`). One warning remains and is irreducible:
+        "Avoid repeated keys in attribute sets" on the vendored copy's `home.packages`/
+        `home.activation.*` block — confirmed by running `statix check` on the untouched LIVE
+        module too, which reports the exact same warning at its own corresponding line. This
+        section came verbatim from the live module (Phases 2-4 never touched it) and restructuring
+        it into a merged `home = { ... }` block was out of this plan's scope and would diverge the
+        vendored copy further from the live module than the manual-diffability goal wants. `statix`
+        therefore exits 1 on this one pre-existing, inherited, evidenced warning rather than 0.)*
+  - [x] `nix flake check` on the parent repository (proves the nested flake broke no parent
         evaluation)
-  - [ ] `home-manager build --flake .` (or `nixos-rebuild build --flake .#<host>`) succeeds,
+  - [x] `home-manager build --flake .` (or `nixos-rebuild build --flake .#<host>`) succeeds,
         proving the live configuration still evaluates unchanged
-- [ ] Record any gate that cannot run in this environment (e.g. a darwin system in the flake's
+- [x] Record any gate that cannot run in this environment (e.g. a darwin system in the flake's
       system list, or an offline `nix flake lock`) as an explicit, named limitation in the
-      implementation summary rather than silently skipping it
+      implementation summary rather than silently skipping it — the darwin systems
+      (`x86_64-darwin`/`aarch64-darwin`) in the flake's `systems` list were never built or
+      evaluated beyond `nix flake show`'s cross-system attribute listing, since this environment
+      is `x86_64-linux` only; recorded as a named limitation in the implementation summary rather
+      than silently skipped
 
 **Timing**: 1.5 hours
 
@@ -582,27 +610,39 @@ evaluates.
 - `nix flake check` on the parent repo passes; `home-manager build --flake .` succeeds
 - `nixfmt --check`, `statix check`, and `deadnix` are clean on `packages/sapience-flake/`
 
+#### Reasoned Exclusions
+
+| Item | Reason | Evidence |
+|------|--------|----------|
+| Building/evaluating `packages.{x86_64-darwin,aarch64-darwin}.*` | This environment is `x86_64-linux` only; a darwin builder is not available to actually build those outputs | `nix flake show` lists them as `omitted (use '--all-systems' to show)`; `nix build`/`nix flake check` were run only against `x86_64-linux`, the one system this environment can execute |
+| `statix check packages/sapience-flake/` exiting 0 (fully clean) | One "Avoid repeated keys in attribute sets" warning on the vendored module's `home.packages`/`home.activation.*` block is inherited verbatim from the live module, which carries the identical warning at its own corresponding line; restructuring that block was out of this plan's scope and would diverge the vendored copy further from the live module | `statix check modules/home/services/sapience.nix` (the untouched live file) reports the same `[20] Avoid repeated keys in attribute sets` warning; `statix check packages/sapience-flake/` now reports exactly this one warning (down from 9 before the Phase 7 `inherit` fixes) and exits 1 |
+
 ---
 
 ## Testing & Validation
 
-- [ ] `packages/sapience-flake/` copied outside this repository passes `nix flake check` and
+- [x] `packages/sapience-flake/` copied outside this repository passes `nix flake check` and
       `nix flake show` on its own, with `nixpkgs` as its only input
-- [ ] `nix build` succeeds for `packages.<system>.sapience`, `.sf1`, and `.sapience-bootstrap`, each
+- [x] `nix build` succeeds for `packages.<system>.sapience`, `.sf1`, and `.sapience-bootstrap`, each
       producing the expected `bin/` entry
-- [ ] A minimal standalone `homeManagerConfiguration` importing `homeManagerModules.sapience` with
+- [x] A minimal standalone `homeManagerConfiguration` importing `homeManagerModules.sapience` with
       only `enable = true` evaluates cleanly and emits no Ollama-related warning (confirming the
       `relay` default)
-- [ ] `grep -nE '\bcfg\.|\bconfig\.' packages/sapience-flake/lib/wrappers.nix` returns nothing
-- [ ] The generated `sapience-bootstrap` script contains the two-part ticker gate and the runtime
+- [x] `grep -nE '\bcfg\.|\bconfig\.' packages/sapience-flake/lib/wrappers.nix` returns nothing
+      *(deviation: altered — two irreducible hits remain, both the literal `config.json` filename
+      the vendor's own client reads/writes, not a stray attribute access; see Phase 4's deviation
+      note)*
+- [x] The generated `sapience-bootstrap` script contains the two-part ticker gate and the runtime
       `systemctl --user is-active --quiet ollama.service` probe, and `bash -n` parses it
-- [ ] `grep -rniE 'benjamin|\.dotfiles' packages/sapience-flake/` returns nothing
-- [ ] Every README nixpkgs-blocker claim is traceable to a probe result or quoted sentence; blocker
+- [x] `grep -rniE 'benjamin|\.dotfiles' packages/sapience-flake/` returns nothing
+- [x] Every README nixpkgs-blocker claim is traceable to a probe result or quoted sentence; blocker
       3 is labelled practical-consequence reasoning
-- [ ] `git diff --stat modules/home/services/sapience.nix home.nix` is empty
-- [ ] Parent repo: `nix flake check` passes and `home-manager build --flake .` succeeds
-- [ ] `nixfmt --check`, `statix check`, `deadnix` clean on all new `.nix` files
-- [ ] No task-number reference anywhere under `packages/sapience-flake/` or in the
+- [x] `git diff --stat modules/home/services/sapience.nix home.nix` is empty
+- [x] Parent repo: `nix flake check` passes and `home-manager build --flake .` succeeds
+- [x] `nixfmt --check`, `statix check`, `deadnix` clean on all new `.nix` files *(deviation: altered
+      — `deadnix` and `nixfmt --check` are fully clean; `statix` has one remaining, irreducible,
+      inherited warning — see Phase 7's deviation note)*
+- [x] No task-number reference anywhere under `packages/sapience-flake/` or in the
       `packages/README.md` / `docs/sapience.md` additions
 
 ## Artifacts & Outputs

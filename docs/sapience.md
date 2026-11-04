@@ -416,6 +416,12 @@ patents claimed, and the vendor's reserved PyPI names (`sapience-ai`, `spnc`) ar
 declaring `License: Proprietary` — and the service is an invite-only private beta, which fails
 nixpkgs' userbase and testability expectations even if the rest were resolved.
 
+A standalone, vendor-shareable packaging built on exactly this reasoning lives at
+`packages/sapience-flake/` — a generalized fork of this module that evaluates and builds on its
+own when copied out of this repository, with its own README documenting the live evidence behind
+each nixpkgs blocker and the two concrete asks that would unblock two of the three. See that
+README rather than re-deriving this section's reasoning from scratch.
+
 ### Home-manager, not NixOS
 
 The NixOS `services.ollama` has `loadModels`, which the home-manager module lacks, so the model

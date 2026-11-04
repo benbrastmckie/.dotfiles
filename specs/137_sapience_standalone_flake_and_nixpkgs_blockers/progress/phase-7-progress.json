@@ -1,0 +1,11 @@
+{
+  "phase": 7,
+  "phase_name": "Repo-side doc wiring, isolation proof, and final gates",
+  "started_at": "2026-11-04T04:35:00Z",
+  "last_updated": "2026-11-04T05:20:00Z",
+  "objectives": [
+    {"id": 1, "description": "Phase 7 - file changes", "status": "completed", "files_touched": ["packages/README.md", "docs/sapience.md", "packages/sapience-flake/flake.nix", "packages/sapience-flake/modules/sapience.nix", "specs/137_sapience_standalone_flake_and_nixpkgs_blockers/summaries/01_standalone-flake-nixpkgs-blockers-summary.md"]}
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}
