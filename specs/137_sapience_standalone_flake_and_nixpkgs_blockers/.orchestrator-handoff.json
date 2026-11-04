@@ -1,0 +1,21 @@
+{
+  "status": "planned",
+  "dispatch_seq": 2,
+  "phases_completed": 0,
+  "phases_total": 7,
+  "summary": "Created a 7-phase, ~10-hour implementation plan for the standalone Sapience flake at packages/sapience-flake/. Phases run fully sequential: scaffold plus verbatim module vendoring, the three default generalizations, the two-part ollama ticker gate fix, extraction of a shared parameterized wrapper builder, the standalone flake.nix outputs, the vendor-facing README with the hooks/statusline gap and the three evidenced nixpkgs blockers plus two asks, and a closing phase that proves isolation from an out-of-repo copy and that modules/home/services/sapience.nix and home.nix are byte-identical. validate-artifact.sh passes with 0 warnings.",
+  "blockers": [],
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/137_sapience_standalone_flake_and_nixpkgs_blockers/plans/01_standalone-flake-nixpkgs-blockers.md",
+      "summary": "7-phase plan (~10h) building packages/sapience-flake/ with generalized module, shared wrapper builder, flake outputs, and vendor-facing nixpkgs-blockers README."
+    }
+  ],
+  "metadata": {
+    "session_id": "sess_1793760214_5053a6_137",
+    "agent_type": "planner-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "plan", "planner-agent"]
+  }
+}
