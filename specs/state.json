@@ -4,12 +4,12 @@
     {
       "project_number": 137,
       "project_name": "sapience_standalone_flake_and_nixpkgs_blockers",
-      "status": "implementing",
+      "status": "completed",
       "task_type": "nix",
       "description": "Build a standalone, shareable Nix flake for the Sapience client inside this repo, isolated from the live home-manager config, plus a README.md documenting what stands in the way of a nixpkgs submission. Deliverable is a self-contained directory (e.g. packages/sapience-flake/) carrying its own flake.nix, a generalized copy of the sapience home-manager module, and the README, shareable with the Sapience vendor (CoreTx Inc. / Sapience Labs, app.spnc.ai) as-is. Scope: (1) flake outputs homeManagerModules.sapience plus packages.<system>.{sapience,sf1,sapience-bootstrap} for non-home-manager users, built from a vendored copy of modules/home/services/sapience.nix; (2) generalize the repo-specific choices so a stranger gets working vendor defaults instead of this machine's -- backend default relay (not ollama), memoryFiles default true (not false), model default empty, and drop the hardcoded home-path example string; (3) gate the ollama-journal progress ticker in sapience-bootstrap on backend == \"ollama\" so it is not dead code on the relay/anthropic/openai backends or against a system-level ollama; (4) document the Claude Code hooks/statusline gap, since those live in config/claude/settings.json outside the module and a flake consumer gets the MCP server but no per-turn visibility; (5) README.md stating why nixpkgs is impossible today with the gathered evidence -- no license grant anywhere (no headers in the ten client .py files, no LICENSE or ToS on app.spnc.ai, patents claimed, and PyPI reservations sapience-ai and spnc both 0.0.1 \"Reserved by CoreTx Inc.\" declared License: Proprietary), nothing hashable upstream (app.spnc.ai serves cache-control: no-cache with no ETag, no Last-Modified and no version/manifest/install endpoint; sapience_upkeep.py treats a per-file sha256 the server compares as the version, self-updates daily and honours a server CLIENT_AUTO_UPDATE=0 kill switch, so a fetchurl hash breaks for every user on the vendor's next edit), and invite-only private beta with macOS-only official support failing nixpkgs' userbase and testability bars; plus the two concrete asks that would unblock it (publish versioned checksummed artifacts to the already-reserved PyPI names, and state a license permitting redistribution of the build output so it can be unfreeRedistributable rather than unfree). Constraint: must not alter the live modules/home/services/sapience.nix or home.nix behaviour on this machine.",
       "topic": "packaging",
       "created": "2026-11-04T01:54:16Z",
-      "last_updated": "2026-11-04T02:55:09Z",
+      "last_updated": "2026-11-04T03:21:35Z",
       "session_id": "sess_1793760214_5053a6",
       "artifacts": [
         {
@@ -21,6 +21,11 @@
           "path": "specs/137_sapience_standalone_flake_and_nixpkgs_blockers/plans/01_standalone-flake-nixpkgs-blockers.md",
           "type": "plan",
           "summary": "7-phase plan (~10h) building packages/sapience-flake/ with generalized module, shared wrapper builder, flake outputs, and vendor-facing nixpkgs-blockers README."
+        },
+        {
+          "path": "packages/sapience-flake/flake.nix",
+          "type": "implementation",
+          "summary": "Standalone flake: homeManagerModules.{sapience,default}, packages.<system>.{sapience,sf1,sapience-bootstrap,default}, lib.mkSapienceWrappers"
         }
       ],
       "next_artifact_number": 2,
@@ -32,7 +37,8 @@
         "packages/sapience-flake/flake.nix",
         "packages/sapience-flake/lib/wrappers.nix",
         "packages/sapience-flake/modules/sapience.nix"
-      ]
+      ],
+      "completion_summary": "Created a standalone, vendor-shareable Sapience Nix flake (packages/sapience-flake/) with generalized defaults, a shared wrapper builder, and a README documenting the Claude Code hooks/statusline gap and nixpkgs blockers; verified out-of-repo isolation, all builds, and that the live module/home.nix are unchanged."
     },
     {
       "project_number": 136,

@@ -11,7 +11,7 @@ next_project_number: 138
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,135,136,137 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,135,136 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -54,17 +54,17 @@ next_project_number: 138
 
 41 [BLOCKED] — reenablepdf2docxnixpkgsfix
 42 [BLOCKED] — reenablejupytextnixpkgsfix
-137 [IMPLEMENTING] — Build a standalone, shareable Nix flake for the Sapience...
 
 ## Tasks
 
 ### 137. Sapience standalone flake and nixpkgs blockers
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: packaging
 - **Dependencies**: None
 - **Research**: [137_sapience_standalone_flake_and_nixpkgs_blockers/reports/01_standalone-flake-nixpkgs-blockers.md]
 - **Plan**: [137_sapience_standalone_flake_and_nixpkgs_blockers/plans/01_standalone-flake-nixpkgs-blockers.md]
+- **Summary**: [packages/sapience-flake/flake.nix]
 
 **Description**: Build a standalone, shareable Nix flake for the Sapience client inside this repo, isolated from the live home-manager config, plus a README.md documenting what stands in the way of a nixpkgs submission. Deliverable is a self-contained directory (e.g. packages/sapience-flake/) carrying its own flake.nix, a generalized copy of the sapience home-manager module, and the README, shareable with the Sapience vendor (CoreTx Inc. / Sapience Labs, app.spnc.ai) as-is. Scope: (1) flake outputs homeManagerModules.sapience plus packages.<system>.{sapience,sf1,sapience-bootstrap} for non-home-manager users, built from a vendored copy of modules/home/services/sapience.nix; (2) generalize the repo-specific choices so a stranger gets working vendor defaults instead of this machine's -- backend default relay (not ollama), memoryFiles default true (not false), model default empty, and drop the hardcoded home-path example string; (3) gate the ollama-journal progress ticker in sapience-bootstrap on backend == "ollama" so it is not dead code on the relay/anthropic/openai backends or against a system-level ollama; (4) document the Claude Code hooks/statusline gap, since those live in config/claude/settings.json outside the module and a flake consumer gets the MCP server but no per-turn visibility; (5) README.md stating why nixpkgs is impossible today with the gathered evidence -- no license grant anywhere (no headers in the ten client .py files, no LICENSE or ToS on app.spnc.ai, patents claimed, and PyPI reservations sapience-ai and spnc both 0.0.1 "Reserved by CoreTx Inc." declared License: Proprietary), nothing hashable upstream (app.spnc.ai serves cache-control: no-cache with no ETag, no Last-Modified and no version/manifest/install endpoint; sapience_upkeep.py treats a per-file sha256 the server compares as the version, self-updates daily and honours a server CLIENT_AUTO_UPDATE=0 kill switch, so a fetchurl hash breaks for every user on the vendor's next edit), and invite-only private beta with macOS-only official support failing nixpkgs' userbase and testability bars; plus the two concrete asks that would unblock it (publish versioned checksummed artifacts to the already-reserved PyPI names, and state a license permitting redistribution of the build output so it can be unfreeRedistributable rather than unfree). Constraint: must not alter the live modules/home/services/sapience.nix or home.nix behaviour on this machine.
 

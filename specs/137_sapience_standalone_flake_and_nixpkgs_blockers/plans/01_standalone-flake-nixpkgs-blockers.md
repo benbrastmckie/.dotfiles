@@ -1,7 +1,7 @@
 # Implementation Plan: Sapience standalone flake and nixpkgs blockers
 
 - **Task**: 137 - Sapience standalone flake and nixpkgs blockers
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 10 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/137_sapience_standalone_flake_and_nixpkgs_blockers/reports/01_standalone-flake-nixpkgs-blockers.md
