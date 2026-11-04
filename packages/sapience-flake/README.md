@@ -4,7 +4,7 @@ A standalone, shareable NixOS/Home Manager packaging of the [Sapience](https://a
 client — a generalized fork of a working flake maintained elsewhere, forked out so this directory
 evaluates and builds entirely on its own. Copy it anywhere, point a flake at it, and it works with
 no other input from the repository it was forked from. It replaces the vendor's macOS-only
-installer on Linux/NixOS.
+installer on Linux — including Windows, via WSL2. See "Platforms" below.
 
 Fork source: `modules/sapience.nix` in this directory is a generalized fork of a home-manager
 module named `sapience.nix`, maintained in a private configuration repository, as it stood on
@@ -21,6 +21,64 @@ same shared script bodies in `lib/wrappers.nix`, offered two ways:
 - `packages.<system>.{sapience,sf1,sapience-bootstrap}` — the same three CLI wrappers alone, for
   anyone not using home-manager. **No systemd timer and no MCP registration** on this path; both
   are home-manager-module-only concerns with no equivalent here.
+
+## Platforms
+
+**Linux (`x86_64-linux`, `aarch64-linux`), and Windows through WSL2 — which is the same thing.**
+
+There is no native-Windows Nix to target. The upstream project ships none; the native-Windows
+efforts that exist ([nova-nix](https://hackage.haskell.org/package/nova-nix-0.1.4.0), a
+from-scratch Haskell reimplementation, and the NLnet-funded
+[libnix](https://nlnet.nl/project/libnix/)) are third-party and do not run nixpkgs' stdenv, so
+nothing here could be built with them. In practice "Nix on Windows" means WSL2, which runs a real
+Linux kernel and reports `x86_64-linux` — or `aarch64-linux` on an ARM Windows machine. Both are
+in this flake's `systems`, so a WSL2 user is already a first-class consumer and needs no
+Windows-specific output.
+
+**macOS is not supported**, and that is a deliberate exclusion rather than an untested platform.
+`runtimePath` in `lib/wrappers.nix` carries `pkgs.systemd`, which refuses to *evaluate* off Linux,
+and every scheduling path here is `systemd.user` with no launchd equivalent written. Supporting it
+would mean guarding that dependency, branching the help text, and writing launchd agents. (The
+vendor's own installer is macOS-only; this fork is the Linux answer to it, which is why the
+direction looks inverted.)
+
+### The two Windows routes
+
+| Route | What you get |
+|-------|--------------|
+| **NixOS-WSL** as your WSL distribution | `homeManagerModules.sapience` — the full experience, same as any NixOS machine |
+| **Nix on an existing WSL distro** (Ubuntu, Debian, …) | `packages.<system>.*`, or `homeManagerModules.sapience` under standalone home-manager |
+
+### Scheduled sync needs two one-time steps on WSL
+
+This is the one place where WSL genuinely differs, and it is worth reading before you set
+`backgroundSync = true`. The timer is a `systemd.user` timer, and WSL does not start a systemd
+user manager by default:
+
+1. Put `systemd=true` under a `[boot]` section in `/etc/wsl.conf`, then run `wsl --shutdown` from
+   Windows and reopen the distro. ([Microsoft's docs](https://learn.microsoft.com/el-gr/windows/wsl/wsl-config);
+   requires WSL 0.67.6 or later.)
+2. Run `loginctl enable-linger $USER`. Without lingering there is frequently no user manager and
+   no session bus for `systemctl --user` to reach at all
+   ([microsoft/WSL#8842](https://github.com/microsoft/WSL/issues/8842)).
+
+Neither step is something this flake can perform for you: `/etc/wsl.conf` lives on the Windows
+side of the boundary, and lingering is a host-level grant a user-scope activation cannot make for
+itself. So rather than print timer instructions that would silently never fire, the wrappers
+**detect WSL at runtime and name these two steps** — in `sapience help`, at the end of
+`sapience-bootstrap`, and once at `home-manager switch` time when `backgroundSync` is on but no
+user manager is reachable.
+
+Everything else is unaffected. `sapience sync`, `sapience review`, `sf1` and the MCP server are
+ordinary foreground processes that need no systemd at all, and nothing is lost by running sync by
+hand — the vendor leaves unprocessed transcripts un-marked, so the next run picks them up.
+
+### Claude Code must run *inside* WSL
+
+MCP registration writes `~/.claude.json` inside the WSL filesystem. A Windows-native Claude Code
+install reads a different `~/.claude.json` and will not see the `mcp__sapience__*` tools. Run
+Claude Code from inside the WSL distro, or register the server in the Windows-side config
+yourself.
 
 ## Using it
 
@@ -53,6 +111,8 @@ Enabling the module adds:
   give you.
 
 ### `packages.<system>.*`
+
+`<system>` is `x86_64-linux` or `aarch64-linux` (see "Platforms" above — WSL2 reports these too).
 
 ```bash
 nix shell path:/absolute/path/to/sapience-flake#sapience path:/absolute/path/to/sapience-flake#sf1 path:/absolute/path/to/sapience-flake#sapience-bootstrap

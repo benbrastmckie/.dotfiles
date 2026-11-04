@@ -3,6 +3,11 @@
 # this directory evaluates and builds entirely on its own -- copy it anywhere, point a flake at
 # it, and it works with no other input from the repository it was forked from.
 #
+# Platforms: Linux (x86_64, aarch64), including Windows via WSL2, which reports those same
+# systems. Not macOS -- see the comment on `systems` below. Scheduled sync carries two
+# WSL-only prerequisites this flake cannot set for the user; ./lib/wrappers.nix probes for WSL
+# at runtime and names them rather than printing timer commands that would silently never fire.
+#
 # Two output sets:
 #   - `homeManagerModules.sapience` -- CLI wrappers, an opt-in sync timer, activation-time
 #     payload seeding, and MCP server registration into `~/.claude.json`. The full experience.
@@ -18,18 +23,28 @@
 # `README.md`'s "The payload is deliberately mutable" section for why this is a property to
 # document, not a defect to fix.
 {
-  description = "Sapience (app.spnc.ai) client packaging for NixOS/Home Manager -- a standalone, shareable fork";
+  description = "Sapience (app.spnc.ai) client packaging for Linux/NixOS/Home Manager, WSL2 included -- a standalone, shareable fork";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
   outputs =
     { self, nixpkgs }:
     let
+      # Linux only -- which is also the whole Windows story, not a gap in it. There is no
+      # native-Windows Nix (the upstream project ships none; nova-nix and libnix are third-party
+      # reimplementations that do not run nixpkgs' stdenv), so a Windows consumer runs this under
+      # WSL2, whose kernel reports x86_64-linux, or aarch64-linux on an ARM Windows machine. Both
+      # are already in this list, so WSL2 needs no entry of its own.
+      #
+      # Darwin is absent deliberately, not merely untested: `runtimePath` in ./lib/wrappers.nix
+      # carries pkgs.systemd, which REFUSES TO EVALUATE off Linux ("not available on the
+      # requested hostPlatform"), so packages.*-darwin.* could never have built; and every
+      # scheduling path here is systemd.user, with no launchd equivalent written. Re-adding
+      # Darwin means guarding that dependency, branching the help text, and writing launchd
+      # agents -- not extending this list. See README.md's "Platforms" section.
       systems = [
         "x86_64-linux"
         "aarch64-linux"
-        "x86_64-darwin"
-        "aarch64-darwin"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
 

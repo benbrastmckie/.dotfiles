@@ -68,11 +68,62 @@ let
     pkgs.util-linux
   ];
 
+  # Two shell helpers -- "am I on WSL2?" and "is a systemd user manager reachable?" -- injected
+  # into every wrapper that would otherwise print `systemctl --user` instructions as though they
+  # were guaranteed to work.
+  #
+  # WHY this exists: Windows consumers reach this flake through WSL2 (there is no native-Windows
+  # Nix), and under WSL2 a systemd USER manager is not a given the way it is on any ordinary
+  # Linux. It requires `[boot] systemd=true` in /etc/wsl.conf plus a `wsl --shutdown`, and then,
+  # on most builds, `loginctl enable-linger $USER` before `systemctl --user` has a session bus
+  # and a manager to talk to at all. Neither is anything this flake can set: /etc/wsl.conf
+  # belongs to the Windows side of the boundary, and lingering is a host-level grant. So the
+  # honest behavior is to detect the platform and NAME the two prerequisites, rather than print
+  # timer commands that a WSL user would run to no visible effect.
+  #
+  # Two independent signals, because neither alone is sufficient: WSL_DISTRO_NAME is set only for
+  # processes descended from a `wsl.exe` launch (a systemd unit or a cron job has no such
+  # ancestor and sees it unset), while the osrelease marker is written by the WSL kernel itself
+  # and survives every launch path. Both are cheap and neither can false-positive on real Linux.
+  wslShellHelpers = ''
+    sapience_is_wsl() {
+      [ -n "''${WSL_DISTRO_NAME:-}" ] && return 0
+      grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null && return 0
+      return 1
+    }
+
+    # True when a systemd USER manager is reachable, which is the only question that matters
+    # for whether a user timer can ever fire.
+    #
+    # `show --property=Version` and NOT `is-system-running`, which is the obvious choice and the
+    # wrong one: is-system-running answers with the manager's HEALTH, so it exits non-zero and
+    # prints "degraded" whenever any unrelated user unit anywhere has failed, on a session that
+    # is otherwise perfectly alive and running timers. Using it here would print the WSL
+    # prerequisites to users whose setup already works and whose timer fires on schedule --
+    # advice that is both false and unfalsifiable from where they are standing. `show` instead
+    # fails on one condition only, the one being asked about: no bus, no manager, nothing to
+    # talk to ("Failed to connect to user scope bus"). Verified both ways against systemd 260.4:
+    # Version=260.4/rc=0 against a degraded-but-live manager, rc=1 with the bus removed.
+    sapience_has_user_manager() {
+      systemctl --user show --property=Version >/dev/null 2>&1
+    }
+  '';
+
+  # The two WSL prerequisites, as printed lines. One definition, reused by the help text and the
+  # bootstrap summary, so the two can never drift apart.
+  wslPrereqLines = ''
+    echo "  WSL needs two one-time steps before any systemd --user timer can fire:"
+    echo "    1. put [boot] systemd=true in /etc/wsl.conf, then run: wsl --shutdown"
+    echo "    2. loginctl enable-linger $USER"
+  '';
+
   # Mirrors the subcommand dispatch of the vendor's ~/bin/sapience shim, with the interpreter
   # and PATH resolved from the store instead of inherited from an interactive shell.
   sapienceCli = pkgs.writeShellScriptBin "sapience" ''
     export PATH="${runtimePath}:$PATH"
     export SAPIENCE_HOST="${host}"
+
+    ${wslShellHelpers}
     ${lib.optionalString (!memoryFiles) "export NO_MEMFILES=1"}
 
     SUB="''${1:-}"
@@ -136,18 +187,31 @@ let
         ${
           if backgroundSync then
             ''
-              echo "NixOS notes: scheduled sync is systemd.user (sapience-sync.timer), not launchd."
+              echo "Linux notes: scheduled sync is systemd.user (sapience-sync.timer), not launchd."
               echo "  schedule: ${syncInterval}"
               echo "  status:   systemctl --user status sapience-sync.timer"
               echo "  pause:    systemctl --user disable --now sapience-sync.timer"
               echo "  run now:  systemctl --user start sapience-sync.service"
+              if sapience_is_wsl; then
+                echo ""
+                echo "WSL2 detected. The timer above is DEFINED but may never FIRE here."
+                ${wslPrereqLines}
+                echo "  Until both are done, 'systemctl --user status' reports no user manager"
+                echo "  and the only sync that happens is the one you run: sapience sync"
+              fi
             ''
           else
             ''
-              echo "NixOS notes: nothing syncs on a schedule -- extraction runs only when you ask."
+              echo "Linux notes: nothing syncs on a schedule -- extraction runs only when you ask."
               echo "  run now:  sapience sync"
               echo "  detached: systemctl --user start sapience-sync.service"
               echo "  schedule: set programs.sapience.backgroundSync = true in home.nix"
+              if sapience_is_wsl; then
+                echo ""
+                echo "WSL2 detected. 'sapience sync' works normally; the detached form above needs"
+                echo "a systemd user manager, which WSL does not start by default."
+                ${wslPrereqLines}
+              fi
             ''
         }
         ;;
@@ -178,6 +242,8 @@ let
   sapienceBootstrap = pkgs.writeShellScriptBin "sapience-bootstrap" ''
     set -euo pipefail
     export PATH="${runtimePath}:$PATH"
+
+    ${wslShellHelpers}
 
     # Reduce a paste to a bare token. Accepts the token itself, the whole private link
     # ("https://app.spnc.ai/?token=XXXX"), a quoted paste, or a <...>-wrapped one, because the
@@ -560,7 +626,19 @@ let
 
     ${
       if backgroundSync then
-        ''echo "  Scheduled sync is live (${syncInterval}): systemctl --user status sapience-sync.timer"''
+        ''
+          if sapience_is_wsl && ! sapience_has_user_manager; then
+            # Defined-but-dead is the WSL default, not an error the user caused. Say so here,
+            # at the end of the one run every new install performs, rather than leaving them to
+            # discover weeks later that nothing ever synced.
+            echo "  Scheduled sync (${syncInterval}) is configured but NOT running: this is WSL2,"
+            echo "  and no systemd user manager is up to carry the timer."
+            ${wslPrereqLines}
+            echo "  Until then: run sapience sync when you want a pass."
+          else
+            echo "  Scheduled sync is live (${syncInterval}): systemctl --user status sapience-sync.timer"
+          fi
+        ''
       else
         ''echo "  Nothing syncs on a schedule; run sapience sync when you want another pass."''
     }
@@ -579,10 +657,17 @@ in
   # systemd service all need `python`/`runtimePath`/the payload lists too, and sourcing them from
   # here rather than redefining them in the caller is what keeps there being exactly one
   # definition of each.
+  #
+  # `wslShellHelpers`/`wslPrereqLines` are exported for exactly that reason: ../modules/sapience.nix
+  # warns about the same defined-but-dead timer at activation time, and a second copy of the
+  # detection logic or of the two prerequisite steps there is precisely the drift this inherit
+  # block exists to prevent.
   inherit
     python
     runtimePath
     requiredPayload
     optionalPayload
+    wslShellHelpers
+    wslPrereqLines
     ;
 }

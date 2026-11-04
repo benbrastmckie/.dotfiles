@@ -59,6 +59,8 @@ let
     runtimePath
     requiredPayload
     optionalPayload
+    wslShellHelpers
+    wslPrereqLines
     ;
 
   sapienceCli = wrappers.sapience;
@@ -150,6 +152,11 @@ in
         Defaults to false, against the vendor's hourly LaunchAgent. Extraction spends real
         money or real CPU on every run and reads whatever the folder picker has selected, so it
         happens on request rather than because the module was enabled.
+
+        On WSL2 this option alone is not sufficient: WSL starts no systemd user manager by
+        default, so the timer is created but never fires until `[boot] systemd=true` is set in
+        /etc/wsl.conf and `loginctl enable-linger $USER` has been run. Activation detects this
+        and prints both steps. See ../README.md's "Platforms" section.
       '';
     };
 
@@ -373,6 +380,37 @@ in
             fi
           fi
         ''
+    );
+
+    # Tell a WSL2 user, at activation, that the timer they just turned on will not fire yet.
+    #
+    # This is the one place where the home-manager module cannot deliver what the option
+    # promises. `backgroundSync = true` defines a systemd.user timer, and under WSL2 a user
+    # manager exists only after two steps that are both outside this module's reach:
+    # `[boot] systemd=true` in /etc/wsl.conf (the Windows side of the boundary, not a path
+    # home-manager owns) and `loginctl enable-linger $USER` (a host-level grant a user activation
+    # cannot make for itself). home-manager will report the timer as created either way, so
+    # without this warning the failure mode is silent and slow: weeks of nothing syncing, with a
+    # config that looks correct and a `home-manager switch` that reported success.
+    #
+    # Deliberately NOT fatal and deliberately not a `warnings` entry. Eval-time `warnings` cannot
+    # see the WSL kernel marker at all -- whether a user manager is up is a property of the
+    # machine at activation, not of the configuration -- so the probe has to run here. Read-only,
+    # so no $DRY_RUN_CMD: there is nothing to not-do in a dry run, and a dry run is exactly when
+    # a user most wants to see this.
+    home.activation.sapienceWslSyncNotice = lib.mkIf cfg.backgroundSync (
+      config.lib.dag.entryAfter [ "writeBoundary" ] ''
+        export PATH="${runtimePath}:$PATH"
+
+        ${wslShellHelpers}
+
+        if sapience_is_wsl && ! sapience_has_user_manager; then
+          echo "sapience: backgroundSync is on, but no systemd user manager is running (WSL2)."
+          echo "  sapience-sync.timer is defined and will NOT fire until this is fixed."
+        ${wslPrereqLines}
+          echo "  Meanwhile 'sapience sync' works normally and loses nothing."
+        fi
+      ''
     );
 
     # The on-demand run, and what the timer activates when backgroundSync is on. Always defined,
