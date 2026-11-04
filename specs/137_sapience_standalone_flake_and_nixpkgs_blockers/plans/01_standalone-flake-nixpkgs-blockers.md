@@ -432,7 +432,7 @@ cross-boundary dependency is the builder's argument list fixed in Phase 4. Confi
 
 ---
 
-### Phase 6: Author the vendor-facing README.md [NOT STARTED]
+### Phase 6: Author the vendor-facing README.md [COMPLETED]
 
 **Goal**: Write the document that makes the directory shareable: what it is and how to use both
 output sets, which defaults were generalized and why, the mutable-payload property, the Claude Code
@@ -440,32 +440,32 @@ hooks/statusline gap with exact copy-paste commands, the three nixpkgs blockers 
 evidence behind each, and the two concrete vendor asks.
 
 **Tasks**:
-- [ ] `## What this is` — a generalized fork of a working NixOS/home-manager packaging of the
+- [x] `## What this is` — a generalized fork of a working NixOS/home-manager packaging of the
       Sapience client, shareable as-is; name the source module path and the fork date, and state
       plainly that it replaces the vendor's macOS-only installer on Linux/NixOS
-- [ ] `## Using it` — two subsections: `homeManagerModules.sapience` (flake input + module import +
+- [x] `## Using it` — two subsections: `homeManagerModules.sapience` (flake input + module import +
       a minimal `programs.sapience` block, noting what it adds: CLI wrappers, the opt-in sync
       timer, the MCP registration into `~/.claude.json`) and `packages.<system>.*` (plain
       `nix profile`/`nix shell` usage, with the explicit caveat that this path provides no systemd
       timer and no MCP registration)
-- [ ] `## Defaults` — a table of the three generalized values (`backend` `relay`, `memoryFiles`
+- [x] `## Defaults` — a table of the three generalized values (`backend` `relay`, `memoryFiles`
       `true`, `apiKeyFile` example) with the vendor default in one column and the overriding
       rationale a consumer might reuse in another; state that `model`'s empty default already
       matches the vendor's
-- [ ] `## Privacy` — `relay` is the only backend where the vendor sees redacted transcript chunks
+- [x] `## Privacy` — `relay` is the only backend where the vendor sees redacted transcript chunks
       before any review gate, and `anthropic`/`openai` have their provider URL hardcoded in the
       vendor client, so only `ollama` has a configurable endpoint
-- [ ] `## The payload is deliberately mutable` — activation seeds `~/.sapience/*.py` by `curl` only
+- [x] `## The payload is deliberately mutable` — activation seeds `~/.sapience/*.py` by `curl` only
       when a file is absent, and the client self-updates in the background; this is a consequence of
       blocker 2 below, not an oversight, and must not be "fixed" into a `fetchurl` derivation
-- [ ] `## Known gap: Claude Code hooks and statusline` — state that the flake delivers the MCP
+- [x] `## Known gap: Claude Code hooks and statusline` — state that the flake delivers the MCP
       server (so `mcp__sapience__*` tools become reachable once the registration is merged into the
       consumer's `~/.claude.json`) but no per-turn visibility, because the hooks and permission
       grants are Claude Code *settings* concerns that live outside the Nix module. Quote the three
       hook commands verbatim (`SessionStart` `--briefing-text`, `SessionEnd` `--receipt` with
       `async: true`, `Stop` `--effect-line` with `timeout: 3`), list the seven
       `mcp__sapience__*` permission names, and note `statusLine` is not wired to Sapience at all
-- [ ] `## Why this is not in nixpkgs` — three subsections, each independently sufficient:
+- [x] `## Why this is not in nixpkgs` — three subsections, each independently sufficient:
       (1) **No license grant anywhere**: zero license/copyright/proprietary/all-rights-reserved
       matches across all ten client `.py` files; `HTTP 404` on
       `/{terms,tos,legal,license,privacy}`; the site's own "We have filed patents covering the
@@ -485,16 +485,20 @@ evidence behind each, and the two concrete vendor asks.
       maintainers cannot obtain an account to test; the package would be useless to most of
       nixpkgs' Linux userbase) rather than a quoted written nixpkgs rule, because no such written
       rule was found.
-- [ ] `## What would unblock it` — the two narrow asks: publish versioned, checksummed release
+- [x] `## What would unblock it` — the two narrow asks: publish versioned, checksummed release
       artifacts under the two already-reserved PyPI names (answers blocker 2 outright), and state a
       license permitting redistribution of the *build output* (would allow
       `lib.licenses.unfreeRedistributable` instead of plain `unfree`, so Hydra could build once and
       substitute for everyone). State that neither ask touches blocker 3, which is a product
       decision no Nix-side change can route around.
-- [ ] Re-verify every quoted command string and permission name against `config/claude/settings.json`
-      by grep before closing the phase; do not transcribe them from this plan or the report
-- [ ] Confirm no task-number reference appears anywhere in the README (it is a deliverable outside
-      `specs/**`)
+- [x] Re-verify every quoted command string and permission name against `config/claude/settings.json`
+      by grep before closing the phase; do not transcribe them from this plan or the report — did
+      this via a Python/json parse (exact-string comparison) rather than a raw-text grep, since the
+      JSON file escapes quotes that the README's plain-prose rendering must not; all three hook
+      commands and all seven permission names match exactly
+- [x] Confirm no task-number reference appears anywhere in the README (it is a deliverable outside
+      `specs/**`) — `bash .claude/scripts/check-task-references.sh packages/sapience-flake/README.md`
+      reports "0 unexempted task-reference occurrences"
 
 **Timing**: 2 hours
 
