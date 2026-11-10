@@ -112,6 +112,29 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f \"$HOME/.sapience/sapience_cli.py\" ] && python3 \"$HOME/.sapience/sapience_cli.py\" hook prompt 2>/dev/null || true",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f \"$HOME/.sapience/sapience_cli.py\" ] && python3 \"$HOME/.sapience/sapience_cli.py\" hook tool 2>/dev/null || true",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "hooks": [
@@ -148,5 +171,5 @@
   "autoCompactEnabled": false,
   "editorMode": "vim",
   "remoteControlAtStartup": false,
-  "_SAPIENCE_NOTE": "The Sapience entries in hooks.SessionStart/SessionEnd/Stop and the mcp__sapience__* permissions are owned by modules/home/services/sapience.nix (programs.sapience). They are guarded with a [ -f ~/.sapience/mcp.py ] test and || true, so they are inert no-ops until sapience-bootstrap has run and harmless if the client is removed. hooks and permissions are both ENFORCED keys, so these must live here rather than being written into the live file by a vendor installer -- a home-manager switch would revert that. statusLine is deliberately NOT wired to Sapience: that slot belongs to hooks/statusline-push.sh."
+  "_SAPIENCE_NOTE": "The Sapience entries in hooks.SessionStart/SessionEnd/Stop (mcp.py) and hooks.UserPromptSubmit/PreToolUse (sapience_cli.py) and the mcp__sapience__* permissions are owned by modules/home/services/sapience.nix (programs.sapience). They are guarded with a [ -f ~/.sapience/<file> ] test and || true, so they are inert no-ops until the payload is seeded and harmless if the client is removed. SessionStart stays with mcp.py --briefing-text and Stop with mcp.py --effect-line; sapience_cli.py's own `hook session` and `hook stop` are deliberately not wired, because each would duplicate one of those and print a second line per turn. hooks and permissions are both ENFORCED keys, so these must live here rather than being written into the live file by a vendor installer -- a home-manager switch would revert that. statusLine is deliberately NOT wired to Sapience: that slot belongs to hooks/statusline-push.sh."
 }

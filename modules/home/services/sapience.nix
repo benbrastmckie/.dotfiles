@@ -43,10 +43,17 @@ let
     "mcp.py"
   ];
 
+  # sapience_cli.py is absent from the vendor's own CLIENT_FILES tuple, so `sapience update`
+  # neither fetches nor refreshes it; seeding it here is the only way it arrives. It then keeps
+  # itself current, checking its own digest against /v1/client/version once a day after a turn
+  # ends. Its Claude Code hooks live in config/claude/settings.json rather than being written by
+  # `sapience cli on`: `hooks` is an enforced key, so a vendor-written entry would be reverted by
+  # the next home-manager switch.
   optionalPayload = [
     "sapience_devin.py"
     "sf1.py"
     "sapience_upkeep.py"
+    "sapience_cli.py"
   ];
 
   # PATH for every wrapper and unit. gitMinimal backs upload.py's optional branch probe;
