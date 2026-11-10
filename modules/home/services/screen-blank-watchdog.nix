@@ -30,7 +30,16 @@
 #
 # On non-GNOME sessions (niri) the DBus names below are absent, every call fails, and the script
 # exits 0 without acting -- niri's swayidle handles its own locking (mechanism 3).
+#
+# One carve-out exists, and it is the single exception to everything above: while a video call is
+# in progress this unit stands down, so a meeting is never blanked out from under the user. That
+# carve-out is bounded by an idle cap and shares its predicate with
+# services/video-call-keepalive.nix -- see lib/video-call-active.nix and
+# docs/no-sleep-agents.md mechanism 6.
 { pkgs, ... }:
+let
+  videoCallActive = import ./lib/video-call-active.nix { inherit pkgs; };
+in
 {
   systemd.user.services.screen-blank-watchdog = {
     Unit = {
@@ -69,6 +78,22 @@
             active=$("$busctl" --user call org.gnome.ScreenSaver /org/gnome/ScreenSaver \
               org.gnome.ScreenSaver GetActive 2>/dev/null | ${pkgs.gnused}/bin/sed 's/^b //') || exit 0
             [ "$active" = "false" ] || exit 0
+
+            # The one carve-out from the guarantee above: a video call in progress. Blanking the
+            # screen mid-meeting is the one case where overriding the application's idle
+            # inhibitor is simply wrong rather than protective -- and no conferencing app can opt
+            # out of it from its side, since overriding them is this unit's whole mechanism.
+            #
+            # The predicate is shared with services/video-call-keepalive.nix (which holds the
+            # matching inhibitors) so the two cannot disagree about whether a call is live, and it
+            # is bounded by an idle cap so the carve-out cannot become the unbounded,
+            # invisible screen-on pin this unit exists to kill. See
+            # lib/video-call-active.nix for why the microphone -- and not an idle
+            # inhibitor -- is the signal, and docs/no-sleep-agents.md mechanism 6.
+            if ${videoCallActive}; then
+              echo "screen-blank-watchdog: idle ''${idle_ms}ms >= ''${delay_s}s but a video call is in progress, standing down"
+              exit 0
+            fi
 
             echo "screen-blank-watchdog: idle ''${idle_ms}ms >= ''${delay_s}s, blanking (inhibitors ignored)"
             "$busctl" --user call org.gnome.ScreenSaver /org/gnome/ScreenSaver \

@@ -3,10 +3,9 @@
 This machine is expected to run long, unattended AI-agent workloads (builds, background
 research, multi-hour Claude Code sessions) with the lid closed and nobody watching the screen.
 Ordinary desktop power management — screen blanking, idle suspend, lid-close suspend — would
-kill those workloads mid-run if left at defaults. This page explains the four independent
-mechanisms that work together to prevent that, how they compose, how to verify each one is
-actually active on a running system, and why a couple of tempting simpler alternatives were
-rejected.
+kill those workloads mid-run if left at defaults. This page explains the six mechanisms that
+work together to prevent that, how they compose, how to verify each one is actually active on a
+running system, and why a couple of tempting simpler alternatives were rejected.
 
 The mechanisms are layered rather than being one setting, because they protect against
 different things: an idle Claude Code session, an idle GNOME/niri desktop, a closed lid, and a
@@ -15,6 +14,9 @@ laptop battery draining to zero in a bag. None of them alone covers all four cas
 Mechanism 5 pulls the other way, and is listed here because it is routinely mistaken for a bug
 in the first four: **keeping the machine awake and keeping the screen lit are separate
 concerns**, and this system deliberately wants the first without the second.
+
+Mechanism 6 is the one carve-out from mechanism 5 — a video call, where a dark screen is not a
+free win but the thing the user is trying to look at.
 
 ## The mechanisms
 
@@ -271,8 +273,8 @@ the script exits 0 without acting — swayidle owns locking there (mechanism 3).
 Blanking is not suspending: this unit never suspends anything, and mechanisms 1-4 are unaffected.
 Agents keep working with the screen dark, which is the whole point.
 
-Belt and braces, both browser entry points additionally disable the wake-lock feature outright, so
-the common case never reaches the watchdog:
+Both browser entry points additionally disable the Screen Wake Lock *API*, which narrows how
+often a page can reach for a lock in the first place:
 
 - `modules/system/packages.nix` overrides `brave` with
   `commandLineArgs = "--disable-blink-features=ScreenWakeLock"`.
@@ -280,6 +282,14 @@ the common case never reaches the watchdog:
   additionally runs the browser **headless**. Headless is the load-bearing setting there: a
   headed browser owns a Wayland surface and can inhibit through `zwp_idle_inhibitor_v1`
   regardless of any Blink flag, whereas a surface-less browser cannot inhibit by any route.
+
+Be precise about what that flag does and does not cover, because it is easy to over-read.
+`--disable-blink-features=ScreenWakeLock` disables the `navigator.wakeLock` **API** — the one a
+page calls explicitly. It does **not** disable Chromium's separate, internal **Video Wake Lock**,
+which the browser takes on its own whenever a visible `<video>` element is playing. A Brave window
+playing video therefore still registers a flag-8 inhibitor, with `GetReason` `Video Wake Lock`
+(verified live on this host). So the flag is a narrowing, not a fix, and the watchdog above is
+genuinely load-bearing rather than a backstop for a rare case.
 
 This distinction matters for agent workloads specifically. GNOME needs an **uninterrupted**,
 inhibitor-free idle stretch to reach the blank timeout, so agents launching short-lived headed
@@ -299,10 +309,11 @@ lock from a page long since forgotten. The lesson generalizes: check `GetAppId` 
 before blaming a process, and note that a mutter `idle-inhibit` entry names mutter, not the client
 that requested it, so it must be attributed by correlation over time rather than by reading it.
 
-The tradeoff is accepted deliberately: pages that legitimately want to hold the screen on (video,
-presentations, recipes) no longer can, and the screen blanks on them after 5 minutes. That is the
-desired behavior here — blanking the display costs a running agent nothing, since blanking is not
-suspending.
+The tradeoff is accepted deliberately: a page that wants to hold the screen on for passive
+viewing (video, a presentation, a recipe) does not get to, and the screen blanks on it after 5
+minutes. That is the desired behavior here — blanking the display costs a running agent nothing,
+since blanking is not suspending. Interactive video *calls* are the single exception, and they are
+handled by mechanism 6 rather than by trusting the page's own lock.
 
 To check the guarantee is live, confirm no flag-8 inhibitor is held while the browser is open:
 
@@ -311,9 +322,96 @@ busctl --user call org.gnome.SessionManager /org/gnome/SessionManager \
   org.gnome.SessionManager GetInhibitors
 ```
 
-Expected: no entry whose `GetAppId` is a browser and whose `GetFlags` is `8`. Note that the flag
-only takes effect for browser processes started *after* the rebuild — an already-running browser
-keeps whatever locks it holds until it is restarted.
+Expected: no entry whose `GetAppId` is a browser, whose `GetFlags` is `8`, and whose `GetReason`
+names an explicit page wake lock. A `Video Wake Lock` entry is **not** a failure of this flag (see
+the Blink-versus-Video distinction above) — it is the case the watchdog exists to override. Note
+also that the flag only takes effect for browser processes started *after* the rebuild; an
+already-running browser keeps whatever locks it holds until it is restarted.
+
+### 6. The video-call carve-out (the exception to mechanism 5)
+
+Mechanism 5 is right about forgotten wake locks and wrong about meetings: a watchdog that
+overrides every idle inhibitor will, with perfect reliability, blank the screen five minutes into
+a call in which the user is listening rather than typing. A conferencing app cannot opt out of
+this from its own side — overriding apps is mechanism 5's entire mechanism — so the exception has
+to be made here.
+
+`modules/home/services/video-call-keepalive.nix` holds the inhibitors that keep the screen lit and
+the machine awake for the duration of a call, and `screen-blank-watchdog` stands down while one is
+in progress. Both consume one shared predicate,
+`modules/home/services/lib/video-call-active.nix`, so the unit that holds the inhibitors and the
+unit that would override them cannot disagree about whether a call is live.
+
+**The signal is an active microphone capture stream, not an idle inhibitor.** This is the central
+design decision and it is worth the detail, because the obvious alternative does not work:
+
+- Zoom registers an unusually honest flag-8 inhibitor — app-id `zoom`, reason `in a meeting` — so
+  for Zoom alone, reading inhibitors would be enough.
+- **Google Meet has no equivalent.** In a Chromium-family browser a Meet call appears as the
+  generic `Video Wake Lock` inhibitor, byte-identical to the one the same browser holds while
+  playing YouTube. Keying off it would re-admit exactly the forgotten-tab pin that mechanism 5
+  exists to defeat.
+
+A microphone capture stream separates the two cleanly — a call captures the mic, passive video
+playback does not — and it is app-agnostic, so Jitsi, a Slack huddle, or a conferencing tool
+nobody has special-cased are all covered without a per-app list. The camera is deliberately *not*
+part of the test: joining with video off is normal, and on this host the camera node sits
+`suspended` through an entire call.
+
+**The internal-node trap.** "Any running capture stream" is not a usable test, and getting it
+wrong fails in the worst direction — permanently true, screen never blanks again, no visible
+cause. PipeWire keeps internal capture nodes running at all times; on this host those are
+`capture.mic_boosted` (the mic-boost filter chain from `modules/system/audio.nix`) and a
+`bluez_capture_internal.*` loopback, both permanently `running`. The predicate excludes them
+structurally rather than by name, by resolving each node's `client.id` to the owning client's
+`application.process.binary` and dropping the nodes owned by the PipeWire/WirePlumber daemons
+themselves. Verified live: the filter chain resolves to `pipewire`, while a real application
+resolves to its own binary (`zoom` over the pipewire-pulse API, `pw-cat` over the native API).
+
+Note that `application.process.binary` *on the node* cannot carry this: it is populated for
+pipewire-pulse clients and null for native PipeWire clients, so a node-level test silently misses
+whole classes of application. The client-object lookup is what makes it uniform.
+
+**What is held during a call.** Two inhibitors, for the two halves of the ask:
+
+- `gnome-session-inhibit --inhibit idle --inhibit suspend`, app-id `video-call-keepalive`. Flag 8
+  stops mutter's automatic idle blank; flag 4 stops `gsd-power`'s idle suspend.
+- A logind `sleep` block inhibitor (`--who=video-call`), which is what actually guarantees "no
+  suspend". It is taken explicitly rather than relying on the app's own flag-8 inhibitor to keep
+  the session non-idle, because GNOME's blank path and its idle-suspend path consume different
+  inhibitor flags and the no-suspend half of the guarantee should not rest on which one
+  `gsd-power` happens to check.
+
+This does **not** defeat mechanism 4: the battery backstop calls `systemctl suspend -i`, which
+skips every ordinary inhibitor including this one. A call does not get to run the battery to zero.
+
+**It is bounded, so it cannot become the thing mechanism 5 kills.** The carve-out applies only
+while real-input idle time is under a 2-hour cap (`idleCapSeconds` in the predicate). The bound is
+on idle time rather than call duration on purpose: a real meeting of any length gets a keypress or
+a mouse movement far more often than once every two hours, so each touch re-arms the full window
+and a genuine all-day call is never interrupted — while two hours of a live call with no input at
+all means nobody is at the machine. Past the cap the ordinary 5-minute blank resumes, and the next
+real input restores the carve-out immediately.
+
+Two units rather than one, because holding an inhibitor needs a live process while deciding
+whether to hold one does not:
+
+| Unit | Role |
+|---|---|
+| `video-call-inhibit.service` | Holds the inhibitors for as long as it is active. Started only by the monitor. |
+| `video-call-monitor.service` + `.timer` | A oneshot, every 15 seconds, that starts or stops the inhibit unit to match the current call state. |
+
+Letting systemd own the inhibitor's lifetime, rather than having the monitor fork and track PIDs,
+is what makes release reliable: `systemctl --user stop` tears down the whole control group, so the
+wrapped `gnome-session-inhibit` child cannot be orphaned and leak a flag-8 inhibitor that outlives
+the call — which would be precisely the failure mechanism 5 is about.
+
+The monitor's 15-second cadence is deliberately tighter than the watchdog's 30 seconds, so the
+inhibitors are in place before the watchdog's first tick after a call starts.
+
+On niri the GNOME DBus names are absent; the sleep inhibitor is held on its own, and swayidle
+keeps owning locking (mechanism 3).
+
 
 ## How the mechanisms compose
 
@@ -326,6 +424,7 @@ keeps whatever locks it holds until it is restarted.
 | Lid closed, any power source, no external monitor | Session locks; the panel powers off shortly after (about 30 seconds on GNOME, immediately on niri). The machine never suspends from this alone. |
 | Lid closed, external monitor(s) attached | GNOME's own docked-lid inhibitor takes over (pre-existing, not repo-configured); windows move to the external display, no lock, no suspend. |
 | Battery at 10% or below and discharging, regardless of inhibitors, lid state, or session state | The battery backstop suspends the machine every ~60 seconds via `systemctl suspend -i`, bypassing every inhibitor, until the charger is connected. |
+| Video call in progress (Zoom, Google Meet, or anything else capturing the microphone) | The screen stays lit and the machine stays awake for the whole call: mechanism 6 holds a GNOME idle/suspend inhibitor plus a logind `sleep` inhibitor, and the blank watchdog stands down. Bounded at 2 hours of continuous no-input idleness, after which the ordinary 5-minute blank resumes. The battery backstop still overrides it. |
 
 ## Activation & verification
 
@@ -385,6 +484,37 @@ gsettings get org.gnome.settings-daemon.plugins.power sleep-inactive-battery-tim
 ```
 
 Expected: `'suspend'`, `43200`, `'suspend'`, `3600` respectively.
+
+**Video-call carve-out (mechanism 6)** — confirm the monitor timer is running:
+
+```bash
+systemctl --user is-active video-call-monitor.timer
+```
+
+Expected: `active`, with the next elapse within about 15 seconds.
+
+The predicate is directly runnable and explains itself, which is the fastest way to tell a
+detection problem apart from an inhibitor problem:
+
+```bash
+video-call-active --explain
+```
+
+Expected while in a call: `call active (zoom), idle <N>ms within the 7200s cap` (or `brave` for a
+Google Meet call). Expected otherwise: `no call: nothing is capturing the microphone`. If this
+reports a call when none is running, something is holding the microphone open — read the named
+binary, don't assume.
+
+While a call is live, confirm both inhibitors are actually held:
+
+```bash
+gnome-session-inhibit --list
+systemd-inhibit --list | grep video-call
+```
+
+Expected: a `video-call-keepalive: Video call in progress (suspend, idle)` line from the first,
+and a `video-call` / `sleep` / `block` row from the second. Both must disappear within ~15 seconds
+of the call ending.
 
 **Claude Code session inhibitor** — while a Claude Code session is open, confirm its inhibitor is
 held:
