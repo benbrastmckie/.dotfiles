@@ -79,7 +79,11 @@
   },
   "skipDangerousModePermissionPrompt": true,
   "voiceEnabled": true,
-  "voiceMode": "hold",
+  "voice": {
+    "enabled": true,
+    "mode": "hold",
+    "autoSubmit": false
+  },
   "recapEnabled": false,
   "awaySummaryEnabled": false,
   "autoMemoryEnabled": false,
