@@ -1,22 +1,18 @@
 {
-  "status": "planned",
-  "artifacts": [
-    {
-      "type": "plan",
-      "path": "specs/138_retire_machine_wide_sapience_surface/plans/01_retire-machine-wide-sapience.md",
-      "summary": "Six-phase plan (6.5h) retiring three machine-wide Sapience activation surfaces and adding the one durable per-project MCP-registration SessionStart entry."
-    }
-  ],
-  "metadata": {
-    "session_id": "sess_1794559396_95f48e_138",
-    "agent_type": "planner-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
-    "phase_count": 6,
-    "estimated_hours": 6.5,
-    "dependency_waves": [[1], [2, 3, 5], [4], [6]]
+  "status": "in_progress",
+  "started_at": "2026-11-13T08:59:17Z",
+  "artifacts": [],
+  "partial_progress": {
+    "stage": "initializing",
+    "details": "Agent started, loading plan, beginning Phase 1"
   },
-  "memory_candidates": [],
-  "next_steps": "Run /orchestrate 138 to execute the plan",
-  "dispatch_seq": 2
+  "modified_files": [],
+  "metadata": {
+    "session_id": "sess_1794559396_95f48e",
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 0,
+    "phases_total": 6
+  }
 }

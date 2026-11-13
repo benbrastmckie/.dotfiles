@@ -1,7 +1,7 @@
 # Implementation Plan: Retire Machine-Wide Sapience Activation Surface
 
 - **Task**: 138 - Retire every machine-wide Sapience ACTIVATION surface this repository owns
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 6.5 hours
 - **Dependencies**: Companion project `gate_sapience_activation_behind_extension`, sited in
   `/home/benjamin/.config/nvim` (project 612) — confirmed landed; re-confirmed at Phase 1
@@ -144,7 +144,7 @@ Phases within the same wave can execute in parallel.
 
 ---
 
-### Phase 1: Re-confirm the ordering constraint and capture the pre-change baseline [NOT STARTED]
+### Phase 1: Re-confirm the ordering constraint and capture the pre-change baseline [COMPLETED]
 
 **Goal**: Establish, at implementation time rather than from the dispatch's note, that the
 companion task landed and that every surface this task removes is currently present as described;
