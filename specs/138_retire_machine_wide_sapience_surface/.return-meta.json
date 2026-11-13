@@ -1,16 +1,65 @@
 {
-  "status": "in_progress",
-  "started_at": "2026-11-13T08:59:17Z",
-  "artifacts": [],
-  "partial_progress": {
-    "stage": "phase_5_completed",
-    "details": "Phases 1-5 complete. Phase 6 (gate, switch, verify against live merged state) remains."
+  "status": "implemented",
+  "summary": "Retired every machine-wide Sapience activation surface this repository owned (the top-level mcpServers.sapience merge, seven permission grants, five hooks) in modules/home/services/sapience.nix and config/claude/settings.json, and added the one durable registration SessionStart entry that makes the companion's per-project MCP registration survive a home-manager switch. Rewrote docs/sapience.md and one home.nix comment to state the per-repository activation contract. Verified against the live merged state after a real home-manager switch: the registration entry is byte-identical and durable, stale grants/hooks are gone from the live settings file, and a one-time cleanup of an orphaned top-level ~/.claude.json key (a plan gap, not anticipated) was performed and recorded. Handed the owner an exact ~/.sapience/config.json reconciliation instruction as a non-blocking user_decision, and recorded two nvim-sited follow-ups this task coordinates but does not perform.",
+  "artifacts": [
+    {
+      "type": "implementation",
+      "path": "modules/home/services/sapience.nix",
+      "summary": "Removed registerMcpServer option and sapienceMcpServer activation entry; reconciled 4 comment sites"
+    },
+    {
+      "type": "implementation",
+      "path": "config/claude/settings.json",
+      "summary": "Removed 7 grants and 5 Sapience hook entries; added the durable registration SessionStart entry; rewrote _SAPIENCE_NOTE"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/sapience.md",
+      "summary": "Rewrote 8 stale sections to state the per-repository activation contract and document the registration entry"
+    },
+    {
+      "type": "implementation",
+      "path": "home.nix",
+      "summary": "Corrected the one comment claiming the module installs MCP registration"
+    },
+    {
+      "type": "report",
+      "path": "specs/138_retire_machine_wide_sapience_surface/records/01_companion-landing-confirmation.md",
+      "summary": "Phase 1 evidence: companion landed, confirmed at implementation time"
+    },
+    {
+      "type": "report",
+      "path": "specs/138_retire_machine_wide_sapience_surface/records/02_sapience-config-owner-instruction.md",
+      "summary": "Exact, runnable owner instruction for the ~/.sapience/config.json reconciliation"
+    },
+    {
+      "type": "report",
+      "path": "specs/138_retire_machine_wide_sapience_surface/records/03_nvim-sited-followups.md",
+      "summary": "Two nvim-sited follow-ups this task coordinates but does not perform"
+    },
+    {
+      "type": "report",
+      "path": "specs/138_retire_machine_wide_sapience_surface/records/04_live-verification.md",
+      "summary": "Observed output of every live post-switch verification check, including the orphaned-key cleanup"
+    },
+    {
+      "type": "summary",
+      "path": "specs/138_retire_machine_wide_sapience_surface/summaries/01_retire-machine-wide-sapience-summary.md",
+      "summary": "Implementation summary with the owner instruction reproduced verbatim"
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Retired the machine-wide Sapience MCP registration, permission grants, and hooks from this repository, added the one durable per-project registration SessionStart entry, rewrote docs/sapience.md, and verified the change against live post-switch state including a one-time cleanup of an orphaned ~/.claude.json key."
   },
   "modified_files": [
-    "modules/home/services/sapience.nix",
     "config/claude/settings.json",
     "docs/sapience.md",
-    "home.nix"
+    "home.nix",
+    "modules/home/services/sapience.nix",
+    "specs/138_retire_machine_wide_sapience_surface/records/01_companion-landing-confirmation.md",
+    "specs/138_retire_machine_wide_sapience_surface/records/02_sapience-config-owner-instruction.md",
+    "specs/138_retire_machine_wide_sapience_surface/records/03_nvim-sited-followups.md",
+    "specs/138_retire_machine_wide_sapience_surface/records/04_live-verification.md"
   ],
   "user_decision": {
     "question": "The ~/.sapience/config.json reconciliation (reducing the top-level folders allowlist and capture.projects enabled set to the four extension-loaded repositories, and adding the two newly-loaded/moved ones) is owner-only state this task cannot edit. Should the owner apply the exact jq instruction recorded in records/02_sapience-config-owner-instruction.md now, or defer it?",
@@ -24,10 +73,12 @@
   },
   "metadata": {
     "session_id": "sess_1794559396_95f48e",
+    "duration_seconds": 1197,
     "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
     "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
-    "phases_completed": 5,
+    "phases_completed": 6,
     "phases_total": 6
-  }
+  },
+  "next_steps": "Apply the ~/.sapience/config.json owner instruction (records/02). Create the two nvim-sited follow-up tasks (records/03): update mcp-server-ownership.md's worked example, and resolve SF-1 card worktrees to their parent checkout for registration. Refresh abood's and sapience-app's own .claude/ deploy to pick up the companion's settings-fragment.json update (currently showing 4 grants / 0 hooks instead of 11 / 5)."
 }

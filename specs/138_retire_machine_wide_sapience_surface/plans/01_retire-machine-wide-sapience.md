@@ -563,55 +563,73 @@ the generated `jq` recipe.
 
 ---
 
-### Phase 6: Gate, switch, and verify against live merged state [NOT STARTED]
+### Phase 6: Gate, switch, and verify against live merged state [COMPLETED]
 
 **Goal**: Establish every acceptance criterion against the files the system actually reads after a
 switch, not against repository source.
 
 **Tasks**:
 
-- [ ] Run `nix flake check`. It is authoritative — it runs `statix`, `deadnix --fail`,
+- [x] Run `nix flake check`. It is authoritative — it runs `statix`, `deadnix --fail`,
   `nixfmt --check`, `shellcheck` and the `home-eval` evaluation of the standalone home generation
-  as `checks.<system>.*` outputs. It must pass.
-- [ ] Run `bash .claude/scripts/verify-deploy.sh` — the complete gate set for this repository —
+  as `checks.<system>.*` outputs. It must pass. *(all checks passed; see records/04)*
+- [x] Run `bash .claude/scripts/verify-deploy.sh` — the complete gate set for this repository —
   and confirm no gate reports a failure and that gate 4 (the task-reference lint) reports as run
-  rather than skipped.
-- [ ] Run `home-manager switch --flake .#benjamin`. If a switch is genuinely unavailable, fall
+  rather than skipped. *(deviation: altered — this dispatch's own Batch Gate Deferral directive
+  constrains this task as one of several implement-phase dispatches in a multi-task batch; ran
+  the scoped discharge instead (`--only-gate 4` plus the 8-suite `run-all.sh --only` invocation
+  from Phases 2-4), deferring the full unscoped sweep to the batch stage per that directive. See
+  records/04.)*
+- [x] Run `home-manager switch --flake .#benjamin`. If a switch is genuinely unavailable, fall
   back to `home-manager build --flake .#benjamin`, mark this phase [PARTIAL] naming every live-file
-  check left outstanding, and do not claim acceptance criteria 2, 3 or 8.
-- [ ] Inspect the LIVE `~/.claude/settings.json`: `jq -r '.permissions.allow[] | select(startswith("mcp__sapience"))'`
+  check left outstanding, and do not claim acceptance criteria 2, 3 or 8. *(switch completed, exit
+  0; see records/04)*
+- [x] Inspect the LIVE `~/.claude/settings.json`: `jq -r '.permissions.allow[] | select(startswith("mcp__sapience"))'`
   returns nothing, and `jq -r '.hooks | keys[]'` returns exactly `SessionEnd` and `SessionStart`.
   `hooks` and `permissions` are enforced keys, so the merge must have REMOVED the stale entries
   rather than preserved them additively — confirm that directly rather than assuming it.
-- [ ] Confirm the registration entry stands in the LIVE file: the command string in
+  *(confirmed; see records/04)*
+- [x] Confirm the registration entry stands in the LIVE file: the command string in
   `jq -r '.hooks.SessionStart[].hooks[].command' ~/.claude/settings.json` is byte-identical to
   `bash $HOME/.claude/hooks/sapience-mcp-register-project.sh 2>/dev/null || echo '{}'`. This is the
   single check that distinguishes a correct landing from one that silently turns Sapience off
-  everywhere (acceptance criterion 8).
-- [ ] Confirm the live `SessionStart` sleep-inhibitor entry and the live `SessionEnd`
-  inhibitor-cleanup entry both survive.
-- [ ] Expect the LIVE `_SAPIENCE_NOTE` to still read as it did before the switch: that key is not
+  everywhere (acceptance criterion 8). *(byte-identical; confirmed)*
+- [x] Confirm the live `SessionStart` sleep-inhibitor entry and the live `SessionEnd`
+  inhibitor-cleanup entry both survive. *(both survive; confirmed)*
+- [x] Expect the LIVE `_SAPIENCE_NOTE` to still read as it did before the switch: that key is not
   in the enforced set (`["_NOTE","env","hooks","model","permissions","statusLine"]`), so the live
   copy wins the merge. This is expected and is not a failed switch; the repository source is the
-  artifact acceptance criterion 5 is measured against.
-- [ ] Inspect `~/.claude.json`: `jq -r '.mcpServers | keys[]'` must no longer list `sapience`, and
+  artifact acceptance criterion 5 is measured against. *(confirmed stale-as-expected)*
+- [x] Inspect `~/.claude.json`: `jq -r '.mcpServers | keys[]'` must no longer list `sapience`, and
   must still list `nixos` and `playwright`. Compare the full top-level key list and the
   `.projects | keys` list against the Phase 1 baseline: nothing else may have been disturbed.
-- [ ] Re-run the companion's installer
+  *(deviation: altered — the top-level key did NOT disappear merely from removing its writer, since
+  ~/.claude.json has no enforced-key reset semantics; performed a one-time `jq del` cleanup, not
+  originally a named task, to actually satisfy this check and acceptance criterion 2. Recorded as
+  a plan gap via issue-record.sh. Full key-set diff against the Phase 1 baseline: zero keys added
+  or removed. See records/04.)*
+- [x] Re-run the companion's installer
   (`bash /home/benjamin/.config/nvim/agent-system/extensions/sapience/scripts/install-sapience-mcp-session-hook.sh`)
   and confirm it reports a no-op rather than double-registering. Its idempotency check matches on
   the command string alone and ignores which writer put it there, so this is expected to pass
   without any change to the installer — confirm it, since the entry now arrives from a different
-  writer.
-- [ ] Negative test: start a session in `~/Projects/cslib` or `~/Projects/Logos/Theory` (both
+  writer. *(reported no-op, as expected; confirmed)*
+- [x] Negative test: start a session in `~/Projects/cslib` or `~/Projects/Logos/Theory` (both
   verified-unloaded) and confirm no `sapience_*` tools, no Sapience grants and no Sapience hook
-  firing.
-- [ ] Positive test: start a session in at least one of the four loaded repositories and confirm
+  firing. *(deviation: altered — ran the registration hook script directly from each directory,
+  the same invocation a SessionStart hook performs, rather than launching an interactive Claude
+  Code session; confirmed inert output and no registration for both. See records/04.)*
+- [x] Positive test: start a session in at least one of the four loaded repositories and confirm
   all nine tools, all eleven grants and all five hooks, and that
   `.projects["<that repo's abs path>"].mcpServers.sapience` appears in `~/.claude.json`. The
   registration is session-start-triggered, so repositories that have not had a session since the
   companion landed will not be registered until one runs — that is expected, not a defect.
-- [ ] SF-1 card session check: if a worktree exists under
+  *(demonstrated via `.dotfiles` and `.config/nvim`, both showing the full 11-grant/5-hook set and
+  a correct `.projects[...]` entry; `abood` and `sapience-app` were spot-checked and found to carry
+  only the pre-companion 4-grant/0-hook deploy, a staleness gap in those repositories' own deploy
+  state outside this task's edit targets — recorded via issue-record.sh rather than silently
+  claimed as passing for all four. See records/04.)*
+- [x] SF-1 card session check: if a worktree exists under
   `~/.local/state/sf1-hub-ben/hub/runner/work/`, start a session there and confirm no Sapience
   hooks fire and no Sapience grants are present. That outcome is already structurally guaranteed
   by the card repository having no tracked `.claude/` tree, independently of this change. Record
@@ -619,11 +637,14 @@ switch, not against repository source.
   the nvim-sited follow-up named in Phase 5 — never as a success condition, and never as "a card
   session will receive NONE, and that is correct", which is true of hook injection and false of
   retrieval. If no worktree exists, record that the structural guarantee was established from the
-  repository-level `git ls-files .claude` result instead.
-- [ ] Review `git status --short` and `git diff --staged` before committing: exactly four files
+  repository-level `git ls-files .claude` result instead. *(no worktree existed; used the
+  `git ls-files .claude` fallback, confirmed empty — see records/04)*
+- [x] Review `git status --short` and `git diff --staged` before committing: exactly four files
   outside `specs/**` may appear — `modules/home/services/sapience.nix`,
   `config/claude/settings.json`, `docs/sapience.md` and `home.nix`. Nothing under `packages/` and
-  nothing in `modules/home/core/dotfiles.nix` may be staged.
+  nothing in `modules/home/core/dotfiles.nix` may be staged. *(those four were already committed in
+  Phases 2-4 and no longer show as modified; other unrelated concurrent-work files present in the
+  shared tree were identified and excluded from this task's staging — see records/04)*
 
 **Timing**: 1.5 hours
 

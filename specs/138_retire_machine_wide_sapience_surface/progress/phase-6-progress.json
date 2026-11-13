@@ -1,0 +1,18 @@
+{
+  "phase": 6,
+  "phase_name": "Gate, switch, and verify against live merged state",
+  "started_at": "2026-11-13T10:06:00Z",
+  "last_updated": "2026-11-13T10:40:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Phase 6 - gate (scoped), switch, live-file verification, cleanup, record",
+      "status": "completed",
+      "files_touched": [
+        "specs/138_retire_machine_wide_sapience_surface/records/04_live-verification.md"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

@@ -1,15 +1,47 @@
 {
-  "status": "planned",
-  "phases_completed": 0,
-  "phases_total": 6,
-  "summary": "Wrote a six-phase implementation plan retiring the three machine-wide Sapience activation surfaces (the sapienceMcpServer activation entry in modules/home/services/sapience.nix, seven permissions.allow grants, and five hook entries in config/claude/settings.json) while adding the one durable per-project MCP-registration SessionStart entry. Three plan-time findings corrected or extended the research report: hooks.SessionEnd holds two entries, not one (the systemd sleep-inhibitor cleanup must be kept); packages/sapience-flake/ carries a second copy of the module that is a standalone publishable flake and is ruled out of scope; and _SAPIENCE_NOTE is not an enforced key, so a rewritten note will not propagate to the live file. Verification tiers were measured with suite_selection_select rather than asserted, which surfaced test-sapience-mcp-registration.sh as a directly relevant covering suite for the settings.json phase.",
-  "blockers": [],
+  "status": "implemented",
+  "phase": "implement",
+  "dispatch_seq": 3,
+  "summary": "Retired every machine-wide Sapience activation surface this repository owned (top-level MCP merge, seven permission grants, five hooks) and added the one durable per-project registration SessionStart entry. Verified against live post-switch state, including a one-time cleanup of an orphaned ~/.claude.json key that the plan did not anticipate. Rewrote docs/sapience.md and one home.nix comment. Handed the owner a non-blocking reconciliation instruction for owner-only state.",
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/138_retire_machine_wide_sapience_surface/plans/01_retire-machine-wide-sapience.md",
-      "summary": "Six-phase plan: confirm companion landing, remove the nix activation entry, retire grants/hooks and add the durable registration entry, rewrite docs, produce the owner instruction and coordination record, then gate and verify against live merged state."
+      "type": "implementation",
+      "path": "modules/home/services/sapience.nix",
+      "summary": "Removed registerMcpServer option and sapienceMcpServer activation entry; reconciled 4 comment sites"
+    },
+    {
+      "type": "implementation",
+      "path": "config/claude/settings.json",
+      "summary": "Removed 7 grants and 5 Sapience hook entries; added the durable registration SessionStart entry; rewrote _SAPIENCE_NOTE"
+    },
+    {
+      "type": "implementation",
+      "path": "docs/sapience.md",
+      "summary": "Rewrote 8 stale sections to state the per-repository activation contract and document the registration entry"
+    },
+    {
+      "type": "implementation",
+      "path": "home.nix",
+      "summary": "Corrected the one comment claiming the module installs MCP registration"
+    },
+    {
+      "type": "summary",
+      "path": "specs/138_retire_machine_wide_sapience_surface/summaries/01_retire-machine-wide-sapience-summary.md",
+      "summary": "Implementation summary with the owner instruction reproduced verbatim"
     }
   ],
-  "dispatch_seq": 2
+  "phases_completed": 6,
+  "phases_total": 6,
+  "blockers": [],
+  "plan_markers_verified": true,
+  "user_decision": {
+    "question": "The ~/.sapience/config.json reconciliation (reducing the top-level folders allowlist and capture.projects enabled set to the four extension-loaded repositories, and adding the two newly-loaded/moved ones) is owner-only state this task cannot edit. Should the owner apply the exact jq instruction recorded in records/02_sapience-config-owner-instruction.md now, or defer it?",
+    "options": [
+      "Apply the recorded jq instruction now",
+      "Defer applying it until a convenient time"
+    ],
+    "recommended": "Apply the recorded jq instruction now",
+    "blocking": false,
+    "obligation": "Discharges acceptance criterion 4: hand the owner an exact, runnable ~/.sapience/config.json reconciliation instruction covering both capture.projects and the top-level folders allowlist. Applying it now closes the window in which three unloaded repositories (BimodalLogic, PossibleWorlds, Verification) are still captured while two loaded ones (abood, the moved sapience-app checkout) are not."
+  }
 }
