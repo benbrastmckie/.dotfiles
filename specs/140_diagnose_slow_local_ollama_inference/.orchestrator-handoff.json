@@ -1,0 +1,18 @@
+{
+  "status": "planned",
+  "phase": "plan",
+  "summary": "Wrote a 5-phase plan targeting the depressed baseline rather than the 0.66 tok/s outlier, per the research report's reframing. Phase 1 takes an instrumented, load-annotated benchmark with 1s frequency/temperature sampling; Phases 2 and 3 run in parallel to discriminate contention from a power/thermal ceiling and to convert the measured rate into Sapience's own per-chunk and per-50-chunk wall clock; Phase 4 corrects the outlier figure in docs/sapience.md, home.nix and modules/home/services/ollama.nix; Phase 5 runs the full gate set and surfaces the backend-flip choice as a user_decision rather than taking it. Premise re-validation found two description figures uncorroborated and corrected them in the plan.",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/140_diagnose_slow_local_ollama_inference/plans/01_ollama-cpu-baseline-verdict.md",
+      "summary": "5-phase, 5-hour plan: instrumented baseline benchmark, cause discrimination, Sapience viability computation, durable-carrier figure correction, final gate plus decision surfacing."
+    }
+  ],
+  "phases_completed": 0,
+  "phases_total": 5,
+  "blockers": [],
+  "plan_markers_verified": true,
+  "next_action_hint": "Dispatch implement phase; Phases 2 and 3 are independent given Phase 1's measurements and can run in one wave.",
+  "dispatch_seq": 2
+}
