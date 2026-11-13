@@ -3,8 +3,9 @@
 The worker half of SF-1 delegation, built for this machine. A background runner reads task
 cards from a shared two-person room on [app.spnc.ai](https://app.spnc.ai) and runs each one in a
 throwaway git worktree here, driven by this machine's own Claude Code login. A per-repo guard
-blocks edits and commits that break a rule both parties accepted in the room, and fails closed
-when it cannot reach the rules.
+blocks edits and commits that break a rule both parties accepted in the room. When it cannot
+reach the rules it suspends: the action is blocked, a stop marker is written, and every later
+controlled action stays blocked until a person runs `guard.py unstop` in a terminal.
 
 This is the piece the client alone cannot reach. `sf1` ships the client half of delegation —
 `/delegate claude|codex <task>` is implemented — but it discovers before it posts, and
@@ -25,7 +26,8 @@ grants consent or holds a credential is manual by design and cannot be automated
 | `services.sf1-hub-ben.enable` | `true` | CLI on PATH, unit declared |
 | `services.sf1-hub-ben.autoStart` | `false` (default) | Nothing starts at login; start it by hand |
 | `services.sf1-hub-ben.claudeBin` | `/etc/profiles/per-user/benjamin/bin/claude` | Pinned, not PATH-resolved |
-| Card repo | `~/Projects/Sapience/sapience-app` | The shared project; one consent marker, typed by hand |
+| Card repo | `~/Projects/Sapience/sapience-app` | Where cards run; named by `SF1_HUB_CARD_REPO` in the env file |
+| Consented repos | `sapience-app`, `sf1-engine` | Two markers, each typed by hand; the guard is attached in both |
 | Room | `oliver-ben` | Rules at `/v1/projects/oliver-ben/rules` |
 
 Two credentials, neither in the Nix store: the Sapience account token in
@@ -97,11 +99,13 @@ is no password or second factor — so it never belongs in a chat, a commit or a
 
 ```bash
 sf1-hub-ben attach ~/Projects/Sapience/sapience-app
+sf1-hub-ben attach ~/Projects/Sapience/sf1-engine
 ```
 
-This writes `.git/hooks/{pre-commit,post-commit,post-rewrite}` and adds two hook entries to that
+`sapience-app` is the card repo; `sf1-engine` is guarded but never runs cards. Each attach
+writes `.git/hooks/{pre-commit,post-commit,post-rewrite}` and adds two hook entries to that
 repo's `.claude/settings.local.json`, backing up every file it touches byte-for-byte first.
-Then restart Claude Code in that repo, run `/hooks`, and check the guard entry is listed.
+Then restart Claude Code in each repo, run `/hooks`, and check the guard entry is listed.
 
 The hook entries survive a regeneration of that repo's `.claude/` tree — see
 [the generated-tree interaction](#the-guard-and-a-generated-claude-tree) for why that is true
@@ -111,10 +115,14 @@ rather than lucky.
 
 ```bash
 sf1-hub-ben enable ~/Projects/Sapience/sapience-app
+sf1-hub-ben enable ~/Projects/Sapience/sf1-engine
 ```
 
 Type the line it shows, exactly. A second question asks whether to share unpushed branches;
-press Enter to keep that off. One marker per repo.
+pressing Enter keeps it off. It is **on** for both repos here. One marker per repo.
+
+That answer is not recorded in `repos.json` or `manifest.json` — the room holds it, so local
+state cannot be used to check which repos share unpushed work.
 
 It refuses to run from Claude Code, from a script, or without a real terminal, and once the
 guard is attached no Claude Code session can write the marker either.
@@ -141,6 +149,10 @@ CARD for:benjamin repo:<slug> base:<sha> files:<glob> accept:<cmd> cites:none di
 
 A card waits for an explicit `TAKE C-<n>`. Either side can `HOLD C-<n>`.
 
+Those worktrees sit outside any project path, and Sapience activation here is per-repo, so a
+card session sees none of the vault. That is the intent rather than a gap, but it bounds what a
+card can draw on — see [sapience.md](sapience.md).
+
 ## What stays manual, and why
 
 Every step above from the token onward. `enable` refuses a non-TTY, a script and Claude Code
@@ -161,6 +173,14 @@ loop — `Restart=on-failure` still covers a genuine crash, at `RestartSec=30`.
 Cards run in ONE repo. With a single consented repo that is the one; with several, set
 `SF1_HUB_CARD_REPO=<slug>` in `~/.config/sf1-hub-ben/env`.
 
+The unit reads that file through `EnvironmentFile`, so `serve` resolves the card repo. The CLI
+does not: `card_repo()` consults `os.environ` alone, while `PERSON` and `BASE` fall back to the
+env file. So `sf1-hub-ben preflight`, run by hand with two consented repos, refuses with
+`2 consented repos; set SF1_HUB_CARD_REPO=<one of ...> in <env file>` — naming the file it
+declined to read. The refusal is not real and the unit is unaffected; export the variable in the
+shell to check preflight by hand. `sf1-hub-ben status` is unaffected either way, since it
+reports the core's own state, which carries `card_repo`.
+
 That env file is also where `SAPIENCE_TOKEN` lives, and optionally `ANTHROPIC_API_KEY` or
 `OPENROUTER_API_KEY` for the card-plan pair (off without them). The runner never hands any
 `*_TOKEN` or `*_KEY` variable down to a card.
@@ -171,7 +191,8 @@ That env file is also where `SAPIENCE_TOKEN` lives, and optionally `ANTHROPIC_AP
 - Nothing under `~/.claude` except the memory sync below.
 - No working tree. Cards run in worktrees under
   `~/.local/state/sf1-hub-ben/hub/runner/work/`.
-- No unpushed branch, unless opted into per repo at consent time.
+- No unpushed branch by default. Opted into per repo at consent time, which is the case for
+  both repos here.
 
 Outbound hosts in the entire tree are `app.spnc.ai`, plus `openrouter.ai` when an
 `OPENROUTER_API_KEY` is set, which it is not here.
@@ -219,6 +240,14 @@ room would still carry the rulings.
   the commit-time hook covers it.
 - Claude Code hook behaviour has to be re-measured per version. On 2.1.322 a hook that exits 1
   or times out lets the action through, which is why the guard's command ends in `|| exit 2`.
+- The guard enforces nothing until a rule is accepted in the room. Both repos currently cache
+  revision 1 with an empty `kos` list, and `require_accept` is on. Attached mode admits every
+  controlled action silently in that state; only the detached path prints `NO RULES LOADED`. An
+  attached guard with an empty ruleset looks identical to a working one at the point of use.
+- `prepare()` restages the runner files with `shutil.copy2`, which carries the source mode
+  across. From the read-only store the copies land read-only and the next start cannot overwrite
+  them: `PermissionError` on `runner.py`, reported as `core prepare failed`, exit 78. The unit's
+  `ExecStartPre` chmod covers it — see [Upgrading](#upgrading).
 
 ## Stopping it
 
@@ -248,3 +277,8 @@ path moves and the unit picks up the new binary on the next switch.
 
 Check `sf1-hub-ben status` afterwards: `core_sha256` and `guard_sha256` should both change, and
 `consented_repos` should not.
+
+Keep the unit's `ExecStartPre` chmod when editing the module. `prepare()` restages the runner
+files on every start with `shutil.copy2`, so without it the first start after a rebuild succeeds
+and every later one fails with exit 78 — which reads as a consent fault rather than a
+permissions one.

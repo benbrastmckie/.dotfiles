@@ -4,8 +4,8 @@
 # Oliver + Ben room on app.spnc.ai and runs each one in a throwaway git worktree under
 # ~/.local/state/sf1-hub-ben/hub/runner/work/, driven by this machine's own Claude Code login. A
 # per-repo guard, installed as Claude Code hooks plus three .git hooks, blocks edits and commits
-# that break a rule both parties accepted in the room, and fails closed when it cannot reach the
-# rules.
+# that break a rule both parties accepted in the room. When it cannot reach the rules it
+# suspends: the action is blocked and stays blocked until a person runs `guard.py unstop`.
 #
 # This is the missing piece recorded as an open question in the Linux install writeup kept with
 # the client project: `/v1/sf1/delegate` answers 404 from here and no runner module is served
