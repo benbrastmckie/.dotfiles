@@ -53,7 +53,10 @@
         },
         "matches": [],
         "degradation_count": 116
-      }
+      },
+      "dependencies": [
+        140
+      ]
     },
     {
       "project_number": 137,

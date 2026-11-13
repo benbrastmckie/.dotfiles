@@ -11,8 +11,8 @@ next_project_number: 141
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,139,140 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 117,120 | 77,124 | nixos-config, desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,140 | -- | nixos-config, nix-infrastructure, services, ... |
+| 2 | 117,120,139 | 77,124,140 | nixos-config, desktop, sapience |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -56,8 +56,8 @@ next_project_number: 141
 
 ### Sapience
 
-139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
 140 [NOT STARTED] — Diagnose why local llama3.1 inference runs at 0.66 tokens per...
+  └─ 139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
 
 ## Tasks
 
@@ -75,7 +75,7 @@ next_project_number: 141
 - **Status**: [NOT STARTED]
 - **Task Type**: nix
 - **Topic**: sapience
-- **Dependencies**: None
+- **Dependencies**: Task 140
 
 **Description**: Reduce or accept the Sapience extraction classifier cost now that extraction is metered. The classifier re-runs across the entire not-yet-extracted backlog on every run, which was free on the Ollama backend but is now the dominant per-run cost on the anthropic backend. A measured run took 29 minutes wall clock against only 3.5s CPU (entirely network-bound) to extract 71 sources and stage 1208 knowledge objects, with the classifier phase accounting for roughly the first 20 minutes before chunk extraction began. The Known gaps section of docs/sapience.md already records that the classifier classifies every not-yet-extracted session on every run while a backlog exists. Weigh the available levers: setting NO_CLASSIFY=1 (the vendor client comment is that redaction is the privacy guarantee, not this filter, at the cost of no longer filtering personal conversations out), caching classifier verdicts across runs the way source_skip verdicts are already cached in the source_rules.json state file, or accepting the cost and documenting it. Implement whichever is right and record the per-pass cost measurement in the Cost shape section of docs/sapience.md.
 
