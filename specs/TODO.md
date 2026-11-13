@@ -83,11 +83,34 @@ ORDERING CONSTRAINT, HARD. This is the second half of a two-part change. The fir
 /home/benjamin/.config/nvim under the project name `gate_sapience_activation_behind_extension`,
 builds the per-repo activation surface in the extension's source store. This task MUST NOT land
 before that companion task has landed and been verified. Removing the machine-wide surface first
-leaves Sapience off in EVERY repository, including the two that should have it. The constraint
+leaves Sapience off in EVERY repository, including those that should have it. The constraint
 cannot be expressed as a state.json dependency edge, because the companion lives in a different
 repository's numbering space -- so it is recorded here in prose and the companion is referred to
 by its durable project name. Before starting implementation, confirm the companion has completed;
 if it has not, the correct action is to stop and report, not to proceed.
+
+=== THE EXTENSION-LOADED REPO SET (verified on disk 2026-11-13) ===
+
+Every `.claude-extensions.json` under /home/benjamin (maxdepth 4) was read and filtered for an
+`extensions.sapience.status == "active"` entry. FOUR repositories load the sapience extension:
+
+  /home/benjamin/.config/nvim
+  /home/benjamin/.dotfiles
+  /home/benjamin/Projects/abood
+  /home/benjamin/Projects/Sapience/sapience-app
+
+This set is load-bearing in two places and must be propagated to both: the per-project
+`.projects[<path>].mcpServers` registration list this task produces, and acceptance criterion 3
+below.
+
+Path note: the sapience-app checkout MOVED. It now lives at
+`/home/benjamin/Projects/Sapience/sapience-app` (alongside a `sf1-engine` clone under the same
+`Sapience/` parent); `/home/benjamin/Projects/sapience-app` no longer exists. Every absolute-path
+keying -- the `.projects[...]` keys in ~/.claude.json and the transcript-directory keys discussed
+below -- must use the new path.
+
+`~/Projects/cslib` and `~/Projects/Logos/Theory` were re-checked and remain genuinely unloaded;
+they are the negative-test candidates for the verification section.
 
 === WHAT IS BEING REMOVED, AND WHY EACH IS SAFE TO REMOVE ONLY AFTER THE COMPANION LANDS ===
 
@@ -129,23 +152,47 @@ if it has not, the correct action is to stop and report, not to proceed.
 
 === THE OWNER ACTION THIS TASK MUST SPECIFY BUT CANNOT PERFORM ===
 
-`~/.sapience/config.json` has `capture.mode: "opt-in"` and a `folders` allowlist of five
-transcript directories -- `-home-benjamin--config-nvim`, `-home-benjamin--dotfiles`,
-`-home-benjamin-Philosophy-Papers-PossibleWorlds`, `-home-benjamin-Projects-BimodalLogic`,
-`-home-benjamin-Projects-Logos-Verification` -- plus a 10-entry `capture.projects` list. Verified
-against each repo's `.claude-extensions.json`: only `/home/benjamin/.dotfiles` and
-`/home/benjamin/.config/nvim` actually load the sapience extension. `PossibleWorlds`,
-`BimodalLogic` and `Verification` are enabled for capture and are being read and uploaded WITHOUT
-the extension loaded; `Theory`, `Vision`, `Wedding`, `PersonalWebsite` and `Applications` are
-present but disabled.
+`~/.sapience/config.json` (mode 600) carries, as read on disk 2026-11-13:
+
+- A TOP-LEVEL `folders` key -- note it sits at the top level, NOT under `capture` -- holding a
+  five-entry transcript-directory allowlist: `-home-benjamin--config-nvim`,
+  `-home-benjamin--dotfiles`, `-home-benjamin-Philosophy-Papers-PossibleWorlds`,
+  `-home-benjamin-Projects-BimodalLogic`, `-home-benjamin-Projects-Logos-Verification`.
+- `capture.mode: "opt-in"`.
+- `capture.projects`: a 10-entry list of objects shaped `{path_prefix, name, target, enabled}`.
+  Five are `enabled: true` -- `/home/benjamin/Projects/BimodalLogic`, `/home/benjamin/.dotfiles`,
+  `/home/benjamin/Philosophy/Papers/PossibleWorlds`, `/home/benjamin/.config/nvim`,
+  `/home/benjamin/Projects/Logos/Verification`. Five are present but `enabled: false` --
+  `/home/benjamin/Projects/Logos/Vision`, `/home/benjamin/Projects/Logos/Theory`,
+  `/home/benjamin/Documents/Personal/Wedding`, `/home/benjamin/Projects/PersonalWebsite`,
+  `/home/benjamin/Documents/Employment/Applications`.
+- Neither `abood` nor `sapience-app` appears anywhere in that file.
+
+Measured against the four-repo extension-loaded set above, `BimodalLogic`, `PossibleWorlds` and
+`Verification` are being read and uploaded WITHOUT the extension loaded, while `abood` and
+`sapience-app` are extension-loaded but not captured at all.
 
 `~/.sapience/**` is outside every repository's tree and is a genuine OWNER ACTION -- never an
 agent edit -- and note that the payload SELF-UPDATES DAILY, so a hand-patch to a vendor `.py`
 file there would be overwritten. This task's deliverable for that surface is an EXACT, RUNNABLE
-instruction handed to the user (reconciling `folders` and `capture.projects` to exactly the
-extension-loaded set, preserving the `token` field and the file's 600 mode), not a description of
-one and not an edit. Consider whether `sapience-bootstrap`'s own folder picker is the sanctioned
-route rather than a hand-edit, and say which.
+instruction handed to the user, not a description of one and not an edit. The instruction must
+reconcile BOTH keys to exactly the four-repo set:
+
+- `capture.projects`: set `enabled: false` on `/home/benjamin/Projects/BimodalLogic`,
+  `/home/benjamin/Philosophy/Papers/PossibleWorlds` and
+  `/home/benjamin/Projects/Logos/Verification`; ADD `/home/benjamin/Projects/abood` and
+  `/home/benjamin/Projects/Sapience/sapience-app` as enabled entries matching the existing
+  `{path_prefix, name, target, enabled}` shape.
+- top-level `folders`: reduce to the transcript-directory keys of the four loaded repos --
+  `-home-benjamin--config-nvim`, `-home-benjamin--dotfiles`, `-home-benjamin-Projects-abood` and
+  `-home-benjamin-Projects-Sapience-sapience-app`. The last of these does not exist under
+  `~/.claude/projects/` yet (it is created on the first session run from the moved checkout); the
+  stale `-home-benjamin-Projects-sapience-app` key from the pre-move path, if the owner's
+  allowlist ever acquires it, is not the same directory and must not be used.
+
+Preserve the top-level `token` field and the file's 600 mode. Determine and state whether
+`sapience-bootstrap`'s own folder picker is the sanctioned route for this reconciliation rather
+than a hand-edit, and say which.
 
 === VERIFICATION THIS TASK OWNS ===
 
@@ -162,8 +209,21 @@ route rather than a hand-edit, and say which.
   overwrites, and that property must survive the change.
 - A session in a repo WITHOUT the extension (`~/Projects/cslib` and `~/Projects/Logos/Theory` are
   verified-unloaded candidates) must show no `sapience_*` tools, no Sapience grants and no
-  Sapience hook firing. A session in `.dotfiles` or `.config/nvim` must still show all nine tools,
+  Sapience hook firing. A session in any of the four loaded repos must still show all nine tools,
   all eleven grants and all five hooks.
+- SF-1 CARD SESSIONS -- an INTENDED consequence, recorded here so it is not later mistaken for a
+  regression. This repository packages the SF-1 hub runner
+  (`modules/home/services/sf1-hub-ben.nix`, `packages/sf1-hub-ben/`, `docs/sf1-hub.md`; already
+  landed, and with NO file overlap with this task's edit targets). That runner starts Claude Code
+  inside throwaway git worktrees under `~/.local/state/sf1-hub-ben/hub/runner/work/`, which is not
+  any registered project path. Under the current top-level `mcpServers` merge a card session
+  therefore receives all nine `sapience_*` tools and fires all five hooks; once registration moves
+  to per-project scope it will receive NONE. That is correct and desired -- a card is a task
+  written by a collaborator and must not reach the vault. Verify it: start a session in a worktree
+  path under that directory and confirm no `sapience_*` tools, no Sapience grants and no Sapience
+  hook firing. For accuracy, note in the same place that the runner's memory sync is keyed on the
+  CHECKOUT path, not the worktree path, so room rulings still land under the card repo's own
+  Claude Code memory directory regardless of this change.
 
 === DOCUMENTATION THIS TASK OWNS ===
 
@@ -186,10 +246,15 @@ appended to:
    `mcpServers.sapience` merge, no Sapience entry in `permissions.allow`, no Sapience hook in the
    `hooks` object -- each confirmed absent from the LIVE merged files after a switch, not just
    from the repo source.
-3. A verified-unloaded repo gets no tools, no grants and no hook firing; `.dotfiles` and
-   `.config/nvim` keep all nine tools, all eleven grants and all five hooks.
+3. A verified-unloaded repo gets no tools, no grants and no hook firing; all four extension-loaded
+   repos -- `/home/benjamin/.dotfiles`, `/home/benjamin/.config/nvim`,
+   `/home/benjamin/Projects/abood` and `/home/benjamin/Projects/Sapience/sapience-app` -- keep all
+   nine tools, all eleven grants and all five hooks. An SF-1 card session in a worktree under
+   `~/.local/state/sf1-hub-ben/hub/runner/work/` gets no tools, no grants and no hook firing, as
+   intended.
 4. The `~/.sapience/config.json` reconciliation is handed over as an exact, runnable owner
-   instruction, with the sanctioned route (hand-edit versus `sapience-bootstrap`'s picker) named.
+   instruction covering BOTH `capture.projects` and the top-level `folders` allowlist, with the
+   sanctioned route (hand-edit versus `sapience-bootstrap`'s picker) named.
 5. `docs/sapience.md` states the new activation contract with a correct hook count, and the
    rewritten `_SAPIENCE_NOTE` preserves the enforced-key rationale, the `statusLine` ruling and
    the deliberately-unwired-`sapience_cli.py`-hooks ruling.
