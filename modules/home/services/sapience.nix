@@ -9,9 +9,13 @@
 # this repo -- every client falls back to ~/.sapience/config.json when SAPIENCE_TOKEN is unset.
 # See docs/sapience.md.
 #
-# Note: the Claude Code hooks and mcp__sapience__* grants live in config/claude/settings.json
-# because `hooks` and `permissions` are enforced keys in home.activation.claudeSettings;
-# `statusLine` is deliberately left to hooks/statusline-push.sh. See docs/sapience.md.
+# Note: the Claude Code hooks and mcp__sapience__* grants live in the sapience extension's
+# settings-fragment.json (agent-system/extensions/sapience/ in the nvim repository), merged into
+# each repository that loads that extension; `statusLine` is deliberately left to
+# hooks/statusline-push.sh. `hooks` and `permissions` are enforced keys in
+# home.activation.claudeSettings, which is exactly why this repository keeps one Sapience
+# `SessionStart` entry here -- the per-project MCP-registration hook -- rather than relying on
+# the extension's own installer to make it durable. See docs/sapience.md.
 #
 # Module shape follows services/cache-cleanup.nix and services/claude-session-reaper.nix:
 # oneshot plus timer, explicit PATH export, and every external call guarded so a transient
@@ -46,9 +50,10 @@ let
   # sapience_cli.py is absent from the vendor's own CLIENT_FILES tuple, so `sapience update`
   # neither fetches nor refreshes it; seeding it here is the only way it arrives. It then keeps
   # itself current, checking its own digest against /v1/client/version once a day after a turn
-  # ends. Its Claude Code hooks live in config/claude/settings.json rather than being written by
-  # `sapience cli on`: `hooks` is an enforced key, so a vendor-written entry would be reverted by
-  # the next home-manager switch.
+  # ends. Its Claude Code hooks live in the sapience extension's settings-fragment.json, merged
+  # per repository that loads the extension, rather than being written by `sapience cli on`:
+  # `hooks` is an enforced key in this repository's own settings file, so a vendor-written entry
+  # there would be reverted by the next home-manager switch regardless.
   optionalPayload = [
     "sapience_devin.py"
     "sf1.py"
@@ -780,16 +785,6 @@ in
       '';
     };
 
-    registerMcpServer = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = ''
-        Merge mcpServers.sapience into ~/.claude.json at user scope, so Claude Code sessions can
-        search and ask the vault. Token is read at activation from config.json, never from the
-        store. Set false to leave ~/.claude.json untouched.
-      '';
-    };
-
     desktopEntry = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -928,12 +923,15 @@ in
         #
         # sapience-bootstrap rejects that paste at the source, but config.json is mutable state the
         # vendor client and the web onboarding also write, so the repair belongs here too. Every
-        # consumer reads the field verbatim -- including sapienceMcpServer below, which copies it
-        # into ~/.claude.json -- so one link-shaped value breaks Claude Code's sapience tools as
-        # well as the sync, and the server's answers name neither cause: 401 on /v1/stats, and 403
-        # "an invite code is needed to build a new Sapience" on /ingest-kos, because a token that
-        # opens no brain reads server-side as a request to create one. Ordered before
-        # sapienceMcpServer so the registration always copies a repaired value.
+        # consumer reads the field verbatim -- including the per-project MCP-registration writer
+        # ($HOME/.claude/scripts/setup-sapience-mcp.sh, installed by the sapience extension's
+        # installer and invoked by the durable `SessionStart` hook in
+        # config/claude/settings.json), which reads this same token field to register Claude
+        # Code's sapience tools in each repository that loads the extension -- so one link-shaped
+        # value would break those tools as well as the sync, and the server's answers name
+        # neither cause: 401 on /v1/stats, and 403 "an invite code is needed to build a new
+        # Sapience" on /ingest-kos, because a token that opens no brain reads server-side as a
+        # request to create one.
         # See docs/sapience.md.
         sapienceTokenRepair = config.lib.dag.entryAfter [ "writeBoundary" "sapiencePayload" ] ''
           if [[ -v DRY_RUN ]]; then
@@ -1012,51 +1010,6 @@ in
           ''
         );
 
-        # Registers without a token until config.json has one, since mcp.py falls back to that file;
-        # the env entry exists so `sapience status` reports matching per-surface fingerprints.
-        # Ordered after claudeMcpServers, which merges into the same ~/.claude.json -- either order
-        # is correct, the edge just makes that independence intentional. See docs/sapience.md.
-        sapienceMcpServer = lib.mkIf cfg.registerMcpServer (
-          config.lib.dag.entryAfter
-            [
-              "writeBoundary"
-              "claudeMcpServers"
-              "sapiencePayload"
-              "sapienceTokenRepair"
-            ]
-            ''
-              claudeJson="${config.home.homeDirectory}/.claude.json"
-              if [[ -v DRY_RUN ]]; then
-                echo "Would merge mcpServers.sapience into $claudeJson"
-              else
-                sapToken=""
-                if [ -r "${configFile}" ]; then
-                  sapToken="$(${pkgs.jq}/bin/jq -r '.token // ""' "${configFile}" 2>/dev/null || true)"
-                fi
-                [ -f "$claudeJson" ] || echo '{}' > "$claudeJson"
-                tmpFile="$(${pkgs.coreutils}/bin/mktemp "${config.home.homeDirectory}/.claude.json.XXXXXX")"
-                if ${pkgs.jq}/bin/jq \
-                  --arg tok "$sapToken" \
-                  --arg py "${python}" \
-                  --arg script "${stateDir}/mcp.py" \
-                  --arg host "${cfg.host}" \
-                  '.mcpServers.sapience = ({
-                     type: "stdio",
-                     command: $py,
-                     args: [$script],
-                     env: ({ SAPIENCE_HOST: $host }
-                           + (if ($tok | length) > 0 then { SAPIENCE_TOKEN: $tok } else {} end))
-                   })' \
-                  "$claudeJson" > "$tmpFile"; then
-                  ${pkgs.coreutils}/bin/mv "$tmpFile" "$claudeJson"
-                  ${pkgs.coreutils}/bin/chmod u+w "$claudeJson"
-                else
-                  ${pkgs.coreutils}/bin/rm -f "$tmpFile"
-                  echo "sapience: could not merge mcpServers.sapience into $claudeJson"
-                fi
-              fi
-            ''
-        );
       };
     };
 

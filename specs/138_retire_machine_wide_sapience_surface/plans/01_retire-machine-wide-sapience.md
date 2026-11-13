@@ -206,7 +206,7 @@ first three is a STOP condition and a mismatch on the command string redirects P
 
 ---
 
-### Phase 2: Remove the top-level MCP registration from the nix module [NOT STARTED]
+### Phase 2: Remove the top-level MCP registration from the nix module [COMPLETED]
 
 **Goal**: Delete the only activation surface that merges `mcpServers.sapience` into the top level
 of `~/.claude.json`, together with the option that gates it, and reconcile every comment in that
