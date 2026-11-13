@@ -11,8 +11,8 @@ next_project_number: 139
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,138 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 117,120,136 | 77,124,138 | nixos-config, services, desktop |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136 | -- | nixos-config, nix-infrastructure, services, ... |
+| 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -54,19 +54,16 @@ next_project_number: 139
 41 [BLOCKED] — reenable\_pdf2docx\_nixpkgs\_fix
 42 [BLOCKED] — reenable\_jupytext\_nixpkgs\_fix
 
-### Sapience
-
-138 [PLANNED] — Retire the machine-wide Sapience surface so the extension's...
-
 ## Tasks
 
 ### 138. Retire the machine-wide Sapience surface so the extension's per-repo gating is the only activation path
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: sapience
 - **Dependencies**: None
 - **Research**: [138_retire_machine_wide_sapience_surface/reports/01_retire-machine-wide-sapience.md]
 - **Plan**: [138_retire_machine_wide_sapience_surface/plans/01_retire-machine-wide-sapience.md]
+- **Summary**: [modules/home/services/sapience.nix]
 
 **Description**: GOAL. Retire every machine-wide Sapience ACTIVATION surface this repository owns, so that loading
 the sapience extension into a repo is the ONLY thing that turns Sapience on there, and unloading
