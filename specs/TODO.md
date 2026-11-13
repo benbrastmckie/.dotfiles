@@ -37,7 +37,7 @@ next_project_number: 141
 43 [RESEARCHED] — install\_forgejo\_self\_hosted\_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep...
 131 [NOT STARTED] — Install claude-refresh timer via home-manager and make mako...
-136 [PLANNED] — Measure Sapience capture coverage under manual extraction and...
+136 [IMPLEMENTING] — Measure Sapience capture coverage under manual extraction and...
 
 ### Desktop
 
@@ -491,7 +491,7 @@ is closed rather than left open.
 ---
 
 ### 136. Measure Sapience capture coverage under manual extraction and decide whether to widen the scope, the cap, or the cadence
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: general
 - **Topic**: services
 - **Dependencies**: Task 138

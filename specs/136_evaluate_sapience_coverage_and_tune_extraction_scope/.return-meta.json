@@ -1,30 +1,10 @@
 {
-  "status": "planned",
-  "dispatch_seq": 6,
-  "artifacts": [
-    {
-      "type": "plan",
-      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/02_coverage-measurement-series-and-decision.md",
-      "summary": "Eight-phase plan for the five-pass Sapience coverage measurement series and the extraction-scope decision, reframed onto the live Anthropic backend after premise re-validation found the research report's HTTP 402 blocker already resolved by commit 2b713bf and all of its figures superseded."
-    }
-  ],
-  "next_steps": "Run /orchestrate 136 to execute the plan. Phase 1 (re-baseline on the anthropic backend and open the measurement ledger) is runnable immediately; phases 2-5 are one extraction pass each and are gated on at least 24 hours elapsing since the previous pass, so this task will legitimately span at least seven calendar days and several /orchestrate invocations rather than completing in one run.",
+  "status": "in_progress",
+  "dispatch_seq": 7,
   "metadata": {
-    "session_id": "sess_1794603135_b69781_136",
-    "agent_type": "planner-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
-    "phase_count": 8,
-    "estimated_hours": 9.5,
-    "dependency_waves": [[1], [2], [3], [4], [5], [6], [7], [8]]
-  },
-  "memory_candidates": [
-    {
-      "content": "When a task's prior-phase artifact records a blocking external failure plus a user_decision, the blocker may already have been resolved by a route none of the decision's options named. Task 136's research report set a blocking user_decision on Ollama cloud billing after all 50 chunk-extraction calls returned HTTP 402; by the next dispatch the user had instead migrated the whole backend (programs.sapience.backend ollama -> anthropic, commit 2b713bf), which discharged the decision's stated obligation without selecting any offered option. Planning from the report unchecked would have produced a plan for a backend that no longer existed. The general pattern: a plan dispatch's premise re-validation must check the blocker's stated OBLIGATION against live state, not just look for an answer to the question in .decisions.json -- an obligation can be discharged by an unlisted route, which leaves no entry in the decisions file at all. The corollary is that when the backend changes, the measurement's binding constraint can change too: here the question moved from 'can 50 chunks per pass drain the backlog' to 'one pass stages 1208 objects against a 2000/day cap, costs money per call, and leaves a 1208-deep unreviewed queue'.",
-      "category": "INSIGHT",
-      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/02_coverage-measurement-series-and-decision.md",
-      "confidence": 0.85,
-      "suggested_keywords": ["premise-revalidation", "user-decision-obligation", "unlisted-resolution-route", "stale-research-figures", "plan-dispatch"]
-    }
-  ]
+    "session_id": "sess_1794603135_b69781",
+    "agent_type": "general-implementation-agent",
+    "delegation_depth": 2,
+    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"]
+  }
 }

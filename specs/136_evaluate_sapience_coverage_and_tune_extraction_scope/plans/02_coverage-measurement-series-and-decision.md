@@ -1,7 +1,7 @@
 # Implementation Plan: Sapience coverage measurement series and extraction-scope decision
 
 - **Task**: 136 - Measure Sapience capture coverage under manual extraction and decide whether to widen the scope, the cap, or the cadence
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 9.5 hours of attended work, spread across at least 7 calendar days
 - **Dependencies**: 138 (owner-action reconciliation of `~/.sapience/config.json`) -- confirmed applied live, see Premise Re-Validation below
 - **Research Inputs**:
@@ -183,43 +183,43 @@ itself a measurement requirement.
 
 ---
 
-### Phase 1: Re-baseline on the Anthropic Backend and Open the Measurement Ledger [NOT STARTED]
+### Phase 1: Re-baseline on the Anthropic Backend and Open the Measurement Ledger [COMPLETED]
 
 **Goal**: Establish the post-migration baseline against the correct population, create the ledger
 every later phase appends to, and retro-record the one pass that has already succeeded.
 
 **Tasks**:
 
-- [ ] Create `specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md`
+- [x] Create `specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md`
       with a fixed per-pass block shape, so every later phase records the same fields: pass number;
       ISO 8601 UTC timestamp; invocation path used; wall clock from `systemctl --user status`; chunk
       count; objects staged; `sapience pending` before and after; the `Available on disk` total and
       all five sub-counters verbatim before and after; the `Per-run extraction cap` line; the
       `Folders selected` line; the day's `sapience yield` line against the 2000-objects/day cap;
       every `extract error:` line from the journal (with an explicit `0 errors` when there are none);
-      and the redaction / set-aside counts.
-- [ ] Confirm the live backend wiring before taking any reading, recording all three verbatim:
+      and the redaction / set-aside counts. *(completed)*
+- [x] Confirm the live backend wiring before taking any reading, recording all three verbatim:
       `jq -c '{backend, model, api_key_env}' ~/.sapience/config.json`; the `ExecStart` script's
       `--backend`/`--model` flags via `systemctl --user cat sapience-sync.service` and a read of the
-      script it names; and the `Backend:` line of `sapience coverage`.
-- [ ] Record, without changing either file, the one live residue of the report's model-mismatch
+      script it names; and the `Backend:` line of `sapience coverage`. *(completed)*
+- [x] Record, without changing either file, the one live residue of the report's model-mismatch
       finding: `~/.sapience/config.json` carries `"model": null` while `home.nix` sets
       `model = "claude-haiku-4-5"`. State which invocation path each value governs -- the systemd
       unit passes `--model` explicitly so it is unaffected, while the bare CLI falls through to
       `extract_local.py:188`'s own per-backend default (`claude-haiku-4-5-20251001` for anthropic).
       Note whether the two models differ in any way that would make a bare-CLI pass
-      non-comparable with a unit pass.
-- [ ] Capture a fresh `sapience coverage` and `sapience pending` as the Pass-0 baseline block,
-      verbatim, with timestamp.
-- [ ] Verify the five `Available on disk` sub-counters sum to the `Available on disk` total and
+      non-comparable with a unit pass. *(completed)*
+- [x] Capture a fresh `sapience coverage` and `sapience pending` as the Pass-0 baseline block,
+      verbatim, with timestamp. *(completed)*
+- [x] Verify the five `Available on disk` sub-counters sum to the `Available on disk` total and
       record the arithmetic in the block. A mismatch is itself a finding -- record it rather than
-      reconciling it silently.
-- [ ] Retro-record Pass 1 from `journalctl --user -u sapience-sync --since 2026-11-13`: the run
+      reconciling it silently. *(completed: 78+0+30+904+145 = 1157, matches exactly)*
+- [x] Retro-record Pass 1 from `journalctl --user -u sapience-sync --since 2026-11-13`: the run
       starting `11:37:47` and finishing `12:06:52`. Mark the block explicitly as reconstructed from
       the journal, and state that no before/after coverage pair was captured around it, so phase 7
-      knows it yields a cost/duration datum but not a drain-rate datum.
-- [ ] Record in the ledger that `reports/02_baseline-and-extraction-backend-blocked.md`'s figures
-      are superseded by the anthropic migration and must not be carried forward.
+      knows it yields a cost/duration datum but not a drain-rate datum. *(completed)*
+- [x] Record in the ledger that `reports/02_baseline-and-extraction-backend-blocked.md`'s figures
+      are superseded by the anthropic migration and must not be carried forward. *(completed)*
 
 **Timing**: 45-60 minutes
 
