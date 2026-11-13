@@ -12,7 +12,7 @@ next_project_number: 141
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
 | 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,140 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 117,120,139 | 77,124,140 | nixos-config, desktop, sapience |
+| 2 | 117,120,139 | 77,124,136,140 | nixos-config, desktop, sapience |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -37,7 +37,7 @@ next_project_number: 141
 43 [RESEARCHED] — install\_forgejo\_self\_hosted\_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep...
 131 [NOT STARTED] — Install claude-refresh timer via home-manager and make mako...
-136 [RESEARCHING] — Measure Sapience capture coverage under manual extraction and...
+136 [PLANNED] — Measure Sapience capture coverage under manual extraction and...
 
 ### Desktop
 
@@ -75,7 +75,7 @@ next_project_number: 141
 - **Status**: [NOT STARTED]
 - **Task Type**: nix
 - **Topic**: sapience
-- **Dependencies**: Task 140
+- **Dependencies**: Task 136, Task 140
 
 **Description**: Reduce or accept the Sapience extraction classifier cost now that extraction is metered. The classifier re-runs across the entire not-yet-extracted backlog on every run, which was free on the Ollama backend but is now the dominant per-run cost on the anthropic backend. A measured run took 29 minutes wall clock against only 3.5s CPU (entirely network-bound) to extract 71 sources and stage 1208 knowledge objects, with the classifier phase accounting for roughly the first 20 minutes before chunk extraction began. The Known gaps section of docs/sapience.md already records that the classifier classifies every not-yet-extracted session on every run while a backlog exists. Weigh the available levers: setting NO_CLASSIFY=1 (the vendor client comment is that redaction is the privacy guarantee, not this filter, at the cost of no longer filtering personal conversations out), caching classifier verdicts across runs the way source_skip verdicts are already cached in the source_rules.json state file, or accepting the cost and documenting it. Implement whichever is right and record the per-pass cost measurement in the Cost shape section of docs/sapience.md.
 
@@ -491,10 +491,12 @@ is closed rather than left open.
 ---
 
 ### 136. Measure Sapience capture coverage under manual extraction and decide whether to widen the scope, the cap, or the cadence
-- **Status**: [RESEARCHING]
+- **Status**: [PLANNED]
 - **Task Type**: general
 - **Topic**: services
 - **Dependencies**: Task 138
+- **Research**: [136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/02_baseline-and-extraction-backend-blocked.md]
+- **Plan**: [136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/02_coverage-measurement-series-and-decision.md]
 
 **Description**: GOAL. Measure how much of this machine's session history Sapience actually captures, and decide
 from that measurement whether to widen the extraction scope, raise the per-run chunk cap, put

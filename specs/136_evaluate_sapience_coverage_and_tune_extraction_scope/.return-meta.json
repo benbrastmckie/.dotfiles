@@ -1,75 +1,30 @@
 {
-  "status": "partial",
-  "dispatch_seq": 5,
+  "status": "planned",
+  "dispatch_seq": 6,
   "artifacts": [
     {
-      "type": "report",
-      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/02_baseline-and-extraction-backend-blocked.md",
-      "summary": "Confirms task 138's config.json reconciliation is live, captures the correct post-138 baseline (74 would-ingest-now of 1133, MAX_CHUNKS=50, pending=0), and documents that pass 1 failed both documented ways: the systemd-unit path's 50 calls to gemma4:cloud all returned HTTP 402 Payment Required, and the bare CLI's sync subcommand silently defaults to a local llama3.1 model that did not finish a chunk in 580s."
-    },
-    {
-      "type": "handoff",
-      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/research-handoff-20261113T170500Z.md",
-      "summary": "Names the exact next action (wait for the billing user_decision, then re-run the systemd-unit pass and record coverage/pending) and the pitfalls already ruled out this dispatch."
+      "type": "plan",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/02_coverage-measurement-series-and-decision.md",
+      "summary": "Eight-phase plan for the five-pass Sapience coverage measurement series and the extraction-scope decision, reframed onto the live Anthropic backend after premise re-validation found the research report's HTTP 402 blocker already resolved by commit 2b713bf and all of its figures superseded."
     }
   ],
-  "next_steps": "User resolves (or confirms transient) the Ollama cloud billing issue behind the HTTP 402 errors on gemma4:cloud, per the user_decision below; then re-dispatch /orchestrate 136 --research to run pass 1 properly via 'systemctl --user start sapience-sync.service' and continue the required five-pass series.",
-  "user_decision": {
-    "question": "Pass 1 of task 136's required extraction series failed both documented ways: the systemd-unit path (model gemma4:cloud, the one actually wired to home.nix's configured model) had all 50 chunk-extraction calls fail with 'HTTP Error 402: Payment Required' from Ollama's cloud endpoint; the bare 'sapience sync' CLI silently falls back to a local llama3.1 model whose cold start did not finish a single chunk in 580 seconds. Neither path currently produces real findings. How should the extraction backend be fixed before the five-pass series continues?",
-    "options": [
-      "Check and fix the Ollama cloud account/billing behind OLLAMA_API_KEY so gemma4:cloud (documented in home.nix as free) stops returning 402, then resume via the systemd-unit path",
-      "Switch programs.sapience.model to a different model confirmed funded/free on the live Ollama account, then resume via the systemd-unit path",
-      "Accept the local-only llama3.1 fallback (no cloud dependency) by passing --model llama3.1 --backend ollama explicitly, and verify in an uninterrupted run (ideally by the user, in an interactive terminal) whether it completes a pass in practical time",
-      "Pause task 136 until the extraction backend is confirmed working by some other means"
-    ],
-    "recommended": "Check and fix the Ollama cloud account/billing behind OLLAMA_API_KEY so gemma4:cloud (documented in home.nix as free) stops returning 402, then resume via the systemd-unit path",
-    "blocking": true,
-    "obligation": "Makes at least one of the two ways this task's own dispatch names to run a hand-run pass ('sapience sync' or 'systemctl --user start sapience-sync.service') actually complete chunk extractions successfully, rather than failing every call or stalling indefinitely, so the required five-pass coverage series can produce real, non-zero coverage/pending deltas to measure."
-  },
-  "errors": [
-    {
-      "type": "execution",
-      "message": "All 50 chunk-extraction HTTP calls to Ollama's cloud endpoint for model gemma4:cloud returned 'HTTP Error 402: Payment Required' during the systemd-unit pass-1 attempt (journalctl -u sapience-sync), despite home.nix documenting this model as free.",
-      "recoverable": true,
-      "recommendation": "User checks the Ollama account billing/quota state for the key in OLLAMA_API_KEY, or switches programs.sapience.model to a confirmed-funded model, then re-dispatch /orchestrate 136 --research."
-    },
-    {
-      "type": "execution",
-      "message": "Bare 'sapience sync' (no --model flag) defaults to extract_local.py's own 'llama3.1' ollama-backend default rather than home.nix's configured 'gemma4:cloud', and cold-started a local single-threaded CPU llama-server that had not completed one chunk after 580 seconds.",
-      "recoverable": true,
-      "recommendation": "Pass --model gemma4:cloud --backend ollama explicitly when hand-running via the bare CLI, or fix the CLI wrapper to pass it by default; alternatively run it uninterrupted in an interactive terminal to learn its real completion time."
-    }
-  ],
+  "next_steps": "Run /orchestrate 136 to execute the plan. Phase 1 (re-baseline on the anthropic backend and open the measurement ledger) is runnable immediately; phases 2-5 are one extraction pass each and are gated on at least 24 hours elapsing since the previous pass, so this task will legitimately span at least seven calendar days and several /orchestrate invocations rather than completing in one run.",
   "metadata": {
-    "session_id": "sess_1794559396_95f48e_136",
-    "agent_type": "general-research-agent",
-    "duration_seconds": 1100,
+    "session_id": "sess_1794603135_b69781_136",
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "general-research-agent"],
-    "findings_count": 6,
-    "issue_log_contribution": 5
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 8,
+    "estimated_hours": 9.5,
+    "dependency_waves": [[1], [2], [3], [4], [5], [6], [7], [8]]
   },
   "memory_candidates": [
     {
-      "content": "On this machine, sapience's two documented ways to hand-run a pass are not equivalent: systemctl --user start sapience-sync.service's deployed unit script passes --model gemma4:cloud explicitly, while the bare 'sapience sync' CLI wrapper passes no --model flag at all, so extract_local.py falls back to its own per-backend default ('llama3.1' for the ollama backend) instead of home.nix's programs.sapience.model. Always pass --model/--backend explicitly when hand-running via the bare CLI, or check which path is being used before trusting a coverage reading's timing.",
-      "category": "PATTERN",
-      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/02_baseline-and-extraction-backend-blocked.md",
-      "confidence": 0.9,
-      "suggested_keywords": ["sapience", "sapience-sync", "model-default", "ollama", "cli-wrapper"]
-    },
-    {
-      "content": "sapience coverage's own summary line ('N chunks in 1 run') can look like a successful extraction while every underlying HTTP call actually failed (e.g. 402 Payment Required) -- the summary line counts attempted calls, not successful ones. journalctl --user -u sapience-sync is the authoritative source for whether a pass actually produced anything; check it before trusting coverage's timing or chunk count as a throughput signal.",
+      "content": "When a task's prior-phase artifact records a blocking external failure plus a user_decision, the blocker may already have been resolved by a route none of the decision's options named. Task 136's research report set a blocking user_decision on Ollama cloud billing after all 50 chunk-extraction calls returned HTTP 402; by the next dispatch the user had instead migrated the whole backend (programs.sapience.backend ollama -> anthropic, commit 2b713bf), which discharged the decision's stated obligation without selecting any offered option. Planning from the report unchecked would have produced a plan for a backend that no longer existed. The general pattern: a plan dispatch's premise re-validation must check the blocker's stated OBLIGATION against live state, not just look for an answer to the question in .decisions.json -- an obligation can be discharged by an unlisted route, which leaves no entry in the decisions file at all. The corollary is that when the backend changes, the measurement's binding constraint can change too: here the question moved from 'can 50 chunks per pass drain the backlog' to 'one pass stages 1208 objects against a 2000/day cap, costs money per call, and leaves a 1208-deep unreviewed queue'.",
       "category": "INSIGHT",
-      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/02_baseline-and-extraction-backend-blocked.md",
+      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/02_coverage-measurement-series-and-decision.md",
       "confidence": 0.85,
-      "suggested_keywords": ["sapience", "coverage", "journalctl", "silent-failure", "402"]
-    },
-    {
-      "content": "sapience coverage's 'Ingested: ... across N repos' line lists repos with historical vault content from before any config change, not the live folder selection -- the 'Folders selected (N): ...' line is the authoritative live selection. Easy to misread the two as the same thing when a reconciliation just changed which folders are selected.",
-      "category": "INSIGHT",
-      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/02_baseline-and-extraction-backend-blocked.md",
-      "confidence": 0.7,
-      "suggested_keywords": ["sapience", "coverage", "folders-selected", "ingested", "stale-reading"]
+      "suggested_keywords": ["premise-revalidation", "user-decision-obligation", "unlisted-resolution-route", "stale-research-figures", "plan-dispatch"]
     }
   ]
 }
