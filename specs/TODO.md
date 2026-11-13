@@ -37,7 +37,7 @@ next_project_number: 139
 43 [RESEARCHED] — install\_forgejo\_self\_hosted\_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep...
 131 [NOT STARTED] — Install claude-refresh timer via home-manager and make mako...
-136 [NOT STARTED] — Evaluate Sapience vault coverage after a week of real hourly...
+136 [NOT STARTED] — Measure Sapience capture coverage under manual extraction and...
 
 ### Desktop
 
@@ -466,13 +466,90 @@ is closed rather than left open.
 
 ---
 
-### 136. Evaluate sapience coverage and tune extraction scope
+### 136. Measure Sapience capture coverage under manual extraction and decide whether to widen the scope, the cap, or the cadence
 - **Status**: [NOT STARTED]
 - **Task Type**: general
 - **Topic**: services
 - **Dependencies**: Task 138
 
-**Description**: Evaluate Sapience vault coverage after a week of real hourly runs and tune the extraction scope accordingly. Two independent filters drop transcripts: an overridable predicate requiring two distinct substantive human turns (reported as skipped headless/agent, widened per-run by --include-agents or SAPIENCE_INCLUDE_HEADLESS), and a non-overridable source_skip() rule that classifies transcripts as subagent or harness-started and never reads them. On an orchestration-heavy workflow the second removes more than the first, so measured coverage may be far below the session counts the folder picker shows. Separately, MAX_CHUNKS defaults to 50 per run against a backlog of roughly 198 sources, so decide whether the hourly cadence catches up or a wider backfill is needed. Collect sapience coverage and pending output over several days, review what the vault actually holds, then decide whether to add a programs.sapience.includeAgentSessions option wiring SAPIENCE_INCLUDE_HEADLESS into the sync unit, adjust the cap, or leave both as they are. Requires observation over time, not a one-shot change.
+**Description**: GOAL. Measure how much of this machine's session history Sapience actually captures, and decide
+from that measurement whether to widen the extraction scope, raise the per-run chunk cap, put
+extraction on a schedule, or leave the arrangement as it stands. The deliverable is a decision
+grounded in collected numbers, not a configuration change chosen up front.
+
+BASELINE STARTS AFTER TASK 138. Task 138 (`retire_machine_wide_sapience_surface`) rewrites
+exactly what Sapience captures. Its owner-action instruction reconciles `~/.sapience/config.json`
+so that `/home/benjamin/Projects/BimodalLogic`, `/home/benjamin/Philosophy/Papers/PossibleWorlds`
+and `/home/benjamin/Projects/Logos/Verification` are set `enabled: false` for capture, so that
+`/home/benjamin/Projects/abood` and `/home/benjamin/Projects/Sapience/sapience-app` are added as
+enabled entries, and so that the top-level `folders` allowlist is reduced to the
+transcript-directory keys of the four repositories that actually load the sapience extension.
+That reconciliation changes the source population this task exists to measure. A coverage or
+pending figure collected before it is applied characterises a corpus that is about to be
+discarded, and any MAX_CHUNKS or coverage conclusion drawn from such a figure rests on the wrong
+denominator. The measurement window therefore opens only once 138's reconciliation is applied on
+disk; readings taken before that point are not usable as a baseline. Record in this task's
+artifacts how the reconciliation was confirmed applied before the first reading was taken.
+
+NOTHING EXTRACTS ON A SCHEDULE. `programs.sapience.backgroundSync` defaults to false and
+`home.nix` does not set it, so no `sapience-sync.timer` is installed and nothing reads a
+transcript unless asked -- see `docs/sapience.md`, "Nothing extracts on a schedule". The two ways
+to run a pass are `sapience sync` in a terminal and `systemctl --user start
+sapience-sync.service` for a detached run that logs to the journal. The measurement is therefore
+a series of hand-run passes; there is no cadence to observe passively.
+
+METHOD.
+
+1. Measure the current backlog first, after 138 has landed. Run `sapience coverage` and record
+   its "Available on disk" block verbatim: "would ingest now", "skipped (outside Nd window)",
+   "skipped (headless/agent)", "skipped (subagent / harness-started transcripts)", "skipped
+   (folder not chosen)", together with the "Per-run extraction cap: N chunks (MAX_CHUNKS)" line
+   and the folders-selected line. Run `sapience pending` and record it too. These readings are
+   the baseline; take the backlog size from this measurement rather than from any figure carried
+   in from elsewhere.
+2. Run at least five extraction passes by hand, spaced at least a day apart and spanning at least
+   a week of ordinary work, so each pass has fresh transcripts to find and the drain rate is
+   observable rather than inferred from a single run. Capture `sapience coverage` and `sapience
+   pending` after every pass, along with that run's own skip counts.
+3. After the series, review what the vault actually holds -- not only the counters. Read through
+   `sapience review` output and spot-check that the captured material is substantive work rather
+   than thread mechanics.
+
+WHAT THE FILTERS DO. Two independent filters drop transcripts, and telling them apart is the
+point of the measurement.
+
+- An overridable interactivity predicate (`_interactive` in `~/.sapience/upload.py`) requires at
+  least two DISTINCT substantive human turns -- each at least 20 characters and not beginning
+  with `<`, `[` or `{`. Transcripts failing it are reported as "skipped (headless/agent)" and can
+  be kept for a single run with `--include-agents` or `SAPIENCE_INCLUDE_HEADLESS=1`.
+- A non-overridable rule (`source_skip` in the same file) classifies a transcript as `subagent`
+  or `harness-started` and never reads it. The client says so outright: the skip message states
+  that `SAPIENCE_INCLUDE_HEADLESS=1` does not override this. These appear in coverage output as
+  "skipped (subagent / harness-started transcripts)".
+
+On an orchestration-heavy workflow the second filter removes more than the first, so measured
+coverage can fall far below the session counts the folder picker shows. `sapience coverage`
+reports the two counts separately, and which one dominates drives the decision below.
+
+THE CHUNK CAP. `MAX_CHUNKS` defaults to 50 per run (`~/.sapience/upload.py`,
+`~/.sapience/extract_local.py`). Whether 50 chunks per hand-run pass drains the measured backlog
+at a useful rate, or whether a wider pass is needed (`sapience backfill 365` raises the cap and
+widens the window for one pass), is a question this task answers from the measured backlog.
+
+CANDIDATE OUTCOMES. Any combination of these, or none:
+
+- Add a `programs.sapience.includeAgentSessions` option wiring `SAPIENCE_INCLUDE_HEADLESS` into
+  the sync unit, if the headless/agent skip count is large and that material proves worth
+  keeping.
+- Adjust the per-run chunk cap, or prescribe a periodic wider backfill pass, if 50 per pass
+  cannot keep up with the measured backlog.
+- Turn on `programs.sapience.backgroundSync` (with `syncInterval`, default "hourly") so
+  extraction runs on a timer, if hand-running proves too easy to forget. This is one candidate
+  outcome among several, weighed against the stated reason the default is false: extraction
+  spends real money or CPU per run.
+- Leave all three as they are.
+
+This requires observation over time, not a one-shot change.
 
 ---
 
