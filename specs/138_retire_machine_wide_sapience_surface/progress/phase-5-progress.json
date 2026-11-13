@@ -1,0 +1,19 @@
+{
+  "phase": 5,
+  "phase_name": "Produce the owner instruction and the cross-repo coordination record",
+  "started_at": "2026-11-13T09:56:00Z",
+  "last_updated": "2026-11-13T10:05:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Phase 5 - owner instruction and nvim-sited followups records",
+      "status": "completed",
+      "files_touched": [
+        "specs/138_retire_machine_wide_sapience_surface/records/02_sapience-config-owner-instruction.md",
+        "specs/138_retire_machine_wide_sapience_surface/records/03_nvim-sited-followups.md"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

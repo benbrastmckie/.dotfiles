@@ -477,7 +477,7 @@ to catch any site this enumeration missed.
 
 ---
 
-### Phase 5: Produce the owner instruction and the cross-repo coordination record [NOT STARTED]
+### Phase 5: Produce the owner instruction and the cross-repo coordination record [COMPLETED]
 
 **Goal**: Hand the owner one exact, runnable instruction that reconciles `~/.sapience/config.json`
 to the four-repository extension-loaded set across BOTH keys, with the sanctioned route named; and
