@@ -1,0 +1,584 @@
+#!/usr/bin/env python3
+"""sf1-hub-ben: Ben's per-person SF-1 hub runner, Linux / NixOS platform layer (2026-11-12, hub phase B, Ben's side).
+
+This file is ONLY the platform layer: consent, kill switch, guard attach per checkout, systemd user unit, manifest.
+The protocol lives in two shared pieces this file never re-implements:
+  - the guard (oliver-ben-guard/guard.py, vendored byte-for-byte, sha in vendor.lock.json)
+  - the shared hub runner core (sf1-v2/hub-runner/runner.py + deny_hook.py + room_member.py at branch
+    sf1-hub-runner-oliver-1112 commit bb49e68c2, vendored byte-for-byte), the same bytes Oliver's macOS runner runs.
+    hub_core_linux.py (platform layer, next to this file) runs it on Linux without editing it. If the shared prereg
+    changes the protocol, re-vendor; never patch the vendored files.
+
+Commands (no command prints or reads out a key):
+  status                      what is installed, consented, attached, killed; no network
+  token                       HUMAN ONLY: paste your private link; saves your own Sapience token (600), never printed
+  attach <checkout> [--project <slug>] [--rules <source>] [--sink <sink>]
+                              defaults (0.2.1): rules hub-route:https://app.spnc.ai/v1/projects/oliver-ben/rules,
+                              sink hosted-events:https://app.spnc.ai/v1/rooms/<room>/events, key_file = your token
+                              install the guard (attached mode) into ONE checkout: .git hooks + .claude/settings.local.json
+  consent <checkout>          HUMAN ONLY (needs a real terminal): Ben types the consent phrase; writes the per-repo marker
+  preflight                   the checks `serve` runs first; exit 0 = would start, 78 = refuses (systemd will not restart)
+  serve                       preflight, then exec the shared runner core on the ONE consented card repo
+  golive [--base <url>]       HUMAN ONLY: reads the room once; goes live only when the room shows the room thread's
+                              verified go-live (its labeled SF-1 test post, then its digest message). Not verified:
+                              refuses with no further call. Verified: the core's go-live (rules GET, mints Ben's key)
+  kill                        kill switch: stop the runner and everything it started; no restart until `unkill`
+  unkill                      HUMAN ONLY: remove the kill marker
+  detach <checkout>           HUMAN ONLY: guard detach + restore that checkout's hook files byte-for-byte from the manifest
+  uninstall                   HUMAN ONLY: kill, detach every checkout, remove every path in the manifest
+
+Paths (XDG; nothing under /usr, nothing under ~/.claude):
+  $XDG_CONFIG_HOME/sf1-hub-ben/   env (token, mode 600, Ben writes it), KILL
+  $XDG_STATE_HOME/sf1-hub-ben/    manifest.json, backups/, hub/ (the shared core's home: config, cards, worktrees,
+                              log), repos.json (generated), serve.pid
+  <checkout>/.git/oliver-ben-guard/CONSENT-<person>.json    the per-repo consent marker. It sits in the guard's own state
+                              dir, so once `RULE guard-protect: all` binds, no attached Claude Code session can write it.
+"""
+import hashlib
+import json
+import os
+import shutil
+import signal
+import subprocess
+import re
+import sys
+import time
+
+VERSION = '0.2.1-1112'
+EX_REFUSE = 78                       # EX_CONFIG; the unit has RestartPreventExitStatus=78 so a refusal never loops
+HERE = os.path.dirname(os.path.realpath(__file__))
+VENDOR = os.environ.get('SF1_HUB_VENDOR') or os.path.join(HERE, 'vendor')
+GUARD = os.path.join(VENDOR, 'guard', 'guard.py')
+GUARD_INSTALL = os.path.join(VENDOR, 'guard', 'install.sh')
+CORE = os.environ.get('SF1_HUB_CORE') or os.path.join(HERE, 'hub_core_linux.py')   # runs vendor/hub-runner/runner.py
+HOME = os.path.expanduser('~')
+CFG = os.path.join(os.environ.get('XDG_CONFIG_HOME') or os.path.join(HOME, '.config'), 'sf1-hub-ben')
+STATE = os.path.join(os.environ.get('XDG_STATE_HOME') or os.path.join(HOME, '.local', 'state'), 'sf1-hub-ben')
+MANIFEST = os.path.join(STATE, 'manifest.json')
+KILL = os.path.join(CFG, 'KILL')
+HUB = os.path.join(STATE, 'hub')                 # SF1_HUB_HOME for the shared core
+ENVF = os.path.join(CFG, 'env')
+UNIT = 'sf1-hub-ben.service'
+def _env_file_value(name):
+    """One KEY=VALUE from the env file (the CLI runs outside systemd's EnvironmentFile). Never printed."""
+    try:
+        for line in open(ENVF):
+            k, _, v = line.strip().partition('=')
+            if k == name: return v.strip().strip('"').strip("'")
+    except OSError: pass
+    return None
+
+
+# The server's handle for Ben is the first word of his name in the app, lower-cased. Live 2026-11-12 the rules route lists
+# members ["oliver", "benjamin"], so the default is "benjamin"; set SF1_HUB_PERSON in the env file if that ever changes.
+PERSON = (os.environ.get('SF1_HUB_PERSON') or _env_file_value('SF1_HUB_PERSON') or 'benjamin').strip().lower()
+# Remote defaults (0.2.1): the live hub routes on the app, reachable from anywhere. SF1_HUB_BASE overrides (tests).
+BASE = (os.environ.get('SF1_HUB_BASE') or _env_file_value('SF1_HUB_BASE') or 'https://app.spnc.ai').rstrip('/')
+HUB_PROJECT = 'oliver-ben'
+HUB_ROOM = 'mEdYrFW_qClSGDfx'
+RULES_DEFAULT = 'hub-route:%s/v1/projects/%s/rules' % (BASE, HUB_PROJECT)
+SINK_DEFAULT = 'hosted-events:%s/v1/rooms/%s/events' % (BASE, HUB_ROOM)
+TOKF = os.path.join(CFG, 'sapience-token')       # Ben's own Sapience token, mode 600; the guard reads it (key_file)
+TOKEN_RE = re.compile(r'^[A-Za-z0-9_-]{6,128}$')
+CONSENT_MSGID = '1a1d15f5d8054125'   # the consent note Oliver sent (KO e9ab58e6)
+
+
+def phrase(person, repo_name):
+    return 'I, %s, consent to the shared SF-1 hub runner on %s' % (person, repo_name)
+
+
+def say(*a):
+    print('[sf1-hub-ben]', *a, file=sys.stderr)
+
+
+def sha256(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as fh:
+        for b in iter(lambda: fh.read(65536), b''): h.update(b)
+    return h.hexdigest()
+
+
+def atomic_json(path, obj, mode=0o644):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + '.tmp.%d' % os.getpid()
+    with open(tmp, 'w') as fh: json.dump(obj, fh, indent=1, sort_keys=True)
+    os.chmod(tmp, mode); os.replace(tmp, path)
+
+
+def load_manifest():
+    try:
+        with open(MANIFEST) as fh: return json.load(fh)
+    except (OSError, ValueError):
+        return {'version': VERSION, 'created': [], 'backups': {}, 'checkouts': {}}
+
+
+def save_manifest(m): atomic_json(MANIFEST, m)
+
+
+def record(m, path):
+    if path not in m['created']: m['created'].append(path)
+
+
+def in_nix_store(path):
+    """True when a path, or anything it resolves through, is in the read-only Nix store (home-manager links)."""
+    try: return os.path.realpath(path).startswith('/nix/store/')
+    except OSError: return False
+
+
+def git(args, cwd):
+    r = subprocess.run(['git'] + args, cwd=cwd, capture_output=True, text=True)
+    if r.returncode != 0: raise RuntimeError('git %s: %s' % (' '.join(args), r.stderr.strip()[:200]))
+    return r.stdout.strip()
+
+
+def checkout_info(co):
+    co = os.path.realpath(os.path.expanduser(co))
+    top = git(['rev-parse', '--show-toplevel'], co)
+    gd = git(['rev-parse', '--git-common-dir'], top)
+    gd = gd if os.path.isabs(gd) else os.path.realpath(os.path.join(top, gd))
+    return top, gd, os.path.join(gd, 'oliver-ben-guard')
+
+
+def is_human_terminal():
+    """A human step needs a real terminal on stdin AND stdout. Claude Code's Bash tool and `claude -p` have neither,
+    so an agent cannot complete one (gotchas 2026-09-29: a `!` line or agent Bash call has no tty)."""
+    if os.environ.get('CLAUDECODE') or os.environ.get('CLAUDE_CODE_ENTRYPOINT') or os.environ.get('SF1_TASK_ID'):
+        return False
+    return os.isatty(0) and os.isatty(1)
+
+
+def human_only(what):
+    if not is_human_terminal():
+        say('%s is a human step: run it yourself in a real terminal (not from Claude Code, not from a script).' % what)
+        sys.exit(EX_REFUSE)
+
+
+# ── token ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+def write_env_line(name, value):
+    lines = []
+    try: lines = [l.rstrip('\n') for l in open(ENVF)]
+    except OSError: pass
+    lines = [l for l in lines if l.partition('=')[0].strip() != name] + ['%s=%s' % (name, value)]
+    os.makedirs(CFG, exist_ok=True)
+    tmp = ENVF + '.tmp.%d' % os.getpid()
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, 'w') as fh: fh.write('\n'.join(lines) + '\n')
+    os.chmod(tmp, 0o600); os.replace(tmp, ENVF)
+
+
+def parse_token(raw):
+    raw = (raw or '').strip()
+    m = re.search(r'[?&]token=([^&#\s]+)', raw)
+    t = m.group(1) if m else raw
+    if t.startswith(('hub_', 'mtk_', 'rk_')): return None, 'that is a scoped key, not your own Sapience token (use the private link)'
+    if not TOKEN_RE.match(t): return None, 'that does not look like a Sapience token or private link'
+    return t, ''
+
+
+def store_token(t):
+    os.makedirs(CFG, exist_ok=True)
+    tmp = TOKF + '.tmp.%d' % os.getpid()
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, 'w') as fh: fh.write(t + '\n')
+    os.chmod(tmp, 0o600); os.replace(tmp, TOKF)
+    write_env_line('SAPIENCE_TOKEN', t)
+
+
+def read_hidden(prompt):
+    """One line from the terminal with echo off. TCSANOW, not getpass's TCSAFLUSH, so a paste that lands before the
+    prompt is not thrown away."""
+    import termios
+    sys.stderr.write(prompt); sys.stderr.flush()
+    fd = sys.stdin.fileno(); old = termios.tcgetattr(fd); new = termios.tcgetattr(fd); new[3] &= ~termios.ECHO
+    try:
+        termios.tcsetattr(fd, termios.TCSANOW, new)
+        line = sys.stdin.readline()
+    finally:
+        termios.tcsetattr(fd, termios.TCSANOW, old); sys.stderr.write('\n')
+    return line
+
+
+def cmd_token():
+    """HUMAN ONLY: paste your private link (or the bare token); nothing is echoed or printed."""
+    human_only('token')
+    t, why = parse_token(read_hidden('Paste your Sapience private link (Settings > Sign in on another device > copy my private link). Not shown: '))
+    if not t: say(why); return 1
+    store_token(t)
+    say('saved (mode 600): %s and SAPIENCE_TOKEN in %s. Nothing printed.' % (TOKF, ENVF))
+    return 0
+
+
+def guard_home(token):
+    """A throwaway HOME holding .sapience/config.json, ONLY for the vendored install.sh's first `guard refresh` (it runs
+    before key_file can be set in the config it writes). Real git config stays visible. Removed right after."""
+    import tempfile
+    d = tempfile.mkdtemp(prefix='gh-', dir=STATE)
+    os.makedirs(os.path.join(d, '.sapience'), mode=0o700)
+    fd = os.open(os.path.join(d, '.sapience', 'config.json'), os.O_WRONLY | os.O_CREAT, 0o600)
+    with os.fdopen(fd, 'w') as fh: json.dump({'token': token}, fh)
+    return d
+
+
+# ── consent ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+def consent_path(sd, person=PERSON): return os.path.join(sd, 'CONSENT-%s.json' % person)
+
+
+def check_consent(co, person=PERSON):
+    """-> (ok, why). The marker must exist, be a regular file owned by this uid (not a link), and carry the exact
+    phrase for THIS repo. The installer never writes it; only `consent` (tty-gated) or Ben by hand."""
+    try: top, gd, sd = checkout_info(co)
+    except RuntimeError as e: return False, 'not a git checkout: %s' % e
+    p = consent_path(sd, person)
+    if not os.path.lexists(p): return False, 'no consent marker at %s' % p
+    if os.path.islink(p): return False, 'consent marker is a symlink (refused): %s' % p
+    st = os.stat(p)
+    if st.st_uid != os.getuid(): return False, 'consent marker not owned by you: %s' % p
+    try:
+        with open(p) as fh: c = json.load(fh)
+    except (OSError, ValueError) as e: return False, 'consent marker unreadable: %s' % e
+    name = os.path.basename(top)
+    if c.get('phrase') != phrase(person, name): return False, 'consent phrase does not match this repo (%s)' % name
+    if c.get('repo_toplevel') != top: return False, 'consent marker names another checkout (%s)' % c.get('repo_toplevel')
+    if c.get('withdrawn'): return False, 'consent withdrawn at %s' % c.get('withdrawn')
+    return True, 'consented %s by %s' % (c.get('created_at'), person)
+
+
+def cmd_consent(co):
+    human_only('consent')
+    top, gd, sd = checkout_info(co)
+    if not os.path.isfile(os.path.join(sd, 'config.json')):
+        say('attach the guard here first (sf1-hub-ben attach), so the marker sits in the protected guard dir'); return EX_REFUSE
+    name = os.path.basename(top)
+    want = phrase(PERSON, name)
+    print('This turns on the shared SF-1 hub runner for ONE repo: %s' % top)
+    print('It is what Oliver\'s consent note (message %s) describes. You can stop it any time: sf1-hub-ben kill' % CONSENT_MSGID)
+    print('Defaults: commit events to the room ON (phase A); sharing your UNPUSHED branches OFF.')
+    print('Type exactly this line to consent, or anything else to cancel:\n  %s' % want)
+    got = input('> ').strip()
+    if got != want: print('cancelled; nothing written'); return 1
+    share = input('Also share your unpushed branches with Oliver? Type "share unpushed" to opt in, Enter to keep it off: ').strip()
+    c = {'person': PERSON, 'repo_toplevel': top, 'phrase': want, 'created_at': time.strftime('%Y-%m-%dT%H:%M:%S%z'),
+         'consent_note_msgid': CONSENT_MSGID, 'typed_on_tty': True, 'hub_commit_events': True,
+         'share_unpushed_branches': share == 'share unpushed', 'version': VERSION}
+    atomic_json(consent_path(sd), c, 0o600)
+    print('written: %s (unpushed sharing %s)' % (consent_path(sd), 'ON' if c['share_unpushed_branches'] else 'OFF'))
+    return 0
+
+
+# ── guard attach / detach ──────────────────────────────────────────────────────────────────────────────────────────────────
+def hook_entries(py):
+    pre = '%s %s hook --attached || exit 2' % (py, GUARD)
+    post = '%s %s posthook --attached' % (py, GUARD)
+    m = 'Edit|Write|MultiEdit|NotebookEdit|Bash'
+    return {'PreToolUse': [{'matcher': m, 'hooks': [{'type': 'command', 'command': pre, 'timeout': 30}]}],
+            'PostToolUse': [{'matcher': m, 'hooks': [{'type': 'command', 'command': post, 'timeout': 30}]}]}
+
+
+def merge_settings(existing, py):
+    s = dict(existing or {})
+    if s.get('disableAllHooks'): raise RuntimeError('settings.local.json has disableAllHooks: the guard could never run; fix that first')
+    hooks = dict(s.get('hooks') or {})
+    for ev, entries in hook_entries(py).items():
+        cur = [e for e in (hooks.get(ev) or []) if 'oliver-ben-guard' not in json.dumps(e) and GUARD not in json.dumps(e)]
+        hooks[ev] = cur + entries
+    s['hooks'] = hooks
+    return s
+
+
+def cmd_attach(co, project, rules, sink):
+    m = load_manifest()
+    top, gd, sd = checkout_info(co)
+    py = os.path.realpath(sys.executable)
+    hp = subprocess.run(['git', 'config', '--get', 'core.hooksPath'], cwd=top, capture_output=True, text=True).stdout.strip()
+    hooks_dir = (hp if os.path.isabs(hp) else os.path.join(top, hp)) if hp else os.path.join(gd, 'hooks')
+    if in_nix_store(hooks_dir):
+        say('core.hooksPath points into the Nix store (%s), which is read-only. Add the guard to your Nix-managed hooks:' % hooks_dir)
+        say('  pre-commit:  exec %s %s precommit --attached' % (py, GUARD))
+        say('  post-commit: exec %s %s postcommit ; post-rewrite: exec %s %s postrewrite "$1"' % (py, GUARD, py, GUARD))
+        return EX_REFUSE
+    st = os.path.join(top, '.claude', 'settings.local.json')
+    if in_nix_store(os.path.join(top, '.claude')) or (os.path.lexists(st) and in_nix_store(st)):
+        say('%s is managed by Nix (read-only). Add these hooks there instead:\n%s' % (st, json.dumps(hook_entries(py), indent=1)))
+        return EX_REFUSE
+    # back up every file the attach will change, byte for byte, before touching anything
+    bdir = os.path.join(STATE, 'backups', hashlib.sha256(top.encode()).hexdigest()[:12])
+    os.makedirs(bdir, exist_ok=True)
+    targets = [st] + [os.path.join(hooks_dir, h) for h in ('pre-commit', 'post-commit', 'post-rewrite')] + [os.path.join(sd, 'config.json')]
+    b = m['backups'].setdefault(top, {})
+    for t in targets:
+        if t in b: continue                                           # idempotent: the FIRST pre-attach state is what detach restores
+        if os.path.lexists(t):
+            dst = os.path.join(bdir, hashlib.sha256(t.encode()).hexdigest()[:12])
+            shutil.copy2(t, dst, follow_symlinks=False); b[t] = {'existed': True, 'backup': dst, 'sha256': sha256(t)}
+        else:
+            b[t] = {'existed': False}
+    # the guard's own installer, unchanged; a python3 that resolves is put first on PATH (NixOS has no global python3)
+    pdir = os.path.join(STATE, 'pybin'); os.makedirs(pdir, exist_ok=True)
+    link = os.path.join(pdir, 'python3')
+    if os.path.lexists(link): os.unlink(link)
+    os.symlink(py, link)
+    env = dict(os.environ, PATH=pdir + os.pathsep + os.environ.get('PATH', ''))
+    remote = rules.startswith('hub-route:') or sink.startswith('hosted-events:')
+    tmp_home = None
+    if remote:
+        try: tok = open(TOKF).read().strip()
+        except OSError: say('no Sapience token yet: run `sf1-hub-ben token` in your own terminal first'); return EX_REFUSE
+        tmp_home = guard_home(tok)
+        gcg = os.path.join(HOME, '.gitconfig')
+        env.update(HOME=tmp_home, XDG_CONFIG_HOME=os.environ.get('XDG_CONFIG_HOME') or os.path.join(HOME, '.config'))
+        if os.path.exists(gcg): env['GIT_CONFIG_GLOBAL'] = gcg
+    try:
+        r = subprocess.run(['sh', GUARD_INSTALL, top, PERSON, rules, 'attached', sink], env=env, capture_output=True, text=True)
+    finally:
+        if tmp_home: shutil.rmtree(tmp_home, ignore_errors=True)
+    sys.stderr.write(r.stdout[-1500:] + r.stderr[-800:])
+    if remote and os.path.isfile(os.path.join(sd, 'config.json')):
+        with open(os.path.join(sd, 'config.json')) as fh: gcx = json.load(fh)
+        gcx['key_file'] = TOKF                       # the guard reads Ben's own token from here for rules + events
+        atomic_json(os.path.join(sd, 'config.json'), gcx)
+        r2 = subprocess.run([py, GUARD, 'refresh'], cwd=top, capture_output=True, text=True)
+        sys.stderr.write('guard refresh with key_file: ' + r2.stdout[-300:] + r2.stderr[-200:])
+        if r2.returncode != 0: r = r2
+    if 'Not overwriting' in r.stdout:
+        say('an existing git hook was kept; add the printed line to it, then re-run attach'); return EX_REFUSE
+    if not os.path.isfile(os.path.join(sd, 'config.json')):
+        say('guard install did not write its config; not attached'); return EX_REFUSE
+    try:
+        with open(st) as fh: cur = json.load(fh)
+    except FileNotFoundError: cur = {}
+    except ValueError as e: say('%s is not valid JSON (%s); fix it first' % (st, e)); return EX_REFUSE
+    atomic_json(st, merge_settings(cur, py))
+    record(m, st)
+    with open(os.path.join(sd, 'config.json')) as fh: gc = json.load(fh)
+    m['checkouts'][top] = {'project': project, 'rules': rules, 'sink': sink, 'hooks_dir': hooks_dir, 'attached_at': time.time(),
+                           'guard_sha256': sha256(GUARD)}
+    save_manifest(m)
+    if r.returncode != 0:
+        say('attached %s, but the guard could NOT read the rules and is suspended (writes blocked). See the line above; fix, then re-run attach.' % top)
+        return 1
+    say('attached %s (project %s, mode %s). Restart Claude Code in that checkout, then /hooks to check.' % (top, project, gc.get('mode')))
+    return 0 if r.returncode == 0 else 1
+
+
+def restore_checkout(m, top):
+    for t, b in (m['backups'].get(top) or {}).items():
+        if b.get('existed'):
+            os.makedirs(os.path.dirname(t), exist_ok=True)
+            shutil.copy2(b['backup'], t, follow_symlinks=False)
+        elif os.path.lexists(t):
+            os.unlink(t)
+    m['backups'].pop(top, None); m['checkouts'].pop(top, None)
+
+
+def cmd_detach(co, _human=True):
+    if _human: human_only('detach')
+    m = load_manifest()
+    top, gd, sd = checkout_info(co)
+    if os.path.isfile(os.path.join(sd, 'config.json')):
+        subprocess.run([sys.executable, GUARD, 'detach', '--root', top], cwd=top)   # posts "detached" to the room (queued)
+    restore_checkout(m, top)
+    save_manifest(m)
+    say('detached %s; hook files restored from the pre-attach backup' % top)
+    return 0
+
+
+# ── runner ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+def core_capabilities():
+    """The shared runner core must declare that card executors run WITH the guard hook (path v2 2.2f, gate GX).
+    Probe: `<core> capabilities` -> JSON {"executor_guard_hook": true, ...}. A core without it is refused."""
+    try:
+        r = subprocess.run([sys.executable, CORE, 'capabilities'], capture_output=True, text=True, timeout=20,
+                           env=core_env())
+        return json.loads(r.stdout) if r.stdout.strip() else {}
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return {}
+
+
+def core_env(extra=None):
+    e = dict(os.environ, SF1_HUB_HOME=HUB, SF1_HUB_PERSON=PERSON, SF1_HUB_NO_LAUNCHCTL='1',
+             SF1_HUB_CHILD_PATH=os.environ.get('PATH', ''))
+    e.update(extra or {})
+    return e
+
+
+def core(*args, check=False):
+    """Run one shared-core command (stop, unstop, status, golive) through the platform layer."""
+    return subprocess.run([sys.executable, CORE] + list(args), env=core_env(), capture_output=True, text=True, timeout=60)
+
+
+def card_repo(repos):
+    """The shared core runs cards in ONE repo per runner. One consented repo: that one. Several: Ben names one with
+    SF1_HUB_CARD_REPO=<project> in his env file. -> (project, toplevel) or (None, why)."""
+    want = os.environ.get('SF1_HUB_CARD_REPO')
+    if want:
+        return (want, repos[want]) if want in repos else (None, 'SF1_HUB_CARD_REPO=%s is not a consented repo' % want)
+    if len(repos) == 1:
+        return next(iter(repos.items()))
+    return None, '%d consented repos; set SF1_HUB_CARD_REPO=<one of %s> in %s' % (len(repos), ','.join(sorted(repos)), ENVF)
+
+
+def consented_repos():
+    m = load_manifest(); out, why = {}, []
+    for top, info in sorted(m['checkouts'].items()):
+        ok, w = check_consent(top)
+        why.append('%s: %s' % (top, w))
+        if ok: out[info.get('project') or os.path.basename(top)] = top
+    return out, why
+
+
+def preflight(verbose=True):
+    problems = []
+    if os.path.lexists(KILL): problems.append('kill switch is on (%s); `sf1-hub-ben unkill` in your own terminal' % KILL)
+    if not os.path.isfile(CORE): problems.append('runner core missing: %s' % CORE)
+    if not os.path.isfile(GUARD): problems.append('guard missing: %s' % GUARD)
+    repos, why = consented_repos()
+    if not repos: problems.append('no consented, attached repo (run attach, then consent, in each repo)')
+    elif card_repo(repos)[0] is None: problems.append(card_repo(repos)[1])
+    for top in repos.values():
+        try:
+            _, _, sd = checkout_info(top)
+            with open(os.path.join(sd, 'config.json')) as fh: gc = json.load(fh)
+            if gc.get('mode') != 'attached': problems.append('%s: guard is %s, not attached' % (top, gc.get('mode')))
+        except (OSError, ValueError, RuntimeError) as e: problems.append('%s: guard config unreadable (%s)' % (top, e))
+    caps = core_capabilities() if os.path.isfile(CORE) else {}
+    if not caps.get('executor_guard_hook'):
+        failed = [k for k, v in (caps.get('checks') or {}).items() if not v] or [caps.get('refused') or 'no capabilities']
+        problems.append('GX: the runner core does not run card executors with the guard hook (executor_guard_hook '
+                        'false: %s); refusing, since a card would edit guard-off' % ', '.join(failed))
+    if verbose:
+        for w in why: say('consent', w)
+        for p in problems: say('REFUSE:', p)
+    return (not problems), repos, caps
+
+
+def cmd_serve():
+    ok, repos, caps = preflight()
+    if not ok: return EX_REFUSE
+    name, top = card_repo(repos)
+    atomic_json(os.path.join(STATE, 'repos.json'), {'card_repo': name, 'consented': repos}, 0o600)
+    with open(os.path.join(STATE, 'serve.pid'), 'w') as fh: fh.write('%d\n' % os.getpid())
+    claude = os.environ.get('SF1_CLAUDE_BIN') or shutil.which('claude') or 'claude'
+    r = subprocess.run([sys.executable, CORE, 'prepare', '--repo', top, '--repo-name', name, '--env-file', ENVF,
+                        '--claude', claude], env=core_env(), capture_output=True, text=True, timeout=60)
+    if r.returncode != 0:
+        say('core prepare failed: %s' % (r.stdout + r.stderr)[-400:]); return EX_REFUSE
+    m = load_manifest()
+    for f in json.loads(r.stdout).get('files', []): record(m, f)
+    save_manifest(m)
+    # unpushed-branch sharing stays OFF: the core never shares branches; dirty:apply only reads this machine's diff
+    say('starting shared core %s (%s) for %s on card repo %s; GX checks pass' % (caps.get('core_version'),
+        (caps.get('core_sha256') or '')[:12], PERSON, name))
+    os.execve(sys.executable, [sys.executable, CORE, 'loop'], core_env())
+
+
+def cmd_golive(base=None):
+    human_only('golive')
+    base = base or BASE
+    r = core('golive', '--base', base)
+    sys.stdout.write(r.stdout[-1500:]); sys.stderr.write(r.stderr[-500:])
+    return r.returncode
+
+
+def systemctl(*a):
+    if not shutil.which('systemctl'): return None
+    return subprocess.run(['systemctl', '--user'] + list(a), capture_output=True, text=True)
+
+
+def cmd_kill():
+    """Safe in any direction, so anyone (an agent too) may pull it. Order: marker first (blocks every restart path),
+    then stop the unit (systemd TERMs the whole cgroup: the core AND every worker it started), then the foreground case."""
+    os.makedirs(CFG, exist_ok=True)
+    with open(KILL, 'w') as fh: fh.write('killed %s by pid %d\n' % (time.strftime('%Y-%m-%dT%H:%M:%S%z'), os.getpid()))
+    if os.path.isdir(HUB):                                            # the core's own STOP too: holds active cards
+        try:
+            c = core('stop', '--why', 'sf1-hub-ben kill switch'); say('core stop: rc %d' % c.returncode)
+        except (OSError, subprocess.TimeoutExpired) as e: say('core stop failed (%s); systemd stop follows' % e)
+    r = systemctl('stop', UNIT)
+    if r is not None: say('systemctl --user stop %s: rc %d' % (UNIT, r.returncode))
+    pidf = os.path.join(STATE, 'serve.pid')
+    try:
+        pid = int(open(pidf).read().strip())
+        with open('/proc/%d/cmdline' % pid, 'rb') as fh: cmd = fh.read().replace(b'\0', b' ').decode(errors='replace')
+        if os.path.basename(CORE) in cmd:                             # only the runner this tool started, read by pid
+            os.kill(pid, signal.SIGTERM); say('sent TERM to runner pid %d' % pid)
+    except (OSError, ValueError):
+        pass
+    say('kill switch ON. Nothing restarts until you run `sf1-hub-ben unkill` in your own terminal.')
+    return 0
+
+
+def cmd_unkill():
+    human_only('unkill')
+    try: os.unlink(KILL); say('kill switch off. Start again with: systemctl --user start %s' % UNIT)
+    except FileNotFoundError: say('kill switch was not on')
+    if os.path.isdir(HUB): core('unstop'); say('core STOP cleared (held cards stay held)')
+    return 0
+
+
+def cmd_uninstall():
+    human_only('uninstall')
+    cmd_kill()
+    systemctl('disable', UNIT)
+    if os.path.isdir(HUB):                                            # memory files back to their pre-runner bytes
+        u = core('unsync'); say('memory unsync: %s' % u.stdout.strip()[-300:])
+    m = load_manifest()
+    for top in list(m['checkouts']): cmd_detach(top, _human=False)
+    m = load_manifest()
+    for p in sorted(m['created'], reverse=True):
+        if (os.path.islink(p) or os.path.isfile(p)) and not (not os.path.islink(p) and in_nix_store(p)): os.unlink(p)
+    data_root = os.path.join(os.environ.get('XDG_DATA_HOME') or os.path.join(HOME, '.local', 'share'), 'sf1-hub-ben')
+    for d in m.get('dirs', []):
+        if os.path.realpath(d).startswith(data_root + '/') and os.path.isdir(d): shutil.rmtree(d)
+    m['created'], m['dirs'] = [], []
+    save_manifest(m)
+    if systemctl('daemon-reload') is not None: pass
+    say('uninstalled. Kept: %s (the KILL marker and your env file) and %s/backups.' % (CFG, STATE))
+    return 0
+
+
+def cmd_status():
+    m = load_manifest()
+    repos, why = consented_repos()
+    out = {'version': VERSION, 'person': PERSON, 'killed': os.path.lexists(KILL), 'core': CORE,
+           'core_sha256': sha256(CORE) if os.path.isfile(CORE) else None, 'guard_sha256': sha256(GUARD) if os.path.isfile(GUARD) else None,
+           'gx_capable': bool(core_capabilities().get('executor_guard_hook')) if os.path.isfile(CORE) else False,
+           'checkouts': {k: {'project': v.get('project'), 'consent': check_consent(k)[1]} for k, v in m['checkouts'].items()},
+           'consented_repos': sorted(repos), 'token_file_present': os.path.isfile(os.path.join(CFG, 'env')),
+           'sapience_token_present': os.path.isfile(TOKF), 'base': BASE,
+           'claude_dir_nix_managed': {p: in_nix_store(os.path.join(HOME, '.claude', p)) for p in
+                                      ('', 'settings.json', 'CLAUDE.md', 'commands', 'agents', 'projects')
+                                      if os.path.lexists(os.path.join(HOME, '.claude', p))}}
+    r = systemctl('is-active', UNIT)
+    out['unit'] = r.stdout.strip() if r is not None else 'no systemd'
+    try:
+        with open(os.path.join(HUB, 'runner', 'config.json')) as fh: hc = json.load(fh)
+        out['core'] = {'mode': hc.get('mode'), 'card_repo': hc.get('repo_name'), 'memory_sync': hc.get('memory_sync'),
+                       'memory_dir': hc.get('memory_dir'), 'memory_off_reason': hc.get('memory_off_reason')}
+    except (OSError, ValueError):
+        out['core'] = 'not prepared yet (first start writes it)'
+    print(json.dumps(out, indent=1))
+    return 0
+
+
+def main(a):
+    if not a or a[0] in ('-h', '--help', 'help'): print(__doc__); return 0
+    c = a[0]
+    if c == 'status': return cmd_status()
+    if c == 'preflight': return 0 if preflight()[0] else EX_REFUSE
+    if c == 'serve': return cmd_serve()
+    if c == 'golive': return cmd_golive(a[a.index('--base') + 1] if '--base' in a else None)
+    if c == 'token': return cmd_token()
+    if c == 'kill': return cmd_kill()
+    if c == 'unkill': return cmd_unkill()
+    if c == 'uninstall': return cmd_uninstall()
+    if c in ('consent', 'enable') and len(a) > 1: return cmd_consent(a[1])
+    if c == 'detach' and len(a) > 1: return cmd_detach(a[1])
+    if c == 'attach' and len(a) > 1:
+        kw = {k: a[a.index('--' + k) + 1] for k in ('project', 'rules', 'sink') if '--' + k in a}
+        proj = kw.get('project') or os.path.basename(os.path.realpath(os.path.expanduser(a[1])))
+        return cmd_attach(a[1], proj, kw.get('rules') or RULES_DEFAULT, kw.get('sink') or SINK_DEFAULT)
+    print(__doc__); return 2
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]) or 0)

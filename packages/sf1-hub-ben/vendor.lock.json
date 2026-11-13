@@ -1,0 +1,15 @@
+{
+ "files": {
+  "guard/INSTALL.md": "cf0863232ac698ab8f6b1350c5a865e14befac46074156ee8aa9875381d0e129",
+  "guard/README.md": "b82708db6168e3804c8eafc372893ae71d52e209d0b45be4f725e422341e2214",
+  "guard/guard.py": "994047d36aee9ac69c67ab91e2daf5f28754c598eb2166d56f3a9b764a492982",
+  "guard/install.sh": "b1a38583bc774017968ac2b1b4ba9eb5c5e38141832dbcb3a806ba8b9e0bf7ec",
+  "hub-runner/deny_hook.py": "2a4923fdb95188d183bf0d90bcde4d3c0937c95f49372d2c1f44834a564dc20e",
+  "hub-runner/room_member.py": "d9109a9461ccd4a361bb40b731c1042b87a35841c31ed6da328638cddc07f9be",
+  "hub-runner/runner.py": "e83f3375690d4d5dd24a05f360e4516e0b00014fe3c177692baab5e84a49d31f"
+ },
+ "sources": {
+  "guard": "/Users/oz/data/oliver-ben-guard (git c813151)",
+  "hub-runner": "/Users/oz/coretx-worktrees/sf1-hub-runner-oliver-1112 (git bb49e68c2; runner.py, deny_hook.py from sf1-v2/hub-runner, room_member.py from sf1-v2/room-member); byte-identical to Oliver installed ~/.sf1/hub/runner/bin"
+ }
+}

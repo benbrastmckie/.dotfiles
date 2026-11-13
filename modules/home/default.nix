@@ -46,6 +46,7 @@
     ./services/claude-session-reaper.nix
     ./services/ollama.nix
     ./services/sapience.nix
+    ./services/sf1-hub-ben.nix
     ./services/zotero-translation-server.nix
     ./services/zotero-env.nix
     ./services/screen-blank-watchdog.nix

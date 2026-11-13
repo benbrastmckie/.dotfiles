@@ -76,6 +76,23 @@
     sourceDirs = [ "/home/benjamin/.config/nvim/agent-system" ];
   };
 
+  # SF-1 hub runner (modules/home/services/sf1-hub-ben.nix). The worker half of SF-1
+  # delegation: task cards from the shared room run here, in throwaway worktrees, behind a
+  # per-repo rule guard.
+  #
+  # Enabling it installs the CLI and declares the unit, and does nothing else. The runner makes
+  # zero network and zero model calls before `sf1-hub-ben golive`, and refuses to serve at all
+  # without a consent marker typed by hand in a real terminal. See docs/sf1-hub.md for the
+  # setup sequence, which is deliberately not automated.
+  services.sf1-hub-ben = {
+    enable = true;
+
+    # Pinned rather than left to PATH: packages/claude-code.nix is an npx wrapper, so a bare
+    # `claude` resolves into an ~/.npm/_npx/<hash>/ cache path that changes whenever the cache
+    # is rebuilt. The profile path is stable across those rebuilds.
+    claudeBin = "/etc/profiles/per-user/benjamin/bin/claude";
+  };
+
   home = {
     username = "benjamin";
     homeDirectory = "/home/benjamin";
