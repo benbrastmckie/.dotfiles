@@ -1,0 +1,55 @@
+{
+  "status": "blocked",
+  "dispatch_seq": 4,
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/01_coverage-baseline-blocked.md",
+      "summary": "Documents that task 138's owner-action reconciliation of ~/.sapience/config.json has not been applied on disk, so no baseline reading can be taken yet; records the live config state, a non-baseline informational sapience coverage/pending run, and the exact owner instruction that must be run first."
+    }
+  ],
+  "next_steps": "User runs the recorded owner instruction in specs/138_retire_machine_wide_sapience_surface/records/02_sapience-config-owner-instruction.md against ~/.sapience/config.json, then re-dispatch /orchestrate 136 --research to re-confirm reconciliation and take the real baseline.",
+  "user_decision": {
+    "question": "Task 136's baseline measurement window cannot open until task 138's owner-only reconciliation of ~/.sapience/config.json is applied on disk; live inspection confirms it has not been run yet. Should the user run the already-drafted, already-rehearsed owner instruction now, or leave the task waiting?",
+    "options": [
+      "Run the recorded owner instruction now (the jq edit in specs/138_retire_machine_wide_sapience_surface/records/02_sapience-config-owner-instruction.md), then re-dispatch task 136's research phase to take the real baseline",
+      "Leave ~/.sapience/config.json as-is for now and hold task 136 open without a baseline"
+    ],
+    "recommended": "Run the recorded owner instruction now (the jq edit in specs/138_retire_machine_wide_sapience_surface/records/02_sapience-config-owner-instruction.md), then re-dispatch task 136's research phase to take the real baseline",
+    "blocking": true,
+    "obligation": "Makes the live ~/.sapience/config.json match the four-repository capture set (nvim, dotfiles, abood, sapience-app) task 138 specified, so that a subsequent sapience coverage/pending reading characterizes the post-138 population rather than the discarded pre-138 one -- the precondition task 136's own dispatch names as the gate on its measurement window."
+  },
+  "errors": [
+    {
+      "type": "validation",
+      "message": "Task 138's owner-action reconciliation of ~/.sapience/config.json (disable BimodalLogic/PossibleWorlds/Verification, add abood and sapience-app, shrink folders to the 4 loaded repos) has not been applied on disk, even though task 138 is marked [COMPLETED]. Task 138's own record designed this as an owner-only action never run by an agent.",
+      "recoverable": true,
+      "recommendation": "User runs the recorded jq command in specs/138_retire_machine_wide_sapience_surface/records/02_sapience-config-owner-instruction.md, then re-dispatch /orchestrate 136 --research."
+    }
+  ],
+  "metadata": {
+    "session_id": "sess_1794559396_95f48e_136",
+    "agent_type": "general-research-agent",
+    "duration_seconds": 300,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "general-research-agent"],
+    "findings_count": 3,
+    "issue_log_contribution": 1
+  },
+  "memory_candidates": [
+    {
+      "content": "Sapience's ~/.sapience/config.json is owner-only state (mode 600, self-updating daily) that no agent may edit directly. When a task's measurement or decision depends on a prior task's owner-action reconciliation of this file, verify the live file's actual contents at dispatch time rather than trusting the prior task's [COMPLETED] status alone -- a task can correctly complete by drafting and rehearsing an owner instruction without that instruction ever having been run.",
+      "category": "PATTERN",
+      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/01_coverage-baseline-blocked.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["sapience", "config.json", "owner-action", "precondition", "blocked"]
+    },
+    {
+      "content": "sapience coverage's two skip filters (headless/agent vs. subagent/harness-started) can diverge sharply on an orchestration-heavy workflow: a live read showed 30 headless/agent skips vs. 874 subagent/harness-started skips out of 1120 available session files, a roughly 29x gap, even under a stale pre-reconciliation folder set. Worth re-checking whether this ratio persists once the capture population changes.",
+      "category": "INSIGHT",
+      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/01_coverage-baseline-blocked.md",
+      "confidence": 0.6,
+      "suggested_keywords": ["sapience", "coverage", "skip-filter", "subagent", "headless"]
+    }
+  ]
+}
