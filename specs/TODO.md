@@ -1,17 +1,17 @@
 ---
-next_project_number: 138
+next_project_number: 139
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-11-04. Generated from state.json dependency graph.*
+*Updated 2026-11-13. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,135,136 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,135,136,138 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -32,9 +32,9 @@ next_project_number: 138
 
 ### Services
 
-19 [RESEARCHED] — installsetupmcpserverswebdevelopment
-23 [PLANNED] — installsimplewebcamrecordingsoftware
-43 [RESEARCHED] — installforgejoselfhostedgit
+19 [RESEARCHED] — install\_setup\_mcp\_servers\_web\_development
+23 [PLANNED] — install\_simple\_webcam\_recording\_software
+43 [RESEARCHED] — install\_forgejo\_self\_hosted\_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep...
 131 [NOT STARTED] — Install claude-refresh timer via home-manager and make mako...
 135 [NOT STARTED] — Evaluate ROCm GPU acceleration for the local Ollama server on...
@@ -48,14 +48,158 @@ next_project_number: 138
 
 ### Maintenance
 
-15 [RESEARCHED] — configuretimezonelocationbased
+15 [RESEARCHED] — configure\_timezone\_location\_based
 
 ### Packaging
 
-41 [BLOCKED] — reenablepdf2docxnixpkgsfix
-42 [BLOCKED] — reenablejupytextnixpkgsfix
+41 [BLOCKED] — reenable\_pdf2docx\_nixpkgs\_fix
+42 [BLOCKED] — reenable\_jupytext\_nixpkgs\_fix
+
+### Sapience
+
+138 [NOT STARTED] — Retire the machine-wide Sapience surface so the extension's...
 
 ## Tasks
+
+### 138. Retire the machine-wide Sapience surface so the extension's per-repo gating is the only activation path
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: sapience
+- **Dependencies**: None
+
+**Description**: GOAL. Remove every machine-wide Sapience activation surface this repository owns, so that loading
+the sapience extension into a repo is the ONLY thing that turns Sapience on there, and unloading
+it is the only thing that turns it off.
+
+SITING. This task belongs in /home/benjamin/.dotfiles because every one of its edit targets is
+owned by this repository's own tree, not by the agent-system source store:
+`modules/home/services/sapience.nix`, `config/claude/settings.json` and `docs/sapience.md`. Per
+`.claude/rules/source-store-deploy-boundary.md`'s Task Siting subsection, a task is filed in the
+repository whose local filesystem contains its edit target. The companion extension-side task is
+sited in /home/benjamin/.config/nvim because its targets live under that repo's
+`agent-system/extensions/sapience/` source store.
+
+ORDERING CONSTRAINT, HARD. This is the second half of a two-part change. The first half, sited in
+/home/benjamin/.config/nvim under the project name `gate_sapience_activation_behind_extension`,
+builds the per-repo activation surface in the extension's source store. This task MUST NOT land
+before that companion task has landed and been verified. Removing the machine-wide surface first
+leaves Sapience off in EVERY repository, including the two that should have it. The constraint
+cannot be expressed as a state.json dependency edge, because the companion lives in a different
+repository's numbering space -- so it is recorded here in prose and the companion is referred to
+by its durable project name. Before starting implementation, confirm the companion has completed;
+if it has not, the correct action is to stop and report, not to proceed.
+
+=== WHAT IS BEING REMOVED, AND WHY EACH IS SAFE TO REMOVE ONLY AFTER THE COMPANION LANDS ===
+
+1. TOP-LEVEL MCP REGISTRATION. `modules/home/services/sapience.nix`'s `claudeMcpServers`
+   activation entry (around lines 787-1055) merges `mcpServers.sapience` into the TOP LEVEL of
+   ~/.claude.json, so all nine `sapience_*` tools load in every session in every directory. The
+   option that controls it is documented at that file's line ~787 ("Merge mcpServers.sapience
+   into ~/.claude.json at user scope ... Set false to leave ~/.claude.json untouched"), and the
+   activation entry is deliberately ordered against the token-shape repair entry that writes the
+   same file (see that file's comment at line ~1017) -- preserve that ordering relationship in
+   whatever replaces it. Note that the same file already contains a worked precedent for the
+   per-project shape: ~/.claude.json's `.projects[<path>].mcpServers` carries `lean-lsp` for four
+   Lean repos today.
+
+2. SEVEN READ-TOOL GRANTS. `config/claude/settings.json`'s `permissions.allow` lists
+   `mcp__sapience__sapience`, `mcp__sapience__sapience_search`, `_briefing`, `_context`, `_ask`,
+   `_outstanding`, `_papers`. home-manager merges this file into ~/.claude/settings.json with
+   `permissions` as an ENFORCED key, so these are reasserted machine-wide on every switch.
+
+3. FIVE HOOKS, in the same file's `hooks` object:
+   - SessionStart     -> `[ -f "$HOME/.sapience/mcp.py" ] && python3 "$HOME/.sapience/mcp.py" --briefing-text 2>/dev/null || true`
+   - UserPromptSubmit -> `[ -f "$HOME/.sapience/sapience_cli.py" ] && python3 "$HOME/.sapience/sapience_cli.py" hook prompt 2>/dev/null || true` (timeout 3)
+   - PreToolUse, matcher `Edit|Write|MultiEdit` -> `... sapience_cli.py hook tool ...` (timeout 3)
+   - SessionEnd       -> `... mcp.py --receipt ...` (async true)
+   - Stop             -> `... mcp.py --effect-line ...` (timeout 3)
+   Each is guarded by a `[ -f ~/.sapience/<file> ]` test and `|| true`, so it is already inert
+   when the payload is absent -- but the guard tests for the PAYLOAD, not for the repository,
+   which is exactly the gap this change closes.
+
+4. THE `_SAPIENCE_NOTE` in `config/claude/settings.json` must be rewritten rather than deleted.
+   Its current text records a correct and still-load-bearing reason for the present arrangement --
+   `hooks` and `permissions` are ENFORCED keys in `home.activation.claudeSettings`, so a vendor
+   installer's write to the live file would be reverted on the next switch -- plus two deliberate
+   rulings worth carrying forward: `statusLine` belongs to `hooks/statusline-push.sh` and is
+   deliberately NOT wired to Sapience, and `sapience_cli.py`'s own `hook session` and `hook stop`
+   are deliberately NOT wired because each would duplicate an `mcp.py` hook and print a second
+   line per turn. The rewritten note must state where each surface now lives and why the
+   enforced-key hazard no longer forces them into this file.
+
+=== THE OWNER ACTION THIS TASK MUST SPECIFY BUT CANNOT PERFORM ===
+
+`~/.sapience/config.json` has `capture.mode: "opt-in"` and a `folders` allowlist of five
+transcript directories -- `-home-benjamin--config-nvim`, `-home-benjamin--dotfiles`,
+`-home-benjamin-Philosophy-Papers-PossibleWorlds`, `-home-benjamin-Projects-BimodalLogic`,
+`-home-benjamin-Projects-Logos-Verification` -- plus a 10-entry `capture.projects` list. Verified
+against each repo's `.claude-extensions.json`: only `/home/benjamin/.dotfiles` and
+`/home/benjamin/.config/nvim` actually load the sapience extension. `PossibleWorlds`,
+`BimodalLogic` and `Verification` are enabled for capture and are being read and uploaded WITHOUT
+the extension loaded; `Theory`, `Vision`, `Wedding`, `PersonalWebsite` and `Applications` are
+present but disabled.
+
+`~/.sapience/**` is outside every repository's tree and is a genuine OWNER ACTION -- never an
+agent edit -- and note that the payload SELF-UPDATES DAILY, so a hand-patch to a vendor `.py`
+file there would be overwritten. This task's deliverable for that surface is an EXACT, RUNNABLE
+instruction handed to the user (reconciling `folders` and `capture.projects` to exactly the
+extension-loaded set, preserving the `token` field and the file's 600 mode), not a description of
+one and not an edit. Consider whether `sapience-bootstrap`'s own folder picker is the sanctioned
+route rather than a hand-edit, and say which.
+
+=== VERIFICATION THIS TASK OWNS ===
+
+- `nix flake check` is authoritative and must pass; it runs `statix`, `deadnix`, `nixfmt --check`
+  and `shellcheck` as `checks.<system>.*` outputs. Run it, not merely a build. Note `deadnix`
+  exits 0 on findings unless `--fail` is passed.
+- A `home-manager switch` (or at minimum `home-manager build --flake .#benjamin`) must succeed,
+  and the resulting ~/.claude/settings.json must be inspected to confirm the seven grants and five
+  hooks are GONE from the live merged file -- not merely absent from the repo source. The merge is
+  additive for non-enforced keys, so confirm the enforced-key path actually removes them rather
+  than leaving stale entries behind.
+- ~/.claude.json must be inspected to confirm `mcpServers.sapience` is gone from the top level and
+  that no other key in that file was disturbed -- the activation entry merges rather than
+  overwrites, and that property must survive the change.
+- A session in a repo WITHOUT the extension (`~/Projects/cslib` and `~/Projects/Logos/Theory` are
+  verified-unloaded candidates) must show no `sapience_*` tools, no Sapience grants and no
+  Sapience hook firing. A session in `.dotfiles` or `.config/nvim` must still show all nine tools,
+  all eleven grants and all five hooks.
+
+=== DOCUMENTATION THIS TASK OWNS ===
+
+`docs/sapience.md` carries several statements that become false and must be rewritten, not merely
+appended to:
+- Its "What is installed" table rows `mcpServers.sapience in ~/.claude.json` ("Merged on
+  activation, preserving every other key") and `Three hooks and seven tool grants` ("In
+  config/claude/settings.json").
+- That row's hook count is ALREADY WRONG: it says three hooks; five are registered.
+- Its "why the hooks live in the repo" section, and the first-time-setup step 4 narrative
+  explaining that a second switch is what puts the token into ~/.claude.json and that
+  "`sapience status` keeps reporting Claude Code as not registered" without it -- per-repo
+  registration changes what that step means and what `sapience status` can truthfully report.
+- Any statement that Sapience is active machine-wide once bootstrapped.
+
+=== ACCEPTANCE CRITERIA ===
+
+1. `nix flake check` passes.
+2. No machine-wide Sapience activation surface remains in this repository: no top-level
+   `mcpServers.sapience` merge, no Sapience entry in `permissions.allow`, no Sapience hook in the
+   `hooks` object -- each confirmed absent from the LIVE merged files after a switch, not just
+   from the repo source.
+3. A verified-unloaded repo gets no tools, no grants and no hook firing; `.dotfiles` and
+   `.config/nvim` keep all nine tools, all eleven grants and all five hooks.
+4. The `~/.sapience/config.json` reconciliation is handed over as an exact, runnable owner
+   instruction, with the sanctioned route (hand-edit versus `sapience-bootstrap`'s picker) named.
+5. `docs/sapience.md` states the new activation contract with a correct hook count, and the
+   rewritten `_SAPIENCE_NOTE` preserves the enforced-key rationale, the `statusLine` ruling and
+   the deliberately-unwired-`sapience_cli.py`-hooks ruling.
+6. The ordering constraint was honored: the companion extension-side task landed and was verified
+   first. Record in this task's own artifacts how that was confirmed.
+7. Files outside specs/** carry no task-number references and no record-versioning language
+   (`.claude/rules/no-task-references-in-deliverables.md`,
+   `.claude/rules/no-record-versioning-in-deliverables.md`).
+
+---
 
 ### 137. Sapience standalone flake and nixpkgs blockers
 - **Status**: [COMPLETED]
@@ -329,6 +473,7 @@ VERIFICATION (all required): rebuild with home-manager switch --flake .#benjamin
 - **Task Type**: nix
 - **Topic**: desktop
 - **Dependencies**: Task 119, Task 77
+- **Parent**: Task 119
 
 **Description**: Give the niri session AC/battery-conditional idle suspend (12h on AC, 1h on battery) to match the GNOME session. niri currently has zero idle auto-suspend on any power state (removed in task 117), and swayidle has no native AC/battery-conditional timeout: the single "timeout N command" clause spawned at config/config.kdl:271 applies unconditionally regardless of power source. Two candidate designs from the task 119 research: (Option A) a power-state-aware supervisor that respawns swayidle -w timeout <43200|3600> on /sys/class/power_supply/ACAD/online transitions, structurally mirroring the udev idiom already in modules/system/power.nix; (Option B) two mutually-exclusive systemd user units (swayidle-ac / swayidle-battery) gated on AC power. Known hazards either way: respawn races, two idle timers armed simultaneously, and a supervisor dying silently and leaving no idle policy at all. Must reuse the existing session-scoped systemd-inhibit mechanism from tasks 117/118 for Claude-activity awareness rather than building new detection. DO NOT resurrect the commented-out services.swayidle block in modules/home/desktop/swaylock.nix verbatim: its unconditional "timeout 600 -> systemctl suspend" example predates the AC/battery split requirement. Verification must read LIVE state after activation, not just the committed source, per the activation-lag bug class documented in task 119. Related: task 117 (partial) still owns lid-close and multi-monitor behavior; coordinate on docs/no-sleep-agents.md.
 
@@ -378,6 +523,7 @@ VERIFICATION (all required): rebuild with home-manager switch --flake .#benjamin
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
+- **Parent**: Task 66
 
 **Description**: The iso and usb-installer nixosConfigurations fail to build because zfs-kernel is broken on the current kernel (7.1.1): installation-cd-minimal.nix pulls in ZFS via supportedFilesystems. Restore buildable installer images by one of: disabling ZFS in the installer (boot.supportedFilesystems exclude zfs), pinning a kernel that ZFS supports for the installer only, or waiting for upstream zfs compatibility then bumping. Pre-existing issue surfaced during task 66 final audit; affects both pre- and post-refactor trees equally (not a regression).
 
@@ -388,6 +534,7 @@ VERIFICATION (all required): rebuild with home-manager switch --flake .#benjamin
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
+- **Parent**: Task 61
 
 **Description**: Migrate R environment back to stable nixpkgs once nixos-26.05 fixes r-V8. The R wrapper in configuration.nix (rWrapper with survival/tidyverse/gtsummary/mice/languageserver/styler/lintr etc.) is currently sourced from pkgs-unstable as a workaround: stable nixpkgs-26.05 ships r-V8 8.0.1 which expects ICU 78 but stable provides ICU 76.1, with no standalone v8 package to bridge it, causing a link failure (undefined icu_78 symbols) that cascades through gt -> gtsummary -> R-wrapper -> system-path and breaks the whole hamsa build. The fix gate is upstream: nixpkgs-26.05 must align r-V8/nodejs-slim libv8/ICU (version bump or backport). Test procedure: after a ./update.sh --update advances the 26.05 pin, flip two lines in configuration.nix back (pkgs-unstable.rWrapper -> rWrapper, pkgs-unstable.rPackages -> rPackages) and run nixos-rebuild build --flake .#hamsa; if r-V8 builds, migrate back and keep it, otherwise revert the flip and wait for the next stable advance. Restores the binary-cache-hit benefit of the task 61 stable pin for the heavy R+texlive stack. Follow-up of task 61.
 
