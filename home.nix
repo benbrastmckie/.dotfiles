@@ -10,28 +10,28 @@
 
   # Note: Python packages overlay (including cvc5) is defined in flake.nix
 
-  # Ollama (modules/home/services/ollama.nix). Still enabled, but its job has changed: Sapience
-  # now names a ":cloud" model, so this daemon authenticates and forwards those calls to
-  # ollama.com and runs no inference locally. It is the transport, which is why it cannot simply
-  # be switched off -- the vendor client sends no Authorization header (extract_local.py:1511),
-  # so something local must hold the credential. That credential is the ~/.ollama/id_ed25519
-  # keypair `ollama signin` registers; OLLAMA_API_KEY is a client-side variable for configuring
-  # other apps, and the daemon ignores it (absent from its own "server config" env dump).
+  # Ollama (modules/home/services/ollama.nix). Enabled for its own sake and its other consumers;
+  # Sapience does not reach a model through it. The `anthropic` backend posts to
+  # api.anthropic.com from the vendor client directly, so nothing local needs to hold a
+  # credential or proxy a call on its behalf -- see docs/sapience.md.
+  #
+  # Worth a look if nothing else here wants it: the daemon loads no weights and sits at roughly
+  # 20 MB resident, so it is cheap, but it is not load-bearing for anything in this file.
   services.ollamaModels = {
     enable = true;
 
-    # Empty: a ":cloud" model has no weights to fetch and the daemon resolves it remotely, so
-    # the loader has nothing to pull. llama3.1 was dropped from this list rather than deleted --
-    # the loader only ever pulls, so `ollama rm llama3.1:latest` is what reclaims its 4.9 GB.
+    # Empty: nothing in this configuration asks the daemon to serve a model, so the loader has
+    # nothing to pull. The loader only ever pulls, so `ollama rm llama3.1:latest` is what
+    # reclaims the 4.9 GB that model still occupies on disk.
     load = [ ];
   };
 
-  # Sapience knowledge vault (modules/home/services/sapience.nix). "relay" would transit redacted
-  # transcript chunks through app.spnc.ai BEFORE any review gate, and "anthropic"/"openai" have
-  # their provider URL hardcoded in the vendor client (extract_local.py:1526 and :1537), so
-  # neither can be aimed anywhere else. "ollama" is the only backend whose endpoint is
-  # configurable (OLLAMA_HOST, extract_local.py:167), which is why it stays selected even though
-  # extraction no longer runs on this machine -- see `model` below.
+  # Sapience knowledge vault (modules/home/services/sapience.nix). "relay" is ruled out on
+  # privacy grounds: it transits redacted transcript chunks through app.spnc.ai BEFORE any
+  # review gate. Of the three remaining backends, "anthropic" and "openai" have their provider
+  # URL hardcoded in the vendor client (extract_local.py:1526 and :1537) and so cannot be aimed
+  # elsewhere, while "ollama" is the only one whose endpoint is configurable (OLLAMA_HOST,
+  # extract_local.py:167) -- see `backend` below for which is selected and what it costs.
   #
   # Enabling the module installs the CLI and the sync unit (on its own schedule or on request),
   # but reads nothing: the sync unit is gated on ~/.sapience/config.json via ConditionPathExists,
@@ -41,41 +41,58 @@
   programs.sapience = {
     enable = true;
 
-    # Stays "ollama": the local daemon is the transport, not necessarily the compute. A model
-    # name ending in ":cloud" makes it forward the call to ollama.com and run nothing here, which
-    # is how a remote model is reached at all given the missing Authorization header. Setting
-    # this to "openai" would pin extraction to api.openai.com. docs/sapience.md has the detail.
-    backend = "ollama";
+    # Pins extraction to api.anthropic.com, authenticated with `apiKeyFile` below.
+    #
+    # This is a deliberate privacy trade, stated plainly: chunks of raw transcript leave this
+    # machine for a third-party provider. What is sent is transcript text, not the vault -- the
+    # review gate still stands between an extraction and anything written to app.spnc.ai -- but
+    # the text itself is no longer confined here. The alternative that keeps it confined is
+    # "ollama" against a locally-resident model, and that is not currently viable: measured on
+    # this machine (24-core Ryzen AI 9 HX 370, no discrete GPU), llama3.1 extracts at 0.66
+    # tokens/sec, which puts a 50-chunk pass near eleven hours. Aiming "ollama" at ollama.com's
+    # hosted models instead leaves this machine anyway AND returns HTTP 402 across every model
+    # tried, so it buys no privacy and does not work.
+    #
+    # Revisit if local inference on this hardware becomes practical; that is the only option
+    # that makes this trade unnecessary rather than merely accepted.
+    backend = "anthropic";
 
-    # Google's Gemma 4, forwarded to ollama.com by the local daemon. Chosen on measured
-    # behaviour rather than benchmark scores, because what this workload needs is compact JSON
-    # inside a fixed reply budget, not reasoning depth.
+    # Anthropic's cheapest tier, which is the right default for this workload: extraction wants
+    # compact JSON inside a fixed reply budget, not reasoning depth.
     #
-    # llm() caps replies at num_predict 8000 and never sends `think: false`, so thinking tokens
-    # compete with the JSON for that budget. gemma4 is the only model on Ollama's free list that
-    # emits NO thinking at all: on one extraction prompt it answered in 1.7s with 552 output
-    # tokens, against beam:cloud's 20.5s and 2152 tokens (6156 characters of which were
-    # thinking). beam, both gpt-oss sizes and all three nemotrons think by default, and on a
-    # 32-token probe four of them spent the whole budget thinking and returned empty content.
+    # The budget is the binding constraint. llm() caps replies at 8000 tokens and never asks the
+    # provider to suppress thinking, so any model that thinks by default spends that budget
+    # before it emits JSON -- and a truncated reply yields no findings at all, while each overrun
+    # costs two further calls through the re-split path in _extract_chunk, recursively to depth
+    # 2. Haiku does not emit extended thinking unless asked, so the whole budget goes to content.
     #
-    # That is not academic. Under beam a dense chunk overran the 8000 cap repeatedly, logging
-    # "the cut-off reply had 0" -- the entire budget spent before any JSON -- and each overrun
-    # costs two more calls through the re-split path in _extract_chunk, recursively to depth 2.
-    # Extraction calls were running 37-86s each. gemma4's 552 tokens leave ~15x headroom.
+    # Named explicitly rather than left empty. The client's own per-backend default for
+    # "anthropic" is this same model, but an empty value sends no --model flag at all and leaves
+    # the choice to vendor code that can change under us.
     #
-    # The cost is recall: on the same chunk beam returned 20 facts to gemma4's 9. Revisit if
-    # review shows findings are too thin -- but beam's extra facts were not reliably realised,
-    # since a truncated reply yields none at all.
+    # Note that this value is passed as --model for every backend (sapience.nix:509 and :1177),
+    # so it must always name a model the selected `backend` actually serves. Changing one
+    # without the other fails at the provider, not at evaluation.
     #
-    # Free on Ollama's usage page, same as beam. `gemma4:cloud` tracks whatever size Ollama
-    # points the tag at (31b today); pin `gemma4:31b-cloud` if that ever matters.
-    model = "gemma4:cloud";
+    # The cost is recall, and it is paid per call: raise to a larger Anthropic model if review
+    # shows findings are too thin.
+    model = "claude-haiku-4-5";
 
     # The agent system's source store, ingested explicitly rather than by the implicit
     # memory-file walk that `memoryFiles = false` shuts off. One authored tree gets in; the 20+
     # generated .claude/ deploys it produces stay out. Run `sapience-adddir-sources` by hand --
     # nothing about this is scheduled.
     sourceDirs = [ "/home/benjamin/.config/nvim/agent-system" ];
+
+    # Anthropic provider key, decrypted by sops-nix (modules/system/secrets.nix) to a mode-0400
+    # file owned by this user, so it is readable by home-manager activation and never reaches the
+    # world-readable Nix store. Activation merges it into ~/.sapience/config.json as the
+    # api_key/api_key_env pair the client reads, taking the vendor's .run.lock first so a
+    # concurrent extraction cannot lose its own folder and capture choices.
+    #
+    # Required at this backend: the module asserts on an empty apiKeyFile whenever `backend` is
+    # "openai" or "anthropic".
+    apiKeyFile = "/run/secrets/anthropic_api_key";
   };
 
   # SF-1 hub runner (modules/home/services/sf1-hub-ben.nix). The worker half of SF-1

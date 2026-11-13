@@ -19,5 +19,12 @@
       owner = config.users.users.${username}.name;
       mode = "0400";
     };
+
+    # Anthropic provider key. Owner-readable only, so home-manager activation (which runs as
+    # this user) can read it without the key ever reaching the world-readable Nix store.
+    secrets."anthropic_api_key" = {
+      owner = config.users.users.${username}.name;
+      mode = "0400";
+    };
   };
 }
