@@ -1,0 +1,20 @@
+{
+  "status": "researched",
+  "dispatch_seq": 1,
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/138_retire_machine_wide_sapience_surface/reports/01_retire-machine-wide-sapience.md",
+      "summary": "Confirms companion task landed, verifies all dispatch claims on disk, and corrects the activation-entry attribution (sapienceMcpServer, not claudeMcpServers) plus an additional docs/sapience.md Rollback-section staleness not named in the dispatch."
+    }
+  ],
+  "next_steps": "Run /orchestrate 138 to create implementation plan",
+  "metadata": {
+    "session_id": "sess_1794559396_95f48e_138",
+    "agent_type": "nix-research-agent",
+    "duration_seconds": 2400,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
+    "findings_count": 9
+  }
+}
