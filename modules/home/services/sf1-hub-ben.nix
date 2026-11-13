@@ -161,6 +161,22 @@ in
 
       Service = {
         Type = "simple";
+        # Restore owner-write on the staged runner copies before the core's `prepare` runs.
+        #
+        # `prepare` stages the three vendored hub-runner files into
+        # <state>/hub/runner/bin/ with shutil.copy2, which preserves the source mode. Those
+        # sources live in the Nix store, where every file is r-xr-xr-x -- Nix strips the write
+        # bit from build output -- so the staged copies land read-only and the NEXT start's
+        # copy2 cannot overwrite them: `PermissionError: [Errno 13]` on runner.py, which the
+        # platform layer reports as `core prepare failed` and exits 78. The first start always
+        # works and every later one fails, which makes it look like a consent or config fault
+        # rather than a mode fault.
+        #
+        # This cannot happen on the package's own install route, where the sources sit in an
+        # ordinary directory with write bits, so it is a NixOS-only consequence of packaging it
+        # into the store rather than an upstream defect. The leading "-" keeps a first start,
+        # when the directory does not exist yet, from failing the unit.
+        ExecStartPre = "-${pkgs.coreutils}/bin/chmod -R u+w ${config.xdg.stateHome}/sf1-hub-ben/hub/runner/bin";
         ExecStart = "${sf1-hub-ben}/bin/sf1-hub-ben serve";
         Restart = "on-failure";
         RestartSec = 30;
