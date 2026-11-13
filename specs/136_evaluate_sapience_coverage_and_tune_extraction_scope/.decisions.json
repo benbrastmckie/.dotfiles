@@ -1,0 +1,10 @@
+[
+  {
+    "question": "Task 136's baseline measurement window cannot open until task 138's owner-only reconciliation of ~/.sapience/config.json is applied on disk; live inspection confirms it has not been run yet. Should the user run the already-drafted, already-rehearsed owner instruction now, or leave the task waiting?",
+    "answer": "User directed the orchestrator to run the recorded jq instruction on their behalf; it was applied to ~/.sapience/config.json (folders and capture.projects now match the four-repository set; token and mode 600 preserved). Task 136 research is to be re-dispatched to take the real baseline.",
+    "cycle": 4,
+    "timestamp": "2026-11-13T16:46:38Z",
+    "description_fingerprint": "c46de949a2b9c9b73616bfeca1c9f3f373f365f2865db8c20757c75ebf48ef91",
+    "obligation": "Makes the live ~/.sapience/config.json match the four-repository capture set (nvim, dotfiles, abood, sapience-app) task 138 specified, so that a subsequent sapience coverage/pending reading characterizes the post-138 population rather than the discarded pre-138 one."
+  }
+]

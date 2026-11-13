@@ -1,55 +1,75 @@
 {
-  "status": "blocked",
-  "dispatch_seq": 4,
+  "status": "partial",
+  "dispatch_seq": 5,
   "artifacts": [
     {
       "type": "report",
-      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/01_coverage-baseline-blocked.md",
-      "summary": "Documents that task 138's owner-action reconciliation of ~/.sapience/config.json has not been applied on disk, so no baseline reading can be taken yet; records the live config state, a non-baseline informational sapience coverage/pending run, and the exact owner instruction that must be run first."
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/02_baseline-and-extraction-backend-blocked.md",
+      "summary": "Confirms task 138's config.json reconciliation is live, captures the correct post-138 baseline (74 would-ingest-now of 1133, MAX_CHUNKS=50, pending=0), and documents that pass 1 failed both documented ways: the systemd-unit path's 50 calls to gemma4:cloud all returned HTTP 402 Payment Required, and the bare CLI's sync subcommand silently defaults to a local llama3.1 model that did not finish a chunk in 580s."
+    },
+    {
+      "type": "handoff",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/research-handoff-20261113T170500Z.md",
+      "summary": "Names the exact next action (wait for the billing user_decision, then re-run the systemd-unit pass and record coverage/pending) and the pitfalls already ruled out this dispatch."
     }
   ],
-  "next_steps": "User runs the recorded owner instruction in specs/138_retire_machine_wide_sapience_surface/records/02_sapience-config-owner-instruction.md against ~/.sapience/config.json, then re-dispatch /orchestrate 136 --research to re-confirm reconciliation and take the real baseline.",
+  "next_steps": "User resolves (or confirms transient) the Ollama cloud billing issue behind the HTTP 402 errors on gemma4:cloud, per the user_decision below; then re-dispatch /orchestrate 136 --research to run pass 1 properly via 'systemctl --user start sapience-sync.service' and continue the required five-pass series.",
   "user_decision": {
-    "question": "Task 136's baseline measurement window cannot open until task 138's owner-only reconciliation of ~/.sapience/config.json is applied on disk; live inspection confirms it has not been run yet. Should the user run the already-drafted, already-rehearsed owner instruction now, or leave the task waiting?",
+    "question": "Pass 1 of task 136's required extraction series failed both documented ways: the systemd-unit path (model gemma4:cloud, the one actually wired to home.nix's configured model) had all 50 chunk-extraction calls fail with 'HTTP Error 402: Payment Required' from Ollama's cloud endpoint; the bare 'sapience sync' CLI silently falls back to a local llama3.1 model whose cold start did not finish a single chunk in 580 seconds. Neither path currently produces real findings. How should the extraction backend be fixed before the five-pass series continues?",
     "options": [
-      "Run the recorded owner instruction now (the jq edit in specs/138_retire_machine_wide_sapience_surface/records/02_sapience-config-owner-instruction.md), then re-dispatch task 136's research phase to take the real baseline",
-      "Leave ~/.sapience/config.json as-is for now and hold task 136 open without a baseline"
+      "Check and fix the Ollama cloud account/billing behind OLLAMA_API_KEY so gemma4:cloud (documented in home.nix as free) stops returning 402, then resume via the systemd-unit path",
+      "Switch programs.sapience.model to a different model confirmed funded/free on the live Ollama account, then resume via the systemd-unit path",
+      "Accept the local-only llama3.1 fallback (no cloud dependency) by passing --model llama3.1 --backend ollama explicitly, and verify in an uninterrupted run (ideally by the user, in an interactive terminal) whether it completes a pass in practical time",
+      "Pause task 136 until the extraction backend is confirmed working by some other means"
     ],
-    "recommended": "Run the recorded owner instruction now (the jq edit in specs/138_retire_machine_wide_sapience_surface/records/02_sapience-config-owner-instruction.md), then re-dispatch task 136's research phase to take the real baseline",
+    "recommended": "Check and fix the Ollama cloud account/billing behind OLLAMA_API_KEY so gemma4:cloud (documented in home.nix as free) stops returning 402, then resume via the systemd-unit path",
     "blocking": true,
-    "obligation": "Makes the live ~/.sapience/config.json match the four-repository capture set (nvim, dotfiles, abood, sapience-app) task 138 specified, so that a subsequent sapience coverage/pending reading characterizes the post-138 population rather than the discarded pre-138 one -- the precondition task 136's own dispatch names as the gate on its measurement window."
+    "obligation": "Makes at least one of the two ways this task's own dispatch names to run a hand-run pass ('sapience sync' or 'systemctl --user start sapience-sync.service') actually complete chunk extractions successfully, rather than failing every call or stalling indefinitely, so the required five-pass coverage series can produce real, non-zero coverage/pending deltas to measure."
   },
   "errors": [
     {
-      "type": "validation",
-      "message": "Task 138's owner-action reconciliation of ~/.sapience/config.json (disable BimodalLogic/PossibleWorlds/Verification, add abood and sapience-app, shrink folders to the 4 loaded repos) has not been applied on disk, even though task 138 is marked [COMPLETED]. Task 138's own record designed this as an owner-only action never run by an agent.",
+      "type": "execution",
+      "message": "All 50 chunk-extraction HTTP calls to Ollama's cloud endpoint for model gemma4:cloud returned 'HTTP Error 402: Payment Required' during the systemd-unit pass-1 attempt (journalctl -u sapience-sync), despite home.nix documenting this model as free.",
       "recoverable": true,
-      "recommendation": "User runs the recorded jq command in specs/138_retire_machine_wide_sapience_surface/records/02_sapience-config-owner-instruction.md, then re-dispatch /orchestrate 136 --research."
+      "recommendation": "User checks the Ollama account billing/quota state for the key in OLLAMA_API_KEY, or switches programs.sapience.model to a confirmed-funded model, then re-dispatch /orchestrate 136 --research."
+    },
+    {
+      "type": "execution",
+      "message": "Bare 'sapience sync' (no --model flag) defaults to extract_local.py's own 'llama3.1' ollama-backend default rather than home.nix's configured 'gemma4:cloud', and cold-started a local single-threaded CPU llama-server that had not completed one chunk after 580 seconds.",
+      "recoverable": true,
+      "recommendation": "Pass --model gemma4:cloud --backend ollama explicitly when hand-running via the bare CLI, or fix the CLI wrapper to pass it by default; alternatively run it uninterrupted in an interactive terminal to learn its real completion time."
     }
   ],
   "metadata": {
     "session_id": "sess_1794559396_95f48e_136",
     "agent_type": "general-research-agent",
-    "duration_seconds": 300,
+    "duration_seconds": 1100,
     "delegation_depth": 1,
     "delegation_path": ["orchestrator", "research", "general-research-agent"],
-    "findings_count": 3,
-    "issue_log_contribution": 1
+    "findings_count": 6,
+    "issue_log_contribution": 5
   },
   "memory_candidates": [
     {
-      "content": "Sapience's ~/.sapience/config.json is owner-only state (mode 600, self-updating daily) that no agent may edit directly. When a task's measurement or decision depends on a prior task's owner-action reconciliation of this file, verify the live file's actual contents at dispatch time rather than trusting the prior task's [COMPLETED] status alone -- a task can correctly complete by drafting and rehearsing an owner instruction without that instruction ever having been run.",
+      "content": "On this machine, sapience's two documented ways to hand-run a pass are not equivalent: systemctl --user start sapience-sync.service's deployed unit script passes --model gemma4:cloud explicitly, while the bare 'sapience sync' CLI wrapper passes no --model flag at all, so extract_local.py falls back to its own per-backend default ('llama3.1' for the ollama backend) instead of home.nix's programs.sapience.model. Always pass --model/--backend explicitly when hand-running via the bare CLI, or check which path is being used before trusting a coverage reading's timing.",
       "category": "PATTERN",
-      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/01_coverage-baseline-blocked.md",
-      "confidence": 0.85,
-      "suggested_keywords": ["sapience", "config.json", "owner-action", "precondition", "blocked"]
+      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/02_baseline-and-extraction-backend-blocked.md",
+      "confidence": 0.9,
+      "suggested_keywords": ["sapience", "sapience-sync", "model-default", "ollama", "cli-wrapper"]
     },
     {
-      "content": "sapience coverage's two skip filters (headless/agent vs. subagent/harness-started) can diverge sharply on an orchestration-heavy workflow: a live read showed 30 headless/agent skips vs. 874 subagent/harness-started skips out of 1120 available session files, a roughly 29x gap, even under a stale pre-reconciliation folder set. Worth re-checking whether this ratio persists once the capture population changes.",
+      "content": "sapience coverage's own summary line ('N chunks in 1 run') can look like a successful extraction while every underlying HTTP call actually failed (e.g. 402 Payment Required) -- the summary line counts attempted calls, not successful ones. journalctl --user -u sapience-sync is the authoritative source for whether a pass actually produced anything; check it before trusting coverage's timing or chunk count as a throughput signal.",
       "category": "INSIGHT",
-      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/01_coverage-baseline-blocked.md",
-      "confidence": 0.6,
-      "suggested_keywords": ["sapience", "coverage", "skip-filter", "subagent", "headless"]
+      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/02_baseline-and-extraction-backend-blocked.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["sapience", "coverage", "journalctl", "silent-failure", "402"]
+    },
+    {
+      "content": "sapience coverage's 'Ingested: ... across N repos' line lists repos with historical vault content from before any config change, not the live folder selection -- the 'Folders selected (N): ...' line is the authoritative live selection. Easy to misread the two as the same thing when a reconciliation just changed which folders are selected.",
+      "category": "INSIGHT",
+      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/02_baseline-and-extraction-backend-blocked.md",
+      "confidence": 0.7,
+      "suggested_keywords": ["sapience", "coverage", "folders-selected", "ingested", "stale-reading"]
     }
   ]
 }
