@@ -346,21 +346,21 @@ inside a `''` string block can actually break.
 
 ---
 
-### Phase 5: Final gate and decision surfacing [NOT STARTED]
+### Phase 5: Final gate and decision surfacing [COMPLETED]
 
 **Goal**: Run the complete gate set over the task's changes and, if the verdict is viable,
 surface the backend choice to the user rather than taking it.
 
 **Tasks**:
-- [ ] `bash .claude/scripts/verify-deploy.sh /home/benjamin/.dotfiles` — the complete gate set,
+- [x] `bash .claude/scripts/verify-deploy.sh /home/benjamin/.dotfiles` — the complete gate set,
       unnarrowed, with no `--skip-slow` and no `--only-gate` filter.
-- [ ] `bash .claude/scripts/validate-artifact.sh specs/140_diagnose_slow_local_ollama_inference/plans/01_ollama-cpu-baseline-verdict.md plan`
+- [x] `bash .claude/scripts/validate-artifact.sh specs/140_diagnose_slow_local_ollama_inference/plans/01_ollama-cpu-baseline-verdict.md plan`
       and the same for the task's summary artifact once written.
-- [ ] `nix flake check` on this repository — the semantic evaluation check that Phase 4's
+- [x] `nix flake check` on this repository — the semantic evaluation check that Phase 4's
       comment-only `local` tier deliberately did not pay for. If the flake check is prohibitively
       slow, substitute an equivalent full evaluation of the home-manager configuration and record
       which was run.
-- [ ] If Phase 3's verdict is "viable" or "viable only under named conditions", set
+- [x] If Phase 3's verdict is "viable" or "viable only under named conditions", set
       `user_decision` on both `.return-meta.json` and `.orchestrator-handoff.json`: the question
       is whether to keep `programs.sapience.backend = "anthropic"` or flip it to `"ollama"` at
       the measured per-pass time, `options[]` states both with their measured cost and privacy
@@ -368,7 +368,7 @@ surface the backend choice to the user rather than taking it.
       and `obligation` names the privacy-confinement obligation the recommended route
       discharges. This is contract shape 2 — an external cost and a data-location change the
       user must accept — never an agent's call.
-- [ ] If the verdict is "not viable", record that no decision is owed and the existing
+- [x] If the verdict is "not viable", record that no decision is owed and the existing
       `anthropic` backend stands on the measured number.
 
 **Timing**: 0.5 hours
@@ -392,15 +392,15 @@ surface the backend choice to the user rather than taking it.
 
 ## Testing & Validation
 
-- [ ] Each measured figure in the record file traces to a quoted `print_timing` line or a named
+- [x] Each measured figure in the record file traces to a quoted `print_timing` line or a named
       command's output, never to a recollection.
-- [ ] Prompt-eval and decode figures are reported separately throughout.
-- [ ] Every throughput number carries the thread setting and code path that produced it.
-- [ ] `nix-instantiate --parse` clean on both edited `.nix` files.
-- [ ] `nix flake check` (or the recorded equivalent) clean.
-- [ ] `bash .claude/scripts/verify-deploy.sh /home/benjamin/.dotfiles` green.
-- [ ] `bash .claude/scripts/validate-artifact.sh` green for the plan and the summary.
-- [ ] No record-versioning or task-number language in the `docs/`, `home.nix`, or `modules/`
+- [x] Prompt-eval and decode figures are reported separately throughout.
+- [x] Every throughput number carries the thread setting and code path that produced it.
+- [x] `nix-instantiate --parse` clean on both edited `.nix` files.
+- [x] `nix flake check` (or the recorded equivalent) clean.
+- [x] `bash .claude/scripts/verify-deploy.sh /home/benjamin/.dotfiles` green.
+- [x] `bash .claude/scripts/validate-artifact.sh` green for the plan and the summary.
+- [x] No record-versioning or task-number language in the `docs/`, `home.nix`, or `modules/`
       diffs.
 
 ## Artifacts & Outputs

@@ -332,7 +332,21 @@ was replaced, none survived intentionally.
 
 ## Phase 5: Final gate and decision surfacing
 
-See the task summary and the dispatch metadata for the gate-run outcomes
-(`verify-deploy.sh`, `validate-artifact.sh`, `nix flake check`/equivalent) and whether a
-`user_decision` was surfaced. The Phase 3 verdict above ("viable only under named conditions")
-means a `user_decision` is owed per the plan's Phase 5 instruction.
+- `bash .claude/scripts/verify-deploy.sh /home/benjamin/.dotfiles` (full, unnarrowed) —
+  `[verify-deploy] PASS -- 15 check(s), 0 failure(s)`; the remaining gates reported `[SKIP]`
+  because this repository is a deploy consumer, not the source store, which is expected and
+  unchanged by this task.
+- `bash .claude/scripts/validate-artifact.sh` — `[PASS] plan artifact is valid (0 warning(s))`
+  for `plans/01_ollama-cpu-baseline-verdict.md`; `[PASS] summary artifact is valid (0
+  warning(s))` for `summaries/01_ollama-cpu-baseline-verdict-summary.md`.
+- `nix flake check --show-trace` — ran to completion with no `error:` lines; evaluated all four
+  `nixosConfigurations` (`nandi`, `hamsa`, `garuda`, `iso`), `usb-installer`,
+  `homeConfigurations`, `formatter`, and the `checks.x86_64-linux.{nixfmt,statix,deadnix,
+  home-eval,shellcheck}` derivations; ended with `all checks passed!`.
+- `user_decision` surfaced: the Phase 3 verdict is "viable only under named conditions," so per
+  the plan's Phase 5 instruction a `user_decision` was set on both `.return-meta.json` and
+  `.orchestrator-handoff.json` — whether to keep `programs.sapience.backend = "anthropic"` or
+  flip it to `"ollama"` at the measured per-pass cost (faster typical-case passes, occasional
+  outright failure on a dense chunk, and raw transcript text staying on this machine instead of
+  reaching a third-party provider). `blocking` is `false`; the existing `anthropic` backend
+  stands unchanged pending that decision.
