@@ -70,3 +70,6 @@ specs/.orchestrator-multi-state.json
 # Per-task advisory lock directories (task-lock.sh).
 specs/**/.lock/
 /packages/sapience-flake/.agent-logs
+/notes/
+/packages/sf1-hub-ben/.agent-logs
+/packages/sf1-hub-ben/vendor/guard/.agent-logs
