@@ -33,9 +33,11 @@
   # configurable (OLLAMA_HOST, extract_local.py:167), which is why it stays selected even though
   # extraction no longer runs on this machine -- see `model` below.
   #
-  # Enabling the module installs the CLI, the hourly timer and the MCP registration, but reads
-  # nothing: the sync unit is gated on ~/.sapience/config.json via ConditionPathExists, so no
-  # transcript is touched until `sapience-bootstrap` is run by hand and projects are ticked.
+  # Enabling the module installs the CLI and the sync unit (on its own schedule or on request),
+  # but reads nothing: the sync unit is gated on ~/.sapience/config.json via ConditionPathExists,
+  # so no transcript is touched until `sapience-bootstrap` is run by hand and projects are
+  # ticked. Claude Code's own registration of the vault is a separate, per-repository surface
+  # owned by the sapience extension rather than by this module -- see docs/sapience.md.
   programs.sapience = {
     enable = true;
 

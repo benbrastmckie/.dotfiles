@@ -382,7 +382,7 @@ read 2 before the edit and 1 after.
 
 ---
 
-### Phase 4: Rewrite the documentation to state the new activation contract [NOT STARTED]
+### Phase 4: Rewrite the documentation to state the new activation contract [COMPLETED]
 
 **Goal**: Leave no statement in this repository claiming that Sapience is active machine-wide,
 that `mcpServers.sapience` is merged at the top level, or that there are three hooks; and document

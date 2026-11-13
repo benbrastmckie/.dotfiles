@@ -4,6 +4,13 @@
 `~/.codex/sessions`), extracts durable facts from them, and serves those facts back as a
 searchable vault plus an MCP server that Claude Code can query mid-session.
 
+The MCP server reaches a Claude Code session per repository, not in every session on this
+machine: loading the sapience extension (`agent-system/extensions/sapience/`) into a
+repository's own `.claude-extensions.json` is what turns the tools, grants and hooks on there,
+and unloading it is what turns them off. A durable, machine-wide `SessionStart` hook (see
+[below](#why-the-hooks-live-in-the-repo)) is the one piece that is not per-repository, because it
+is the mechanism that makes the per-repository gate work at all.
+
 The vendor ships a macOS-only installer that writes a launchd plist, drops shims in `~/bin`, and
 appends to a shell rc file. None of that works or belongs on NixOS. Its payload, however, needs
 no packaging work at all: ten pure-stdlib Python 3 files, no third-party imports, with `git` the
@@ -42,9 +49,9 @@ until you bootstrap, nothing re-reads one until you ask
 | `sapience-sync.service` | This repo | On-demand detached run; replaces the launchd plist |
 | `ollama.service` / `ollama-model-loader.service` | This repo | `modules/home/services/ollama.nix` |
 | `Sapience`, `sf1`, `Sapience Web` in the app grid | This repo | Three `.desktop` entries plus icons; CLI, chat, hosted interface |
-| `mcpServers.sapience` in `~/.claude.json` | This repo | Merged on activation, preserving every other key |
-| Token shape repair in `config.json` | This repo | Activation entry; runs before the MCP merge |
-| Three hooks and seven tool grants | This repo | In `config/claude/settings.json`; see [below](#why-the-hooks-live-in-the-repo) |
+| `.projects[<abs path>].mcpServers.sapience` in `~/.claude.json` | The sapience extension (per repository) | Written by a `SessionStart` hook the first time a session starts in a repository whose sapience extension is active |
+| Token shape repair in `config.json` | This repo | Activation entry; the token it repairs is read by the per-project registration writer |
+| Five hooks and eleven tool grants | The sapience extension (per repository) | Merged from `agent-system/extensions/sapience/settings-fragment.json` into each loaded repository's `.claude/settings.local.json`; one registration `SessionStart` entry lives in `config/claude/settings.json` instead — see [below](#why-the-hooks-live-in-the-repo) |
 
 The vendor docs will tell you to "run the install line again" to re-point a machine or recover a
 token. Do not — that is the macOS script. The equivalents here are `sapience-bootstrap` for a
@@ -112,13 +119,20 @@ rather than running or failing.
    cd ~/.dotfiles && home-manager switch --flake .#benjamin
    ```
 
-   The first switch could not put a token in `~/.claude.json` because none existed. This one
-   can. Without it, `sapience status` keeps reporting Claude Code as "not registered". Restart
-   Claude Code afterwards: MCP servers are snapshotted at session start.
+   Claude Code's registration of the vault is per repository rather than something a single
+   `~/.claude.json` edit decides for the whole machine: `$HOME/.claude/hooks/sapience-mcp-register-project.sh`
+   runs at the start of every Claude Code session, reads the current repository's own
+   `.claude-extensions.json` and the token in `config.json`, and writes (or removes)
+   `.projects[<abs path>].mcpServers.sapience` in `~/.claude.json` for that one repository. This
+   switch puts the registration hook itself in place durably; it does not populate the entry —
+   that happens on the next Claude Code session started in a repository whose sapience extension
+   is active. Restart Claude Code afterwards: MCP servers are snapshotted at session start.
 
-   Activation also repairs a link-shaped token in `config.json` before registering the MCP
-   server, so the two surfaces cannot disagree. `sapience status` prints a fingerprint per
-   surface; they should match.
+   Activation also repairs a link-shaped token in `config.json`, so the registration hook and the
+   sync never disagree about its shape. `sapience status` reports per-surface fingerprints for
+   the terminal and Codex surfaces directly; for Claude Code it can report only whether a token
+   exists to register with, since whether registration has actually happened for a given
+   repository depends on whether a session has started there since.
 
 5. **Review.** Only this step uploads anything.
 
@@ -624,30 +638,47 @@ must point outside the store — a store path would be world-readable.
 
 `config.json` is mutable state: bootstrap, the vendor client and the web onboarding all write
 it, and every consumer reads `.token` verbatim. A field holding the private link instead of its
-`token=` value therefore breaks every surface at once — the sync, and Claude Code's MCP tools
-via the `~/.claude.json` copy — while the server's answers name neither cause (401 on
-`/v1/stats`; 403 `an invite code is needed to build a new Sapience` on `/ingest-kos`).
+`token=` value therefore breaks every surface at once — the sync, and Claude Code's MCP tools via
+the per-project registration writer's copy — while the server's answers name neither cause (401
+on `/v1/stats`; 403 `an invite code is needed to build a new Sapience` on `/ingest-kos`).
 
 So the shape is checked rather than assumed, in two places. Bootstrap normalises a paste,
 refuses anything that is not `[A-Za-z0-9_-]{8,}`, and confirms the token against `/v1/stats`
-before writing. A `sapienceTokenRepair` activation entry heals an already-stored link and is
-ordered before `sapienceMcpServer`, so the registration can never copy one. A value that is
-neither token-shaped nor repairable is reported with the remedy rather than silently kept.
+before writing. A `sapienceTokenRepair` activation entry heals an already-stored link, so the
+per-project registration writer (installed by the sapience extension, invoked by the durable
+`SessionStart` hook below) always reads a repaired value. A value that is neither token-shaped
+nor repairable is reported with the remedy rather than silently kept.
 
 ### Why the hooks live in the repo
 
 `home.activation.claudeSettings` treats `hooks` and `permissions` as enforced keys, resetting
-them from `config/claude/settings.json` on every switch, so anything a vendor installer wrote
-into the live file would be reverted. The three hooks and seven `mcp__sapience__*` grants live
-in the repo file for that reason, each guarded with a `[ -f ~/.sapience/mcp.py ]` test and
-`|| true` so they are inert before bootstrap and harmless if the client is removed.
+them from `config/claude/settings.json` on every switch, so anything written into the live file
+outside that source is reverted on the next switch. That is exactly why the five Sapience hooks
+and eleven `mcp__sapience__*` grants do NOT live in this file: they live in the sapience
+extension's `settings-fragment.json` (`agent-system/extensions/sapience/` in the nvim
+repository), merged into each loaded repository's own `.claude/settings.local.json` — a
+per-repository merge target the enforced-key mechanism above never touches, since it governs
+only this repository's own live `~/.claude/settings.json`.
 
-`statusLine` is deliberately not wired: that slot belongs to `hooks/statusline-push.sh`, and
-composing them would mean editing the agent-system source store rather than the deployed
-artifact. Append `python3 ~/.sapience/mcp.py --statusline` output to that script there if you
-want the segment. The `Stop` hook makes one outbound request per assistant turn — no content, a
-session id out and a line back, but a continuous activity signal. Drop that entry if you would
-rather not have it; nothing else depends on it.
+The ONE Sapience entry that does live in `config/claude/settings.json` is a `SessionStart` hook
+invoking `$HOME/.claude/hooks/sapience-mcp-register-project.sh` — installed by the sapience
+extension's own installer, not by home-manager. It runs in every Claude Code session, in every
+directory, including one with no repository `.claude/` deploy at all, and is bidirectional: it
+registers `.projects[<abs path>].mcpServers.sapience` in `~/.claude.json` when the current
+repository's sapience extension is active, and removes that entry when it is not. Nothing else
+can retract a per-project entry on unload, because the settings-merge engine governs only
+in-tree merge targets, never `~/.claude.json`. That retraction property is exactly why this one
+entry has to be durable across every switch: the `hooks` key is enforced, so this repository's
+copy of the entry is what makes it survive rather than dying on the next `home-manager switch`.
+The `2>/dev/null || echo '{}'` tail makes the entry inert if the hook script or its writer
+(`$HOME/.claude/scripts/setup-sapience-mcp.sh`) is absent.
+
+`statusLine` is deliberately not wired to Sapience: that slot belongs to
+`hooks/statusline-push.sh`, and composing them would mean editing the agent-system source store
+rather than the deployed artifact. Append `python3 ~/.sapience/mcp.py --statusline` output to
+that script there if you want the segment. `sapience_cli.py`'s own `hook session` and `hook
+stop` subcommands are deliberately not wired anywhere, because each would duplicate one of the
+extension's `mcp.py`-backed hooks and print a second line per turn.
 
 ## Module options
 
@@ -655,7 +686,7 @@ rather not have it; nothing else depends on it.
 
 | Option | Default | Set here | Purpose |
 |--------|---------|----------|---------|
-| `enable` | `false` | `true` | CLI, sync unit, payload seed, MCP registration |
+| `enable` | `false` | `true` | CLI, sync unit, payload seed |
 | `backend` | `"ollama"` | `"ollama"` | `relay`, `anthropic`, `openai`, `ollama` |
 | `model` | `""` | `"gemma4:cloud"` | `--model`; empty keeps the client's per-backend default |
 | `host` | `"https://app.spnc.ai"` | default | API host, also the payload source |
@@ -666,7 +697,6 @@ rather not have it; nothing else depends on it.
 | `memoryFiles` | `false` | default | See [above](#memory-file-ingestion-is-off) |
 | `sourceDirs` | `[ ]` | the source store | `adddir` targets; see [above](#the-source-store-goes-in-by-name) |
 | `sourceDirInclude` | `"md"` | default | Extensions passed to `adddir --include` |
-| `registerMcpServer` | `true` | default | Merge into `~/.claude.json` |
 | `desktopEntry` | `true` | default | The three GNOME launchers; see [below](#opening-it-from-the-desktop) |
 | `terminal` | wezterm argv | default | `class: argv` prefix each terminal launcher puts in front of its command |
 | `webAppCommand` | brave `--app=` argv | default | Opens `host` as an app window; carries no token |
@@ -705,9 +735,12 @@ journalctl --user -u ollama --since -1h | grep -cE 'slot[[:space:]]+release:|lla
 # Call volume and latency for the last hour.
 journalctl --user -u ollama --since -1h | grep -cE '\[GIN\].*POST +"/api/chat"'
 
-# Is the payload seeded, and is the MCP server registered?
+# Is the payload seeded, and is the MCP server registered for THIS repository?
 ls ~/.sapience/
-jq '.mcpServers.sapience' ~/.claude.json
+jq --arg p "$PWD" '.projects[$p].mcpServers.sapience' ~/.claude.json
+
+# The entry above appears only once a Claude Code session has started in a repository whose
+# sapience extension is active -- it is written by a SessionStart hook, not by activation.
 
 # Does the token open the account? 200 with a JSON body is healthy; 401 means the
 # stored value is not a token the server knows.
@@ -770,19 +803,24 @@ programs.sapience.enable = false;      # removes CLI, units, activation entries
 services.ollamaModels.enable = false;  # removes the server and the model loader
 ```
 
-Disabling `programs.sapience` leaves three things behind on purpose, since none are Nix-managed
-state: `~/.sapience/` (payload, token, folder choices, review queue), the `mcpServers.sapience`
-key in `~/.claude.json`, and anything still in `~/.ollama`. Remove them by hand if you want them
-gone:
+Disabling `programs.sapience` leaves things behind on purpose, since none are Nix-managed state:
+`~/.sapience/` (payload, token, folder choices, review queue), any per-project
+`.projects[<path>].mcpServers.sapience` entries already written into `~/.claude.json`, and
+anything still in `~/.ollama`. Remove them by hand if you want them gone:
 
 ```bash
 rm -rf ~/.sapience
-jq 'del(.mcpServers.sapience)' ~/.claude.json > /tmp/cj && mv /tmp/cj ~/.claude.json
+jq 'del(.projects[].mcpServers.sapience)' ~/.claude.json > /tmp/cj && mv /tmp/cj ~/.claude.json
 ollama signout
 ollama rm llama3.1          # the old local model, still on disk at ~4.9 GB
 ```
 
-The hooks and tool grants go away by deleting their entries from
-`config/claude/settings.json`; because those keys are enforced, the next switch resets the live
-file to match. The hosted vault is untouched by any of this — `sapience reset` clears local
-state only.
+The five hooks and eleven tool grants go away by unloading the sapience extension from a
+repository's own `.claude-extensions.json`, not by editing anything in this repository — they
+never lived here. The one Sapience entry that does live here, the registration `SessionStart`
+hook, is removed with
+`bash agent-system/extensions/sapience/scripts/install-sapience-mcp-session-hook.sh --remove`
+(run from the nvim repository) followed by deleting that hook entry from
+`config/claude/settings.json`; because `hooks` is an enforced key, leaving the entry in this
+file's source while removing it live would simply have the next switch put it back. The hosted
+vault is untouched by any of this — `sapience reset` clears local state only.

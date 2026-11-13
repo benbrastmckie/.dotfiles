@@ -1,0 +1,19 @@
+{
+  "phase": 4,
+  "phase_name": "Rewrite the documentation to state the new activation contract",
+  "started_at": "2026-11-13T09:36:00Z",
+  "last_updated": "2026-11-13T09:55:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Phase 4 - rewrite docs/sapience.md's stale sections and home.nix's one comment",
+      "status": "completed",
+      "files_touched": [
+        "docs/sapience.md",
+        "home.nix"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}
