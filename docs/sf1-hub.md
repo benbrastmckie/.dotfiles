@@ -25,7 +25,7 @@ grants consent or holds a credential is manual by design and cannot be automated
 | `services.sf1-hub-ben.enable` | `true` | CLI on PATH, unit declared |
 | `services.sf1-hub-ben.autoStart` | `false` (default) | Nothing starts at login; start it by hand |
 | `services.sf1-hub-ben.claudeBin` | `/etc/profiles/per-user/benjamin/bin/claude` | Pinned, not PATH-resolved |
-| Card repo | `~/Projects/sapience-app` | The shared project; one consent marker, typed by hand |
+| Card repo | `~/Projects/Sapience/sapience-app` | The shared project; one consent marker, typed by hand |
 | Room | `oliver-ben` | Rules at `/v1/projects/oliver-ben/rules` |
 
 Two credentials, neither in the Nix store: the Sapience account token in
@@ -96,7 +96,7 @@ is no password or second factor — so it never belongs in a chat, a commit or a
 ### 3. Attach the guard
 
 ```bash
-sf1-hub-ben attach ~/Projects/sapience-app
+sf1-hub-ben attach ~/Projects/Sapience/sapience-app
 ```
 
 This writes `.git/hooks/{pre-commit,post-commit,post-rewrite}` and adds two hook entries to that
@@ -110,7 +110,7 @@ rather than lucky.
 ### 4. Consent
 
 ```bash
-sf1-hub-ben enable ~/Projects/sapience-app
+sf1-hub-ben enable ~/Projects/Sapience/sapience-app
 ```
 
 Type the line it shows, exactly. A second question asks whether to share unpushed branches;
@@ -225,7 +225,7 @@ room would still carry the rulings.
 ```bash
 sf1-hub-ben kill                              # stops the runner and every card it started
 sf1-hub-ben unkill                            # only you, in a terminal, undo it
-sf1-hub-ben detach ~/Projects/sapience-app    # guard off in one repo, hooks restored byte-for-byte
+sf1-hub-ben detach ~/Projects/Sapience/sapience-app    # guard off in one repo, hooks restored byte-for-byte
 sf1-hub-ben uninstall                         # kill, detach everywhere, remove every installed file
 ```
 
