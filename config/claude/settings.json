@@ -54,14 +54,7 @@
       "mcp__playwright__browser_find",
       "mcp__playwright__browser_wait_for",
       "mcp__nixos__nix",
-      "mcp__nixos__nix_versions",
-      "mcp__sapience__sapience",
-      "mcp__sapience__sapience_search",
-      "mcp__sapience__sapience_briefing",
-      "mcp__sapience__sapience_context",
-      "mcp__sapience__sapience_ask",
-      "mcp__sapience__sapience_outstanding",
-      "mcp__sapience__sapience_papers"
+      "mcp__nixos__nix_versions"
     ],
     "deny": [
       "Bash(rm -rf /)",
@@ -111,30 +104,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -f \"$HOME/.sapience/mcp.py\" ] && python3 \"$HOME/.sapience/mcp.py\" --briefing-text 2>/dev/null || true"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -f \"$HOME/.sapience/sapience_cli.py\" ] && python3 \"$HOME/.sapience/sapience_cli.py\" hook prompt 2>/dev/null || true",
-            "timeout": 3
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -f \"$HOME/.sapience/sapience_cli.py\" ] && python3 \"$HOME/.sapience/sapience_cli.py\" hook tool 2>/dev/null || true",
-            "timeout": 3
+            "command": "bash $HOME/.claude/hooks/sapience-mcp-register-project.sh 2>/dev/null || echo '{}'"
           }
         ]
       }
@@ -148,26 +118,6 @@
             "async": true
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -f \"$HOME/.sapience/mcp.py\" ] && python3 \"$HOME/.sapience/mcp.py\" --receipt 2>/dev/null || true",
-            "async": true
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -f \"$HOME/.sapience/mcp.py\" ] && python3 \"$HOME/.sapience/mcp.py\" --effect-line 2>/dev/null || true",
-            "timeout": 3
-          }
-        ]
       }
     ]
   },
@@ -175,5 +125,5 @@
   "autoCompactEnabled": false,
   "editorMode": "vim",
   "remoteControlAtStartup": false,
-  "_SAPIENCE_NOTE": "The Sapience entries in hooks.SessionStart/SessionEnd/Stop (mcp.py) and hooks.UserPromptSubmit/PreToolUse (sapience_cli.py) and the mcp__sapience__* permissions are owned by modules/home/services/sapience.nix (programs.sapience). They are guarded with a [ -f ~/.sapience/<file> ] test and || true, so they are inert no-ops until the payload is seeded and harmless if the client is removed. SessionStart stays with mcp.py --briefing-text and Stop with mcp.py --effect-line; sapience_cli.py's own `hook session` and `hook stop` are deliberately not wired, because each would duplicate one of those and print a second line per turn. hooks and permissions are both ENFORCED keys, so these must live here rather than being written into the live file by a vendor installer -- a home-manager switch would revert that. statusLine is deliberately NOT wired to Sapience: that slot belongs to hooks/statusline-push.sh."
+  "_SAPIENCE_NOTE": "The sapience_* hooks (mcp.py / sapience_cli.py) and the mcp__sapience__* permissions are per-repository surfaces, merged from agent-system/extensions/sapience/settings-fragment.json into each loaded repository's .claude/settings.local.json -- never from this file. The ONE Sapience entry that lives here is the hooks.SessionStart entry invoking $HOME/.claude/hooks/sapience-mcp-register-project.sh, which bidirectionally registers or removes .projects[<abs path>].mcpServers.sapience in ~/.claude.json depending on whether the current repository's sapience extension is active. That entry has to live here, rather than only in the extension's own installer, because hooks and permissions are both ENFORCED keys in home.activation.claudeSettings: anything a vendor installer or a per-repo merge writes into the live ~/.claude/settings.json's hooks/permissions is reset on every home-manager switch, so the registration hook needs a durable source-of-truth here to survive one. statusLine is deliberately NOT wired to Sapience: that slot belongs to hooks/statusline-push.sh. sapience_cli.py's own `hook session` and `hook stop` are deliberately not wired anywhere, because each would duplicate an mcp.py hook and print a second line per turn."
 }

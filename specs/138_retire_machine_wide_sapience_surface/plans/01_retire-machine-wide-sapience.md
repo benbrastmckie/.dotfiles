@@ -278,7 +278,7 @@ every edit to the file.
 
 ---
 
-### Phase 3: Retire the grants and hooks, and add the durable registration entry [NOT STARTED]
+### Phase 3: Retire the grants and hooks, and add the durable registration entry [COMPLETED]
 
 **Goal**: Make `config/claude/settings.json` carry no Sapience activation surface and exactly one
 Sapience entry — the per-project MCP-registration `SessionStart` hook — with every non-Sapience
