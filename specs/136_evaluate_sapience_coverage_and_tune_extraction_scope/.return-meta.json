@@ -1,10 +1,49 @@
 {
-  "status": "in_progress",
+  "status": "partial",
   "dispatch_seq": 7,
+  "partial_progress": {
+    "stage": "phase_gated_on_elapsed_time",
+    "details": "Phase 1 (re-baseline on the anthropic backend and open the measurement ledger) completed and committed. Phase 2 (Extraction Pass 2) requires at least 24 hours since the Pass-1 timestamp recorded in the ledger (2026-11-13T12:06:52Z); at this dispatch (2026-11-13T21:10Z) under 10 hours have elapsed, so phase 2 legitimately stays [NOT STARTED] rather than running early and destroying the drain-rate datum. This is the plan's own designed pacing (one phase per calendar-spaced pass, spanning at least a week), not a blocker requiring a decision -- re-dispatch after the 24-hour gate elapses to run phase 2.",
+    "handoff_path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-1-handoff-20261113T211013Z.md",
+    "phases_completed": 1,
+    "phases_total": 8
+  },
+  "artifacts": [
+    {
+      "type": "handoff",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-1-handoff-20261113T211013Z.md",
+      "summary": "Phase-1 completion handoff: ledger baseline and Pass-1 retro-record established; phase 2 gated on 24h elapsed since Pass-1 timestamp."
+    },
+    {
+      "type": "record",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
+      "summary": "Measurement ledger: fixed per-pass block shape, live post-138/post-anthropic-migration Pass-0 baseline (Available on disk 1157, would ingest now 78, pending 1208, backend confirmed three ways), and the journal-reconstructed Pass-1 block (1208 objects staged, 0 extract errors, 29min wall clock, flagged as a cost/duration datum only)."
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Completed plan phase 1: created the Sapience coverage measurement ledger, confirmed the live anthropic-backend wiring three independent ways, recorded the config.json model:null residue against home.nix's explicit model, captured a fresh post-migration coverage/pending baseline with a verified sub-counter summation (78+0+30+904+145=1157), and retro-recorded the already-succeeded Pass 1 (1208 objects staged, 0 errors, 29min wall clock) as a cost/duration-only datum. Phases 2-8 remain, each gated on at least 24 hours since the prior pass."
+  },
+  "modified_files": [
+    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
+    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/02_coverage-measurement-series-and-decision.md",
+    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/progress/phase-1-progress.json",
+    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-1-handoff-20261113T211013Z.md"
+  ],
+  "memory_candidates": [
+    {
+      "content": "A plan that structures a long-running measurement as 'one phase per calendar-spaced pass' (each phase gated on >=24h since the previous pass's recorded timestamp) legitimately produces a partial return after the first runnable phase, even with zero errors -- the remaining phases are correctly [NOT STARTED] because real time has not yet elapsed, not because anything is broken. The implementer should report this as status: partial with partial_progress stating the elapsed-time gate and the next-eligible-time, rather than forcing a phase early (which would destroy the drain-rate datum the plan's own risk table warns about) or mischaracterizing the pause as 'blocked'.",
+      "category": "PATTERN",
+      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/summaries/",
+      "confidence": 0.7,
+      "suggested_keywords": ["time-gated-phases", "measurement-series", "partial-status", "calendar-spaced-passes", "sapience"]
+    }
+  ],
   "metadata": {
     "session_id": "sess_1794603135_b69781",
     "agent_type": "general-implementation-agent",
     "delegation_depth": 2,
-    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"]
+    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
+    "phases_completed": 1,
+    "phases_total": 8
   }
 }

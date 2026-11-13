@@ -497,6 +497,7 @@ is closed rather than left open.
 - **Dependencies**: Task 138
 - **Research**: [136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/02_baseline-and-extraction-backend-blocked.md]
 - **Plan**: [136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/02_coverage-measurement-series-and-decision.md]
+- **Record**: [136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md]
 
 **Description**: GOAL. Measure how much of this machine's session history Sapience actually captures, and decide
 from that measurement whether to widen the extraction scope, raise the per-run chunk cap, put

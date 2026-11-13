@@ -1,22 +1,20 @@
 {
-  "status": "planned",
-  "dispatch_seq": 6,
-  "phases_completed": 0,
+  "status": "partial",
+  "dispatch_seq": 7,
+  "summary": "Completed plan phase 1 of 8 for the Sapience coverage measurement series: created the measurement ledger, confirmed the live anthropic-backend wiring three independent ways, captured a fresh post-migration coverage/pending baseline with a verified sub-counter summation, and retro-recorded the already-succeeded Pass 1 (1208 objects staged, 0 errors) as a cost/duration-only datum. Phases 2-8 remain, each gated on at least 24 hours since the previous pass's timestamp; phase 2 cannot legitimately run until roughly 2026-11-14T12:06:52Z.",
+  "phases_completed": 1,
   "phases_total": 8,
-  "summary": "Wrote an eight-phase plan for task 136's coverage measurement series and extraction-scope decision. Premise re-validation found the research report's central blocker already resolved: commit 2b713bf migrated programs.sapience to the Anthropic backend (claude-haiku-4-5), one real 50-chunk pass has since completed (29min 4s, 1208 objects staged, zero errors), and every figure in reports/02 is superseded, so the plan reframes the task's chunk-cap question against the constraints that actually bind now -- the 2000-objects/day cap, a 1208-deep unreviewed queue, and per-call cost on the user's Anthropic key. The plan is one phase per extraction pass (five passes, each gated on 24 hours' spacing) feeding a single ledger, then a read-only vault-content audit, then the decision, then a conditional enactment phase. Phase 1 is runnable immediately; the series legitimately spans at least seven calendar days and several /orchestrate invocations.",
   "blockers": [],
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/02_coverage-measurement-series-and-decision.md",
-      "summary": "Eight-phase plan: re-baseline and ledger, four observed extraction passes with mid-series filter/cap/queue checks, read-only vault-content audit, series analysis and decision record, conditional enactment in home.nix / modules/home/services/sapience.nix / docs/sapience.md."
+      "type": "record",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
+      "summary": "Measurement ledger: fixed per-pass block shape, live Pass-0 baseline, and journal-reconstructed Pass-1 block."
+    },
+    {
+      "type": "handoff",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-1-handoff-20261113T211013Z.md",
+      "summary": "Phase-1 completion handoff naming the 24-hour re-dispatch gate for phase 2."
     }
-  ],
-  "next_steps": "Run /orchestrate 136 to execute phase 1. Phases 2-5 each require at least 24 hours since the previous pass, so expect the task to remain open across several invocations; phase 8 must not run concurrently with tasks 139 or 140, which declare the same home.nix and docs/sapience.md scope.",
-  "metadata": {
-    "session_id": "sess_1794603135_b69781_136",
-    "agent_type": "planner-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"]
-  }
+  ]
 }

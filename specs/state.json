@@ -122,6 +122,11 @@
           "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/02_coverage-measurement-series-and-decision.md",
           "type": "plan",
           "summary": "Eight-phase plan: re-baseline and ledger, four observed extraction passes with mid-series filter/cap/queue checks, read-only vault-content audit, series analysis and decision record, conditional enactment in home.nix / modules/home/services/sapience.nix / docs/sapience.md."
+        },
+        {
+          "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
+          "type": "record",
+          "summary": "Measurement ledger: fixed per-pass block shape, live Pass-0 baseline, and journal-reconstructed Pass-1 block."
         }
       ],
       "roadmap_annotation": "measurement window: 5+ hand-run passes over 1+ week, not one dispatch",
