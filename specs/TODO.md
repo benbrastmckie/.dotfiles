@@ -319,19 +319,69 @@ than a hand-edit, and say which.
   Sapience hook firing. A session in any of the four loaded repos must still show all nine tools,
   all eleven grants and all five hooks, and must still acquire its own
   `.projects[<abs path>].mcpServers.sapience` entry in ~/.claude.json.
-- SF-1 CARD SESSIONS -- an INTENDED consequence, recorded here so it is not later mistaken for a
-  regression. This repository packages the SF-1 hub runner
-  (`modules/home/services/sf1-hub-ben.nix`, `packages/sf1-hub-ben/`, `docs/sf1-hub.md`; already
-  landed, and with NO file overlap with this task's edit targets). That runner starts Claude Code
-  inside throwaway git worktrees under `~/.local/state/sf1-hub-ben/hub/runner/work/`, which is not
-  any registered project path. Under the current top-level `mcpServers` merge a card session
-  therefore receives all nine `sapience_*` tools and fires all five hooks; once registration moves
-  to per-project scope it will receive NONE. That is correct and desired -- a card is a task
-  written by a collaborator and must not reach the vault. Verify it: start a session in a worktree
-  path under that directory and confirm no `sapience_*` tools, no Sapience grants and no Sapience
-  hook firing. For accuracy, note in the same place that the runner's memory sync is keyed on the
-  CHECKOUT path, not the worktree path, so room rulings still land under the card repo's own
-  Claude Code memory directory regardless of this change.
+- SF-1 CARD SESSIONS -- TWO CHANNELS WITH DIFFERENT CORRECT ANSWERS. Recorded here so that neither
+  the desired half nor the gap is later mistaken for the other. This repository packages the SF-1
+  hub runner (`modules/home/services/sf1-hub-ben.nix`, `packages/sf1-hub-ben/`, `docs/sf1-hub.md`;
+  already landed, and with NO file overlap with this task's edit targets). That runner starts
+  Claude Code inside throwaway git worktrees under `~/.local/state/sf1-hub-ben/hub/runner/work/`,
+  which is not any registered project path. Two distinct Sapience channels reach such a session,
+  and they differ in whether they can be scoped to a repository at all.
+
+  CHANNEL 1 -- HOOK-INJECTED CONTEXT (`SessionStart`, `UserPromptSubmit`, `PreToolUse`). CANNOT be
+  scoped, so a card session must NOT have it. Direct live measurement, recorded in the
+  agent-system source store at
+  `agent-system/extensions/sapience/context/project/sapience/domain/injection-site-scoping.md`
+  under /home/benjamin/.config/nvim, established that none of the three primary-session injection
+  sites can be scoped from this side: `POST /v1/cli/context` ignores the `project` field
+  `UserPromptSubmit` already sends, and its response carries no per-item attribution a local
+  wrapper could filter or label by. That work therefore did NOT make injection repo-scoped; it
+  recorded the residual and adopted a label-never-suppress ruling. For cards the consequence is
+  decisive: any card session that fired those hooks would receive cross-repo vault content --
+  material from unrelated repositories, and personal material -- inside a session executing a task
+  card written by a collaborator, whose output posts back to a shared room. Zero is the right
+  answer here, and it is ALREADY STRUCTURALLY GUARANTEED independently of this task: hooks and
+  grants reach a repo only via the extension's `settings-fragment.json` merged into that repo's
+  `.claude/settings.local.json`, and `.claude/` is untracked in the card repo (verified:
+  `git ls-files .claude` is empty in /home/benjamin/Projects/Sapience/sapience-app), so a fresh
+  worktree has no `.claude/` tree at all and therefore no hooks and no grants, by construction.
+  This task neither creates nor must preserve that property.
+
+  CHANNEL 2 -- MCP RETRIEVAL (`sapience_search`, and the dispatch-time `sapience-retrieve.sh`).
+  CAN be scoped, IS already scoped, and a card session SHOULD have it.
+  `agent-system/extensions/sapience/scripts/sapience-retrieve.sh` builds
+  `GET {host}/v1/search?q=...&source=[repo:<slug>]&...` -- a hard pre-filter on the literal
+  `[repo:<slug>]` provenance substring (`&project=` is a dead end, silently ignored, and that
+  script's own header says so). Repo-tagged knowledge objects for the card repo are precisely the
+  accumulated decisions and findings about that repo, which is exactly what a card doing work
+  there should be able to draw on.
+
+  WHAT ACTUALLY HAPPENS, AND WHY ZERO-FOR-BOTH ARRIVES BY ACCIDENT. Per-project MCP registration
+  keys on the repo's absolute path and on whether that repo's extension is active. A worktree path
+  matches no registered project and carries no `.claude-extensions.json`, so it gets no
+  registration and therefore no tools -- including the scoped retrieval tools that SHOULD be
+  available. Zero-for-both is thus reached by accident rather than by design, and the useful half
+  is lost along with the unsafe half. Do NOT record "a card session will receive NONE, and that is
+  correct and desired" as a blanket statement: it is true of hook injection and false of
+  retrieval.
+
+  THE GAP AND ITS FOLLOW-UP -- NOT THIS TASK'S WORK. The absence of retrieval tools in a card
+  worktree is a known, deliberate gap that this task does NOT close and must not be read as
+  closing. The follow-up's shape: a card worktree should resolve to its PARENT CHECKOUT for
+  Sapience registration purposes, so the card repo's own repo-scoped retrieval is available inside
+  the worktree. The mechanism already has a precedent in the runner itself -- its memory sync keys
+  on the CHECKOUT path, not the worktree path -- and `git rev-parse --git-common-dir` resolves a
+  worktree to its checkout in one call. The registration logic lives in
+  `agent-system/extensions/sapience/` under /home/benjamin/.config/nvim, so per
+  `.claude/rules/source-store-deploy-boundary.md`'s Task Siting subsection that follow-up is
+  created THERE, not here. It is deliberately NOT in this task's `file_scope` or edit-target list.
+
+  VERIFY, for this task: start a session in a worktree path under that directory and confirm no
+  Sapience hooks fire and no Sapience grants are present. Record the absence of retrieval tools
+  there as the known gap above, not as a success condition.
+
+  Independently of all of the above, the runner's memory sync is keyed on the CHECKOUT path, not
+  the worktree path, so room rulings still land under the card repo's own Claude Code memory
+  directory regardless of this change.
 
 === DOCUMENTATION THIS TASK OWNS ===
 
@@ -378,8 +428,11 @@ is closed rather than left open.
    repos -- `/home/benjamin/.dotfiles`, `/home/benjamin/.config/nvim`,
    `/home/benjamin/Projects/abood` and `/home/benjamin/Projects/Sapience/sapience-app` -- keep all
    nine tools, all eleven grants and all five hooks. An SF-1 card session in a worktree under
-   `~/.local/state/sf1-hub-ben/hub/runner/work/` gets no tools, no grants and no hook firing, as
-   intended.
+   `~/.local/state/sf1-hub-ben/hub/runner/work/` fires no Sapience hooks and carries no Sapience
+   grants -- the correct outcome, and one already structurally guaranteed by that worktree having
+   no `.claude/` tree at all. The absence of repo-scoped retrieval tools in that same worktree is
+   recorded as a known, deliberate gap with a named nvim-sited follow-up, NOT as a success
+   condition.
 4. The `~/.sapience/config.json` reconciliation is handed over as an exact, runnable owner
    instruction covering BOTH `capture.projects` and the top-level `folders` allowlist, with the
    sanctioned route (hand-edit versus `sapience-bootstrap`'s picker) named.
