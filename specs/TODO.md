@@ -11,8 +11,8 @@ next_project_number: 141
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,140 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 117,120,139 | 77,124,136,140 | nixos-config, desktop, sapience |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136 | -- | nixos-config, nix-infrastructure, services, ... |
+| 2 | 117,120,139 | 77,124,136 | nixos-config, desktop, sapience |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -56,18 +56,18 @@ next_project_number: 141
 
 ### Sapience
 
-140 [PLANNED] — Diagnose why local llama3.1 inference runs at 0.66 tokens per...
-  └─ 139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
+139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
 
 ## Tasks
 
 ### 140. Diagnose slow local ollama inference
-- **Status**: [PLANNED]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: sapience
 - **Dependencies**: None
 - **Research**: [140_diagnose_slow_local_ollama_inference/reports/01_ollama-cpu-inference-slowdown.md]
 - **Plan**: [140_diagnose_slow_local_ollama_inference/plans/01_ollama-cpu-baseline-verdict.md]
+- **Summary**: [140_diagnose_slow_local_ollama_inference/records/01_controlled-benchmark.md]
 
 **Description**: Diagnose why local llama3.1 inference runs at 0.66 tokens per second on this hardware, and decide whether local Sapience extraction can be made viable. Measured on this machine (24-core AMD Ryzen AI 9 HX 370, Radeon 890M integrated GPU, no discrete GPU, 30 GB RAM): llama3.1 emitted 58 tokens in 88 seconds with llama-server showing roughly 1830 percent CPU across 27 threads, so it is genuinely multi-threaded and still roughly 20x slower than an 8B Q4_K_M model should run on this core count. Candidate causes not yet ruled out: memory pressure (19 of 30 GB in use at measurement time, 4.9 GB model), a CPU-feature-poor or generically-built llama.cpp in the packaged ollama derivation, thermal or power limits, or a context-size default inflating per-token work. This matters beyond curiosity: extraction currently runs at a third-party provider on a metered key precisely because local inference is impractical at this rate, so a fix removes both the per-call cost and the privacy trade of sending raw transcript chunks off this machine. Note that the ROCm acceleration route for the Radeon 890M was separately considered and set aside; this task is about the CPU path. Reclaiming the 4.9 GB llama3.1 model with ollama rm would require re-pulling it before this work can proceed.
 

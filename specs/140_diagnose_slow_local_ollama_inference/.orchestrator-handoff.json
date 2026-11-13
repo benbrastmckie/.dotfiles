@@ -1,18 +1,47 @@
 {
-  "status": "planned",
-  "phase": "plan",
-  "summary": "Wrote a 5-phase plan targeting the depressed baseline rather than the 0.66 tok/s outlier, per the research report's reframing. Phase 1 takes an instrumented, load-annotated benchmark with 1s frequency/temperature sampling; Phases 2 and 3 run in parallel to discriminate contention from a power/thermal ceiling and to convert the measured rate into Sapience's own per-chunk and per-50-chunk wall clock; Phase 4 corrects the outlier figure in docs/sapience.md, home.nix and modules/home/services/ollama.nix; Phase 5 runs the full gate set and surfaces the backend-flip choice as a user_decision rather than taking it. Premise re-validation found two description figures uncorroborated and corrected them in the plan.",
+  "status": "implemented",
+  "phase": "implement",
+  "summary": "Four load-annotated bench runs discriminated contention (via shared power-budget headroom, confirmed by per-core frequency traces) as the dominant cause of the depressed baseline, with a residual zen4-not-zen5 kernel-tune gap. Converted the measured decode rate into a Sapience viability verdict of 'viable only under named conditions' against the client's 180s call timeout. docs/sapience.md, home.nix, and modules/home/services/ollama.nix now state the measured baseline instead of the 0.66 tok/s outlier. All five plan phases completed; full verify-deploy.sh, validate-artifact.sh (plan + summary), and nix flake check all pass.",
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/140_diagnose_slow_local_ollama_inference/plans/01_ollama-cpu-baseline-verdict.md",
-      "summary": "5-phase, 5-hour plan: instrumented baseline benchmark, cause discrimination, Sapience viability computation, durable-carrier figure correction, final gate plus decision surfacing."
+      "type": "implementation",
+      "path": "specs/140_diagnose_slow_local_ollama_inference/records/01_controlled-benchmark.md",
+      "summary": "Four benchmark runs, frequency/temperature trace, cause discrimination, and Sapience viability computation."
+    },
+    {
+      "type": "implementation",
+      "path": "docs/sapience.md",
+      "summary": "Replaced the 0.66 tok/s outlier figure with the measured baseline range and the dense-chunk timeout failure mode in two passages."
+    },
+    {
+      "type": "implementation",
+      "path": "home.nix",
+      "summary": "Corrected the programs.sapience.backend comment block's figure; backend value itself unchanged."
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/services/ollama.nix",
+      "summary": "Corrected the stale header claim about which model Sapience names given the current anthropic backend."
+    },
+    {
+      "type": "summary",
+      "path": "specs/140_diagnose_slow_local_ollama_inference/summaries/01_ollama-cpu-baseline-verdict-summary.md",
+      "summary": "Implementation summary with verification results."
     }
   ],
-  "phases_completed": 0,
+  "phases_completed": 5,
   "phases_total": 5,
   "blockers": [],
-  "plan_markers_verified": true,
-  "next_action_hint": "Dispatch implement phase; Phases 2 and 3 are independent given Phase 1's measurements and can run in one wave.",
-  "dispatch_seq": 2
+  "user_decision": {
+    "question": "Now that local llama3.1 inference is measured (viable only under named conditions: typical Sapience chunks fit within the client's 180s call timeout, but the client's own documented dense-chunk case still exceeds it at every thread setting measured), should programs.sapience.backend stay \"anthropic\" or flip to \"ollama\"?",
+    "options": [
+      "Keep backend = \"anthropic\" — status quo: metered per-call cost, raw transcript text leaves this machine for a third-party provider, but every call completes reliably within its own timeout budget.",
+      "Flip backend = \"ollama\" (run via --backfill/interactive, not the scheduled 1-thread sync default) — no metered cost, raw transcript text stays confined to this machine, but a sufficiently dense chunk will occasionally time out and fail outright at the measured decode rate."
+    ],
+    "recommended": "Flip backend = \"ollama\" (run via --backfill/interactive, not the scheduled 1-thread sync default) — no metered cost, raw transcript text stays confined to this machine, but a sufficiently dense chunk will occasionally time out and fail outright at the measured decode rate.",
+    "blocking": false,
+    "obligation": "Discharges the privacy-confinement obligation docs/sapience.md's 'Why this backend' section names as the reason to revisit the anthropic choice at all: raw transcript text no longer leaves this machine for a third-party provider. The measured risk it accepts in exchange is a bounded, occasional per-chunk call failure on dense chunks specifically (Phase 3 of records/01_controlled-benchmark.md), not data loss or a broken pass — a failed chunk is simply not ingested that run."
+  },
+  "next_action_hint": "Resolve the user_decision (keep anthropic backend or flip to ollama); task 139 (classifier cost) can now proceed since it depended on this task.",
+  "dispatch_seq": 3
 }

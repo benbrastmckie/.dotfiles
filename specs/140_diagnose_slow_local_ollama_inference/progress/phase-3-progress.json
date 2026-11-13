@@ -1,0 +1,18 @@
+{
+  "phase": 5,
+  "phase_name": "Final gate and decision surfacing",
+  "started_at": "2026-11-13T14:52:00-08:00",
+  "last_updated": "2026-11-13T15:35:00-08:00",
+  "objectives": [
+    {"id": 1, "description": "All phases 1-5 file changes", "status": "completed", "files_touched": [
+      "specs/140_diagnose_slow_local_ollama_inference/records/01_controlled-benchmark.md",
+      "specs/140_diagnose_slow_local_ollama_inference/plans/01_ollama-cpu-baseline-verdict.md",
+      "docs/sapience.md",
+      "home.nix",
+      "modules/home/services/ollama.nix",
+      "specs/140_diagnose_slow_local_ollama_inference/summaries/01_ollama-cpu-baseline-verdict-summary.md"
+    ]}
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

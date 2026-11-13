@@ -1,7 +1,7 @@
 # Implementation Plan: Task #140
 
 - **Task**: 140 - Diagnose why local llama3.1 inference runs at 0.66 tokens per second on this hardware, and decide whether local Sapience extraction can be made viable
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/140_diagnose_slow_local_ollama_inference/reports/01_ollama-cpu-inference-slowdown.md
