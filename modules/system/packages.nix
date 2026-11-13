@@ -50,6 +50,7 @@
       commandLineArgs = "--disable-blink-features=ScreenWakeLock";
     })
     discord # Voice, video, and text chat platform
+    zapzap # WhatsApp desktop client (Qt6/QtWebEngine wrapper around WhatsApp Web)
 
     # Appearance
     fastfetch # Command-line system information tool with ASCII art
