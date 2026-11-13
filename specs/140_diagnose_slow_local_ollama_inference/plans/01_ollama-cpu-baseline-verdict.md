@@ -1,7 +1,7 @@
 # Implementation Plan: Task #140
 
 - **Task**: 140 - Diagnose why local llama3.1 inference runs at 0.66 tokens per second on this hardware, and decide whether local Sapience extraction can be made viable
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 5 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/140_diagnose_slow_local_ollama_inference/reports/01_ollama-cpu-inference-slowdown.md
@@ -122,39 +122,39 @@ roadmap context and no roadmap phases are included.
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Instrumented controlled baseline benchmark [NOT STARTED]
+### Phase 1: Instrumented controlled baseline benchmark [COMPLETED]
 
 **Goal**: Produce a reproducible, load-annotated baseline for prompt-eval and decode throughput,
 with per-core frequency and temperature sampled throughout each run, using fixed benchmark
 parameters so runs taken in different windows are comparable.
 
 **Tasks**:
-- [ ] Record the pre-run environment for each run: `free -h`, `/proc/loadavg`, the top CPU
+- [x] Record the pre-run environment for each run: `free -h`, `/proc/loadavg`, the top CPU
       consumers (`ps -eo pcpu,rss,comm --sort=-pcpu | head -12`), swap in use, the governor
       (`cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor | sort -u`), and
       `energy_performance_preference`.
-- [ ] Enter a one-off `nix shell nixpkgs#lm_sensors` and capture `sensors` output. If it exposes
+- [x] Enter a one-off `nix shell nixpkgs#lm_sensors` and capture `sensors` output. If it exposes
       no usable junction temperature or power counter on this chip, record that result verbatim
       and proceed on the ACPI-zone fallback — do not add the package to the persistent config.
-- [ ] Start a 1s sampler in the background writing timestamped per-core MHz
+- [x] Start a 1s sampler in the background writing timestamped per-core MHz
       (`grep '^cpu MHz' /proc/cpuinfo`), every readable `/sys/class/thermal/thermal_zone*/temp`,
       and `sensors` output (if usable) to a log in the scratchpad directory. Capture its PID and
       wait on it per `context/patterns/bounded-build-waiter.md` (`kill -0` on the captured PID,
       hard timeout, one waiter per log) — never `pgrep -f`.
-- [ ] Run the benchmark against the already-running `ollama.service` using the derivation's own
+- [x] Run the benchmark against the already-running `ollama.service` using the derivation's own
       tool: `OLLAMA_HOST=127.0.0.1:11434 /nix/store/r316a9qc91ryabf01dpg2jzcnz5vsqc8-ollama-0.32.3/bin/bench -model llama3.1 -epochs 3 -prompt-tokens 512 -max-tokens 128 -format csv -output <scratchpad>/bench-run1.csv`.
       Confirm the store path still resolves before use; if the derivation has been
       garbage-collected or updated, re-resolve it from `command -v ollama` and record the new
       path rather than editing a dead one.
-- [ ] Harvest the matching `slot print_timing` lines from `journalctl --user -u ollama` for the
+- [x] Harvest the matching `slot print_timing` lines from `journalctl --user -u ollama` for the
       run's window, keeping prompt-eval and decode as separate figures — the two gaps differ by
       several-fold and must never be collapsed into one number.
-- [ ] Repeat the identical invocation in at least two further windows chosen for materially
+- [x] Repeat the identical invocation in at least two further windows chosen for materially
       different `/proc/loadavg`, recording the full load inventory for each. A quiet window is
       sampled opportunistically; it is not created by stopping the user's work.
-- [ ] Stop the sampler. Correlate per-core MHz and temperature during the prefill segment versus
+- [x] Stop the sampler. Correlate per-core MHz and temperature during the prefill segment versus
       the decode segment of each run against that run's measured throughput.
-- [ ] Write every figure, every load inventory, and the instrumentation gaps into the task's own
+- [x] Write every figure, every load inventory, and the instrumentation gaps into the task's own
       record file.
 
 **Timing**: 1.5 hours (dominated by wall-clock waiting across repeated runs)
@@ -187,27 +187,27 @@ record — no suite covers it and none is claimed.
 
 ---
 
-### Phase 2: Discriminate contention from a power/thermal ceiling [NOT STARTED]
+### Phase 2: Discriminate contention from a power/thermal ceiling [COMPLETED]
 
 **Goal**: Decide from Phase 1's data which surviving candidate explains the depressed baseline,
 or state explicitly that the data does not discriminate and which evidence fell short.
 
 **Tasks**:
-- [ ] Test the contention hypothesis: does throughput track inversely with each run's concurrent
+- [x] Test the contention hypothesis: does throughput track inversely with each run's concurrent
       load, and does the quietest sampled window approach the community HX 370 reference
       (~80-90 tok/s prefill, ~12-15 tok/s decode)? Record the correlation, not an impression.
-- [ ] Test the power/thermal hypothesis: does per-core MHz crater during the prefill segment
+- [x] Test the power/thermal hypothesis: does per-core MHz crater during the prefill segment
       specifically — the phase with the largest gap to reference — while load is low, with
       temperature near the high end of the ACPI zone range the research observed? Prefill-only
       collapse is the discriminating signature; a proportional drop across both phases is not.
-- [ ] If the baseline stays depressed at low load with no frequency drop, run the research's
+- [x] If the baseline stays depressed at low load with no frequency drop, run the research's
       fallback: `OLLAMA_DEBUG=1` plus `strace -f -e trace=openat` against a fresh `ollama serve`
       to confirm which `libggml-cpu-*.so` is actually `dlopen`'d. Detected CPU capability and
       selected backend are logged separately upstream, so the ruled-out build hypothesis is only
       ruled out for capability detection, not for backend selection.
-- [ ] If a 0.66-tok/s-class collapse recurs, capture its full `print_timing` block and the
+- [x] If a 0.66-tok/s-class collapse recurs, capture its full `print_timing` block and the
       concurrent load at that instant, and report it apart from the baseline median.
-- [ ] Record the verdict with the specific evidence that discriminated it. If nothing
+- [x] Record the verdict with the specific evidence that discriminated it. If nothing
       discriminated, say so and name what further instrumentation would — do not promote the
       more plausible candidate to a conclusion.
 
@@ -232,28 +232,28 @@ is the `prose` row's diff read-through — no suite covers a `specs/**` record a
 
 ---
 
-### Phase 3: Convert the measured rate into a Sapience viability number [NOT STARTED]
+### Phase 3: Convert the measured rate into a Sapience viability number [COMPLETED]
 
 **Goal**: Express viability as Sapience's own per-chunk and per-50-chunk wall clock, checked
 against the client's hardcoded request timeout, so the go/no-go rests on a duration rather than
 a tokens/sec rate.
 
 **Tasks**:
-- [ ] Re-derive, do not carry, the client's live constants from `~/.sapience/extract_local.py`:
+- [x] Re-derive, do not carry, the client's live constants from `~/.sapience/extract_local.py`:
       the `LLM_MAX_TOKENS` reply cap (research cites 8000) and the `urlopen` timeout (research
       cites 180s). Record the values found and flag any divergence from the research report.
-- [ ] Confirm `ollama_num_thread()` still returns 1 for the scheduled `--sync` path and 0
+- [x] Confirm `ollama_num_thread()` still returns 1 for the scheduled `--sync` path and 0
       (Ollama's own default) for interactive/`--backfill`, then take one representative
       extraction measurement with `SAPIENCE_NUM_THREAD` set explicitly or via `--backfill`, so
       the deliberate 1-thread throttle is not mistaken for a hardware ceiling. State which code
       path produced the number.
-- [ ] Measure a representative emitted-JSON reply length from an actual extraction rather than
+- [x] Measure a representative emitted-JSON reply length from an actual extraction rather than
       assuming the 8000-token cap is reached — the cap is a budget, not an expected length.
-- [ ] Compute, from Phase 1's median decode rate: seconds per chunk, the 50-chunk pass estimate,
+- [x] Compute, from Phase 1's median decode rate: seconds per chunk, the 50-chunk pass estimate,
       and whether a single call's projected duration exceeds the client's `urlopen` timeout. A
       per-call time above that timeout means HTTP 500s and zero findings, which is a different
       failure from mere slowness and must be reported as such.
-- [ ] State the verdict in one of three forms — viable / not viable / viable only under named
+- [x] State the verdict in one of three forms — viable / not viable / viable only under named
       conditions — with the specific number each claim rests on.
 
 **Timing**: 1 hour
