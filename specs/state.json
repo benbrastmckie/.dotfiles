@@ -32,9 +32,10 @@
         {
           "path": "specs/140_diagnose_slow_local_ollama_inference/reports/01_ollama-cpu-inference-slowdown.md",
           "type": "report",
-          "summary": "Confirms the 0.66 tok/s event live in journalctl as an outlier atop an already-depressed baseline several-fold below the HX 370's published CPU reference; rules out generic-build and oversized-context causes; leaves memory-contention and thermal/power-limiting unresolved; flags an unrelated Sapience-client thread-throttle quirk."
+          "summary": "Confirms the 0.66 tok/s event live in journalctl but shows it is an outlier on top of an already-depressed baseline (~9-13 tok/s prompt-eval, ~5.5-7.7 tok/s decode) that itself runs several-fold below the HX 370's published CPU reference; rules out generic-build and oversized-context causes, leaves memory-contention and thermal/power-limiting as unresolved candidates, and flags an unrelated Sapience-client thread-throttle quirk."
         }
-      ]
+      ],
+      "next_artifact_number": 2
     },
     {
       "project_number": 139,
