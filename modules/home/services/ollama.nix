@@ -6,8 +6,9 @@
 # this module. A plain name (llama3.1) is served from local weights; a name ending in ":cloud"
 # makes this daemon authenticate against ollama.com, forward the call and run nothing locally.
 # In that mode the daemon is a credential-holding transport, which is the only way a consumer
-# that sends no Authorization header can reach a remote model at all. Sapience currently names
-# gemma4:cloud, so no inference happens here today.
+# that sends no Authorization header can reach a remote model at all. `home.nix` sets
+# programs.sapience.backend = "anthropic", so Sapience reaches no model through this daemon at
+# all today, independent of which model name it last probed.
 #
 # Note: home-manager rather than NixOS, so the whole feature stays on one rebuild path -- the
 # cost is that the NixOS module's loadModels is unavailable and the pull below is hand-rolled.

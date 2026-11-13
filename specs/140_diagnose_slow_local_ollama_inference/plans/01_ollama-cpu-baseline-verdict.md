@@ -278,36 +278,36 @@ edited.
 
 ---
 
-### Phase 4: Record the verdict in the durable carriers [NOT STARTED]
+### Phase 4: Record the verdict in the durable carriers [COMPLETED]
 
 **Goal**: Replace the outlier framing in the three durable files with the measured baseline, the
 identified cause, and the viability verdict, so the next reader sees the current measurement.
 
 **Tasks**:
-- [ ] Re-check that tasks 136 and 139 are still standing down before editing; both share
+- [x] Re-check that tasks 136 and 139 are still standing down before editing; both share
       `docs/sapience.md` and `home.nix` with this task. If either has resumed, defer this phase
       rather than editing concurrently.
-- [ ] `docs/sapience.md`, "Why this backend" section: replace the single-outlier figure in the
+- [x] `docs/sapience.md`, "Why this backend" section: replace the single-outlier figure in the
       `0.66 tokens/sec` / `58 tokens took 88 seconds` / "near eleven hours" passage with the
       measured baseline range, the named cause, and the per-chunk viability number. Keep the
       existing privacy-trade statement and the closing "Revisit if local inference on this
       hardware becomes practical" sentence; update only what the measurement changed.
-- [ ] `docs/sapience.md`, the call-cost comparison later in the troubleshooting material: apply
+- [x] `docs/sapience.md`, the call-cost comparison later in the troubleshooting material: apply
       the same figure correction, and retain the 180s-timeout consequence only if Phase 3
       confirmed it still applies at the measured rate.
-- [ ] `home.nix`, the `programs.sapience.backend` comment block: apply the same figure
+- [x] `home.nix`, the `programs.sapience.backend` comment block: apply the same figure
       correction to the lines carrying `0.66 tokens/sec` and "near eleven hours". Leave
       `backend = "anthropic"` itself unchanged (Non-Goals).
-- [ ] `modules/home/services/ollama.nix` header comment: correct the stale claim that Sapience
+- [x] `modules/home/services/ollama.nix` header comment: correct the stale claim that Sapience
       "currently names gemma4:cloud, so no inference happens here today" — `home.nix` sets
       `backend = "anthropic"`, so Sapience reaches no model through this daemon at all. This
       target was confirmed present at authoring time; if the header has since changed, record
       what was found and skip the edit rather than correcting a target that no longer exists.
-- [ ] Write the current measurement only. No record-versioning language: no "previously",
+- [x] Write the current measurement only. No record-versioning language: no "previously",
       "no longer", "formerly", or draft-history framing anywhere in these three files
       (`rules/no-record-versioning-in-deliverables.md`), and no task-number citations
       (`rules/no-task-references-in-deliverables.md`).
-- [ ] Run `nix-instantiate --parse` on each edited `.nix` file.
+- [x] Run `nix-instantiate --parse` on each edited `.nix` file.
 
 **Timing**: 1 hour
 

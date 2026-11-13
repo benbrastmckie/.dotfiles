@@ -324,7 +324,11 @@ Edits landed (prose/comment-only, no semantic Nix change):
   "anthropic"`, so Sapience reaches no model through this daemon at all today, independent of
   which `:cloud` model name it last probed.
 
-`nix-instantiate --parse` was run on both edited `.nix` files; see Phase 5 for the result.
+`nix-instantiate --parse` was run on both edited `.nix` files: both exit clean (no output on
+success). `bash .claude/scripts/verify-deploy.sh --only-gate 4 /home/benjamin/.dotfiles`
+(task-reference lint) passed: `[PASS] task-reference lint reports no findings`. A grep for
+`0\.66|eleven hours` across the three edited files returns no matches — every carried occurrence
+was replaced, none survived intentionally.
 
 ## Phase 5: Final gate and decision surfacing
 

@@ -394,10 +394,15 @@ Four facts about `extract_local.py` bound the choice:
 
 `relay` is ruled out on privacy grounds alone: it transits chunks through `app.spnc.ai` before
 any review gate applies. That leaves one question — whether extraction runs here or at a
-provider — and on this hardware it cannot run here. Measured on this machine (24-core Ryzen AI 9
-HX 370, Radeon 890M iGPU, no discrete GPU), `llama3.1` emits **0.66 tokens/sec**: 58 tokens took
-88 seconds with roughly 18 cores engaged. A 50-chunk pass at that rate runs near eleven hours,
-which is not a usable cadence for a tool meant to keep up with daily work.
+provider — and on this hardware it is viable only under named conditions, not outright. Measured
+on this machine (24-core Ryzen AI 9 HX 370, Radeon 890M iGPU, no discrete GPU), `llama3.1`
+decodes at roughly **6-7.7 tokens/sec** under Ollama's default (all cores), but the scheduled
+sync path deliberately throttles to one thread and measures roughly **2-3 tokens/sec** there. A
+typical chunk fits comfortably inside the client's 180s call timeout at either setting, but the
+client's own documented dense-chunk case (needing thousands of output tokens) exceeds that
+timeout at every thread setting and load condition measured — an occasional outright call
+failure, not merely a slow pass, and the reason "ollama" is not a strictly better choice than
+`anthropic` rather than not a workable one at all.
 
 The remaining alternative is `ollama` pointed at `ollama.com`'s hosted models, via a `:cloud`
 model name that makes the local daemon authenticate and forward. That buys nothing here: the
@@ -454,9 +459,12 @@ So while a backlog exists the classifier phase dominates the call count, and a r
 first few minutes there before the slower chunk work begins. A ticker that appears to stall has
 usually just crossed that boundary.
 
-For comparison, local `llama3.1` on this CPU emits 0.66 tokens/sec — 58 tokens in 88 seconds —
-and some calls exceed the client's hardcoded 180s `urlopen` timeout outright, surfacing as
-HTTP 500s. That is why extraction does not run locally; see
+For comparison, local `llama3.1` on this CPU decodes at roughly 6-7.7 tokens/sec under Ollama's
+default (all cores) or roughly 2-3 tokens/sec under the scheduled sync path's deliberate
+one-thread throttle. A typical chunk fits inside the client's hardcoded 180s `urlopen` timeout at
+either setting, but a sufficiently dense chunk exceeds it outright at every thread setting
+measured, surfacing as a failed call rather than a slow one. That failure mode, not raw slowness
+alone, is why extraction does not run locally by default; see
 [Why this backend](#why-this-backend).
 
 Two things to watch:

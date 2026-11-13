@@ -47,11 +47,16 @@
     # machine for a third-party provider. What is sent is transcript text, not the vault -- the
     # review gate still stands between an extraction and anything written to app.spnc.ai -- but
     # the text itself is no longer confined here. The alternative that keeps it confined is
-    # "ollama" against a locally-resident model, and that is not currently viable: measured on
-    # this machine (24-core Ryzen AI 9 HX 370, no discrete GPU), llama3.1 extracts at 0.66
-    # tokens/sec, which puts a 50-chunk pass near eleven hours. Aiming "ollama" at ollama.com's
-    # hosted models instead leaves this machine anyway AND returns HTTP 402 across every model
-    # tried, so it buys no privacy and does not work.
+    # "ollama" against a locally-resident model. Measured on this machine (24-core Ryzen AI 9
+    # HX 370, no discrete GPU), llama3.1 decodes at roughly 6-7.7 tokens/sec under the Ollama
+    # default (all cores) depending on ambient load, but the scheduled sync path deliberately
+    # throttles to one thread (so a background job stays in the background), which measures
+    # roughly 2-3 tokens/sec. A typical chunk fits in either case well inside the client's 180s
+    # call timeout, but the client's own documented dense-chunk case (needing thousands of
+    # output tokens) exceeds that timeout at any thread setting measured -- a real, occasional
+    # outright failure, not merely slowness. Aiming "ollama" at ollama.com's hosted models
+    # instead leaves this machine anyway AND returns HTTP 402 across every model tried, so it
+    # buys no privacy and does not work.
     #
     # Revisit if local inference on this hardware becomes practical; that is the only option
     # that makes this trade unnecessary rather than merely accepted.
