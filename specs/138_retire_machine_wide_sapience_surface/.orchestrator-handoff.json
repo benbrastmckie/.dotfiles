@@ -1,0 +1,15 @@
+{
+  "status": "planned",
+  "phases_completed": 0,
+  "phases_total": 6,
+  "summary": "Wrote a six-phase implementation plan retiring the three machine-wide Sapience activation surfaces (the sapienceMcpServer activation entry in modules/home/services/sapience.nix, seven permissions.allow grants, and five hook entries in config/claude/settings.json) while adding the one durable per-project MCP-registration SessionStart entry. Three plan-time findings corrected or extended the research report: hooks.SessionEnd holds two entries, not one (the systemd sleep-inhibitor cleanup must be kept); packages/sapience-flake/ carries a second copy of the module that is a standalone publishable flake and is ruled out of scope; and _SAPIENCE_NOTE is not an enforced key, so a rewritten note will not propagate to the live file. Verification tiers were measured with suite_selection_select rather than asserted, which surfaced test-sapience-mcp-registration.sh as a directly relevant covering suite for the settings.json phase.",
+  "blockers": [],
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/138_retire_machine_wide_sapience_surface/plans/01_retire-machine-wide-sapience.md",
+      "summary": "Six-phase plan: confirm companion landing, remove the nix activation entry, retire grants/hooks and add the durable registration entry, rewrite docs, produce the owner instruction and coordination record, then gate and verify against live merged state."
+    }
+  ],
+  "dispatch_seq": 2
+}

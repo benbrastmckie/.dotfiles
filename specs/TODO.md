@@ -56,16 +56,17 @@ next_project_number: 139
 
 ### Sapience
 
-138 [RESEARCHED] — Retire the machine-wide Sapience surface so the extension's...
+138 [PLANNED] — Retire the machine-wide Sapience surface so the extension's...
 
 ## Tasks
 
 ### 138. Retire the machine-wide Sapience surface so the extension's per-repo gating is the only activation path
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: sapience
 - **Dependencies**: None
 - **Research**: [138_retire_machine_wide_sapience_surface/reports/01_retire-machine-wide-sapience.md]
+- **Plan**: [138_retire_machine_wide_sapience_surface/plans/01_retire-machine-wide-sapience.md]
 
 **Description**: GOAL. Retire every machine-wide Sapience ACTIVATION surface this repository owns, so that loading
 the sapience extension into a repo is the ONLY thing that turns Sapience on there, and unloading
