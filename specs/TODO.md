@@ -1,17 +1,17 @@
 ---
-next_project_number: 141
+next_project_number: 142
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-11-13. Generated from state.json dependency graph.*
+*Updated 2026-11-14. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,141 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120,139 | 77,124,136 | nixos-config, desktop, sapience |
 | 3 | 78 | 120 | desktop |
 
@@ -56,9 +56,36 @@ next_project_number: 141
 
 ### Sapience
 
+141 [NOT STARTED] — GOAL. Close the recurrence gap left by task 138. That task...
 139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
 
 ## Tasks
+
+### 141. Prevent sapience hook reinjection
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: sapience
+- **Dependencies**: None
+
+**Description**: GOAL. Close the recurrence gap left by task 138. That task removed the five machine-wide Sapience hook entries from config/claude/settings.json and verified the live file post-switch; nothing it built prevents or detects the vendor client putting them back, and the vendor client has now put three of them back. DO NOT redo 138's removal -- the source file is still correct. The work here is convergence-on-activation plus detection-between-activations.
+
+MEASURED EVIDENCE (2026-11-14). The live ~/.claude/settings.json carries three Sapience hooks that config/claude/settings.json does not declare:
+  SessionStart: python3 /home/benjamin/.sapience/mcp.py --briefing-text
+  SessionEnd:   python3 /home/benjamin/.sapience/mcp.py --receipt
+  Stop:         python3 /home/benjamin/.sapience/mcp.py --effect-line
+The source file still contains exactly one Sapience hook entry -- the SessionStart entry invoking $HOME/.claude/hooks/sapience-mcp-register-project.sh that 138 deliberately added -- so this is live-file drift, not a source regression. Live mtime (2026-11-14 00:49) postdates source mtime (2026-11-13 01:04) and postdates 138's completion (2026-11-13 09:19), so ~/.sapience/*.py re-injected them after the last home-manager switch. Three of the original five returned; UserPromptSubmit and PreToolUse did not.
+
+THREE CONSEQUENCES. (1) They fire in every repository, whether or not the sapience extension is loaded there -- defeating the per-repo activation design 138 and its nvim-sited companion exist to provide. (2) In a repository that HAS loaded the extension they duplicate the extension-merged copies from settings-fragment.json: a session in /home/benjamin/.config/nvim on 2026-11-14 printed the identical SessionStart briefing block twice. (3) They are unguarded, unlike the fragment's versions, each of which wraps its call in [ -f "$HOME/.sapience/mcp.py" ] && ... || true.
+
+FOURTH, SEPARATE DEFECT. _SAPIENCE_NOTE is not in home.activation.claudeSettings' enforced-key list ["_NOTE","env","hooks","model","permissions","statusLine"], so the live file's copy is preserved across switches rather than reset from source. The live copy predates 138's rewrite and is now wrong on two counts: it claims the mcp.py hook entries are owned by modules/home/services/sapience.nix (that module defines none of them -- grep finds no --briefing-text, --receipt or --effect-line in it), and it claims they are guarded with [ -f ~/.sapience/mcp.py ] (they are not). A reader inspecting the live file is told the drifted entries are legitimate and nix-owned.
+
+SCOPE. (a) Make home.activation.claudeSettings actively strip Sapience mcp.py hook entries the source does not declare, instead of relying only on the enforced-key reset -- which does converge the file at switch time but is undone by the next vendor run. (b) Add _SAPIENCE_NOTE to the enforced-key list in modules/home/core/dotfiles.nix so its text cannot drift from source. (c) Decide where the between-activations detector belongs -- here, or in the nvim repository's scripts/verify-sapience-mcp.sh, whose check (d) today asserts only that the registration hook is PRESENT in the live file, never that it is the ONLY Sapience hook there. Record the siting decision either way, since the nvim repository owns the companion verifier.
+
+VENDOR CEILING. ~/.sapience/mcp.py is vendor-owned and self-updating (modules/home/services/sapience.nix seeds it only when absent, deliberately), so re-injection will recur. The target is convergence on every activation plus detection between them, not another one-time cleanup.
+
+ACCEPTANCE. After a home-manager switch, ~/.claude/settings.json carries exactly one Sapience hook entry (the registration hook); re-running the vendor client and switching again restores that state; _SAPIENCE_NOTE in the live file matches the source verbatim; a Claude Code session in a repository with no sapience extension loaded produces no Sapience briefing, receipt, or effect line; the drift is reported rather than silent when it occurs between switches.
+
+---
 
 ### 140. Diagnose slow local ollama inference
 - **Status**: [COMPLETED]

@@ -1,6 +1,974 @@
 {
-  "next_project_number": 141,
+  "next_project_number": 142,
   "active_projects": [
+    {
+      "project_number": 141,
+      "project_name": "prevent_sapience_hook_reinjection",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "GOAL. Close the recurrence gap left by task 138. That task removed the five machine-wide Sapience hook entries from config/claude/settings.json and verified the live file post-switch; nothing it built prevents or detects the vendor client putting them back, and the vendor client has now put three of them back. DO NOT redo 138's removal -- the source file is still correct. The work here is convergence-on-activation plus detection-between-activations.\n\nMEASURED EVIDENCE (2026-11-14). The live ~/.claude/settings.json carries three Sapience hooks that config/claude/settings.json does not declare:\n  SessionStart: python3 /home/benjamin/.sapience/mcp.py --briefing-text\n  SessionEnd:   python3 /home/benjamin/.sapience/mcp.py --receipt\n  Stop:         python3 /home/benjamin/.sapience/mcp.py --effect-line\nThe source file still contains exactly one Sapience hook entry -- the SessionStart entry invoking $HOME/.claude/hooks/sapience-mcp-register-project.sh that 138 deliberately added -- so this is live-file drift, not a source regression. Live mtime (2026-11-14 00:49) postdates source mtime (2026-11-13 01:04) and postdates 138's completion (2026-11-13 09:19), so ~/.sapience/*.py re-injected them after the last home-manager switch. Three of the original five returned; UserPromptSubmit and PreToolUse did not.\n\nTHREE CONSEQUENCES. (1) They fire in every repository, whether or not the sapience extension is loaded there -- defeating the per-repo activation design 138 and its nvim-sited companion exist to provide. (2) In a repository that HAS loaded the extension they duplicate the extension-merged copies from settings-fragment.json: a session in /home/benjamin/.config/nvim on 2026-11-14 printed the identical SessionStart briefing block twice. (3) They are unguarded, unlike the fragment's versions, each of which wraps its call in [ -f \"$HOME/.sapience/mcp.py\" ] && ... || true.\n\nFOURTH, SEPARATE DEFECT. _SAPIENCE_NOTE is not in home.activation.claudeSettings' enforced-key list [\"_NOTE\",\"env\",\"hooks\",\"model\",\"permissions\",\"statusLine\"], so the live file's copy is preserved across switches rather than reset from source. The live copy predates 138's rewrite and is now wrong on two counts: it claims the mcp.py hook entries are owned by modules/home/services/sapience.nix (that module defines none of them -- grep finds no --briefing-text, --receipt or --effect-line in it), and it claims they are guarded with [ -f ~/.sapience/mcp.py ] (they are not). A reader inspecting the live file is told the drifted entries are legitimate and nix-owned.\n\nSCOPE. (a) Make home.activation.claudeSettings actively strip Sapience mcp.py hook entries the source does not declare, instead of relying only on the enforced-key reset -- which does converge the file at switch time but is undone by the next vendor run. (b) Add _SAPIENCE_NOTE to the enforced-key list in modules/home/core/dotfiles.nix so its text cannot drift from source. (c) Decide where the between-activations detector belongs -- here, or in the nvim repository's scripts/verify-sapience-mcp.sh, whose check (d) today asserts only that the registration hook is PRESENT in the live file, never that it is the ONLY Sapience hook there. Record the siting decision either way, since the nvim repository owns the companion verifier.\n\nVENDOR CEILING. ~/.sapience/mcp.py is vendor-owned and self-updating (modules/home/services/sapience.nix seeds it only when absent, deliberately), so re-injection will recur. The target is convergence on every activation plus detection between them, not another one-time cleanup.\n\nACCEPTANCE. After a home-manager switch, ~/.claude/settings.json carries exactly one Sapience hook entry (the registration hook); re-running the vendor client and switching again restores that state; _SAPIENCE_NOTE in the live file matches the source verbatim; a Claude Code session in a repository with no sapience extension loaded produces no Sapience briefing, receipt, or effect line; the drift is reported rather than silent when it occurs between switches.",
+      "topic": "sapience",
+      "created": "2026-11-14T09:23:06Z",
+      "last_updated": "2026-11-14T09:23:06Z",
+      "audit_verdict": {
+        "proposal": {
+          "id": "prevent_sapience_hook_reinjection",
+          "project_number": null,
+          "title": "Prevent and detect vendor re-injection of machine-wide Sapience hooks"
+        },
+        "verdicts": [
+          {
+            "verdict": "scope-blind",
+            "project_number": 133,
+            "project_name": "restructure_nix_configuration_layout",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.11627906976744186
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 131,
+            "project_name": "install_claude_refresh_timer_and_mako_prompt_rule",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.1722488038277512
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 124,
+            "project_name": "fix_wake_mark_resume_hook_wiring",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.18181818181818182
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 67,
+            "project_name": "migrate_r_env_back_to_stable_nixpkgs",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.07228915662650602
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 46,
+            "project_name": "investigate_fix_gmail_oauth2_token_expiry",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 43,
+            "project_name": "install_forgejo_self_hosted_git",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 42,
+            "project_name": "reenable_jupytext_nixpkgs_fix",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 41,
+            "project_name": "reenable_pdf2docx_nixpkgs_fix",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 23,
+            "project_name": "install_simple_webcam_recording_software",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 19,
+            "project_name": "install_setup_mcp_servers_web_development",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 15,
+            "project_name": "configure_timezone_location_based",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 68,
+            "project_name": "fix_broken_zfs_kernel_installer_builds",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.07317073170731707
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 134,
+            "project_name": "pin_aeneas_charon_to_verification_revision",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.1511627906976744
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 132,
+            "project_name": "add_aeneas_rust_to_lean_verification_tooling",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.14953271028037382
+          },
+          {
+            "verdict": "covered-by-closed",
+            "project_number": 138,
+            "project_name": "retire_machine_wide_sapience_surface",
+            "discharging_artifact": {
+              "path": "specs/138_retire_machine_wide_sapience_surface/plans/01_retire-machine-wide-sapience.md",
+              "type": "plan",
+              "summary": "Six-phase plan: confirm companion landing, remove the nix activation entry, retire grants/hooks and add the durable registration entry, rewrite docs, produce the owner instruction and coordination record, then gate and verify against live merged state."
+            },
+            "mechanical_class": "none",
+            "semantic_score": 0.6411483253588517
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 135,
+            "project_name": "evaluate_rocm_acceleration_for_local_ollama",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.22058823529411764
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 108,
+            "project_name": "census_freshness_rename_deletion_aware",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.24242424242424243
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 106,
+            "project_name": "root_cause_fix_mt7925e_wifi_kernel_panics",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.10526315789473684
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 104,
+            "project_name": "fix_mt7925e_wifi_kernel_panic_freezes",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.0625
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 103,
+            "project_name": "reorganize_discord_bot_in_repo",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.21875
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 102,
+            "project_name": "gate_ci_on_lint",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.09259259259259259
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 95,
+            "project_name": "post_reorg_documentation_sweep",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.18181818181818182
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 96,
+            "project_name": "documentation_completeness_gaps",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.13953488372093023
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 97,
+            "project_name": "refactor_dead_comment_cleanup",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.15789473684210525
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 98,
+            "project_name": "nix_formatter_lint_tooling",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.21568627450980393
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 99,
+            "project_name": "ryzen_docs_niri_framing",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.06382978723404255
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 100,
+            "project_name": "strip_niri_doc_emoji",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.12121212121212122
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 94,
+            "project_name": "review_nixos_config_documentation",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.25
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 81,
+            "project_name": "reorganize_nixos_dotfiles_repository_design",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.21951219512195122
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 80,
+            "project_name": "verify_logos_wrapper_contract_close_phase6",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.1722488038277512
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 79,
+            "project_name": "email_wrappers_multi_account",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.1339712918660287
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 72,
+            "project_name": "email_workflow_infrastructure_prereqs",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.14285714285714285
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 70,
+            "project_name": "restore_piper_tts_prebuilt_binary",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.20408163265306123
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 66,
+            "project_name": "review_refactor_nixos_configuration",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.08333333333333333
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 65,
+            "project_name": "migrate_python312_pins_to_default_python3",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.09859154929577464
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 64,
+            "project_name": "clean_regenerable_caches_reclaim_disk_space",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.037037037037037035
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 63,
+            "project_name": "user_level_nix_gc_expire_home_manager_generations",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.23255813953488372
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 62,
+            "project_name": "replace_piper_with_svox_pico_drop_onnxruntime",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.25925925925925924
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 61,
+            "project_name": "pin_nixpkgs_stable_channel_binary_cache_hits",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.1590909090909091
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 60,
+            "project_name": "add_nix_build_resource_limits_prevent_oom",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.125
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 52,
+            "project_name": "sleep_inhibition_claude_opencode",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 50,
+            "project_name": "fix_sleep_inhibitor_pgrep_self_matching",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 69,
+            "project_name": "consolidate_dual_home_manager_config",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.23595505617977527
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 73,
+            "project_name": "gnome_wayland_focus_follows_mouse_keyboard_override",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.1388888888888889
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 74,
+            "project_name": "niri_session_startup_services",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.16806722689075632
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 75,
+            "project_name": "niri_keybinding_dependencies",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.19753086419753085
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 76,
+            "project_name": "niri_laptop_hardware_keys",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.20588235294117646
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 82,
+            "project_name": "dead_code_removal_nixos_repo",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.20279720279720279
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 83,
+            "project_name": "git_hygiene_specs_tmp_nixos_repo",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.2222222222222222
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 84,
+            "project_name": "nix_flake_check_ci_gate",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.15217391304347827
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 85,
+            "project_name": "root_scripts_relocation_scripts_dir",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.23404255319148937
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 86,
+            "project_name": "module_convention_discord_bot_opt_in",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.18518518518518517
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 87,
+            "project_name": "hosts_structural_cleanup",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.18518518518518517
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 88,
+            "project_name": "module_granularity_pass",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.1773049645390071
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 89,
+            "project_name": "opencode_discord_bot_packaging",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.16783216783216784
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 90,
+            "project_name": "config_dir_deployment_clarity_docs",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.22388059701492538
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 91,
+            "project_name": "documentation_sync_reorg_final",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.2125
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 92,
+            "project_name": "logos_mbsync_group_labels_fix",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.14130434782608695
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 93,
+            "project_name": "update_sh_auto_commit_opt_in",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.14414414414414414
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 105,
+            "project_name": "aerc_keybindings_nvim_himalaya_alignment",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.16477272727272727
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 107,
+            "project_name": "fix_wezterm_leader_c_stale_cwd",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.2236842105263158
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 59,
+            "project_name": "fix_neovim_rendering_after_sleep_wezterm",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 55,
+            "project_name": "create_discord_bot_python_source",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 54,
+            "project_name": "revise_configuration_to_discord_bot_documentation",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 53,
+            "project_name": "nixos_discord_bot_prerequisites",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 49,
+            "project_name": "fix_claude_sleep_inhibitor_nix",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 48,
+            "project_name": "replace_markitdown_venv_with_nixpkgs",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 47,
+            "project_name": "fix_r_python_quarto_env_gaps",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.16071428571428573
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 45,
+            "project_name": "add_terminal_email_client_to_nixos",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.13636363636363635
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 40,
+            "project_name": "investigate_laptop_high_fan_optimize_system",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 39,
+            "project_name": "analyze_memory_logs_optimize_system",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 38,
+            "project_name": "update_docs_for_recent_changes",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 37,
+            "project_name": "configure_nixos_ac_power_settings",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 36,
+            "project_name": "review_niri_nixos_upgrades",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 35,
+            "project_name": "configure_sioyek_multiwindow_pdf_behavior",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 34,
+            "project_name": "fix_wezterm_ctrl_space_cross_window_tab_navigation",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 33,
+            "project_name": "configure_wezterm_global_tab_navigation",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 25,
+            "project_name": "configure_swap_space_nixos",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 3,
+            "project_name": "fix_meta_directory_creation_spec",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.15384615384615385
+          },
+          {
+            "verdict": "covered-by-closed",
+            "project_number": 1,
+            "project_name": "update_claudemd_for_dotfiles",
+            "discharging_artifact": {
+              "path": "specs/1_update_claudemd_for_dotfiles/summaries/implementation-summary-20260203.md",
+              "type": "summary",
+              "summary": "Implementation summary with verification results"
+            },
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.4
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 5,
+            "project_name": "create_nix_context_directory",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.2608695652173913
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 6,
+            "project_name": "create_nix_rules_file",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.2
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 7,
+            "project_name": "create_nix_research_agent",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.23529411764705882
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 8,
+            "project_name": "create_nix_implementation_agent",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.21052631578947367
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 13,
+            "project_name": "research_nix_mcp_tools",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.16666666666666666
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 2,
+            "project_name": "update_readme_for_dotfiles",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.2
+          },
+          {
+            "verdict": "covered-by-closed",
+            "project_number": 4,
+            "project_name": "manage_claude_settings_with_home_manager",
+            "discharging_artifact": {
+              "type": "summary",
+              "path": "specs/4_manage_claude_settings_with_home_manager/summaries/implementation-summary-20260203.md"
+            },
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.5
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 9,
+            "project_name": "create_skill_nix_research",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.125
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 10,
+            "project_name": "create_skill_nix_implementation",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.125
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 22,
+            "project_name": "update_himalaya_documentation_smtp_fix",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 21,
+            "project_name": "fix_himalaya_smtp_logos_account",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 20,
+            "project_name": "update_himalaya_setup",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 18,
+            "project_name": "fix_gmail_oauth2_refresh_service_failure",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 17,
+            "project_name": "fix_leanls_localtime_watchdog_error",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 16,
+            "project_name": "troubleshoot_automatic_timezoned_geoclue2_dbus_timeout",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 14,
+            "project_name": "review_improve_documentation",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.1
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 11,
+            "project_name": "update_orchestrator_nix_routing",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.16666666666666666
+          },
+          {
+            "verdict": "covered-by-closed",
+            "project_number": 12,
+            "project_name": "update_settings_for_nix_commands",
+            "discharging_artifact": {
+              "path": "specs/12_update_settings_for_nix_commands/summaries/implementation-summary-20260203.md",
+              "type": "summary",
+              "summary": "Implementation summary with verification results"
+            },
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.4666666666666667
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 24,
+            "project_name": "protonmail_bridge_nixos_config",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 26,
+            "project_name": "memory_monitoring_systemd_services_nixos",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 27,
+            "project_name": "sioyek_default_pdf_viewer_gnome",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 28,
+            "project_name": "sioyek_night_mode_toggle_color_scheme",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 29,
+            "project_name": "fix_sioyek_color_toggle_white_instead_nord",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 30,
+            "project_name": "fix_sioyek_theme_toggle_w_key_nord_macro",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 31,
+            "project_name": "implement_sioyek_w_key_toggle_gruvbox_nord",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 32,
+            "project_name": "remove_sioyek_ctrl_t_new_instance_mapping",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 58,
+            "project_name": "discord_permission_approval_flow",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 57,
+            "project_name": "auto_cleanup_killed_sessions_from_discord",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 56,
+            "project_name": "implement_bidirectional_discord_opencode_relay",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.03125
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 51,
+            "project_name": "documentation_refactor_integrate_adhoc_notes",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 44,
+            "project_name": "review_memory_logs_design_optimizations",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 127,
+            "project_name": "add_playwright_mcp_server_to_nix_config",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.24390243902439024
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 123,
+            "project_name": "fix_backstop_polkit_denial_live_verification",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.13114754098360656
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 118,
+            "project_name": "document_no_sleep_functionality",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.09090909090909091
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 71,
+            "project_name": "design_ai_email_management_workflow",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.10869565217391304
+          },
+          {
+            "verdict": "scope-blind",
+            "project_number": 109,
+            "project_name": "serialized_group_scoped_mail_sync_wrapper",
+            "mechanical_class": "scope-blind",
+            "semantic_score": 0.20155038759689922
+          }
+        ],
+        "passes": {
+          "mechanical": true,
+          "semantic": true
+        },
+        "degradations": [
+          "scope-blind: project 133 (restructure_nix_configuration_layout) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 131 (install_claude_refresh_timer_and_mako_prompt_rule) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 124 (fix_wake_mark_resume_hook_wiring) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 67 (migrate_r_env_back_to_stable_nixpkgs) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 46 (investigate_fix_gmail_oauth2_token_expiry) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 43 (install_forgejo_self_hosted_git) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 42 (reenable_jupytext_nixpkgs_fix) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 41 (reenable_pdf2docx_nixpkgs_fix) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 23 (install_simple_webcam_recording_software) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 19 (install_setup_mcp_servers_web_development) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 15 (configure_timezone_location_based) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 68 (fix_broken_zfs_kernel_installer_builds) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 134 (pin_aeneas_charon_to_verification_revision) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 132 (add_aeneas_rust_to_lean_verification_tooling) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 135 (evaluate_rocm_acceleration_for_local_ollama) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 108 (census_freshness_rename_deletion_aware) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 106 (root_cause_fix_mt7925e_wifi_kernel_panics) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 104 (fix_mt7925e_wifi_kernel_panic_freezes) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 103 (reorganize_discord_bot_in_repo) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 102 (gate_ci_on_lint) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 95 (post_reorg_documentation_sweep) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 96 (documentation_completeness_gaps) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 97 (refactor_dead_comment_cleanup) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 98 (nix_formatter_lint_tooling) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 99 (ryzen_docs_niri_framing) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 100 (strip_niri_doc_emoji) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 94 (review_nixos_config_documentation) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 81 (reorganize_nixos_dotfiles_repository_design) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 80 (verify_logos_wrapper_contract_close_phase6) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 79 (email_wrappers_multi_account) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 72 (email_workflow_infrastructure_prereqs) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 70 (restore_piper_tts_prebuilt_binary) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 66 (review_refactor_nixos_configuration) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 65 (migrate_python312_pins_to_default_python3) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 64 (clean_regenerable_caches_reclaim_disk_space) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 63 (user_level_nix_gc_expire_home_manager_generations) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 62 (replace_piper_with_svox_pico_drop_onnxruntime) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 61 (pin_nixpkgs_stable_channel_binary_cache_hits) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 60 (add_nix_build_resource_limits_prevent_oom) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 52 (sleep_inhibition_claude_opencode) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 50 (fix_sleep_inhibitor_pgrep_self_matching) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 69 (consolidate_dual_home_manager_config) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 73 (gnome_wayland_focus_follows_mouse_keyboard_override) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 74 (niri_session_startup_services) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 75 (niri_keybinding_dependencies) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 76 (niri_laptop_hardware_keys) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 82 (dead_code_removal_nixos_repo) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 83 (git_hygiene_specs_tmp_nixos_repo) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 84 (nix_flake_check_ci_gate) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 85 (root_scripts_relocation_scripts_dir) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 86 (module_convention_discord_bot_opt_in) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 87 (hosts_structural_cleanup) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 88 (module_granularity_pass) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 89 (opencode_discord_bot_packaging) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 90 (config_dir_deployment_clarity_docs) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 91 (documentation_sync_reorg_final) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 92 (logos_mbsync_group_labels_fix) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 93 (update_sh_auto_commit_opt_in) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 105 (aerc_keybindings_nvim_himalaya_alignment) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 107 (fix_wezterm_leader_c_stale_cwd) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 59 (fix_neovim_rendering_after_sleep_wezterm) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 55 (create_discord_bot_python_source) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 54 (revise_configuration_to_discord_bot_documentation) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 53 (nixos_discord_bot_prerequisites) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 49 (fix_claude_sleep_inhibitor_nix) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 48 (replace_markitdown_venv_with_nixpkgs) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 47 (fix_r_python_quarto_env_gaps) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 45 (add_terminal_email_client_to_nixos) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 40 (investigate_laptop_high_fan_optimize_system) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 39 (analyze_memory_logs_optimize_system) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 38 (update_docs_for_recent_changes) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 37 (configure_nixos_ac_power_settings) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 36 (review_niri_nixos_upgrades) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 35 (configure_sioyek_multiwindow_pdf_behavior) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 34 (fix_wezterm_ctrl_space_cross_window_tab_navigation) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 33 (configure_wezterm_global_tab_navigation) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 25 (configure_swap_space_nixos) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 3 (fix_meta_directory_creation_spec) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 5 (create_nix_context_directory) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 6 (create_nix_rules_file) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 7 (create_nix_research_agent) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 8 (create_nix_implementation_agent) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 13 (research_nix_mcp_tools) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 2 (update_readme_for_dotfiles) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 9 (create_skill_nix_research) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 10 (create_skill_nix_implementation) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 22 (update_himalaya_documentation_smtp_fix) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 21 (fix_himalaya_smtp_logos_account) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 20 (update_himalaya_setup) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 18 (fix_gmail_oauth2_refresh_service_failure) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 17 (fix_leanls_localtime_watchdog_error) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 16 (troubleshoot_automatic_timezoned_geoclue2_dbus_timeout) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 14 (review_improve_documentation) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 11 (update_orchestrator_nix_routing) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 24 (protonmail_bridge_nixos_config) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 26 (memory_monitoring_systemd_services_nixos) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 27 (sioyek_default_pdf_viewer_gnome) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 28 (sioyek_night_mode_toggle_color_scheme) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 29 (fix_sioyek_color_toggle_white_instead_nord) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 30 (fix_sioyek_theme_toggle_w_key_nord_macro) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 31 (implement_sioyek_w_key_toggle_gruvbox_nord) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 32 (remove_sioyek_ctrl_t_new_instance_mapping) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 58 (discord_permission_approval_flow) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 57 (auto_cleanup_killed_sessions_from_discord) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 56 (implement_bidirectional_discord_opencode_relay) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 51 (documentation_refactor_integrate_adhoc_notes) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 44 (review_memory_logs_design_optimizations) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 127 (add_playwright_mcp_server_to_nix_config) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 123 (fix_backstop_polkit_denial_live_verification) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 118 (document_no_sleep_functionality) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 71 (design_ai_email_management_workflow) declares no file_scope -- judged on the semantic shortlist alone",
+          "scope-blind: project 109 (serialized_group_scoped_mail_sync_wrapper) declares no file_scope -- judged on the semantic shortlist alone"
+        ]
+      }
+    },
     {
       "project_number": 140,
       "project_name": "diagnose_slow_local_ollama_inference",
