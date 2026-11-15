@@ -1,17 +1,17 @@
 ---
-next_project_number: 142
+next_project_number: 143
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-11-14. Generated from state.json dependency graph.*
+*Updated 2026-11-15. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,141 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,141,142 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120,139 | 77,124,136 | nixos-config, desktop, sapience |
 | 3 | 78 | 120 | desktop |
 
@@ -57,9 +57,24 @@ next_project_number: 142
 ### Sapience
 
 141 [NOT STARTED] — GOAL. Close the recurrence gap left by task 138. That task...
+142 [NOT STARTED] — Default the Sapience config hooks opt-out to false so the...
 139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
 
 ## Tasks
+
+### 142. Default the Sapience config hooks opt-out to false so the vendor updater stops wiring machine-wide hooks
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: sapience
+- **Dependencies**: None
+
+**Description**: Stop the Sapience vendor updater from wiring machine-wide Claude Code hooks: default ~/.sapience/config.json "hooks" to false in modules/home/services/sapience.nix and preserve an explicit false across activation.
+
+MEASURED EVIDENCE (2026-11-14). ~/.claude/settings.json carried three vendor-written user-level hooks -- SessionStart `python3 ~/.sapience/mcp.py --briefing-text`, SessionEnd `--receipt`, Stop `--effect-line` -- which are absent from config/claude/settings.json. They are written by ~/.sapience/sapience_upkeep.py's wire_hooks() on its daily auto-update whenever config.json's "hooks" is not false (hooks_opted_out()). `hooks` being a home-manager enforced key only strips them at the next switch; the updater re-adds them within a day. Effect: every repository on the machine, whether or not it loads the sapience extension, received the unfiltered cross-project SessionStart briefing, and extension repositories received it twice (once from their own merged settings.local.json). The per-repository design stated in config/claude/settings.json's _SAPIENCE_NOTE and sapience.nix's own header comments is therefore not what the machine does. The three entries were removed by hand and config.json set to "hooks": false on 2026-11-14 (backups: ~/.claude/settings.json.bak-*, ~/.sapience/config.json.bak-*), but sapience.nix's activation merge uses `.hooks = (.hooks // true)` (near line 324) -- jq's `//` treats false as absent, so the next activation resets the opt-out to true -- and the first-run mint (near line 331) writes `hooks: true`.
+
+GOAL. (1) Both sites write/keep "hooks": false (use an explicit null test, not `//`, so an existing value is preserved; decide whether false is forced or only defaulted, and say why). (2) Confirm against the vendor client that "hooks": false does not disable the per-repository hooks the sapience extension merges (sapience_cli.py `hook prompt` / `hook tool`, mcp.py --briefing-text/--receipt/--effect-line invoked from a repository's own settings.local.json) -- it should only stop the updater touching ~/.claude/settings.json and the CLI auto-on probe. (3) Add an activation-time or verification check that fails loudly if ~/.claude/settings.json carries any ~/.sapience injection hook. (4) Rebuild, then verify after a forced `sapience_upkeep.py --update` that no user-level hook reappears. (5) Update docs/sapience.md and the sapience.nix comments to state the resulting design. Companion: the nvim agent-system repository carries the extension-side verifier/doc task (sapience_activation_surface_scoping_gaps).
+
+---
 
 ### 141. Prevent sapience hook reinjection
 - **Status**: [NOT STARTED]
