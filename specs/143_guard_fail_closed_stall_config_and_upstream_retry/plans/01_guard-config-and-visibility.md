@@ -362,39 +362,39 @@ all of them.
 
 ---
 
-### Phase 4: Upstream defect write-up and the open question for Oliver [NOT STARTED]
+### Phase 4: Upstream defect write-up and the open question for Oliver [COMPLETED]
 
 **Goal**: a single sendable record carrying the two-surface no-retry defect, the corrected
 measurements, the proposed fixes, and the one question only Oliver can answer.
 
 **Tasks**:
-- [ ] Write `records/01_upstream-defect-and-attach-question.md`, starting from the research
+- [x] Write `records/01_upstream-defect-and-attach-question.md`, starting from the research
       report's Appendix write-up and correcting it on three points.
-- [ ] Correction 1 — the numbers: report 3 initiating admission failures over ~1720 network round
+- [x] Correction 1 — the numbers: report 3 initiating admission failures over ~1720 network round
       trips (~0.17%), 38 blocked actions total because the marker is sticky, and two dispatches
       killed mid-flight. Do not repeat "35 failures" or "~2%".
-- [ ] Correction 2 — the line range: `hub_fetch`/`admit` span `guard.py` 537-607, with the
+- [x] Correction 2 — the line range: `hub_fetch`/`admit` span `guard.py` 537-607, with the
       hosted-route branch (where every observed failure originates) beginning at 546 — not
       553-607.
-- [ ] Correction 3 — add the second surface: `send()`'s `breaker.json` has the same shape (one
+- [x] Correction 3 — add the second surface: `send()`'s `breaker.json` has the same shape (one
       sink error, sticky refusal, the code's own message says "breaker open, no retry"), it is
       currently open in both checkouts, and commit events have been accumulating undelivered in
       `outbox/` since 2026-11-14/15. Name it as one root cause with two expressions, not two
       unrelated bugs.
-- [ ] State the two proposed fixes, either of which would have prevented the observed stalls: one
+- [x] State the two proposed fixes, either of which would have prevented the observed stalls: one
       bounded retry after a short backoff inside the existing `net_timeout_s`/`deadline_s` budget,
       or a grace window that keeps enforcing from the last good cache for N seconds (~10-30)
       before writing `stopped.json`. Note that the sender needs the same treatment.
-- [ ] Include the secondary observation that `MIN_PULL_GAP_S` / the docstring's "pulls are at
+- [x] Include the secondary observation that `MIN_PULL_GAP_S` / the docstring's "pulls are at
       least 10 s apart" claim is enforced only in the legacy path, not in attached mode's
       `admit()`.
-- [ ] Record the attached-mode stance (D6) and its reasoning, and state the single open question
+- [x] Record the attached-mode stance (D6) and its reasoning, and state the single open question
       plainly: whether and when Oliver intends to Accept real `RULE`/`decision` KOs in the
       `oliver-ben` room, given that the cached rules doc is revision 1, schema
       `sf1-hub-rules/1`, members `[oliver, benjamin]`, `n_kos = 0`. Note that detaching would
       also stop the `hub_commit_events` / `share_unpushed_branches` reporting he consented to —
       and that, per the breaker finding, that reporting is in fact already stalled.
-- [ ] Keep the record self-contained and sendable: no task numbers inside quoted text meant for
+- [x] Keep the record self-contained and sendable: no task numbers inside quoted text meant for
       Oliver, and no reliance on this repository's own conventions to be intelligible.
 
 **Timing**: 1 hour

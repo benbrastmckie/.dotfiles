@@ -1,0 +1,11 @@
+{
+  "phase": 4,
+  "phase_name": "Upstream defect write-up and the open question for Oliver",
+  "started_at": "2026-11-17T21:59:13Z",
+  "last_updated": "2026-11-17T21:59:13Z",
+  "objectives": [
+    {"id": 1, "description": "Phase 4 -- defect write-up", "status": "completed", "files_touched": ["specs/143_guard_fail_closed_stall_config_and_upstream_retry/records/01_upstream-defect-and-attach-question.md"]}
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}
