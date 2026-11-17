@@ -1,0 +1,11 @@
+{
+  "phase": 3,
+  "phase_name": "Apply, converge both checkouts, and record the breaker state",
+  "started_at": "2026-11-17T21:57:44Z",
+  "last_updated": "2026-11-17T21:57:44Z",
+  "objectives": [
+    {"id": 1, "description": "Phase 3 -- apply and record", "status": "completed", "files_touched": ["specs/143_guard_fail_closed_stall_config_and_upstream_retry/records/02_convergence-and-breaker-state.md"]}
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

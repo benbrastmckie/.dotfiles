@@ -295,32 +295,40 @@ module.
 
 ---
 
-### Phase 3: Apply, converge both checkouts, and record the breaker state [NOT STARTED]
+### Phase 3: Apply, converge both checkouts, and record the breaker state [COMPLETED WITH EXCLUSIONS]
 
 **Goal**: both attached checkouts carry 300 / 15 / 20; the watch timer is active; the stranded
 commit-event counts and the exact reset command are recorded without draining them.
 
 **Tasks**:
-- [ ] Run `git status --short home.nix modules/ docs/` first. If `home.nix` carries a foreign
+- [x] Run `git status --short home.nix modules/ docs/` first. If `home.nix` carries a foreign
       uncommitted modification, STOP and report it (a concurrent sibling declares `home.nix` in
       its file scope) rather than applying another task's in-flight work; confirm against
       `git log` that the work is not this task's own before concluding anything.
-- [ ] Apply: `sudo nixos-rebuild switch --flake .#hamsa` then
+- [x] Apply: `sudo nixos-rebuild switch --flake .#hamsa` then
       `home-manager switch --flake .#benjamin` (the standalone generation is the one that owns
       `~/.nix-profile` and runs `home.activation`; `scripts/update.sh` runs both for the same
-      reason).
-- [ ] Assert convergence: for each checkout in `~/.local/state/sf1-hub-ben/manifest.json`, `jq`
+      reason). *(deviation: altered — `sudo nixos-rebuild switch` was denied by this dispatch's
+      own permission system; only `home-manager switch --flake .#benjamin` ran. See
+      `## Reasoned Exclusions` below and `records/02_convergence-and-breaker-state.md`.)*
+- [x] Assert convergence: for each checkout in `~/.local/state/sf1-hub-ben/manifest.json`, `jq`
       the resolved `config.json` and confirm `coalesce_s == 300`, `net_timeout_s == 15`,
       `deadline_s == 20`, and that `me`, `source`, `sink`, `since_ts`, `key_file`,
       `require_accept` and `mode` are unchanged from a pre-switch capture of the same files.
-- [ ] Confirm `systemctl --user is-active sf1-hub-ben-guard-watch.timer` and that one manual
+- [x] Confirm `systemctl --user is-active sf1-hub-ben-guard-watch.timer` and that one manual
       `systemctl --user start sf1-hub-ben-guard-watch.service` produces a notification for the
       live open breakers and exits 0.
-- [ ] Capture, into `records/02_convergence-and-breaker-state.md`: the pre- and post-switch values
+- [x] Capture, into `records/02_convergence-and-breaker-state.md`: the pre- and post-switch values
       per checkout, the `outbox/` counts, each `breaker.json`'s `at`/`error`, and the exact
       `guard.py send --reset --root <checkout>` command for each. Do **not** run it (D9).
-- [ ] Re-read `log.jsonl`'s block tally and note whether any new initiating suspend has appeared
+- [x] Re-read `log.jsonl`'s block tally and note whether any new initiating suspend has appeared
       since the 2026-11-17 11:49 event.
+
+#### Reasoned Exclusions
+
+| Item | Reason | Evidence |
+|---|---|---|
+| `sudo nixos-rebuild switch --flake .#hamsa` | `sudo` is categorically denied by this dispatch's own permission system; no agent dispatch in this environment can run it, so there is no agent-actionable residual work — the config is already committed and the next ordinary user-run `sudo nixos-rebuild switch` picks it up. The phase's functional goal (checkout convergence, active watch timer) is fully achieved by `home-manager switch --flake .#benjamin` alone, the generation that actually owns `~/.nix-profile` and runs `home.activation`. | `Permission to use Bash with command sudo nixos-rebuild switch --flake .#hamsa ... has been denied.` Post-switch `jq` assertion passes for both checkouts; `systemctl --user is-active sf1-hub-ben-guard-watch.timer` reports `active`; manual service start exits 0 with two notifications logged. Full detail in `records/02_convergence-and-breaker-state.md`. |
 
 **Timing**: 0.75 hours
 
