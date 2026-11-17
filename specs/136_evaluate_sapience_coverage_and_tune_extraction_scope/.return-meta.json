@@ -1,26 +1,26 @@
 {
   "status": "partial",
-  "dispatch_seq": 12,
+  "dispatch_seq": 14,
   "partial_progress": {
     "stage": "phase_gated_on_elapsed_time",
-    "details": "Re-checked at dispatch start (2026-11-17T21:33:39Z): Phase 3's own first task requires at least 24 hours since the Pass-2 timestamp recorded in the ledger (2026-11-17T21:23:08Z), i.e. not before approximately 2026-11-18T21:23:08Z. Only ~11 minutes had elapsed since the prior dispatch (seq 9) recorded that same gate and returned partial with phase 2 as the last completed phase. No work was possible or attempted; no files were modified except this metadata and a non-blocking issue-record.sh entry noting the premature re-dispatch. Phase 3 remains [NOT STARTED]; phases completed is unchanged at 2.",
+    "details": "Re-checked at dispatch start (2026-11-17T21:43:13Z): Phase 3's own first task requires at least 24 hours since the Pass-2 timestamp recorded in the ledger (2026-11-17T21:23:08Z), i.e. not before approximately 2026-11-18T21:23:08Z. Only ~20 minutes had elapsed since the prior dispatch (seq 12) recorded that same gate at 21:33:39Z and returned partial with phase 2 as the last completed phase. No work was possible or attempted; no files were modified except this metadata and a non-blocking issue-record.sh entry noting the repeated premature re-dispatch. Phase 3 remains [NOT STARTED]; phases completed is unchanged at 2.",
     "handoff_path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-2-handoff-20261117T213000Z.md",
     "phases_completed": 2,
     "phases_total": 8
   },
   "artifacts": [],
   "completion_data": {
-    "completion_summary": "No new work: re-verified live that Phase 3's 24-hour gate since the Pass-2 timestamp (2026-11-17T21:23:08Z) has not elapsed (dispatch arrived ~11 minutes later). Phases completed remains 2 of 8; next legitimate re-dispatch is not before approximately 2026-11-18T21:23:08Z."
+    "completion_summary": "No new work: re-verified live that Phase 3's 24-hour gate since the Pass-2 timestamp (2026-11-17T21:23:08Z) has not elapsed (dispatch arrived ~20 minutes after the previous dispatch's own check). Phases completed remains 2 of 8; next legitimate re-dispatch is not before approximately 2026-11-18T21:23:08Z."
   },
   "modified_files": [],
   "memory_candidates": [],
   "sapience_notes": [
     {
-      "subject": "Task 136 orchestrate cycle re-dispatched before its own time gate",
-      "value": "An /orchestrate cycle re-dispatched task 136's implement phase (dispatch_seq 12) only ~11 minutes after the prior dispatch (seq 9) had already recorded and returned a partial status citing a 24-hour gate on Phase 3 (at least 24h since the Pass-2 ledger timestamp 2026-11-17T21:23:08Z). The gate itself held correctly -- no premature work occurred -- but the cycle spent a dispatch on a phase it had just been told was not eligible yet.",
+      "subject": "Task 136 orchestrate cycle re-dispatched before its own time gate, a second time",
+      "value": "A second consecutive /orchestrate cycle re-dispatched task 136's implement phase (dispatch_seq 14) only ~20 minutes after the immediately prior dispatch (seq 12) had already recorded and returned a partial status citing the same 24-hour gate on Phase 3 (at least 24h since the Pass-2 ledger timestamp 2026-11-17T21:23:08Z). The gate itself held correctly both times -- no premature work occurred -- but two consecutive cycles have now spent a dispatch each on a phase already known to be ineligible, suggesting the orchestrator's own re-dispatch interval is shorter than this task's declared 24-hour phase gate and may need a longer backoff when a prior partial already names a concrete not-before timestamp.",
       "predicate": "finding is",
       "ko_type": "insight",
-      "confidence": 0.75,
+      "confidence": 0.8,
       "source_loc": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/.return-meta.json"
     }
   ],

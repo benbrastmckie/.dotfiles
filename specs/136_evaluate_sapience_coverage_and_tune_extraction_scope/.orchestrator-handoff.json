@@ -1,7 +1,7 @@
 {
   "status": "partial",
-  "dispatch_seq": 12,
-  "summary": "No new work performed. Re-verified live at dispatch start (2026-11-17T21:33:39Z) that Phase 3's required 24-hour gate since the Pass-2 ledger timestamp (2026-11-17T21:23:08Z) has not elapsed -- only ~11 minutes had passed. Phase 2 of 8 remains the last completed phase; phase 3 stays [NOT STARTED] per its own first task's stop condition. Next legitimate re-dispatch is not before approximately 2026-11-18T21:23:08Z.",
+  "dispatch_seq": 14,
+  "summary": "No new work performed, for the second consecutive dispatch. Re-verified live at dispatch start (2026-11-17T21:43:13Z) that Phase 3's required 24-hour gate since the Pass-2 ledger timestamp (2026-11-17T21:23:08Z) has not elapsed -- only ~20 minutes had passed since the immediately prior dispatch (seq 12) made the identical check. Phase 2 of 8 remains the last completed phase; phase 3 stays [NOT STARTED] per its own first task's stop condition. Next legitimate re-dispatch is not before approximately 2026-11-18T21:23:08Z.",
   "phases_completed": 2,
   "phases_total": 8,
   "blockers": [],
