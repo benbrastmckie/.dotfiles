@@ -1,19 +1,33 @@
 {
-  "status": "researched",
+  "status": "planned",
   "artifacts": [
     {
-      "type": "report",
-      "path": "specs/143_guard_fail_closed_stall_config_and_upstream_retry/reports/01_guard-fail-closed-config-and-retry.md",
-      "summary": "Research on durably declaring the oliver-ben guard's coalesce_s/net_timeout_s/deadline_s (found deadline_s<net_timeout_s live bug), chosen activation-script design, recommended values, stay-attached decision, upstream defect write-up for Oliver, and a mako-notification suspension-visibility design."
+      "type": "plan",
+      "path": "specs/143_guard_fail_closed_stall_config_and_upstream_retry/plans/01_guard-config-and-visibility.md",
+      "summary": "5-phase plan: guard knob activation step, fail-closed marker watch timer, apply/converge both checkouts, two-surface upstream defect write-up, docs/sf1-hub.md update."
     }
   ],
-  "next_steps": "Run /orchestrate 143 to create an implementation plan from this report.",
   "metadata": {
     "session_id": "sess_1794949138_619b34_143",
-    "agent_type": "nix-research-agent",
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
-    "findings_count": 8
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 5,
+    "estimated_hours": 5.75,
+    "dependency_waves": [[1, 4], [2], [3], [5]]
   },
-  "dispatch_seq": 10
+  "memory_candidates": [],
+  "user_decision": {
+    "question": "Both attached checkouts' sender breakers have been open since 2026-11-14/15 with roughly 191 commit events stranded in outbox/; running `guard.py send --reset` would immediately deliver several days of queued commit metadata to Oliver's hosted sink. Who runs that reset, and when?",
+    "options": [
+      "Leave both breakers open; the plan records the counts and the exact reset command per checkout, and you run it yourself when ready",
+      "Reset both breakers during the implement phase and let the queued events drain unattended",
+      "Leave them open pending the conversation with Oliver about whether a days-late burst is wanted at all"
+    ],
+    "recommended": "Leave both breakers open; the plan records the counts and the exact reset command per checkout, and you run it yourself when ready",
+    "blocking": false,
+    "obligation": "Restores the hub_commit_events reporting consented in CONSENT-benjamin.json without an agent performing an outward-facing, irreversible delivery of several days of commit metadata unattended; Phase 3's record must name the stranded count and the exact reset command per checkout for the obligation to be discharged."
+  },
+  "next_steps": "Run /orchestrate 143 to execute the plan",
+  "dispatch_seq": 13
 }

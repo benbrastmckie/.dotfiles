@@ -1,0 +1,27 @@
+{
+  "status": "planned",
+  "phase": "plan",
+  "summary": "Wrote a 5-phase plan covering all six dispatch goals: a home.activation enforced-key jq step in modules/home/services/sf1-hub-ben.nix declaring coalesce_s=300/net_timeout_s=15/deadline_s=20, a notify-only systemd-user watch timer for fail-closed markers, convergence of both attached checkouts via switch, a sendable upstream defect write-up, and a docs/sf1-hub.md update. Premise re-validation corrected three dispatch figures: only 3 of the 38 blocks are initiating suspension events, so the per-round-trip failure rate is ~0.17%, not ~2%, and the ~50-action survival estimate is wrong. Found a second, unflagged fail-closed surface not in the dispatch or the research report: guard.py send()'s breaker.json is open in BOTH checkouts since 2026-11-14/15 with 191 commit events stranded in outbox/, so the consented hub_commit_events reporting has been silently dead for days; scope extended to cover it in the write-up, the attach calculus, and the watch surface.",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/143_guard_fail_closed_stall_config_and_upstream_retry/plans/01_guard-config-and-visibility.md",
+      "summary": "5-phase plan: guard knob activation step, fail-closed marker watch timer, apply/converge both checkouts, two-surface upstream defect write-up, docs/sf1-hub.md update."
+    }
+  ],
+  "phases_completed": 0,
+  "phases_total": 5,
+  "blockers": [],
+  "user_decision": {
+    "question": "Both attached checkouts' sender breakers have been open since 2026-11-14/15 with roughly 191 commit events stranded in outbox/; running `guard.py send --reset` would immediately deliver several days of queued commit metadata to Oliver's hosted sink. Who runs that reset, and when?",
+    "options": [
+      "Leave both breakers open; the plan records the counts and the exact reset command per checkout, and you run it yourself when ready",
+      "Reset both breakers during the implement phase and let the queued events drain unattended",
+      "Leave them open pending the conversation with Oliver about whether a days-late burst is wanted at all"
+    ],
+    "recommended": "Leave both breakers open; the plan records the counts and the exact reset command per checkout, and you run it yourself when ready",
+    "blocking": false,
+    "obligation": "Restores the hub_commit_events reporting consented in CONSENT-benjamin.json without an agent performing an outward-facing, irreversible delivery of several days of commit metadata unattended; Phase 3's record must name the stranded count and the exact reset command per checkout for the obligation to be discharged."
+  },
+  "dispatch_seq": 13
+}

@@ -29,7 +29,7 @@ next_project_number: 144
 
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05...
 68 [NOT STARTED] — The iso and usb-installer nixosConfigurations fail to build...
-143 [PLANNING] — Stop the oliver-ben guard's 2s/1s network defaults stalling...
+143 [PLANNED] — Stop the oliver-ben guard's 2s/1s network defaults stalling...
 
 ### Services
 
@@ -64,11 +64,12 @@ next_project_number: 144
 ## Tasks
 
 ### 143. Stop the oliver-ben guard's 2s/1s network defaults stalling long agent runs, and report the no-retry suspend upstream
-- **Status**: [PLANNING]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None
 - **Research**: [143_guard_fail_closed_stall_config_and_upstream_retry/reports/01_guard-fail-closed-config-and-retry.md]
+- **Plan**: [143_guard_fail_closed_stall_config_and_upstream_retry/plans/01_guard-config-and-visibility.md]
 
 **Description**: The oliver-ben binding guard (packages/sf1-hub-ben/vendor/guard/guard.py, deployed via modules/home/services/sf1-hub-ben.nix) consults a hosted rules route on nearly every controlled action with a 2-second timeout, and suspends fail-closed on the first network error with no retry. Decide where its network knobs are declared durably on this machine, pick defensible values, and write up the upstream defect.
 
