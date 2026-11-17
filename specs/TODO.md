@@ -11,7 +11,7 @@ next_project_number: 144
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,141,143 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,141 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120,139,142 | 77,124,136 | nixos-config, desktop, sapience |
 | 3 | 78 | 120 | desktop |
 
@@ -29,7 +29,6 @@ next_project_number: 144
 
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05...
 68 [NOT STARTED] — The iso and usb-installer nixosConfigurations fail to build...
-143 [IMPLEMENTING] — Stop the oliver-ben guard's 2s/1s network defaults stalling...
 
 ### Services
 
@@ -64,7 +63,7 @@ next_project_number: 144
 ## Tasks
 
 ### 143. Stop the oliver-ben guard's 2s/1s network defaults stalling long agent runs, and report the no-retry suspend upstream
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None

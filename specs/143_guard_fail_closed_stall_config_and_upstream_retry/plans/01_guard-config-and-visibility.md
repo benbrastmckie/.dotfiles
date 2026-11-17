@@ -1,7 +1,7 @@
 # Implementation Plan: Guard fail-closed stall — config, visibility, upstream defect
 
 - **Task**: 143 - Guard fail-closed stall: config and upstream retry
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 5.75 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/143_guard_fail_closed_stall_config_and_upstream_retry/reports/01_guard-fail-closed-config-and-retry.md
