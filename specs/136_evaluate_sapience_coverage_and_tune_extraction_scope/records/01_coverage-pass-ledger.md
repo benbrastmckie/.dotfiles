@@ -230,6 +230,117 @@ instruction.
 
 ---
 
-<!-- Phases 2-5 append one Pass-N block each below this line, in the fixed shape documented
+## Pass 2 -- First Fully Observed Pass (before/after pair, non-zero error count)
+
+**24-hour spacing check**: Pass 1 finished 2026-11-13T12:06:52Z. This pass started
+2026-11-17T21:00:38Z, a gap of roughly 104.9 hours (approx. 4 days 9 hours) -- well clear of the
+24-hour floor.
+
+**Pass number**: 2
+**ISO 8601 UTC timestamp**: run started 2026-11-17T21:00:38Z, finished 2026-11-17T21:23:08Z
+(both from `systemctl --user status` / journal; local clock recorded PST, converted to UTC)
+**Invocation path used**: `systemctl --user start sapience-sync.service`
+**Wall clock**: `22min 29.800s` (`systemd[2504]: sapience-sync.service: Consumed 4.349s CPU time
+over 22min 29.800s wall clock time, 173.1M memory peak.`)
+**Chunk count**: 50 (`sapience yield: 550 objects today (cap 2000), 50 chunks in 1 run`)
+**Objects staged**: 539 (`Staged 539 new knowledge objects locally (1747 awaiting review).
+Nothing was shared.`) -- 10.78 objects/chunk
+
+### Before reading (captured immediately before `systemctl --user start`, ~2026-11-17T21:00:30Z)
+
+```
+Available on disk: 1611 session files
+  would ingest now:          118
+  skipped (outside 30d window): 0
+  skipped (headless/agent):    40
+  skipped (subagent / harness-started transcripts): 1253
+  skipped (folder not chosen): 200
+Per-run extraction cap: 50 chunks (MAX_CHUNKS); backfill raises it so a wide window isn't truncated.
+Folders selected (4): nvim, dotfiles, app, abood
+sapience yield: 0 objects today (cap 2000), 0 chunks in 0 runs; top sources: none
+```
+**`sapience pending` (before)**: `1208`
+**Summation check (before)**: 118+0+40+1253+200 = **1611**, matches exactly.
+
+### After reading (captured 2026-11-17T21:26Z, immediately after the unit settled to `inactive`)
+
+```
+Available on disk: 1617 session files
+  would ingest now:          118
+  skipped (outside 30d window): 0
+  skipped (headless/agent):    40
+  skipped (subagent / harness-started transcripts): 1258
+  skipped (folder not chosen): 201
+Per-run extraction cap: 50 chunks (MAX_CHUNKS); backfill raises it so a wide window isn't truncated.
+Folders selected (4): nvim, dotfiles, app, abood
+sapience yield: 550 objects today (cap 2000), 50 chunks in 1 run; top sources: -home-benjamin--dotfiles/1821076e-9267-43c1-93cf- (1 chunks), -home-benjamin--dotfiles/a4de42a5-8e50-4989-b1f6- (1 chunks), -home-benjamin--config-nvim/8c6cd67b-4454-4f78-a79d- (1 chunks)
+```
+**`sapience pending` (after)**: `1747`
+**Summation check (after)**: 118+0+40+1258+201 = **1617**, matches exactly.
+
+### Computed deltas
+
+| Field | Before | After | Delta |
+|---|---|---|---|
+| Available on disk | 1611 | 1617 | +6 |
+| would ingest now | 118 | 118 | **0** |
+| skipped (headless/agent) | 40 | 40 | 0 |
+| skipped (subagent/harness-started) | 1253 | 1258 | +5 |
+| skipped (folder not chosen) | 200 | 201 | +1 |
+| `sapience pending` | 1208 | 1747 | +539 |
+| day's `sapience yield` objects | 0 | 550 | +550 |
+
+**Headline finding: `would ingest now` did not drop at all despite a 50-chunk pass that staged
+539 objects.** New session files accrued during the 22.5-minute run at a rate that exactly offset
+whatever the pass consumed from the backlog -- `Available on disk` grew +6 while `would ingest
+now` held flat at 118. This is the series' first direct evidence bearing on the drain question
+phase 7 must answer: on this reading, one pass did not visibly shrink the "would ingest now"
+backlog at all.
+
+### `extract error:` lines -- NON-ZERO, this pass flagged per the plan's risk mitigation
+
+**34 total `extract error:` lines** in the run window (`journalctl --user -u sapience-sync
+--since "2026-11-17 13:00:30" --until "2026-11-17 13:23:10"`), breakdown by message:
+
+| Message | Count |
+|---|---|
+| `<urlopen error [Errno -2] Name or service not known>` | 30 |
+| `The read operation timed out` | 3 |
+| `<urlopen error _ssl.c:1015: The handshake operation timed out>` | 1 |
+
+All 34 are clustered in the final ~2 minutes of the run (13:16:33-13:23:08 PST), consistent with a
+transient network/DNS outage on this machine rather than a provider billing/auth failure (contrast
+the earlier all-`402`-failing ollama run, where every one of 50 calls failed identically). Unlike
+that total-failure case, this run still staged 539 objects from its 50-chunk batch, so it is a
+**partial** failure, not a zero-yield one. Per the plan's risk mitigation and phase 2's own
+verification criterion, **this pass's yield is flagged as unusable as a clean drain-rate datum**
+and must be excluded (or specially annotated) in phase 7's drain-rate tabulation rather than
+averaged in with error-free passes. Recorded via `issue-record.sh` (class
+`external-dependency-failure`, severity `costly`) at this dispatch.
+
+**Redaction / set-aside counts**: No `Redacted N secret/PII value(s)` line appeared in this run's
+journal window (0 secret/PII values redacted this pass, contrast Pass 1's 1). `Set aside 2
+transient rows (dispatch 2): run/thread state, not knowledge.`
+
+**Additional context from the journal**: `sapience: skipped 15 harness-started transcripts
+(thread mechanics, not knowledge; SAPIENCE_INCLUDE_HEADLESS=1 does not override this)`; `sapience
+capture (opt-in): read nvim 82, .dotfiles 27, sapience-app 26; not enabled none`; `Skipping 13
+sources already extracted (results were staged/shared earlier).`; `Extracting knowledge from 105
+sources (0 curated memory files) locally ...`; one new informational line not seen in Pass 1 --
+`a cut-off reply was re-extracted as two halves (54 facts, the cut-off reply had 57)` -- a
+content-handling note, not an error.
+
+### Cost signal (re-checked, confirms Phase 1's finding unchanged)
+
+`sapience stats` was re-run at this dispatch and still exposes no per-run token or dollar-cost
+counter -- only cumulative lifetime counts (`2,818 things you know, across 72 work sessions`,
+etc.) with no per-pass breakdown. The journal exposes only wall clock and CPU time, as in Pass 1.
+**No per-pass cost signal is obtainable from the client's own output**, confirming Phase 1's
+finding rather than superseding it; phase 7 must continue to state this plainly and must not
+recommend a cap increase or scheduling change on an unmeasured cost.
+
+---
+
+<!-- Phases 3-5 append one Pass-N block each below this line, in the fixed shape documented
      above. Each requires at least 24 hours since the previous pass's timestamp before it may
      run. -->

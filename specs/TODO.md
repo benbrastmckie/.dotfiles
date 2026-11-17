@@ -29,7 +29,7 @@ next_project_number: 144
 
 67 [NOT STARTED] — Migrate R environment back to stable nixpkgs once nixos-26.05...
 68 [NOT STARTED] — The iso and usb-installer nixosConfigurations fail to build...
-143 [NOT STARTED] — Stop the oliver-ben guard's 2s/1s network defaults stalling...
+143 [RESEARCHING] — Stop the oliver-ben guard's 2s/1s network defaults stalling...
 
 ### Services
 
@@ -64,7 +64,7 @@ next_project_number: 144
 ## Tasks
 
 ### 143. Stop the oliver-ben guard's 2s/1s network defaults stalling long agent runs, and report the no-retry suspend upstream
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHING]
 - **Task Type**: nix
 - **Topic**: nix-infrastructure
 - **Dependencies**: None

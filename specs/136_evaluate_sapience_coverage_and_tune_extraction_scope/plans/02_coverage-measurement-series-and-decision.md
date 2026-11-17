@@ -251,39 +251,49 @@ never the baseline.
 
 ---
 
-### Phase 2: Extraction Pass 2 -- First Fully Observed Pass [NOT STARTED]
+### Phase 2: Extraction Pass 2 -- First Fully Observed Pass [COMPLETED]
 
 **Goal**: Run one pass end to end with a before/after reading pair, producing the series' first
 genuine drain-rate datum, and establish what cost signal is obtainable at all.
 
 **Tasks**:
 
-- [ ] Confirm at least 24 hours have elapsed since the Pass-1 timestamp in the ledger. If not, stop
+- [x] Confirm at least 24 hours have elapsed since the Pass-1 timestamp in the ledger. If not, stop
       and leave this phase `[NOT STARTED]`; the spacing is a measurement requirement, not a
-      formality, and running early destroys the datum rather than delaying it.
-- [ ] Capture `sapience coverage` and `sapience pending` BEFORE the pass, verbatim, with timestamp.
-- [ ] Run the pass with `systemctl --user start sapience-sync.service`, not the bare CLI -- the unit
+      formality, and running early destroys the datum rather than delaying it. *(completed: Pass 1
+      finished 2026-11-13T12:06:52Z; this pass started 2026-11-17T21:00:38Z, ~104.9h gap)*
+- [x] Capture `sapience coverage` and `sapience pending` BEFORE the pass, verbatim, with timestamp.
+      *(completed: Available on disk 1611, would ingest now 118, pending 1208)*
+- [x] Run the pass with `systemctl --user start sapience-sync.service`, not the bare CLI -- the unit
       is the path that passes `--backend`/`--model` explicitly, and a detached run logs to the
       journal rather than depending on an agent's foreground wait. Record the start time.
-- [ ] Wait with bounded polling per `context/patterns/external-process-wait.md` and
+      *(completed: started 2026-11-17T21:00:38Z)*
+- [x] Wait with bounded polling per `context/patterns/external-process-wait.md` and
       `context/patterns/bounded-build-waiter.md`: poll `systemctl --user is-active
       sapience-sync.service` at a bounded interval, to a hard cap of 60 minutes. If the unit is
       still active at the cap, record the overrun in the ledger and stop waiting -- do NOT stop or
-      kill the unit, and do not start a second pass.
-- [ ] Read `journalctl --user -u sapience-sync --since <recorded start>` and extract: wall clock
+      kill the unit, and do not start a second pass. *(completed: unit settled to inactive at
+      22min 29.8s, well under the 60-minute cap; polling corrected mid-run after the first attempt
+      wrongly matched only ActiveState=="active", missing the "activating" state a Type=oneshot
+      unit holds while running -- deviation noted below)*
+- [x] Read `journalctl --user -u sapience-sync --since <recorded start>` and extract: wall clock
       from `systemctl --user status`; chunk count; objects staged and awaiting review; the redaction
       and set-aside lines; and EVERY `extract error:` line. Zero errors is the expected case; any
       non-zero count makes this pass's yield unusable as a drain-rate datum and must be stated as
-      such in the block, exactly as the 402 run's was.
-- [ ] Capture `sapience coverage` and `sapience pending` AFTER the pass, verbatim.
-- [ ] Append the Pass-2 block to the ledger, including the computed deltas: `would ingest now`
+      such in the block, exactly as the 402 run's was. *(completed: 34 extract-error lines, flagged
+      as a partial-failure pass unusable for the clean drain-rate datum)*
+- [x] Capture `sapience coverage` and `sapience pending` AFTER the pass, verbatim. *(completed:
+      Available on disk 1617, would ingest now 118, pending 1747)*
+- [x] Append the Pass-2 block to the ledger, including the computed deltas: `would ingest now`
       before minus after, `Available on disk` growth, each skip counter's change, `pending` growth,
-      and objects staged per chunk.
-- [ ] Establish the cost signal once, for the rest of the series to reuse: check whether
+      and objects staged per chunk. *(completed)*
+- [x] Establish the cost signal once, for the rest of the series to reuse: check whether
       `sapience stats`, the journal, or `~/.sapience/` exposes any token or cost counter for a run.
       Record what is available and, if nothing is, record that plainly -- phase 7 depends on knowing
-      whether a per-pass cost figure exists at all.
-- [ ] Record any issue or win via `issue-record.sh` as it arises, not reconstructed at the end.
+      whether a per-pass cost figure exists at all. *(completed: re-confirmed no per-pass cost
+      signal exists, matching Phase 1's finding)*
+- [x] Record any issue or win via `issue-record.sh` as it arises, not reconstructed at the end.
+      *(completed: external-dependency-failure/costly recorded for the 34 extract errors)*
 
 **Timing**: 20-30 minutes of attended work plus a bounded wait of up to 60 minutes, on a calendar
 day at least one day after Pass 1

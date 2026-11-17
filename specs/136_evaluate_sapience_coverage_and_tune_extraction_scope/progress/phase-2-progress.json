@@ -1,0 +1,39 @@
+{
+  "phase": 2,
+  "phase_name": "Extraction Pass 2 -- First Fully Observed Pass",
+  "started_at": "2026-11-17T21:00:00Z",
+  "last_updated": "2026-11-17T21:30:00Z",
+  "objectives": [
+    {"id": 1, "description": "Confirm at least 24 hours since Pass-1 timestamp", "status": "done",
+     "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 2, "description": "Capture sapience coverage/pending BEFORE the pass", "status": "done",
+     "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 3, "description": "Run the pass via systemctl --user start sapience-sync.service, record start time", "status": "done",
+     "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 4, "description": "Bounded poll to completion (ActiveState settled to inactive at 22min 29.8s, well under the 60-minute cap)", "status": "done",
+     "files_touched": []},
+    {"id": 5, "description": "Read journal: wall clock, chunk count, objects staged, redaction/set-aside, every extract error line", "status": "done",
+     "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 6, "description": "Capture sapience coverage/pending AFTER the pass", "status": "done",
+     "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 7, "description": "Append Pass-2 block with computed deltas", "status": "done",
+     "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 8, "description": "Re-check cost-signal availability (sapience stats re-run, confirms Phase 1 finding unchanged)", "status": "done",
+     "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 9, "description": "Record issue via issue-record.sh for the non-zero extract-error count", "status": "done",
+     "files_touched": []}
+  ],
+  "current_objective": null,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": [
+    {
+      "task_id": "2.4",
+      "description": "Bounded-poll wait for the sapience-sync unit to settle",
+      "type": "altered",
+      "reason": "First poll loop checked `systemctl --user is-active --quiet` (matches only ActiveState==active) and returned a false DONE after ~2.5 minutes, because a Type=oneshot unit reports ActiveState=activating/SubState=start while its main process is still running -- it never transitions through 'active' at all. Corrected by polling ActiveState via `systemctl --user show -p ActiveState --value` and looping while the value is 'activating' or 'active', stopping only once it settles to something else (here 'inactive'). No data was lost: the correction was caught before any AFTER reading was taken.",
+      "annotation": "*(deviation: altered -- polling predicate corrected from is-active/--quiet to an explicit ActiveState check, since this unit holds ActiveState=activating while running)*"
+    }
+  ],
+  "notes": "Pass 2 recorded a non-zero extract-error count (34 lines, a transient network/DNS outage in the final ~2 minutes of the run), unlike Pass 1's 0 errors. Per the plan's risk mitigation this pass is flagged as unusable for the clean drain-rate computation and must be excluded or specially annotated in phase 7. 'would ingest now' held flat at 118 before and after despite 539 objects staged -- the first direct evidence on the drain question."
+}
