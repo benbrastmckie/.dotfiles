@@ -1,0 +1,19 @@
+{
+  "status": "researched",
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/143_guard_fail_closed_stall_config_and_upstream_retry/reports/01_guard-fail-closed-config-and-retry.md",
+      "summary": "Research on durably declaring the oliver-ben guard's coalesce_s/net_timeout_s/deadline_s (found deadline_s<net_timeout_s live bug), chosen activation-script design, recommended values, stay-attached decision, upstream defect write-up for Oliver, and a mako-notification suspension-visibility design."
+    }
+  ],
+  "next_steps": "Run /orchestrate 143 to create an implementation plan from this report.",
+  "metadata": {
+    "session_id": "sess_1794949138_619b34_143",
+    "agent_type": "nix-research-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
+    "findings_count": 8
+  },
+  "dispatch_seq": 10
+}
