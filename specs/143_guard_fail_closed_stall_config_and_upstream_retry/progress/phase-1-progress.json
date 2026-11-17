@@ -1,0 +1,18 @@
+{
+  "phase": 1,
+  "phase_name": "Declare the three guard network knobs",
+  "started_at": "2026-11-17T21:45:14Z",
+  "last_updated": "2026-11-17T21:49:28Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Phase 1 -- file changes",
+      "status": "completed",
+      "files_touched": [
+        "modules/home/services/sf1-hub-ben.nix"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

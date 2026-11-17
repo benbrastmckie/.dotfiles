@@ -1,7 +1,7 @@
 # Implementation Plan: Guard fail-closed stall — config, visibility, upstream defect
 
 - **Task**: 143 - Guard fail-closed stall: config and upstream retry
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 5.75 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/143_guard_fail_closed_stall_config_and_upstream_retry/reports/01_guard-fail-closed-config-and-retry.md
@@ -181,22 +181,22 @@ included.
 Phases within the same wave can execute in parallel. Phases 1 and 2 both edit
 `modules/home/services/sf1-hub-ben.nix` and are therefore deliberately sequential, not parallel.
 
-### Phase 1: Declare the three guard network knobs [NOT STARTED]
+### Phase 1: Declare the three guard network knobs [COMPLETED]
 
 **Goal**: `modules/home/services/sf1-hub-ben.nix` force-sets `coalesce_s`/`net_timeout_s`/`deadline_s`
 in every attached checkout's `config.json` on every `home-manager switch`, preserving every other
 key.
 
 **Tasks**:
-- [ ] Re-read `modules/home/services/sf1-hub-ben.nix` immediately before editing (concurrent
+- [x] Re-read `modules/home/services/sf1-hub-ben.nix` immediately before editing (concurrent
       sibling is live in this tree).
-- [ ] Add three `let`-bound constants near `cfgDir`: `guardCoalesceS = 300`,
+- [x] Add three `let`-bound constants near `cfgDir`: `guardCoalesceS = 300`,
       `guardNetTimeoutS = 15`, `guardDeadlineS = 20`.
-- [ ] Add a comment block above them recording: why these values (D2), the freshness cost and the
+- [x] Add a comment block above them recording: why these values (D2), the freshness cost and the
       manual drop to ~60 once the rule set is non-empty (D4), that `deadline_s` must stay above
       `net_timeout_s` and below the Claude Code hook's 30s timeout, and that `MIN_PULL_GAP_S` is
       not enforced in attached mode (D3).
-- [ ] Add `home.activation.sf1HubBenGuardConfig = config.lib.dag.entryAfter [ "writeBoundary" ] ...`
+- [x] Add `home.activation.sf1HubBenGuardConfig = config.lib.dag.entryAfter [ "writeBoundary" ] ...`
       inside `config = lib.mkIf cfg.enable`, following `modules/home/core/dotfiles.nix`'s
       `claudeSettings` shape: a `[[ -v DRY_RUN ]]` branch that only echoes, and a real branch that
       for each checkout path in `${config.xdg.stateHome}/sf1-hub-ben/manifest.json`'s `checkouts`
@@ -204,13 +204,13 @@ key.
       `oliver-ben-guard/config.json`, and — only if that file exists and `${pkgs.jq}/bin/jq -e .`
       parses it — writes `jq '.coalesce_s=$c|.net_timeout_s=$n|.deadline_s=$d'` with `--argjson`
       into a `mktemp` sibling and `mv`s it into place.
-- [ ] Guard every path: missing or unparseable `manifest.json` -> skip silently; relative
+- [x] Guard every path: missing or unparseable `manifest.json` -> skip silently; relative
       `--git-common-dir` output -> resolve against the checkout; missing `config.json` -> skip
       (that checkout was never attached, and nothing here should create one); failed `jq` -> remove
       the temp file and leave the live file untouched.
-- [ ] Confirm the block writes no consent marker, reads no token, and never touches `key_file`,
+- [x] Confirm the block writes no consent marker, reads no token, and never touches `key_file`,
       `me`, `source`, `sink`, `since_ts`, `require_accept` or `mode`.
-- [ ] Run `nixfmt` on the edited file so the flake's `nixfmt` check passes.
+- [x] Run `nixfmt` on the edited file so the flake's `nixfmt` check passes.
 
 **Timing**: 1.5 hours
 

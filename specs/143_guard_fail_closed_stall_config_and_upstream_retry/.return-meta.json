@@ -1,5 +1,5 @@
 {
-  "status": "planned",
+  "status": "in_progress",
   "artifacts": [
     {
       "type": "plan",
@@ -8,13 +8,31 @@
     }
   ],
   "metadata": {
-    "session_id": "sess_1794949138_619b34_143",
-    "agent_type": "planner-agent",
+    "session_id": "sess_1794949138_619b34",
+    "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "delegation_path": [
+      "orchestrator",
+      "implement",
+      "nix-implementation-agent"
+    ],
     "phase_count": 5,
     "estimated_hours": 5.75,
-    "dependency_waves": [[1, 4], [2], [3], [5]]
+    "dependency_waves": [
+      [
+        1,
+        4
+      ],
+      [
+        2
+      ],
+      [
+        3
+      ],
+      [
+        5
+      ]
+    ]
   },
   "memory_candidates": [],
   "user_decision": {
@@ -29,5 +47,12 @@
     "obligation": "Restores the hub_commit_events reporting consented in CONSENT-benjamin.json without an agent performing an outward-facing, irreversible delivery of several days of commit metadata unattended; Phase 3's record must name the stranded count and the exact reset command per checkout for the obligation to be discharged."
   },
   "next_steps": "Run /orchestrate 143 to execute the plan",
-  "dispatch_seq": 13
+  "dispatch_seq": 13,
+  "started_at": "2026-11-17T21:45:09Z",
+  "partial_progress": {
+    "stage": "initializing",
+    "details": "nix-implementation-agent started; resuming from Phase 1 (all phases NOT STARTED)",
+    "phases_completed": 0,
+    "phases_total": 5
+  }
 }

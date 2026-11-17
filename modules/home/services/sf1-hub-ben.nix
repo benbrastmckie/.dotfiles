@@ -113,6 +113,39 @@ let
   };
 
   cfgDir = "${config.xdg.configHome}/sf1-hub-ben";
+
+  # Guard network knobs, declared durably here rather than left to `attach`'s installer
+  # defaults (1.0 / 2.0 / 8.0, hardcoded in the vendored install.sh, guard.py's own
+  # missing-config fallback, and whatever `sf1-hub-ben attach` writes) or a one-off hand edit
+  # to a live config.json, which a future re-`attach` would silently revert.
+  #
+  #   - `guardNetTimeoutS = 15`: the guard's measured initiating admission failures are all
+  #     `TimeoutError` against a 2-second socket timeout on a hosted TLS endpoint that was
+  #     reachable both seconds before and seconds after each one -- a transient blip, not an
+  #     outage. 15s gives the round trip real headroom without threatening `guardDeadlineS`
+  #     (which must exceed it, below).
+  #   - `guardCoalesceS = 300`: coalescing, not the timeout, is the lever on failure *volume*.
+  #     At the installer default of 1.0s nearly every controlled action makes its own network
+  #     round trip; at 300s a several-hundred-tool-call agent dispatch makes roughly one. The
+  #     cost is freshness, paid deliberately: a rule accepted in the room does not bind here
+  #     until the window expires, up to 5 minutes. Once the room's rule set stops being empty
+  #     this should drop to roughly 60s by hand (cutting the freshness lag to at most 1 minute,
+  #     at ~5x the round trips and so ~5x the exposure to the same per-round-trip failure rate)
+  #     -- deliberately not automated, since Nix evaluation cannot see the room's live `n_kos`.
+  #   - `guardDeadlineS = 20`: an internal SIGALRM around the whole rules-evaluation call, so
+  #     it must stay above `guardNetTimeoutS` (otherwise the alarm pre-empts the socket
+  #     timeout) and below the Claude Code hook's own 30s timeout (an attached repo's
+  #     `.claude/settings.local.json` hook entries carry `"timeout": 30`).
+  #   - The vendored guard's own `MIN_PULL_GAP_S = 10` floor, and its docstring's "network
+  #     pulls are at least 10 s apart" claim, are enforced only in the legacy (pre-attached)
+  #     `get_rules()` path -- attached mode's `admit()` never references `MIN_PULL_GAP_S`, so
+  #     it is not a protective floor for this configuration. `guardCoalesceS` stays above it
+  #     at both 300 and the eventual ~60 regardless, but that is this module's own choice, not
+  #     an upstream guarantee -- see docs/sf1-hub.md for the upstream defect this is reported
+  #     against.
+  guardCoalesceS = 300;
+  guardNetTimeoutS = 15;
+  guardDeadlineS = 20;
 in
 {
   options.services.sf1-hub-ben = {
@@ -147,6 +180,51 @@ in
 
   config = lib.mkIf cfg.enable {
     home.packages = [ sf1-hub-ben ];
+
+    # Force-sets coalesce_s/net_timeout_s/deadline_s in every attached checkout's
+    # oliver-ben-guard/config.json on every switch, so a re-`attach` (which rewrites
+    # config.json from the installer defaults) cannot silently revert the chosen values.
+    # Every other key -- me/source/sink/since_ts/key_file/require_accept/mode -- is left
+    # untouched; this writes no consent marker, reads no token, and never opens key_file.
+    # Same fail-safe shape as modules/home/core/dotfiles.nix's `claudeSettings`: a parse
+    # guard before touching anything, write to a `mktemp` sibling, `mv` only on success, and
+    # skip (never error) a checkout that is missing, unattached, or carries an unparseable
+    # file. Honors `DRY_RUN` like that block and the reaper/watch scripts below.
+    home.activation.sf1HubBenGuardConfig = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+      manifest="${config.xdg.stateHome}/sf1-hub-ben/manifest.json"
+
+      if [[ -v DRY_RUN ]]; then
+        echo "Would force coalesce_s=${toString guardCoalesceS} net_timeout_s=${toString guardNetTimeoutS} deadline_s=${toString guardDeadlineS} into every attached checkout's oliver-ben-guard/config.json"
+      else
+        if [ -f "$manifest" ] && ${pkgs.jq}/bin/jq -e . "$manifest" >/dev/null 2>&1; then
+          checkouts=$(${pkgs.jq}/bin/jq -r '.checkouts // {} | keys[]' "$manifest" 2>/dev/null) || checkouts=""
+          for co in $checkouts; do
+            [ -d "$co" ] || continue
+            gitCommonDir=$(${pkgs.git}/bin/git -C "$co" rev-parse --git-common-dir 2>/dev/null) || continue
+            case "$gitCommonDir" in
+              /*) ;;
+              *) gitCommonDir="$co/$gitCommonDir" ;;
+            esac
+            cfgFile="$gitCommonDir/oliver-ben-guard/config.json"
+            # Missing config.json: this checkout was never attached (or was detached since).
+            # Nothing here should create one.
+            [ -f "$cfgFile" ] || continue
+            ${pkgs.jq}/bin/jq -e . "$cfgFile" >/dev/null 2>&1 || continue
+            tmpFile="$(mktemp "$(dirname "$cfgFile")/config.json.XXXXXX")"
+            if ${pkgs.jq}/bin/jq \
+              --argjson c ${toString guardCoalesceS} \
+              --argjson n ${toString guardNetTimeoutS} \
+              --argjson d ${toString guardDeadlineS} \
+              '.coalesce_s = $c | .net_timeout_s = $n | .deadline_s = $d' \
+              "$cfgFile" > "$tmpFile" 2>/dev/null && [ -s "$tmpFile" ]; then
+              mv "$tmpFile" "$cfgFile"
+            else
+              rm -f "$tmpFile"
+            fi
+          done
+        fi
+      fi
+    '';
 
     systemd.user.services.sf1-hub-ben = {
       Unit = {
