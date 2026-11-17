@@ -1,0 +1,19 @@
+{
+  "status": "researched",
+  "dispatch_seq": 1,
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/142_sapience_hooks_opt_out_default/reports/01_sapience_hooks_opt_out.md",
+      "summary": "Research report: identifies the two jq `//`-operator sites in sapience.nix's sapienceBootstrap script that silently reset config.json's \"hooks\": false opt-out to true, confirms from direct vendor-source reading that the opt-out gates only wire_hooks()/cli_auto_on_plan() and never the per-repository mcp.py/sapience_cli.py hook invocations, recommends a default-not-force null-test fix at both sites, scopes a new home-manager activation guard check (new code in modules/, not an edit to the extension's own verify-sapience-mcp.sh which is the companion task's territory), and scopes the docs/sapience.md update."
+    }
+  ],
+  "next_steps": "Run /orchestrate 142 --plan to create an implementation plan from this research.",
+  "metadata": {
+    "session_id": "sess_1794947737_801e84_142",
+    "agent_type": "nix-research-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
+    "findings_count": 5
+  }
+}

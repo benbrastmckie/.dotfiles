@@ -1,16 +1,33 @@
 {
-  "next_project_number": 143,
+  "next_project_number": 144,
   "active_projects": [
+    {
+      "project_number": 143,
+      "project_name": "guard_fail_closed_stall_config_and_upstream_retry",
+      "title": "Stop the oliver-ben guard's 2s/1s network defaults stalling long agent runs, and report the no-retry suspend upstream",
+      "status": "not_started",
+      "task_type": "nix",
+      "description": "The oliver-ben binding guard (packages/sf1-hub-ben/vendor/guard/guard.py, deployed via modules/home/services/sf1-hub-ben.nix) consults a hosted rules route on nearly every controlled action with a 2-second timeout, and suspends fail-closed on the first network error with no retry. Decide where its network knobs are declared durably on this machine, pick defensible values, and write up the upstream defect.\n\nMEASURED EVIDENCE (2026-11-17, from .git/oliver-ben-guard/log.jsonl in the sapience-app checkout). Admission outcomes over the log's 3675 records: 1715 '304' (successful conditional GET), 105 'coalesced' (served from the local cache window), and 35 failures -- 24 'rules route unreachable (TimeoutError)' and 11 '(URLError)'. That is a ~2% per-call failure rate with only 5.8% of calls avoiding the network at all. Because suspension is sticky and never retried, expected survival is ~50 controlled actions; a single agent implementation dispatch performs several hundred. Two consecutive /orchestrate implement dispatches in sapience-app died mid-flight on 2026-11-17 (one after ~140 tool calls, one after ~337), each requiring a hand-run `guard.py unstop`.\n\nThe failures are transient, not an outage: hubcache.json's successful checked_at (epoch 1794944955) precedes stopped.json's write (1794944966) by 11 seconds, with the route reachable before and after.\n\nCONFIG SURFACE. <git-dir>/oliver-ben-guard/config.json carries mode=attached, coalesce_s=1.0, net_timeout_s=2.0, deadline_s=8.0. guard.py's own module docstring states 'Network pulls are at least 10 s apart' and the source carries MIN_PULL_GAP_S=10, but attached mode's config sets coalesce_s=1.0 -- ten times tighter than the author's documented floor, which reads as an installer oversight rather than a considered choice. The same 1.0/2.0 pair is hardcoded in at least three places: the vendored install.sh (near line 27), guard.py's missing-config fallback (near line 1249), and whatever `sf1-hub-ben attach` writes. Nothing in this repository declares these values, so they are not under declarative control.\n\nCONSTRAINT: DO NOT EDIT THE VENDORED GUARD. vendor.lock.json pins guard/guard.py by sha256 and names its upstream source as Oliver's own checkout (/Users/oz/data/oliver-ben-guard, git c813151); sf1-hub-ben.nix deliberately does not use install.sh and checks that sha256 manifest at build time, so an edited vendor file fails the build. A local behavioural fix is a deliberate fork plus a lock update, not a patch.\n\nGOAL. (1) Decide and implement where coalesce_s/net_timeout_s are declared durably for an attached repository, given that the module does not run install.sh and that `attach` is a manual TTY-only step. Evaluate: an activation step that patches an existing config.json in place (preserving me/source/sink/since_ts), a documented post-attach manual step, or a thin wrapper around `sf1-hub-ben attach`. Whatever is chosen must write no consent marker and hold no credential -- see the module's 'What stays manual' section. (2) Choose values with stated rationale. Starting proposal: net_timeout_s=15 (the 24 TimeoutErrors are a 2s timeout against a hosted TLS endpoint), and coalesce_s=300 while the rule set is empty, dropping to ~60 once rules exist; justify against MIN_PULL_GAP_S=10 and the docstring's own claim, and state the freshness cost explicitly (a rule Oliver adds does not bind until the window expires). (3) Write up the upstream defect for Oliver rather than patching it here: hub_fetch/admit (guard.py near lines 553-607) suspend on the first network error and discard a cache validated seconds earlier, with no retry; propose one bounded retry, or a grace window that keeps enforcing from the last good cache for N seconds before suspending. Either would have prevented both of 2026-11-17's stalls. (4) Resolve the prior question, which is a conversation with Oliver and not a config change: the cached rules doc for project oliver-ben is revision 1, schema sf1-hub-rules/1, members [oliver, benjamin], n_kos=0 -- the guard has been enforcing an empty rule set, so whether attached mode should remain on in such a repository is open. Record the outcome. Note that detaching also stops the commit-event reporting consented to in CONSENT-benjamin.json (hub_commit_events, share_unpushed_branches), which Oliver may rely on. (5) Make a suspension diagnosable without reading log.jsonl -- a status-line or notification surface, consistent with the prompt-rule work in install_claude_refresh_timer_and_mako_prompt_rule. (6) Update docs/sf1-hub.md with the measured failure rate, the config surface, and the unstop procedure.",
+      "topic": "nix-infrastructure",
+      "created": "2026-11-17T20:23:50Z",
+      "last_updated": "2026-11-17T20:23:50Z",
+      "dependencies": [],
+      "file_scope": [
+        "modules/home/services/sf1-hub-ben.nix",
+        "docs/sf1-hub.md",
+        "packages/sf1-hub-ben/INSTALL-BEN.md"
+      ]
+    },
     {
       "project_number": 142,
       "project_name": "sapience_hooks_opt_out_default",
       "title": "Default the Sapience config hooks opt-out to false so the vendor updater stops wiring machine-wide hooks",
-      "status": "not_started",
+      "status": "researched",
       "task_type": "nix",
       "description": "Stop the Sapience vendor updater from wiring machine-wide Claude Code hooks: default ~/.sapience/config.json \"hooks\" to false in modules/home/services/sapience.nix and preserve an explicit false across activation.\n\nMEASURED EVIDENCE (2026-11-14). ~/.claude/settings.json carried three vendor-written user-level hooks -- SessionStart `python3 ~/.sapience/mcp.py --briefing-text`, SessionEnd `--receipt`, Stop `--effect-line` -- which are absent from config/claude/settings.json. They are written by ~/.sapience/sapience_upkeep.py's wire_hooks() on its daily auto-update whenever config.json's \"hooks\" is not false (hooks_opted_out()). `hooks` being a home-manager enforced key only strips them at the next switch; the updater re-adds them within a day. Effect: every repository on the machine, whether or not it loads the sapience extension, received the unfiltered cross-project SessionStart briefing, and extension repositories received it twice (once from their own merged settings.local.json). The per-repository design stated in config/claude/settings.json's _SAPIENCE_NOTE and sapience.nix's own header comments is therefore not what the machine does. The three entries were removed by hand and config.json set to \"hooks\": false on 2026-11-14 (backups: ~/.claude/settings.json.bak-*, ~/.sapience/config.json.bak-*), but sapience.nix's activation merge uses `.hooks = (.hooks // true)` (near line 324) -- jq's `//` treats false as absent, so the next activation resets the opt-out to true -- and the first-run mint (near line 331) writes `hooks: true`.\n\nGOAL. (1) Both sites write/keep \"hooks\": false (use an explicit null test, not `//`, so an existing value is preserved; decide whether false is forced or only defaulted, and say why). (2) Confirm against the vendor client that \"hooks\": false does not disable the per-repository hooks the sapience extension merges (sapience_cli.py `hook prompt` / `hook tool`, mcp.py --briefing-text/--receipt/--effect-line invoked from a repository's own settings.local.json) -- it should only stop the updater touching ~/.claude/settings.json and the CLI auto-on probe. (3) Add an activation-time or verification check that fails loudly if ~/.claude/settings.json carries any ~/.sapience injection hook. (4) Rebuild, then verify after a forced `sapience_upkeep.py --update` that no user-level hook reappears. (5) Update docs/sapience.md and the sapience.nix comments to state the resulting design. Companion: the nvim agent-system repository carries the extension-side verifier/doc task (sapience_activation_surface_scoping_gaps).",
       "topic": "sapience",
       "created": "2026-11-15T07:05:58Z",
-      "last_updated": "2026-11-15T07:05:58Z",
+      "last_updated": "2026-11-17T20:41:27Z",
       "audit_verdict": {
         "proposal": {
           "id": "sapience_hooks_opt_out_default",
@@ -975,7 +992,15 @@
           "scope-blind: project 71 (design_ai_email_management_workflow) declares no file_scope -- judged on the semantic shortlist alone",
           "scope-blind: project 109 (serialized_group_scoped_mail_sync_wrapper) declares no file_scope -- judged on the semantic shortlist alone"
         ]
-      }
+      },
+      "session_id": "sess_1794947737_801e84_142",
+      "artifacts": [
+        {
+          "path": "specs/142_sapience_hooks_opt_out_default/reports/01_sapience_hooks_opt_out.md",
+          "type": "research",
+          "summary": "Research report on sapience hooks opt-out default fix, vendor-gate scope confirmation, activation-guard scoping, and doc-update scope"
+        }
+      ]
     },
     {
       "project_number": 141,
