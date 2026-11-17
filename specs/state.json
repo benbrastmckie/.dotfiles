@@ -1016,6 +1016,9 @@
         "docs/sapience.md",
         "modules/home/services/sapience.nix",
         "scripts/check-sapience-hooks.sh"
+      ],
+      "dependencies": [
+        136
       ]
     },
     {

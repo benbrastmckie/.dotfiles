@@ -11,8 +11,8 @@ next_project_number: 144
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,141,142,143 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 117,120,139 | 77,124,136 | nixos-config, desktop, sapience |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,141,143 | -- | nixos-config, nix-infrastructure, services, ... |
+| 2 | 117,120,139,142 | 77,124,136 | nixos-config, desktop, sapience |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -58,8 +58,8 @@ next_project_number: 144
 ### Sapience
 
 141 [NOT STARTED] — GOAL. Close the recurrence gap left by task 138. That task...
-142 [PLANNED] — Default the Sapience config hooks opt-out to false so the...
 139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
+142 [PLANNED] — Default the Sapience config hooks opt-out to false so the...
 
 ## Tasks
 
@@ -87,7 +87,7 @@ GOAL. (1) Decide and implement where coalesce_s/net_timeout_s are declared durab
 - **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: sapience
-- **Dependencies**: None
+- **Dependencies**: Task 136
 - **Research**:
   - [142_sapience_hooks_opt_out_default/reports/01_sapience_hooks_opt_out.md]
   - [142_sapience_hooks_opt_out_default/reports/01_sapience_hooks_opt_out.md]
