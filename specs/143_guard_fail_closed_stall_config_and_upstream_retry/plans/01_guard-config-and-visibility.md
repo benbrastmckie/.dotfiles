@@ -237,38 +237,38 @@ to end.
 
 ---
 
-### Phase 2: Fail-closed marker watch and notification [NOT STARTED]
+### Phase 2: Fail-closed marker watch and notification [COMPLETED]
 
 **Goal**: a new marker — `stopped.json` or `breaker.json` — in any attached checkout produces one
 `-u critical` desktop notification naming the checkout, the marker kind, the recorded error, and
 the exact remediation command.
 
 **Tasks**:
-- [ ] Re-read `modules/home/services/sf1-hub-ben.nix` immediately before editing.
-- [ ] Add `systemd.user.services.sf1-hub-ben-guard-watch` (`Type = "oneshot"`) inside
+- [x] Re-read `modules/home/services/sf1-hub-ben.nix` immediately before editing.
+- [x] Add `systemd.user.services.sf1-hub-ben-guard-watch` (`Type = "oneshot"`) inside
       `lib.mkIf cfg.enable`, with its body a `pkgs.writeShellScript` modelled on
       `modules/home/services/claude-session-reaper.nix`: explicit PATH export, every external call
       guarded, always exits 0.
-- [ ] Script body: for each checkout in `${config.xdg.stateHome}/sf1-hub-ben/manifest.json`'s
+- [x] Script body: for each checkout in `${config.xdg.stateHome}/sf1-hub-ben/manifest.json`'s
       `checkouts`, resolve the guard state dir via `git -C "$co" rev-parse --git-common-dir`; for
       each of `stopped.json` and `breaker.json`, if present, compare its mtime against a per-
       checkout, per-marker state file under `${config.xdg.stateHome}/sf1-hub-ben/watch/` (the
       `COOLDOWN_FILE` idiom in `modules/home/memory/monitor.nix`); on a new or newer mtime, fire
       one `notify-send -a sf1-hub-ben -u critical -t 0` and record the mtime.
-- [ ] Notification body names the remediation verbatim: for `stopped.json`,
+- [x] Notification body names the remediation verbatim: for `stopped.json`,
       `python3 ${sf1-hub-ben}/share/sf1-hub-ben/vendor/guard/guard.py unstop --root <checkout>`;
       for `breaker.json`, the same path with `send --reset`. Interpolate the store path from the
       `sf1-hub-ben` derivation rather than resolving it at runtime (the CLI on PATH is a
       `makeWrapper` wrapper, so `readlink` does not reach the payload).
-- [ ] Skip the notification silently when `notify-send` is unavailable or no DBus session bus is
+- [x] Skip the notification silently when `notify-send` is unavailable or no DBus session bus is
       reachable; the unit must still exit 0.
-- [ ] Add `systemd.user.timers.sf1-hub-ben-guard-watch` with `OnCalendar = "*:0/2"`,
+- [x] Add `systemd.user.timers.sf1-hub-ben-guard-watch` with `OnCalendar = "*:0/2"`,
       `Persistent = true`, a small `RandomizedDelaySec`, and `Install.WantedBy = [ "timers.target" ]`.
       Do **not** add `Requires` on the service — the reaper module's own comment records why
       (stop-propagation silently ends the schedule).
-- [ ] Run the generated script through `shellcheck` by hand (the flake's `shellcheck` check scans
+- [x] Run the generated script through `shellcheck` by hand (the flake's `shellcheck` check scans
       `*.sh` files and `.githooks/*`, so a `writeShellScript` body is not covered by it).
-- [ ] Run `nixfmt` on the edited file.
+- [x] Run `nixfmt` on the edited file.
 
 **Timing**: 1.5 hours
 

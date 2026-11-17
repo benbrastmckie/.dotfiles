@@ -283,5 +283,119 @@ in
 
       Install = lib.mkIf cfg.autoStart { WantedBy = [ "default.target" ]; };
     };
+
+    # Makes a fail-closed marker visible without reading log.jsonl. Both `stopped.json`
+    # (admission suspend, written by `admit()`) and `breaker.json` (sender breaker, written by
+    # `send()`) are the same no-retry shape, one network error away -- see
+    # docs/sf1-hub.md and the upstream write-up for the defect this surface works around.
+    # Notify-only by design (D7): no one-click action, since mako's single-default-action
+    # idiom needs `notify-send --wait -t 0`, which inside a timer-driven oneshot would hold the
+    # unit active indefinitely and block later timer activations. The notification instead
+    # carries the exact remediation command to paste. Module shape and failure discipline
+    # modeled on claude-session-reaper.nix: explicit PATH export, every external call guarded,
+    # the script always exits 0.
+    systemd.user.services.sf1-hub-ben-guard-watch = {
+      Unit = {
+        Description = "Notify on a new oliver-ben-guard stopped.json/breaker.json marker (notify-only)";
+      };
+      Service = {
+        Type = "oneshot";
+        ExecStart =
+          let
+            script = pkgs.writeShellScript "sf1-hub-ben-guard-watch" ''
+                            export PATH="${config.home.homeDirectory}/.nix-profile/bin:/run/current-system/sw/bin:$PATH"
+                            # Deliberately no `set -e`: every external call below is individually guarded so
+                            # a single race or missing tool can never trip the whole script into a `failed`
+                            # unit state. The script always reaches `exit 0`.
+
+                            echo "sf1-hub-ben-guard-watch: starting"
+
+                            manifest="${config.xdg.stateHome}/sf1-hub-ben/manifest.json"
+                            watchDir="${config.xdg.stateHome}/sf1-hub-ben/watch"
+                            mkdir -p "$watchDir" 2>/dev/null || true
+
+                            if [ ! -f "$manifest" ] || ! ${pkgs.jq}/bin/jq -e . "$manifest" >/dev/null 2>&1; then
+                              echo "sf1-hub-ben-guard-watch: no (or unparseable) manifest, nothing to watch"
+                              echo "sf1-hub-ben-guard-watch: done"
+                              exit 0
+                            fi
+
+                            checkouts=$(${pkgs.jq}/bin/jq -r '.checkouts // {} | keys[]' "$manifest" 2>/dev/null) || checkouts=""
+
+                            for co in $checkouts; do
+                              [ -d "$co" ] || continue
+                              gitCommonDir=$(${pkgs.git}/bin/git -C "$co" rev-parse --git-common-dir 2>/dev/null) || continue
+                              case "$gitCommonDir" in
+                                /*) ;;
+                                *) gitCommonDir="$co/$gitCommonDir" ;;
+                              esac
+                              guardStateDir="$gitCommonDir/oliver-ben-guard"
+                              safeCo=''${co//\//_}
+
+                              for marker in stopped.json breaker.json; do
+                                markerFile="$guardStateDir/$marker"
+                                [ -f "$markerFile" ] || continue
+
+                                mtime=$(${pkgs.coreutils}/bin/stat -c %Y "$markerFile" 2>/dev/null) || continue
+                                stateFile="$watchDir/$safeCo.$marker.mtime"
+                                lastMtime=$(cat "$stateFile" 2>/dev/null) || lastMtime=""
+
+                                # Same mtime as last run: already notified, nothing new.
+                                if [ "$mtime" = "$lastMtime" ]; then
+                                  continue
+                                fi
+
+                                markerError=$(${pkgs.jq}/bin/jq -r '.error // "unknown error"' "$markerFile" 2>/dev/null) || markerError="unknown error"
+                                if [ "$marker" = "stopped.json" ]; then
+                                  remedy="python3 ${sf1-hub-ben}/share/sf1-hub-ben/vendor/guard/guard.py unstop --root $co"
+                                  kind="admission suspended"
+                                else
+                                  remedy="python3 ${sf1-hub-ben}/share/sf1-hub-ben/vendor/guard/guard.py send --reset --root $co"
+                                  kind="sender breaker open"
+                                fi
+
+                                # Record the mtime regardless of whether the notification itself reaches a
+                                # bus -- an unreachable DBus session is not a reason to re-raise the same
+                                # marker on every future run.
+                                echo "$mtime" > "$stateFile" 2>/dev/null || true
+
+                                if [ -n "''${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+                                  ${pkgs.libnotify}/bin/notify-send -a sf1-hub-ben -u critical -t 0 \
+                                    "sf1-hub-ben: $kind ($co)" \
+                                    "$markerError
+
+              $remedy" 2>/dev/null || true
+                                  echo "sf1-hub-ben-guard-watch: notified $marker for $co"
+                                else
+                                  echo "sf1-hub-ben-guard-watch: no DBus session bus, skipping notification for $marker on $co"
+                                fi
+                              done
+                            done
+
+                            echo "sf1-hub-ben-guard-watch: done"
+                            exit 0
+            '';
+          in
+          "${script}";
+      };
+    };
+
+    systemd.user.timers.sf1-hub-ben-guard-watch = {
+      Unit = {
+        Description = "Timer for periodic sf1-hub-ben guard marker watch (notify-only)";
+        # Note: no `Requires = [ "sf1-hub-ben-guard-watch.service" ]` here -- same reasoning as
+        # claude-session-reaper.nix's timer: Requires= stop-propagates, so
+        # `systemctl --user stop sf1-hub-ben-guard-watch.service` would also deactivate this
+        # timer and silently end the schedule.
+      };
+      Timer = {
+        OnCalendar = "*:0/2";
+        Persistent = true;
+        RandomizedDelaySec = 20;
+      };
+      Install = {
+        WantedBy = [ "timers.target" ];
+      };
+    };
   };
 }
