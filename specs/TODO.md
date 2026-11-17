@@ -88,7 +88,9 @@ GOAL. (1) Decide and implement where coalesce_s/net_timeout_s are declared durab
 - **Task Type**: nix
 - **Topic**: sapience
 - **Dependencies**: None
-- **Research**: [142_sapience_hooks_opt_out_default/reports/01_sapience_hooks_opt_out.md]
+- **Research**:
+  - [142_sapience_hooks_opt_out_default/reports/01_sapience_hooks_opt_out.md]
+  - [142_sapience_hooks_opt_out_default/reports/01_sapience_hooks_opt_out.md]
 
 **Description**: Stop the Sapience vendor updater from wiring machine-wide Claude Code hooks: default ~/.sapience/config.json "hooks" to false in modules/home/services/sapience.nix and preserve an explicit false across activation.
 
