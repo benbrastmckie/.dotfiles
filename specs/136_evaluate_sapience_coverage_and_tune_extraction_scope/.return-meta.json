@@ -1,49 +1,107 @@
 {
   "status": "partial",
-  "dispatch_seq": 7,
+  "dispatch_seq": 9,
   "partial_progress": {
     "stage": "phase_gated_on_elapsed_time",
-    "details": "Phase 1 (re-baseline on the anthropic backend and open the measurement ledger) completed and committed. Phase 2 (Extraction Pass 2) requires at least 24 hours since the Pass-1 timestamp recorded in the ledger (2026-11-13T12:06:52Z); at this dispatch (2026-11-13T21:10Z) under 10 hours have elapsed, so phase 2 legitimately stays [NOT STARTED] rather than running early and destroying the drain-rate datum. This is the plan's own designed pacing (one phase per calendar-spaced pass, spanning at least a week), not a blocker requiring a decision -- re-dispatch after the 24-hour gate elapses to run phase 2.",
-    "handoff_path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-1-handoff-20261113T211013Z.md",
-    "phases_completed": 1,
+    "details": "Phase 2 (Extraction Pass 2 -- first fully observed pass) completed and committed. Pass 2 ran 2026-11-17T21:00:38Z-21:23:08Z (22min 29.8s), staged 539 objects, and recorded 34 non-zero extract error: lines (a transient network/DNS outage in its final ~2 minutes), so it is flagged in the ledger as unusable for the clean drain-rate computation even though it still supplies a cost/duration datum and a before/after coverage pair. Phase 3 (Extraction Pass 3 and First Mid-Series Filter Check) requires at least 24 hours since the Pass-2 timestamp recorded in the ledger (2026-11-17T21:23:08Z); re-dispatch after that gate elapses (not before approximately 2026-11-18T21:23:08Z). This is the plan's own designed pacing (one phase per calendar-spaced pass, spanning at least a week), not a blocker requiring a decision.",
+    "handoff_path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-2-handoff-20261117T213000Z.md",
+    "phases_completed": 2,
     "phases_total": 8
   },
   "artifacts": [
     {
       "type": "handoff",
-      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-1-handoff-20261113T211013Z.md",
-      "summary": "Phase-1 completion handoff: ledger baseline and Pass-1 retro-record established; phase 2 gated on 24h elapsed since Pass-1 timestamp."
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-2-handoff-20261117T213000Z.md",
+      "summary": "Phase-2 completion handoff: Pass 2 recorded with 34 extract errors flagged unusable for clean drain-rate; corrected ActiveState polling predicate; phase 3 gated on 24h elapsed since Pass-2 timestamp."
     },
     {
       "type": "record",
       "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
-      "summary": "Measurement ledger: fixed per-pass block shape, live post-138/post-anthropic-migration Pass-0 baseline (Available on disk 1157, would ingest now 78, pending 1208, backend confirmed three ways), and the journal-reconstructed Pass-1 block (1208 objects staged, 0 extract errors, 29min wall clock, flagged as a cost/duration datum only)."
+      "summary": "Ledger updated with the Pass-2 block: before/after coverage pair, computed deltas, 34 extract-error breakdown, redaction/set-aside counts, and the re-confirmed no-cost-signal finding."
     }
   ],
   "completion_data": {
-    "completion_summary": "Completed plan phase 1: created the Sapience coverage measurement ledger, confirmed the live anthropic-backend wiring three independent ways, recorded the config.json model:null residue against home.nix's explicit model, captured a fresh post-migration coverage/pending baseline with a verified sub-counter summation (78+0+30+904+145=1157), and retro-recorded the already-succeeded Pass 1 (1208 objects staged, 0 errors, 29min wall clock) as a cost/duration-only datum. Phases 2-8 remain, each gated on at least 24 hours since the prior pass."
+    "completion_summary": "Completed plan phase 2: ran Extraction Pass 2 via the sapience-sync systemd unit end to end (22min 29.8s, 50 chunks, 539 objects staged), captured a genuine before/after coverage pair (Available on disk 1611->1617, would ingest now flat at 118, pending 1208->1747), and recorded 34 extract-error lines from a transient network outage that flags this pass as unusable for the clean drain-rate computation. Re-confirmed no per-pass cost/token signal exists. Phases 3-8 remain, each gated on at least 24 hours since the prior pass's recorded timestamp."
   },
   "modified_files": [
     "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
     "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/02_coverage-measurement-series-and-decision.md",
-    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/progress/phase-1-progress.json",
-    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-1-handoff-20261113T211013Z.md"
+    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/progress/phase-2-progress.json",
+    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-2-handoff-20261117T213000Z.md",
+    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/issues.jsonl"
   ],
   "memory_candidates": [
     {
-      "content": "A plan that structures a long-running measurement as 'one phase per calendar-spaced pass' (each phase gated on >=24h since the previous pass's recorded timestamp) legitimately produces a partial return after the first runnable phase, even with zero errors -- the remaining phases are correctly [NOT STARTED] because real time has not yet elapsed, not because anything is broken. The implementer should report this as status: partial with partial_progress stating the elapsed-time gate and the next-eligible-time, rather than forcing a phase early (which would destroy the drain-rate datum the plan's own risk table warns about) or mischaracterizing the pause as 'blocked'.",
+      "content": "When waiting on a unit started via 'systemctl --user start <unit>', poll completion with 'systemctl --user show <unit> -p ActiveState --value' and loop while the value is 'activating' or 'active'. 'systemctl --user is-active --quiet <unit>' only matches ActiveState==active and silently returns a false 'done' almost immediately for any Type=oneshot unit, because such a unit reports ActiveState=activating/SubState=start for its entire run and never transitions through 'active' at all.",
+      "category": "TECHNIQUE",
+      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-2-handoff-20261117T213000Z.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["systemd", "oneshot", "bounded-wait", "ActiveState", "polling", "sapience-sync"]
+    },
+    {
+      "content": "A plan measuring something that requires calendar-spaced real-world observation (e.g. a drain rate across 5+ hand-run passes spanning a week) can be structured as one implementation phase per pass, each gated on '>=N hours since the previous pass's recorded timestamp'. Each dispatch legitimately advances at most one such phase and returns status partial with a stated next-eligible-time, rather than forcing multiple passes in one sitting (which would collapse the spacing the measurement itself depends on).",
       "category": "PATTERN",
-      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/summaries/",
+      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-2-handoff-20261117T213000Z.md",
       "confidence": 0.7,
-      "suggested_keywords": ["time-gated-phases", "measurement-series", "partial-status", "calendar-spaced-passes", "sapience"]
+      "suggested_keywords": ["time-gated-phases", "measurement-series", "partial-status", "calendar-spaced-passes"]
+    }
+  ],
+  "sapience_notes": [
+    {
+      "subject": "sapience-sync.service ActiveState during a run",
+      "value": "The Type=oneshot systemd unit sapience-sync.service holds ActiveState=activating/SubState=start for its entire run and never reports ActiveState=active. Polling with 'systemctl --user is-active --quiet' (which only matches ActiveState==active) returns a false-positive 'done' almost immediately; the correct predicate is 'systemctl --user show sapience-sync.service -p ActiveState --value', looping while the value is 'activating' or 'active'.",
+      "predicate": "finding is",
+      "ko_type": "fact",
+      "confidence": 0.9,
+      "source_loc": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"
+    },
+    {
+      "subject": "Sapience Pass 2 drain rate (2026-11-17)",
+      "value": "A 50-chunk sapience-sync pass that staged 539 objects left 'would ingest now' unchanged (118 before and after) because new transcripts accrued during the 22.5-minute run at a rate that offset the pass's consumption; 'Available on disk' grew +6 in the same window. A single pass's before/after delta on 'would ingest now' alone is not a reliable drain-rate proxy without separately accounting for concurrent accrual.",
+      "predicate": "finding is",
+      "ko_type": "insight",
+      "confidence": 0.85,
+      "source_loc": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"
+    },
+    {
+      "subject": "Sapience per-pass cost signal",
+      "value": "Neither 'sapience stats', the sapience-sync systemd journal, nor any file under ~/.sapience/ exposes a per-run token or dollar-cost counter for the anthropic backend -- only cumulative lifetime counts via 'sapience stats'. Independently confirmed on two separate passes (2026-11-13 and 2026-11-17).",
+      "predicate": "finding is",
+      "ko_type": "fact",
+      "confidence": 0.85,
+      "source_loc": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"
+    },
+    {
+      "subject": "Sapience extract-error partial-failure mode",
+      "value": "A sapience-sync pass can partially fail without the all-or-nothing pattern of the earlier ollama-402 outage: Pass 2 (2026-11-17) logged 34 extract error: lines (30 DNS 'Name or service not known', 3 read timeouts, 1 SSL handshake timeout) clustered in its final ~2 minutes -- a transient network outage -- yet still staged 539 of its 50-chunk batch. Any non-zero extract-error count still disqualifies that pass from a clean drain-rate computation even when most of the batch succeeded.",
+      "predicate": "finding is",
+      "ko_type": "fact",
+      "confidence": 0.85,
+      "source_loc": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"
+    },
+    {
+      "subject": "Task 136 measurement series pacing",
+      "value": "Task 136's plan structures its required 5+ pass measurement series as one implementation phase per calendar-spaced pass, each gated on at least 24 hours since the prior pass's recorded ledger timestamp. A single dispatch can therefore complete at most one new pass phase regardless of available work capacity; this is the plan's designed pacing and should be returned as status partial with the next-eligible-time stated, not forced early or treated as a blocker.",
+      "predicate": "finding is",
+      "ko_type": "insight",
+      "confidence": 0.8,
+      "source_loc": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/02_coverage-measurement-series-and-decision.md"
+    },
+    {
+      "subject": "Sapience redaction-line absence convention",
+      "value": "The sapience-sync journal line 'Redacted N secret/PII value(s)' is only emitted when N>0 for that run; a run with zero redactions (Pass 2, 2026-11-17) emits no redaction line at all rather than an explicit 'Redacted 0' line, so its absence in a run's journal must be read as zero redactions, not as a missing-data gap.",
+      "predicate": "finding is",
+      "ko_type": "fact",
+      "confidence": 0.75,
+      "source_loc": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"
     }
   ],
   "metadata": {
-    "session_id": "sess_1794603135_b69781",
+    "session_id": "sess_1794949138_619b34",
     "agent_type": "general-implementation-agent",
     "delegation_depth": 2,
     "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
-    "phases_completed": 1,
+    "phases_completed": 2,
     "phases_total": 8
   }
 }

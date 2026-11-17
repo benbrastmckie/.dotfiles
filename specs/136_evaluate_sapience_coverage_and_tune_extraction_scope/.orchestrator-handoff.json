@@ -1,20 +1,20 @@
 {
   "status": "partial",
-  "dispatch_seq": 7,
-  "summary": "Completed plan phase 1 of 8 for the Sapience coverage measurement series: created the measurement ledger, confirmed the live anthropic-backend wiring three independent ways, captured a fresh post-migration coverage/pending baseline with a verified sub-counter summation, and retro-recorded the already-succeeded Pass 1 (1208 objects staged, 0 errors) as a cost/duration-only datum. Phases 2-8 remain, each gated on at least 24 hours since the previous pass's timestamp; phase 2 cannot legitimately run until roughly 2026-11-14T12:06:52Z.",
-  "phases_completed": 1,
+  "dispatch_seq": 9,
+  "summary": "Completed plan phase 2 of 8 for the Sapience coverage measurement series: ran Extraction Pass 2 end to end via the sapience-sync systemd unit (22min 29.8s, 50 chunks, 539 objects staged), captured a genuine before/after coverage pair, and recorded 34 extract-error lines from a transient network outage that flags this pass as unusable for the clean drain-rate computation. Re-confirmed no per-pass cost signal exists. Phases 3-8 remain, each gated on at least 24 hours since the previous pass's timestamp; phase 3 cannot legitimately run until approximately 2026-11-18T21:23:08Z.",
+  "phases_completed": 2,
   "phases_total": 8,
   "blockers": [],
   "artifacts": [
     {
       "type": "record",
       "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
-      "summary": "Measurement ledger: fixed per-pass block shape, live Pass-0 baseline, and journal-reconstructed Pass-1 block."
+      "summary": "Measurement ledger: Pass-0 baseline, journal-reconstructed Pass-1, and the fully-observed Pass-2 block (34 extract errors, flagged unusable for clean drain-rate)."
     },
     {
       "type": "handoff",
-      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-1-handoff-20261113T211013Z.md",
-      "summary": "Phase-1 completion handoff naming the 24-hour re-dispatch gate for phase 2."
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-2-handoff-20261117T213000Z.md",
+      "summary": "Phase-2 completion handoff naming the 24-hour re-dispatch gate for phase 3 and the corrected systemd polling predicate."
     }
   ]
 }
