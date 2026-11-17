@@ -29,7 +29,6 @@ them and replace this section with the observed result and the date.
 Sapience still leads this list, but only the part of it that is actually attendable. Extraction runs against a metered third-party key, so every pass costs money and sends raw transcript chunks off this machine, and the local-inference diagnosis is the one open Sapience task with no unmet predecessor -- it can be picked up today. The coverage measurement is parked for now, and the classifier-cost task is blocked behind it in the dependency graph, so both sit in the last batch rather than at the top; neither is work to pick up this week. Everything between them is ordinary configuration work that is not getting more expensive while it waits.
 
 ```
-/orchestrate 140   # Decide whether local CPU inference can replace the metered Sapience extraction path
 /orchestrate 124, 77, 117, 120, 78   # Settle the niri session and resume behavior before documenting a setup that stops moving
 /orchestrate 125, 131   # Contain and schedule Claude's own session hygiene on one systemd user-unit surface
 /orchestrate 136, 139   # Parked: resume the coverage measurement, then settle the classifier cost it prices
@@ -43,7 +42,7 @@ Why this order:
 **Coverage appendix (uncovered tasks)**:
 ```
 /orchestrate 15,19,23,43,46,67,68,126
-/orchestrate 133
+/orchestrate 133,141,142,143
 ```
 
 ## Open work
@@ -57,10 +56,11 @@ Why this order:
 133 ready           restructure_nix_configuration_layout
 ```
 
-**Nix infrastructure (2)**
+**Nix infrastructure (3)**
 ```
 67 ready            migrate_r_env_back_to_stable_nixpkgs
 68 ready            fix_broken_zfs_kernel_installer_builds
+143 ready           Stop the oliver-ben guard's 2s/1s network defaults stalling long agent runs, ...
 ```
 
 **Services (6)**
@@ -91,10 +91,11 @@ Why this order:
 42 BLOCKED          reenable_jupytext_nixpkgs_fix
 ```
 
-**Sapience (2)**
+**Sapience (3)**
 ```
-139 blocked:136,140 reduce_sapience_classifier_cost   <- needs 136's measured backlog; not attendable while 136 is parked
-140 ready           diagnose_slow_local_ollama_inference
+139 blocked:136     reduce_sapience_classifier_cost   <- needs 136's measured backlog; not attendable while 136 is parked
+141 ready           prevent_sapience_hook_reinjection
+142 ready           Default the Sapience config hooks opt-out to false so the vendor updater stop...
 ```
 The packaging pair (41, 42) is waiting on upstream nixpkgs fixes rather than on anything in this repository, so neither appears in a batch above.
 
