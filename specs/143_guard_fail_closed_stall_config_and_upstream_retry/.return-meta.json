@@ -1,10 +1,30 @@
 {
-  "status": "in_progress",
+  "status": "implemented",
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/143_guard_fail_closed_stall_config_and_upstream_retry/plans/01_guard-config-and-visibility.md",
-      "summary": "5-phase plan: guard knob activation step, fail-closed marker watch timer, apply/converge both checkouts, two-surface upstream defect write-up, docs/sf1-hub.md update."
+      "type": "implementation",
+      "path": "modules/home/services/sf1-hub-ben.nix",
+      "summary": "Declares coalesce_s/net_timeout_s/deadline_s via a home.activation step and adds the sf1-hub-ben-guard-watch oneshot+timer."
+    },
+    {
+      "type": "implementation",
+      "path": "docs/sf1-hub.md",
+      "summary": "Config-surface table, corrected failure history, watch-timer section, and unstop/breaker-reset remediation procedures."
+    },
+    {
+      "type": "report",
+      "path": "specs/143_guard_fail_closed_stall_config_and_upstream_retry/records/01_upstream-defect-and-attach-question.md",
+      "summary": "Self-contained upstream defect write-up for Oliver covering both no-retry surfaces plus the one open question."
+    },
+    {
+      "type": "report",
+      "path": "specs/143_guard_fail_closed_stall_config_and_upstream_retry/records/02_convergence-and-breaker-state.md",
+      "summary": "Pre/post config values per checkout, stranded-outbox counts, breaker details, and the unrun reset commands."
+    },
+    {
+      "type": "summary",
+      "path": "specs/143_guard_fail_closed_stall_config_and_upstream_retry/summaries/01_guard-config-and-visibility-summary.md",
+      "summary": "Implementation summary covering all 5 phases, decisions, deviations, and verification."
     }
   ],
   "metadata": {
@@ -16,25 +36,64 @@
       "implement",
       "nix-implementation-agent"
     ],
-    "phase_count": 5,
-    "estimated_hours": 5.75,
-    "dependency_waves": [
-      [
-        1,
-        4
-      ],
-      [
-        2
-      ],
-      [
-        3
-      ],
-      [
-        5
-      ]
-    ]
+    "phases_completed": 5,
+    "phases_total": 5
   },
-  "memory_candidates": [],
+  "completion_data": {
+    "completion_summary": "Declared the oliver-ben guard's coalesce_s/net_timeout_s/deadline_s durably via a home.activation step (300/15/20), added a 2-minute watch timer that notifies on a new stopped.json/breaker.json marker, converged both attached checkouts via home-manager switch (sudo nixos-rebuild switch was denied by this session's permission system and is recorded as a Reasoned Exclusion), and wrote up the two-surface upstream no-retry defect for Oliver plus the open attached-mode question."
+  },
+  "modified_files": [
+    "docs/sf1-hub.md",
+    "modules/home/services/sf1-hub-ben.nix",
+    "specs/143_guard_fail_closed_stall_config_and_upstream_retry/records/01_upstream-defect-and-attach-question.md",
+    "specs/143_guard_fail_closed_stall_config_and_upstream_retry/records/02_convergence-and-breaker-state.md"
+  ],
+  "sapience_notes": [
+    {
+      "subject": "oliver-ben guard admission failure rate",
+      "value": "Measured over sapience-app's full admission history: 3 initiating network failures (2 TimeoutError, 1 URLError) over ~1720 admission round trips, about 0.17% -- not the ~2% a naive count of all 'suspended' log blocks suggests, because the stopped.json marker is sticky and every controlled action attempted while it sits unclear logs as another 'suspended' block. 38 total blocked-action log entries trace back to only those 3 initiating failures.",
+      "predicate": "measured fact is",
+      "ko_type": "finding",
+      "confidence": 0.9
+    },
+    {
+      "subject": "oliver-ben guard MIN_PULL_GAP_S floor",
+      "value": "guard.py's MIN_PULL_GAP_S=10 floor and its docstring's 'network pulls are at least 10s apart' claim are enforced only in the legacy pre-attached get_rules() code path. Attached mode's admit() paces purely on coalesce_s and never references MIN_PULL_GAP_S, so the docstring is misleading for attached mode specifically.",
+      "predicate": "non-obvious constraint is",
+      "ko_type": "finding",
+      "confidence": 0.9
+    },
+    {
+      "subject": "oliver-ben guard send() breaker",
+      "value": "send()'s breaker.json (sender-side outbound commit-event delivery) has the identical no-retry shape as admit()'s stopped.json (admission): one sink error, sticky refusal printed as 'breaker open, no retry', no automatic recovery. Same root cause as the admission stall, expressed on the opposite traffic direction.",
+      "predicate": "finding is",
+      "ko_type": "finding",
+      "confidence": 0.9
+    },
+    {
+      "subject": "declaring guard network knobs durably on this machine",
+      "value": "Chose a home.activation step that force-sets coalesce_s/net_timeout_s/deadline_s in every attached checkout's config.json on every home-manager switch, rather than a documented manual post-attach step or a wrapper around sf1-hub-ben attach. A manual step is non-durable -- it is exactly how one checkout (sapience-app) ended up hand-fixed while a second (sf1-engine) stayed on installer defaults. A wrapper only ever fixes a fresh attach, never an already-attached checkout.",
+      "predicate": "decision and rationale is",
+      "ko_type": "decision",
+      "confidence": 0.85
+    },
+    {
+      "subject": "running sudo from inside this agent harness",
+      "value": "sudo is categorically denied by this session's own permission system (every sudo invocation, including a bare probe, was refused) -- not an intermittent or configurable limitation, but a structural one. The user-level home-manager switch --flake path alone was sufficient here because it is the generation that actually owns ~/.nix-profile and executes home.activation; the NixOS-integrated generation (via sudo nixos-rebuild switch) stays out of sync until a human runs it.",
+      "predicate": "non-obvious constraint is",
+      "ko_type": "finding",
+      "confidence": 0.85
+    },
+    {
+      "subject": "statix repeated_keys and nix flake check coverage",
+      "value": "statix's repeated_keys lint flags several separate dotted-path attribute assignments sharing the same leading key (e.g. systemd.user.services.X = ...; systemd.user.services.Y = ...; systemd.user.timers.Z = ...;) even though plain Nix merges them correctly -- the fix is nesting into one shared attrset (systemd.user = { services = {...}; timers = {...}; };). This is caught only by the full nix flake check (which runs statix), not by the narrower nixfmt/deadnix/home-eval trio commonly used for quick per-phase iteration in this repository.",
+      "predicate": "tooling gotcha is",
+      "ko_type": "finding",
+      "confidence": 0.85
+    }
+  ],
+  "next_steps": "Run sudo nixos-rebuild switch --flake .#hamsa by hand to keep the NixOS-integrated home-manager generation in sync (the standalone path is already converged and functional). Decide when to run guard.py send --reset --root <checkout> for each attached checkout to drain the stranded outbox (non-blocking user_decision carried on this file). Send records/01_upstream-defect-and-attach-question.md to Oliver.",
+  "dispatch_seq": 15,
   "user_decision": {
     "question": "Both attached checkouts' sender breakers have been open since 2026-11-14/15 with roughly 191 commit events stranded in outbox/; running `guard.py send --reset` would immediately deliver several days of queued commit metadata to Oliver's hosted sink. Who runs that reset, and when?",
     "options": [
@@ -45,14 +104,5 @@
     "recommended": "Leave both breakers open; the plan records the counts and the exact reset command per checkout, and you run it yourself when ready",
     "blocking": false,
     "obligation": "Restores the hub_commit_events reporting consented in CONSENT-benjamin.json without an agent performing an outward-facing, irreversible delivery of several days of commit metadata unattended; Phase 3's record must name the stranded count and the exact reset command per checkout for the obligation to be discharged."
-  },
-  "next_steps": "Run /orchestrate 143 to execute the plan",
-  "dispatch_seq": 13,
-  "started_at": "2026-11-17T21:45:09Z",
-  "partial_progress": {
-    "stage": "initializing",
-    "details": "nix-implementation-agent started; resuming from Phase 1 (all phases NOT STARTED)",
-    "phases_completed": 0,
-    "phases_total": 5
   }
 }

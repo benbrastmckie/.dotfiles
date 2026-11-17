@@ -1,15 +1,40 @@
 {
-  "status": "planned",
-  "phase": "plan",
-  "summary": "Wrote a 5-phase plan covering all six dispatch goals: a home.activation enforced-key jq step in modules/home/services/sf1-hub-ben.nix declaring coalesce_s=300/net_timeout_s=15/deadline_s=20, a notify-only systemd-user watch timer for fail-closed markers, convergence of both attached checkouts via switch, a sendable upstream defect write-up, and a docs/sf1-hub.md update. Premise re-validation corrected three dispatch figures: only 3 of the 38 blocks are initiating suspension events, so the per-round-trip failure rate is ~0.17%, not ~2%, and the ~50-action survival estimate is wrong. Found a second, unflagged fail-closed surface not in the dispatch or the research report: guard.py send()'s breaker.json is open in BOTH checkouts since 2026-11-14/15 with 191 commit events stranded in outbox/, so the consented hub_commit_events reporting has been silently dead for days; scope extended to cover it in the write-up, the attach calculus, and the watch surface.",
+  "status": "implemented",
+  "phase": "implement",
+  "summary": "Completed all 5 plan phases: declared coalesce_s=300/net_timeout_s=15/deadline_s=20 via a home.activation step in modules/home/services/sf1-hub-ben.nix, added a 2-minute sf1-hub-ben-guard-watch notify-only timer, converged both attached checkouts and started the timer (verified live, including two real notifications for the open sender breakers), wrote the two-surface upstream defect record for Oliver, and documented the config surface and remediation procedures in docs/sf1-hub.md. `sudo nixos-rebuild switch` was denied by this session's permission system (categorical, not intermittent) and is recorded as a Phase 3 Reasoned Exclusion; the standalone `home-manager switch` path alone fully achieved the phase's functional goal. `nix flake check` caught a real statix repeated_keys finding during Phase 5, fixed and re-verified green (all checks passed).",
   "artifacts": [
     {
       "type": "plan",
       "path": "specs/143_guard_fail_closed_stall_config_and_upstream_retry/plans/01_guard-config-and-visibility.md",
-      "summary": "5-phase plan: guard knob activation step, fail-closed marker watch timer, apply/converge both checkouts, two-surface upstream defect write-up, docs/sf1-hub.md update."
+      "summary": "5-phase plan, all phases closed (4 COMPLETED, 1 COMPLETED WITH EXCLUSIONS)."
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/services/sf1-hub-ben.nix",
+      "summary": "home.activation guard-config step plus sf1-hub-ben-guard-watch oneshot+timer."
+    },
+    {
+      "type": "implementation",
+      "path": "docs/sf1-hub.md",
+      "summary": "Config-surface table, corrected failure history, watch-timer docs, unstop/breaker-reset procedures."
+    },
+    {
+      "type": "report",
+      "path": "specs/143_guard_fail_closed_stall_config_and_upstream_retry/records/01_upstream-defect-and-attach-question.md",
+      "summary": "Sendable upstream defect write-up for Oliver, both surfaces plus the open question."
+    },
+    {
+      "type": "report",
+      "path": "specs/143_guard_fail_closed_stall_config_and_upstream_retry/records/02_convergence-and-breaker-state.md",
+      "summary": "Pre/post convergence values, breaker/outbox state, unrun reset commands."
+    },
+    {
+      "type": "summary",
+      "path": "specs/143_guard_fail_closed_stall_config_and_upstream_retry/summaries/01_guard-config-and-visibility-summary.md",
+      "summary": "Full implementation summary: all phases, decisions, deviations, verification."
     }
   ],
-  "phases_completed": 0,
+  "phases_completed": 5,
   "phases_total": 5,
   "blockers": [],
   "user_decision": {
@@ -23,5 +48,5 @@
     "blocking": false,
     "obligation": "Restores the hub_commit_events reporting consented in CONSENT-benjamin.json without an agent performing an outward-facing, irreversible delivery of several days of commit metadata unattended; Phase 3's record must name the stranded count and the exact reset command per checkout for the obligation to be discharged."
   },
-  "dispatch_seq": 13
+  "dispatch_seq": 15
 }
