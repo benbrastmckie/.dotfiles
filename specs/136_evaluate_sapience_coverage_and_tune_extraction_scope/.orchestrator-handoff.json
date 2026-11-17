@@ -1,7 +1,7 @@
 {
   "status": "partial",
-  "dispatch_seq": 9,
-  "summary": "Completed plan phase 2 of 8 for the Sapience coverage measurement series: ran Extraction Pass 2 end to end via the sapience-sync systemd unit (22min 29.8s, 50 chunks, 539 objects staged), captured a genuine before/after coverage pair, and recorded 34 extract-error lines from a transient network outage that flags this pass as unusable for the clean drain-rate computation. Re-confirmed no per-pass cost signal exists. Phases 3-8 remain, each gated on at least 24 hours since the previous pass's timestamp; phase 3 cannot legitimately run until approximately 2026-11-18T21:23:08Z.",
+  "dispatch_seq": 12,
+  "summary": "No new work performed. Re-verified live at dispatch start (2026-11-17T21:33:39Z) that Phase 3's required 24-hour gate since the Pass-2 ledger timestamp (2026-11-17T21:23:08Z) has not elapsed -- only ~11 minutes had passed. Phase 2 of 8 remains the last completed phase; phase 3 stays [NOT STARTED] per its own first task's stop condition. Next legitimate re-dispatch is not before approximately 2026-11-18T21:23:08Z.",
   "phases_completed": 2,
   "phases_total": 8,
   "blockers": [],
@@ -9,12 +9,12 @@
     {
       "type": "record",
       "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
-      "summary": "Measurement ledger: Pass-0 baseline, journal-reconstructed Pass-1, and the fully-observed Pass-2 block (34 extract errors, flagged unusable for clean drain-rate)."
+      "summary": "Measurement ledger (unchanged this dispatch): Pass-0 baseline, journal-reconstructed Pass-1, and the fully-observed Pass-2 block."
     },
     {
       "type": "handoff",
       "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-2-handoff-20261117T213000Z.md",
-      "summary": "Phase-2 completion handoff naming the 24-hour re-dispatch gate for phase 3 and the corrected systemd polling predicate."
+      "summary": "Phase-2 completion handoff naming the 24-hour re-dispatch gate for phase 3 (still in effect this dispatch)."
     }
   ]
 }
