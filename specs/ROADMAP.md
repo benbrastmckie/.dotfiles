@@ -42,7 +42,7 @@ Why this order:
 **Coverage appendix (uncovered tasks)**:
 ```
 /orchestrate 15,19,23,43,46,67,68,126
-/orchestrate 133,141,142,143
+/orchestrate 133,141
 ```
 
 ## Open work
@@ -56,11 +56,10 @@ Why this order:
 133 ready           restructure_nix_configuration_layout
 ```
 
-**Nix infrastructure (3)**
+**Nix infrastructure (2)**
 ```
 67 ready            migrate_r_env_back_to_stable_nixpkgs
 68 ready            fix_broken_zfs_kernel_installer_builds
-143 ready           Stop the oliver-ben guard's 2s/1s network defaults stalling long agent runs, ...
 ```
 
 **Services (6)**
@@ -94,8 +93,8 @@ Why this order:
 **Sapience (3)**
 ```
 139 blocked:136     reduce_sapience_classifier_cost   <- needs 136's measured backlog; not attendable while 136 is parked
+142 blocked:136     Default the Sapience config hooks opt-out to false so the vendor updater stop...
 141 ready           prevent_sapience_hook_reinjection
-142 ready           Default the Sapience config hooks opt-out to false so the vendor updater stop...
 ```
 The packaging pair (41, 42) is waiting on upstream nixpkgs fixes rather than on anything in this repository, so neither appears in a batch above.
 
