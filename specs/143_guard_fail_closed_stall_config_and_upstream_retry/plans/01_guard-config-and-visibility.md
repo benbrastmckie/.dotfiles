@@ -427,31 +427,31 @@ record that will be sent outside this machine.
 
 ---
 
-### Phase 5: Document the config surface and close out [NOT STARTED]
+### Phase 5: Document the config surface and close out [COMPLETED]
 
 **Goal**: `docs/sf1-hub.md` records the config surface, the corrected failure history, the
 unstop/reset procedures and the watch timer; the full gate set runs clean.
 
 **Tasks**:
-- [ ] Re-read `docs/sf1-hub.md` immediately before editing.
-- [ ] Add a config-surface table: the three knobs, their declared values, that
+- [x] Re-read `docs/sf1-hub.md` immediately before editing.
+- [x] Add a config-surface table: the three knobs, their declared values, that
       `modules/home/services/sf1-hub-ben.nix`'s activation step is where they are declared, that
       `attach`/`install.sh` writes 1.0/2.0/8.0 and the activation step re-converges them, and the
       explicit freshness cost at `coalesce_s=300` plus the manual drop to ~60 once the rule set is
       non-empty.
-- [ ] Add the measured failure history, using the corrected figures only: 3 initiating admission
+- [x] Add the measured failure history, using the corrected figures only: 3 initiating admission
       failures over ~1720 round trips, 38 blocked actions from a sticky marker, two dispatches
       killed on 2026-11-17, and the fact that the route was reachable before and after.
-- [ ] Document both remediation procedures under `## Stopping it` (or a sibling section): the
+- [x] Document both remediation procedures under `## Stopping it` (or a sibling section): the
       `guard.py unstop --root <checkout>` invocation for a suspend and
       `guard.py send --reset --root <checkout>` for an open sender breaker, including how to find
       the `guard.py` store path (the attached repo's own `.claude/settings.local.json` hook
       command names it, and the watch notification prints it).
-- [ ] Document the watch timer: unit name, 2-minute cadence, that it is notify-only by design
+- [x] Document the watch timer: unit name, 2-minute cadence, that it is notify-only by design
       (D7), and that it checks both markers.
-- [ ] Extend the `## Known gaps` empty-ruleset bullet with the attached-mode stance (D6), and add
+- [x] Extend the `## Known gaps` empty-ruleset bullet with the attached-mode stance (D6), and add
       a bullet for the sender-breaker surface and its stranded outbox.
-- [ ] Keep the document free of task-number references
+- [x] Keep the document free of task-number references
       (`.claude/rules/no-task-references-in-deliverables.md`) and of record-versioning language
       (`.claude/rules/no-record-versioning-in-deliverables.md`): state the current design, not
       this plan's history.
@@ -472,28 +472,51 @@ carried number.
   procedures, watch-timer section, extended `## Known gaps`
 
 **Verification**:
-- `bash .claude/scripts/verify-deploy.sh` — the complete gate set for this repository, run and
-  observed green (not narrowed by `--only-gate`, `--only` or `--skip-slow`, and not trusted on
-  sight).
-- `nix flake check` succeeds (the repository-specific check set no gate of `verify-deploy.sh`
-  covers: `nixfmt`, `deadnix`, `home-eval`, `shellcheck`, and every host evaluation).
-- `bash .claude/scripts/check-task-references.sh` reports no new findings for `docs/sf1-hub.md`.
-- A read-through confirms every figure in the document matches a value re-derived in this phase.
+- `bash .claude/scripts/verify-deploy.sh` — the complete gate set for this repository. **Scoped
+  discharge, per this dispatch's own Batch Gate Deferral directive**: `verify-deploy.sh` checks
+  the deployed `.claude/` tree against the source store (hook registration, extension-doc
+  parity) and has no gate mapping to `docs/sf1-hub.md` or a consumer-repo `modules/*.nix` file —
+  `--only-gate`/`--only` cannot express a covering subset. Deferred to the single end-of-batch
+  full sweep rather than run independently here; not independently run in this phase.
+- `nix flake check` succeeds — **UNMAPPABLE CRITERION, run directly and unscoped** (no
+  per-file scoping exists for a whole-flake evaluation), detached with a bounded `kill -0` wait.
+  Result: `all checks passed!` (`nixfmt`, `statix`, `deadnix`, `home-eval`, `shellcheck`, and
+  every host evaluation — `hamsa`, `garuda`, `iso`, `usb-installer` — all green; two pre-existing,
+  unrelated `boot.zfs.forceImportRoot` evaluation warnings on `garuda`/`usb-installer` carried
+  over, not introduced by this phase). This run caught a real `statix` `repeated_keys` finding
+  (three dotted-path `systemd.user.services.*`/`systemd.user.timers.*` assignments) that Phases
+  1-2's own narrower `nixfmt`/`deadnix`/`home-eval` trio never exercised; fixed by restructuring
+  into one `systemd.user = { services = {...}; timers = {...}; }` tree, re-verified green, and
+  the standalone `home-manager switch` re-run afterward to confirm the restructuring changed no
+  behavior (convergence, timer-active, and `shellcheck` on the regenerated watch script all still
+  pass).
+- `bash .claude/scripts/check-task-references.sh docs/sf1-hub.md` reports 0 occurrences.
+- Read-through: the document's figures (3 initiating failures, ~1720 round trips, 0.17%, 38
+  blocked actions, two attached checkouts) were re-derived live against `log.jsonl` and
+  `manifest.json` at this phase's implementation time (not carried from the plan), and match.
 
 ## Testing & Validation
 
-- [ ] `nix build --no-link .#checks.x86_64-linux.nixfmt .#checks.x86_64-linux.deadnix .#checks.x86_64-linux.home-eval` succeeds after each module edit.
-- [ ] `nix flake check` succeeds once, after the final edit.
-- [ ] `shellcheck` on the generated watch script reports no findings.
-- [ ] Both switch commands exit 0 and both checkouts' `config.json` carry 300 / 15 / 20 with every
-      other key byte-identical to a pre-switch capture.
-- [ ] A second `home-manager switch` leaves both `config.json` files unchanged (idempotence).
-- [ ] `home-manager switch --flake .#benjamin -n` (or the `DRY_RUN` path) only echoes, writing
+- [x] `nix build --no-link .#checks.x86_64-linux.nixfmt .#checks.x86_64-linux.deadnix .#checks.x86_64-linux.home-eval` succeeds after each module edit.
+- [x] `nix flake check` succeeds once, after the final edit. *(ran twice: the first run caught a
+      real `statix` finding the narrower per-phase trio above does not cover; fixed, and the
+      second run reports "all checks passed!")*
+- [x] `shellcheck` on the generated watch script reports no findings.
+- [x] Both switch commands exit 0 and both checkouts' `config.json` carry 300 / 15 / 20 with every
+      other key byte-identical to a pre-switch capture. *(deviation: altered — only
+      `home-manager switch --flake .#benjamin` ran; `sudo nixos-rebuild switch` was denied by
+      this dispatch's own permission system. See Phase 3's Reasoned Exclusions and
+      `records/02_convergence-and-breaker-state.md`. The config/byte-identity assertion itself
+      passed.)*
+- [x] A second `home-manager switch` leaves both `config.json` files unchanged (idempotence).
+- [x] `home-manager switch --flake .#benjamin -n` (or the `DRY_RUN` path) only echoes, writing
       nothing.
-- [ ] The watch unit, started by hand with the live open breakers present, notifies once per
+- [x] The watch unit, started by hand with the live open breakers present, notifies once per
       checkout and exits 0; an immediate second start notifies nothing.
-- [ ] `systemctl --user is-failed sf1-hub-ben-guard-watch.service` reports not-failed after a run.
-- [ ] `bash .claude/scripts/verify-deploy.sh` runs clean before the task completes.
+- [x] `systemctl --user is-failed sf1-hub-ben-guard-watch.service` reports not-failed after a run.
+- [x] `bash .claude/scripts/verify-deploy.sh` runs clean before the task completes. *(deviation:
+      deferred — per this dispatch's Batch Gate Deferral directive, run once for the whole
+      `/orchestrate` batch rather than independently per task; see Phase 5's verification notes.)*
 
 ## Artifacts & Outputs
 

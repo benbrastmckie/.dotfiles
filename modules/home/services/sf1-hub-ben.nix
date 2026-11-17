@@ -226,175 +226,185 @@ in
       fi
     '';
 
-    systemd.user.services.sf1-hub-ben = {
-      Unit = {
-        Description = "SF-1 hub runner (per person, Ben)";
-        Documentation = "file://${sf1-hub-ben}/share/sf1-hub-ben/VERSION";
-        # The kill switch is a file, so it holds across a restart, a relogin and a switch.
-        # `sf1-hub-ben kill` writes it -- anyone may, an agent included -- and only
-        # `sf1-hub-ben unkill`, in a terminal, removes it.
-        ConditionPathExists = "!${cfgDir}/KILL";
-        After = [ "network-online.target" ];
-      };
+    # One `systemd.user = { services = { ... }; timers = { ... }; }` tree, rather than three
+    # separate dot-path assignments (`systemd.user.services.sf1-hub-ben = ...`,
+    # `systemd.user.services.sf1-hub-ben-guard-watch = ...`,
+    # `systemd.user.timers.sf1-hub-ben-guard-watch = ...`) -- statix's `repeated_keys` lint
+    # flags a repeated prefix key even though plain Nix merges it correctly, since it is easy
+    # to misread as independent option sets.
+    systemd.user = {
+      services = {
+        sf1-hub-ben = {
+          Unit = {
+            Description = "SF-1 hub runner (per person, Ben)";
+            Documentation = "file://${sf1-hub-ben}/share/sf1-hub-ben/VERSION";
+            # The kill switch is a file, so it holds across a restart, a relogin and a switch.
+            # `sf1-hub-ben kill` writes it -- anyone may, an agent included -- and only
+            # `sf1-hub-ben unkill`, in a terminal, removes it.
+            ConditionPathExists = "!${cfgDir}/KILL";
+            After = [ "network-online.target" ];
+          };
 
-      Service = {
-        Type = "simple";
-        # Restore owner-write on the staged runner copies before the core's `prepare` runs.
-        #
-        # `prepare` stages the three vendored hub-runner files into
-        # <state>/hub/runner/bin/ with shutil.copy2, which preserves the source mode. Those
-        # sources live in the Nix store, where every file is r-xr-xr-x -- Nix strips the write
-        # bit from build output -- so the staged copies land read-only and the NEXT start's
-        # copy2 cannot overwrite them: `PermissionError: [Errno 13]` on runner.py, which the
-        # platform layer reports as `core prepare failed` and exits 78. The first start always
-        # works and every later one fails, which makes it look like a consent or config fault
-        # rather than a mode fault.
-        #
-        # This cannot happen on the package's own install route, where the sources sit in an
-        # ordinary directory with write bits, so it is a NixOS-only consequence of packaging it
-        # into the store rather than an upstream defect. The leading "-" keeps a first start,
-        # when the directory does not exist yet, from failing the unit.
-        ExecStartPre = "-${pkgs.coreutils}/bin/chmod -R u+w ${config.xdg.stateHome}/sf1-hub-ben/hub/runner/bin";
-        ExecStart = "${sf1-hub-ben}/bin/sf1-hub-ben serve";
-        Restart = "on-failure";
-        RestartSec = 30;
-        # Exit 78 (EX_CONFIG) is the runner's deliberate refusal -- no consented repo, kill
-        # switch on, guard not attached, or the core cannot run cards with the guard hook.
-        # Treating it as terminal is what keeps a refusal from becoming a restart loop.
-        RestartPreventExitStatus = 78;
-        KillMode = "control-group";
-        TimeoutStopSec = 20;
-        NoNewPrivileges = true;
-        # Holds SAPIENCE_TOKEN (the runner reads the room with it) and any optional overrides:
-        # SF1_HUB_CARD_REPO, SF1_HUB_PERSON, SF1_HUB_BASE. Written by `sf1-hub-ben token` at
-        # mode 600, outside the store. The leading "-" keeps the unit startable before it
-        # exists. The runner never hands a *_TOKEN or *_KEY variable down to a card.
-        EnvironmentFile = "-${cfgDir}/env";
-        Environment = [
-          "PATH=${
-            lib.makeBinPath [
-              pkgs.git
-              pkgs.python3
+          Service = {
+            Type = "simple";
+            # Restore owner-write on the staged runner copies before the core's `prepare` runs.
+            #
+            # `prepare` stages the three vendored hub-runner files into
+            # <state>/hub/runner/bin/ with shutil.copy2, which preserves the source mode. Those
+            # sources live in the Nix store, where every file is r-xr-xr-x -- Nix strips the write
+            # bit from build output -- so the staged copies land read-only and the NEXT start's
+            # copy2 cannot overwrite them: `PermissionError: [Errno 13]` on runner.py, which the
+            # platform layer reports as `core prepare failed` and exits 78. The first start always
+            # works and every later one fails, which makes it look like a consent or config fault
+            # rather than a mode fault.
+            #
+            # This cannot happen on the package's own install route, where the sources sit in an
+            # ordinary directory with write bits, so it is a NixOS-only consequence of packaging it
+            # into the store rather than an upstream defect. The leading "-" keeps a first start,
+            # when the directory does not exist yet, from failing the unit.
+            ExecStartPre = "-${pkgs.coreutils}/bin/chmod -R u+w ${config.xdg.stateHome}/sf1-hub-ben/hub/runner/bin";
+            ExecStart = "${sf1-hub-ben}/bin/sf1-hub-ben serve";
+            Restart = "on-failure";
+            RestartSec = 30;
+            # Exit 78 (EX_CONFIG) is the runner's deliberate refusal -- no consented repo, kill
+            # switch on, guard not attached, or the core cannot run cards with the guard hook.
+            # Treating it as terminal is what keeps a refusal from becoming a restart loop.
+            RestartPreventExitStatus = 78;
+            KillMode = "control-group";
+            TimeoutStopSec = 20;
+            NoNewPrivileges = true;
+            # Holds SAPIENCE_TOKEN (the runner reads the room with it) and any optional overrides:
+            # SF1_HUB_CARD_REPO, SF1_HUB_PERSON, SF1_HUB_BASE. Written by `sf1-hub-ben token` at
+            # mode 600, outside the store. The leading "-" keeps the unit startable before it
+            # exists. The runner never hands a *_TOKEN or *_KEY variable down to a card.
+            EnvironmentFile = "-${cfgDir}/env";
+            Environment = [
+              "PATH=${
+                lib.makeBinPath [
+                  pkgs.git
+                  pkgs.python3
+                ]
+              }:${config.home.profileDirectory}/bin:/run/current-system/sw/bin:/run/wrappers/bin"
             ]
-          }:${config.home.profileDirectory}/bin:/run/current-system/sw/bin:/run/wrappers/bin"
-        ]
-        ++ lib.optional (cfg.claudeBin != null) "SF1_CLAUDE_BIN=${cfg.claudeBin}";
-      };
+            ++ lib.optional (cfg.claudeBin != null) "SF1_CLAUDE_BIN=${cfg.claudeBin}";
+          };
 
-      Install = lib.mkIf cfg.autoStart { WantedBy = [ "default.target" ]; };
-    };
+          Install = lib.mkIf cfg.autoStart { WantedBy = [ "default.target" ]; };
+        };
 
-    # Makes a fail-closed marker visible without reading log.jsonl. Both `stopped.json`
-    # (admission suspend, written by `admit()`) and `breaker.json` (sender breaker, written by
-    # `send()`) are the same no-retry shape, one network error away -- see
-    # docs/sf1-hub.md and the upstream write-up for the defect this surface works around.
-    # Notify-only by design (D7): no one-click action, since mako's single-default-action
-    # idiom needs `notify-send --wait -t 0`, which inside a timer-driven oneshot would hold the
-    # unit active indefinitely and block later timer activations. The notification instead
-    # carries the exact remediation command to paste. Module shape and failure discipline
-    # modeled on claude-session-reaper.nix: explicit PATH export, every external call guarded,
-    # the script always exits 0.
-    systemd.user.services.sf1-hub-ben-guard-watch = {
-      Unit = {
-        Description = "Notify on a new oliver-ben-guard stopped.json/breaker.json marker (notify-only)";
-      };
-      Service = {
-        Type = "oneshot";
-        ExecStart =
-          let
-            script = pkgs.writeShellScript "sf1-hub-ben-guard-watch" ''
-                            export PATH="${config.home.homeDirectory}/.nix-profile/bin:/run/current-system/sw/bin:$PATH"
-                            # Deliberately no `set -e`: every external call below is individually guarded so
-                            # a single race or missing tool can never trip the whole script into a `failed`
-                            # unit state. The script always reaches `exit 0`.
+        # Makes a fail-closed marker visible without reading log.jsonl. Both `stopped.json`
+        # (admission suspend, written by `admit()`) and `breaker.json` (sender breaker, written by
+        # `send()`) are the same no-retry shape, one network error away -- see
+        # docs/sf1-hub.md and the upstream write-up for the defect this surface works around.
+        # Notify-only by design (D7): no one-click action, since mako's single-default-action
+        # idiom needs `notify-send --wait -t 0`, which inside a timer-driven oneshot would hold the
+        # unit active indefinitely and block later timer activations. The notification instead
+        # carries the exact remediation command to paste. Module shape and failure discipline
+        # modeled on claude-session-reaper.nix: explicit PATH export, every external call guarded,
+        # the script always exits 0.
+        sf1-hub-ben-guard-watch = {
+          Unit = {
+            Description = "Notify on a new oliver-ben-guard stopped.json/breaker.json marker (notify-only)";
+          };
+          Service = {
+            Type = "oneshot";
+            ExecStart =
+              let
+                script = pkgs.writeShellScript "sf1-hub-ben-guard-watch" ''
+                                export PATH="${config.home.homeDirectory}/.nix-profile/bin:/run/current-system/sw/bin:$PATH"
+                                # Deliberately no `set -e`: every external call below is individually guarded so
+                                # a single race or missing tool can never trip the whole script into a `failed`
+                                # unit state. The script always reaches `exit 0`.
 
-                            echo "sf1-hub-ben-guard-watch: starting"
+                                echo "sf1-hub-ben-guard-watch: starting"
 
-                            manifest="${config.xdg.stateHome}/sf1-hub-ben/manifest.json"
-                            watchDir="${config.xdg.stateHome}/sf1-hub-ben/watch"
-                            mkdir -p "$watchDir" 2>/dev/null || true
+                                manifest="${config.xdg.stateHome}/sf1-hub-ben/manifest.json"
+                                watchDir="${config.xdg.stateHome}/sf1-hub-ben/watch"
+                                mkdir -p "$watchDir" 2>/dev/null || true
 
-                            if [ ! -f "$manifest" ] || ! ${pkgs.jq}/bin/jq -e . "$manifest" >/dev/null 2>&1; then
-                              echo "sf1-hub-ben-guard-watch: no (or unparseable) manifest, nothing to watch"
-                              echo "sf1-hub-ben-guard-watch: done"
-                              exit 0
-                            fi
-
-                            checkouts=$(${pkgs.jq}/bin/jq -r '.checkouts // {} | keys[]' "$manifest" 2>/dev/null) || checkouts=""
-
-                            for co in $checkouts; do
-                              [ -d "$co" ] || continue
-                              gitCommonDir=$(${pkgs.git}/bin/git -C "$co" rev-parse --git-common-dir 2>/dev/null) || continue
-                              case "$gitCommonDir" in
-                                /*) ;;
-                                *) gitCommonDir="$co/$gitCommonDir" ;;
-                              esac
-                              guardStateDir="$gitCommonDir/oliver-ben-guard"
-                              safeCo=''${co//\//_}
-
-                              for marker in stopped.json breaker.json; do
-                                markerFile="$guardStateDir/$marker"
-                                [ -f "$markerFile" ] || continue
-
-                                mtime=$(${pkgs.coreutils}/bin/stat -c %Y "$markerFile" 2>/dev/null) || continue
-                                stateFile="$watchDir/$safeCo.$marker.mtime"
-                                lastMtime=$(cat "$stateFile" 2>/dev/null) || lastMtime=""
-
-                                # Same mtime as last run: already notified, nothing new.
-                                if [ "$mtime" = "$lastMtime" ]; then
-                                  continue
+                                if [ ! -f "$manifest" ] || ! ${pkgs.jq}/bin/jq -e . "$manifest" >/dev/null 2>&1; then
+                                  echo "sf1-hub-ben-guard-watch: no (or unparseable) manifest, nothing to watch"
+                                  echo "sf1-hub-ben-guard-watch: done"
+                                  exit 0
                                 fi
 
-                                markerError=$(${pkgs.jq}/bin/jq -r '.error // "unknown error"' "$markerFile" 2>/dev/null) || markerError="unknown error"
-                                if [ "$marker" = "stopped.json" ]; then
-                                  remedy="python3 ${sf1-hub-ben}/share/sf1-hub-ben/vendor/guard/guard.py unstop --root $co"
-                                  kind="admission suspended"
-                                else
-                                  remedy="python3 ${sf1-hub-ben}/share/sf1-hub-ben/vendor/guard/guard.py send --reset --root $co"
-                                  kind="sender breaker open"
-                                fi
+                                checkouts=$(${pkgs.jq}/bin/jq -r '.checkouts // {} | keys[]' "$manifest" 2>/dev/null) || checkouts=""
 
-                                # Record the mtime regardless of whether the notification itself reaches a
-                                # bus -- an unreachable DBus session is not a reason to re-raise the same
-                                # marker on every future run.
-                                echo "$mtime" > "$stateFile" 2>/dev/null || true
+                                for co in $checkouts; do
+                                  [ -d "$co" ] || continue
+                                  gitCommonDir=$(${pkgs.git}/bin/git -C "$co" rev-parse --git-common-dir 2>/dev/null) || continue
+                                  case "$gitCommonDir" in
+                                    /*) ;;
+                                    *) gitCommonDir="$co/$gitCommonDir" ;;
+                                  esac
+                                  guardStateDir="$gitCommonDir/oliver-ben-guard"
+                                  safeCo=''${co//\//_}
 
-                                if [ -n "''${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
-                                  ${pkgs.libnotify}/bin/notify-send -a sf1-hub-ben -u critical -t 0 \
-                                    "sf1-hub-ben: $kind ($co)" \
-                                    "$markerError
+                                  for marker in stopped.json breaker.json; do
+                                    markerFile="$guardStateDir/$marker"
+                                    [ -f "$markerFile" ] || continue
 
-              $remedy" 2>/dev/null || true
-                                  echo "sf1-hub-ben-guard-watch: notified $marker for $co"
-                                else
-                                  echo "sf1-hub-ben-guard-watch: no DBus session bus, skipping notification for $marker on $co"
-                                fi
-                              done
-                            done
+                                    mtime=$(${pkgs.coreutils}/bin/stat -c %Y "$markerFile" 2>/dev/null) || continue
+                                    stateFile="$watchDir/$safeCo.$marker.mtime"
+                                    lastMtime=$(cat "$stateFile" 2>/dev/null) || lastMtime=""
 
-                            echo "sf1-hub-ben-guard-watch: done"
-                            exit 0
-            '';
-          in
-          "${script}";
+                                    # Same mtime as last run: already notified, nothing new.
+                                    if [ "$mtime" = "$lastMtime" ]; then
+                                      continue
+                                    fi
+
+                                    markerError=$(${pkgs.jq}/bin/jq -r '.error // "unknown error"' "$markerFile" 2>/dev/null) || markerError="unknown error"
+                                    if [ "$marker" = "stopped.json" ]; then
+                                      remedy="python3 ${sf1-hub-ben}/share/sf1-hub-ben/vendor/guard/guard.py unstop --root $co"
+                                      kind="admission suspended"
+                                    else
+                                      remedy="python3 ${sf1-hub-ben}/share/sf1-hub-ben/vendor/guard/guard.py send --reset --root $co"
+                                      kind="sender breaker open"
+                                    fi
+
+                                    # Record the mtime regardless of whether the notification itself reaches a
+                                    # bus -- an unreachable DBus session is not a reason to re-raise the same
+                                    # marker on every future run.
+                                    echo "$mtime" > "$stateFile" 2>/dev/null || true
+
+                                    if [ -n "''${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+                                      ${pkgs.libnotify}/bin/notify-send -a sf1-hub-ben -u critical -t 0 \
+                                        "sf1-hub-ben: $kind ($co)" \
+                                        "$markerError
+
+                  $remedy" 2>/dev/null || true
+                                      echo "sf1-hub-ben-guard-watch: notified $marker for $co"
+                                    else
+                                      echo "sf1-hub-ben-guard-watch: no DBus session bus, skipping notification for $marker on $co"
+                                    fi
+                                  done
+                                done
+
+                                echo "sf1-hub-ben-guard-watch: done"
+                                exit 0
+                '';
+              in
+              "${script}";
+          };
+        };
       };
-    };
 
-    systemd.user.timers.sf1-hub-ben-guard-watch = {
-      Unit = {
-        Description = "Timer for periodic sf1-hub-ben guard marker watch (notify-only)";
-        # Note: no `Requires = [ "sf1-hub-ben-guard-watch.service" ]` here -- same reasoning as
-        # claude-session-reaper.nix's timer: Requires= stop-propagates, so
-        # `systemctl --user stop sf1-hub-ben-guard-watch.service` would also deactivate this
-        # timer and silently end the schedule.
-      };
-      Timer = {
-        OnCalendar = "*:0/2";
-        Persistent = true;
-        RandomizedDelaySec = 20;
-      };
-      Install = {
-        WantedBy = [ "timers.target" ];
+      timers.sf1-hub-ben-guard-watch = {
+        Unit = {
+          Description = "Timer for periodic sf1-hub-ben guard marker watch (notify-only)";
+          # Note: no `Requires = [ "sf1-hub-ben-guard-watch.service" ]` here -- same reasoning
+          # as claude-session-reaper.nix's timer: Requires= stop-propagates, so
+          # `systemctl --user stop sf1-hub-ben-guard-watch.service` would also deactivate this
+          # timer and silently end the schedule.
+        };
+        Timer = {
+          OnCalendar = "*:0/2";
+          Persistent = true;
+          RandomizedDelaySec = 20;
+        };
+        Install = {
+          WantedBy = [ "timers.target" ];
+        };
       };
     };
   };

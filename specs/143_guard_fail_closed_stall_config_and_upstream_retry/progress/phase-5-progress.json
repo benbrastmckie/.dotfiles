@@ -1,0 +1,11 @@
+{
+  "phase": 5,
+  "phase_name": "Document the config surface and close out",
+  "started_at": "2026-11-17T22:08:49Z",
+  "last_updated": "2026-11-17T22:08:49Z",
+  "objectives": [
+    {"id": 1, "description": "Phase 5 -- docs and gate", "status": "completed", "files_touched": ["docs/sf1-hub.md", "modules/home/services/sf1-hub-ben.nix"]}
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

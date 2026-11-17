@@ -234,6 +234,57 @@ the sync works rather than silently disabling itself. Were any of that path to b
 read-only store link, sync would turn itself off and `status` would say why; the guard and the
 room would still carry the rulings.
 
+## Guard network knobs, and the fail-closed stall they fixed
+
+The guard's admission path (`admit()` in `vendor/guard/guard.py`) consults the hosted rules
+route on nearly every controlled action, bounded by three knobs in each attached checkout's own
+`.git/oliver-ben-guard/config.json`:
+
+| Knob | Declared value | Meaning |
+|---|---|---|
+| `coalesce_s` | `300` | How long a cached rules check is trusted before the next controlled action makes a fresh network round trip |
+| `net_timeout_s` | `15` | Socket timeout on the rules-route request |
+| `deadline_s` | `20` | Internal `SIGALRM` around the whole rules evaluation; must exceed `net_timeout_s` and stay under the Claude Code hook's own 30-second timeout |
+
+`modules/home/services/sf1-hub-ben.nix`'s `home.activation.sf1HubBenGuardConfig` is where these
+are declared. `sf1-hub-ben attach` (and the vendored `install.sh`, were it used) writes the
+installer defaults — `coalesce_s=1.0`, `net_timeout_s=2.0`, `deadline_s=8.0` — into a fresh
+`config.json`; the activation step re-converges every attached checkout's `config.json` back to
+the declared values on every `home-manager switch`, so a re-`attach` cannot silently revert
+them.
+
+**Freshness cost, paid deliberately**: at `coalesce_s=300`, a rule accepted in the room does not
+bind on this machine until the window expires — up to 5 minutes. Once the room's rule set stops
+being empty (see the `Known gaps` entry below), this should drop to roughly 60 seconds by hand,
+cutting the lag to at most 1 minute at roughly 5x the admission round trips. Nix evaluation
+cannot see the room's live rule count, so this stays a deliberate manual edit plus a switch, not
+something this module infers on its own.
+
+**Why these values**: the guard's own measured admission failures are transient `TimeoutError`s
+against a 2-second socket timeout on a hosted TLS endpoint that was reachable again within
+seconds — 3 initiating failures over roughly 1720 admission round trips (about 0.17%). Because
+the guard's fail-closed marker is sticky and nothing clears it automatically, those 3 failures
+produced 38 total blocked controlled actions and killed two full agent dispatches mid-flight on
+the same day, each needing a hand-run `guard.py unstop`. `net_timeout_s=15` gives the round trip
+real headroom against that kind of blip; `coalesce_s=300` cuts how often a dispatch makes the
+round trip at all, which is the lever on failure *volume* rather than on any single timeout. The
+vendored guard's own `MIN_PULL_GAP_S = 10` floor, and its docstring's "network pulls are at least
+10 s apart" claim, are enforced only in the legacy pre-attached code path — attached mode's
+`admit()` never references it, so it is not treated as a protective floor here.
+
+### Watch timer
+
+`systemd.user.services.sf1-hub-ben-guard-watch` (oneshot) plus
+`systemd.user.timers.sf1-hub-ben-guard-watch` (`OnCalendar = "*:0/2"`) make a new fail-closed
+marker visible without reading `log.jsonl`. Every two minutes it checks each attached checkout
+for a new or newer `stopped.json` (admission suspend) or `breaker.json` (sender breaker, see
+below) and fires one `notify-send -a sf1-hub-ben -u critical -t 0` per new marker, naming the
+checkout, the marker kind, the recorded error, and the exact remediation command. It is
+notify-only by design: a one-click action would need `notify-send --wait -t 0`, which inside a
+timer-driven oneshot would hold the unit active indefinitely and block later timer activations.
+A per-checkout, per-marker mtime file under `~/.local/state/sf1-hub-ben/watch/` keeps a marker
+from re-notifying on every two-minute tick once it has already been reported once.
+
 ## Known gaps
 
 - An nvim plugin that calls the API directly, without Claude Code, gets no edit-time check. Only
@@ -248,6 +299,16 @@ room would still carry the rulings.
   across. From the read-only store the copies land read-only and the next start cannot overwrite
   them: `PermissionError` on `runner.py`, reported as `core prepare failed`, exit 78. The unit's
   `ExecStartPre` chmod covers it — see [Upgrading](#upgrading).
+- An attached guard with an empty ruleset enforces nothing and looks identical to a working one
+  at the point of use, which is also why staying attached in both repos costs nothing in false
+  positives right now. Whether and when real rules land in the room is the one open question put
+  to Oliver separately, alongside the upstream write-up of the knobs/stall history above.
+- The sender half of the guard (`send()`, `breaker.json`) has the identical no-retry shape as the
+  admission half: one sink error, sticky refusal, no automatic recovery. It has been open on both
+  attached checkouts here for several days at a time, silently stalling the commit-event
+  reporting consented to at [Consent](#4-consent), with the stranded events queued undelivered in
+  each checkout's `outbox/` rather than lost. See [Stopping it](#stopping-it) for the reset
+  command.
 
 ## Stopping it
 
@@ -262,6 +323,25 @@ sf1-hub-ben uninstall                         # kill, detach everywhere, remove 
 `ConditionPathExists=!…`. Being a file rather than a unit state, it holds across a restart, a
 relogin and a `home-manager switch`. Anyone may run it, an agent included; only `unkill`, typed
 in a terminal, lifts it.
+
+### Clearing a fail-closed marker
+
+The watch timer's notification already carries the exact command for whichever marker it found;
+both forms are recorded here too. `guard.py`'s own store path is also printed in the attached
+repo's `.claude/settings.local.json` hook command, if the notification is not at hand.
+
+```bash
+# Admission suspended (stopped.json): the next controlled action reads the rules source once more
+python3 <guard.py store path> unstop --root <checkout>
+
+# Sender breaker open (breaker.json): drains the outbox to the sink immediately on reset
+python3 <guard.py store path> send --reset --root <checkout>
+```
+
+`unstop` is cheap and reversible-in-effect — it only clears the local marker, and the next
+controlled action simply tries the network again. `send --reset` is not: it immediately delivers
+every event queued in that checkout's `outbox/` since the breaker opened, which can be several
+days' worth, so check the sink is actually wanted before running it.
 
 To remove the packaging as well, set `services.sf1-hub-ben.enable = false` in `home.nix` and
 switch. Run `sf1-hub-ben uninstall` **first** — once the CLI is off PATH, the attached repos'
