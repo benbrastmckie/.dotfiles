@@ -1,17 +1,17 @@
 ---
-next_project_number: 144
+next_project_number: 145
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-11-17. Generated from state.json dependency graph.*
+*Updated 2026-11-18. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,141 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,141,144 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120,139,142 | 77,124,136 | nixos-config, desktop, sapience |
 | 3 | 78 | 120 | desktop |
 
@@ -57,10 +57,65 @@ next_project_number: 144
 ### Sapience
 
 141 [NOT STARTED] — GOAL. Close the recurrence gap left by task 138. That task...
+144 [NOT STARTED] — GOAL: close the three remaining hand steps between a fresh...
 139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
 142 [PLANNED] — Default the Sapience config hooks opt-out to false so the...
 
 ## Tasks
+
+### 144. Sapience fresh machine declarative gaps
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: sapience
+- **Dependencies**: None
+
+**Description**: GOAL: close the three remaining hand steps between a fresh `nixos-rebuild switch` + `home-manager switch` and a working Sapience client, so the declared configuration is sufficient on a new machine.
+
+SCOPE BOUNDARY, READ FIRST. The vendor hook-wiring opt-out (`~/.sapience/config.json` `"hooks": false`, suppressing `sapience_upkeep.py`'s `wire_hooks()` machine-wide write) is NOT part of this task. It is already tracked and planned separately, together with its recurrence-detection half. Do not re-plan, re-measure, or re-implement it here; do not edit the same region twice. If implementing the gaps below requires touching the same activation entry, coordinate rather than duplicate.
+
+For situational awareness only, not as work: `"hooks": false` has already been applied by hand to the live `~/.sapience/config.json` and verified via the vendor's own `hooks_opted_out()` predicate, so the runtime machine is currently in the desired state and the separately-tracked work is about making that declarative.
+
+THE LIVE MODULE IS `modules/home/services/sapience.nix`. Note that `packages/sapience-flake/modules/sapience.nix` also exists and is older and smaller; it is not what `home.nix` configures. Verify which file is actually in the import path before editing, and state in the plan which one you concluded is live and how you confirmed it.
+
+GAP 1 -- `tokenFile` is unset, so a fresh machine needs an interactive bootstrap.
+
+The option exists and is wired: `modules/home/services/sapience.nix` declares `tokenFile` (option block near line 667) and `sapience-bootstrap` consumes it (near lines 264-266) via `if [ -z "$TOKEN" ] && [ -r "$tokenFile" ]; then TOKEN="$(tr -d '[:space:]' < "$tokenFile")"`. But `home.nix`'s `programs.sapience` block does not set it, so on a new machine the token must be pasted by hand.
+
+The repository already contains the exact pattern to close this. `home.nix` sets `apiKeyFile = "/run/secrets/anthropic_api_key"`, backed by `modules/system/secrets.nix`'s `secrets."anthropic_api_key" = { owner = config.users.users.${username}.name; mode = "0400"; }` -- owner-readable only, so home-manager activation (running as that user) can read it without the value reaching the world-readable Nix store.
+
+Required: add a sibling sops secret for the Sapience token following that same owner/mode shape, add the value to `secrets/secrets.yaml`, and set `tokenFile` in `home.nix` to the resulting `/run/secrets/...` path. Confirm the token-shape handling still applies end to end: the module carries a repair path expecting `^[A-Za-z0-9_-]+$` that rewrites a link-shaped paste into its `token=` value, and a tokenFile-sourced value must flow through that guard rather than around it. A bare `tr -d '[:space:]'` read does not by itself establish that.
+
+GAP 2 -- `sourceDirs` is declared but never registered.
+
+`home.nix` declares `sourceDirs = [ "/home/benjamin/.config/nvim/agent-system" ]`, and its own comment states the registration is manual: "Run `sapience-adddir-sources` by hand -- nothing about this is scheduled." The module defines that command as a `pkgs.writeShellScriptBin "sapience-adddir-sources"` (near line 575) wrapping `sapience adddir` over the declared directories. So on a new machine the declared value has no effect until a human remembers to run it.
+
+This gap carries a genuine design question rather than an obvious answer, and the task must RESOLVE it explicitly rather than pick silently. Registration writes into vendor-owned mutable state that the vendor's own flows also write, and the module's existing comments note that adddir keys an incremental ledger by content sha at `$HOME/.sapience/adddir-<sha>.json` -- so an unconditional activation run has both a clobbering risk and a cost (a mis-keyed ledger re-sends every file). Resolve it one of two ways, with the reasoning recorded:
+  (a) an idempotent, additive activation step that only ADDS declared directories, never removes undeclared ones, and does not invalidate the existing ledger; or
+  (b) keep it manual, and say so in the `sourceDirs` option description itself, so a reader of the option learns the declared value is inert without a follow-up command.
+Either is acceptable. Leaving the decision implicit is not.
+
+GAP 3 -- lingering is never set, so a background sync timer silently does not run.
+
+`modules/home/services/sapience.nix`'s WSL sync-notice activation entry documents that `backgroundSync = true` defines a systemd user timer that will not actually fire without `loginctl enable-linger $USER`, correctly identifying it as "a host-level grant a user activation cannot make for itself", and warns rather than failing. A grep for `linger` across the live module, `modules/system/`, and `hosts/` returns nothing, so the grant is made nowhere in this flake.
+
+The warning is the right call for a user-level module -- but this flake also owns the NixOS layer, where the grant IS expressible. Required: set lingering declaratively at the NixOS level for the user this flake configures. Verify what the installed nixpkgs revision actually provides (`users.users.<name>.linger` exists on recent revisions; older ones need `systemd.tmpfiles` into `/var/lib/systemd/linger`) -- determine which applies here rather than assuming, and say which in the plan.
+
+KEEP the existing activation notice. It stays correct and useful for the WSL2 case, where `[boot] systemd=true` in `/etc/wsl.conf` is genuinely outside this flake's reach and no NixOS-level setting can grant it. This task narrows the warning's scope; it does not retire it.
+
+BINDING CONSTRAINTS:
+- Every change must be idempotent and must converge from the CURRENT machine state, not only from a clean one. A `home-manager switch` / `nixos-rebuild switch` on this machine must be a no-op for all three gaps -- no re-registration churn, no clobbered vendor keys, no duplicate timer or linger state.
+- Never print, echo, log, or expose a token or API key, including via `set -x`. The new tokenFile path must preserve the existing handling's discipline on this point.
+- Any `config.json` write is a targeted jq merge preserving unrelated keys, never a wholesale rewrite: that file is mutable state the vendor client and the web onboarding also write, and every existing module touchpoint already respects this.
+
+ACCEPTANCE CRITERIA:
+1. `nix flake check` passes.
+2. `home.nix` sets `tokenFile` to a sops-backed path, with a matching `modules/system/secrets.nix` entry using the same owner/mode shape as the existing Anthropic key; a fresh-machine bootstrap requires no interactive token paste. Demonstrate the non-interactive path without revealing the token value.
+3. The `sourceDirs` question is resolved per (a) or (b) above, with the reasoning recorded in the plan and the outcome visible in the option's own description.
+4. Lingering is set declaratively for the configured user, verified post-switch with `loginctl show-user <name> --property=Linger` reporting `Linger=yes`.
+5. A `home-manager switch` and a `nixos-rebuild switch` on this machine are both no-ops for all three gaps; quote the relevant activation output in the summary.
+6. `docs/sapience.md`'s option table lists any new or newly-set options with their defaults, and its fresh-machine setup sequence names exactly which steps remain manual after this task -- explicitly including the separately-tracked hook opt-out, so the document is not silently incomplete.
+
+---
 
 ### 143. Stop the oliver-ben guard's 2s/1s network defaults stalling long agent runs, and report the no-retry suspend upstream
 - **Status**: [COMPLETED]
