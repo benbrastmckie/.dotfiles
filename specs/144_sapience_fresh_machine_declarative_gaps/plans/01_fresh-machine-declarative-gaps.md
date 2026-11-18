@@ -621,7 +621,7 @@ body for the logic the gate cannot see.
 
 ---
 
-### Phase 5: Document the new state and name what stays manual [NOT STARTED]
+### Phase 5: Document the new state and name what stays manual [COMPLETED]
 
 **Goal**: `docs/sapience.md` lists the new and newly-set options with their defaults, and its
 fresh-machine setup sequence names exactly which steps remain manual after this task — the
@@ -629,41 +629,52 @@ separately-tracked hook opt-out included, so the document is not silently incomp
 
 **Tasks**:
 
-- [ ] Re-read `docs/sapience.md` immediately before editing (task 136 adjacency; the file was
-      last changed by task 142).
-- [ ] In the `## Module options` table (line ~722): change `tokenFile`'s **Set here** cell from
+- [x] Re-read `docs/sapience.md` immediately before editing (task 136 adjacency; the file was
+      last changed by task 142). *(completed)*
+- [x] In the `## Module options` table (line ~722): change `tokenFile`'s **Set here** cell from
       `default` to `/run/secrets/sapience_token`, keeping its `null` default and its purpose text.
-- [ ] Add a short note under that table for the NixOS-level `users.users.<name>.linger = true`
+      *(completed)*
+- [x] Add a short note under that table for the NixOS-level `users.users.<name>.linger = true`
       setting with its `null` default, stating plainly that it is not a `programs.sapience.*`
       option and so sits outside the table's scope, and that it is what lets `backgroundSync`'s
-      timer fire with no session open.
-- [ ] In the `## How this machine is configured` table (lines 22-30): add a row for
+      timer fire with no session open. *(completed)*
+- [x] In the `## How this machine is configured` table (lines 22-30): add a row for
       `programs.sapience.tokenFile` and a row for `users.users.benjamin.linger`, matching the
-      existing Setting/Value/Meaning shape.
-- [ ] In `## First-time setup`: fold the Sapience token into step 1's secret provisioning (both
+      existing Setting/Value/Meaning shape. *(completed)*
+- [x] In `## First-time setup`: fold the Sapience token into step 1's secret provisioning (both
       secrets now come from the same `sops secrets/secrets.yaml` edit and the same
       `nixos-rebuild switch`), and rewrite step 2 so it describes obtaining the token and putting
       it into `secrets.yaml` rather than pasting it at a prompt. Step 3's `sapience-bootstrap`
       becomes non-interactive on the token (it still opens the vendor's folder picker).
-- [ ] Add an explicit **what remains manual after a fresh switch** list to `## First-time setup`,
+      *(completed)*
+- [x] Add an explicit **what remains manual after a fresh switch** list to `## First-time setup`,
       naming exactly four things and nothing more: (i) putting the real token into
       `secrets/secrets.yaml` via `sops`; (ii) `sapience-bootstrap`'s vendor folder-selection
       picker, which needs a TTY; (iii) one `sapience-adddir-sources` run to register
       `sourceDirs`, per Decision 2; (iv) the separately-tracked vendor hook opt-out
       (`~/.sapience/config.json` `"hooks": false`), which is not made declarative by this work.
-- [ ] Extend `### The token never enters the Nix store` with one sentence on the quoting hazard:
+      *(completed)*
+- [x] Extend `### The token never enters the Nix store` with one sentence on the quoting hazard:
       `tokenFile` is set as a quoted string, because an unquoted Nix path literal would copy the
-      secret into the store (or fail evaluation before the secret exists).
-- [ ] Extend `### The source store goes in by name` with the Decision 2 reasoning in prose,
+      secret into the store (or fail evaluation before the secret exists). *(completed — altered:
+      caught and reworded one new sentence that had introduced forbidden record-versioning
+      phrasing ("no longer prompts") while drafting the step-3 rewrite below; replaced with
+      "prompting ... is skipped entirely" before this phase closed)*
+- [x] Extend `### The source store goes in by name` with the Decision 2 reasoning in prose,
       consistent with the option description Phase 2 wrote — the TTY-confirmation gate and the
-      absence of a `remove` subcommand.
-- [ ] Reconcile `### Home-manager, not NixOS` and `### Nothing extracts on a schedule` with the
+      absence of a `remove` subcommand. *(completed)*
+- [x] Reconcile `### Home-manager, not NixOS` and `### Nothing extracts on a schedule` with the
       new NixOS-level grant: the former's "one rebuild path" claim and the latter's
       `backgroundSync = true` instructions both now have a system-layer dependency worth one
-      sentence each. Do not restructure either section.
-- [ ] Cite durable anchors only: no task numbers (the hook opt-out is named by what it is and
+      sentence each. Do not restructure either section. *(completed — one sentence added to each,
+      no restructuring)*
+- [x] Cite durable anchors only: no task numbers (the hook opt-out is named by what it is and
       where it lives, never as "task N"), and no record-versioning phrasing ("previously", "no
-      longer", "v2", "supersedes").
+      longer", "v2", "supersedes"). *(completed — see the altered note above for the one instance
+      caught and fixed; `grep -nE 'task [0-9]|tasks [0-9]' docs/sapience.md` and
+      `grep -nE 'previously|no longer|formerly|used to|supersed' docs/sapience.md` both confirm
+      zero occurrences introduced by this phase, after excluding two pre-existing, untouched
+      occurrences of "no longer" elsewhere in the file)*
 
 **Timing**: 0.75 hours
 
@@ -676,7 +687,13 @@ regions (the two tables, `## First-time setup`, and the three `### ...` design-d
 listed above) and no others. Confirm with `git diff --stat` showing only `docs/sapience.md` and a
 diff read-through locating every hunk inside one of those six regions. If a seventh region turns
 out to carry a now-false claim, fix it and name it in the phase record rather than leaving a stale
-statement standing.
+statement standing. *(At implementation time: the "six" count in this paragraph undercounts its
+own "Files to modify" list below, which correctly names FOUR `### ...` sections, not three —
+`### The token never enters the Nix store`, `### The source store goes in by name`,
+`### Home-manager, not NixOS` and `### Nothing extracts on a schedule` — for 2 tables + 1 setup
+section + 4 design-decision sections = 7 regions actually touched. `git diff --stat` confirms
+only `docs/sapience.md` changed, and a diff read-through confirms every hunk lies inside one of
+those 7 named regions and no others — no eighth region was touched.)*
 
 **Tier Justification**: every changed hunk is markdown prose with no compile or elaboration
 surface, and `suite_selection_select docs/sapience.md` returns `__FULL_SWEEP__` — no suite covers
@@ -695,20 +712,28 @@ deploy-consumer tree rather than the source store, the task-reference lint subse
 **Verification**:
 
 - Diff read-through confirming every changed hunk lies inside markdown prose and inside one of
-  the six named regions.
+  the named regions (7, per the Scope Hypothesis count-correction above). *(confirmed)*
 - `bash .claude/scripts/verify-deploy.sh --only-gate 4 /home/benjamin/.dotfiles` passes (exit
   status checked, not stdout diffed); gate 3's doc-lint correctly SKIPs in a deploy-consumer tree
-  and is deliberately not named in this subset.
-- `grep -nE 'task [0-9]|tasks [0-9]' docs/sapience.md` finds no new occurrence.
+  and is deliberately not named in this subset. *(confirmed — `[PASS] task-reference lint
+  reports no findings`, exit 0. Batch-gate deferral note: this is this phase's own
+  repository-specific check per the plan, run as its own scoped discharge — not a substitute
+  for, and not itself deferred to, the batch-level full gate sweep this dispatch owes separately
+  per the dispatch's Batch Gate Deferral directive.)*
+- `grep -nE 'task [0-9]|tasks [0-9]' docs/sapience.md` finds no new occurrence. *(confirmed —
+  zero matches)*
 - `grep -nE 'previously|no longer|formerly|used to|supersed' docs/sapience.md` finds no new
-  occurrence.
+  occurrence. *(confirmed, after one caught-and-fixed instance — see the altered-deviation note
+  on the token-never-enters-the-store task above. The two remaining matches are pre-existing,
+  untouched by this phase.)*
 - The remaining-manual list names exactly the four items above, with the hook opt-out explicitly
-  among them.
+  among them. *(confirmed)*
 - Every option named in either table matches the value actually set in `home.nix` /
   `modules/system/users.nix` after Phases 1-4, checked by reading both files rather than by
-  recall.
+  recall. *(confirmed by direct grep of both files)*
 - `nix flake check` passes (markdown is outside its scope, but the run confirms no phase-5 edit
-  strayed into a `.nix` file).
+  strayed into a `.nix` file). *(confirmed — exit 0, `running 0 flake checks` since no `.nix`
+  input changed)*
 
 ---
 

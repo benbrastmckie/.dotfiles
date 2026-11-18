@@ -26,8 +26,10 @@ installer's plumbing and leaves the payload alone.
 | `programs.sapience.apiKeyFile` | `/run/secrets/anthropic_api_key` | sops-nix, mode 0400, never in the Nix store |
 | `programs.sapience.memoryFiles` | `false` | Generated `CLAUDE.md` trees are not walked |
 | `programs.sapience.sourceDirs` | `~/.config/nvim/agent-system` | The authored source store, ingested by name instead |
+| `programs.sapience.tokenFile` | `/run/secrets/sapience_token` | sops-nix, mode 0400, never in the Nix store; non-interactive bootstrap |
 | `config.json: auto_approve` | `false` | Findings stage until `sapience review` |
 | `programs.sapience.backgroundSync` | `false` | No timer; extraction runs only when asked |
+| `users.users.benjamin.linger` | `true` | Lets a user timer fire with no session open, for whenever `backgroundSync` is turned on |
 
 Two credentials, in two places, neither in the Nix store: the Sapience account token in
 `~/.sapience/config.json` (mode 600), and the Anthropic API key, which sops-nix decrypts to
@@ -66,40 +68,48 @@ The module is enabled in `home.nix`, but it is inert until a token exists. The s
 `ConditionPathExists=~/.sapience/config.json`, so before bootstrap it reports `condition failed`
 rather than running or failing.
 
-1. **Provision the provider key**, which is what lets extraction reach Anthropic.
-
-   Put the Anthropic API key into `secrets/secrets.yaml` under `anthropic_api_key` (`sops
-   secrets/secrets.yaml`), then rebuild so sops-nix decrypts it:
+1. **Provision both secrets**, which is what lets extraction reach Anthropic and lets bootstrap
+   pick up the Sapience token without a prompt. Both come from the same file and the same
+   rebuild:
 
    ```bash
+   sops secrets/secrets.yaml   # add anthropic_api_key and sapience_token
    sudo nixos-rebuild switch --flake .#$(hostname)
    ```
 
-   Verify before going further — the file must exist and be readable by you:
+   Verify before going further — both files must exist and be readable by you:
 
    ```bash
    test -r /run/secrets/anthropic_api_key && echo readable
+   test -r /run/secrets/sapience_token && echo readable
    ```
 
 2. **Get a Sapience token.** In the web app: Settings, then "Sign in on another device", then
    copy the private link. It is the entire credential for the account — there is no password or
    second factor — so treat it like one.
 
-   Paste either the whole link or just its `token=` value; bootstrap reads the value out of a
-   link, and also tolerates surrounding quotes, `<...>` brackets and trailing query parameters.
-   What it stores is always the bare token, because every client sends that field verbatim and a
-   link in its place authenticates as nothing: `/v1/stats` answers 401, and `/ingest-kos`
-   answers 403 `an invite code is needed to build a new Sapience`, since a token that opens no
-   brain reads server-side as a request to create one.
+   Put either the whole link or just its `token=` value into `secrets/secrets.yaml` under
+   `sapience_token` as part of step 1's `sops` edit, rather than pasting it at a bootstrap
+   prompt. Bootstrap reads whatever is in that file and also tolerates surrounding quotes,
+   `<...>` brackets and trailing query parameters, so either form works. What it stores is
+   always the bare token, because every client sends that field verbatim and a link in its place
+   authenticates as nothing: `/v1/stats` answers 401, and `/ingest-kos` answers 403 `an invite
+   code is needed to build a new Sapience`, since a token that opens no brain reads server-side
+   as a request to create one.
 
 3. **Bootstrap.** Run it in a real terminal; the vendor refuses onboarding without a TTY, to
    avoid silently replacing your folder choices (`SAPIENCE_ALLOW_ONBOARD=1` overrides, but then
    it picks for you):
 
    ```bash
-   sapience-bootstrap                      # prompts for the token or link
-   SAPIENCE_TOKEN=<tok> sapience-bootstrap # or skip the prompt
+   sapience-bootstrap </dev/null   # reads the token from tokenFile, no prompt; still opens the folder picker
    ```
+
+   With step 1's `sops` edit in place, `tokenFile` (`/run/secrets/sapience_token`) is read
+   before any interactive fallback, so prompting for the token or link is skipped entirely —
+   only the vendor's own folder-selection picker still needs a TTY. The interactive prompt
+   (`sapience-bootstrap` with no token staged, or `SAPIENCE_TOKEN=<tok> sapience-bootstrap` for
+   a one-off override) is what runs instead whenever `tokenFile` is unset or unreadable.
 
    It checks the token against `/v1/stats` before writing anything, so one the server does not
    recognise costs a second rather than a full extraction that fails at the upload. An
@@ -148,6 +158,18 @@ rather than running or failing.
 `sapience coverage` currently reports `skipped (outside 30d window): 0`, so every eligible
 transcript already falls inside the default window and `sapience backfill 365` would add
 nothing. Reach for it only after a long gap.
+
+**What remains manual after a fresh switch.** Four things, and nothing else:
+
+- Putting the real token into `secrets/secrets.yaml` via `sops` (step 1 above) — a credential,
+  so no agent or automated flow handles it.
+- `sapience-bootstrap`'s vendor folder-selection picker (step 3 above), which needs a TTY and
+  stays that way regardless of `tokenFile`.
+- One `sapience-adddir-sources` run to register `sourceDirs` — registration is deliberately not
+  wired into activation; see [below](#the-source-store-goes-in-by-name) for why.
+- The vendor hook-wiring opt-out, `~/.sapience/config.json`'s `"hooks": false` — tracked and
+  made declarative separately from this document's scope; applying it today is still a manual
+  edit to that file.
 
 ## Everyday use
 
@@ -264,7 +286,10 @@ programs.sapience.backgroundSync = true;   # syncInterval then applies, default 
 ```
 
 `syncInterval` on its own schedules nothing — it is the `OnCalendar` expression the timer uses
-once `backgroundSync` turns the timer on.
+once `backgroundSync` turns the timer on. Turning it on also depends on a system-layer setting
+this flake grants separately: `users.users.<name>.linger = true` (`modules/system/users.nix`),
+without which the timer is declared but will not fire while no session is logged in — the
+module's own activation entry warns if that grant is not in effect when `backgroundSync` is on.
 
 ### Watching a run
 
@@ -524,6 +549,9 @@ The NixOS `services.ollama` has `loadModels`, which the home-manager module lack
 pull is hand-rolled here. That cost buys one rebuild path: the server runs as this user against
 `~/.ollama`, needs no sudo, and the whole feature applies with `home-manager switch` rather than
 splitting the model store across a system rebuild and its only consumer across a home rebuild.
+This one-rebuild-path property is local to the model loader; `programs.sapience.backgroundSync`
+(below) is the other half of this module and does carry a system-layer dependency once turned
+on, via `users.users.<name>.linger`.
 
 ### The Ollama daemon is not part of this path
 
@@ -566,6 +594,14 @@ directories and installs `sapience-adddir-sources`, which runs `adddir` over eac
 authored tree at `~/.config/nvim/agent-system` gets in; the twenty-odd generated copies stay
 out. That is the division `memoryFiles = false` exists to draw, so the two settings are
 complements rather than alternatives.
+
+Registering `sourceDirs` is deliberately never wired into activation, so the declared list stays
+inert until this is run by hand. `adddir` reads files only behind a TTY confirmation or an
+explicit `--yes`; neither is available to an activation context, so a switch-time call would
+either run and read nothing (a no-op that looks like registration) or force `--yes` in, turning
+every `home-manager switch` into an unattended, unconfirmed upload of changed file text to the
+hosted brain's `/extract-doc` endpoint. `adddir` also has no `remove` subcommand, so a
+switch-time step could only ever add a path, never retract one dropped from this list.
 
 ```bash
 sapience-adddir-sources --dry-run      # what would be sent
@@ -625,7 +661,10 @@ Every client falls back to `~/.sapience/config.json` when `SAPIENCE_TOKEN` is un
 wrappers and the sync unit pass no token at all. The `~/.claude.json` entry gets one, read at
 activation time from that mode-600 file, purely so `sapience status` can report matching
 fingerprints across surfaces. The `tokenFile` option exists for a non-interactive bootstrap and
-must point outside the store — a store path would be world-readable.
+must point outside the store — a store path would be world-readable. `home.nix` sets it as a
+quoted string (`tokenFile = "/run/secrets/sapience_token";`) rather than an unquoted Nix path
+literal, because the latter would make the evaluator copy the secret into the world-readable
+store, or fail evaluation outright on a fresh machine before the secret exists.
 
 ### The token is validated, not just stored
 
@@ -730,7 +769,7 @@ non-fatally at every activation.
 | `model` | `""` | `"claude-haiku-4-5"` | `--model`; empty keeps the client's per-backend default |
 | `host` | `"https://app.spnc.ai"` | default | API host, also the payload source |
 | `apiKeyFile` | `""` | `/run/secrets/anthropic_api_key` | Provider key for `anthropic`/`openai`; no role under `ollama` |
-| `tokenFile` | `null` | default | Path outside the store for non-interactive bootstrap |
+| `tokenFile` | `null` | `/run/secrets/sapience_token` | Path outside the store for non-interactive bootstrap |
 | `backgroundSync` | `false` | default | Install the timer at all; off means on-request only |
 | `syncInterval` | `"hourly"` | default | `OnCalendar`, only when `backgroundSync` is true |
 | `memoryFiles` | `false` | default | See [above](#memory-file-ingestion-is-off) |
@@ -739,6 +778,11 @@ non-fatally at every activation.
 | `desktopEntry` | `true` | default | The three GNOME launchers; see [below](#opening-it-from-the-desktop) |
 | `terminal` | wezterm argv | default | `class: argv` prefix each terminal launcher puts in front of its command |
 | `webAppCommand` | brave `--app=` argv | default | Opens `host` as an app window; carries no token |
+
+Not a `programs.sapience.*` option, so outside the table above: `users.users.<name>.linger`
+(default `null`, set here to `true` in `modules/system/users.nix`). It is the declarative
+equivalent of `loginctl enable-linger`, and it is what lets `backgroundSync`'s
+`sapience-sync.timer` fire with no login session open once `backgroundSync` is turned on.
 
 `services.ollamaModels`:
 
