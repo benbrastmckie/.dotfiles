@@ -1,21 +1,17 @@
 {
-  "status": "planned",
-  "dispatch_seq": 5,
-  "phases_completed": 0,
-  "phases_total": 2,
-  "summary": "Wrote a 2-phase, 1.25-hour plan narrowing task 141 to its one remaining code gap: adding \"_SAPIENCE_NOTE\" to home.activation.claudeSettings' enforced-key array in modules/home/core/dotfiles.nix, plus two documentation hunks (the activation entry's comment block and the source _SAPIENCE_NOTE string) that record the detector-siting decision durably outside specs/**. Premise re-validation against live state confirmed the FOURTH DEFECT is present today, that the dispatch's 2026-11-14 three-vendor-hook measurement no longer describes live state, and that task 142's sapienceHooksGuard detector landed during this run (so scope (c)/(d) is satisfied by shipped work, not rebuilt here). Scope (a) is recorded as a verified no-op: the enforced-key reset already fully converges .hooks. Phase 2 is a full-tier live verification against a real home-manager switch.",
-  "blockers": [],
+  "status": "implemented",
+  "phase": "implement",
+  "dispatch_seq": 7,
+  "summary": "Added _SAPIENCE_NOTE to home.activation.claudeSettings's enforced-key array and recorded the detection-vs-reversion siting decision in both edited files. A real home-manager switch confirmed the live note now matches source verbatim and the live file carries exactly one Sapience hook entry (the registration hook), with sapienceHooksGuard and check-sapience-hooks.sh both confirming no reinjection occurred.",
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/141_prevent_sapience_hook_reinjection/plans/01_prevent-sapience-hook-reinjection.md",
-      "summary": "2-phase plan: enforce _SAPIENCE_NOTE and record the siting decision, then verify against a real home-manager switch."
+      "type": "summary",
+      "path": "specs/141_prevent_sapience_hook_reinjection/summaries/01_prevent-sapience-hook-reinjection-summary.md",
+      "summary": "Implementation summary with observed live-state verification and the recorded siting decision."
     }
   ],
-  "metadata": {
-    "session_id": "sess_1795027105_555221_141",
-    "agent_type": "planner-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"]
-  }
+  "phases_completed": 2,
+  "phases_total": 2,
+  "blockers": [],
+  "plan_markers_verified": true
 }

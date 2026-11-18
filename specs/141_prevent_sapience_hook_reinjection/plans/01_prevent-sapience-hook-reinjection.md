@@ -1,7 +1,7 @@
 # Implementation Plan: Task #141
 
 - **Task**: 141 - Prevent Sapience hook reinjection (close the recurrence gap left by task 138)
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 1.25 hours
 - **Dependencies**: 142 (landed — see Premise Re-Validation)
 - **Research Inputs**: specs/141_prevent_sapience_hook_reinjection/reports/01_prevent-sapience-hook-reinjection.md
@@ -173,22 +173,22 @@ No `roadmap_path` was provided in this dispatch, so no roadmap consultation was 
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Enforce `_SAPIENCE_NOTE` and record the siting decision [NOT STARTED]
+### Phase 1: Enforce `_SAPIENCE_NOTE` and record the siting decision [COMPLETED]
 
 **Goal**: `config/claude/settings.json`'s `_SAPIENCE_NOTE` becomes repo-owned, and both edited
 files state which layer owns detection versus reversion.
 
 **Tasks**:
 
-- [ ] Re-read `modules/home/core/dotfiles.nix` and `config/claude/settings.json` immediately
+- [x] Re-read `modules/home/core/dotfiles.nix` and `config/claude/settings.json` immediately
       before editing (concurrent-sibling discipline), confirming line 107's `--argjson enforced`
       array and line 128's `_SAPIENCE_NOTE` are still as this plan describes them.
-- [ ] Insert `"_SAPIENCE_NOTE"` into the enforced array at `modules/home/core/dotfiles.nix:107`,
+- [x] Insert `"_SAPIENCE_NOTE"` into the enforced array at `modules/home/core/dotfiles.nix:107`,
       immediately after `"_NOTE"`, yielding
       `["_NOTE","_SAPIENCE_NOTE","env","hooks","model","permissions","statusLine"]`. Change
       nothing else on that line — the surrounding multi-space runs are `nixfmt` output and must
       survive the edit.
-- [ ] Extend the comment block above the `claudeSettings` entry (the block ending at the
+- [x] Extend the comment block above the `claudeSettings` entry (the block ending at the
       `Failure mode is fail-safe` paragraph, roughly lines 66-92) with a short paragraph stating
       (a) why `_SAPIENCE_NOTE` qualifies for ENFORCED — it documents which Sapience surfaces this
       file owns, and a stale live copy actively misinforms a reader of
@@ -198,16 +198,16 @@ files state which layer owns detection versus reversion.
       pre-merge file) via `scripts/check-sapience-hooks.sh` is the automatic detector,
       `verify-sapience-mcp.sh` in the agent-system sapience extension is the on-demand one, and
       this entry is the backstop that reverts what they report.
-- [ ] Append one sentence to `config/claude/settings.json`'s `_SAPIENCE_NOTE` value naming the
+- [x] Append one sentence to `config/claude/settings.json`'s `_SAPIENCE_NOTE` value naming the
       `~/.sapience/config.json` `"hooks": false` opt-out and the `sapienceHooksGuard` activation
       entry as the two layers that keep the vendor's machine-wide hooks out of this file, and
       pointing at `docs/sapience.md`'s section "The three layers that keep machine-wide hooks out
       of settings.json" for the full account. Keep it to one sentence; do not restate the layers'
       internals. Use no task numbers and no draft-history phrasing (`rules/no-task-references-in-deliverables.md`,
       `rules/no-record-versioning-in-deliverables.md` — both files are outside `specs/**`).
-- [ ] Run `jq -e . config/claude/settings.json >/dev/null` to confirm the JSON still parses, then
+- [x] Run `jq -e . config/claude/settings.json >/dev/null` to confirm the JSON still parses, then
       `nixfmt modules/home/core/dotfiles.nix` and `nix flake check`.
-- [ ] Commit both files by explicit path (`git add -- modules/home/core/dotfiles.nix
+- [x] Commit both files by explicit path (`git add -- modules/home/core/dotfiles.nix
       config/claude/settings.json`), never a directory or glob add, after reviewing
       `git status --short` and `git diff --staged`.
 
@@ -252,37 +252,43 @@ out to be required, stop and report it rather than widening the phase silently.
 
 ---
 
-### Phase 2: Activate and verify against live state [NOT STARTED]
+### Phase 2: Activate and verify against live state [COMPLETED]
 
 **Goal**: a real switch is observed to converge the live file, and the dispatch's acceptance
 criteria are checked against what the machine actually reports.
 
 **Tasks**:
 
-- [ ] Capture the pre-switch live state for the summary: `jq -r '._SAPIENCE_NOTE'
+- [x] Capture the pre-switch live state for the summary: `jq -r '._SAPIENCE_NOTE'
       ~/.claude/settings.json` and every `hooks.*[].hooks[].command` string, plus
       `jq '.hooks' ~/.sapience/config.json`.
-- [ ] Run a user-level `home-manager switch --flake .#benjamin` (the generation that owns
+- [x] Run a user-level `home-manager switch --flake .#benjamin` (the generation that owns
       `~/.nix-profile` and actually executes `home.activation`; `sudo` is unavailable inside this
       harness, and the NixOS-integrated generation stays out of sync until a human runs it — say
       so in the summary rather than claiming a system-level switch).
-- [ ] Confirm `_SAPIENCE_NOTE` in the live file now matches the source verbatim:
+- [x] Confirm `_SAPIENCE_NOTE` in the live file now matches the source verbatim:
       `diff <(jq -r '._SAPIENCE_NOTE' config/claude/settings.json) <(jq -r '._SAPIENCE_NOTE'
       ~/.claude/settings.json)` produces no output.
-- [ ] Confirm the live file carries exactly one Sapience hook entry (the
+- [x] Confirm the live file carries exactly one Sapience hook entry (the
       `sapience-mcp-register-project.sh` registration hook) and no command referencing
       `.sapience/mcp.py`, by enumerating every hook command rather than grepping the whole file.
-- [ ] Run `bash scripts/check-sapience-hooks.sh` standalone and record its exit status, and note
+- [x] Run `bash scripts/check-sapience-hooks.sh` standalone and record its exit status, and note
       whether `sapienceHooksGuard` printed anything during the switch (if it did, an injection
       occurred since the last switch — record it as a confirmation of the shipped design, with
       the reported commands quoted).
-- [ ] Re-confirm the three shipped layers are intact and consistent with the two new
+- [x] Re-confirm the three shipped layers are intact and consistent with the two new
       documentation hunks: `jq '.hooks' ~/.sapience/config.json` is `false`,
       `sapienceHooksGuard`'s `entryBefore [ "claudeSettings" ]` declaration is unchanged, and
       `docs/sapience.md`'s three-layer section still carries the heading the note now cites.
       Read-only — do not edit any of those files.
-- [ ] Run the repository's complete gate set and observe it green.
-- [ ] Record any issue or win as it arises via `issue-record.sh` (and attest explicitly in the
+- [x] Run the repository's complete gate set and observe it green. *(deviation: altered — per
+      the dispatch's Batch Gate Deferral directive, ran `nix flake check` directly (unmappable
+      to `--only`/`--only-gate`: no shell-suite or gate-number maps to a repository `.nix`/
+      config `.json` file) plus `bash .claude/scripts/verify-deploy.sh --skip-unchanged`
+      (this repository is a deploy consumer, not the source store, so 23 of 24 agent-system
+      gates `[SKIP]`; 12 checks ran, 0 failures). Both exited 0. The full unflagged sweep is
+      deferred to the batch stage per that directive, not independently re-run here.)*
+- [x] Record any issue or win as it arises via `issue-record.sh` (and attest explicitly in the
       handoff if there was genuinely nothing to record).
 
 **Timing**: 0.75 hours

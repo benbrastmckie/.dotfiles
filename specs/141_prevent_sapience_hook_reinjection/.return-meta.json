@@ -1,22 +1,72 @@
 {
-  "status": "planned",
+  "status": "implemented",
+  "summary": "Added _SAPIENCE_NOTE to home.activation.claudeSettings's enforced-key array (modules/home/core/dotfiles.nix) and extended its comment block with the detection-vs-reversion siting record; appended one pointer sentence to config/claude/settings.json's _SAPIENCE_NOTE value. Verified with a real home-manager switch: the live _SAPIENCE_NOTE now matches source verbatim, the live file carries exactly one Sapience hook entry with no .sapience/mcp.py command, sapienceHooksGuard ran and reported no reinjection, and scripts/check-sapience-hooks.sh exits 0.",
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/141_prevent_sapience_hook_reinjection/plans/01_prevent-sapience-hook-reinjection.md",
-      "summary": "2-phase plan (1.25h): add _SAPIENCE_NOTE to the claudeSettings enforced-key array plus two siting-record documentation hunks, then verify against a real home-manager switch."
+      "type": "summary",
+      "path": "specs/141_prevent_sapience_hook_reinjection/summaries/01_prevent-sapience-hook-reinjection-summary.md",
+      "summary": "Implementation summary with observed live-state verification and the recorded siting decision."
     }
   ],
-  "memory_candidates": [],
-  "phase_count": 2,
-  "estimated_hours": 1.25,
-  "dependency_waves": [[1], [2]],
-  "next_steps": "Run /orchestrate 141 to execute the plan",
-  "metadata": {
-    "session_id": "sess_1795027105_555221_141",
-    "agent_type": "planner-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"]
+  "completion_data": {
+    "completion_summary": "Closed the recurrence gap left by task 138's Sapience hook removal: _SAPIENCE_NOTE is now an enforced key so the live settings.json note can no longer drift from source, with the detection-vs-reversion siting decision recorded durably in both edited files. A real home-manager switch confirmed convergence end-to-end."
   },
-  "dispatch_seq": 5
+  "modified_files": [
+    "modules/home/core/dotfiles.nix",
+    "config/claude/settings.json"
+  ],
+  "sapience_notes": [
+    {
+      "subject": "dotfiles home.activation.claudeSettings enforced-key list",
+      "predicate": "decision is",
+      "value": "Added _SAPIENCE_NOTE to the enforced-key array (now _NOTE, _SAPIENCE_NOTE, env, hooks, model, permissions, statusLine) so the live note text in ~/.claude/settings.json can no longer drift from config/claude/settings.json's source copy. Rationale recorded inline: a stale live note was found actively misinforming a reader about which mechanism guards against which vendor hook.",
+      "ko_type": "decision",
+      "confidence": 0.9
+    },
+    {
+      "subject": "sapienceHooksGuard vs claudeSettings activation ordering",
+      "predicate": "decision is",
+      "value": "The automatic between-activations detector (sapienceHooksGuard, scripts/check-sapience-hooks.sh) must run entryBefore claudeSettings so it reads the live file BEFORE the enforced-key merge; an inverted ordering, or a detector built inside claudeSettings itself, would inspect an already-cleaned file and look like a working check while detecting nothing.",
+      "ko_type": "decision",
+      "confidence": 0.9
+    },
+    {
+      "subject": "home.activation.claudeSettings enforced-key reset on vendor-injected hooks",
+      "predicate": "measured fact is",
+      "value": "Reproduced empirically (not just reasoned): the claudeSettings jq merge's reduce over ENFORCED does a flat .hooks = $src.hooks whenever source declares hooks, which fully strips any vendor-injected hook entries on every switch with no additional stripping code needed. A live home-manager switch in this task's own run exercised this against a real (already-converged) live file and confirmed hooks came out identical to source.",
+      "ko_type": "insight",
+      "confidence": 0.85
+    },
+    {
+      "subject": "sapience mcp.py vendor hook reinjection timing",
+      "predicate": "correction is",
+      "value": "A specific dated measurement of vendor-injected hooks (three mcp.py SessionStart/SessionEnd/Stop entries observed 2026-11-14) had already stopped describing live state by 2026-11-18, four days later, with no manual intervention recorded in between -- confirms such snapshots are time-sensitive and must be re-verified against live state rather than cited as current fact in later work.",
+      "ko_type": "correction",
+      "confidence": 0.8
+    },
+    {
+      "subject": "running home-manager/nixos-rebuild from inside this agent harness",
+      "predicate": "non-obvious constraint is",
+      "value": "sudo is categorically denied by this session's permission system, so only a user-level `home-manager switch --flake .#<user>` can be run from inside an agent dispatch; the NixOS-integrated generation (sudo nixos-rebuild switch) stays unapplied until a human runs it, even though home.activation itself (including the activation entries this task edited) is fully exercised by the user-level switch alone.",
+      "ko_type": "insight",
+      "confidence": 0.85
+    },
+    {
+      "subject": "verify-deploy.sh gate battery on a deploy-consumer repository",
+      "predicate": "measured fact is",
+      "value": "Running .claude/scripts/verify-deploy.sh --skip-unchanged against a repository that is a deploy consumer but not the agent-system source store (no agent-system/extensions directory) causes 23 of its ~24 gates to [SKIP] immediately with 'is a deploy consumer, not the source store'; only a handful of consumer-applicable checks (runtime-file tracking policy, routing_hard absence guard) actually run. A full unscoped run there is fast and mostly a no-op, not a meaningful stress test of agent-system machinery.",
+      "ko_type": "insight",
+      "confidence": 0.8
+    }
+  ],
+  "metadata": {
+    "session_id": "sess_1795027105_555221",
+    "duration_seconds": 2300,
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 2,
+    "phases_total": 2
+  },
+  "next_steps": "Human checkpoint: run `sudo nixos-rebuild switch` (or equivalent) to bring the NixOS-integrated generation in sync with the user-level home-manager switch already applied in this run."
 }

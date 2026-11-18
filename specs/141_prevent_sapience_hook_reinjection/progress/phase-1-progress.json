@@ -1,0 +1,19 @@
+{
+  "phase": 1,
+  "phase_name": "Enforce _SAPIENCE_NOTE and record the siting decision",
+  "started_at": "2026-11-18T19:20:40Z",
+  "last_updated": "2026-11-18T19:40:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Phase 1 -- file changes",
+      "status": "completed",
+      "files_touched": [
+        "modules/home/core/dotfiles.nix",
+        "config/claude/settings.json"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}
