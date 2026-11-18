@@ -61,7 +61,7 @@
         {
           "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
           "type": "record",
-          "summary": "Measurement ledger (unchanged this dispatch): Pass-0 baseline, journal-reconstructed Pass-1, and the fully-observed Pass-2 block."
+          "summary": "Measurement ledger: Pass-0 baseline, journal-reconstructed Pass-1, fully-observed Pass-2 (34 errors, partial failure), and now fully-observed Pass-3 (0 errors, clean) with the mid-series filter-ratio and daily-cap-headroom checks."
         }
       ],
       "roadmap_annotation": "parked for now; the measurement window is 5+ hand-run passes over 1+ week, not one dispatch",

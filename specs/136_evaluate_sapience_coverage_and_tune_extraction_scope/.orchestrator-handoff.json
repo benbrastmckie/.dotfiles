@@ -1,20 +1,20 @@
 {
   "status": "partial",
-  "dispatch_seq": 14,
-  "summary": "No new work performed, for the second consecutive dispatch. Re-verified live at dispatch start (2026-11-17T21:43:13Z) that Phase 3's required 24-hour gate since the Pass-2 ledger timestamp (2026-11-17T21:23:08Z) has not elapsed -- only ~20 minutes had passed since the immediately prior dispatch (seq 12) made the identical check. Phase 2 of 8 remains the last completed phase; phase 3 stays [NOT STARTED] per its own first task's stop condition. Next legitimate re-dispatch is not before approximately 2026-11-18T21:23:08Z.",
-  "phases_completed": 2,
+  "dispatch_seq": 15,
+  "summary": "Completed Phase 3 of 8: ran a clean, zero-error 50-chunk extraction pass (Pass 3), appended its before/after readings and computed deltas to the measurement ledger, and recorded the first mid-series two-filter-ratio check (stable 30.13x-31.45x across 5 coverage readings) and daily-cap-headroom check (no truncation observed despite one pass alone exceeding the 2000-object cap at 2051). Phase 4 is gated on its own 24-hour-since-Pass-3 floor and may not run before approximately 2026-11-19T22:11:46Z.",
+  "phases_completed": 3,
   "phases_total": 8,
   "blockers": [],
   "artifacts": [
     {
       "type": "record",
       "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
-      "summary": "Measurement ledger (unchanged this dispatch): Pass-0 baseline, journal-reconstructed Pass-1, and the fully-observed Pass-2 block."
+      "summary": "Measurement ledger: Pass-0 baseline, journal-reconstructed Pass-1, fully-observed Pass-2 (34 errors, partial failure), and now fully-observed Pass-3 (0 errors, clean) with the mid-series filter-ratio and daily-cap-headroom checks."
     },
     {
       "type": "handoff",
-      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-2-handoff-20261117T213000Z.md",
-      "summary": "Phase-2 completion handoff naming the 24-hour re-dispatch gate for phase 3 (still in effect this dispatch)."
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-3-handoff-20261118T221400Z.md",
+      "summary": "Phase-3 completion handoff naming the 24-hour re-dispatch gate for phase 4 and the bounded-poll technique for the systemctl wait."
     }
   ]
 }
