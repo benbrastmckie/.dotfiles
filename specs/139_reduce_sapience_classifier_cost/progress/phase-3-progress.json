@@ -1,0 +1,18 @@
+{
+  "phase": 3,
+  "phase_name": "Record the measured cost shape in docs/sapience.md",
+  "started_at": "2026-11-18T00:00:00Z",
+  "last_updated": "2026-11-18T00:00:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Phase 3 — file changes",
+      "status": "in_progress",
+      "files_touched": [
+        "docs/sapience.md"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

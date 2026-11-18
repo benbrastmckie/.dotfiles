@@ -25,6 +25,7 @@ installer's plumbing and leaves the payload alone.
 | `programs.sapience.model` | `"claude-haiku-4-5"` | The cheapest tier; nothing is inferred locally |
 | `programs.sapience.apiKeyFile` | `/run/secrets/anthropic_api_key` | sops-nix, mode 0400, never in the Nix store |
 | `programs.sapience.memoryFiles` | `false` | Generated `CLAUDE.md` trees are not walked |
+| `programs.sapience.sessionClassifier` | `false` | No work/personal classifier call; see [Cost shape](#cost-shape) |
 | `programs.sapience.sourceDirs` | `~/.config/nvim/agent-system` | The authored source store, ingested by name instead |
 | `programs.sapience.tokenFile` | `/run/secrets/sapience_token` | sops-nix, mode 0400, never in the Nix store; non-interactive bootstrap |
 | `config.json: auto_approve` | `false` | Findings stage until `sapience review` |
@@ -319,6 +320,9 @@ loop at an 8,000-token budget, where calls take seconds. Seeing the rate drop te
 through is that handover, not a stall. The label flips when the count passes the source
 estimate, so it can lag the real handover by a few calls — `--coverage` counts sources before
 the delta and interactivity filters the run itself applies, so it tends to over-count slightly.
+With `programs.sapience.sessionClassifier = false` (the default here), there is no classify
+phase at all — the ticker goes straight to `extracting`, and the source term drops out of the
+estimate denominator entirely.
 
 **The percentage is against an estimate, and the estimate is a floor.** It is sources plus the
 50-chunk cap, resolved lazily after the picker since your selection changes it. The cap counts
@@ -374,6 +378,12 @@ only: PEM blocks, provider key prefixes, JWTs, `password|secret|token|api_key = 
 assignments, connection strings with inline credentials, emails, phones, SSNs and Luhn-valid
 card numbers. It deliberately leaves ordinary prose alone, so your text, code, file paths,
 project names and architecture are not redacted.
+
+No work/personal filter is applied under this configuration
+(`programs.sapience.sessionClassifier = false`; see
+[The work/personal classifier is off](#the-workpersonal-classifier-is-off)), so redaction above
+is the whole guarantee for ordinary personal prose in a ticked folder — it is not separately
+filtered out before reaching the provider.
 
 Backend choice decides what crosses the wire:
 
@@ -464,11 +474,26 @@ evaluation.
 
 ### Cost shape
 
-Extraction is now metered. A run makes one small classifier call per session plus at least one
-call per chunk, capped at `MAX_CHUNKS` 50, so a single pass is bounded — but a backlog costs one
-classifier call per not-yet-extracted session on *every* run until it drains. `NO_CLASSIFY=1`
-removes that recurring cost at the price of no longer filtering personal conversations out, and
-`sapience pending` shows what is still queued before you pay for it.
+Extraction is now metered, and the classifier is the dominant per-pass cost. A measured pass
+took 29 minutes wall clock against only 3.5s of CPU — entirely network-bound — to extract 71
+sources and stage 1208 knowledge objects, and the classifier phase accounted for roughly the
+first 20 minutes of that, before chunk extraction began. The classify-eligible backlog does not
+drain: two clean before/after pairs across the measured series held it exactly flat, and a fresh
+`sapience coverage` reading on 2026-11-18 confirms it again at 136 ("would ingest now"), matching
+the earlier reading days before — so the classifier's cost recurs on every run rather than
+shrinking as sessions get extracted.
+
+No $/token or per-pass dollar figure is obtainable from this client's own output — confirmed
+across `sapience stats`, `sapience coverage` and the systemd journal, each time this was
+checked — so wall clock is the only cost signal available here.
+
+`programs.sapience.sessionClassifier = false` is the default in this repository's own module
+(`modules/home/services/sapience.nix`), which exports `NO_CLASSIFY=1` and removes the classifier
+call entirely rather than merely ignoring its verdict. Redaction still runs unconditionally
+either way, so this is not a redaction setting — the trade is a work/personal filter that fired
+once across the whole measured series, against a cost that is the majority of every run's wall
+clock. Setting `programs.sapience.sessionClassifier = true;` is the one-line way back to the
+vendor default. `sapience pending` shows what is still queued regardless of this setting.
 
 ### Performance and failure modes
 
@@ -508,11 +533,17 @@ transient provider error is retried inside the client rather than costing a chun
 branch calls `urlopen` bare and has no such cover — relevant only if the backend is changed
 back.
 
-**The classifier re-runs across the whole backlog.** It classifies every not-yet-extracted
-session on every run, so while a backlog exists most of a run's calls are classification rather
-than extraction. `NO_CLASSIFY=1` skips it — the client's own comment is that "redaction is the
-privacy guarantee, not this filter" — at the cost of no longer filtering personal conversations
-out. Raising `MAX_CHUNKS` for a catch-up pass is the alternative.
+**The classifier re-runs across the whole backlog, and the backlog does not drain.** It
+classifies every not-yet-extracted session on every run, so most of a run's calls are
+classification rather than extraction, permanently — not only "while a backlog exists," since
+the measured backlog holds steady rather than shrinking run over run.
+`programs.sapience.sessionClassifier = false` (the default in this repository's own module)
+skips it entirely — the client's own comment is that "redaction is the privacy guarantee, not
+this filter" — at the cost of no longer filtering personal conversations out; see
+[Cost shape](#cost-shape) and
+[The work/personal classifier is off](#the-workpersonal-classifier-is-off). Raising
+`MAX_CHUNKS` for a catch-up pass addresses the chunk-extraction side instead and is unaffected
+by this setting.
 
 ## Design decisions
 
@@ -633,6 +664,29 @@ endpoint, where the server extracts with its own key — a different path from `
 extraction, which runs on this machine. The rest of
 [Where your data goes](#where-your-data-goes) still holds: findings wait for `sapience review`
 before they enter the vault. The upload itself does not wait.
+
+### The work/personal classifier is off
+
+The client's `is_personal()` check makes one model call per not-yet-extracted session, asking
+whether the content reads as personal rather than work-related, and drops a session it judges
+personal before any chunk call is made against it.
+
+On this machine that filter is not worth its cost. Across the whole measured extraction series
+over this machine's four captured folders (`nvim`, `dotfiles`, `app`, `abood`), it fired exactly
+once — one skipped session in the entire series — while accounting for roughly the first 20
+minutes of a measured 29-minute pass, the majority of every run's wall clock on the metered
+`anthropic` backend. See [Cost shape](#cost-shape) for the full measurement.
+
+Redaction is unaffected either way: `sapience_redact.py` runs unconditionally on every chunk
+regardless of this setting, so turning the classifier off does not weaken redaction — it only
+stops a work/personal filter from running *before* the already-unconditional redaction step.
+The privacy cost is narrow and named: ordinary personal prose in a ticked folder is no longer
+filtered out before the provider call, though it is still redacted the same way work content is.
+
+`programs.sapience.sessionClassifier = false` is the default here, exporting `NO_CLASSIFY=1` at
+every client invocation site. Adding a captured folder with a materially different
+work/personal content profile — one where personal and work sessions are genuinely mixed,
+unlike this machine's four — is the trigger to revisit this default.
 
 ### One bootstrap at a time, and never during a switch
 
@@ -773,6 +827,7 @@ non-fatally at every activation.
 | `backgroundSync` | `false` | default | Install the timer at all; off means on-request only |
 | `syncInterval` | `"hourly"` | default | `OnCalendar`, only when `backgroundSync` is true |
 | `memoryFiles` | `false` | default | See [above](#memory-file-ingestion-is-off) |
+| `sessionClassifier` | `false` | default | See [above](#the-workpersonal-classifier-is-off) |
 | `sourceDirs` | `[ ]` | the source store | `adddir` targets; see [above](#the-source-store-goes-in-by-name) |
 | `sourceDirInclude` | `"md"` | default | Extensions passed to `adddir --include` |
 | `desktopEntry` | `true` | default | The three GNOME launchers; see [below](#opening-it-from-the-desktop) |

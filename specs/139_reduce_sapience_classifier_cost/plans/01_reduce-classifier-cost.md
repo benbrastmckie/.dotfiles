@@ -295,17 +295,17 @@ checks that observe this edit's blast radius inside that flake.
 
 ---
 
-### Phase 3: Record the measured cost shape in `docs/sapience.md` [NOT STARTED]
+### Phase 3: Record the measured cost shape in `docs/sapience.md` [COMPLETED]
 
 **Goal**: `docs/sapience.md` states the classifier's measured per-pass cost as settled fact,
 documents the new option and its default, and no longer claims the backlog drains.
 
 **Tasks**:
 
-- [ ] Re-run `sapience coverage` (free: it makes no model call and no provider request — it only
+- [x] Re-run `sapience coverage` (free: it makes no model call and no provider request — it only
       stats files on disk and consults the already-cached `source_skip` rules) and use its own
       fresh `would ingest now` reading as the backlog figure this section cites, with the date.
-- [ ] Rewrite `### Cost shape` (`docs/sapience.md:465-471`) to state: the classifier is the
+- [x] Rewrite `### Cost shape` (`docs/sapience.md:465-471`) to state: the classifier is the
       dominant per-pass cost (roughly the first 20 minutes of a measured 29-minute,
       network-bound pass that extracted 71 sources and staged 1208 knowledge objects against
       3.5s of CPU); the classify-eligible backlog holds steady in the low hundreds rather than
@@ -314,28 +314,32 @@ documents the new option and its default, and no longer claims the backlog drain
       own output, confirmed across `sapience stats`, `sapience coverage` and the systemd journal,
       so wall clock is the only cost signal; and `programs.sapience.sessionClassifier = false` is
       the default here, with `= true` named as the one-line way back.
-- [ ] Correct the `**The classifier re-runs across the whole backlog.**` bullet under
+- [x] Correct the `**The classifier re-runs across the whole backlog.**` bullet under
       `### Performance and failure modes` (`docs/sapience.md:511-515`): drop the "while a backlog
       exists" / "until it drains" framing, which the measurement falsifies, and point at the new
       option instead of at the bare `NO_CLASSIFY=1` env var.
-- [ ] Add a `programs.sapience.sessionClassifier` row to the `## How this machine is configured`
+- [x] Add a `programs.sapience.sessionClassifier` row to the `## How this machine is configured`
       table (:22-32) and to the `## Module options` table (:767-780), the latter linking to the
       new design-decision section below in the same style as the `memoryFiles` row.
-- [ ] Add a `### The work/personal classifier is off` design-decision section, modelled on
+- [x] Add a `### The work/personal classifier is off` design-decision section, modelled on
       `### Memory-file ingestion is off` (:567-581) and placed after
       `### The source store goes in by name` ends and before `### One bootstrap at a time, and
       never during a switch` (:637): what the filter does, what it measurably caught here (one
       skip in the whole recorded series), what it cost (the dominant share of every run,
       permanently, because the backlog does not drain), that redaction is unaffected, and what
       would make this default wrong (a captured folder with a different content profile).
-- [ ] Add one sentence to `## Where your data goes` (:363-401) stating that no work/personal
+- [x] Add one sentence to `## Where your data goes` (:363-401) stating that no work/personal
       filter is applied under this configuration and that redaction is therefore the whole
       guarantee — the section currently never mentions the filter in either direction.
-- [ ] Add one sentence to `### Watching a run`'s "The phase word explains the rate" paragraph
+- [x] Add one sentence to `### Watching a run`'s "The phase word explains the rate" paragraph
       (:316-321) noting that with the classifier off there is no classify phase, so the ticker
       goes straight to `extracting` — consistent with the Phase 1 ticker change.
-- [ ] Re-read the rendered section anchors used by any link added here, so no new
-      `[above](#...)` link points at a heading that does not exist.
+- [x] Re-read the rendered section anchors used by any link added here, so no new
+      `[above](#...)` link points at a heading that does not exist. *(verified: all five new
+      anchor links — `#cost-shape` x2 and `#the-workpersonal-classifier-is-off` x4 — resolve to
+      real headings, GFM-style anchor computed by lowercasing and stripping `/` rather than
+      replacing it with a hyphen, matched against the new `### The work/personal classifier is
+      off` heading)*
 
 **Timing**: 1 hour
 
