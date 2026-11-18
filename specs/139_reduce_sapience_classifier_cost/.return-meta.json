@@ -1,0 +1,20 @@
+{
+  "status": "researched",
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/139_reduce_sapience_classifier_cost/reports/01_reduce-classifier-cost.md",
+      "summary": "Weighs NO_CLASSIFY=1, verdict caching, and accept-and-document for the Sapience classifier cost; recommends wiring a new NO_CLASSIFY toggle mirroring the existing memoryFiles/NO_MEMFILES precedent and rejects vendor-code verdict caching as fragile against the client's daily self-update."
+    }
+  ],
+  "next_steps": "Run /orchestrate 139 to create an implementation plan from this report's recommendations (new programs.sapience.classifyPersonal option wired at the four memoryFiles/NO_MEMFILES sites, a packages/sapience-flake sync decision, and docs/sapience.md's Cost shape section update).",
+  "metadata": {
+    "session_id": "sess_1795042143_9ae6ed_139",
+    "agent_type": "nix-research-agent",
+    "duration_seconds": 1860,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
+    "findings_count": 6
+  },
+  "dispatch_seq": 19
+}
