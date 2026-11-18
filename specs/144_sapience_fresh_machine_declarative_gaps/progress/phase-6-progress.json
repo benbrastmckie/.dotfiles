@@ -1,0 +1,16 @@
+{
+  "phase": 6,
+  "phase_name": "Operator checkpoint, full gate, and convergence proof",
+  "started_at": "2026-11-18T21:21:00Z",
+  "last_updated": "2026-11-18T21:45:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Phase 6 - agent-executable verification only (operator tasks not run, per dispatch override)",
+      "status": "blocked",
+      "files_touched": []
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

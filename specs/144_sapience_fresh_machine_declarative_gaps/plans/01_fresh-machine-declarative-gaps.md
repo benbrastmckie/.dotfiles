@@ -737,47 +737,76 @@ deploy-consumer tree rather than the source store, the task-reference lint subse
 
 ---
 
-### Phase 6: Operator checkpoint, full gate, and convergence proof [NOT STARTED]
+### Phase 6: Operator checkpoint, full gate, and convergence proof [BLOCKED]
 
-**Goal**: the complete gate set is run and observed green, and the three live verifications that
-structurally require `sudo` and the real credential are handed to the operator with an exact
-command sequence rather than claimed.
+**Dispatch-level override of this phase's own Closure rule, recorded before any Phase 6 work
+began**: the team lead relayed that, despite `.decisions.json`'s recorded answer ("run the
+Phase 6 operator sequence yourself"), `sudo` is structurally denied in this harness, so this
+dispatch must NOT attempt the operator-run tasks below and must NOT close this phase
+`[COMPLETED WITH EXCLUSIONS]` per the plan's own Decision 4 and Closure rule. Instead: run the
+agent-executable tasks, print the operator command sequence into the summary as a clearly
+labelled checkpoint, and leave this phase `[BLOCKED]` — open, not closed — pending that human
+step. The `[COMPLETED WITH EXCLUSIONS]` + `#### Reasoned Exclusions` path this phase's own
+Closure rule describes is superseded by this override for this dispatch; the plan's Decision 4
+is not itself wrong, it is simply not the route taken here.
+
+**Goal**: the agent-executable subset of the gate set and convergence proof is run and observed
+green, and the live verifications that structurally require `sudo` and the real credential are
+handed to the operator with an exact command sequence rather than claimed or inferred.
 
 **Agent-executable tasks**:
 
-- [ ] Run the complete gate set for this repository and observe it green rather than assume it:
-      `nix flake check` (`statix`, `deadnix --fail`, `nixfmt --check`, `shellcheck`, `home-eval`)
-      and `bash .claude/scripts/verify-deploy.sh /home/benjamin/.dotfiles` for the agent-system
-      gates over this task's `specs/**` artifacts.
-- [ ] Run `home-manager switch --flake .#benjamin` (user-level, no `sudo`) and capture its full
+- [x] Run the gate set for this repository and observe it green rather than assume it.
+      *(completed — altered per this dispatch's own Batch Gate Deferral directive, which this
+      phase's declared `full` tier does not override: `nix flake check` is the unmappable
+      criterion here (no scoped-suite form exists for `.nix` files; `suite_selection_select`
+      returns `__FULL_SWEEP__`, as every earlier phase's Tier Justification already states) and
+      was run directly — exit 0, `all checks passed!`. The agent-system gate battery was run
+      SCOPED, not as the plan's literal unflagged
+      `bash .claude/scripts/verify-deploy.sh /home/benjamin/.dotfiles`:
+      `bash .claude/scripts/verify-deploy.sh --only-gate 4 /home/benjamin/.dotfiles` — exit 0,
+      `[PASS] task-reference lint reports no findings`. The complete, unscoped agent-system
+      battery is deferred to this batch invocation's own end-of-run full sweep, per the
+      dispatch's Batch Gate Deferral section — not independently re-run here.)*
+- [x] Run `home-manager switch --flake .#benjamin` (user-level, no `sudo`) and capture its full
       output. Confirm it is a no-op for all three gaps: no `sapienceLingerNotice` output (the
       entry does not exist at `backgroundSync = false`), no `adddir` or registration output, and
-      no re-registration churn. Quote the relevant lines for the summary.
-- [ ] Run it a second time and confirm the output is materially identical — convergence from the
-      current machine state, not only from a clean one.
-- [ ] Confirm no token-shaped value appears anywhere in either captured output or in any file
+      no re-registration churn. Quote the relevant lines for the summary. *(completed — see
+      Verification below for the quoted output)*
+- [x] Run it a second time and confirm the output is materially identical — convergence from the
+      current machine state, not only from a clean one. *(completed — the only diff between the
+      two captured runs is the previous generation's `nix profile remove` store-path hash, which
+      changes by construction every switch and is unrelated to any of the three gaps)*
+- [x] Confirm no token-shaped value appears anywhere in either captured output or in any file
       this task committed: `git log -p` over this task's own commits, and a grep of the captured
-      switch output.
-- [ ] Print the exact operator command sequence (below) into the phase record and the summary, so
-      the operator can run it without reconstructing anything.
-- [ ] Attest explicitly which acceptance criteria are satisfied by agent-run evidence and which
+      switch output. *(completed — a 16+-char alnum/underscore/hyphen run scan of both captured
+      switch outputs and of `git log -p` over every commit this task made found only identifier
+      names, commit hashes, and the session ID — no secret value)*
+- [x] Print the exact operator command sequence (below) into the phase record and the summary, so
+      the operator can run it without reconstructing anything. *(completed — see Operator-run
+      tasks below and the summary)*
+- [x] Attest explicitly which acceptance criteria are satisfied by agent-run evidence and which
       remain outstanding on the operator. Do **not** infer, simulate, or describe-as-done any
-      operator-gated result.
+      operator-gated result. *(completed — see the Acceptance Criteria attestation in the
+      Verification section below and in the summary)*
 
-**Operator-run tasks** (require `sudo` and the real credential; an agent must not attempt these):
+**Operator-run tasks** (require `sudo` and the real credential; an agent must not attempt these;
+none of the six below were run by this dispatch, per the override above):
 
 - [ ] `sops secrets/secrets.yaml` — add `sapience_token: <the private-link token value>` beside
-      the existing `anthropic_api_key`.
-- [ ] `cd ~/.dotfiles && sudo nixos-rebuild switch --flake .#$(hostname)`.
+      the existing `anthropic_api_key`. *(not attempted — operator step)*
+- [ ] `cd ~/.dotfiles && sudo nixos-rebuild switch --flake .#$(hostname)`. *(not attempted —
+      operator step)*
 - [ ] `test -r /run/secrets/sapience_token && echo readable` — confirms the secret decrypted at
-      the declared owner/mode.
+      the declared owner/mode. *(not attempted — operator step)*
 - [ ] `loginctl show-user benjamin --property=Linger` — must report `Linger=yes` (Acceptance
-      Criterion 4).
+      Criterion 4). *(not attempted — operator step)*
 - [ ] `sapience-bootstrap </dev/null` — confirms the token is picked up with no prompt
       (Acceptance Criterion 2's live half). The vendor's folder picker still needs a TTY; that
-      remains manual and is documented as such.
+      remains manual and is documented as such. *(not attempted — operator step)*
 - [ ] `sudo nixos-rebuild switch --flake .#$(hostname)` a second time — must be a no-op for the
-      linger grant and the new secret (Acceptance Criterion 5's system half).
+      linger grant and the new secret (Acceptance Criterion 5's system half). *(not attempted —
+      operator step)*
 
 **Timing**: 0.75 hours
 
@@ -796,20 +825,49 @@ phase (1-5) rather than an edit made here.
 
 **Verification**:
 
-- The complete gate set, run and observed green rather than assumed: `nix flake check` (the
-  authoritative gate per `rules/nix.md` — `statix`, `deadnix --fail`, `nixfmt --check`,
-  `shellcheck`, and the `home-eval` standalone-home-manager evaluation check), plus
-  `bash .claude/scripts/verify-deploy.sh /home/benjamin/.dotfiles` for the agent-system gates
-  over this task's `specs/**` artifacts.
+- The agent-executable gate subset, run and observed green rather than assumed (full agent-system
+  battery deferred to the batch stage per the override above): `nix flake check` — exit 0,
+  `all checks passed!` — plus
+  `bash .claude/scripts/verify-deploy.sh --only-gate 4 /home/benjamin/.dotfiles` — exit 0,
+  `[PASS] task-reference lint reports no findings`.
 - Two consecutive `home-manager switch --flake .#benjamin` runs, both captured, materially
-  identical, and both free of any Gap 1/2/3 activity.
-- No token-shaped value in any captured output or any commit from this task.
-- The operator command sequence printed verbatim in the phase record and the summary.
-- Each of Acceptance Criteria 1-6 individually marked satisfied-with-evidence or
-  outstanding-on-operator, with the evidence named.
+  identical (only difference: the removed-generation store-path hash), and both free of any
+  Gap 1/2/3 activity (no `sapienceLingerNotice`, no `adddir`/`sapience-adddir-sources` output).
+- No token-shaped value in any captured output or any commit from this task — confirmed by a
+  16+-character alnum/underscore/hyphen scan of both captured switch outputs and of
+  `git log -p` over this task's own commits (3d9befb..7c1a82e plus this phase's own commit),
+  finding only identifier names, commit hashes, and the session ID.
+- The operator command sequence printed verbatim in the phase record (Operator-run tasks above)
+  and the summary.
+- Acceptance Criteria, individually attested:
+  - **AC1** (`nix flake check` passes): satisfied with evidence — exit 0 after every phase and
+    again in this phase.
+  - **AC2** (`tokenFile` sops-backed, non-interactive bootstrap demonstrated): the declaration
+    half is satisfied with evidence (Phase 1). The live half — a prompt-free
+    `sapience-bootstrap` against a REAL `/run/secrets/sapience_token` — is outstanding on the
+    operator; Phase 1's scratchpad demonstration against a placeholder value is evidence for the
+    mechanism, not for the live path.
+  - **AC3** (`sourceDirs` decision resolved and recorded): satisfied with evidence (Phase 2).
+  - **AC4** (`loginctl show-user <name> --property=Linger` reports `Linger=yes` after a system
+    switch): outstanding on the operator in full — this requires `sudo nixos-rebuild switch`,
+    which this dispatch cannot run. The declaration (`linger = true` resolving `true` in every
+    host's evaluated config) is satisfied with evidence (Phase 3); the live system-level grant
+    is not.
+  - **AC5** (`home-manager switch` and `nixos-rebuild switch` are both no-ops): the
+    `home-manager switch` half is satisfied with evidence (this phase, above). The
+    `nixos-rebuild switch` half is outstanding on the operator.
+  - **AC6** (`docs/sapience.md` names new options and remaining-manual steps): satisfied with
+    evidence (Phase 5).
 
-**Closure rule**: if the operator steps are still outstanding when the dispatch ends, this phase
-closes `[COMPLETED WITH EXCLUSIONS]` with a `#### Reasoned Exclusions` table (columns
+**Closure rule, as overridden for this dispatch**: the plan's original Closure rule (below, kept
+for the record rather than deleted, since it is not wrong, only not the route taken here) calls
+for `[COMPLETED WITH EXCLUSIONS]`. The team lead's dispatch-level override instead keeps this
+phase `[BLOCKED]` — open, not closed — pending the operator sequence, and that is the status
+this phase carries in its own heading above.
+
+*Original Closure rule, superseded for this dispatch by the override recorded at the top of this
+phase*: if the operator steps are still outstanding when the dispatch ends, this phase closes
+`[COMPLETED WITH EXCLUSIONS]` with a `#### Reasoned Exclusions` table (columns
 `Item | Reason | Evidence`) naming Acceptance Criterion 4 and the live halves of 2 and 5, their
 reason (`sudo` is structurally denied in this harness; the real token must not reach an agent),
 and the evidence actually gathered in its place. It never closes `[COMPLETED]` on an inferred

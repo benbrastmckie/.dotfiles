@@ -1,0 +1,10 @@
+[
+  {
+    "question": "Acceptance Criteria 4 and the live halves of 2 and 5 need two actions no agent can take here: pasting the real Sapience token into secrets/secrets.yaml via sops, and running sudo nixos-rebuild switch (sudo is structurally denied in this harness). How should the implementation close?",
+    "answer": "Run the Phase 6 operator sequence yourself when the implementation reaches it, so all six acceptance criteria get live evidence",
+    "cycle": 6,
+    "timestamp": "2026-11-18T19:34:28Z",
+    "description_fingerprint": "2f2183d89841aea165c8b624ce3aee7b13f76570da0530742fb62e97533f7684",
+    "obligation": "Acceptance Criterion 4's loginctl show-user benjamin --property=Linger reporting Linger=yes after a system switch, plus AC2's prompt-free sapience-bootstrap against a real /run/secrets/sapience_token and AC5's no-op second nixos-rebuild switch."
+  }
+]
