@@ -322,26 +322,36 @@ the cap on the assumption that 29 minutes is typical.
 
 ---
 
-### Phase 3: Extraction Pass 3 and First Mid-Series Filter Check [NOT STARTED]
+### Phase 3: Extraction Pass 3 and First Mid-Series Filter Check [COMPLETED]
 
 **Goal**: Add a third reading and make the first mid-series check of the two-filter ratio and the
 daily-cap headroom, early enough that a surprise can still change how later passes are run.
 
 **Tasks**:
 
-- [ ] Confirm at least 24 hours since the Pass-2 timestamp; if not, stop and leave this phase
-      `[NOT STARTED]`.
-- [ ] Run the pass and record it exactly as phase 2 prescribes: before pair, `systemctl --user
+- [x] Confirm at least 24 hours since the Pass-2 timestamp; if not, stop and leave this phase
+      `[NOT STARTED]`. *(completed: Pass 2 finished 2026-11-17T21:23:08Z; this pass started
+      2026-11-18T21:23:48Z, a gap of ~24h00m40s)*
+- [x] Run the pass and record it exactly as phase 2 prescribes: before pair, `systemctl --user
       start sapience-sync.service`, bounded 60-minute poll with no kill, journal read including
       every `extract error:` line, after pair, computed deltas, Pass-3 block appended to the ledger.
-- [ ] Compute and record the two-filter ratio at each of the three readings so far: `skipped
+      *(completed: clean pass, 0 extract errors, 2010 objects staged, 47min 58.5s wall clock)*
+- [x] Compute and record the two-filter ratio at each of the three readings so far: `skipped
       (headless/agent)` against `skipped (subagent / harness-started)`. State whether the
       non-overridable filter still dominates and whether the ratio is stable or moving.
-- [ ] Compute and record the daily-cap headroom: the day's cumulative `sapience yield` objects
+      *(completed: computed across all 5 coverage readings present in the ledger -- Pass 0, Pass 2
+      before/after, Pass 3 before/after -- ratio stable in a 30.13x-31.45x band; non-overridable
+      filter dominates at every reading)*
+- [x] Compute and record the daily-cap headroom: the day's cumulative `sapience yield` objects
       against the 2000-objects/day cap, and how many 50-chunk passes a single day would admit before
       the cap truncates one. If any pass in the series was truncated by the cap, flag its yield as a
-      cap figure rather than a drain figure.
-- [ ] Record any issue or win via `issue-record.sh` as it arises.
+      cap figure rather than a drain figure. *(completed: no truncation observed in any of the 3
+      real passes; Pass 3 alone exceeded the 2000-object cap (2051) with no sign of being stopped
+      mid-run, so a single admissible-pass-count cannot be stated -- recorded as a range bounded by
+      the observed 550-2051 per-pass yield variability instead)*
+- [x] Record any issue or win via `issue-record.sh` as it arises. *(completed: issue recorded for
+      the daily-cap overshoot; win recorded for the stable filter ratio and the clean zero-error
+      pass)*
 
 **Timing**: 30-40 minutes of attended work plus a bounded wait of up to 60 minutes, at least one day
 after Pass 2

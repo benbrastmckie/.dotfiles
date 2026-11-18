@@ -341,6 +341,165 @@ recommend a cap increase or scheduling change on an unmeasured cost.
 
 ---
 
-<!-- Phases 3-5 append one Pass-N block each below this line, in the fixed shape documented
+## Pass 3 -- Second Fully Observed Pass (clean run, zero errors; first mid-series filter check)
+
+**24-hour spacing check**: Pass 2 finished 2026-11-17T21:23:08Z. This pass started
+2026-11-18T21:23:48Z, a gap of roughly 24h00m40s -- clears the 24-hour floor by 40 seconds. (The
+dispatch itself arrived 16 seconds short of the floor at 2026-11-18T21:21:52Z; the implementer
+waited a further ~2 minutes doing non-gated setup work, by which point the floor had cleared, so
+no work was attempted before the gate was satisfied.)
+
+**Pass number**: 3
+**ISO 8601 UTC timestamp**: run started 2026-11-18T21:23:48Z, finished 2026-11-18T22:11:46Z
+**Invocation path used**: `systemctl --user start sapience-sync.service`
+**Wall clock**: `47min 58.532s` (`systemd[2565]: sapience-sync.service: Consumed 10.221s CPU time
+over 47min 58.532s wall clock time, 217.8M memory peak.`) -- well under the 60-minute cap, but the
+longest of the three fully-observed/reconstructed runs so far (Pass 1: 29min 4.283s; Pass 2:
+22min 29.8s; Pass 3: 47min 58.532s).
+**Chunk count**: 50 chunks in 1 run
+**Objects staged**: `Staged 2010 new knowledge objects locally (3757 awaiting review). Nothing was
+shared.` -- 2010/50 = 40.2 objects/chunk, the richest single-pass yield in the series so far
+(Pass 1: 24.16/chunk; Pass 2: 10.78/chunk; Pass 3: 40.2/chunk).
+
+### Before reading (captured immediately before `systemctl --user start`, 2026-11-18T21:23:35Z)
+
+```
+Available on disk: 1781 session files
+  would ingest now:          134
+  skipped (outside 30d window): 0
+  skipped (headless/agent):    45
+  skipped (subagent / harness-started transcripts): 1388
+  skipped (folder not chosen): 214
+Per-run extraction cap: 50 chunks (MAX_CHUNKS); backfill raises it so a wide window isn't truncated.
+Folders selected (4): nvim, dotfiles, app, abood
+sapience yield: 0 objects today (cap 2000), 0 chunks in 0 runs; top sources: none
+```
+**`sapience pending` (before)**: `1747`
+**Summation check (before)**: 134+0+45+1388+214 = **1781**, matches exactly.
+
+### After reading (captured 2026-11-18T22:12:22Z, immediately after the unit settled to `inactive`)
+
+```
+Available on disk: 1786 session files
+  would ingest now:          134
+  skipped (outside 30d window): 0
+  skipped (headless/agent):    46
+  skipped (subagent / harness-started transcripts): 1391
+  skipped (folder not chosen): 215
+Per-run extraction cap: 50 chunks (MAX_CHUNKS); backfill raises it so a wide window isn't truncated.
+Folders selected (4): nvim, dotfiles, app, abood
+sapience yield: 2051 objects today (cap 2000), 50 chunks in 1 run; top sources: -home-benjamin--dotfiles/c1e0b710-3bfe-4d71-8947- (1 chunks), -home-benjamin--dotfiles/8fde2a97-68a7-4065-8e3a- (1 chunks), -home-benjamin--config-nvim/7b2db151-7b23-4c5c-a641- (1 chunks)
+```
+**`sapience pending` (after)**: `3757`
+**Summation check (after)**: 134+0+46+1391+215 = **1786**, matches exactly.
+
+### Computed deltas
+
+| Field | Before | After | Delta |
+|---|---|---|---|
+| Available on disk | 1781 | 1786 | +5 |
+| would ingest now | 134 | 134 | **0** |
+| skipped (headless/agent) | 45 | 46 | +1 |
+| skipped (subagent/harness-started) | 1388 | 1391 | +3 |
+| skipped (folder not chosen) | 214 | 215 | +1 |
+| `sapience pending` | 1747 | 3757 | +2010 |
+| day's `sapience yield` objects | 0 | 2051 | +2051 |
+
+**Headline finding: `would ingest now` held flat a second consecutive time (134 before and
+after), this time despite the pass staging 2010 objects -- the largest single-pass yield in the
+series.** As in Pass 2, new session files accrued during the run at a rate that offset whatever
+the pass consumed from the backlog (`Available on disk` grew +5). Two of two fully-observed
+passes now show `would ingest now` unmoved by the pass itself; phase 7's drain question must
+weigh this directly.
+
+**Daily-cap finding: a single ordinary pass exceeded the stated daily cap.** The after-reading's
+own `sapience yield` line reads `2051 objects today (cap 2000)` -- this one run, by itself,
+pushed the cumulative daily counter past the 2000-objects/day cap, yet the run was not truncated:
+it attempted and completed all 50 chunks (matching the `Per-run extraction cap` line, unchanged
+at 50), and nothing in the journal (reproduced in full below) indicates an early stop, a dropped
+chunk, or any cap-triggered behavior. The cap line appears to be purely informational/cumulative
+bookkeeping, not an enforced ceiling that interrupts a run in progress.
+
+### `extract error:` lines -- ZERO, this pass is usable as a clean drain-rate datum
+
+**0 `extract error:` lines** in the run window (`journalctl --user -u sapience-sync --since
+"2026-11-18 13:23:40" --until "2026-11-18 14:12:00"`, local machine time PST = UTC-8, matching the
+21:23:48Z-22:11:46Z UTC run window). Unlike Pass 2's 34-error partial failure, this run completed
+with no provider errors at all and is therefore fully usable in phase 7's clean drain-rate
+tabulation.
+
+**Redaction / set-aside counts**: No `Redacted N secret/PII value(s)` line appeared in this run's
+journal window (0 secret/PII values redacted this pass). `Set aside 6 transient rows (pid 3,
+dispatch 2, running 1): run/thread state, not knowledge.`
+
+**Additional context from the journal**: `sapience: skipped 18 harness-started transcripts
+(thread mechanics, not knowledge; SAPIENCE_INCLUDE_HEADLESS=1 does not override this)`; `sapience
+capture (opt-in): read nvim 87, sapience-app 35, .dotfiles 33; not enabled none`; `Skipping 14
+sources already extracted (results were staged/shared earlier).`; `Extracting knowledge from 120
+sources (0 curated memory files) locally ...`; `Extraction backend: anthropic (model
+claude-haiku-4-5, billed to your ANTHROPIC_API_KEY)`; one content-handling note, as in Pass 2 --
+`a cut-off reply was re-extracted as two halves (46 facts, the cut-off reply had 57)`.
+
+### Cost signal (re-checked, confirms Phase 1/2's finding unchanged)
+
+`sapience stats` was re-run at this dispatch and still exposes no per-run token or dollar-cost
+counter -- only cumulative lifetime counts (`2,971 things you know, across 73 work sessions`,
+etc.) with no per-pass breakdown. The journal exposes only wall clock and CPU time, as in Passes 1
+and 2. **No per-pass cost signal is obtainable from the client's own output**, confirming the
+prior two findings rather than superseding them.
+
+### Mid-series filter-ratio check (first of the plan's required checks)
+
+**Denominator**: the ledger holds 5 individual coverage readings carrying both skip counters so
+far -- Pass 0 (one reading), Pass 2 (before and after), Pass 3 (before and after). Pass 1 is
+journal-reconstructed and supplies no coverage reading, so it is excluded from this count, per
+the plan's own Scope Hypothesis instruction to count what is actually present rather than assume
+three.
+
+| Reading | Timestamp (UTC) | skipped (headless/agent) | skipped (subagent/harness-started) | Ratio (harness-started ÷ headless/agent) |
+|---|---|---|---|---|
+| Pass 0 | 2026-11-13T21:07:34Z | 30 | 904 | 30.13x |
+| Pass 2 before | 2026-11-17T21:00:30Z | 40 | 1253 | 31.33x |
+| Pass 2 after | 2026-11-17T21:26:00Z | 40 | 1258 | 31.45x |
+| Pass 3 before | 2026-11-18T21:23:35Z | 45 | 1388 | 30.84x |
+| Pass 3 after | 2026-11-18T22:12:22Z | 46 | 1391 | 30.24x |
+
+**The non-overridable filter (`subagent`/`harness-started`) continues to dominate the overridable
+one (`headless/agent`) at every reading, and the ratio is stable, not drifting.** Across all five
+readings the ratio holds in a narrow 30.13x-31.45x band (spread of 1.32, about 4% of the mean).
+This is the first mid-series confirmation that the roughly-30x asymmetry `reports/02` first
+observed from a single reading persists across independent readings taken days apart, under the
+anthropic backend, and across growth in both counters (headless/agent grew 30->46, +53%;
+harness-started grew 904->1391, +54% -- both counters are growing at essentially the same rate,
+which is itself consistent with a stable ratio rather than a coincidence of this particular
+window).
+
+### Daily-cap headroom check (first of the plan's required checks)
+
+**Observed per-run yields across the three real (non-reconstructed-as-zero) extraction runs**:
+Pass 1 = 1208 objects; Pass 2 = 550 objects (partial-failure pass, 34 errors); Pass 3 = 2051
+objects (clean pass). This is a 3.7x range (550 to 2051) across passes of identical chunk count
+(50), confirming per-pass yield is driven by the actual content of the 50 chunks selected that
+day, not by a fixed per-chunk rate.
+
+**No truncation by the daily cap has been observed in any of the three runs.** Each ran to
+completion on all 50 chunks regardless of where the cumulative daily yield stood relative to the
+2000-object cap -- Pass 3 in particular ran its full 50 chunks and finished 51 objects past the
+cap (2051 vs. 2000), with no journal line indicating an early stop or a dropped chunk.
+
+**How many 50-chunk passes a day would admit before the cap truncates one cannot be stated as a
+single number, because no truncation mechanism has been observed at all.** The honest figure, as
+measured so far: a single pass's yield alone has already both stayed comfortably under the cap
+(Pass 2: 550, 27.5% of cap) and exceeded it outright (Pass 3: 2051, 102.6% of cap) -- so the
+answer to "how many passes admit before truncation" ranges from "more than one, if yields stay as
+low as Pass 2's" to "zero, if a pass yields as richly as Pass 3's", and the client does not appear
+to enforce the cap as a stop condition in either case. This variability, not a fixed headroom
+number, is phase 7's actual daily-cap finding so far; a longer series may narrow the range.
+**No pass in the series to date is flagged as cap-truncated**, since no evidence of truncation
+exists to flag.
+
+---
+
+<!-- Phases 4-5 append one Pass-N block each below this line, in the fixed shape documented
      above. Each requires at least 24 hours since the previous pass's timestamp before it may
      run. -->

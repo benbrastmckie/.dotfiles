@@ -1,0 +1,23 @@
+{
+  "phase": 3,
+  "phase_name": "Extraction Pass 3 and First Mid-Series Filter Check",
+  "started_at": "2026-11-18T21:21:52Z",
+  "last_updated": "2026-11-18T22:13:00Z",
+  "objectives": [
+    {"id": 1, "description": "Confirm at least 24 hours since Pass-2 timestamp", "status": "done",
+     "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 2, "description": "Run the pass via systemctl --user start sapience-sync.service, bounded poll, journal read, before/after pair, Pass-3 block appended", "status": "done",
+     "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 3, "description": "Compute and record two-filter ratio at each reading so far", "status": "done",
+     "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 4, "description": "Compute and record daily-cap headroom", "status": "done",
+     "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 5, "description": "Record issue/win via issue-record.sh", "status": "done",
+     "files_touched": []}
+  ],
+  "current_objective": null,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": [],
+  "notes": "Pass 3 completed cleanly: 0 extract errors, 2010 objects staged (40.2/chunk, richest pass yet), 47min 58.5s wall clock (longest run so far, still under the 60-min cap). 'would ingest now' held flat at 134 before and after -- the second consecutive pass with zero visible backlog reduction despite active extraction. The pass's own cumulative daily yield (2051) exceeded the stated 2000-object cap with no evidence of truncation -- all 50 chunks ran to completion regardless. The two-filter ratio (subagent/harness-started vs headless/agent) is stable at 30.13x-31.45x across all 5 coverage readings in the ledger so far, confirming the asymmetry reports/02 first observed from one reading. The dispatch itself arrived ~16 seconds before the 24-hour gate on the Pass-2 timestamp had elapsed; non-gated setup work (reading the plan, checking lock/state files) consumed enough wall time that the gate had cleared before any phase-3 task was attempted."
+}
