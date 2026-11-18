@@ -1,7 +1,7 @@
 # Implementation Plan: Task #139
 
 - **Task**: 139 - Reduce or accept the Sapience extraction classifier cost now that extraction is metered
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 4 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/139_reduce_sapience_classifier_cost/reports/01_reduce-classifier-cost.md

@@ -1,17 +1,68 @@
 {
-  "status": "in_progress",
-  "started_at": "2026-11-18T00:00:00Z",
-  "artifacts": [],
-  "partial_progress": {
-    "stage": "initializing",
-    "details": "Agent started, beginning phase 1 of 4-phase plan",
-    "phases_completed": 0,
-    "phases_total": 4
+  "status": "implemented",
+  "summary": "Added programs.sapience.sessionClassifier, exporting the vendor's NO_CLASSIFY=1 switch, wired into both module trees (modules/home/services/sapience.nix at default false, packages/sapience-flake at default true/vendor-matching), with a classifier-aware progress ticker in both. Applied via home-manager switch and recorded the measured per-pass cost shape in docs/sapience.md as settled fact.",
+  "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/139_reduce_sapience_classifier_cost/summaries/01_reduce-classifier-cost-summary.md",
+      "summary": "Implementation summary covering all 4 phases, decisions, deviations, and verification evidence."
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Implemented the NO_CLASSIFY=1 lever as a new programs.sapience.sessionClassifier module option in both sapience trees (dotfiles module default false, standalone flake default true), with a classifier-aware ticker, applied the change live via home-manager switch, and recorded the measured per-pass cost shape (classifier dominates roughly the first 20 of 29 minutes per pass; the classify-eligible backlog holds flat at 136 and does not drain) in docs/sapience.md as settled fact."
   },
+  "modified_files": [
+    "docs/sapience.md",
+    "modules/home/services/sapience.nix",
+    "packages/sapience-flake/README.md",
+    "packages/sapience-flake/checks/default.nix",
+    "packages/sapience-flake/flake.nix",
+    "packages/sapience-flake/lib/wrappers.nix",
+    "packages/sapience-flake/modules/sapience.nix",
+    "specs/139_reduce_sapience_classifier_cost/summaries/01_reduce-classifier-cost-summary.md"
+  ],
   "metadata": {
     "session_id": "sess_1795042143_9ae6ed",
     "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"]
-  }
+    "delegation_path": [
+      "orchestrator",
+      "implement",
+      "nix-implementation-agent"
+    ],
+    "phases_completed": 4,
+    "phases_total": 4
+  },
+  "sapience_notes": [
+    {
+      "subject": "Sapience classifier-cost reduction lever choice",
+      "predicate": "decision is",
+      "value": "NO_CLASSIFY=1 via a new module option, not verdict caching across runs -- verdict caching would require patching the vendor's self-updating ~/.sapience/extract_local.py payload, which sapience update's daily auto_update() silently overwrites within a day."
+    },
+    {
+      "subject": "Sapience extraction classifier wall-clock cost",
+      "predicate": "measured fact is",
+      "value": "A real extraction pass on the anthropic backend spent roughly the first 20 of 29 total wall-clock minutes in the work/personal classifier phase (71 sources extracted, 1208 knowledge objects staged, only 3.5s of CPU total, entirely network-bound). A fresh sapience coverage reading on 2026-11-18 held flat at 136 ('would ingest now') both before and after applying a classifier-disabling fix, confirming the classify-eligible backlog does not self-drain."
+    },
+    {
+      "subject": "Nix-generated shell script comment vs grep-based built-artifact verification",
+      "predicate": "constraint is",
+      "value": "A prose comment inside a Nix-generated shell script that contains the exact literal string a later grep-based built-artifact check searches for (e.g. 'NO_CLASSIFY=1') is counted by that grep exactly like a real export statement, silently inflating an 'exactly N occurrences' check. Avoid reusing the literal searched string in nearby prose."
+    },
+    {
+      "subject": "GitHub-flavored-markdown anchor generation for a slash in a heading",
+      "predicate": "correction is",
+      "value": "GFM anchor generation strips a slash entirely rather than converting it to a hyphen. A heading like '### The work/personal classifier is off' renders as anchor '#the-workpersonal-classifier-is-off', not '#the-work-personal-classifier-is-off'."
+    },
+    {
+      "subject": "dotfiles repo shell-test-battery baseline staleness",
+      "predicate": "measured fact is",
+      "value": "test-lint-state-writer-boundary.sh, failing in a measured baseline sweep of this repo's shell test battery recorded on 2026-11-18, passed cleanly (27 passed, 0 failed) when re-run directly later the same day -- an unrelated fix landed between the two measurements, illustrating how quickly a recorded test-suite baseline here can go stale."
+    },
+    {
+      "subject": "Sapience parallel module-tree vendor-toggle convention",
+      "predicate": "pattern is",
+      "value": "This repository mirrors a vendor env-var toggle across its two hand-maintained parallel Sapience module trees (modules/home/services/sapience.nix, the live machine config, and packages/sapience-flake, the published standalone flake) using the identical option name in both but DIFFERENT defaults -- the published flake matches the vendor default, the dotfiles module flips it with a machine-specific measured rationale in the option description. memoryFiles/NO_MEMFILES established this; sessionClassifier/NO_CLASSIFY now follows it."
+    }
+  ]
 }

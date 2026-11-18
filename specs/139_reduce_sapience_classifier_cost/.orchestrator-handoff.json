@@ -1,15 +1,16 @@
 {
-  "status": "planned",
-  "dispatch_seq": 20,
-  "phases_completed": 0,
+  "status": "implemented",
+  "dispatch_seq": 21,
+  "phase": "implement",
+  "phases_completed": 4,
   "phases_total": 4,
-  "summary": "Wrote a 4-phase, 4-hour plan implementing the research's recommended lever: a new programs.sapience.sessionClassifier boolean exporting the vendor's NO_CLASSIFY=1 at all four client invocation sites, default false in modules/home/services/sapience.nix (flipping the vendor default on this machine's measured near-zero hit rate) and default true in the published packages/sapience-flake tree, plus a classifier-aware progress ticker and a docs/sapience.md Cost shape measurement record. Verdict caching is rejected in the plan's Decisions section as a vendor-payload patch the daily auto-update silently undoes. Plan-time measurement found the repo's full shell battery already red with 13 pre-existing suite failures unrelated to this task, so the baseline is enumerated in the plan and the final full-tier phase compares a delta rather than demanding an unobtainable all-green.",
+  "summary": "Added programs.sapience.sessionClassifier, exporting the vendor's NO_CLASSIFY=1 switch, wired into both sapience module trees (dotfiles module default false, published packages/sapience-flake default true), with a classifier-aware progress ticker in both. Applied the change live via home-manager switch and recorded the measured per-pass cost shape (classifier dominates roughly the first 20 of 29 minutes per pass; the backlog holds flat at 136 and does not drain) in docs/sapience.md as settled fact. The complete repository gate set was deferred to the batch stage per this dispatch's own Batch Gate Deferral directive; the scoped verify-touched.sh discharge returned one suite better than the recorded baseline.",
   "blockers": [],
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/139_reduce_sapience_classifier_cost/plans/01_reduce-classifier-cost.md",
-      "summary": "4-phase plan wiring a NO_CLASSIFY=1 module option into both sapience module trees and recording the measured per-pass cost in docs/sapience.md."
+      "type": "summary",
+      "path": "specs/139_reduce_sapience_classifier_cost/summaries/01_reduce-classifier-cost-summary.md",
+      "summary": "Implementation summary covering all 4 phases, decisions, deviations, and verification evidence."
     }
   ]
 }
