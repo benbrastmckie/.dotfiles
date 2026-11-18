@@ -1,0 +1,15 @@
+{
+  "status": "planned",
+  "dispatch_seq": 20,
+  "phases_completed": 0,
+  "phases_total": 4,
+  "summary": "Wrote a 4-phase, 4-hour plan implementing the research's recommended lever: a new programs.sapience.sessionClassifier boolean exporting the vendor's NO_CLASSIFY=1 at all four client invocation sites, default false in modules/home/services/sapience.nix (flipping the vendor default on this machine's measured near-zero hit rate) and default true in the published packages/sapience-flake tree, plus a classifier-aware progress ticker and a docs/sapience.md Cost shape measurement record. Verdict caching is rejected in the plan's Decisions section as a vendor-payload patch the daily auto-update silently undoes. Plan-time measurement found the repo's full shell battery already red with 13 pre-existing suite failures unrelated to this task, so the baseline is enumerated in the plan and the final full-tier phase compares a delta rather than demanding an unobtainable all-green.",
+  "blockers": [],
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/139_reduce_sapience_classifier_cost/plans/01_reduce-classifier-cost.md",
+      "summary": "4-phase plan wiring a NO_CLASSIFY=1 module option into both sapience module trees and recording the measured per-pass cost in docs/sapience.md."
+    }
+  ]
+}
