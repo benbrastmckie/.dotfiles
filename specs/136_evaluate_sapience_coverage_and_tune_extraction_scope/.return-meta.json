@@ -1,8 +1,116 @@
 {
-  "status": "in_progress",
+  "status": "implemented",
+  "dispatch_seq": 18,
+  "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/summaries/03_extraction-scope-decision-summary.md",
+      "summary": "Completion summary: series closed at three real passes plus a read-only accrual sample and vault audit; decision selects leaving all three candidate levers unchanged, grounded in the measured figures."
+    },
+    {
+      "type": "record",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
+      "summary": "Measurement ledger: Phase 4 appended the no-fourth-pass decision, a read-only accrual sample, and the series-wide computations (queue growth, accrual rate, filter ratio, completeness check, stated limitations)."
+    },
+    {
+      "type": "record",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/02_vault-content-audit.md",
+      "summary": "New: read-only profile and 36-record hand-read classification of the pending_kos.jsonl queue, cross-checked against the client's own mechanics filter."
+    },
+    {
+      "type": "record",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md",
+      "summary": "New: decision on all four candidate outcomes, every figure citing a dated ledger/audit block, with a ten-item limitations section."
+    },
+    {
+      "type": "plan",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/03_single-sitting-decision-from-ledger.md",
+      "summary": "Phases 4-7 executed and checked off; Phase 7 closed COMPLETED WITH EXCLUSIONS (decision selected no configuration change); Testing & Validation checklist fully checked."
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Closed the Sapience extraction measurement series at three real passes plus a read-only accrual sample and vault-content audit, then decided all four candidate outcomes from the recorded figures: adding includeAgentSessions, adjusting the chunk cap/backfill, and turning on backgroundSync were each rejected on measured grounds, and leaving the current manual, 50-chunk, no-timer arrangement unchanged was selected. No configuration file was modified; Phase 7 closed COMPLETED WITH EXCLUSIONS naming the decision record as the reason."
+  },
+  "modified_files": [
+    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/03_single-sitting-decision-from-ledger.md",
+    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
+    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/02_vault-content-audit.md",
+    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md",
+    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/summaries/03_extraction-scope-decision-summary.md"
+  ],
+  "memory_candidates": [
+    {
+      "content": "verify-touched.sh, run against touched paths confined to specs/** in a deploy-consumer repo (no agent-system/ present), falls into its OWED/full-sweep fallback (no suite maps to specs/** paths) and runs the complete run-all.sh test battery. This surfaces pre-existing 'mode=source-store' test failures (missing agent-system/extensions/core/scripts/*.sh) that are structural to this repo and unrelated to the touched paths -- pass --task-dir to get the owed paths durably recorded, and expect this fallback whenever a dispatch's only touched files are under specs/**.",
+      "category": "PATTERN",
+      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/summaries/03_extraction-scope-decision-summary.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["verify-touched.sh", "OWED fallback", "source-store-only tests", "deploy-consumer repo", "full-sweep"]
+    },
+    {
+      "content": "Sapience's sapience pending counter (the unreviewed-review queue) only ever changes during an extraction pass; across every inter-pass reading in a 6-day, 6-reading measurement series it stayed perfectly flat with no organic growth. This makes 'pending' a reliable signal of pass-driven staging alone, decoupled from Available-on-disk's continuous transcript accrual.",
+      "category": "INSIGHT",
+      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["sapience", "pending queue", "review backlog", "extraction pass", "accrual"]
+    },
+    {
+      "content": "Sapience's non-overridable subagent/harness-started transcript filter removes roughly 30x more than its overridable headless/agent filter, stable in a narrow 30.13x-31.45x band across 6 independent coverage readings taken days apart on an orchestration-heavy workflow. SAPIENCE_INCLUDE_HEADLESS=1 cannot touch the dominant filter at all, so widening that one override has limited effect on total coverage.",
+      "category": "INSIGHT",
+      "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
+      "confidence": 0.85,
+      "suggested_keywords": ["sapience", "source_skip", "headless filter", "coverage ratio", "orchestration transcripts"]
+    }
+  ],
+  "sapience_notes": [
+    {
+      "subject": "Sapience pending-queue growth mechanism",
+      "predicate": "finding is",
+      "value": "sapience pending only changes when an extraction pass runs; it stays perfectly flat between passes with zero organic growth, confirmed across 6 readings spanning 6 days in a dedicated measurement series on this machine.",
+      "confidence": 0.9
+    },
+    {
+      "subject": "Sapience two-filter asymmetry",
+      "predicate": "measured fact is",
+      "value": "The non-overridable subagent/harness-started filter removes roughly 30x more transcripts than the overridable headless/agent filter, stable in a 30.13x-31.45x band across 6 independent coverage readings on this machine's orchestration-heavy workflow.",
+      "confidence": 0.9
+    },
+    {
+      "subject": "Sapience MAX_CHUNKS throughput and daily cap",
+      "predicate": "measured fact is",
+      "value": "MAX_CHUNKS=50 is not a wall-clock bottleneck (three real passes ran 22-48 minutes each on the anthropic backend), and the daily 2000-object cap does not truncate a run -- one pass staged 2051 objects past the cap with no early stop or dropped chunk observed in the journal.",
+      "confidence": 0.9
+    },
+    {
+      "subject": "Sapience per-pass cost signal",
+      "predicate": "constraint is",
+      "value": "No per-pass dollar or token cost figure is exposed anywhere in the sapience client's own output (stats, coverage, or the systemd journal) on the anthropic backend; only wall clock and CPU time are available, confirmed across three independent extraction passes.",
+      "confidence": 0.85
+    },
+    {
+      "subject": "Sapience vault ko_type homogenization",
+      "predicate": "finding is",
+      "value": "Every one of 3757 records in a sampled pending_kos.jsonl queue carried ko_type: insight with no other value ever observed, so the client's storage format preserves no categorical distinction between decisions, measured facts, corrections, and constraints at staging time.",
+      "confidence": 0.85
+    },
+    {
+      "subject": "Sapience folder-selection anomaly for abood",
+      "predicate": "finding is",
+      "value": "Despite abood being one of four folders selected for capture, zero records attributed to the abood project appeared anywhere in a 3757-record pending queue across a full measurement series -- cause unestablished.",
+      "confidence": 0.75
+    },
+    {
+      "subject": "verify-touched.sh OWED fallback on specs-only touched paths",
+      "predicate": "constraint is",
+      "value": "Running verify-touched.sh with touched paths confined to specs/** triggers its OWED/full-sweep fallback (no suite maps to specs/** paths), which runs the complete run-all.sh test battery and can surface pre-existing source-store-only test failures in a repository that lacks agent-system/ entirely (a deploy-consumer repo).",
+      "confidence": 0.8
+    }
+  ],
   "metadata": {
     "session_id": "sess_1795042143_9ae6ed",
     "agent_type": "general-implementation-agent",
-    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"]
+    "delegation_depth": 2,
+    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
+    "phases_completed": 7,
+    "phases_total": 7
   }
 }

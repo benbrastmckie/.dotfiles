@@ -1,15 +1,35 @@
 {
-  "status": "partial",
-  "dispatch_seq": 17,
-  "summary": "No new phase work: re-verified live that Phase 4's 24-hour-since-Pass-3 gate (Pass 3 after-reading at 2026-11-18T22:12:22Z) has not elapsed -- only ~5 minutes had passed at dispatch start. Per the plan's own instruction, Phase 4 was left at [NOT STARTED] and no pass was run. This is the fourth premature re-dispatch against this task's calendar-spaced series (after dispatch seq 9, 12, 14). Next legitimate re-dispatch not before approximately 2026-11-19T22:12:22Z.",
-  "phases_completed": 3,
-  "phases_total": 8,
+  "status": "implemented",
+  "dispatch_seq": 18,
+  "summary": "Executed phases 4-7 of the revised plan in one sitting: closed the measurement series at the three real passes already recorded, added a read-only accrual sample and vault-content audit, and decided all four candidate outcomes from the measured figures -- leaving the current manual, 50-chunk, no-timer arrangement unchanged (outcomes (a)/(b)/(c) each rejected on measured grounds). No configuration file was modified; Phase 7 closed COMPLETED WITH EXCLUSIONS naming the decision record as the reason. All 7 phases are now COMPLETED or COMPLETED WITH EXCLUSIONS.",
+  "phases_completed": 7,
+  "phases_total": 7,
   "blockers": [],
   "artifacts": [
     {
+      "type": "summary",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/summaries/03_extraction-scope-decision-summary.md",
+      "summary": "Completion summary for the full task."
+    },
+    {
       "type": "record",
       "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
-      "summary": "Measurement ledger, unchanged this dispatch: last entry is the Pass-3 block plus mid-series filter-ratio and daily-cap-headroom checks."
+      "summary": "Measurement ledger, updated this dispatch: Phase 4 appended the no-fourth-pass decision, a read-only accrual sample, and the series-wide computations."
+    },
+    {
+      "type": "record",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/02_vault-content-audit.md",
+      "summary": "New this dispatch: read-only vault-content audit (queue profile plus 36-record hand-read classification)."
+    },
+    {
+      "type": "record",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md",
+      "summary": "New this dispatch: the decision on all four candidate outcomes, grounded in the recorded figures."
+    },
+    {
+      "type": "plan",
+      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/03_single-sitting-decision-from-ledger.md",
+      "summary": "All 7 phases closed; Testing & Validation checklist fully checked."
     }
   ]
 }
