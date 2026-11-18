@@ -902,6 +902,27 @@ in
       ++ lib.optional (cfg.sourceDirs != [ ]) sapienceAddDirSources;
 
       activation = {
+        # Reports (never blocks) a vendor-written ~/.sapience hook that slipped into
+        # ~/.claude/settings.json since the last switch -- see scripts/check-sapience-hooks.sh
+        # for the detection signature. Declared entryBefore [ "claudeSettings" ], NOT entryAfter
+        # it, because that entry (modules/home/core/dotfiles.nix) lists `hooks` in its own
+        # enforced-key jq merge and resets it from the repo source on every switch: a guard
+        # ordered after it would always read an already-cleaned file and could never observe an
+        # injection, making it dead code that looks like a working check. Ordered before it, this
+        # guard sees the live pre-merge state and prints a loud report; claudeSettings then
+        # strips the injection in the same switch regardless, so detection and repair both happen
+        # in one pass. Deliberately non-fatal here -- a hard-failing exit lives only in the
+        # standalone invocation (`bash scripts/check-sapience-hooks.sh`), which cannot brick a
+        # switch; see docs/sapience.md.
+        sapienceHooksGuard = config.lib.dag.entryBefore [ "claudeSettings" ] ''
+          if [[ -v DRY_RUN ]]; then
+            echo "Would check ${config.home.homeDirectory}/.claude/settings.json for a ~/.sapience injection hook"
+          else
+            $DRY_RUN_CMD bash ${../../../scripts/check-sapience-hooks.sh} \
+              "${config.home.homeDirectory}/.claude/settings.json" --quiet-ok || true
+          fi
+        '';
+
         # Seed only what is absent -- see the MUTABLE STATE note in this file's header. A failed
         # fetch is reported and skipped, never fatal: activation must not break on a vendor
         # outage, and sapience-bootstrap / `sapience update` can always complete the set later.

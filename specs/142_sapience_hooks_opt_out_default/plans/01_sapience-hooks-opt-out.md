@@ -242,7 +242,7 @@ expressions.
 
 ---
 
-### Phase 2: Add the vendor-hook-injection detector and wire it into activation [NOT STARTED]
+### Phase 2: Add the vendor-hook-injection detector and wire it into activation [COMPLETED]
 
 **Goal**: a single repo-tracked script detects any `~/.sapience` injection hook in
 `~/.claude/settings.json`, exits non-zero standalone, and is invoked loudly but non-fatally at
@@ -250,27 +250,27 @@ activation *before* the enforced-key merge can hide the evidence.
 
 **Tasks**:
 
-- [ ] Create `scripts/check-sapience-hooks.sh`. It reads `~/.claude/settings.json` (path
+- [x] Create `scripts/check-sapience-hooks.sh`. It reads `~/.claude/settings.json` (path
       overridable by a first positional argument, so the phase can test it against a fixture),
       flattens the command strings under `hooks.SessionStart`, `hooks.SessionEnd` and
       `hooks.Stop`, and reports every entry whose command contains `.sapience/mcp.py` **and** one
       of `--briefing-text`, `--receipt`, `--effect-line`.
-- [ ] Make the script's failure output name each offending event, the offending command string,
+- [x] Make the script's failure output name each offending event, the offending command string,
       and the remedy: remove the entry by hand, confirm `~/.sapience/config.json` holds
       `"hooks": false`, and re-run `home-manager switch`.
-- [ ] Give the script defined behavior on the edge cases: missing file, unparseable JSON, and a
+- [x] Give the script defined behavior on the edge cases: missing file, unparseable JSON, and a
       missing `hooks` key must all exit `0` with a short note (absence of the file is not an
       injection), and only a positive match exits `1`.
-- [ ] Add a `--quiet-ok` (or equivalent) mode that prints nothing on a clean result, for the
+- [x] Add a `--quiet-ok` (or equivalent) mode that prints nothing on a clean result, for the
       activation call site, while the standalone call prints a one-line confirmation.
-- [ ] In `modules/home/services/sapience.nix`, add a `sapienceHooksGuard` entry to
+- [x] In `modules/home/services/sapience.nix`, add a `sapienceHooksGuard` entry to
       `home.activation`, declared `config.lib.dag.entryBefore [ "claudeSettings" ]` per Decision
       3, which runs the script via a Nix path reference (so one implementation serves both call
       sites) and is non-fatal per Decision 4 — a detection prints the script's banner and
       activation continues, so the same switch's `claudeSettings` still strips the injection.
-- [ ] Guard the activation entry with the `[[ -v DRY_RUN ]]` / `$DRY_RUN_CMD` convention the
+- [x] Guard the activation entry with the `[[ -v DRY_RUN ]]` / `$DRY_RUN_CMD` convention the
       sibling entries in this file already use, printing a "Would check ..." line under dry run.
-- [ ] Add a comment on the new entry recording *why* it is ordered before `claudeSettings`: that
+- [x] Add a comment on the new entry recording *why* it is ordered before `claudeSettings`: that
       entry resets `hooks` as an enforced key, so a guard running after it would inspect an
       already-cleaned file and could never fire.
 
