@@ -1077,10 +1077,8 @@
         "modules/home/services/sapience.nix",
         "scripts/check-sapience-hooks.sh"
       ],
-      "dependencies": [
-        136
-      ],
-      "roadmap_annotation": "blocked only by the parked measurement; that edge serializes shared sapience.nix/home.nix territory, not a content dependency"
+      "dependencies": [],
+      "roadmap_annotation": "dispatchable: the serialization edge behind the coverage measurement was lifted by owner decision, the plan consuming none of it. Shares docs/sapience.md and modules/home/services/sapience.nix with the rest of the sapience cluster, so sequence rather than co-dispatch on that territory"
     },
     {
       "project_number": 141,

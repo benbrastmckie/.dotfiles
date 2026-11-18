@@ -98,8 +98,8 @@ Why this order:
 **Sapience (4)**
 ```
 139 blocked:136     reduce_sapience_classifier_cost   <- needs 136's measured backlog; not attendable while 136 is parked
-142 blocked:136     Default the Sapience config hooks opt-out to false so the vendor updater stop...   <- blocked only by the parked measurement; that edge serializes shared sapience.nix/home.nix territory, not a content dependency
 141 ready           prevent_sapience_hook_reinjection   <- owns the claudeSettings strip and the enforced-key fix; adopt 142's plan Phase 2 detector siting rather than building a second one
+142 ready           Default the Sapience config hooks opt-out to false so the vendor updater stop...   <- dispatchable: the serialization edge behind the coverage measurement was lifted by owner decision, the plan consuming none of it. Shares docs/sapience.md and modules/home/services/sapience.nix with the rest of the sapience cluster, so sequence rather than co-dispatch on that territory
 144 ready           sapience_fresh_machine_declarative_gaps
 ```
 The packaging pair (41, 42) is waiting on upstream nixpkgs fixes rather than on anything in this repository, so neither appears in a batch above.
