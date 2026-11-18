@@ -85,12 +85,12 @@
       "project_number": 142,
       "project_name": "sapience_hooks_opt_out_default",
       "title": "Default the Sapience config hooks opt-out to false so the vendor updater stops wiring machine-wide hooks",
-      "status": "planned",
+      "status": "implementing",
       "task_type": "nix",
       "description": "Stop the Sapience vendor updater from wiring machine-wide Claude Code hooks: default ~/.sapience/config.json \"hooks\" to false in modules/home/services/sapience.nix and preserve an explicit false across activation.\n\nMEASURED EVIDENCE (2026-11-14). ~/.claude/settings.json carried three vendor-written user-level hooks -- SessionStart `python3 ~/.sapience/mcp.py --briefing-text`, SessionEnd `--receipt`, Stop `--effect-line` -- which are absent from config/claude/settings.json. They are written by ~/.sapience/sapience_upkeep.py's wire_hooks() on its daily auto-update whenever config.json's \"hooks\" is not false (hooks_opted_out()). `hooks` being a home-manager enforced key only strips them at the next switch; the updater re-adds them within a day. Effect: every repository on the machine, whether or not it loads the sapience extension, received the unfiltered cross-project SessionStart briefing, and extension repositories received it twice (once from their own merged settings.local.json). The per-repository design stated in config/claude/settings.json's _SAPIENCE_NOTE and sapience.nix's own header comments is therefore not what the machine does. The three entries were removed by hand and config.json set to \"hooks\": false on 2026-11-14 (backups: ~/.claude/settings.json.bak-*, ~/.sapience/config.json.bak-*), but sapience.nix's activation merge uses `.hooks = (.hooks // true)` (near line 324) -- jq's `//` treats false as absent, so the next activation resets the opt-out to true -- and the first-run mint (near line 331) writes `hooks: true`.\n\nGOAL. (1) Both sites write/keep \"hooks\": false (use an explicit null test, not `//`, so an existing value is preserved; decide whether false is forced or only defaulted, and say why). (2) Confirm against the vendor client that \"hooks\": false does not disable the per-repository hooks the sapience extension merges (sapience_cli.py `hook prompt` / `hook tool`, mcp.py --briefing-text/--receipt/--effect-line invoked from a repository's own settings.local.json) -- it should only stop the updater touching ~/.claude/settings.json and the CLI auto-on probe. (3) Add an activation-time or verification check that fails loudly if ~/.claude/settings.json carries any ~/.sapience injection hook. (4) Rebuild, then verify after a forced `sapience_upkeep.py --update` that no user-level hook reappears. (5) Update docs/sapience.md and the sapience.nix comments to state the resulting design. Companion: the nvim agent-system repository carries the extension-side verifier/doc task (sapience_activation_surface_scoping_gaps).",
       "topic": "sapience",
       "created": "2026-11-15T07:05:58Z",
-      "last_updated": "2026-11-17T20:48:59Z",
+      "last_updated": "2026-11-18T18:50:19Z",
       "audit_verdict": {
         "proposal": {
           "id": "sapience_hooks_opt_out_default",
@@ -1056,7 +1056,7 @@
           "scope-blind: project 109 (serialized_group_scoped_mail_sync_wrapper) declares no file_scope -- judged on the semantic shortlist alone"
         ]
       },
-      "session_id": "sess_1794947737_801e84",
+      "session_id": "sess_1795027105_555221",
       "artifacts": [
         {
           "path": "specs/142_sapience_hooks_opt_out_default/reports/01_sapience_hooks_opt_out.md",

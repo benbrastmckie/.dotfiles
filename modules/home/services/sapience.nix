@@ -316,19 +316,25 @@ let
       if [ -f "${configFile}" ]; then
         # Preserve the folder selection, capture map and auto_approve choice when only the token
         # was wrong; a fresh object would silently discard the onboarding work.
+        # `hooks` uses an explicit null test rather than `//`: `//` returns its right-hand side
+        # for an explicit `false` as well as for absent/null, which would silently reset a
+        # deliberate "hooks": false opt-out back to true on every re-bootstrap. `auto_approve`
+        # keeps `//` because its default and its only value worth preserving are both `false`,
+        # so the two operators are behaviourally identical there today -- do not change it.
         ${pkgs.jq}/bin/jq \
           --arg token "$TOKEN" \
           --arg backend "${cfg.backend}" \
           --arg host "${cfg.host}" \
           '.token = $token | .backend = $backend | .host = $host
-           | .auto_approve = (.auto_approve // false) | .hooks = (.hooks // true)' \
+           | .auto_approve = (.auto_approve // false)
+           | .hooks = (if .hooks == null then false else .hooks end)' \
           "${configFile}" > "$tmp"
       else
         ${pkgs.jq}/bin/jq -n \
           --arg token "$TOKEN" \
           --arg backend "${cfg.backend}" \
           --arg host "${cfg.host}" \
-          '{token: $token, backend: $backend, host: $host, auto_approve: false, hooks: true}' \
+          '{token: $token, backend: $backend, host: $host, auto_approve: false, hooks: false}' \
           > "$tmp"
       fi
       mv "$tmp" "${configFile}"

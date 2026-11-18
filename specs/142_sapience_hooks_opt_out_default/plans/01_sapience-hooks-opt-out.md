@@ -1,7 +1,7 @@
 # Implementation Plan: Sapience Hooks Opt-Out Default
 
 - **Task**: 142 - Stop the Sapience vendor updater from wiring machine-wide Claude Code hooks
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 3.25 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/142_sapience_hooks_opt_out_default/reports/01_sapience_hooks_opt_out.md
@@ -177,29 +177,29 @@ Phases within the same wave can execute in parallel. This plan is fully sequenti
 and 3 all edit `modules/home/services/sapience.nix`, so they are serialized to avoid concurrent
 edits to one file rather than because of a logical data dependency.
 
-### Phase 1: Correct both `config.json` "hooks" write sites [NOT STARTED]
+### Phase 1: Correct both `config.json` "hooks" write sites [COMPLETED]
 
 **Goal**: `sapienceBootstrap` defaults `"hooks"` to `false` at both write sites and preserves an
 explicit value of either polarity.
 
 **Tasks**:
 
-- [ ] Locate the re-bootstrap merge site in `modules/home/services/sapience.nix` (inside
+- [x] Locate the re-bootstrap merge site in `modules/home/services/sapience.nix` (inside
       `sapienceBootstrap`, in the `if [ -f "${configFile}" ]` branch). Its current jq program is
       `'.token = $token | .backend = $backend | .host = $host | .auto_approve = (.auto_approve // false) | .hooks = (.hooks // true)'`.
-- [ ] Replace that program's final clause with
+- [x] Replace that program's final clause with
       `.hooks = (if .hooks == null then false else .hooks end)`, leaving the `.token`,
       `.backend`, `.host` and `.auto_approve` clauses byte-identical.
-- [ ] Locate the first-run mint site (the `else` branch's `jq -n` object literal) and change
+- [x] Locate the first-run mint site (the `else` branch's `jq -n` object literal) and change
       `hooks: true` to `hooks: false`, leaving `auto_approve: false` and the three `$`-args
       untouched.
-- [ ] Add a comment at the merge site stating why `hooks` uses an explicit null test while the
+- [x] Add a comment at the merge site stating why `hooks` uses an explicit null test while the
       adjacent `auto_approve` keeps `//`: `//` returns its right-hand side for `false` as well
       as `null`, which would silently reset a deliberate `"hooks": false` opt-out; for
       `auto_approve` the default and the only value worth preserving are both `false`, so the
       distinction has no observable effect there today. Do not change the `auto_approve`
       expression.
-- [ ] Confirm by grep that no other expression anywhere in `modules/` writes `config.json`'s
+- [x] Confirm by grep that no other expression anywhere in `modules/` writes `config.json`'s
       `hooks` key (expected: the two sites above only; `sapienceTokenRepair` writes `.token`,
       `sapienceApiKey` writes `.api_key`/`.api_key_env`).
 

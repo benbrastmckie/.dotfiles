@@ -56,7 +56,7 @@ next_project_number: 145
 
 ### Sapience
 
-142 [PLANNED] — Default the Sapience config hooks opt-out to false so the...
+142 [IMPLEMENTING] — Default the Sapience config hooks opt-out to false so the...
   └─ 141 [RESEARCHED] — GOAL. Close the recurrence gap left by task 138. That task...
   └─ 144 [NOT STARTED] — GOAL: close the three remaining hand steps between a fresh...
 139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
@@ -140,7 +140,7 @@ GOAL. (1) Decide and implement where coalesce_s/net_timeout_s are declared durab
 ---
 
 ### 142. Default the Sapience config hooks opt-out to false so the vendor updater stops wiring machine-wide hooks
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: sapience
 - **Dependencies**: None
