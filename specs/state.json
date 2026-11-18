@@ -1079,7 +1079,8 @@
       ],
       "dependencies": [
         136
-      ]
+      ],
+      "roadmap_annotation": "blocked only by the parked measurement; that edge serializes shared sapience.nix/home.nix territory, not a content dependency"
     },
     {
       "project_number": 141,
@@ -2047,7 +2048,8 @@
           "scope-blind: project 71 (design_ai_email_management_workflow) declares no file_scope -- judged on the semantic shortlist alone",
           "scope-blind: project 109 (serialized_group_scoped_mail_sync_wrapper) declares no file_scope -- judged on the semantic shortlist alone"
         ]
-      }
+      },
+      "roadmap_annotation": "owns the claudeSettings strip and the enforced-key fix; adopt 142's plan Phase 2 detector siting rather than building a second one"
     },
     {
       "project_number": 140,
@@ -3823,10 +3825,20 @@
   "roadmap_batches": [
     {
       "task_ids": [
-        140
+        141,
+        144,
+        142
       ],
-      "description": "Decide whether local CPU inference can replace the metered Sapience extraction path",
-      "rationale": "This leads because it is the only open Sapience task that can actually be picked up right now. The coverage measurement is parked, and 140 is the sole member of the Sapience cluster with an empty dependencies[] -- it sits in wave 1 on its own merits, not behind the parked measurement, so nothing about parking that measurement delays it. Its subject is also the live cost: extraction runs against a metered third-party key precisely because local inference measured 0.66 tokens per second on this hardware, so a diagnosis here is what decides whether the per-call cost and the off-machine transcript chunks stay permanent or go away. It runs alone rather than alongside the rest of the cluster for a reason that is mechanical, not stylistic: the two tasks sharing docs/sapience.md and home.nix with it (136 and 139) are both standing down, so the shared file territory that would normally force co-batching carries no concurrent-edit hazard while they are not dispatching. 140's verdict is additionally an input 139 already names as a predecessor, so taking it now keeps the cluster moving while the measurement is paused rather than idling the whole topic."
+      "description": "Make the Sapience client declarative and stop the vendor re-wiring its machine-wide hooks",
+      "rationale": "Sapience leads this list now, and two of this batch's three members can genuinely be picked up today: 141 and 144 both carry an empty dependencies[] and sit in wave 1 on their own merits. 141 opens the batch because it is the convergence-and-detection half of the hook problem and because its scope (a) and (b) are the only work in the whole Sapience cluster that touches modules/home/core/dotfiles.nix -- the claudeSettings activation entry and its enforced-key list -- which 142's already-written plan explicitly declares out of its own scope. 144 follows: its three gaps (a sops-backed tokenFile, the sourceDirs registration decision, declarative lingering) are independent of the hook problem, and its own text already instructs the implementer to coordinate rather than duplicate should it reach the same activation entry; co-batching is what makes that instruction checkable instead of aspirational. 142 is listed last and wave dispatch will skip it until its recorded predecessor clears -- it stays in the batch regardless, because an unmet predecessor is an ordering constraint, never grounds for dropping a member, and because it shares docs/sapience.md and modules/home/services/sapience.nix with 144.\n\nTwo exclusions here are deliberate rather than overlooked, and are stated because a bare exclusion is indistinguishable from an oversight. First, no dependency edge is added between 141 and 142, even though 142's plan Phase 2 builds scripts/check-sapience-hooks.sh -- precisely the between-activations detector 141's own scope (c) still treats as an open siting question. The substantively correct direction would be 141-after-142, since 142's plan has already answered that siting question (detector in this repository, wired entryBefore [\"claudeSettings\"] so it reads live pre-merge state); but wiring that edge would park the one dispatchable task in this cluster behind 142, which is itself parked behind an owner-parked measurement. The ordering is therefore carried here in prose instead of in the graph: whoever takes 141 must read 142's plan Phase 2 and adopt its siting decision rather than build a second detector. Second, no edge is added between 144 and 142, 139 or 136 despite all four declaring docs/sapience.md, home.nix and modules/home/services/sapience.nix, for the same reason -- every would-be predecessor in that set is stalled behind the parked measurement, and an edge there would park dispatchable work behind something no task in this system can unblock."
+    },
+    {
+      "task_ids": [
+        136,
+        139
+      ],
+      "description": "Parked: resume the coverage measurement, then settle the classifier cost it prices",
+      "rationale": "This pair sits second rather than first because neither member is attendable, and it is kept as a batch rather than dissolved so that neither task gets auto-suggested as ready work without this context attached. 136 is parked at the owner's request. Its status is deliberately unchanged -- it remains IMPLEMENTING, not held and not abandoned -- because parking here is an ordering signal about what to pick up next, not a lifecycle transition; its own shape already resists dispatch, since it is a series of five or more hand-run extraction passes spaced across more than a week, not something a single run can discharge. 139 is not merely sequenced after 136 by judgment, it is blocked behind it in the live graph, and that edge is kept rather than relaxed to make the batch look more actionable: 139's three levers -- NO_CLASSIFY=1, caching classifier verdicts the way source_skip verdicts are already cached, or accepting and documenting the cost -- can only be weighed against a measured backlog denominator that only 136 produces. 139's other recorded predecessor, the local-inference diagnosis, is now discharged, so 136 alone is what holds it.\n\nThis pair also carries the whole cluster's stall, which is why reopening the measurement window is worth more than it looks. 142's own edge onto 136 is the sole reason the lead batch's third member cannot dispatch, and that edge is a shared-territory serialization over docs/sapience.md, home.nix and modules/home/services/sapience.nix rather than a content dependency -- nothing in 142's plan reads a coverage figure or a backlog denominator. Reopening the window therefore unblocks two tasks, not one."
     },
     {
       "task_ids": [
@@ -3846,19 +3858,11 @@
       ],
       "description": "Contain and schedule Claude's own session hygiene on one systemd user-unit surface",
       "rationale": "Both tasks build on the same systemd user-unit surface: 125 contains each Claude session in its own scope and reaps abandoned ones, 131 installs the claude-refresh timer modeled on that same reaper module and makes its mako prompts actionable. Running them together warms one context rather than two. No dependency edge is asserted between them: 131's own text states that its (a), (c) and (d) items can land first, and its only declared predecessor is a sibling task in the nvim repository, so co-membership here is ordering judgment, not evidence of a missing graph edge. One collision to keep visible: 131 item (c) adds a mako criteria section and 77 in the preceding batch also declares modules/home/desktop/mako.nix, so this batch running after that one is the right order -- reconcile the service behavior first, then add notification criteria on top."
-    },
-    {
-      "task_ids": [
-        136,
-        139
-      ],
-      "description": "Parked: resume the coverage measurement, then settle the classifier cost it prices",
-      "rationale": "This batch is listed last because neither member is attendable right now, and it is kept as a batch rather than dissolved so that neither task gets auto-suggested as ready work without this context attached. 136 is parked at the owner's request. Its status is deliberately unchanged -- it remains IMPLEMENTING, not held and not abandoned -- because parking here is an ordering signal about what to pick up next, not a lifecycle transition; its own shape already resists dispatch, since it is a series of five or more hand-run extraction passes spaced across more than a week, not something a single run can discharge. 139 is not merely sequenced after 136 by judgment, it is blocked behind it in the live graph (dependencies [136, 140]), and that edge is kept rather than relaxed to make the batch look more actionable: 139's three levers -- NO_CLASSIFY=1, caching classifier verdicts the way source_skip verdicts are already cached, or accepting and documenting the cost -- can only be weighed against a measured backlog denominator that only 136 produces, and against the inference verdict 140 produces. If 140 finds local inference viable, much of the metered cost 139 exists to reduce dissolves on its own, which is a further reason not to spend 139 ahead of it. When the measurement window reopens, this batch moves back up."
     }
   ],
   "roadmap_notes": {
     "next_preamble": [
-      "Sapience still leads this list, but only the part of it that is actually attendable. Extraction runs against a metered third-party key, so every pass costs money and sends raw transcript chunks off this machine, and the local-inference diagnosis is the one open Sapience task with no unmet predecessor -- it can be picked up today. The coverage measurement is parked for now, and the classifier-cost task is blocked behind it in the dependency graph, so both sit in the last batch rather than at the top; neither is work to pick up this week. Everything between them is ordinary configuration work that is not getting more expensive while it waits."
+      "Every open Sapience task now leads this list, with the part of it that is actually attendable at the very top. The hook-reinjection convergence work and the fresh-machine declarative gaps both have an empty dependencies[] and can be picked up today; the hooks opt-out default rides in the same batch because it shares the detector surface and the sapience.nix territory with them, even though the graph will skip it until the parked measurement clears. That measurement stays parked -- it is five or more hand-run extraction passes spaced across more than a week, not something a dispatch can discharge -- and the classifier-cost task is blocked behind it, so that pair sits second rather than first. Extraction still runs against a metered third-party key, so every pass costs money and sends raw transcript chunks off this machine, which is what makes the declarative and hook-scoping work above worth taking before the configuration work below it. Everything after the Sapience batches is ordinary configuration work that is not getting more expensive while it waits."
     ],
     "open_work_trailer": [
       "The packaging pair (41, 42) is waiting on upstream nixpkgs fixes rather than on anything in this repository, so neither appears in a batch above."
