@@ -1,7 +1,7 @@
 # Implementation Plan: Task #139
 
 - **Task**: 139 - Reduce or accept the Sapience extraction classifier cost now that extraction is metered
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 4 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/139_reduce_sapience_classifier_cost/reports/01_reduce-classifier-cost.md
@@ -137,7 +137,7 @@ No `roadmap_path` was provided in this dispatch and no ROADMAP consultation was 
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Wire `sessionClassifier` into the home-manager module [NOT STARTED]
+### Phase 1: Wire `sessionClassifier` into the home-manager module [COMPLETED]
 
 **Goal**: `programs.sapience.sessionClassifier` exists in
 `modules/home/services/sapience.nix`, defaults to `false`, exports `NO_CLASSIFY=1` at every
@@ -146,7 +146,7 @@ classifier is off.
 
 **Tasks**:
 
-- [ ] Add the option beside `memoryFiles` (currently `modules/home/services/sapience.nix:746-765`):
+- [x] Add the option beside `memoryFiles` (currently `modules/home/services/sapience.nix:746-765`):
       `lib.types.bool`, `default = false`, with a description that states (a) when false,
       `NO_CLASSIFY=1` is exported for every client invocation; (b) that it defaults against the
       vendor default here, because the filter fired exactly once across the whole measured
@@ -155,20 +155,24 @@ classifier is off.
       unconditionally either way, so this is not a redaction setting; and (d) that adding a
       captured folder with a materially different content profile is the trigger to revisit the
       default.
-- [ ] Add `${lib.optionalString (!cfg.sessionClassifier) "export NO_CLASSIFY=1"}` immediately
+- [x] Add `${lib.optionalString (!cfg.sessionClassifier) "export NO_CLASSIFY=1"}` immediately
       after each existing `NO_MEMFILES` line, at all four sites: `sapienceCli` (:88), `sf1Cli`
       (:177 — a documented no-op, since `sf1.py` never calls `is_personal()`, kept for parity
       exactly as `NO_MEMFILES` is there), `sapienceBootstrap`'s extraction call (:362), and the
       `sapience-sync.service` `ExecStart` script (:1229).
-- [ ] Make the ticker classifier-aware. Interpolate one eval-time literal (e.g.
+- [x] Make the ticker classifier-aware. Interpolate one eval-time literal (e.g.
       `classify_on=${if cfg.sessionClassifier then "1" else "0"}`) into the `ticker()` body and
       use it twice: drop the per-source term from the `total=$((srcs + budget))` estimate
       (:~432) when the classifier is off, and suppress the `phase="classifying"` branch
       (:454-456) so chunk calls are never mislabelled as classification.
-- [ ] Update the ticker's own ESTIMATE comment block (:385-397) so its "one model call per
+- [x] Update the ticker's own ESTIMATE comment block (:385-397) so its "one model call per
       session to classify it work-vs-personal" sentence states the `sessionClassifier` condition
-      rather than asserting it unconditionally.
-- [ ] Run `nix fmt` (or `nix develop --command nixfmt`) on the changed file before verifying, so
+      rather than asserting it unconditionally. *(altered: the first draft of this comment
+      reused the literal string "NO_CLASSIFY=1", which collided with the Verification section's
+      `grep -c 'NO_CLASSIFY=1'` count-of-1 check against `sapience-bootstrap` — rephrased to
+      "NO_CLASSIFY exported" to drop the collision; confirmed by rebuilding and re-grepping, now
+      exactly 1 per target)*
+- [x] Run `nix fmt` (or `nix develop --command nixfmt`) on the changed file before verifying, so
       the `nixfmt` check cannot fail on formatting alone.
 
 **Timing**: 1 hour

@@ -4,7 +4,7 @@
     {
       "project_number": 139,
       "project_name": "reduce_sapience_classifier_cost",
-      "status": "planned",
+      "status": "implementing",
       "task_type": "nix",
       "description": "Reduce or accept the Sapience extraction classifier cost now that extraction is metered. The classifier re-runs across the entire not-yet-extracted backlog on every run, which was free on the Ollama backend but is now the dominant per-run cost on the anthropic backend. A measured run took 29 minutes wall clock against only 3.5s CPU (entirely network-bound) to extract 71 sources and stage 1208 knowledge objects, with the classifier phase accounting for roughly the first 20 minutes before chunk extraction began. The Known gaps section of docs/sapience.md already records that the classifier classifies every not-yet-extracted session on every run while a backlog exists. Weigh the available levers: setting NO_CLASSIFY=1 (the vendor client comment is that redaction is the privacy guarantee, not this filter, at the cost of no longer filtering personal conversations out), caching classifier verdicts across runs the way source_skip verdicts are already cached in the source_rules.json state file, or accepting the cost and documenting it. Implement whichever is right and record the per-pass cost measurement in the Cost shape section of docs/sapience.md.",
       "topic": "sapience",
@@ -20,7 +20,7 @@
         "specs/139_reduce_sapience_classifier_cost/summaries/01_reduce-classifier-cost-summary.md"
       ],
       "created": "2026-11-13T20:19:34Z",
-      "last_updated": "2026-11-18T23:27:33Z",
+      "last_updated": "2026-11-18T23:27:47Z",
       "audit_verdict": {
         "proposal": {
           "id": "reduce_sapience_classifier_cost"

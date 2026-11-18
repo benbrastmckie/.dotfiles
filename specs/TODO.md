@@ -55,12 +55,12 @@ next_project_number: 145
 
 ### Sapience
 
-139 [PLANNED] — Reduce or accept the Sapience extraction classifier cost now...
+139 [IMPLEMENTING] — Reduce or accept the Sapience extraction classifier cost now...
 
 ## Tasks
 
 ### 139. Reduce sapience classifier cost
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: sapience
 - **Dependencies**: Task 136, Task 140

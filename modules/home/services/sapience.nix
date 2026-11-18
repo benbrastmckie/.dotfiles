@@ -86,6 +86,7 @@ let
     export PATH="${runtimePath}:$PATH"
     export SAPIENCE_HOST="${cfg.host}"
     ${lib.optionalString (!cfg.memoryFiles) "export NO_MEMFILES=1"}
+    ${lib.optionalString (!cfg.sessionClassifier) "export NO_CLASSIFY=1"}
 
     SUB="''${1:-}"
     [ $# -gt 0 ] && shift
@@ -175,6 +176,7 @@ let
     export PATH="${runtimePath}:$PATH"
     export SAPIENCE_HOST="${cfg.host}"
     ${lib.optionalString (!cfg.memoryFiles) "export NO_MEMFILES=1"}
+    ${lib.optionalString (!cfg.sessionClassifier) "export NO_CLASSIFY=1"}
 
     if [ ! -f "${stateDir}/sf1.py" ]; then
       echo "sf1: ${stateDir}/sf1.py is missing -- run: sapience update" >&2
@@ -360,6 +362,7 @@ let
     echo "Then run 'home-manager switch' once so the MCP server picks up the token."
     echo ""
     ${lib.optionalString (!cfg.memoryFiles) "export NO_MEMFILES=1"}
+    ${lib.optionalString (!cfg.sessionClassifier) "export NO_CLASSIFY=1"}
 
     # The vendor's extraction prints nothing between "Extracting knowledge from N sources" and
     # its result, and writes the staging queue only at the end, so a run that is working is
@@ -383,10 +386,13 @@ let
     # ":cloud" model nothing is scheduled on this machine. Every call transits this daemon in
     # either mode, so its access log is the signal that holds for both.
     #
-    # ESTIMATE, marked "~" and clamped, because it is a FLOOR and not a cap. A run makes one
-    # model call per session to classify it work-vs-personal (extract_local.py:2199), then one
-    # or more per chunk in a loop capped at MAXCH (:166, 50 unless --backfill raises it, which
-    # bootstrap never passes). The cap counts CHUNKS, not calls: _extract_chunk (:1606) issues
+    # ESTIMATE, marked "~" and clamped, because it is a FLOOR and not a cap. When
+    # programs.sapience.sessionClassifier is true, a run makes one model call per session to
+    # classify it work-vs-personal (extract_local.py:2199) before any chunk call; when it is
+    # false (NO_CLASSIFY exported, the default here), that call never happens and the
+    # estimate below drops the per-source term accordingly. Either way, a run then makes one
+    # or more calls per chunk in a loop capped at MAXCH (:166, 50 unless --backfill raises it,
+    # which bootstrap never passes). The cap counts CHUNKS, not calls: _extract_chunk (:1606) issues
     # one call per split_long_text window and, when a reply stops at num_predict (8000),
     # re-extracts the chunk as two halves recursively to depth 2, so one chunk costs 1, 3 or 7
     # calls. Sessions chunk at 10000 characters against a 12000 character window, making
@@ -406,6 +412,7 @@ let
       total=""
       srcs_n=0
       budget="''${MAX_CHUNKS:-50}"
+      classify_on=${if cfg.sessionClassifier then "1" else "0"}
       shown=-1
       while kill -0 "$watch_pid" 2>/dev/null; do
         sleep 30
@@ -429,7 +436,11 @@ let
             | head -1)"
           if [ -n "$srcs" ]; then
             srcs_n="$srcs"
-            total=$((srcs + budget))
+            if [ "$classify_on" = "1" ]; then
+              total=$((srcs + budget))
+            else
+              total="$budget"
+            fi
           else
             srcs_n=0
             total=0
@@ -451,7 +462,7 @@ let
         # source first, one call each at max_tokens=6 (extract_local.py:1630, tenths of a
         # second), and only then enters the chunk loop at max_tokens=8000 (:1612, seconds).
         phase="extracting"
-        if [ "$srcs_n" -gt 0 ] && [ "$calls" -le "$srcs_n" ]; then
+        if [ "$classify_on" = "1" ] && [ "$srcs_n" -gt 0 ] && [ "$calls" -le "$srcs_n" ]; then
           phase="classifying"
         fi
 
@@ -755,6 +766,27 @@ in
         deploy artifact from the agent-system source store, duplicated across 20+ repositories,
         and Sapience would import all of them at its highest trust tier, outranking real
         findings. See docs/sapience.md.
+      '';
+    };
+
+    sessionClassifier = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Whether to let Sapience run its work/personal classifier, one model call per
+        not-yet-extracted session on every extraction run. When false, NO_CLASSIFY=1 is
+        exported for every client invocation.
+
+        Defaults to false, against the vendor default: across this machine's whole measured
+        extraction series over its four captured folders (nvim, dotfiles, app, abood), the
+        filter fired exactly once while costing roughly two-thirds of every run's wall clock on
+        the metered anthropic backend. Redaction (sapience_redact.py) runs unconditionally
+        either way, so this is not a redaction setting -- turning this off only stops a
+        work/personal filter from running before the already-unconditional redaction step, not
+        redaction itself. See docs/sapience.md.
+
+        Adding a captured folder with a materially different work/personal content profile is
+        the trigger to revisit this default.
       '';
     };
 
@@ -1227,6 +1259,7 @@ in
               export PATH="${runtimePath}:$PATH"
               export SAPIENCE_HOST="${cfg.host}"
               ${lib.optionalString (!cfg.memoryFiles) "export NO_MEMFILES=1"}
+              ${lib.optionalString (!cfg.sessionClassifier) "export NO_CLASSIFY=1"}
               # Deliberately no `set -e`: a vendor outage or an in-progress self-update must not
               # leave this unit `failed` -- see the failure-discipline note in the header.
               # The script always reaches `exit 0`.

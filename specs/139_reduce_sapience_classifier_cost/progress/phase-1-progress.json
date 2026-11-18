@@ -1,0 +1,18 @@
+{
+  "phase": 1,
+  "phase_name": "Wire sessionClassifier into the home-manager module",
+  "started_at": "2026-11-18T00:00:00Z",
+  "last_updated": "2026-11-18T00:00:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Phase 1 — file changes",
+      "status": "in_progress",
+      "files_touched": [
+        "modules/home/services/sapience.nix"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}
