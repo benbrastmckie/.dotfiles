@@ -1,25 +1,30 @@
 {
-  "status": "planned",
-  "dispatch_seq": 8,
-  "phases_completed": 0,
-  "phases_total": 6,
-  "summary": "Wrote a 6-phase plan (4.25h, 4 waves) closing the three fresh-machine gaps. Resolved both open design questions explicitly: Gap 2 as option (b) keep-it-manual, decided on the vendor's own TTY-confirmation gate in sapience_adddir.py rather than the dispatch's ledger-cost framing; Gap 3 by authoring a NEW narrowed linger-state-probe activation notice in the live module, since the notice the dispatch said to keep exists only in the out-of-scope packages/sapience-flake fork. Every carried figure was re-checked against live state and the results tabled in the plan. The sudo-denied verifications are sited in a terminal operator-checkpoint phase with an exact command sequence and a pre-declared COMPLETED WITH EXCLUSIONS closure rule.",
-  "blockers": [],
+  "status": "partial",
+  "phase": "implement",
+  "dispatch_seq": 9,
+  "summary": "Phases 1-5 of the fresh-machine declarative-gaps plan are complete, committed per phase, and nix-flake-check-green: tokenFile is sops-backed, the sourceDirs manual-registration decision is recorded with reasoning, and NixOS-level lingering is declared with a narrowed activation notice. Phase 6 is left [BLOCKED], per an explicit team-lead override of the plan's own Decision 4/Closure rule, with the operator command sequence printed in the summary for the user to run.",
   "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/144_sapience_fresh_machine_declarative_gaps/summaries/01_fresh-machine-declarative-gaps-summary.md",
+      "summary": "Implementation summary: Phases 1-5 complete with evidence; Phase 6 left open with the operator command sequence for the user."
+    },
     {
       "type": "plan",
       "path": "specs/144_sapience_fresh_machine_declarative_gaps/plans/01_fresh-machine-declarative-gaps.md",
-      "summary": "6-phase, 4.25-hour plan closing the tokenFile, sourceDirs and lingering gaps, with both open design questions resolved and the sudo-gated verifications sited as an operator checkpoint."
+      "summary": "Plan updated in place: Phases 1-5 marked [COMPLETED] with per-task evidence annotations; Phase 6 marked [BLOCKED] with the dispatch-level override recorded."
     }
   ],
-  "user_decision": {
-    "question": "Acceptance Criteria 4 and the live halves of 2 and 5 need two actions no agent can take here: pasting the real Sapience token into secrets/secrets.yaml via sops, and running sudo nixos-rebuild switch (sudo is structurally denied in this harness). How should the implementation close?",
-    "options": [
-      "Run the Phase 6 operator sequence yourself when the implementation reaches it, so all six acceptance criteria get live evidence",
-      "Let the implementation close with Phase 6 marked COMPLETED WITH EXCLUSIONS, recording AC4 and the live halves of AC2/AC5 as reasoned exclusions"
-    ],
-    "recommended": "Run the Phase 6 operator sequence yourself when the implementation reaches it, so all six acceptance criteria get live evidence",
-    "blocking": false,
-    "obligation": "Acceptance Criterion 4's loginctl show-user benjamin --property=Linger reporting Linger=yes after a system switch, plus AC2's prompt-free sapience-bootstrap against a real /run/secrets/sapience_token and AC5's no-op second nixos-rebuild switch."
-  }
+  "phases_completed": 5,
+  "phases_total": 6,
+  "blockers": [
+    {
+      "phase": "6",
+      "target": "Acceptance Criterion 4 (loginctl Linger=yes after a system switch); AC2's live half (prompt-free sapience-bootstrap against a real /run/secrets/sapience_token); AC5's system-switch no-op half",
+      "verbatim_goal": "Apply the real Sapience token via sops and run sudo nixos-rebuild switch (twice) to give all six acceptance criteria live evidence, per the user's recorded decision.",
+      "what_was_tried": "Ran every agent-executable substitute: nix flake check, the scoped agent-system gate, two consecutive home-manager switch runs (confirmed no-op and token-leak-free), and a full scratchpad-isolated demonstration of the non-interactive tokenFile bootstrap path against a placeholder value.",
+      "why_it_failed": "sudo is structurally denied in this harness (confirmed by prior-session memory and the team lead's own instruction), and the real Sapience token must never reach an agent. Both are outside what this dispatch can do; the team lead directed that this be left for the user rather than closed as [COMPLETED WITH EXCLUSIONS]."
+    }
+  ],
+  "plan_markers_verified": true
 }
