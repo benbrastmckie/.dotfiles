@@ -88,6 +88,16 @@
       # source is copied verbatim rather than leaving a broken or absent settings file. Guarded
       # by the same DRY_RUN variable the claudeMcpServers block below uses, for the same reason.
       #
+      # _SAPIENCE_NOTE is enforced because it documents which Sapience surfaces this file owns;
+      # a stale live copy actively misinforms a reader of ~/.claude/settings.json about which
+      # mechanism is responsible for what (it once claimed a vendor hook it did not actually
+      # guard was guarded). Detecting a vendor hook injected BETWEEN two activations is not this
+      # entry's job: sapienceHooksGuard in modules/home/services/sapience.nix (declared
+      # entryBefore this entry so it reads the pre-merge live file) via
+      # scripts/check-sapience-hooks.sh is the automatic, every-switch detector; the
+      # agent-system sapience extension's verify-sapience-mcp.sh is the on-demand one. This
+      # entry is the backstop that reverts what those two report, never the thing that reports.
+      #
       # keybindings.json keeps the plain copy: it is not written back by Claude Code the way
       # settings.json is, so there is nothing to preserve.
       claudeSettings = config.lib.dag.entryAfter [ "writeBoundary" ] ''
@@ -104,7 +114,7 @@
           merged=0
           if [ -f "$settingsDst" ] && ${pkgs.jq}/bin/jq -e . "$settingsDst" >/dev/null 2>&1; then
             tmpFile="$(mktemp "$claudeDir/settings.json.XXXXXX")"
-            if ${pkgs.jq}/bin/jq -s             --argjson enforced '["_NOTE","env","hooks","model","permissions","statusLine"]'             '.[0] as $src | .[1] as $live
+            if ${pkgs.jq}/bin/jq -s             --argjson enforced '["_NOTE","_SAPIENCE_NOTE","env","hooks","model","permissions","statusLine"]'             '.[0] as $src | .[1] as $live
                | ($src * $live)
                | reduce $enforced[] as $k (.;
                    if ($src | has($k)) then .[$k] = $src[$k] else . end)'             "$settingsSrc" "$settingsDst" > "$tmpFile" 2>/dev/null && [ -s "$tmpFile" ]; then
