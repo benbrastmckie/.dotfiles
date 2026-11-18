@@ -11,8 +11,8 @@ next_project_number: 145
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,141,142,144 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 117,120,139 | 77,124,136 | nixos-config, desktop, sapience |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,141,142 | -- | nixos-config, nix-infrastructure, services, ... |
+| 2 | 117,120,139,144 | 77,124,136,142 | nixos-config, desktop, sapience |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -58,7 +58,7 @@ next_project_number: 145
 
 141 [NOT STARTED] — GOAL. Close the recurrence gap left by task 138. That task...
 142 [PLANNED] — Default the Sapience config hooks opt-out to false so the...
-144 [NOT STARTED] — GOAL: close the three remaining hand steps between a fresh...
+  └─ 144 [NOT STARTED] — GOAL: close the three remaining hand steps between a fresh...
 139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
 
 ## Tasks
@@ -67,7 +67,7 @@ next_project_number: 145
 - **Status**: [NOT STARTED]
 - **Task Type**: nix
 - **Topic**: sapience
-- **Dependencies**: None
+- **Dependencies**: Task 142
 
 **Description**: GOAL: close the three remaining hand steps between a fresh `nixos-rebuild switch` + `home-manager switch` and a working Sapience client, so the declared configuration is sufficient on a new machine.
 

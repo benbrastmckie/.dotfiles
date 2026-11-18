@@ -42,7 +42,10 @@
           "semantic": true
         },
         "degradations_count": 112
-      }
+      },
+      "dependencies": [
+        142
+      ]
     },
     {
       "project_number": 143,
