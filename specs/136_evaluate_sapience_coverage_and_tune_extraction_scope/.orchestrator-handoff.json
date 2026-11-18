@@ -1,7 +1,7 @@
 {
   "status": "partial",
-  "dispatch_seq": 15,
-  "summary": "Completed Phase 3 of 8: ran a clean, zero-error 50-chunk extraction pass (Pass 3), appended its before/after readings and computed deltas to the measurement ledger, and recorded the first mid-series two-filter-ratio check (stable 30.13x-31.45x across 5 coverage readings) and daily-cap-headroom check (no truncation observed despite one pass alone exceeding the 2000-object cap at 2051). Phase 4 is gated on its own 24-hour-since-Pass-3 floor and may not run before approximately 2026-11-19T22:11:46Z.",
+  "dispatch_seq": 17,
+  "summary": "No new phase work: re-verified live that Phase 4's 24-hour-since-Pass-3 gate (Pass 3 after-reading at 2026-11-18T22:12:22Z) has not elapsed -- only ~5 minutes had passed at dispatch start. Per the plan's own instruction, Phase 4 was left at [NOT STARTED] and no pass was run. This is the fourth premature re-dispatch against this task's calendar-spaced series (after dispatch seq 9, 12, 14). Next legitimate re-dispatch not before approximately 2026-11-19T22:12:22Z.",
   "phases_completed": 3,
   "phases_total": 8,
   "blockers": [],
@@ -9,12 +9,7 @@
     {
       "type": "record",
       "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
-      "summary": "Measurement ledger: Pass-0 baseline, journal-reconstructed Pass-1, fully-observed Pass-2 (34 errors, partial failure), and now fully-observed Pass-3 (0 errors, clean) with the mid-series filter-ratio and daily-cap-headroom checks."
-    },
-    {
-      "type": "handoff",
-      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-3-handoff-20261118T221400Z.md",
-      "summary": "Phase-3 completion handoff naming the 24-hour re-dispatch gate for phase 4 and the bounded-poll technique for the systemctl wait."
+      "summary": "Measurement ledger, unchanged this dispatch: last entry is the Pass-3 block plus mid-series filter-ratio and daily-cap-headroom checks."
     }
   ]
 }

@@ -1,10 +1,9 @@
 {
   "status": "partial",
-  "dispatch_seq": 15,
+  "dispatch_seq": 17,
   "partial_progress": {
     "stage": "phase_gated_on_elapsed_time",
-    "details": "Phase 3 ('Extraction Pass 3 and First Mid-Series Filter Check') completed this dispatch: ran a clean, zero-error 50-chunk pass (2010 objects staged, 47min 58.5s wall clock), appended the Pass-3 block to the ledger with before/after readings, computed the mid-series two-filter ratio (stable 30.13x-31.45x across 5 coverage readings) and the daily-cap headroom check (no truncation observed; Pass 3 alone exceeded the 2000-object cap at 2051 with no sign of being stopped). Phases completed now 3 of 8. Phase 4 ('Extraction Pass 4 and Review-Queue Growth Check') is gated on its own 24-hour-since-Pass-3 floor: Pass 3 finished 2026-11-18T22:11:46Z, so Phase 4 may not run before approximately 2026-11-19T22:11:46Z.",
-    "handoff_path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-3-handoff-20261118T221400Z.md",
+    "details": "No new work this dispatch. Re-verified live that Phase 4 ('Extraction Pass 4 and Review-Queue Growth Check') remains gated on its own 24-hour-since-Pass-3 floor: the ledger's Pass-3 after-reading is timestamped 2026-11-18T22:12:22Z, and this dispatch began at approximately 2026-11-18T22:17:35Z -- only ~5 minutes elapsed, far short of the required 24 hours. Per the plan's own Phase 4 first task ('if not, stop and leave this phase [NOT STARTED]'), no pass was run and the phase heading was left untouched at [NOT STARTED]. This is the fourth occurrence of a premature re-dispatch against this task's calendar-spaced series (previously at dispatch seq 9, 12, and 14). Next legitimate re-dispatch not before approximately 2026-11-19T22:12:22Z. Phases completed remain 3 of 8.",
     "phases_completed": 3,
     "phases_total": 8
   },
@@ -12,59 +11,17 @@
     {
       "type": "record",
       "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
-      "summary": "Measurement ledger, updated this dispatch: adds the Pass-3 block (clean run, 0 extract errors, before/after pair, computed deltas) plus the mid-series two-filter-ratio and daily-cap-headroom checks."
-    },
-    {
-      "type": "handoff",
-      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-3-handoff-20261118T221400Z.md",
-      "summary": "Phase-3 completion handoff naming the 24-hour re-dispatch gate for phase 4 and the bounded-poll technique for the systemctl wait."
+      "summary": "Measurement ledger, unchanged this dispatch: last entry is the Pass-3 block plus mid-series filter-ratio and daily-cap-headroom checks."
     }
   ],
   "completion_data": {
-    "completion_summary": "Ran and recorded extraction Pass 3 (0 errors, 2010 objects staged, 47min 58.5s), confirming 'would ingest now' again held flat despite active extraction and that a single pass can exceed the daily 2000-object cap without visible truncation. Computed the mid-series filter-ratio check (stable ~30-31x non-overridable-filter dominance across 5 readings) and the daily-cap-headroom check. Phase 3 of 8 is now complete; phase 4 is time-gated until approximately 2026-11-19T22:11:46Z."
+    "completion_summary": "No phase work performed: re-checked the Phase 4 24-hour-since-Pass-3 gate live and confirmed it remains unmet (~5 minutes elapsed of the required 24 hours). Recorded the premature-re-dispatch finding and returned partial with no file changes beyond the issue log."
   },
   "modified_files": [
-    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/02_coverage-measurement-series-and-decision.md",
-    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
-    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/handoffs/phase-3-handoff-20261118T221400Z.md",
-    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/progress/phase-3-progress.json",
     "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/issues.jsonl"
   ],
   "memory_candidates": [],
-  "sapience_notes": [
-    {
-      "subject": "Sapience daily 2000-object extraction cap is not enforced as a hard stop",
-      "value": "On this machine (anthropic backend, claude-haiku-4-5), a single ordinary 50-chunk sapience-sync pass staged 2010 objects and the coverage line reported 'sapience yield: 2051 objects today (cap 2000)' -- the run completed all 50 chunks and was not truncated, dropped, or stopped early despite exceeding the stated daily cap within one run. The cap line appears to be cumulative/informational bookkeeping only, not an enforced ceiling that interrupts an in-progress or subsequent run.",
-      "predicate": "finding is",
-      "ko_type": "insight",
-      "confidence": 0.85,
-      "source_loc": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"
-    },
-    {
-      "subject": "Sapience per-pass knowledge-object yield varies widely for an identical 50-chunk run",
-      "value": "Three fully-measured sapience-sync passes on the same machine, each attempting exactly 50 chunks (MAX_CHUNKS default), yielded 1208, 550, and 2010 staged objects respectively (24.16, 10.78, and 40.2 objects/chunk) -- a ~3.7x spread driven by the actual content of whichever 50 chunks were selected that day, not by a fixed per-chunk rate. Any extraction-cadence decision based on a single pass's yield is unreliable; a short series is needed to see the range.",
-      "predicate": "finding is",
-      "ko_type": "insight",
-      "confidence": 0.85,
-      "source_loc": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"
-    },
-    {
-      "subject": "Sapience non-overridable subagent/harness-started filter ratio is stable over time",
-      "value": "Across 5 independent sapience coverage readings taken over 5 days on this machine, the ratio of 'skipped (subagent / harness-started transcripts)' to 'skipped (headless/agent)' held in a narrow 30.13x-31.45x band even as both counters grew by roughly 53-54% in absolute terms. The non-overridable filter consistently removes about 30x more transcripts than the overridable one, and this asymmetry is not a one-reading artifact.",
-      "predicate": "finding is",
-      "ko_type": "insight",
-      "confidence": 0.85,
-      "source_loc": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"
-    },
-    {
-      "subject": "systemctl --user start sapience-sync.service exceeds the Bash tool's default foreground timeout",
-      "value": "sapience-sync passes observed on this machine run 22-48 minutes wall clock, well past the harness's 120-second default foreground Bash timeout. Issuing `systemctl --user start sapience-sync.service` as a plain foreground call causes the harness to auto-background it; the correct follow-up is bounded foreground polling of `systemctl --user show -p ActiveState --value sapience-sync.service` in ~580-second chunks (looping while the value is 'activating' or 'active', since this Type=oneshot unit never transitions through a bare 'active' state visible to --quiet checks) rather than arming a Monitor or run_in_background wait on the poll itself.",
-      "predicate": "finding is",
-      "ko_type": "insight",
-      "confidence": 0.8,
-      "source_loc": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"
-    }
-  ],
+  "sapience_notes": [],
   "metadata": {
     "session_id": "sess_1795036884_cffd95",
     "agent_type": "general-implementation-agent",
