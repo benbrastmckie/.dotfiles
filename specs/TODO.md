@@ -11,8 +11,8 @@ next_project_number: 145
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,142 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 117,120,139,141,144 | 77,124,136,142 | nixos-config, desktop, sapience |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,141,144 | -- | nixos-config, nix-infrastructure, services, ... |
+| 2 | 117,120,139 | 77,124,136 | nixos-config, desktop, sapience |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -56,9 +56,8 @@ next_project_number: 145
 
 ### Sapience
 
-142 [IMPLEMENTING] — Default the Sapience config hooks opt-out to false so the...
-  └─ 141 [RESEARCHED] — GOAL. Close the recurrence gap left by task 138. That task...
-  └─ 144 [NOT STARTED] — GOAL: close the three remaining hand steps between a fresh...
+141 [RESEARCHED] — GOAL. Close the recurrence gap left by task 138. That task...
+144 [NOT STARTED] — GOAL: close the three remaining hand steps between a fresh...
 139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
 
 ## Tasks
@@ -140,7 +139,7 @@ GOAL. (1) Decide and implement where coalesce_s/net_timeout_s are declared durab
 ---
 
 ### 142. Default the Sapience config hooks opt-out to false so the vendor updater stops wiring machine-wide hooks
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: sapience
 - **Dependencies**: None
@@ -148,6 +147,7 @@ GOAL. (1) Decide and implement where coalesce_s/net_timeout_s are declared durab
   - [142_sapience_hooks_opt_out_default/reports/01_sapience_hooks_opt_out.md]
   - [142_sapience_hooks_opt_out_default/reports/01_sapience_hooks_opt_out.md]
 - **Plan**: [142_sapience_hooks_opt_out_default/plans/01_sapience-hooks-opt-out.md]
+- **Summary**: [142_sapience_hooks_opt_out_default/summaries/01_sapience-hooks-opt-out-summary.md]
 
 **Description**: Stop the Sapience vendor updater from wiring machine-wide Claude Code hooks: default ~/.sapience/config.json "hooks" to false in modules/home/services/sapience.nix and preserve an explicit false across activation.
 

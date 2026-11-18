@@ -1,0 +1,18 @@
+[
+  {
+    "question": "Tasks 141, 142 and 144 are all gated behind #142's deferred cross-batch scope overlap with #136 (implementing, mid-flight, touches docs/sapience.md). How should I clear it?",
+    "answer": "Re-run with --allow-scope-collision: bypass the cross-batch defer gate for this invocation so 142 implements, then 144 and 141 follow.",
+    "cycle": 3,
+    "timestamp": "2026-11-18T18:49:59Z",
+    "description_fingerprint": "84ad0948e8dca5b8ad84efe41fb287a55bd1f37f0597a1ed1e1f4dce684148cd",
+    "obligation": "Serialize writes to docs/sapience.md and modules/home/services/sapience.nix against mid-flight task #136"
+  },
+  {
+    "question": "Tasks 141, 142 and 144 are all gated behind #142's deferred cross-batch scope overlap with #136 (implementing, mid-flight, touches docs/sapience.md). How should I clear it?",
+    "answer": "Re-run with --allow-scope-collision: bypass the cross-batch defer gate for this invocation so 142 implements, then 144 and 141 follow.",
+    "cycle": 3,
+    "timestamp": "2026-11-18T18:50:09Z",
+    "description_fingerprint": "84ad0948e8dca5b8ad84efe41fb287a55bd1f37f0597a1ed1e1f4dce684148cd",
+    "obligation": "Serialize writes to docs/sapience.md and modules/home/services/sapience.nix against mid-flight task #136"
+  }
+]

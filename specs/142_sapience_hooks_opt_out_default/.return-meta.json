@@ -48,7 +48,11 @@
     "session_id": "sess_1795027105_555221",
     "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "delegation_path": [
+      "orchestrator",
+      "implement",
+      "nix-implementation-agent"
+    ],
     "phases_completed": 4,
     "phases_total": 4
   },

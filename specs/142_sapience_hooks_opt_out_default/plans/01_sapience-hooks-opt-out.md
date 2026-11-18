@@ -1,7 +1,7 @@
 # Implementation Plan: Sapience Hooks Opt-Out Default
 
 - **Task**: 142 - Stop the Sapience vendor updater from wiring machine-wide Claude Code hooks
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 3.25 hours
 - **Dependencies**: None
 - **Research Inputs**: specs/142_sapience_hooks_opt_out_default/reports/01_sapience_hooks_opt_out.md
