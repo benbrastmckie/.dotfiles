@@ -1,16 +1,57 @@
 {
-  "status": "in_progress",
-  "started_at": "2026-11-18T00:00:00Z",
-  "artifacts": [],
-  "partial_progress": {
-    "stage": "initializing",
-    "details": "Agent started, beginning work on implementation plan phases"
+  "status": "implemented",
+  "summary": "Corrected both config.json \"hooks\" write sites in sapienceBootstrap to default-not-force semantics, added a pre-claudeSettings vendor-hook-injection detector wired non-fatally into activation, documented the resulting three-layer design, and confirmed via a real home-manager switch plus a forced vendor update that no hook reappears.",
+  "artifacts": [
+    {
+      "type": "summary",
+      "path": "specs/142_sapience_hooks_opt_out_default/summaries/01_sapience-hooks-opt-out-summary.md",
+      "summary": "Implementation summary: both hooks write sites fixed, new detector script and activation guard, doc/comment updates, and real-machine verification evidence."
+    }
+  ],
+  "completion_data": {
+    "completion_summary": "Fixed modules/home/services/sapience.nix's two config.json \"hooks\" write sites (default-not-force, never //), added scripts/check-sapience-hooks.sh plus a non-fatal pre-claudeSettings activation guard, documented the three-layer design in docs/sapience.md and the module header, and verified on the real machine that a home-manager switch followed by a forced sapience_upkeep.py --update leaves no vendor-written hook in ~/.claude/settings.json while the per-repository hooks remain unaffected."
   },
+  "modified_files": [
+    "modules/home/services/sapience.nix",
+    "scripts/check-sapience-hooks.sh",
+    "docs/sapience.md",
+    "specs/142_sapience_hooks_opt_out_default/plans/01_sapience-hooks-opt-out.md",
+    "specs/142_sapience_hooks_opt_out_default/summaries/01_sapience-hooks-opt-out-summary.md"
+  ],
+  "sapience_notes": [
+    {
+      "content": "jq's `//` operator treats an explicit `false` identically to absent/null, so `.hooks = (.hooks // true)` silently resets a deliberate \"hooks\": false opt-out back to true on every run that passes through it. Any jq merge expression guarding a boolean opt-out flag must use an explicit null test (`if .x == null then default else .x end`), never `//`, or the flag cannot be durably turned off.",
+      "category": "INSIGHT"
+    },
+    {
+      "content": "Measured: ~/.sapience/sapience_upkeep.py's wire_hooks() gates on hooks_opted_out(), which reads config.json's \"hooks\" key with an explicit `is False` identity test on the vendor side -- the vendor's own gate was already correct; the defect was entirely in this repository's jq write sites forcing the key back to true. Confirmed live: forcing `sapience_upkeep.py --update` after setting hooks:false printed \"Claude Code: left alone (you switched the Sapience hooks off in config.json)\", the opt-out branch.",
+      "category": "CORRECTION"
+    },
+    {
+      "content": "A detection guard ordered after an enforcing writer that shares its mutable target is structurally dead code disguised as a working check: home-manager's claudeSettings activation entry resets ~/.claude/settings.json's \"hooks\" key from the repo source as an enforced key on every switch, so a guard entryAfter it would always read an already-cleaned file. The general rule: when a detector and a repairer share one mutable target, the detector must be ordered BEFORE the repairer, and that ordering decision in turn forces the detector to be non-fatal (aborting before the repairer would forfeit the automatic repair) with the hard-failing exit living only in a standalone invocation that cannot block the switch.",
+      "category": "INSIGHT"
+    },
+    {
+      "content": "On this machine, `sudo` is categorically denied inside the Claude Code agent harness -- every invocation, including a bare probe, is refused structurally rather than intermittently. The user-level `home-manager switch --flake .#<user>` generation alone is sufficient to exercise and verify home.activation entries (it owns ~/.nix-profile and runs activation), so NixOS-integrated-generation-requiring verification (sudo nixos-rebuild switch) must be deferred to a human-run step rather than attempted from an agent dispatch.",
+      "category": "CONSTRAINT"
+    },
+    {
+      "content": "Decision: chose default-not-force semantics for config.json's \"hooks\" key (default an absent key to false, preserve any explicit value of either polarity) rather than unconditionally forcing false, because the task's own phrasing (\"default ... to false\", \"preserve an explicit false\") named default/preserve semantics, and unconditional forcing would foreclose a future user-facing toggle to re-enable machine-wide hooks for no present benefit.",
+      "category": "DECISION"
+    },
+    {
+      "content": "Measured: this repository's own .claude/settings.local.json (it loads the sapience extension) still carries the three per-repository hooks (mcp.py --briefing-text/--receipt/--effect-line under SessionStart/SessionEnd/Stop) after setting ~/.sapience/config.json's \"hooks\" key to false and rebuilding -- confirming that key's scope is limited to the vendor updater's own machine-wide write and its CLI auto-on probe, and does not affect the per-repository hooks merged by the sapience extension's settings-fragment.json, which key on TOKEN presence and folder_allowed(cwd) instead.",
+      "category": "CORRECTION"
+    }
+  ],
   "metadata": {
     "session_id": "sess_1795027105_555221",
     "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"]
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "phases_completed": 4,
+    "phases_total": 4
   },
-  "dispatch_seq": 4
+  "dispatch_seq": 4,
+  "next_steps": "A human-run `sudo nixos-rebuild switch --flake .#<host>` keeps the NixOS-integrated generation in sync (it was not reachable from this dispatch). The companion extension-side verifier/doc task (sapience_activation_surface_scoping_gaps, nvim repository) remains open and is unaffected by this work."
 }

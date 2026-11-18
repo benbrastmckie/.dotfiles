@@ -1,21 +1,17 @@
 {
-  "status": "planned",
-  "phases_completed": 0,
-  "phases_total": 4,
-  "summary": "Wrote a 4-phase, 3.25-hour implementation plan for defaulting ~/.sapience/config.json's \"hooks\" to false. Phases: correct both jq write sites in sapienceBootstrap to default-not-force semantics; add scripts/check-sapience-hooks.sh plus a sapienceHooksGuard activation entry; document the three-layer design in docs/sapience.md and the module header; rebuild and confirm against a forced sapience_upkeep.py --update. Corrected the research report's activation-ordering recommendation: a guard ordered after dotfiles.nix's claudeSettings entry can never fire, because claudeSettings resets 'hooks' as an enforced key, so the guard is ordered entryBefore it and is loud-but-non-fatal to preserve the same switch's automatic strip.",
-  "blockers": [],
+  "status": "implemented",
+  "phase": "implement",
+  "dispatch_seq": 4,
+  "summary": "Corrected both config.json \"hooks\" write sites to default-not-force semantics, added a pre-claudeSettings vendor-hook-injection detector wired non-fatally into activation, documented the resulting three-layer design, and confirmed via a real home-manager switch plus a forced vendor update that no hook reappears. All four plan phases completed and committed.",
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/142_sapience_hooks_opt_out_default/plans/01_sapience-hooks-opt-out.md",
-      "summary": "4-phase plan: jq default-not-force fix at both config.json write sites, a pre-claudeSettings injection-hook detector, doc/comment updates, and an on-machine rebuild plus forced vendor-update verification."
+      "type": "summary",
+      "path": "specs/142_sapience_hooks_opt_out_default/summaries/01_sapience-hooks-opt-out-summary.md",
+      "summary": "Implementation summary: both hooks write sites fixed, new detector script and activation guard, doc/comment updates, and real-machine verification evidence."
     }
   ],
-  "metadata": {
-    "session_id": "sess_1794947737_801e84_142",
-    "agent_type": "planner-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"]
-  },
-  "dispatch_seq": 2
+  "phases_completed": 4,
+  "phases_total": 4,
+  "blockers": [],
+  "plan_markers_verified": true
 }
