@@ -767,6 +767,14 @@ in
         `sapience-adddir-sources` wrapper this option installs. Run it by hand; nothing here is
         scheduled and activation never ingests anything.
 
+        Deliberately kept manual rather than wired into activation: the vendor's `adddir` reads
+        files only behind a TTY confirmation or an explicit `--yes`, neither of which an
+        activation context has, so a switch-time call would either run and read nothing (a
+        decorative entry that looks like registration and is not) or force `--yes` in, turning
+        every `home-manager switch` into an unattended, unconfirmed upload of changed file text
+        to the hosted brain's `/extract-doc` endpoint. `adddir` also has no `remove` subcommand,
+        so a switch-time step could only ever add, never retract, a path removed from this list.
+
         This is the counterpart to `memoryFiles`, not a variant of it. `memoryFiles` is the
         vendor's implicit walk (every enabled capture project's own CLAUDE.md, AGENTS.md and
         .claude/rules/*.md), which here would mean the 20+ generated deploy trees; the vendor

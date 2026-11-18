@@ -382,28 +382,33 @@ option values directly.
 
 ---
 
-### Phase 2: Record the `sourceDirs` decision and its reasoning [NOT STARTED]
+### Phase 2: Record the `sourceDirs` decision and its reasoning [COMPLETED]
 
 **Goal**: a reader of the `sourceDirs` option learns both that the declared value is inert until
 a follow-up command runs, and why registration is deliberately not wired into activation.
 
 **Tasks**:
 
-- [ ] Re-read `modules/home/services/sapience.nix` and `home.nix` immediately before editing.
-- [ ] Extend the `sourceDirs` option description (module lines ~761-784) with the Decision 2
+- [x] Re-read `modules/home/services/sapience.nix` and `home.nix` immediately before editing.
+      *(completed)*
+- [x] Extend the `sourceDirs` option description (module lines ~761-784) with the Decision 2
       reasoning, kept to two or three sentences: the vendor's `adddir` reads files only with a
       TTY confirmation or `--yes`, so an activation-time call is either a no-op that looks like
       registration or an unattended upload of changed text to `/extract-doc` on every switch;
       `adddir` has no `remove` subcommand, so an activation step could only ever be additive.
       Keep the existing "Run it by hand; nothing here is scheduled and activation never ingests
       anything" sentence intact — it is the statement of outcome Acceptance Criterion 3 asks for.
-- [ ] Mirror one clause of that reasoning into `home.nix`'s existing `sourceDirs` comment (line
+      *(completed — reasoning paragraph inserted immediately after the outcome sentence, which
+      is preserved verbatim)*
+- [x] Mirror one clause of that reasoning into `home.nix`'s existing `sourceDirs` comment (line
       ~86-89) so the call site says *why* as well as *what*, without duplicating the full
-      argument.
-- [ ] Keep every edit inside the `''...''` description string and the `#` comment. Verify no
-      `''` or `${` sequence was introduced that would change the string's parse.
-- [ ] Do not add any activation entry, timer, or wrapper invocation for `sourceDirs` — option (b)
-      is the decision, and this phase implements it as such.
+      argument. *(completed)*
+- [x] Keep every edit inside the `''...''` description string and the `#` comment. Verify no
+      `''` or `${` sequence was introduced that would change the string's parse. *(completed —
+      `nix flake check` passes, confirming the string still parses)*
+- [x] Do not add any activation entry, timer, or wrapper invocation for `sourceDirs` — option (b)
+      is the decision, and this phase implements it as such. *(completed — confirmed no
+      `entryAfter`/`entryBefore` in the diff)*
 
 **Timing**: 0.5 hours
 

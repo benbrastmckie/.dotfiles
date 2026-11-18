@@ -86,7 +86,8 @@
     # The agent system's source store, ingested explicitly rather than by the implicit
     # memory-file walk that `memoryFiles = false` shuts off. One authored tree gets in; the 20+
     # generated .claude/ deploys it produces stay out. Run `sapience-adddir-sources` by hand --
-    # nothing about this is scheduled.
+    # nothing about this is scheduled, deliberately: `adddir` needs a TTY confirmation (or an
+    # unattended `--yes`) to read anything, so activation has no safe way to run it itself.
     sourceDirs = [ "/home/benjamin/.config/nvim/agent-system" ];
 
     # Anthropic provider key, decrypted by sops-nix (modules/system/secrets.nix) to a mode-0400

@@ -1,0 +1,19 @@
+{
+  "phase": 2,
+  "phase_name": "Record the sourceDirs decision and its reasoning",
+  "started_at": "2026-11-18T20:06:00Z",
+  "last_updated": "2026-11-18T20:15:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Phase 2 - file changes",
+      "status": "completed",
+      "files_touched": [
+        "modules/home/services/sapience.nix",
+        "home.nix"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}
