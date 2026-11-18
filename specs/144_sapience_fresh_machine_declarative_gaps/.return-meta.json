@@ -1,0 +1,22 @@
+{
+  "status": "researched",
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/144_sapience_fresh_machine_declarative_gaps/reports/01_fresh-machine-declarative-gaps.md",
+      "summary": "Confirms modules/home/services/sapience.nix is the live module; finds Gap 1 (tokenFile) needs only secrets wiring (with a quoted-string-vs-path-literal hazard flagged); finds Gap 2 (sourceDirs) already satisfies option (b)'s wording in the option description, leaving (a) vs (b) open for planning; finds Gap 3's premise is based on the non-live packages/sapience-flake fork (the live module has no WSL/linger code at all), confirms users.users.<name>.linger exists on the pinned nixos-26.05 channel, and flags a sudo-denial constraint on verifying Acceptance Criterion 4."
+    }
+  ],
+  "next_steps": "Run /orchestrate 144 --plan to produce an implementation plan that resolves the Gap 2 (a)/(b) choice and the Gap 3 WSL-notice-porting choice explicitly, wires tokenFile via a new sops secret, and sets users.users.${username}.linger = true in modules/system/users.nix.",
+  "modified_files": [
+    "specs/144_sapience_fresh_machine_declarative_gaps/reports/01_fresh-machine-declarative-gaps.md"
+  ],
+  "dispatch_seq": 6,
+  "metadata": {
+    "session_id": "sess_1795027105_555221_144",
+    "agent_type": "nix-research-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
+    "findings_count": 6
+  }
+}

@@ -57,16 +57,17 @@ next_project_number: 145
 ### Sapience
 
 141 [PLANNED] — GOAL. Close the recurrence gap left by task 138. That task...
-144 [RESEARCHING] — GOAL: close the three remaining hand steps between a fresh...
+144 [RESEARCHED] — GOAL: close the three remaining hand steps between a fresh...
 139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
 
 ## Tasks
 
 ### 144. Sapience fresh machine declarative gaps
-- **Status**: [RESEARCHING]
+- **Status**: [RESEARCHED]
 - **Task Type**: nix
 - **Topic**: sapience
 - **Dependencies**: Task 142
+- **Research**: [144_sapience_fresh_machine_declarative_gaps/reports/01_fresh-machine-declarative-gaps.md]
 
 **Description**: GOAL: close the three remaining hand steps between a fresh `nixos-rebuild switch` + `home-manager switch` and a working Sapience client, so the declared configuration is sufficient on a new machine.
 
