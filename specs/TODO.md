@@ -56,14 +56,14 @@ next_project_number: 145
 
 ### Sapience
 
-141 [RESEARCHED] — GOAL. Close the recurrence gap left by task 138. That task...
-144 [NOT STARTED] — GOAL: close the three remaining hand steps between a fresh...
+141 [PLANNED] — GOAL. Close the recurrence gap left by task 138. That task...
+144 [RESEARCHING] — GOAL: close the three remaining hand steps between a fresh...
 139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
 
 ## Tasks
 
 ### 144. Sapience fresh machine declarative gaps
-- **Status**: [NOT STARTED]
+- **Status**: [RESEARCHING]
 - **Task Type**: nix
 - **Topic**: sapience
 - **Dependencies**: Task 142
@@ -158,11 +158,12 @@ GOAL. (1) Both sites write/keep "hooks": false (use an explicit null test, not `
 ---
 
 ### 141. Prevent sapience hook reinjection
-- **Status**: [RESEARCHED]
+- **Status**: [PLANNED]
 - **Task Type**: nix
 - **Topic**: sapience
 - **Dependencies**: Task 142
 - **Research**: [141_prevent_sapience_hook_reinjection/reports/01_prevent-sapience-hook-reinjection.md]
+- **Plan**: [141_prevent_sapience_hook_reinjection/plans/01_prevent-sapience-hook-reinjection.md]
 
 **Description**: GOAL. Close the recurrence gap left by task 138. That task removed the five machine-wide Sapience hook entries from config/claude/settings.json and verified the live file post-switch; nothing it built prevents or detects the vendor client putting them back, and the vendor client has now put three of them back. DO NOT redo 138's removal -- the source file is still correct. The work here is convergence-on-activation plus detection-between-activations.
 

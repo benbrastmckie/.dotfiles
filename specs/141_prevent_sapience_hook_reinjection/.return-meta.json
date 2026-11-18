@@ -1,34 +1,22 @@
 {
-  "status": "researched",
-  "dispatch_seq": 3,
+  "status": "planned",
   "artifacts": [
     {
-      "type": "report",
-      "path": "specs/141_prevent_sapience_hook_reinjection/reports/01_prevent-sapience-hook-reinjection.md",
-      "summary": "Confirms convergence-on-activation already works (verified empirically), finds the between-activations detector already exists (nvim repo check g) or is already planned (task 142 Phase 2), narrows this task's remaining scope to the _SAPIENCE_NOTE enforced-key fix, and records a 141->142 dependency edge added during research."
+      "type": "plan",
+      "path": "specs/141_prevent_sapience_hook_reinjection/plans/01_prevent-sapience-hook-reinjection.md",
+      "summary": "2-phase plan (1.25h): add _SAPIENCE_NOTE to the claudeSettings enforced-key array plus two siting-record documentation hunks, then verify against a real home-manager switch."
     }
   ],
-  "next_steps": "Run /orchestrate 141 to create an implementation plan scoped to the _SAPIENCE_NOTE enforced-key addition in modules/home/core/dotfiles.nix; coordinate with task 142's landing before finalizing any _SAPIENCE_NOTE text referencing the opt-out/guard layers.",
+  "memory_candidates": [],
+  "phase_count": 2,
+  "estimated_hours": 1.25,
+  "dependency_waves": [[1], [2]],
+  "next_steps": "Run /orchestrate 141 to execute the plan",
   "metadata": {
     "session_id": "sess_1795027105_555221_141",
-    "agent_type": "nix-research-agent",
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "nix-research-agent"]
+    "delegation_path": ["orchestrator", "plan", "planner-agent"]
   },
-  "memory_candidates": [
-    {
-      "content": "home.activation.claudeSettings's enforced-key reduce step (modules/home/core/dotfiles.nix) fully resets '.hooks' to source on every home-manager switch, verified empirically with a synthetic jq replay against the measured 3-vendor-hook live state -- jq's '*' does not merge arrays and the reduce step overwrites the key wholesale, so vendor hook reinjection is already stripped at every switch; the only gap was the non-enforced _SAPIENCE_NOTE key.",
-      "category": "CONFIG",
-      "source_artifact": "specs/141_prevent_sapience_hook_reinjection/reports/01_prevent-sapience-hook-reinjection.md",
-      "confidence": 0.9,
-      "suggested_keywords": ["sapience", "home-manager", "claudeSettings", "enforced-key", "jq merge"]
-    },
-    {
-      "content": "Sapience vendor hook reinjection detection is split across three sites by design: nvim repo's verify-sapience-mcp.sh check (g) is the manual/on-demand detector (already shipped, task 636); task 142's planned sapienceHooksGuard home.activation entry (ordered entryBefore claudeSettings) is the automatic/every-switch detector; dotfiles.nix's claudeSettings enforced-key reset is the switch-time backstop. A new task touching this territory should check all three before adding a fourth.",
-      "category": "PATTERN",
-      "source_artifact": "specs/141_prevent_sapience_hook_reinjection/reports/01_prevent-sapience-hook-reinjection.md",
-      "confidence": 0.85,
-      "suggested_keywords": ["sapience", "hook-reinjection", "detection", "task-141", "task-142"]
-    }
-  ]
+  "dispatch_seq": 5
 }
