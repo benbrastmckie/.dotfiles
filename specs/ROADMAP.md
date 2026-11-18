@@ -29,7 +29,6 @@ them and replace this section with the observed result and the date.
 Every open Sapience task now leads this list, with the part of it that is actually attendable at the very top. The hook-reinjection convergence work and the fresh-machine declarative gaps both have an empty dependencies[] and can be picked up today; the hooks opt-out default rides in the same batch because it shares the detector surface and the sapience.nix territory with them, even though the graph will skip it until the parked measurement clears. That measurement stays parked -- it is five or more hand-run extraction passes spaced across more than a week, not something a dispatch can discharge -- and the classifier-cost task is blocked behind it, so that pair sits second rather than first. Extraction still runs against a metered third-party key, so every pass costs money and sends raw transcript chunks off this machine, which is what makes the declarative and hook-scoping work above worth taking before the configuration work below it. Everything after the Sapience batches is ordinary configuration work that is not getting more expensive while it waits.
 
 ```
-/orchestrate 136, 139   # Parked: resume the coverage measurement, then settle the classifier cost it prices
 /orchestrate 124, 77, 117, 120, 78   # Settle the niri session and resume behavior before documenting a setup that stops moving
 /orchestrate 125, 131   # Contain and schedule Claude's own session hygiene on one systemd user-unit surface
 ```
@@ -66,9 +65,8 @@ Why this order:
 68 ready            fix_broken_zfs_kernel_installer_builds
 ```
 
-**Services (6)**
+**Services (5)**
 ```
-136 IN FLIGHT       Measure Sapience capture coverage under manual extraction and decide whether ...   <- parked for now; the measurement window is 5+ hand-run passes over 1+ week, not one dispatch
 19 ready            install_setup_mcp_servers_web_development
 23 ready            install_simple_webcam_recording_software
 43 ready            install_forgejo_self_hosted_git
@@ -92,11 +90,6 @@ Why this order:
 ```
 41 BLOCKED          reenable_pdf2docx_nixpkgs_fix
 42 BLOCKED          reenable_jupytext_nixpkgs_fix
-```
-
-**Sapience (1)**
-```
-139 blocked:136     reduce_sapience_classifier_cost   <- needs 136's measured backlog; not attendable while 136 is parked
 ```
 The packaging pair (41, 42) is waiting on upstream nixpkgs fixes rather than on anything in this repository, so neither appears in a batch above.
 
