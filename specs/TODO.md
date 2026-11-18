@@ -56,18 +56,19 @@ next_project_number: 145
 
 ### Sapience
 
-144 [PLANNED] — GOAL: close the three remaining hand steps between a fresh...
+144 [PARTIAL] — GOAL: close the three remaining hand steps between a fresh...
 139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
 
 ## Tasks
 
 ### 144. Sapience fresh machine declarative gaps
-- **Status**: [PLANNED]
+- **Status**: [PARTIAL]
 - **Task Type**: nix
 - **Topic**: sapience
 - **Dependencies**: Task 142
 - **Research**: [144_sapience_fresh_machine_declarative_gaps/reports/01_fresh-machine-declarative-gaps.md]
 - **Plan**: [144_sapience_fresh_machine_declarative_gaps/plans/01_fresh-machine-declarative-gaps.md]
+- **Summary**: [144_sapience_fresh_machine_declarative_gaps/summaries/01_fresh-machine-declarative-gaps-summary.md]
 
 **Description**: GOAL: close the three remaining hand steps between a fresh `nixos-rebuild switch` + `home-manager switch` and a working Sapience client, so the declared configuration is sufficient on a new machine.
 
