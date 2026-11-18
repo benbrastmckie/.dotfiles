@@ -1,7 +1,7 @@
 # Implementation Plan: Task #141
 
 - **Task**: 141 - Prevent Sapience hook reinjection (close the recurrence gap left by task 138)
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 1.25 hours
 - **Dependencies**: 142 (landed — see Premise Re-Validation)
 - **Research Inputs**: specs/141_prevent_sapience_hook_reinjection/reports/01_prevent-sapience-hook-reinjection.md

@@ -64,7 +64,11 @@
     "duration_seconds": 2300,
     "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
+    "delegation_path": [
+      "orchestrator",
+      "implement",
+      "nix-implementation-agent"
+    ],
     "phases_completed": 2,
     "phases_total": 2
   },
