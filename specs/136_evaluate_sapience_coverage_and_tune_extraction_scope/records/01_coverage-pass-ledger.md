@@ -500,6 +500,272 @@ exists to flag.
 
 ---
 
-<!-- Phases 4-5 append one Pass-N block each below this line, in the fixed shape documented
-     above. Each requires at least 24 hours since the previous pass's timestamp before it may
-     run. -->
+## Series Closed at Three Real Passes -- No Fourth Pass Run
+
+**Decision recorded here, per the current plan round
+(`plans/03_single-sitting-decision-from-ledger.md`, Phase 4, task 1): no extraction pass is run
+in this phase or in any phase that follows.** The measurement series is closed at the three real
+passes already recorded above (Pass 1, Pass 2, Pass 3). The remaining measurement questions are
+answered from those recorded readings plus the read-only accrual sample taken below, which costs
+nothing and needs no extraction run.
+
+**Why a fourth pass is rejected outright here, not merely skipped**: Pass 3 finished
+2026-11-18T22:11:46Z. Any pass run from this same dispatch would start well inside the 24-hour
+floor the method itself established for every earlier pass (Phase 2's and Phase 3's first task).
+A pass run back-to-back with Pass 3 would be exactly the near-spaced datum the method calls
+destroyed rather than delayed -- it would not add a fourth independent reading, it would corrupt
+the comparison the first three readings support. Running one here would make the series worse,
+not longer. This matches the plan's own Decisions section and Non-Goals list verbatim.
+
+---
+
+## Accrual Sample -- Read-Only, No Pass Run
+
+**This is an accrual sample, not a pass block.** No extraction ran; the three fields below are a
+read-only snapshot taken to extend the series' time-based measurements (queue growth, accrual
+rate, filter ratio) without the cost or risk of a fourth pass.
+
+**ISO 8601 UTC timestamp**: 2026-11-18T22:50:40Z (immediately following the live commands below,
+taken in this same dispatch, roughly 38m54s after Pass 3's after-reading)
+
+**`sapience coverage` (verbatim)**:
+```
+==================================================================
+Sapience coverage
+==================================================================
+Window: last 30 days   Backend: anthropic
+Per-run extraction cap: 50 chunks (MAX_CHUNKS); backfill raises it so a wide window isn't truncated.
+Folders selected (4): nvim, dotfiles, app, abood
+------------------------------------------------------------------
+Ingested: 51 session files across 5 repos
+    BimodalLogic, PossibleWorlds, app, dotfiles, nvim
+------------------------------------------------------------------
+Curated memory files (CLAUDE.md / MEMORY.md / AGENTS.md / dumps): 0 ingested first each run
+------------------------------------------------------------------
+Available on disk: 1793 session files
+  would ingest now:          136
+  skipped (outside 30d window): 0
+  skipped (headless/agent):    45   (add --include-agents to keep them)
+  skipped (subagent / harness-started transcripts): 1397   (thread mechanics; never read)
+  daily extraction cap: 2000 objects/day (sapience yield: 2051 objects today (cap 2000), 50 chunks in 1 run; top sources: -home-benjamin--dotfiles/c1e0b710-3bfe-4d71-8947- (1 chunks), -home-benjamin--dotfiles/8fde2a97-68a7-4065-8e3a- (1 chunks), -home-benjamin--config-nvim/7b2db151-7b23-4c5c-a641- (1 chunks))
+  skipped (folder not chosen): 215
+------------------------------------------------------------------
+Widen the window:    sapience backfill 365
+Include agent runs:  add --include-agents  (or set SAPIENCE_INCLUDE_HEADLESS=1)
+==================================================================
+```
+
+**`sapience pending`**: `3757`
+
+**`wc -l ~/.sapience/pending_kos.jsonl`**: `3757` (matches `sapience pending` exactly, confirming
+the pending counter and the on-disk queue file agree)
+
+**Summation check**: `would ingest now` (136) + `skipped (outside 30d window)` (0) +
+`skipped (headless/agent)` (45) + `skipped (subagent / harness-started)` (1397) +
+`skipped (folder not chosen)` (215) = **1793**, matching the stated `Available on disk: 1793`
+exactly. No remainder.
+
+**Note on the `sapience yield` line**: it still reads `2051 objects today (cap 2000), 50 chunks
+in 1 run` -- unchanged from Pass 3's after-reading, because no pass has run since Pass 3 and the
+cumulative daily counter has not reset (same UTC calendar day as Pass 3's finish).
+
+### Delta against Pass 3's after-reading (no pass run in between -- pure accrual)
+
+| Field | Pass 3 after (2026-11-18T22:12:22Z) | Accrual sample (2026-11-18T22:50:40Z) | Delta |
+|---|---|---|---|
+| Available on disk | 1786 | 1793 | +7 |
+| would ingest now | 134 | 136 | +2 |
+| skipped (headless/agent) | 46 | 45 | **-1** |
+| skipped (subagent/harness-started) | 1391 | 1397 | +6 |
+| skipped (folder not chosen) | 215 | 215 | 0 |
+| `sapience pending` | 3757 | 3757 | 0 |
+
+**The headless/agent counter dropped by 1 (46 -> 45) with no review or pass run in between.**
+This is recorded verbatim rather than reconciled -- the counter is not monotonic between readings
+taken moments apart with no intervening action, which the series had not previously observed
+(every earlier pair of readings showed this counter flat or growing). No explanation for the
+single-unit drop is available from the coverage output alone; it is noted here as a finding, not
+resolved. `sapience pending` is flat at 3757 (expected: no pass and no review ran).
+
+---
+
+## Series-Wide Computations (Phase 4)
+
+### 1. Review-queue growth across the whole recorded series
+
+`sapience pending` readings, in order, each with its source:
+
+| Reading | Timestamp (UTC) | `pending` | Source |
+|---|---|---|---|
+| Pass 0 / Pass 1 after | 2026-11-13T21:07:34Z | 1208 | Pass 0 block |
+| Pass 2 before | 2026-11-17T21:00:30Z | 1208 | Pass 2 block (unchanged since Pass 0/1 -- no pass or review ran in the 2026-11-13 to 2026-11-17 gap) |
+| Pass 2 after | 2026-11-17T21:26:00Z | 1747 | Pass 2 block |
+| Pass 3 before | 2026-11-18T21:23:35Z | 1747 | Pass 3 block (unchanged since Pass 2 after -- no pass or review ran in the ~24h gap) |
+| Pass 3 after | 2026-11-18T22:12:22Z | 3757 | Pass 3 block |
+| Accrual sample | 2026-11-18T22:50:40Z | 3757 | this phase (unchanged -- no pass or review ran) |
+
+**The queue grows only during a pass, never between passes.** Every inter-pass reading (Pass 0 to
+Pass 2-before; Pass 2-after to Pass 3-before; Pass 3-after to the accrual sample) is perfectly
+flat. This confirms `pending` measures staged-awaiting-review objects, not an organically-growing
+backlog -- it moves only when a pass stages new objects (or, outside this task's scope, when a
+review session drains it; no review was run, so that direction is unobserved).
+
+**Objects added per pass**: Pass 2: +539 (34 `extract error:` lines; flagged, see below). Pass 3:
++2010 (0 errors; clean).
+
+**Per-pass growth rate as a day-equivalent (naive extrapolation, stated with its caveat)**: if
+Pass 2's 539-object yield over its 22min29.8s runtime were sustained continuously for 24 hours,
+that would extrapolate to roughly 34,500 objects/day; Pass 3's 2010 objects over 47min58.5s
+extrapolates to roughly 60,300 objects/day. **Both extrapolations are stated only to show the
+scale mismatch with the 2000-object cap and must not be read as a real sustainable rate** -- a
+pass is a bounded 50-chunk batch, not a continuous process, and no evidence anywhere in this
+series supports running passes back-to-back (the method itself forbids it, per the ">=24h
+spacing" rule and this phase's own no-fourth-pass decision above).
+
+**Total growth across the recorded series**: `pending` grew 1208 -> 3757, a delta of **+2549**,
+across the 5.4471-day span from Pass 1's finish (2026-11-13T12:06:52Z) to this phase's accrual
+sample (2026-11-18T22:50:40Z). As a per-day average over that whole span: 2549 / 5.4471 ≈
+**468 objects/day**. This average is driven entirely by the two passes (539 + 2010 = 2549) that
+happened to fall inside that span -- it is not a rate the queue grows at continuously, and it
+would be a different number if the same two passes had landed one day earlier or later. **This
+is stated as a limitation below, not as a steady rate.**
+
+**Whether the queue grows faster than any plausible review session could drain it: unmeasured.**
+No review session was run at any point in this task (deliberate -- see Phase 5's own task list
+and this plan's Non-Goals); no review-throughput datum exists anywhere in this ledger or the
+client's own output. The queue's growth side is fully measured (+2549 over the series, entirely
+pass-driven); the drain side is completely absent. The honest statement is that an object staged
+and never reviewed is captured but not in the vault, and this series provides no evidence either
+way about how close review capacity comes to matching the pass-driven growth above.
+
+### 2. Queue growth against the 2000-objects/day cap
+
+Pass 3 alone staged 2051 objects in one run, already exceeding the entire daily cap by itself
+(confirmed earlier in this ledger: the run completed all 50 chunks with no journal line
+indicating an early stop or a dropped chunk). Because the cap is descriptive/cumulative rather
+than an enforced ceiling (established in Pass 3's own Daily-Cap Headroom Check above, and
+unchanged by this phase's accrual sample), nothing prevents a second pass from running the same
+calendar day and staging further objects on top of a cap that has already been exceeded. The cap
+therefore bounds nothing about same-day queue growth in practice: a single ordinary pass can push
+same-day staged objects past 2000, and the client does not stop or warn when this happens.
+
+This is a constraint on cadence independent of cost: even if extraction cost were free, running
+passes more than roughly once every day or two would stage objects faster than any realistic
+manual review session (minutes per record, per the sampling in Phase 5) could plausibly keep
+pace with, given the review queue already stands at 3757 unreviewed objects after only three
+passes.
+
+### 3. Per-day transcript accrual rate (`Available on disk` series)
+
+Using only the inter-pass intervals where no pass was running (the during-pass deltas are a
+different signal and are reported separately), each with its two endpoints and elapsed time:
+
+| Interval | Start (UTC) | End (UTC) | `Available on disk` Δ | Elapsed | Rate (objects/day) |
+|---|---|---|---|---|---|
+| Pass 0 -> Pass 2 before | 2026-11-13T21:07:34Z | 2026-11-17T21:00:30Z | 1157 -> 1611 (+454) | 95.882h = 3.9951d | 113.6 |
+| Pass 2 after -> Pass 3 before | 2026-11-17T21:26:00Z | 2026-11-18T21:23:35Z | 1617 -> 1781 (+164) | 23.960h = 0.9983d | 164.3 |
+| Pass 3 after -> accrual sample | 2026-11-18T22:12:22Z | 2026-11-18T22:50:40Z | 1786 -> 1793 (+7) | 0.638h = 0.0266d | 263.2 (noisy -- <1 hour) |
+
+**This rate rests on only two full-day-scale intervals plus one sub-hour interval.** The two
+full intervals disagree by about 45% (113.6/day vs. 164.3/day), so "the" accrual rate is itself
+variable across the series, not a single constant the series has pinned down. The third interval
+(263.2/day) is extrapolated from under 40 minutes of data and is far noisier than the other two;
+it is reported for completeness but carries the least weight of the three. **No single number
+below should be read as more than this series' current midpoint estimate**: an unweighted mean of
+just the two full-day intervals is (113.6 + 164.3) / 2 ≈ 139/day, offered only as that midpoint,
+not as a confirmed rate.
+
+For reference, the during-pass deltas (new transcripts accruing while a pass itself runs) were:
+Pass 2: +6 over 22min29.8s; Pass 3: +5 over 47min58.5s -- both small relative to the inter-pass
+deltas above, consistent with accrual being roughly continuous rather than clustered at pass
+boundaries.
+
+### 4. Two-filter ratio, re-run with the fresh reading added
+
+**Denominator**: 6 coverage readings now carry both skip counters (the 5 from Phase 3's check
+plus this phase's accrual sample).
+
+| Reading | Timestamp (UTC) | skipped (headless/agent) | skipped (subagent/harness-started) | Ratio |
+|---|---|---|---|---|
+| Pass 0 | 2026-11-13T21:07:34Z | 30 | 904 | 30.13x |
+| Pass 2 before | 2026-11-17T21:00:30Z | 40 | 1253 | 31.33x |
+| Pass 2 after | 2026-11-17T21:26:00Z | 40 | 1258 | 31.45x |
+| Pass 3 before | 2026-11-18T21:23:35Z | 45 | 1388 | 30.84x |
+| Pass 3 after | 2026-11-18T22:12:22Z | 46 | 1391 | 30.24x |
+| Accrual sample | 2026-11-18T22:50:40Z | 45 | 1397 | 31.04x |
+
+**The band Phase 3 recorded (30.13x-31.45x) still holds with this sixth reading added -- it has
+not moved.** The new reading (31.04x) falls inside the existing band, not outside it. The
+non-overridable `subagent`/`harness-started` filter continues to dominate the overridable
+`headless/agent` filter by roughly 30x at every reading taken across the whole series.
+
+### 5. Series-completeness check
+
+Stated against what actually exists, not against the original five-pass/seven-day method:
+
+- **Real passes recorded**: 3 (Pass 1, Pass 2, Pass 3). *Shortfall: the method called for at
+  least 5.*
+- **Consecutive gaps between passes**: Pass 1 finish (2026-11-13T12:06:52Z) to Pass 2 start
+  (2026-11-17T21:00:38Z) = 104h53m46s (~104.9h). Pass 2 finish (2026-11-17T21:23:08Z) to Pass 3
+  start (2026-11-18T21:23:48Z) = 24h00m40s. Both individually clear the method's own ">=24h"
+  floor; *no shortfall on this criterion*.
+- **Total span**: from Pass 1's start (2026-11-13T11:37:47Z) to Pass 3's finish
+  (2026-11-18T22:11:46Z) = 130h33m59s ≈ **5.44 days**. *Shortfall: the method called for the
+  series to span at least 7 days; it spans about 5.44.*
+- **Usable before/after coverage pairs**: Pass 1 supplies none (journal-reconstructed, no live
+  before/after capture). Pass 2 and Pass 3 each supply one. **2 of 3 passes carry a usable
+  before/after coverage pair.** *Shortfall relative to a hypothetical 5-pass series with 5 such
+  pairs.*
+- **Clean (zero-`extract error:`) pairs usable for drain-rate**: of those 2 pairs, only Pass 3 is
+  clean (0 errors); Pass 2 carries 34 `extract error:` lines and is excluded from clean drain-rate
+  computation (see below). **Only 1 of 3 passes is a clean, fully-observed drain-rate datum.**
+
+### 6. Passes with non-zero `extract error:` counts -- drain-rate exclusions
+
+| Pass | `extract error:` count | Drain-rate usable? |
+|---|---|---|
+| Pass 1 | 0 (but no before/after pair exists at all -- excluded for a different reason) | No (no coverage pair) |
+| Pass 2 | 34 | **No -- excluded, per the plan's own risk mitigation and Phase 2's verification criterion** |
+| Pass 3 | 0 | Yes -- the series' only clean, fully-observed drain-rate datum |
+
+Any later phase computing a "clean drain-rate" figure must use Pass 3 alone (one datum) and must
+not average Pass 2's yield into it.
+
+### 7. Stated limitations -- questions this phase's readings cannot answer
+
+Named explicitly, with no figure asserted in their place:
+
+- **Whether per-pass yield variability (the observed 3.7x range, 550-2051 objects at an
+  identical 50-chunk count) narrows over a longer series.** Three passes is not enough data to
+  say whether this spread is a persistent property of the content being extracted or would
+  tighten with more readings.
+- **Whether a steady-state drain rate can be established at all.** Only one pass (Pass 3) is both
+  fully-observed (before/after pair) and clean (zero errors). A single clean datum cannot
+  establish a "steady state" -- that requires multiple clean, comparable readings, which this
+  series does not have. Pass 3 alone shows `would ingest now` held flat (134 -> 134); whether that
+  is typical or a coincidence of this particular pass's chunk selection is unanswerable from one
+  clean datum.
+- **How much confidence the per-day accrual rate carries.** It rests on two full-day-scale
+  intervals that disagree by ~45% (113.6/day vs. 164.3/day) plus one sub-hour, noisy interval.
+  Two disagreeing data points do not establish confidence in a single rate; the 139/day midpoint
+  stated above is offered only as a midpoint, not as a measured constant.
+  **Whether review capacity can keep pace with pass-driven queue growth.** No review-throughput
+  datum exists anywhere in this ledger (no review session was run, by design). The queue growth
+  side (+2549 objects across the series, entirely pass-driven) is fully measured; the drain side
+  is entirely absent, so this question cannot be answered numerically at all -- only the growth
+  half of the comparison exists.
+- **Whether the single-unit drop in `skipped (headless/agent)` (46 -> 45) between Pass 3's
+  after-reading and this phase's accrual sample, with no pass or review run in between, reflects
+  a real non-monotonic re-classification or a transient counting artifact.** No mechanism for
+  this is visible from the coverage output; a longer series of idle-interval readings (no pass
+  running) would be needed to tell whether this recurs.
+- **Per-pass dollar/token cost.** Confirmed unobtainable for a third time (Phase 1, Phase 2,
+  Phase 3 all found nothing); Phase 6's decision must continue to state this plainly rather than
+  estimate a figure.
+
+---
+
+<!-- The measurement series is closed at the three real passes above plus this phase's one
+     accrual sample. No further Pass-N block is appended below this line -- Phase 5 (vault-content
+     audit) and Phase 6 (decision) write their own separate record files rather than appending to
+     this ledger; see records/02_vault-content-audit.md and records/03_extraction-scope-decision.md. -->

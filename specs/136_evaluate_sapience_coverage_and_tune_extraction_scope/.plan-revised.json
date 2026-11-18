@@ -1,0 +1,6 @@
+{
+  "revised_at": 1795041936,
+  "reason": "drift",
+  "plan_path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/03_single-sitting-decision-from-ledger.md",
+  "summary": "The 24-hour pass gate and the five-pass series are dropped; phases 4-5 are collapsed into one ledger-based analysis phase, no further extraction pass is run, and the decision phase must record the three-pass evidence base as a stated limitation."
+}

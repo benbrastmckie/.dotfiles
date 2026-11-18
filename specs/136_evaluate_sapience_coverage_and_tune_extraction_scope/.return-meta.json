@@ -1,33 +1,8 @@
 {
-  "status": "partial",
-  "dispatch_seq": 17,
-  "partial_progress": {
-    "stage": "phase_gated_on_elapsed_time",
-    "details": "No new work this dispatch. Re-verified live that Phase 4 ('Extraction Pass 4 and Review-Queue Growth Check') remains gated on its own 24-hour-since-Pass-3 floor: the ledger's Pass-3 after-reading is timestamped 2026-11-18T22:12:22Z, and this dispatch began at approximately 2026-11-18T22:17:35Z -- only ~5 minutes elapsed, far short of the required 24 hours. Per the plan's own Phase 4 first task ('if not, stop and leave this phase [NOT STARTED]'), no pass was run and the phase heading was left untouched at [NOT STARTED]. This is the fourth occurrence of a premature re-dispatch against this task's calendar-spaced series (previously at dispatch seq 9, 12, and 14). Next legitimate re-dispatch not before approximately 2026-11-19T22:12:22Z. Phases completed remain 3 of 8.",
-    "phases_completed": 3,
-    "phases_total": 8
-  },
-  "artifacts": [
-    {
-      "type": "record",
-      "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
-      "summary": "Measurement ledger, unchanged this dispatch: last entry is the Pass-3 block plus mid-series filter-ratio and daily-cap-headroom checks."
-    }
-  ],
-  "completion_data": {
-    "completion_summary": "No phase work performed: re-checked the Phase 4 24-hour-since-Pass-3 gate live and confirmed it remains unmet (~5 minutes elapsed of the required 24 hours). Recorded the premature-re-dispatch finding and returned partial with no file changes beyond the issue log."
-  },
-  "modified_files": [
-    "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/issues.jsonl"
-  ],
-  "memory_candidates": [],
-  "sapience_notes": [],
+  "status": "in_progress",
   "metadata": {
-    "session_id": "sess_1795036884_cffd95",
+    "session_id": "sess_1795042143_9ae6ed",
     "agent_type": "general-implementation-agent",
-    "delegation_depth": 2,
-    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
-    "phases_completed": 3,
-    "phases_total": 8
+    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"]
   }
 }

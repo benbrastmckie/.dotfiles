@@ -413,7 +413,7 @@ compute the ratio over those, stating the denominator, rather than over an assum
 
 ---
 
-### Phase 4: Close the Series and Answer the Remaining Measurement Questions From the Ledger [NOT STARTED]
+### Phase 4: Close the Series and Answer the Remaining Measurement Questions From the Ledger [COMPLETED]
 
 **Goal**: Answer the review-queue-growth, series-span, and filter-stability questions from the
 readings already recorded plus fresh read-only sampling, run no further extraction pass, and name
@@ -421,49 +421,64 @@ explicitly every question three passes cannot answer.
 
 **Tasks**:
 
-- [ ] Run NO extraction pass in this phase, and record that decision and its reason in the ledger:
+- [x] Run NO extraction pass in this phase, and record that decision and its reason in the ledger:
       the evidence base is closed at the three real passes already recorded, and a pass run
       back-to-back with Pass 3 would be exactly the near-spaced datum the method calls destroyed
-      rather than delayed, so adding one would make the series worse rather than longer.
-- [ ] Take fresh read-only readings now and append them to the ledger as an accrual sample,
+      rather than delayed, so adding one would make the series worse rather than longer. *(completed)*
+- [x] Take fresh read-only readings now and append them to the ledger as an accrual sample,
       explicitly labelled as such rather than as a pass block: `sapience coverage` verbatim,
       `sapience pending`, and `wc -l ~/.sapience/pending_kos.jsonl`, each with an ISO 8601 UTC
-      timestamp. These readings cost nothing and need no extraction run.
-- [ ] Verify the fresh reading's five `Available on disk` sub-counters sum to its stated total and
+      timestamp. These readings cost nothing and need no extraction run. *(completed: Available
+      on disk 1793, would ingest now 136, pending 3757, taken 2026-11-18T22:50:40Z)*
+- [x] Verify the fresh reading's five `Available on disk` sub-counters sum to its stated total and
       record the arithmetic, as every earlier reading did. A mismatch is a finding to record, not
-      to reconcile silently.
-- [ ] Compute and record the review-queue growth across the whole recorded series from the
+      to reconcile silently. *(completed: 136+0+45+1397+215 = 1793, matches exactly)*
+- [x] Compute and record the review-queue growth across the whole recorded series from the
       `sapience pending` readings already in the ledger plus the fresh reading above: the value at
       every reading, the objects added per pass, and the resulting per-pass and per-day growth
       rate, each with its inputs. State plainly whether the queue grows faster than any plausible
       review session could drain it, since an object staged and never reviewed is captured but not
-      in the vault.
-- [ ] Record the queue's growth against the 2000-objects/day cap: if a day's passes can stage more
+      in the vault. *(completed: queue flat between passes, +539/+2010 per pass, +2549 total over
+      5.4471 days (~468/day average, pass-driven not continuous); review-drain side unmeasured --
+      no review session ever run, so the drain comparison is unanswerable, recorded as a
+      limitation)*
+- [x] Record the queue's growth against the 2000-objects/day cap: if a day's passes can stage more
       objects than a day's review can absorb, that is a constraint on cadence independent of cost,
       and the decision phase must weigh it. State the cap's observed character alongside it -- the
       ledger records a pass finishing at 2051 objects with no journal line indicating an early stop
-      or a dropped chunk.
-- [ ] Compute and record the per-day transcript accrual rate from the `Available on disk` series
+      or a dropped chunk. *(completed: cap is descriptive/cumulative only, confirmed again; a
+      single pass can already exceed it with nothing stopping a same-day second pass)*
+- [x] Compute and record the per-day transcript accrual rate from the `Available on disk` series
       already in the ledger plus the fresh reading, naming each interval's two endpoints and its
       elapsed time. State how many intervals the rate rests on, and do not present a single
-      averaged rate as if it rested on more.
-- [ ] Re-run the two-filter ratio over every coverage reading in the ledger including the fresh
+      averaged rate as if it rested on more. *(completed: two full-day-scale intervals, 113.6/day
+      and 164.3/day, plus one noisy sub-hour interval at 263.2/day; midpoint ~139/day stated only
+      as a midpoint, not a confirmed rate)*
+- [x] Re-run the two-filter ratio over every coverage reading in the ledger including the fresh
       reading above, naming the denominator, and state whether the band the first mid-series check
-      recorded still holds with the new reading added or has moved.
-- [ ] Run the series-completeness check over what actually exists, and record each criterion the
+      recorded still holds with the new reading added or has moved. *(completed: denominator 6
+      readings, new ratio 31.04x falls inside the existing 30.13x-31.45x band -- band holds)*
+- [x] Run the series-completeness check over what actually exists, and record each criterion the
       series falls short of as a shortfall rather than as a satisfied criterion: the number of real
       passes recorded; every consecutive gap between passes; the total span from the first to the
       last pass; and how many passes carry a usable before/after coverage pair as opposed to a
-      journal reconstruction.
-- [ ] List every pass that recorded a non-zero `extract error:` count, preserve its existing flag
+      journal reconstruction. *(completed: 3 real passes (shortfall vs. 5); both gaps clear 24h
+      (no shortfall); total span ~5.44 days (shortfall vs. >=7); 2 of 3 passes carry a usable
+      before/after pair; only 1 of those 2 is clean/zero-error)*
+- [x] List every pass that recorded a non-zero `extract error:` count, preserve its existing flag
       in the ledger, and state which passes must be excluded from the drain-rate computation.
-- [ ] Name, as an explicit list of stated limitations for the decision to carry, every question in
+      *(completed: Pass 2 (34 errors) excluded from clean drain-rate; Pass 3 is the only clean,
+      fully-observed datum)*
+- [x] Name, as an explicit list of stated limitations for the decision to carry, every question in
       scope for this phase that the recorded readings cannot answer -- asserting no figure in place
       of any of them. At minimum, address whether per-pass yield variability narrows over a longer
       series, whether a steady-state drain rate can be established at all from two fully observed
       passes, and how much confidence the per-day accrual rate carries on the number of intervals
-      actually available.
-- [ ] Record any issue or win via `issue-record.sh` as it arises.
+      actually available. *(completed: six limitations recorded, including the review-drain
+      question and the unexplained headless/agent counter dip)*
+- [x] Record any issue or win via `issue-record.sh` as it arises. *(completed: issue recorded for
+      the headless/agent counter anomaly; win recorded for the filter-ratio band holding across a
+      sixth independent reading)*
 
 **Timing**: 45-60 minutes, in one sitting; no calendar wait, and no extraction pass
 

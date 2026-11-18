@@ -1,0 +1,23 @@
+{
+  "phase": 4,
+  "phase_name": "Close the Series and Answer the Remaining Measurement Questions From the Ledger",
+  "started_at": "2026-11-18T22:50:30Z",
+  "last_updated": "2026-11-18T23:05:00Z",
+  "objectives": [
+    {"id": 1, "description": "Run NO extraction pass; record decision and reason in the ledger", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 2, "description": "Take fresh read-only accrual-sample readings (coverage, pending, pending_kos.jsonl line count) with timestamp", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 3, "description": "Verify the fresh reading's five sub-counters sum to stated total", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 4, "description": "Compute review-queue growth across recorded series plus fresh reading", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 5, "description": "Record queue growth against 2000-objects/day cap and cap's observed character", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 6, "description": "Compute per-day transcript accrual rate from Available-on-disk series", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 7, "description": "Re-run two-filter ratio over every coverage reading including fresh one", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 8, "description": "Run series-completeness check and record shortfalls", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 9, "description": "List passes with non-zero extract error counts and state drain-rate exclusions", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 10, "description": "Name explicit list of stated limitations / unanswerable questions", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md"]},
+    {"id": 11, "description": "Record issue/win via issue-record.sh as it arises", "status": "done", "files_touched": []}
+  ],
+  "current_objective": 11,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": []
+}
