@@ -1,0 +1,10 @@
+[
+  {
+    "question": "Both attached checkouts' sender breakers have been open since 2026-11-14/15 with roughly 191 commit events stranded in outbox/; running `guard.py send --reset` would immediately deliver several days of queued commit metadata to Oliver's hosted sink. Who runs that reset, and when?",
+    "answer": "Leave both breakers open; the plan records the counts and the exact reset command per checkout, and you run it yourself when ready (non-blocking decision, proceeded on the agent's own recommendation; not asked)",
+    "cycle": 3,
+    "timestamp": "2026-11-17T22:13:13Z",
+    "description_fingerprint": "19e14e977cb11afa23a74a5e97605b7b9d419037b2aa6c40ee92973186d163bf",
+    "obligation": "Restores the hub_commit_events reporting consented in CONSENT-benjamin.json without an agent performing an outward-facing, irreversible delivery of several days of commit metadata unattended; Phase 3's record must name the stranded count and the exact reset command per checkout for the obligation to be discharged."
+  }
+]
