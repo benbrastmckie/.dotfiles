@@ -710,38 +710,64 @@ there -- recording the divergence rather than planning around it.
 
 ---
 
-### Phase 7: Enact the Decision and Reconcile the Documentation [NOT STARTED]
+### Phase 7: Enact the Decision and Reconcile the Documentation [COMPLETED WITH EXCLUSIONS]
 
 **Goal**: Apply exactly what the decision selected, make `docs/sapience.md` state the contract that
 is then live, and close the task against the full gate set.
 
 **Tasks**:
 
-- [ ] Read phase 6's decision record. Enact exactly what it selected and nothing more; this phase
-      has no independent judgment about the right configuration.
+- [x] Read phase 6's decision record. Enact exactly what it selected and nothing more; this phase
+      has no independent judgment about the right configuration. *(completed: decision selects
+      (d), leave all three as they are)*
 - [ ] If the decision adjusts the per-run chunk cap: change it where the module actually reads it --
       `modules/home/services/sapience.nix`'s `budget="${MAX_CHUNKS:-50}"` and the sync unit's
       environment -- and never by editing `~/.sapience/*.py`, which is vendor-owned and regenerated
-      by activation.
+      by activation. *(deviation: skipped -- the decision did not select this outcome)*
 - [ ] If the decision adds `programs.sapience.includeAgentSessions`: declare the option in
       `modules/home/services/sapience.nix` alongside the existing `backgroundSync`/`syncInterval`
       options, wire `SAPIENCE_INCLUDE_HEADLESS` into the sync unit's environment, and set it in
       `home.nix`. State in the option's own comment that it does not override the
       subagent/harness-started filter, quoting the client's own message to that effect.
+      *(deviation: skipped -- the decision did not select this outcome)*
 - [ ] If the decision turns on scheduled extraction: set `programs.sapience.backgroundSync` and
       `syncInterval` in `home.nix`, and state the measured per-pass cost and duration in the comment
-      beside them so the trade is legible where the setting lives.
-- [ ] If the decision is to leave all three as they are: make no configuration change, and close
+      beside them so the trade is legible where the setting lives. *(deviation: skipped -- the
+      decision did not select this outcome)*
+- [x] If the decision is to leave all three as they are: make no configuration change, and close
       this phase as `[COMPLETED WITH EXCLUSIONS]` with a `#### Reasoned Exclusions` block naming the
       decision record as the reason. This is a valid, expected outcome of a measurement task, not a
-      failure to deliver.
-- [ ] Update `docs/sapience.md` so its "Nothing extracts on a schedule" section states the contract
+      failure to deliver. *(completed: see Reasoned Exclusions block below)*
+- [x] Update `docs/sapience.md` so its "Nothing extracts on a schedule" section states the contract
       that is actually live after this phase. Write it as the current design only -- no "previously",
       "no longer", or draft-history framing, per `.claude/rules/no-record-versioning-in-deliverables.md`.
-- [ ] If any Nix file changed, evaluate before committing: `nix flake check` (or the repository's own
+      *(completed: verified live -- the section already states backgroundSync=false, manual
+      passes only, which remains the live contract since the decision made no change; no edit
+      needed)*
+- [x] If any Nix file changed, evaluate before committing: `nix flake check` (or the repository's own
       evaluation entry point) and a Home Manager build. An evaluation failure blocks the phase.
-- [ ] Run the full gate set: `bash .claude/scripts/verify-deploy.sh`.
-- [ ] Record any issue or win via `issue-record.sh` as it arises.
+      *(completed: not applicable -- no Nix file changed)*
+- [x] Run the full gate set: `bash .claude/scripts/verify-deploy.sh`. *(completed per this
+      dispatch's Batch Gate Deferral directive: scoped discharge via `verify-touched.sh
+      --task-dir`, which found only this task's own specs/** artifacts touched, fell into the
+      OWED/full-sweep fallback, and surfaced 12 pre-existing failures that are all
+      "mode=source-store" tests requiring `agent-system/extensions/core/scripts/*.sh` -- absent
+      from this deploy-consumer repository by design, unrelated to this task's file_scope, and
+      not caused by any edit in this task. Recorded via issue-record.sh. The full, repo-wide gate
+      set runs once for the whole batch at the end of this invocation per the deferral directive.)*
+- [x] Record any issue or win via `issue-record.sh` as it arises. *(completed: issue recorded for
+      the pre-existing source-store-only test failures surfaced by the OWED fallback)*
+
+#### Reasoned Exclusions
+
+| Item | Reason | Evidence |
+|---|---|---|
+| Configuration enactment (`home.nix` / `modules/home/services/sapience.nix` edits for outcomes (a), (b), or (c)) | The decision record selects outcome (d), leave all three candidate levers as they are, on measured grounds -- there is nothing for this phase to enact. | `specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md`, "Decision on Each Candidate Outcome" and "Configuration Change Required: NONE" sections. |
+| `docs/sapience.md` edit | The decision changed nothing, so the "Nothing extracts on a schedule" section's existing prose (backgroundSync false, two manual invocation paths, no timer) already states the live contract; re-verified by direct read rather than assumed. | `docs/sapience.md` lines 271-292, read live at this phase. |
+| `nix flake check` / Home Manager build | No Nix file was changed by this phase (nothing to evaluate). | `git diff --stat` for this phase's commit shows only `specs/**` paths. |
+
+This is the measurement task's expected terminus when the evidence supports leaving the
+arrangement as it stands -- a valid, deliberate outcome, not a shortfall.
 
 **Timing**: 1-2 hours; closer to 30 minutes if the decision is to leave the arrangement as it stands
 
@@ -773,24 +799,37 @@ phase must not run concurrently with either.
 
 ## Testing & Validation
 
-- [ ] `bash .claude/scripts/validate-artifact.sh specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/03_single-sitting-decision-from-ledger.md plan` passes.
-- [ ] The ledger's five `Available on disk` sub-counters sum to the stated total at every reading,
-      including the accrual sample phase 4 appends.
-- [ ] No extraction pass was run after Pass 3; the ledger records that and why.
-- [ ] Every pass block carries a before/after reading pair, or is explicitly flagged as a journal
-      reconstruction that cannot supply one.
-- [ ] Every pass block states its `extract error:` line count, including zero.
-- [ ] The series-completeness check names each criterion the series falls short of -- real-pass
+- [x] `bash .claude/scripts/validate-artifact.sh specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/03_single-sitting-decision-from-ledger.md plan` passes. *(completed: [PASS] plan artifact is valid, 0 warnings)*
+- [x] The ledger's five `Available on disk` sub-counters sum to the stated total at every reading,
+      including the accrual sample phase 4 appends. *(completed: verified for Pass 0, Pass 2
+      before/after, Pass 3 before/after, and the Phase 4 accrual sample -- all match exactly)*
+- [x] No extraction pass was run after Pass 3; the ledger records that and why. *(completed: see
+      records/01_coverage-pass-ledger.md's "Series Closed at Three Real Passes" section)*
+- [x] Every pass block carries a before/after reading pair, or is explicitly flagged as a journal
+      reconstruction that cannot supply one. *(completed: Pass 1 flagged as journal-reconstructed;
+      Pass 2 and Pass 3 each carry a live before/after pair)*
+- [x] Every pass block states its `extract error:` line count, including zero. *(completed: Pass 1
+      0, Pass 2 34, Pass 3 0 -- all stated explicitly)*
+- [x] The series-completeness check names each criterion the series falls short of -- real-pass
       count, consecutive gaps, total span, usable before/after pairs -- rather than asserting any
-      of them as satisfied.
-- [ ] The vault-content audit states a sample size of at least 30 with its denominator, and confirms
-      `sapience review` was not run.
-- [ ] Every figure in the decision record cites a dated ledger block.
-- [ ] The decision record's limitations section names the reduced evidence base -- three passes,
-      five calendar days, one pass excluded as error-bearing.
-- [ ] `bash .claude/scripts/verify-deploy.sh` green at the final phase.
-- [ ] If any Nix file changed at the final phase, flake evaluation and a Home Manager build are
-      green.
+      of them as satisfied. *(completed: records/01_coverage-pass-ledger.md, Phase 4's
+      "Series-completeness check" section)*
+- [x] The vault-content audit states a sample size of at least 30 with its denominator, and confirms
+      `sapience review` was not run. *(completed: 36-record sample with denominator stated
+      throughout; records/02_vault-content-audit.md's first section confirms review was not run)*
+- [x] Every figure in the decision record cites a dated ledger block. *(completed: verified by
+      re-read of records/03_extraction-scope-decision.md)*
+- [x] The decision record's limitations section names the reduced evidence base -- three passes,
+      five calendar days, one pass excluded as error-bearing. *(completed: all three named
+      explicitly in the decision record's Limitations section)*
+- [x] `bash .claude/scripts/verify-deploy.sh` green at the final phase. *(completed with exclusion:
+      discharged against the scoped tier per this dispatch's Batch Gate Deferral directive via
+      `verify-touched.sh --task-dir`, not an independent full sweep -- see Phase 7's own
+      Reasoned Exclusions-adjacent verification note and the issue recorded for the 12
+      pre-existing, unrelated source-store-only test failures the OWED fallback surfaced. The
+      full, repo-wide gate set runs once for the whole batch at the end of this invocation.)*
+- [x] If any Nix file changed at the final phase, flake evaluation and a Home Manager build are
+      green. *(completed: not applicable -- no Nix file changed, decision selected (d))*
 
 ## Artifacts & Outputs
 

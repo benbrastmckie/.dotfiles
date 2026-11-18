@@ -1,0 +1,39 @@
+{
+  "phase": 7,
+  "phase_name": "Enact the Decision and Reconcile the Documentation",
+  "started_at": "2026-11-18T23:50:00Z",
+  "last_updated": "2026-11-19T00:15:00Z",
+  "objectives": [
+    {"id": 1, "description": "Read decision record; enact exactly what it selected (nothing, per outcome (d))", "status": "done", "files_touched": []},
+    {"id": 2, "description": "Verify docs/sapience.md's cadence section still states the live contract", "status": "done", "files_touched": []},
+    {"id": 3, "description": "Close phase as COMPLETED WITH EXCLUSIONS with Reasoned Exclusions block naming decision record", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/03_single-sitting-decision-from-ledger.md"]},
+    {"id": 4, "description": "Run scoped verification per Batch Gate Deferral directive (no Nix files changed)", "status": "done", "files_touched": []},
+    {"id": 5, "description": "Record issue/win via issue-record.sh as it arises", "status": "done", "files_touched": []}
+  ],
+  "current_objective": 5,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": [
+    {
+      "task_id": "7.2",
+      "description": "If the decision adjusts the per-run chunk cap...",
+      "type": "skipped",
+      "reason": "The decision selected outcome (d), not (b); no chunk-cap change was warranted.",
+      "annotation": "*(deviation: skipped -- the decision did not select this outcome)*"
+    },
+    {
+      "task_id": "7.3",
+      "description": "If the decision adds programs.sapience.includeAgentSessions...",
+      "type": "skipped",
+      "reason": "The decision selected outcome (d), not (a); no includeAgentSessions option was warranted.",
+      "annotation": "*(deviation: skipped -- the decision did not select this outcome)*"
+    },
+    {
+      "task_id": "7.4",
+      "description": "If the decision turns on scheduled extraction...",
+      "type": "skipped",
+      "reason": "The decision selected outcome (d), not (c); no backgroundSync change was warranted.",
+      "annotation": "*(deviation: skipped -- the decision did not select this outcome)*"
+    }
+  ]
+}
