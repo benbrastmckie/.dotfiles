@@ -215,7 +215,7 @@ one agent-system gate that is live in a deploy-consumer tree.
 
 ---
 
-### Phase 2: Mirror the option into `packages/sapience-flake` at the vendor default [NOT STARTED]
+### Phase 2: Mirror the option into `packages/sapience-flake` at the vendor default [COMPLETED]
 
 **Goal**: the standalone flake carries the same option with `default = true` (vendor default),
 wired through its shared wrapper library and its own sync unit, with both of `wrappers.nix`'s
@@ -223,32 +223,33 @@ other callers updated so the flake still evaluates.
 
 **Tasks**:
 
-- [ ] `lib/wrappers.nix`: add `sessionClassifier` to the argument set (beside `memoryFiles`,
+- [x] `lib/wrappers.nix`: add `sessionClassifier` to the argument set (beside `memoryFiles`,
       :21) and emit `${lib.optionalString (!sessionClassifier) "export NO_CLASSIFY=1"}` after
       each existing `NO_MEMFILES` line at :160, :262 and :427.
-- [ ] `lib/wrappers.nix`: apply the same ticker treatment as Phase 1 (estimate term and
+- [x] `lib/wrappers.nix`: apply the same ticker treatment as Phase 1 (estimate term and
       `phase="classifying"` branch at :525), keeping the two trees' ticker bodies textually
       parallel.
-- [ ] `modules/sapience.nix`: add the option beside `memoryFiles` (:179-193) with
+- [x] `modules/sapience.nix`: add the option beside `memoryFiles` (:179-193) with
       `default = true` and a description that states it matches the vendor default, says what
       setting it false buys (removes one model call per not-yet-extracted session per run) and
       costs (no work/personal filtering; redaction unaffected), and does **not** import this
       machine's measured hit rate as a general claim.
-- [ ] `modules/sapience.nix`: add `sessionClassifier` to the `inherit (cfg)` list that feeds
+- [x] `modules/sapience.nix`: add `sessionClassifier` to the `inherit (cfg)` list that feeds
       `wrappers` (:42), and add the export line to the `sapience-sync` `ExecStart` script beside
       the existing `NO_MEMFILES` line (:434).
-- [ ] `flake.nix`: add `sessionClassifier = true;` to the `mkWrappers` vendor-default argument
+- [x] `flake.nix`: add `sessionClassifier = true;` to the `mkWrappers` vendor-default argument
       set (:85 area), keeping its comment's "matching ./modules/sapience.nix's own option
       defaults exactly" claim true.
-- [ ] `checks/default.nix`: add `sessionClassifier = true;` to the `mkWrappers` default argument
+- [x] `checks/default.nix`: add `sessionClassifier = true;` to the `mkWrappers` default argument
       set (:40 area) so every check builds from the same defaults a consumer installs.
-- [ ] `README.md`: add a `sessionClassifier` row to the `## Defaults` table (beside
+- [x] `README.md`: add a `sessionClassifier` row to the `## Defaults` table (beside
       `memoryFiles`, :243).
-- [ ] Do **not** edit any help-text line. The four `checks/golden/help-*.txt` files are derived
+- [x] Do **not** edit any help-text line. The four `checks/golden/help-*.txt` files are derived
       from that text and are compared by the `help-output` check inside this phase's own gate; if
       a help line changes for any reason, regenerate those golden files in this same phase
-      rather than deferring.
-- [ ] Run `nix fmt` over the changed `.nix` files before verifying.
+      rather than deferring. *(confirmed: no golden file touched; `help-output` check passed in
+      the full `nix flake check -L ./packages/sapience-flake` run)*
+- [x] Run `nix fmt` over the changed `.nix` files before verifying.
 
 **Timing**: 1 hour
 

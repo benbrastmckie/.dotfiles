@@ -40,6 +40,7 @@ let
       backend
       model
       memoryFiles
+      sessionClassifier
       tokenFile
       backgroundSync
       syncInterval
@@ -189,6 +190,23 @@ in
         truth" -- Sapience ingests memory files at its highest trust tier, outranking
         session-extracted findings, which is the wrong call for scaffolding duplicated across
         many repositories. See ../README.md.
+      '';
+    };
+
+    sessionClassifier = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Whether to let Sapience run its work/personal classifier, one model call per
+        not-yet-extracted session on every extraction run. When false, NO_CLASSIFY=1 is
+        exported for every client invocation.
+
+        Defaults to true, matching the vendor default. Setting this false removes one model
+        call per not-yet-extracted session per run, at the cost of no longer filtering personal
+        conversations out of extraction before the provider call -- redaction
+        (sapience_redact.py) still runs unconditionally either way, so this is not a redaction
+        setting. Whether that trade-off is worth it depends on your own corpus's work/personal
+        mix, which this module makes no claim about on your behalf. See ../README.md.
       '';
     };
 
@@ -432,6 +450,7 @@ in
               export PATH="${runtimePath}:$PATH"
               export SAPIENCE_HOST="${cfg.host}"
               ${lib.optionalString (!cfg.memoryFiles) "export NO_MEMFILES=1"}
+              ${lib.optionalString (!cfg.sessionClassifier) "export NO_CLASSIFY=1"}
               # Deliberately no `set -e`: a vendor outage or an in-progress self-update must not
               # leave this unit `failed`: a failing user unit degrades the whole systemd --user
               # session, not just itself.

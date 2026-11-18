@@ -1,0 +1,22 @@
+{
+  "phase": 2,
+  "phase_name": "Mirror the option into packages/sapience-flake at the vendor default",
+  "started_at": "2026-11-18T00:00:00Z",
+  "last_updated": "2026-11-18T00:00:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Phase 2 — file changes",
+      "status": "in_progress",
+      "files_touched": [
+        "packages/sapience-flake/lib/wrappers.nix",
+        "packages/sapience-flake/modules/sapience.nix",
+        "packages/sapience-flake/flake.nix",
+        "packages/sapience-flake/checks/default.nix",
+        "packages/sapience-flake/README.md"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

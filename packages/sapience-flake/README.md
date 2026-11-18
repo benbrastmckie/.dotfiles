@@ -241,6 +241,7 @@ default, and they match the vendor's own zero-setup path:
 | `model` | `""` | Use the client's own per-backend default. |
 | `host` | `"https://app.spnc.ai"` | Used for the payload seed and every sync call. Point it elsewhere to stub the vendor, which is how `tests/install-test.sh` stays hermetic. |
 | `memoryFiles` | `true` | Let the client ingest curated memory files (`CLAUDE.md`, `AGENTS.md`). |
+| `sessionClassifier` | `true` | Run the work/personal classifier on every not-yet-extracted session. Set to `false` to export `NO_CLASSIFY=1` and skip that model call; redaction still runs unconditionally either way. |
 | `backgroundSync` | `false` | Nothing syncs on a schedule. Extraction spends real money or real CPU and reads whatever the folder picker selected, so it happens on request rather than because the module was enabled. |
 | `syncInterval` | `"hourly"` | The timer's `OnCalendar`, matching the vendor LaunchAgent's 3600-second interval. Takes effect only when `backgroundSync` is true. |
 | `registerMcpServer` | `true` | Merge `mcpServers.sapience` into `~/.claude.json` so Claude Code can reach the vault. |

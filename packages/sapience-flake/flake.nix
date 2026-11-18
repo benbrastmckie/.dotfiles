@@ -83,6 +83,7 @@
           backend = "relay";
           model = "";
           memoryFiles = true;
+          sessionClassifier = true;
           tokenFile = null;
           backgroundSync = false;
           syncInterval = "hourly";
