@@ -1,0 +1,18 @@
+{
+  "phase": 3,
+  "phase_name": "Grant lingering declaratively at the NixOS layer",
+  "started_at": "2026-11-18T20:16:00Z",
+  "last_updated": "2026-11-18T20:25:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Phase 3 - file changes",
+      "status": "completed",
+      "files_touched": [
+        "modules/system/users.nix"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

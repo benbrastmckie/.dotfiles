@@ -453,7 +453,7 @@ textually prose.
 
 ---
 
-### Phase 3: Grant lingering declaratively at the NixOS layer [NOT STARTED]
+### Phase 3: Grant lingering declaratively at the NixOS layer [COMPLETED]
 
 **Goal**: `users.users.benjamin.linger = true` on every host this flake builds, so a
 `systemd.user.timers.*` unit can fire without a logged-in session and without a hand-run
@@ -461,21 +461,29 @@ textually prose.
 
 **Tasks**:
 
-- [ ] Re-read `modules/system/users.nix` immediately before editing.
-- [ ] Add `linger = true;` inside the existing `users.users.${username} = { ... }` block,
-      alongside `isNormalUser`, `description` and `extraGroups`.
-- [ ] Add a short comment stating what it is for and what it is not: the declarative equivalent
+- [x] Re-read `modules/system/users.nix` immediately before editing. *(completed)*
+- [x] Add `linger = true;` inside the existing `users.users.${username} = { ... }` block,
+      alongside `isNormalUser`, `description` and `extraGroups`. *(completed)*
+- [x] Add a short comment stating what it is for and what it is not: the declarative equivalent
       of `loginctl enable-linger`, which is what lets a user timer fire with no session open; it
       has no bearing on the WSL2 `/etc/wsl.conf` `[boot] systemd=true` case, and it benefits
-      every `systemd.user.timers.*` unit in this tree, not only Sapience's.
-- [ ] Prove the option resolves on every host without a rebuild:
+      every `systemd.user.timers.*` unit in this tree, not only Sapience's. *(completed)*
+- [x] Prove the option resolves on every host without a rebuild:
       `nix eval .#nixosConfigurations.<host>.config.users.users.benjamin.linger` yields `true`
-      for each of `nandi`, `hamsa`, `garuda`, `usb-installer`.
-- [ ] Do **not** add a `systemd.tmpfiles` fallback into `/var/lib/systemd/linger`. The option
+      for each of `nandi`, `hamsa`, `garuda`, `usb-installer`. *(completed — all four yield `true`)*
+- [x] Do **not** add a `systemd.tmpfiles` fallback into `/var/lib/systemd/linger`. The option
       exists on this flake's pinned `nixos-26.05` revision (confirmed by the research phase via
       MCP-NixOS against `flake.lock` rev `643809054d65fdd466a63e3155b8c498cb483c04`); a fallback
-      would be redundant state on a path systemd already owns.
-- [ ] Do not run `nixos-rebuild switch` — that is Phase 6's operator step.
+      would be redundant state on a path systemd already owns. *(completed — no `tmpfiles` hunk
+      in the diff)*
+- [x] Do not run `nixos-rebuild switch` — that is Phase 6's operator step. *(completed — not run)*
+- [x] (Scope-hypothesis finding, not a plan task) `grep -rn 'users.users' modules/ hosts/
+      configuration.nix` surfaces a second `users.users.benjamin = { ... }` block at
+      `hosts/usb-installer/default.nix:112`. Read: it sets `isNormalUser`, `description`,
+      `extraGroups` and `initialHashedPassword` — no `linger` key, so the NixOS module system
+      merges the two blocks (identical scalars, unioned `extraGroups` list) with no conflict.
+      Confirmed by the `usb-installer` row of the `nix eval` check above already resolving to
+      `true`. No reconciliation needed beyond this confirmation.
 
 **Timing**: 0.5 hours
 
