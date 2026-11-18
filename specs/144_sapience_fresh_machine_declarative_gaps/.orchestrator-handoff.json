@@ -1,0 +1,25 @@
+{
+  "status": "planned",
+  "dispatch_seq": 8,
+  "phases_completed": 0,
+  "phases_total": 6,
+  "summary": "Wrote a 6-phase plan (4.25h, 4 waves) closing the three fresh-machine gaps. Resolved both open design questions explicitly: Gap 2 as option (b) keep-it-manual, decided on the vendor's own TTY-confirmation gate in sapience_adddir.py rather than the dispatch's ledger-cost framing; Gap 3 by authoring a NEW narrowed linger-state-probe activation notice in the live module, since the notice the dispatch said to keep exists only in the out-of-scope packages/sapience-flake fork. Every carried figure was re-checked against live state and the results tabled in the plan. The sudo-denied verifications are sited in a terminal operator-checkpoint phase with an exact command sequence and a pre-declared COMPLETED WITH EXCLUSIONS closure rule.",
+  "blockers": [],
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/144_sapience_fresh_machine_declarative_gaps/plans/01_fresh-machine-declarative-gaps.md",
+      "summary": "6-phase, 4.25-hour plan closing the tokenFile, sourceDirs and lingering gaps, with both open design questions resolved and the sudo-gated verifications sited as an operator checkpoint."
+    }
+  ],
+  "user_decision": {
+    "question": "Acceptance Criteria 4 and the live halves of 2 and 5 need two actions no agent can take here: pasting the real Sapience token into secrets/secrets.yaml via sops, and running sudo nixos-rebuild switch (sudo is structurally denied in this harness). How should the implementation close?",
+    "options": [
+      "Run the Phase 6 operator sequence yourself when the implementation reaches it, so all six acceptance criteria get live evidence",
+      "Let the implementation close with Phase 6 marked COMPLETED WITH EXCLUSIONS, recording AC4 and the live halves of AC2/AC5 as reasoned exclusions"
+    ],
+    "recommended": "Run the Phase 6 operator sequence yourself when the implementation reaches it, so all six acceptance criteria get live evidence",
+    "blocking": false,
+    "obligation": "Acceptance Criterion 4's loginctl show-user benjamin --property=Linger reporting Linger=yes after a system switch, plus AC2's prompt-free sapience-bootstrap against a real /run/secrets/sapience_token and AC5's no-op second nixos-rebuild switch."
+  }
+}

@@ -1,22 +1,40 @@
 {
-  "status": "researched",
+  "status": "planned",
+  "dispatch_seq": 8,
   "artifacts": [
     {
-      "type": "report",
-      "path": "specs/144_sapience_fresh_machine_declarative_gaps/reports/01_fresh-machine-declarative-gaps.md",
-      "summary": "Confirms modules/home/services/sapience.nix is the live module; finds Gap 1 (tokenFile) needs only secrets wiring (with a quoted-string-vs-path-literal hazard flagged); finds Gap 2 (sourceDirs) already satisfies option (b)'s wording in the option description, leaving (a) vs (b) open for planning; finds Gap 3's premise is based on the non-live packages/sapience-flake fork (the live module has no WSL/linger code at all), confirms users.users.<name>.linger exists on the pinned nixos-26.05 channel, and flags a sudo-denial constraint on verifying Acceptance Criterion 4."
+      "type": "plan",
+      "path": "specs/144_sapience_fresh_machine_declarative_gaps/plans/01_fresh-machine-declarative-gaps.md",
+      "summary": "6-phase, 4.25-hour plan closing the tokenFile, sourceDirs and lingering gaps, with both open design questions resolved and the sudo-gated verifications sited as an operator checkpoint."
     }
   ],
-  "next_steps": "Run /orchestrate 144 --plan to produce an implementation plan that resolves the Gap 2 (a)/(b) choice and the Gap 3 WSL-notice-porting choice explicitly, wires tokenFile via a new sops secret, and sets users.users.${username}.linger = true in modules/system/users.nix.",
-  "modified_files": [
-    "specs/144_sapience_fresh_machine_declarative_gaps/reports/01_fresh-machine-declarative-gaps.md"
-  ],
-  "dispatch_seq": 6,
   "metadata": {
     "session_id": "sess_1795027105_555221_144",
-    "agent_type": "nix-research-agent",
+    "agent_type": "planner-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
-    "findings_count": 6
-  }
+    "delegation_path": ["orchestrator", "plan", "planner-agent"],
+    "phase_count": 6,
+    "estimated_hours": 4.25,
+    "dependency_waves": 4
+  },
+  "user_decision": {
+    "question": "Acceptance Criteria 4 and the live halves of 2 and 5 need two actions no agent can take here: pasting the real Sapience token into secrets/secrets.yaml via sops, and running sudo nixos-rebuild switch (sudo is structurally denied in this harness). How should the implementation close?",
+    "options": [
+      "Run the Phase 6 operator sequence yourself when the implementation reaches it, so all six acceptance criteria get live evidence",
+      "Let the implementation close with Phase 6 marked COMPLETED WITH EXCLUSIONS, recording AC4 and the live halves of AC2/AC5 as reasoned exclusions"
+    ],
+    "recommended": "Run the Phase 6 operator sequence yourself when the implementation reaches it, so all six acceptance criteria get live evidence",
+    "blocking": false,
+    "obligation": "Acceptance Criterion 4's loginctl show-user benjamin --property=Linger reporting Linger=yes after a system switch, plus AC2's prompt-free sapience-bootstrap against a real /run/secrets/sapience_token and AC5's no-op second nixos-rebuild switch."
+  },
+  "memory_candidates": [
+    {
+      "content": "In this flake, a user-level home-manager module cannot grant host-level state (lingering, /etc/wsl.conf), but the same flake owns the NixOS layer where the grant IS expressible: users.users.<name>.linger = true in modules/system/users.nix, which reaches every host via modules/system/default.nix -> configuration.nix -> lib/mkHost.nix. The reusable design point is what the surviving user-level notice should probe: the ACTUAL failure state (loginctl show-user --property=Linger) rather than the platform that usually causes it (WSL detection). A state probe stays silent wherever the NixOS grant applies -- so it does not become switch churn -- while still covering the standalone home-manager path (homeConfigurations.<user>, which flake.nix's home-eval check exists to protect) where no NixOS layer is present to make the grant.",
+      "category": "PATTERN",
+      "source_artifact": "specs/144_sapience_fresh_machine_declarative_gaps/plans/01_fresh-machine-declarative-gaps.md",
+      "confidence": 0.8,
+      "suggested_keywords": ["linger", "systemd-user-timer", "nixos-vs-home-manager-layer", "activation-notice", "state-probe", "home-eval"]
+    }
+  ],
+  "next_steps": "Run /orchestrate 144 to execute the plan"
 }
