@@ -1,7 +1,7 @@
 # Implementation Plan: Sapience Fresh-Machine Declarative Gaps
 
 - **Task**: 144 - Close the three remaining hand steps between a fresh switch and a working Sapience client
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 4.25 hours
 - **Dependencies**: None blocking. File-adjacency only with task 136 (`implementing`, shares
   `home.nix`, `modules/home/services/sapience.nix`, `docs/sapience.md`) and task 141
@@ -258,45 +258,71 @@ option Phase 3 adds.
 
 ---
 
-### Phase 1: Wire the sops-backed `tokenFile` [NOT STARTED]
+### Phase 1: Wire the sops-backed `tokenFile` [COMPLETED]
 
 **Goal**: a fresh machine's `sapience-bootstrap` picks the token up from a sops secret instead of
 prompting, with the secret owner-readable only and the value never reaching the Nix store.
 
 **Tasks**:
 
-- [ ] Re-read `modules/system/secrets.nix` and `home.nix` immediately before editing (task 136
-      adjacency).
-- [ ] Add `secrets."sapience_token" = { owner = config.users.users.${username}.name; mode =
+- [x] Re-read `modules/system/secrets.nix` and `home.nix` immediately before editing (task 136
+      adjacency). *(completed)*
+- [x] Add `secrets."sapience_token" = { owner = config.users.users.${username}.name; mode =
       "0400"; };` to `modules/system/secrets.nix`'s `sops.secrets` block, directly after the
       `anthropic_api_key` entry, with a one-line comment naming what reads it
-      (`sapience-bootstrap`, via `programs.sapience.tokenFile`).
-- [ ] Set `tokenFile = "/run/secrets/sapience_token";` in `home.nix`'s `programs.sapience` block,
+      (`sapience-bootstrap`, via `programs.sapience.tokenFile`). *(completed — altered: added as a
+      third entry under a single nested `secrets = { ... };` attrset rather than a third
+      standalone `secrets."name" = ...;` statement. `statix`'s "repeated keys" lint fires at 3
+      repeated top-level `secrets."x"` assignments (2 pass, 3 fails `nix flake check`'s
+      `checks.x86_64-linux.statix`, confirmed by running `statix check` against the pre-task file
+      with 2 entries (exit 0) and the file with the naive 3rd entry added (exit 1, citing lines 18,
+      25, 33)). Restructured all three secrets — `zotero_api_key`, `anthropic_api_key`,
+      `sapience_token` — into `secrets = { "zotero_api_key" = {...}; "anthropic_api_key" =
+      {...}; "sapience_token" = {...}; };`, matching statix's own suggested fix. Each entry's
+      owner/mode/comment is unchanged; only the repeated-key syntax changed.)*
+- [x] Set `tokenFile = "/run/secrets/sapience_token";` in `home.nix`'s `programs.sapience` block,
       adjacent to the existing `apiKeyFile` line, **as a quoted string**. Add a short comment
       stating why it is quoted: an unquoted path literal would make the evaluator copy the secret
       into the world-readable store, or fail evaluation on a fresh machine before the secret
-      exists.
-- [ ] Assert the quoting mechanically, not by eye:
+      exists. *(completed)*
+- [x] Assert the quoting mechanically, not by eye:
       `nix eval --raw .#homeConfigurations.benjamin.config.programs.sapience.tokenFile` prints
       `/run/secrets/sapience_token`, and
-      `grep -nE 'tokenFile *= *[^"]' home.nix` finds nothing.
-- [ ] Confirm the secret declaration resolves:
+      `grep -nE 'tokenFile *= *[^"]' home.nix` finds nothing. *(completed — altered: the literal
+      grep as written is not discriminating. `grep -noE 'tokenFile *= *[^"]' home.nix` matches
+      `tokenFile =` even on the correctly-quoted line, because the trailing ` *` quantifier can
+      match zero spaces and `[^"]` is then satisfied by the single space character that precedes
+      the opening quote — the same false-positive reproduces on the already-correct
+      `apiKeyFile = "..."` precedent line (`grep -noE 'apiKeyFile *= *[^"]' home.nix` also
+      matches). Used the corrected single-space form `grep -nE 'tokenFile = [^"]' home.nix`
+      instead, which correctly finds nothing for both `tokenFile` and, as a control, `apiKeyFile`.
+      The `nix eval --raw` result (`/run/secrets/sapience_token`) independently confirms the
+      resolved value is the expected quoted-string path.)*
+- [x] Confirm the secret declaration resolves:
       `nix eval .#nixosConfigurations.nandi.config.sops.secrets."sapience_token".mode` yields
-      `"0400"`, and the `owner` attribute yields the configured username.
-- [ ] Demonstrate non-interactivity without the real token: build the generation
+      `"0400"`, and the `owner` attribute yields the configured username. *(completed — mode
+      `"0400"`, owner `"benjamin"`)*
+- [x] Demonstrate non-interactivity without the real token: build the generation
       (`home-manager build --flake .#benjamin`), confirm the built `sapience-bootstrap` script
       carries the interpolated `/run/secrets/sapience_token` literal **before** its interactive
       `read -r` branch, then copy that script into the scratchpad, substitute a placeholder path
       holding an invalid-but-token-shaped value, and run it with stdin closed. Record that it
       proceeds past the token step and fails at the `/v1/stats` check with a non-prompting error
       — never printing the value. State explicitly in the phase record that this exercises the
-      shape, and that the real-path run is Phase 6's operator step.
-- [ ] Confirm `sap_token_clean` (module line 282, unconditional) and `sap_token_ok` (288) sit
+      shape, and that the real-path run is Phase 6's operator step. *(completed — see Verification
+      below for the full account, including the extra scratchpad isolation needed beyond what this
+      item describes.)*
+- [x] Confirm `sap_token_clean` (module line 282, unconditional) and `sap_token_ok` (288) sit
       *after* the `tokenFile` branch in the built script, so a `tokenFile`-sourced value flows
       through the repair/validation guard rather than around it. Quote the ordering from the built
-      script in the phase record.
-- [ ] Do **not** add the real token value or touch `secrets/secrets.yaml`. That is Phase 6's
-      operator step.
+      script in the phase record. *(completed — in the built script
+      (`/nix/store/jsmjh5npd97h42wbl3aa4gqpqfqh404d-sapience-bootstrap/bin/sapience-bootstrap`),
+      the `tokenFile` branch is lines 80-81, `read -r TOKEN` is line 87, and the unconditional
+      `sap_token_clean`/`sap_token_ok` calls are lines 92 and 98 — after both the `tokenFile`
+      branch and the interactive fallback, so a `tokenFile`-sourced value flows through the same
+      guard as a pasted one.)*
+- [x] Do **not** add the real token value or touch `secrets/secrets.yaml`. That is Phase 6's
+      operator step. *(completed — `git diff -- secrets/secrets.yaml` is empty)*
 
 **Timing**: 0.75 hours
 
@@ -339,7 +365,20 @@ option values directly.
   before the interactive `read -r`, and `sap_token_clean`/`sap_token_ok` after the whole chain.
 - The scratchpad placeholder run proceeds past the token step with stdin closed and fails at the
   `/v1/stats` check without prompting; no token-shaped value appears in any captured output.
+  **Confirmed, with one addition beyond this item's literal text**: the built script's `stateDir`
+  and `configFile` paths are baked at build time to the real `/home/benjamin/.sapience/*`
+  locations, so running the copy unmodified would have read/overwritten real vendor state
+  (including risking a clobber of the real `config.json` on an unreachable-host `000` code path,
+  which continues and writes). The scratchpad copy was further rewritten to redirect every
+  `/home/benjamin/.sapience` reference to an isolated scratchpad directory before running it.
+  Result: exit 1, `rejected (HTTP 401)`, no prompt (stdin was `/dev/null` and the script never
+  blocked on `read -r`), no token-shaped value in the captured output
+  (`AAAAAAAAtokenshapedBBBBBBBB` does not appear), and the real `~/.sapience/config.json`'s
+  mtime confirmed unchanged by the run.
 - `git diff -- secrets/secrets.yaml` is empty.
+- `nix flake check` required one additional fix beyond this phase's literal scope: see the
+  altered-deviation note on the `secrets."sapience_token"` task above (statix's repeated-key
+  lint at 3 occurrences). With that fix, `nix flake check` exits 0 (`all checks passed!`).
 
 ---
 

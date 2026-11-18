@@ -98,6 +98,16 @@
     # Required at this backend: the module asserts on an empty apiKeyFile whenever `backend` is
     # "openai" or "anthropic".
     apiKeyFile = "/run/secrets/anthropic_api_key";
+
+    # Sapience vault token, decrypted by sops-nix (modules/system/secrets.nix) to the same
+    # owner/mode-0400 shape as apiKeyFile above, so sapience-bootstrap picks the token up
+    # non-interactively on a fresh machine instead of prompting for a paste.
+    #
+    # Quoted deliberately: tokenFile is `nullOr path`, and assigning it an unquoted Nix path
+    # literal to this same location would make the evaluator copy the secret into the
+    # world-readable Nix store, or fail evaluation outright on a fresh machine before the
+    # secret exists. A quoted string is read at activation time instead.
+    tokenFile = "/run/secrets/sapience_token";
   };
 
   # SF-1 hub runner (modules/home/services/sf1-hub-ben.nix). The worker half of SF-1

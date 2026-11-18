@@ -15,16 +15,26 @@
     defaultSopsFile = ../../secrets/secrets.yaml;
     age.keyFile = "${config.users.users.${username}.home}/.config/sops/age/keys.txt";
 
-    secrets."zotero_api_key" = {
-      owner = config.users.users.${username}.name;
-      mode = "0400";
-    };
+    secrets = {
+      "zotero_api_key" = {
+        owner = config.users.users.${username}.name;
+        mode = "0400";
+      };
 
-    # Anthropic provider key. Owner-readable only, so home-manager activation (which runs as
-    # this user) can read it without the key ever reaching the world-readable Nix store.
-    secrets."anthropic_api_key" = {
-      owner = config.users.users.${username}.name;
-      mode = "0400";
+      # Anthropic provider key. Owner-readable only, so home-manager activation (which runs as
+      # this user) can read it without the key ever reaching the world-readable Nix store.
+      "anthropic_api_key" = {
+        owner = config.users.users.${username}.name;
+        mode = "0400";
+      };
+
+      # Sapience vault token. Same owner/mode shape as anthropic_api_key above, read by
+      # sapience-bootstrap via programs.sapience.tokenFile (modules/home/services/sapience.nix)
+      # so a fresh machine does not need an interactive token paste.
+      "sapience_token" = {
+        owner = config.users.users.${username}.name;
+        mode = "0400";
+      };
     };
   };
 }

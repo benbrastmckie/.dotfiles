@@ -1,0 +1,19 @@
+{
+  "phase": 1,
+  "phase_name": "Wire the sops-backed tokenFile",
+  "started_at": "2026-11-18T19:41:00Z",
+  "last_updated": "2026-11-18T20:05:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Phase 1 - file changes",
+      "status": "completed",
+      "files_touched": [
+        "home.nix",
+        "modules/system/secrets.nix"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}
