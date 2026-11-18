@@ -595,7 +595,7 @@ sampling, and MUST state the live count in the audit rather than the ledger's or
 
 ---
 
-### Phase 6: Series Analysis and the Extraction-Scope Decision [NOT STARTED]
+### Phase 6: Series Analysis and the Extraction-Scope Decision [COMPLETED]
 
 **Goal**: Produce this task's actual deliverable -- a written decision on each of the four candidate
 outcomes, with every figure traceable to a dated ledger block and the reduced evidence base stated
@@ -603,13 +603,15 @@ as a limitation of the decision.
 
 **Tasks**:
 
-- [ ] Re-read the task description from `specs/state.json` before writing, to confirm the candidate
-      outcome set is still the four this plan enumerates.
-- [ ] Tabulate from the ledger, across every recorded pass: wall clock, chunks, objects staged,
+- [x] Re-read the task description from `specs/state.json` before writing, to confirm the candidate
+      outcome set is still the four this plan enumerates. *(completed: re-confirmed live, no
+      divergence)*
+- [x] Tabulate from the ledger, across every recorded pass: wall clock, chunks, objects staged,
       objects per chunk, `would ingest now` before and after, each of the four skip counters,
       `pending` before and after, and the day's yield against the 2000-objects/day cap. Exclude
       from the drain-rate columns any pass phase 4 flagged for non-zero `extract error:` lines.
-- [ ] Carry the following findings the recorded series has already established, rather than
+      *(completed)*
+- [x] Carry the following findings the recorded series has already established, rather than
       re-deriving them, citing the ledger block each rests on:
       - `would ingest now` held exactly flat across both fully observed passes (118 -> 118, then
         134 -> 134), so one 50-chunk pass does not visibly drain the queue of ingestible
@@ -623,15 +625,17 @@ as a limitation of the decision.
       - The 2000-objects/day cap is descriptive only and does not truncate a run -- Pass 3
         finished at 2051 objects with no journal line indicating an early stop or a dropped chunk.
       - The unreviewed queue tripled from 1208 to 3757 in two passes; this is the constraint that
-        actually binds, not the chunk cap and not the drain rate.
-- [ ] Answer the two-filter question from the series, not one reading: does `skipped (subagent /
+        actually binds, not the chunk cap and not the drain rate. *(completed: all six carried
+        forward with citations, plus the band updated to six readings per phase 4)*
+- [x] Answer the two-filter question from the series, not one reading: does `skipped (subagent /
       harness-started)` continue to dominate `skipped (headless/agent)`, and at what ratio at each
-      reading?
-- [ ] Answer the drain question from measurement: does a 50-chunk pass reduce `would ingest now`
+      reading? *(completed: yes, at every reading, 30.13x-31.45x band holds across six readings)*
+- [x] Answer the drain question from measurement: does a 50-chunk pass reduce `would ingest now`
       faster than new transcripts accrue? State the per-day accrual rate phase 4 computed from the
       `Available on disk` series, alongside the per-pass reduction, and state how many intervals
-      that accrual rate rests on.
-- [ ] Decide each candidate outcome explicitly, naming for each the measured figure that supports or
+      that accrual rate rests on. *(completed: no, both fully-observed passes show it flat; accrual
+      rate rests on 2 full intervals (113.6/day, 164.3/day) plus one noisy sub-hour interval)*
+- [x] Decide each candidate outcome explicitly, naming for each the measured figure that supports or
       refutes it:
       - **(a) Add `programs.sapience.includeAgentSessions`** wiring `SAPIENCE_INCLUDE_HEADLESS`.
         Supported only if the headless/agent count is large AND the vault-content audit shows that
@@ -645,25 +649,33 @@ as a limitation of the decision.
         forgetting to run a pass.
       - **(d) Leave all three as they are.** If this is the decision, state it as the decision,
         grounded in the same figures -- not as an absence of one.
-- [ ] State the cost dimension honestly. Extraction is now billed per call to the user's Anthropic
+      *(completed: (a) rejected -- small measured scale, no direct audit evidence on
+      headless/agent content specifically; (b) rejected -- no measured throughput problem, would
+      worsen the real review-queue constraint; (c) rejected -- unmeasured cost plus unmeasured
+      review-drain capacity; (d) selected, grounded in the same figures)*
+- [x] State the cost dimension honestly. Extraction is now billed per call to the user's Anthropic
       key (`backend = "anthropic"`, `model = "claude-haiku-4-5"`). Use whatever cost signal the
       ledger established; if no per-pass figure is obtainable, say so plainly and bound the decision
       accordingly -- do NOT recommend a cap increase or a timer on an unmeasured cost. Defer
       cost-reduction work to tasks 139 (`reduce_sapience_classifier_cost`) and 140
-      (`diagnose_slow_local_ollama_inference`) by name rather than duplicating it here.
-- [ ] Record the reduced evidence base as a stated limitation of the decision, in its own right and
+      (`diagnose_slow_local_ollama_inference`) by name rather than duplicating it here. *(completed)*
+- [x] Record the reduced evidence base as a stated limitation of the decision, in its own right and
       not folded into a general caveat: three real extraction passes rather than the five the
       method called for; a span of five calendar days (2026-11-13 to 2026-11-18) rather than a full
       week; and one of those three passes (Pass 2, 34 `extract error:` lines) unusable as a clean
       drain-rate datum, leaving two fully observed clean intervals at most. State what each
       shortfall costs the decision, and carry every question phase 4 named as unanswerable.
-- [ ] Write the decision record with: the decision on each of the four outcomes; the figures each
+      *(completed: ten limitations recorded in the decision record's own section)*
+- [x] Write the decision record with: the decision on each of the four outcomes; the figures each
       rests on, each citing a dated ledger block; the outcomes rejected and why; and a limitations
       section naming the reduced evidence base above, the series span, the audit sample size and
       denominator, the excluded error-bearing pass, and the absent per-pass cost figure.
-- [ ] State in the record whether the decision requires any configuration change at all, so the
-      final phase knows whether it has work to do.
-- [ ] Record any issue or win via `issue-record.sh` as it arises.
+      *(completed: records/03_extraction-scope-decision.md)*
+- [x] State in the record whether the decision requires any configuration change at all, so the
+      final phase knows whether it has work to do. *(completed: none required -- decision selects
+      (d), leave as-is)*
+- [x] Record any issue or win via `issue-record.sh` as it arises. *(completed: win recorded for
+      reaching a decision on all four outcomes)*
 
 **Timing**: 2 hours
 

@@ -1,0 +1,23 @@
+{
+  "phase": 6,
+  "phase_name": "Series Analysis and the Extraction-Scope Decision",
+  "started_at": "2026-11-18T23:25:00Z",
+  "last_updated": "2026-11-18T23:45:00Z",
+  "objectives": [
+    {"id": 1, "description": "Re-read task description from specs/state.json; confirm candidate outcome set is still the four this plan enumerates", "status": "done", "files_touched": []},
+    {"id": 2, "description": "Tabulate from the ledger across every recorded pass", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md"]},
+    {"id": 3, "description": "Carry forward the recorded series findings with ledger citations", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md"]},
+    {"id": 4, "description": "Answer the two-filter question from the series", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md"]},
+    {"id": 5, "description": "Answer the drain question from measurement", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md"]},
+    {"id": 6, "description": "Decide each of the four candidate outcomes explicitly", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md"]},
+    {"id": 7, "description": "State the cost dimension honestly, deferring to tasks 139/140 by name", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md"]},
+    {"id": 8, "description": "Record the reduced evidence base as a stated limitation", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md"]},
+    {"id": 9, "description": "Write the decision record with figures, rejected outcomes, limitations", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md"]},
+    {"id": 10, "description": "State whether the decision requires any configuration change", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md"]},
+    {"id": 11, "description": "Record issue/win via issue-record.sh as it arises", "status": "done", "files_touched": []}
+  ],
+  "current_objective": 11,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": []
+}
