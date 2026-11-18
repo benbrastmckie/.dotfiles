@@ -1,0 +1,19 @@
+{
+  "phase": 5,
+  "phase_name": "Read-Only Vault-Content Audit",
+  "started_at": "2026-11-18T23:00:00Z",
+  "last_updated": "2026-11-18T23:20:00Z",
+  "objectives": [
+    {"id": 1, "description": "Do NOT run sapience review; record reason", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/02_vault-content-audit.md"]},
+    {"id": 2, "description": "Re-establish queue shape: wc -l pending_kos.jsonl and key set of one record", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/02_vault-content-audit.md"]},
+    {"id": 3, "description": "Profile queue read-only: count by ko_type, project, confidence band, open_thread", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/02_vault-content-audit.md"]},
+    {"id": 4, "description": "Hand-read sample of at least 30 records spread across projects/ko_type, classify substantive/mechanics/duplicate", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/02_vault-content-audit.md"]},
+    {"id": 5, "description": "Cross-check client's mechanics filter (Set aside N transient rows) against hand-read", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/02_vault-content-audit.md"]},
+    {"id": 6, "description": "State substantive-vs-mechanics result as sample ratio with denominator", "status": "done", "files_touched": ["specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/02_vault-content-audit.md"]},
+    {"id": 7, "description": "Record issue/win via issue-record.sh as it arises", "status": "done", "files_touched": []}
+  ],
+  "current_objective": 7,
+  "approaches_tried": [],
+  "handoff_count": 0,
+  "deviations": []
+}

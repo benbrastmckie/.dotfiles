@@ -523,35 +523,48 @@ across the gap.
 
 ---
 
-### Phase 5: Read-Only Vault-Content Audit [NOT STARTED]
+### Phase 5: Read-Only Vault-Content Audit [COMPLETED]
 
 **Goal**: Discharge the method's third step -- confirm the captured material is substantive work
 rather than thread mechanics -- without running the interactive, share-capable review session.
 
 **Tasks**:
 
-- [ ] Do NOT run `sapience review`. Record the reason in the audit: `~/.sapience/extract_local.py`'s
+- [x] Do NOT run `sapience review`. Record the reason in the audit: `~/.sapience/extract_local.py`'s
       `--review` path is interactive and share-capable (`review_queue()` prompts at line 1175;
       `review()` at line 1920 prompts `Press Enter to share ALL, numbers like 2,5 to DROP those`),
       so an unattended run against a queue of this size could push the entire queue to the hosted
       vault or drop it. The read-only substitute is `~/.sapience/pending_kos.jsonl`, which holds the
-      same staged objects.
-- [ ] Re-establish the queue's shape before sampling: `wc -l ~/.sapience/pending_kos.jsonl`, and the
+      same staged objects. *(completed)*
+- [x] Re-establish the queue's shape before sampling: `wc -l ~/.sapience/pending_kos.jsonl`, and the
       key set of one record. Record both -- three passes have grown the file since plan time and
-      may have changed its fields.
-- [ ] Profile the queue read-only: total record count; distribution by `ko_type`; by `project`; by
-      `confidence` band; and the count with `open_thread: true`.
-- [ ] Hand-read a sample of at least 30 records spread deliberately across projects and `ko_type`
+      may have changed its fields. *(completed: 3757 lines, matches sapience pending exactly; key
+      set is 2 fields wider than the plan's Scope Hypothesis named -- `_hash` and `_staged_at`
+      present on every record)*
+- [x] Profile the queue read-only: total record count; distribution by `ko_type`; by `project`; by
+      `confidence` band; and the count with `open_thread: true`. *(completed: ko_type is 100%
+      "insight" (3757/3757); project .dotfiles 1687/nvim 1260/sapience-app 810/abood 0; confidence
+      94.1% at >=0.9; open_thread true for 330 of 3757)*
+- [x] Hand-read a sample of at least 30 records spread deliberately across projects and `ko_type`
       values, and classify each as (a) substantive work, (b) thread mechanics -- run, dispatch, or
       orchestration bookkeeping, or (c) duplicate of another record already in the sample. Record
-      the three counts and quote three to five verbatim examples of each class.
-- [ ] Cross-check the client's own mechanics filter against the hand-read: collect the `Set aside N
+      the three counts and quote three to five verbatim examples of each class. *(completed: 36
+      records sampled, stratified by project since ko_type has no variation to spread across; 30
+      substantive / 5 mechanics / 1 duplicate; only 1 duplicate pair found so only 2 verbatim
+      examples quoted for that class, stated explicitly as a deviation from "3-5 examples")*
+- [x] Cross-check the client's own mechanics filter against the hand-read: collect the `Set aside N
       transient rows (pid N, dispatch N): run/thread state, not knowledge` lines from every pass in
-      the series, and state what the hand-read found that the filter did not catch.
-- [ ] State the substantive-versus-mechanics result as a sample ratio with its denominator
+      the series, and state what the hand-read found that the filter did not catch. *(completed:
+      filter set aside 14 rows total across 3 passes (0.37% of queue); hand-read independently
+      flagged 5 of 36 sampled records (13.9%) as mechanics despite passing the filter -- the
+      automated filter is more permissive than a human reader)*
+- [x] State the substantive-versus-mechanics result as a sample ratio with its denominator
       explicitly (for example "22 of 30 sampled"), never as a whole-queue figure, and never as a
-      percentage without its denominator.
-- [ ] Record any issue or win via `issue-record.sh` as it arises.
+      percentage without its denominator. *(completed: 30 of 36 sampled (83.3%), stated explicitly
+      as sample-only, not a whole-queue figure)*
+- [x] Record any issue or win via `issue-record.sh` as it arises. *(completed: two minor issues
+      recorded -- ko_type homogenization + zero abood records, and the duplicate pair; one win
+      recorded for the majority-substantive sample result)*
 
 **Timing**: 1.5-2 hours
 
