@@ -379,35 +379,53 @@ alongside the `prose` row's own diff read-through.
 
 ---
 
-### Phase 4: Full gate, applied configuration, and cost record [NOT STARTED]
+### Phase 4: Full gate, applied configuration, and cost record [COMPLETED]
 
 **Goal**: the complete gate set is green against the recorded baseline, the change is applied to
 the live generation, and the per-pass cost measurement is on record.
 
 **Tasks**:
 
-- [ ] `nix flake check` at the repo root (no `--skip` of any kind).
-- [ ] `nix flake check -L ./packages/sapience-flake`.
-- [ ] `bash packages/sapience-flake/tests/install-test.sh` — the stubbed-vendor home-manager
+- [x] `nix flake check` at the repo root (no `--skip` of any kind).
+- [x] `nix flake check -L ./packages/sapience-flake`.
+- [x] `bash packages/sapience-flake/tests/install-test.sh` — the stubbed-vendor home-manager
       activation that CI runs for that subtree.
-- [ ] `bash .claude/scripts/verify-deploy.sh /home/benjamin/.dotfiles` — the complete gate set
+- [x] `bash .claude/scripts/verify-deploy.sh /home/benjamin/.dotfiles` — the complete gate set
       for this repository, every gate, no `--skip-slow` and no `--only-gate`. Compare gate 8's
       failing-suite list against the 13 names recorded in Decisions item 4: an identical list is
       the expected result and is not a regression, because this task touches no `.sh` file. A
-      departure from that list is a regression and blocks this phase.
-- [ ] Apply the change: `home-manager switch --flake .#benjamin` (the standalone path this
+      departure from that list is a regression and blocks this phase. *(deviation: this
+      dispatch is one of several `implement`-phase dispatches inside one multi-task
+      `/orchestrate` batch invocation, whose own dispatch directive declares the complete gate
+      set deferred to the batch stage rather than independently run per dispatch. Discharged
+      instead via the scoped narrowing invocation `bash .claude/scripts/verify-touched.sh` (no
+      args), which returned 74 passed / 12 failed / 86 total — one BETTER than the recorded
+      13-suite baseline: `test-lint-state-writer-boundary.sh`, listed as failing in Decisions
+      item 4, now passes cleanly (confirmed by a direct re-run: 27 passed, 0 failed), an
+      unrelated fix landed between plan time and this dispatch. No suite newly failed. Recorded
+      as a win in the issue log per the Scope Hypothesis's own instruction to treat either
+      direction of departure as a finding. The complete, unscoped gate set still runs exactly
+      once for the whole batch at the end of the `/orchestrate` invocation, per the dispatch's
+      Batch Gate Deferral contract.)*
+- [x] Apply the change: `home-manager switch --flake .#benjamin` (the standalone path this
       machine's profile actually uses; `scripts/update.sh` is the equivalent fuller route). If it
       fails for a cause unrelated to this change — a sops secret, a concurrent writer, a vendor
       payload state — record it as a Reasoned Exclusion under this phase, leave the code change
       in place, and note that the next `scripts/update.sh` applies it. The built-artifact
-      evidence from Phase 1 stands independently of the switch.
-- [ ] Confirm the applied result: `grep -c 'NO_CLASSIFY=1' "$(command -v sapience)"` returns 1,
+      evidence from Phase 1 stands independently of the switch. *(succeeded cleanly; no
+      Reasoned Exclusion needed)*
+- [x] Confirm the applied result: `grep -c 'NO_CLASSIFY=1' "$(command -v sapience)"` returns 1,
       and `systemctl --user cat sapience-sync.service` shows the export in its `ExecStart`
-      script.
-- [ ] Re-run `sapience coverage` once after the switch and record the reading, so the next task
+      script. *(the unit's ExecStart references a store-path script rather than inlining the
+      export text; confirmed the referenced store path itself, not the ExecStart line, carries
+      exactly 1 `NO_CLASSIFY=1`)*
+- [x] Re-run `sapience coverage` once after the switch and record the reading, so the next task
       touching this area has a dated post-change datum rather than only a pre-change one.
-- [ ] Confirm the three `issues.jsonl` entries for this task carry the run's own issues and wins,
-      per the dispatch's Issue Log contract.
+      *(post-switch reading on 2026-11-18: "would ingest now: 136", unchanged from the
+      pre-switch reading the same day — recorded in `docs/sapience.md`'s `### Cost shape`)*
+- [x] Confirm the three `issues.jsonl` entries for this task carry the run's own issues and wins,
+      per the dispatch's Issue Log contract. *(7 entries across research/plan/implement phases;
+      confirmed non-empty and populated)*
 
 **Timing**: 45 minutes
 
@@ -436,16 +454,19 @@ passes, are both findings worth recording rather than silently absorbing.
 
 ## Testing & Validation
 
-- [ ] `nix flake check` green at the repo root (statix, deadnix, nixfmt, shellcheck, home-eval).
-- [ ] `nix flake check -L ./packages/sapience-flake` green, `help-output` check included.
-- [ ] `bash packages/sapience-flake/tests/install-test.sh` green.
-- [ ] `bash .claude/scripts/verify-deploy.sh /home/benjamin/.dotfiles` complete gate set, gate-8
-      failures matching the recorded 13-suite baseline and no other failure.
-- [ ] Exactly one `NO_CLASSIFY=1` export in each of the four dotfiles-generated artifacts
+- [x] `nix flake check` green at the repo root (statix, deadnix, nixfmt, shellcheck, home-eval).
+- [x] `nix flake check -L ./packages/sapience-flake` green, `help-output` check included.
+- [x] `bash packages/sapience-flake/tests/install-test.sh` green.
+- [x] `bash .claude/scripts/verify-deploy.sh /home/benjamin/.dotfiles` complete gate set, gate-8
+      failures matching the recorded 13-suite baseline and no other failure. *(deviation:
+      deferred to the batch stage per this dispatch's Batch Gate Deferral directive; discharged
+      via the scoped `verify-touched.sh` narrowing instead — see Phase 4's own task-level note
+      for the full result)*
+- [x] Exactly one `NO_CLASSIFY=1` export in each of the four dotfiles-generated artifacts
       (`sapience`, `sf1`, `sapience-bootstrap`, the `sapience-sync` script).
-- [ ] Zero `NO_CLASSIFY` exports in the standalone flake's default `packages.<system>.sapience`
+- [x] Zero `NO_CLASSIFY` exports in the standalone flake's default `packages.<system>.sapience`
       output (its default keeps the classifier on).
-- [ ] `docs/sapience.md` carries the measurement, both option-table rows, and the new
+- [x] `docs/sapience.md` carries the measurement, both option-table rows, and the new
       design-decision section, with no surviving "until it drains" claim.
 
 ## Artifacts & Outputs
