@@ -44,21 +44,39 @@
       "category": "PATTERN",
       "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/summaries/03_extraction-scope-decision-summary.md",
       "confidence": 0.85,
-      "suggested_keywords": ["verify-touched.sh", "OWED fallback", "source-store-only tests", "deploy-consumer repo", "full-sweep"]
+      "suggested_keywords": [
+        "verify-touched.sh",
+        "OWED fallback",
+        "source-store-only tests",
+        "deploy-consumer repo",
+        "full-sweep"
+      ]
     },
     {
       "content": "Sapience's sapience pending counter (the unreviewed-review queue) only ever changes during an extraction pass; across every inter-pass reading in a 6-day, 6-reading measurement series it stayed perfectly flat with no organic growth. This makes 'pending' a reliable signal of pass-driven staging alone, decoupled from Available-on-disk's continuous transcript accrual.",
       "category": "INSIGHT",
       "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
       "confidence": 0.85,
-      "suggested_keywords": ["sapience", "pending queue", "review backlog", "extraction pass", "accrual"]
+      "suggested_keywords": [
+        "sapience",
+        "pending queue",
+        "review backlog",
+        "extraction pass",
+        "accrual"
+      ]
     },
     {
       "content": "Sapience's non-overridable subagent/harness-started transcript filter removes roughly 30x more than its overridable headless/agent filter, stable in a narrow 30.13x-31.45x band across 6 independent coverage readings taken days apart on an orchestration-heavy workflow. SAPIENCE_INCLUDE_HEADLESS=1 cannot touch the dominant filter at all, so widening that one override has limited effect on total coverage.",
       "category": "INSIGHT",
       "source_artifact": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
       "confidence": 0.85,
-      "suggested_keywords": ["sapience", "source_skip", "headless filter", "coverage ratio", "orchestration transcripts"]
+      "suggested_keywords": [
+        "sapience",
+        "source_skip",
+        "headless filter",
+        "coverage ratio",
+        "orchestration transcripts"
+      ]
     }
   ],
   "sapience_notes": [
@@ -109,7 +127,11 @@
     "session_id": "sess_1795042143_9ae6ed",
     "agent_type": "general-implementation-agent",
     "delegation_depth": 2,
-    "delegation_path": ["orchestrator", "implement", "general-implementation-agent"],
+    "delegation_path": [
+      "orchestrator",
+      "implement",
+      "general-implementation-agent"
+    ],
     "phases_completed": 7,
     "phases_total": 7
   }

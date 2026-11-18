@@ -11,8 +11,8 @@ next_project_number: 145
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136 | -- | nixos-config, nix-infrastructure, services, ... |
-| 2 | 117,120,139 | 77,124,136 | nixos-config, desktop, sapience |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,139 | -- | nixos-config, nix-infrastructure, services, ... |
+| 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
 **Grouped by Topic** (indented = depends on parent):
@@ -37,7 +37,6 @@ next_project_number: 145
 43 [RESEARCHED] — install\_forgejo\_self\_hosted\_git
 46 [RESEARCHED] — Investigate and fix Gmail OAuth2 token expiry - tokens keep...
 131 [NOT STARTED] — Install claude-refresh timer via home-manager and make mako...
-136 [IMPLEMENTING] — Measure Sapience capture coverage under manual extraction and...
 
 ### Desktop
 
@@ -71,13 +70,14 @@ next_project_number: 145
 ---
 
 ### 136. Measure Sapience capture coverage under manual extraction and decide whether to widen the scope, the cap, or the cadence
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: general
 - **Topic**: services
 - **Dependencies**: Task 138
 - **Research**: [136_evaluate_sapience_coverage_and_tune_extraction_scope/reports/02_baseline-and-extraction-backend-blocked.md]
 - **Record**: [136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md]
 - **Plan**: [136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/03_single-sitting-decision-from-ledger.md]
+- **Summary**: [136_evaluate_sapience_coverage_and_tune_extraction_scope/summaries/03_extraction-scope-decision-summary.md]
 
 **Description**: GOAL. Measure how much of this machine's session history Sapience actually captures, and decide
 from that measurement whether to widen the extraction scope, raise the per-run chunk cap, put

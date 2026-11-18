@@ -1,7 +1,7 @@
 # Implementation Plan: Sapience extraction-scope decision from the recorded ledger, in one sitting
 
 - **Task**: 136 - Measure Sapience capture coverage under manual extraction and decide whether to widen the scope, the cap, or the cadence
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 9.5 hours total, of which roughly 5.5-6.5 hours remain; the remaining work runs in one sitting with no calendar spacing
 - **Dependencies**: 138 (owner-action reconciliation of `~/.sapience/config.json`) -- confirmed applied live, see Premise Re-Validation below
 - **Research Inputs**:
