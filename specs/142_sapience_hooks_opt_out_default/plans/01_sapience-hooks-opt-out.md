@@ -396,7 +396,7 @@ and none is claimed.
 
 ---
 
-### Phase 4: Rebuild, force a vendor update, and confirm no hook returns [NOT STARTED]
+### Phase 4: Rebuild, force a vendor update, and confirm no hook returns [COMPLETED]
 
 **Goal**: the fix holds against the real machine — an actual rebuild followed by a forced vendor
 update leaves `~/.claude/settings.json` free of any `~/.sapience` injection hook and
@@ -404,32 +404,60 @@ update leaves `~/.claude/settings.json` free of any `~/.sapience` injection hook
 
 **Tasks**:
 
-- [ ] Back up both live files to timestamped copies before touching anything:
+- [x] Back up both live files to timestamped copies before touching anything:
       `~/.claude/settings.json` and `~/.sapience/config.json` (same convention as the
-      `.bak-*` copies the 2026-11-14 manual fix left).
-- [ ] Record the before-state: `jq '.hooks' ~/.sapience/config.json` (expect `false`) and the
+      `.bak-*` copies the 2026-11-14 manual fix left). Written to `~/.claude/settings.json.bak-*`
+      and `~/.sapience/config.json.bak-*`, timestamp `20261118-110409`.
+- [x] Record the before-state: `jq '.hooks' ~/.sapience/config.json` (expect `false`) and the
       flattened `hooks.SessionStart`/`SessionEnd`/`Stop` command strings from
-      `~/.claude/settings.json`.
-- [ ] Rebuild: `bash scripts/update.sh`, or the explicit pair it wraps
+      `~/.claude/settings.json`. Both recorded: `hooks` was `false`; the three live entries were
+      the inhibitor SessionStart/SessionEnd pair and the two registration SessionStart hooks
+      (`lean-lsp-register-project.sh`, `sapience-mcp-register-project.sh`) — no vendor injection
+      present before the rebuild.
+- [x] Rebuild: `bash scripts/update.sh`, or the explicit pair it wraps
       (`sudo nixos-rebuild switch --flake .#<host>` and
       `home-manager switch --flake .#benjamin`) if a narrower run is preferred. Confirm the new
-      `sapienceHooksGuard` entry ran and reported nothing.
-- [ ] Confirm the rebuild did not reset the opt-out: `jq '.hooks' ~/.sapience/config.json` is
+      `sapienceHooksGuard` entry ran and reported nothing. **Deviation**: ran only
+      `home-manager switch --flake .#benjamin --max-jobs 4 --option allow-import-from-derivation false`
+      (altered) — `sudo` is categorically denied in this agent harness (no path to the
+      NixOS-integrated generation), and the user-level generation is the one that owns
+      `~/.nix-profile` and actually executes `home.activation`, including `sapienceHooksGuard`
+      and `claudeSettings`, which is what this phase needs to exercise. The resulting generation
+      store path (`r9l7753inyjbqyr71irrrcb60p76hqhy-home-manager-generation`) matches the one
+      built and inspected for DAG ordering in Phase 2, and `~/.claude/settings.json`'s mtime
+      moved during the switch, confirming `claudeSettings` ran. `sapienceHooksGuard` reported
+      nothing (clean), consistent with the `--quiet-ok` activation call.
+- [x] Confirm the rebuild did not reset the opt-out: `jq '.hooks' ~/.sapience/config.json` is
       still `false`. (No activation entry writes this key, so this is a regression check on the
-      whole module, not on `sapienceBootstrap` alone.)
-- [ ] Force the vendor updater: `python3 ~/.sapience/sapience_upkeep.py --update`. Capture its
+      whole module, not on `sapienceBootstrap` alone.) Confirmed `false` after the switch.
+- [x] Force the vendor updater: `python3 ~/.sapience/sapience_upkeep.py --update`. Capture its
       output and confirm it reports leaving the hooks alone (the `hooks_opted_out()` branch)
-      rather than wiring them.
-- [ ] Re-check `~/.claude/settings.json` and confirm no entry under `hooks.SessionStart`,
+      rather than wiring them. Output: "Claude Code: left alone (you switched the Sapience hooks
+      off in config.json)." and "sapience update: everything is current." — the opt-out branch,
+      confirmed.
+- [x] Re-check `~/.claude/settings.json` and confirm no entry under `hooks.SessionStart`,
       `hooks.SessionEnd` or `hooks.Stop` references `.sapience/mcp.py` with any of
-      `--briefing-text`, `--receipt`, `--effect-line`.
-- [ ] Run `bash scripts/check-sapience-hooks.sh` standalone and confirm exit `0` against the real
-      post-update file — the detector agreeing with the manual inspection above.
-- [ ] Re-attest GOAL item (2) empirically: confirm that in a repository that loads the sapience
+      `--briefing-text`, `--receipt`, `--effect-line`. Confirmed: only the same four pre-existing
+      entries remain; no vendor injection appeared.
+- [x] Run `bash scripts/check-sapience-hooks.sh` standalone and confirm exit `0` against the real
+      post-update file — the detector agreeing with the manual inspection above. Confirmed exit
+      `0`, "carries no ~/.sapience injection hook."
+- [x] Re-attest GOAL item (2) empirically: confirm that in a repository that loads the sapience
       extension, the per-repository hooks are still present in that repository's own
       `.claude/settings.local.json` and unaffected by `"hooks": false`. Inspect the merged file;
-      do not edit the extension or its source store.
-- [ ] Run the full gate set and record the result.
+      do not edit the extension or its source store. Confirmed in this repository itself (it
+      loads the `sapience` extension per `.claude-extensions.json`): `.claude/settings.local.json`
+      still carries the three `mcp.py --briefing-text`/`--receipt`/`--effect-line` entries under
+      `SessionStart`/`SessionEnd`/`Stop`, unaffected by the opt-out.
+- [x] Run the full gate set and record the result. **Deviation (altered, per this dispatch's own
+      Batch Gate Deferral directive)**: ran the scoped discharge instead of an independent full
+      sweep — `nix flake check` (green: `statix`, `deadnix --fail`, `nixfmt --check`,
+      `shellcheck`, `home-eval` all pass) plus
+      `bash .claude/scripts/verify-deploy.sh --skip-unchanged --only-gate 4 /home/benjamin/.dotfiles`
+      (PASS: task-reference lint). The complete, unflagged `verify-deploy.sh` sweep is deferred to
+      the batch's own end-of-invocation run, per the dispatch directive and
+      `context/contracts/phase-closure.md`'s no-promotion-without-evidence carve-out; it is
+      attributed back to this task there, not claimed as independently run here.
 
 **Timing**: 0.75 hours
 
@@ -469,20 +497,22 @@ than an edit made here.
 
 ## Testing & Validation
 
-- [ ] `nix flake check` passes at the close of every phase that changes a tracked file (1, 2, 3)
-      and in Phase 4's full gate run.
-- [ ] The merge expression preserves `false`, preserves `true`, and defaults an absent key to
+- [x] `nix flake check` passes at the close of every phase that changes a tracked file (1, 2, 3)
+      and in Phase 4's scoped gate run (the independent full `verify-deploy.sh` sweep is deferred
+      to the batch's own end-of-invocation run per this dispatch's Batch Gate Deferral
+      directive).
+- [x] The merge expression preserves `false`, preserves `true`, and defaults an absent key to
       `false` — all three cases exercised against fixtures, not reasoned about.
-- [ ] The first-run mint literal yields `.hooks == false`.
-- [ ] `scripts/check-sapience-hooks.sh` exits `1` with all three entries named on the synthetic
+- [x] The first-run mint literal yields `.hooks == false`.
+- [x] `scripts/check-sapience-hooks.sh` exits `1` with all three entries named on the synthetic
       injection fixture, and `0` on the real live file, a missing file, invalid JSON, and a file
       with no `hooks` key.
-- [ ] The activation DAG resolves with `sapienceHooksGuard` ordered before `claudeSettings`.
-- [ ] A real `home-manager switch` followed by `python3 ~/.sapience/sapience_upkeep.py --update`
+- [x] The activation DAG resolves with `sapienceHooksGuard` ordered before `claudeSettings`.
+- [x] A real `home-manager switch` followed by `python3 ~/.sapience/sapience_upkeep.py --update`
       leaves no user-level `~/.sapience` hook in `~/.claude/settings.json`.
-- [ ] `docs/sapience.md` and the `sapience.nix` header no longer assert a per-repository-only
+- [x] `docs/sapience.md` and the `sapience.nix` header no longer assert a per-repository-only
       design without naming the `config.json` opt-out and the guard.
-- [ ] No task-number reference and no version-history phrasing in `docs/sapience.md` or
+- [x] No task-number reference and no version-history phrasing in `docs/sapience.md` or
       `modules/home/services/sapience.nix`.
 
 ## Artifacts & Outputs
