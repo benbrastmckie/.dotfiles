@@ -1,49 +1,55 @@
 {
-  "status": "partial",
-  "summary": "Phases 1-5 of the fresh-machine declarative-gaps plan are complete and nix-flake-check-green: tokenFile is now sops-backed (quoted string, owner-0400 secret mirroring anthropic_api_key), the sourceDirs manual-registration decision is recorded in the option description/home.nix comment/docs, and users.users.benjamin.linger = true is declared at the NixOS layer with a new narrowed activation notice for the WSL2 case it cannot reach. Phase 6 is left [BLOCKED] by the team lead's own dispatch-level override (not closed as [COMPLETED WITH EXCLUSIONS]): sudo nixos-rebuild switch and the real Sapience token are both structurally unavailable to this dispatch, so the exact operator command sequence is printed in the summary for the user to run.",
+  "status": "implemented",
+  "summary": "Closed Phase 6, the final phase of the fresh-machine declarative-gaps plan. The operator ran the sequence a prior dispatch could not (sops-added the real sapience_token secret, ran a successful sudo nixos-rebuild switch); this dispatch independently re-verified the live evidence (Linger=yes; /run/secrets/sapience_token readable at 0400/benjamin/43 bytes; nix flake check green) rather than trusting the report, and found a non-sudo substitute proof for the second-switch no-op criterion (store-path equality between /run/current-system and a fresh non-activating nix build of the host's toplevel). Phase 6 closes [COMPLETED WITH EXCLUSIONS] with exactly two reasoned exclusions: the interactive sapience-bootstrap folder-picker run, and the literal second sudo invocation (superseded by the substitute proof). All 6 phases of the plan are now closed.",
   "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/144_sapience_fresh_machine_declarative_gaps/plans/01_fresh-machine-declarative-gaps.md",
+      "summary": "Phase 6 heading changed [BLOCKED] -> [COMPLETED WITH EXCLUSIONS]; operator-run task checklist updated with live re-verification evidence; new #### Reasoned Exclusions table; AC2/AC4/AC5 attestations updated; Closure rule paragraph applied."
+    },
     {
       "type": "summary",
       "path": "specs/144_sapience_fresh_machine_declarative_gaps/summaries/01_fresh-machine-declarative-gaps-summary.md",
-      "summary": "Implementation summary: Phases 1-5 complete with evidence; Phase 6 left open with the operator command sequence for the user."
+      "summary": "Status updated to [COMPLETED WITH EXCLUSIONS]; new Verification section quoting the re-verified live evidence and the non-sudo substitute convergence proof; Follow-ups trimmed of the now-discharged operator checkpoint."
     }
   ],
   "completion_data": {
-    "completion_summary": "Wired a sops-backed tokenFile secret for non-interactive Sapience bootstrap, recorded the sourceDirs manual-registration decision in the option description and docs, and granted user lingering declaratively at the NixOS layer with a narrowed activation-time notice for the WSL2 case it cannot reach. Phase 6's sudo-gated and real-credential-gated verifications are left for the user, per an explicit dispatch-level override, with the exact command sequence printed in the summary."
+    "completion_summary": "Closed task 144's final phase: re-verified the operator's completed token-provisioning and system-switch work live, substituted a non-sudo convergence proof for the one criterion that still needed sudo, and recorded exactly two reasoned exclusions (the interactive bootstrap run; the literal second sudo switch) rather than claiming unearned completion."
   },
   "modified_files": [
     "home.nix",
     "modules/system/secrets.nix",
     "modules/system/users.nix",
     "modules/home/services/sapience.nix",
-    "docs/sapience.md"
+    "docs/sapience.md",
+    "specs/144_sapience_fresh_machine_declarative_gaps/plans/01_fresh-machine-declarative-gaps.md",
+    "specs/144_sapience_fresh_machine_declarative_gaps/summaries/01_fresh-machine-declarative-gaps-summary.md",
+    "specs/144_sapience_fresh_machine_declarative_gaps/issues.jsonl"
   ],
   "metadata": {
-    "session_id": "sess_1795027105_555221",
+    "session_id": "sess_1795034834_b75a57",
     "agent_type": "nix-implementation-agent",
     "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"],
-    "phases_completed": 5,
+    "delegation_path": [
+      "orchestrator",
+      "implement",
+      "nix-implementation-agent"
+    ],
+    "phases_completed": 6,
     "phases_total": 6
   },
   "sapience_notes": [
     {
-      "note": "statix's 'repeated keys' lint in nix flake check's checks.x86_64-linux.statix fires at 3+ occurrences of a top-level `attr.\"name\" = {...};` pattern (e.g. sops's `secrets.\"x\" = {...};`), not at 2. Confirmed empirically: statix check against the 2-entry original modules/system/secrets.nix exits 0; a naive 3rd entry added in the same style exits 1. Fix is the nested `attr = { \"a\" = ...; \"b\" = ...; \"c\" = ...; };` form statix's own error message suggests."
+      "note": "A sudo-gated 'second switch is a no-op' convergence proof has a non-sudo substitute: compare `readlink -f /run/current-system` against a non-activating `nix build .#nixosConfigurations.<host>.config.system.build.toplevel --no-link --print-out-paths`. Identical store paths prove the flake's current evaluation already matches the live system exactly, which is a stronger and more direct proof than diffing a second switch's stdout output would have given, and requires no elevated privilege at all."
     },
     {
-      "note": "A grep-based 'assert this Nix assignment is quoted' check of the shape `grep -nE 'name *= *[^\"]' file` is non-discriminating: the trailing ` *` can match zero spaces, so `[^\"]` is satisfied by the single space immediately before the opening quote on an already-correctly-quoted line. Confirmed by running the exact same pattern against a known-good, already-quoted precedent line and getting a false-positive match. A fixed single space (no quantifier) before the character class is required for the check to actually discriminate."
+      "note": "sops-install-secrets populating /run/secrets/<name> at the declared owner/mode is itself sufficient evidence that a full `sudo nixos-rebuild switch` (not merely a build) actually ran and activated -- the secret only materializes at system activation time, so its presence plus correct owner/mode is a reliable, independently-checkable proxy for 'the system switch completed', usable even when the agent cannot run sudo itself to confirm it directly."
     },
     {
-      "note": "modules/home/services/sapience.nix's built sapience-bootstrap script bakes its stateDir/configFile paths to the real ~/.sapience/* locations at Nix build time (not read from an overridable env var). A scratchpad demonstration of its non-interactive token-reading path must redirect every ~/.sapience reference in the copied script, not just the token path, or the run reads/writes real vendor state (including risking a clobber of the real config.json on an unreachable-host 000 code path, which continues and writes)."
+      "note": "Decision: when an operator-gated plan phase's blocking condition is subsequently resolved by the operator (here: real token added via sops, sudo nixos-rebuild switch run), the correct close is to re-verify the live evidence independently rather than trust the relayed report, then apply the plan's own original Closure rule (COMPLETED WITH EXCLUSIONS with a Reasoned Exclusions table) rather than leave a prior dispatch-level BLOCKED override in place past the point its own stated obstruction was resolved."
     },
     {
-      "note": "users.users.<name>.linger (nullOr boolean) is a working NixOS option on this flake's pinned nixos-26.05 revision (flake.lock rev 643809054d65fdd466a63e3155b8c498cb483c04); confirmed via nix eval resolving true across all 4 host configurations. No systemd.tmpfiles fallback into /var/lib/systemd/linger is needed on this revision."
-    },
-    {
-      "note": "NixOS's module system safely merges two separate `users.users.<name> = { ... }` declaration sites for the same user across different imported modules (list-typed attrs like extraGroups are unioned; scalar attrs must agree, or the merge fails at eval time) -- confirmed on this flake, where modules/system/users.nix and hosts/usb-installer/default.nix both declare users.users.benjamin with no overlapping scalar conflict."
-    },
-    {
-      "note": "Decision: Sapience's sourceDirs directory registration (adddir) is deliberately never wired into home-manager activation, because the vendor's adddir CLI requires either a TTY confirmation or an explicit --yes before it reads any file, and an activation context has neither -- an activation-time call would be either a silent no-op that looks like registration, or an unattended, unconfirmed, credential-dependent upload on every switch. This generalizes: any vendor CLI with the same TTY-or-explicit-flag confirmation gate is a poor fit for activation-time automation regardless of how persistent its own ledger/dedup state is."
+      "note": "users.users.<name>.linger declared at the NixOS layer plus a successful system switch is independently verifiable post-hoc via `loginctl show-user <name> --property=Linger` reporting Linger=yes, with no need to have observed the switch itself run -- the property is a durable system-activation side effect, not a transient log line."
     }
   ]
 }

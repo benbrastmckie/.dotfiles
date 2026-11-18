@@ -11,7 +11,7 @@ next_project_number: 145
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136,144 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,136 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120,139 | 77,124,136 | nixos-config, desktop, sapience |
 | 3 | 78 | 120 | desktop |
 
@@ -56,19 +56,18 @@ next_project_number: 145
 
 ### Sapience
 
-144 [PARTIAL] — GOAL: close the three remaining hand steps between a fresh...
 139 [NOT STARTED] — Reduce or accept the Sapience extraction classifier cost now...
 
 ## Tasks
 
 ### 144. Sapience fresh machine declarative gaps
-- **Status**: [PARTIAL]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: sapience
 - **Dependencies**: Task 142
 - **Research**: [144_sapience_fresh_machine_declarative_gaps/reports/01_fresh-machine-declarative-gaps.md]
-- **Plan**: [144_sapience_fresh_machine_declarative_gaps/plans/01_fresh-machine-declarative-gaps.md]
 - **Summary**: [144_sapience_fresh_machine_declarative_gaps/summaries/01_fresh-machine-declarative-gaps-summary.md]
+- **Plan**: [144_sapience_fresh_machine_declarative_gaps/plans/01_fresh-machine-declarative-gaps.md]
 
 **Description**: GOAL: close the three remaining hand steps between a fresh `nixos-rebuild switch` + `home-manager switch` and a working Sapience client, so the declared configuration is sufficient on a new machine.
 

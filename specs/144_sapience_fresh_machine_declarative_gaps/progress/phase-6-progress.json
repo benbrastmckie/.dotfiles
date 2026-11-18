@@ -2,15 +2,25 @@
   "phase": 6,
   "phase_name": "Operator checkpoint, full gate, and convergence proof",
   "started_at": "2026-11-18T21:21:00Z",
-  "last_updated": "2026-11-18T21:45:00Z",
+  "last_updated": "2026-11-18T22:30:00Z",
   "objectives": [
     {
       "id": 1,
       "description": "Phase 6 - agent-executable verification only (operator tasks not run, per dispatch override)",
       "status": "blocked",
       "files_touched": []
+    },
+    {
+      "id": 2,
+      "description": "Phase 6 - close operator checkpoint: re-verify operator-run evidence live, gather non-sudo substitute proof for the second-switch no-op, close phase COMPLETED WITH EXCLUSIONS",
+      "status": "completed",
+      "files_touched": [
+        "specs/144_sapience_fresh_machine_declarative_gaps/plans/01_fresh-machine-declarative-gaps.md",
+        "specs/144_sapience_fresh_machine_declarative_gaps/summaries/01_fresh-machine-declarative-gaps-summary.md",
+        "specs/144_sapience_fresh_machine_declarative_gaps/issues.jsonl"
+      ]
     }
   ],
-  "current_objective": 1,
+  "current_objective": 2,
   "handoff_count": 0
 }

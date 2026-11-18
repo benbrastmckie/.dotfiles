@@ -1,30 +1,21 @@
 {
-  "status": "partial",
+  "status": "implemented",
   "phase": "implement",
-  "dispatch_seq": 9,
-  "summary": "Phases 1-5 of the fresh-machine declarative-gaps plan are complete, committed per phase, and nix-flake-check-green: tokenFile is sops-backed, the sourceDirs manual-registration decision is recorded with reasoning, and NixOS-level lingering is declared with a narrowed activation notice. Phase 6 is left [BLOCKED], per an explicit team-lead override of the plan's own Decision 4/Closure rule, with the operator command sequence printed in the summary for the user to run.",
+  "dispatch_seq": 10,
+  "summary": "Closed the final phase (6) of the fresh-machine declarative-gaps plan. The operator has run the sequence a prior dispatch could not run itself (sops-added the real sapience_token secret; a successful sudo nixos-rebuild switch). This dispatch independently re-verified the live evidence (Linger=yes; /run/secrets/sapience_token readable at 0400/benjamin/43 bytes; nix flake check green) and found a non-sudo substitute proof for the second-switch no-op criterion. Phase 6 closes [COMPLETED WITH EXCLUSIONS] with two reasoned exclusions (the interactive sapience-bootstrap folder-picker run; the literal second sudo invocation). All 6 plan phases are now closed.",
   "artifacts": [
-    {
-      "type": "summary",
-      "path": "specs/144_sapience_fresh_machine_declarative_gaps/summaries/01_fresh-machine-declarative-gaps-summary.md",
-      "summary": "Implementation summary: Phases 1-5 complete with evidence; Phase 6 left open with the operator command sequence for the user."
-    },
     {
       "type": "plan",
       "path": "specs/144_sapience_fresh_machine_declarative_gaps/plans/01_fresh-machine-declarative-gaps.md",
-      "summary": "Plan updated in place: Phases 1-5 marked [COMPLETED] with per-task evidence annotations; Phase 6 marked [BLOCKED] with the dispatch-level override recorded."
-    }
-  ],
-  "phases_completed": 5,
-  "phases_total": 6,
-  "blockers": [
+      "summary": "Phase 6: [BLOCKED] -> [COMPLETED WITH EXCLUSIONS], with a new #### Reasoned Exclusions table and updated AC2/AC4/AC5 attestations."
+    },
     {
-      "phase": "6",
-      "target": "Acceptance Criterion 4 (loginctl Linger=yes after a system switch); AC2's live half (prompt-free sapience-bootstrap against a real /run/secrets/sapience_token); AC5's system-switch no-op half",
-      "verbatim_goal": "Apply the real Sapience token via sops and run sudo nixos-rebuild switch (twice) to give all six acceptance criteria live evidence, per the user's recorded decision.",
-      "what_was_tried": "Ran every agent-executable substitute: nix flake check, the scoped agent-system gate, two consecutive home-manager switch runs (confirmed no-op and token-leak-free), and a full scratchpad-isolated demonstration of the non-interactive tokenFile bootstrap path against a placeholder value.",
-      "why_it_failed": "sudo is structurally denied in this harness (confirmed by prior-session memory and the team lead's own instruction), and the real Sapience token must never reach an agent. Both are outside what this dispatch can do; the team lead directed that this be left for the user rather than closed as [COMPLETED WITH EXCLUSIONS]."
+      "type": "summary",
+      "path": "specs/144_sapience_fresh_machine_declarative_gaps/summaries/01_fresh-machine-declarative-gaps-summary.md",
+      "summary": "Status -> [COMPLETED WITH EXCLUSIONS]; new Verification section with the re-verified live evidence and substitute convergence proof."
     }
   ],
-  "plan_markers_verified": true
+  "phases_completed": 6,
+  "phases_total": 6,
+  "blockers": []
 }

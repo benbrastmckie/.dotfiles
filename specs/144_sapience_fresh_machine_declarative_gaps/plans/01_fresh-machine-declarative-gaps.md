@@ -1,7 +1,7 @@
 # Implementation Plan: Sapience Fresh-Machine Declarative Gaps
 
 - **Task**: 144 - Close the three remaining hand steps between a fresh switch and a working Sapience client
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 4.25 hours
 - **Dependencies**: None blocking. File-adjacency only with task 136 (`implementing`, shares
   `home.nix`, `modules/home/services/sapience.nix`, `docs/sapience.md`) and task 141
