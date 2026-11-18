@@ -29,7 +29,7 @@ them and replace this section with the observed result and the date.
 Every open Sapience task now leads this list, with the part of it that is actually attendable at the very top. The hook-reinjection convergence work and the fresh-machine declarative gaps both have an empty dependencies[] and can be picked up today; the hooks opt-out default rides in the same batch because it shares the detector surface and the sapience.nix territory with them, even though the graph will skip it until the parked measurement clears. That measurement stays parked -- it is five or more hand-run extraction passes spaced across more than a week, not something a dispatch can discharge -- and the classifier-cost task is blocked behind it, so that pair sits second rather than first. Extraction still runs against a metered third-party key, so every pass costs money and sends raw transcript chunks off this machine, which is what makes the declarative and hook-scoping work above worth taking before the configuration work below it. Everything after the Sapience batches is ordinary configuration work that is not getting more expensive while it waits.
 
 ```
-/orchestrate 141, 144, 142   # Make the Sapience client declarative and stop the vendor re-wiring its machine-wide hooks
+/orchestrate 144   # Make the Sapience client declarative and stop the vendor re-wiring its machine-wide hooks
 /orchestrate 136, 139   # Parked: resume the coverage measurement, then settle the classifier cost it prices
 /orchestrate 124, 77, 117, 120, 78   # Settle the niri session and resume behavior before documenting a setup that stops moving
 /orchestrate 125, 131   # Contain and schedule Claude's own session hygiene on one systemd user-unit surface
@@ -95,12 +95,10 @@ Why this order:
 42 BLOCKED          reenable_jupytext_nixpkgs_fix
 ```
 
-**Sapience (4)**
+**Sapience (2)**
 ```
+144 PARTIAL         sapience_fresh_machine_declarative_gaps
 139 blocked:136     reduce_sapience_classifier_cost   <- needs 136's measured backlog; not attendable while 136 is parked
-144 blocked:142     sapience_fresh_machine_declarative_gaps
-141 ready           prevent_sapience_hook_reinjection   <- owns the claudeSettings strip and the enforced-key fix; adopt 142's plan Phase 2 detector siting rather than building a second one
-142 ready           Default the Sapience config hooks opt-out to false so the vendor updater stop...   <- dispatchable: the serialization edge behind the coverage measurement was lifted by owner decision, the plan consuming none of it. Shares docs/sapience.md and modules/home/services/sapience.nix with the rest of the sapience cluster, so sequence rather than co-dispatch on that territory
 ```
 The packaging pair (41, 42) is waiting on upstream nixpkgs fixes rather than on anything in this repository, so neither appears in a batch above.
 
