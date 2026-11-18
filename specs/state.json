@@ -54,14 +54,14 @@
           "summary": "Research report: 02_baseline-and-extraction-backend-blocked.md"
         },
         {
-          "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/02_coverage-measurement-series-and-decision.md",
-          "type": "plan",
-          "summary": "Eight-phase plan: re-baseline and ledger, four observed extraction passes with mid-series filter/cap/queue checks, read-only vault-content audit, series analysis and decision record, conditional enactment in home.nix / modules/home/services/sapience.nix / docs/sapience.md."
-        },
-        {
           "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
           "type": "record",
           "summary": "Measurement ledger, unchanged this dispatch: last entry is the Pass-3 block plus mid-series filter-ratio and daily-cap-headroom checks."
+        },
+        {
+          "path": "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/plans/03_single-sitting-decision-from-ledger.md",
+          "type": "plan",
+          "summary": "Seven-phase revised plan: phases 1-3 completed extraction passes preserved; series closed at three real passes, remaining questions answered from the ledger plus read-only sampling, read-only vault audit, decision record carrying the reduced evidence base, conditional enactment."
         }
       ],
       "roadmap_annotation": "parked for now; the measurement window is 5+ hand-run passes over 1+ week, not one dispatch",
@@ -72,7 +72,8 @@
         "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/01_coverage-pass-ledger.md",
         "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/02_vault-content-audit.md",
         "specs/136_evaluate_sapience_coverage_and_tune_extraction_scope/records/03_extraction-scope-decision.md"
-      ]
+      ],
+      "next_artifact_number": 4
     },
     {
       "project_number": 133,
