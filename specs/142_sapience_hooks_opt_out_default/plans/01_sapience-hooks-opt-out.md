@@ -321,14 +321,14 @@ and negative detector runs below.
 
 ---
 
-### Phase 3: Document the resulting three-layer design [NOT STARTED]
+### Phase 3: Document the resulting three-layer design [COMPLETED]
 
 **Goal**: `docs/sapience.md` and the `sapience.nix` header comment state what the machine
 actually does, replacing the per-repository claim the dispatch found to be contradicted.
 
 **Tasks**:
 
-- [ ] Extend `docs/sapience.md`'s `### Why the hooks live in the repo` section (or add a
+- [x] Extend `docs/sapience.md`'s `### Why the hooks live in the repo` section (or add a
       subsection immediately after it) describing the three layers and the distinct job of each:
       (1) `~/.sapience/config.json`'s `"hooks": false` stops the vendor updater's `wire_hooks()`
       from ever writing its machine-wide hooks into `~/.claude/settings.json`, and stops
@@ -336,22 +336,22 @@ actually does, replacing the per-repository claim the dispatch found to be contr
       anything that slips through, but only at the *next* switch, so it is a backstop and not a
       preventative; (3) the new `sapienceHooksGuard` reports an injection that happened since the
       last switch, which is why it is ordered before layer (2) rather than after it.
-- [ ] State in the same passage what `"hooks": false` does **not** do: it has no effect on the
+- [x] State in the same passage what `"hooks": false` does **not** do: it has no effect on the
       per-repository hooks the sapience extension merges into a loaded repository's own
       `settings.local.json`, because `mcp.py`'s `--briefing-text`/`--receipt`/`--effect-line`
       entry points and `sapience_cli.py`'s `hook`/`answer` dispatcher consult `TOKEN` presence,
       `folder_allowed(cwd)` and per-session state — never `config.json`'s `hooks` key. This is
       the doc record of GOAL item (2).
-- [ ] State the default/preserve semantics (Decision 1) and that `sapience-bootstrap` therefore
+- [x] State the default/preserve semantics (Decision 1) and that `sapience-bootstrap` therefore
       never resets an explicit value in either direction.
-- [ ] Add the standalone detector invocation (`bash scripts/check-sapience-hooks.sh`) to the doc
+- [x] Add the standalone detector invocation (`bash scripts/check-sapience-hooks.sh`) to the doc
       as the hand-run check, noting that activation runs the same script non-fatally.
-- [ ] Update `modules/home/services/sapience.nix`'s header comment block: the existing
+- [x] Update `modules/home/services/sapience.nix`'s header comment block: the existing
       per-repository-design paragraph gains a pointer to the `"hooks": false` opt-out and to
       `sapienceHooksGuard`, parallel to how that block already explains the enforced-key
       reasoning. Keep it to the one-or-two-line pointer style the surrounding comments use; the
       full narrative belongs in `docs/sapience.md`.
-- [ ] State the current design only, with no draft-history or supersession framing, per
+- [x] State the current design only, with no draft-history or supersession framing, per
       `rules/no-record-versioning-in-deliverables.md`, and cite no task numbers, per
       `rules/no-task-references-in-deliverables.md` — both files are outside `specs/**`.
 

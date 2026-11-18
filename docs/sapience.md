@@ -673,6 +673,52 @@ that script there if you want the segment. `sapience_cli.py`'s own `hook session
 stop` subcommands are deliberately not wired anywhere, because each would duplicate one of the
 extension's `mcp.py`-backed hooks and print a second line per turn.
 
+### The three layers that keep machine-wide hooks out of settings.json
+
+Three independent mechanisms work together to keep `~/.claude/settings.json` free of the
+vendor's own machine-wide hooks, each with a distinct job:
+
+1. **`~/.sapience/config.json`'s `"hooks": false`** stops `~/.sapience/sapience_upkeep.py`'s
+   `wire_hooks()` from ever writing its three machine-wide hooks (`SessionStart
+   --briefing-text`, `SessionEnd --receipt`, `Stop --effect-line`, all invoking
+   `~/.sapience/mcp.py`) into `~/.claude/settings.json` on its daily auto-update, and also stops
+   `cli_auto_on_plan`'s auto-on probe. `modules/home/services/sapience.nix`'s
+   `sapienceBootstrap` defaults this key to `false` at both the first-run mint and the
+   re-bootstrap merge, using an explicit null test rather than jq's `//` (which would return its
+   right-hand side for an explicit `false` just as it does for an absent key, silently resetting
+   a deliberate opt-out back to `true`). The semantics are default-not-force: an explicit value
+   of either polarity, once set, is preserved across every re-bootstrap. This is prevention, not
+   cleanup — it stops the write from ever happening.
+2. **`home.activation.claudeSettings`'s enforced `hooks` key** (`modules/home/core/dotfiles.nix`)
+   reverts anything that slips through anyway, by resetting `~/.claude/settings.json`'s `hooks`
+   key from this repository's own `config/claude/settings.json` on every switch. This is a
+   backstop, not a preventative: it only fires at the *next* `home-manager switch`, so an
+   injection written between two switches is live until then.
+3. **`sapienceHooksGuard`**, a `home.activation` entry in `sapience.nix` that runs
+   `scripts/check-sapience-hooks.sh` against the live, pre-merge `~/.claude/settings.json` and
+   reports (loudly, non-fatally) any entry matching the vendor's injection signature. It is
+   declared `entryBefore [ "claudeSettings" ]`, deliberately ordered ahead of the enforced-key
+   merge above: ordered after it, the guard would always read a file `claudeSettings` had
+   already cleaned and could never observe an injection. Non-fatal because aborting activation
+   at this point would also prevent `claudeSettings` from stripping the entries it just
+   reported, turning a self-healing switch into a manual repair; the hard-failing exit lives only
+   in the standalone invocation below.
+
+**What `"hooks": false` does NOT do**: it has no effect on the per-repository hooks the sapience
+extension merges into a loaded repository's own `.claude/settings.local.json`
+(`settings-fragment.json` in `agent-system/extensions/sapience/`, nvim repository). Those entries
+invoke the same `~/.sapience/mcp.py --briefing-text` / `--receipt` / `--effect-line` entry points
+and `sapience_cli.py`'s `hook`/`answer` dispatcher, but each checks only `SAPIENCE_TOKEN`
+presence, `folder_allowed(cwd)`, and per-session state — never `~/.sapience/config.json`'s
+`hooks` key. Only the vendor updater's own machine-wide write and the CLI auto-on probe consult
+that key; the per-repository design this document describes elsewhere is unaffected by the
+opt-out.
+
+**Standalone check**: `bash scripts/check-sapience-hooks.sh` inspects the live
+`~/.claude/settings.json` by hand and exits `1` (naming every offending entry) if the vendor's
+injection signature is present, `0` otherwise — the same script `sapienceHooksGuard` runs
+non-fatally at every activation.
+
 ## Module options
 
 `programs.sapience`:

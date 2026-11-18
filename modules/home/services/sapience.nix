@@ -17,6 +17,11 @@
 # `SessionStart` entry here -- the per-project MCP-registration hook -- rather than relying on
 # the extension's own installer to make it durable. See docs/sapience.md.
 #
+# Note: sapienceBootstrap defaults ~/.sapience/config.json's "hooks" key to false (preserving an
+# explicit value either way), which stops the vendor updater from writing its OWN machine-wide
+# hooks into ~/.claude/settings.json; the sapienceHooksGuard activation entry below reports any
+# that slip through anyway. See docs/sapience.md's three-layer design section.
+#
 # Module shape follows services/cache-cleanup.nix and services/claude-session-reaper.nix:
 # oneshot plus timer, explicit PATH export, and every external call guarded so a transient
 # network failure cannot leave the unit `failed`, which would degrade the whole systemd --user
