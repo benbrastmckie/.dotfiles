@@ -1050,6 +1050,33 @@ in
           ''
         );
 
+        # Probes the *actual* linger state rather than proxying for it (e.g. by detecting WSL).
+        # A state probe catches both directions a WSL-ness proxy would miss: a non-WSL host with
+        # lingering off, and a WSL host that already has `systemd=true` and linger granted. It
+        # is also what keeps a switch a no-op on every host covered by
+        # modules/system/users.nix's `users.users.<name>.linger = true` -- the condition this
+        # entry warns about is false there, so nothing prints. Gated on `cfg.backgroundSync`
+        # (default `false`) so the entry does not materialize at all until that option is on.
+        # The WSL2 case this cannot reach -- `/etc/wsl.conf`'s `[boot] systemd=true`, which no
+        # NixOS-level setting in this flake can grant -- is named explicitly in the warning text
+        # below rather than silently dropped.
+        sapienceLingerNotice = lib.mkIf cfg.backgroundSync (
+          config.lib.dag.entryAfter [ "writeBoundary" ] ''
+            if [[ -v DRY_RUN ]]; then
+              echo "Would check whether lingering is granted for \$USER (backgroundSync's timer needs it)"
+            else
+              linger_status="$(${pkgs.systemd}/bin/loginctl show-user "$USER" --property=Linger 2>/dev/null || true)"
+              if [ "$linger_status" != "Linger=yes" ]; then
+                echo "sapience: lingering is not granted for $USER, so sapience-sync.timer"
+                echo "  (${cfg.syncInterval}) will not fire while no session is logged in."
+                echo "  On a NixOS host covered by this flake: set users.users.<name>.linger = true"
+                echo "  in modules/system/users.nix, then sudo nixos-rebuild switch."
+                echo "  On WSL2 (outside this flake's reach): set [boot] systemd=true in"
+                echo "  /etc/wsl.conf, then restart the WSL instance."
+              fi
+            fi
+          ''
+        );
       };
     };
 

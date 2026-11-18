@@ -521,7 +521,7 @@ the resolved option value above.
 
 ---
 
-### Phase 4: Author the narrowed linger notice in the live module [NOT STARTED]
+### Phase 4: Author the narrowed linger notice in the live module [COMPLETED]
 
 **Goal**: when `backgroundSync` is on and lingering is genuinely not in effect, a
 `home-manager switch` says so and names both remedies; in every other case it says nothing.
@@ -536,39 +536,48 @@ preserve, or port one. If the implementer finds a notice already present in the 
 
 **Tasks**:
 
-- [ ] Re-read `modules/home/services/sapience.nix` immediately before editing, specifically the
-      `home.activation` attribute set (around lines 908-1045).
-- [ ] Add a `sapienceLingerNotice` entry to `home.activation`, wrapped in
+- [x] Re-read `modules/home/services/sapience.nix` immediately before editing, specifically the
+      `home.activation` attribute set (around lines 908-1045). *(completed)*
+- [x] Add a `sapienceLingerNotice` entry to `home.activation`, wrapped in
       `lib.mkIf cfg.backgroundSync` so it does not materialize at all while `backgroundSync` is
       `false`, and declared `config.lib.dag.entryAfter [ "writeBoundary" ]` (it reads no Sapience
       state, so it needs no ordering against `sapiencePayload` or `sapienceTokenRepair`).
-- [ ] Give it the house shape every other entry in this file uses: an `if [[ -v DRY_RUN ]]`
+      *(completed — inserted directly after `sapienceApiKey`)*
+- [x] Give it the house shape every other entry in this file uses: an `if [[ -v DRY_RUN ]]`
       branch printing what it would check, store-path-explicit tool references
       (`${pkgs.systemd}/bin/loginctl`, `${pkgs.coreutils}/bin/...`), and non-fatal behavior
       throughout — a `|| true` or an explicit else, never an exit that can break a switch.
-- [ ] Logic: read `loginctl show-user "$USER" --property=Linger`. If it reports `Linger=yes`,
+      *(completed)*
+- [x] Logic: read `loginctl show-user "$USER" --property=Linger`. If it reports `Linger=yes`,
       print nothing. If it reports anything else, or the command fails (no systemd user manager
       reachable at all), print a warning naming the timer that will not fire
       (`sapience-sync.timer`, with the configured `syncInterval`) and both remedies: on a NixOS
       host, `users.users.<name>.linger = true` in `modules/system/users.nix` followed by
       `sudo nixos-rebuild switch`; on WSL2, `[boot] systemd=true` in `/etc/wsl.conf`, which no
-      setting in this flake can grant.
-- [ ] Add a comment above the entry recording why it probes linger state rather than WSL-ness
+      setting in this flake can grant. *(completed)*
+- [x] Add a comment above the entry recording why it probes linger state rather than WSL-ness
       (Decision 3, condensed to two or three sentences), and why it is gated on `backgroundSync`.
-- [ ] Verify the notice's logic standalone, not by reasoning: extract its shell body into the
+      *(completed)*
+- [x] Verify the notice's logic standalone, not by reasoning: extract its shell body into the
       scratchpad and run it twice against a stub `loginctl` on `PATH` — one returning
       `Linger=yes` (assert empty output) and one returning `Linger=no` (assert the warning text
       appears and the exit status is 0). Add a third run with a stub that exits non-zero (assert
-      the warning appears and nothing fails).
-- [ ] Verify the entry materializes when it should: temporarily set `backgroundSync = true` in
+      the warning appears and nothing fails). *(completed — all three stub runs matched exactly:
+      `Linger=yes` -> empty stdout, exit 0; `Linger=no` -> full warning text, exit 0;
+      non-zero-exit stub -> same warning text, exit 0)*
+- [x] Verify the entry materializes when it should: temporarily set `backgroundSync = true` in
       `home.nix`, run `home-manager build --flake .#benjamin`, confirm `sapienceLingerNotice`
       appears in the generated activation script, then **revert that temporary edit** and confirm
       with `git diff -- home.nix` that nothing from this probe remains. Build, never switch.
-- [ ] Confirm the entry is absent today: with `backgroundSync` back at `false`,
+      *(completed — the generated `activate` script's line 700 read
+      `_iNote "Activating %s" "sapienceLingerNotice"` with the full probe body under it; the
+      probe line was then reverted and `git diff -- home.nix` confirmed empty before proceeding.
+      Build only, never `home-manager switch`.)*
+- [x] Confirm the entry is absent today: with `backgroundSync` back at `false`,
       `home-manager build` produces an activation script with no `sapienceLingerNotice`, which is
-      what keeps a switch a no-op for Gap 3.
-- [ ] Copy no code from `packages/sapience-flake/modules/sapience.nix`, and leave that file
-      untouched.
+      what keeps a switch a no-op for Gap 3. *(completed — confirmed absent)*
+- [x] Copy no code from `packages/sapience-flake/modules/sapience.nix`, and leave that file
+      untouched. *(completed — `git status --short -- packages/sapience-flake/` is empty)*
 
 **Timing**: 1.0 hours
 

@@ -1,0 +1,18 @@
+{
+  "phase": 4,
+  "phase_name": "Author the narrowed linger notice in the live module",
+  "started_at": "2026-11-18T20:26:00Z",
+  "last_updated": "2026-11-18T20:50:00Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Phase 4 - file changes",
+      "status": "completed",
+      "files_touched": [
+        "modules/home/services/sapience.nix"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}
