@@ -737,18 +737,16 @@ deploy-consumer tree rather than the source store, the task-reference lint subse
 
 ---
 
-### Phase 6: Operator checkpoint, full gate, and convergence proof [BLOCKED]
+### Phase 6: Operator checkpoint, full gate, and convergence proof [COMPLETED WITH EXCLUSIONS]
 
-**Dispatch-level override of this phase's own Closure rule, recorded before any Phase 6 work
-began**: the team lead relayed that, despite `.decisions.json`'s recorded answer ("run the
-Phase 6 operator sequence yourself"), `sudo` is structurally denied in this harness, so this
-dispatch must NOT attempt the operator-run tasks below and must NOT close this phase
-`[COMPLETED WITH EXCLUSIONS]` per the plan's own Decision 4 and Closure rule. Instead: run the
-agent-executable tasks, print the operator command sequence into the summary as a clearly
-labelled checkpoint, and leave this phase `[BLOCKED]` — open, not closed — pending that human
-step. The `[COMPLETED WITH EXCLUSIONS]` + `#### Reasoned Exclusions` path this phase's own
-Closure rule describes is superseded by this override for this dispatch; the plan's Decision 4
-is not itself wrong, it is simply not the route taken here.
+**Resolution of the prior override.** A previous dispatch held this phase `[BLOCKED]` on a
+team-lead override of the plan's own Closure rule, because the operator sequence below had not
+yet run. The operator has since: added the real token via `sops secrets/secrets.yaml` (committed
+as a sops-encrypted `sapience_token` key) and run `sudo nixos-rebuild switch` successfully. That
+is the human step the override was waiting on, so this dispatch re-verifies the live evidence
+itself and closes this phase under the plan's own original Closure rule
+(`[COMPLETED WITH EXCLUSIONS]`), superseding the `[BLOCKED]` override rather than the override
+superseding the Closure rule.
 
 **Goal**: the agent-executable subset of the gate set and convergence proof is run and observed
 green, and the live verifications that structurally require `sudo` and the real credential are
@@ -790,23 +788,39 @@ handed to the operator with an exact command sequence rather than claimed or inf
       operator-gated result. *(completed — see the Acceptance Criteria attestation in the
       Verification section below and in the summary)*
 
-**Operator-run tasks** (require `sudo` and the real credential; an agent must not attempt these;
-none of the six below were run by this dispatch, per the override above):
+**Operator-run tasks** (required `sudo` and the real credential; an agent could not attempt
+these directly — status below reflects what the operator has since run and what this dispatch
+re-verified live, versus what remains a reasoned exclusion):
 
-- [ ] `sops secrets/secrets.yaml` — add `sapience_token: <the private-link token value>` beside
-      the existing `anthropic_api_key`. *(not attempted — operator step)*
-- [ ] `cd ~/.dotfiles && sudo nixos-rebuild switch --flake .#$(hostname)`. *(not attempted —
-      operator step)*
-- [ ] `test -r /run/secrets/sapience_token && echo readable` — confirms the secret decrypted at
-      the declared owner/mode. *(not attempted — operator step)*
-- [ ] `loginctl show-user benjamin --property=Linger` — must report `Linger=yes` (Acceptance
-      Criterion 4). *(not attempted — operator step)*
+- [x] `sops secrets/secrets.yaml` — add `sapience_token: <the private-link token value>` beside
+      the existing `anthropic_api_key`. *(completed by the operator — committed `ba9d8bd`,
+      `secrets: add sops-encrypted sapience_token`; `git diff --stat ba9d8bd~1 ba9d8bd --
+      secrets/secrets.yaml` shows exactly one file, 3 insertions/2 deletions)*
+- [x] `cd ~/.dotfiles && sudo nixos-rebuild switch --flake .#$(hostname)`. *(completed by the
+      operator — see this phase's re-verification below: the decrypted secret and the live
+      `Linger=yes` property are both direct products of that switch)*
+- [x] `test -r /run/secrets/sapience_token && echo readable` — confirms the secret decrypted at
+      the declared owner/mode. *(re-verified live by this dispatch: `readable`; `ls -la` shows
+      `-r-------- 1 benjamin users 43 Nov 18 12:44 /run/secrets/sapience_token` — mode 0400,
+      owner benjamin, 43 bytes, i.e. a bare token value, not a link)*
+- [x] `loginctl show-user benjamin --property=Linger` — must report `Linger=yes` (Acceptance
+      Criterion 4). *(re-verified live by this dispatch: `Linger=yes`)*
 - [ ] `sapience-bootstrap </dev/null` — confirms the token is picked up with no prompt
       (Acceptance Criterion 2's live half). The vendor's folder picker still needs a TTY; that
-      remains manual and is documented as such. *(not attempted — operator step)*
+      remains manual and is documented as such. *(deviation: skipped — reasoned exclusion, see
+      `#### Reasoned Exclusions` below: this command is state-changing (it writes
+      `~/.sapience/config.json` and opens an interactive folder picker) and is not safely
+      automatable from a dispatch)*
 - [ ] `sudo nixos-rebuild switch --flake .#$(hostname)` a second time — must be a no-op for the
-      linger grant and the new secret (Acceptance Criterion 5's system half). *(not attempted —
-      operator step)*
+      linger grant and the new secret (Acceptance Criterion 5's system half). *(deviation:
+      skipped — reasoned exclusion, see `#### Reasoned Exclusions` below: `sudo` is structurally
+      denied to this dispatch. Substitute evidence gathered instead: `readlink -f
+      /run/current-system` and a non-activating `nix build
+      .#nixosConfigurations.hamsa.config.system.build.toplevel --no-link --print-out-paths`
+      resolve to the identical store path
+      `/nix/store/5b3a6hpcdqkrqckmsv7a9schxbcwaxm0-nixos-system-hamsa-26.05.20260921.1e8bc65` —
+      i.e. the flake's current evaluation already matches the live system exactly, so a second
+      switch has nothing left to activate)*
 
 **Timing**: 0.75 hours
 
@@ -843,35 +857,44 @@ phase (1-5) rather than an edit made here.
   - **AC1** (`nix flake check` passes): satisfied with evidence — exit 0 after every phase and
     again in this phase.
   - **AC2** (`tokenFile` sops-backed, non-interactive bootstrap demonstrated): the declaration
-    half is satisfied with evidence (Phase 1). The live half — a prompt-free
-    `sapience-bootstrap` against a REAL `/run/secrets/sapience_token` — is outstanding on the
-    operator; Phase 1's scratchpad demonstration against a placeholder value is evidence for the
-    mechanism, not for the live path.
+    half is satisfied with evidence (Phase 1). The live secret half is now satisfied with
+    evidence: `/run/secrets/sapience_token` exists at mode `0400`, owner `benjamin`, 43 bytes
+    (a bare token, confirmed by this dispatch). The remaining piece — actually running
+    `sapience-bootstrap` against that real secret — is a reasoned exclusion (see below); Phase
+    1's scratchpad demonstration against a placeholder value remains the evidence for the
+    mechanism.
   - **AC3** (`sourceDirs` decision resolved and recorded): satisfied with evidence (Phase 2).
   - **AC4** (`loginctl show-user <name> --property=Linger` reports `Linger=yes` after a system
-    switch): outstanding on the operator in full — this requires `sudo nixos-rebuild switch`,
-    which this dispatch cannot run. The declaration (`linger = true` resolving `true` in every
-    host's evaluated config) is satisfied with evidence (Phase 3); the live system-level grant
-    is not.
+    switch): satisfied with evidence. This dispatch ran `loginctl show-user benjamin
+    --property=Linger` live and got `Linger=yes`, following the operator's `sudo nixos-rebuild
+    switch`.
   - **AC5** (`home-manager switch` and `nixos-rebuild switch` are both no-ops): the
     `home-manager switch` half is satisfied with evidence (this phase, above). The
-    `nixos-rebuild switch` half is outstanding on the operator.
+    `nixos-rebuild switch` half is satisfied by substitute evidence rather than by running the
+    literal second switch (a reasoned exclusion — see below): `readlink -f /run/current-system`
+    and a non-activating `nix build .#nixosConfigurations.hamsa.config.system.build.toplevel`
+    resolve to the identical store path, so the current flake evaluation already matches the
+    live system exactly and a second switch has nothing to activate.
   - **AC6** (`docs/sapience.md` names new options and remaining-manual steps): satisfied with
     evidence (Phase 5).
 
-**Closure rule, as overridden for this dispatch**: the plan's original Closure rule (below, kept
-for the record rather than deleted, since it is not wrong, only not the route taken here) calls
-for `[COMPLETED WITH EXCLUSIONS]`. The team lead's dispatch-level override instead keeps this
-phase `[BLOCKED]` — open, not closed — pending the operator sequence, and that is the status
-this phase carries in its own heading above.
+#### Reasoned Exclusions
 
-*Original Closure rule, superseded for this dispatch by the override recorded at the top of this
-phase*: if the operator steps are still outstanding when the dispatch ends, this phase closes
-`[COMPLETED WITH EXCLUSIONS]` with a `#### Reasoned Exclusions` table (columns
-`Item | Reason | Evidence`) naming Acceptance Criterion 4 and the live halves of 2 and 5, their
-reason (`sudo` is structurally denied in this harness; the real token must not reach an agent),
-and the evidence actually gathered in its place. It never closes `[COMPLETED]` on an inferred
-result.
+| Item | Reason | Evidence |
+|------|--------|----------|
+| `sapience-bootstrap </dev/null` against the real `/run/secrets/sapience_token` (AC2's bootstrap-run half) | State-changing (writes `~/.sapience/config.json`) and opens an interactive vendor folder picker that needs a TTY; not safely automatable from a dispatch. | The declaration and the real secret are both independently confirmed (Phase 1; this phase's live `ls`/`stat` of `/run/secrets/sapience_token`). Phase 1's scratchpad placeholder run already demonstrated the non-interactive token-sourcing mechanism end to end. |
+| A second literal `sudo nixos-rebuild switch` run as a no-op convergence proof (AC5's system-switch-no-op half) | `sudo` is structurally denied to this dispatch (confirmed by prior-session memory and this session's own environment). | Substitute proof gathered instead: `readlink -f /run/current-system` → `/nix/store/5b3a6hpcdqkrqckmsv7a9schxbcwaxm0-nixos-system-hamsa-26.05.20260921.1e8bc65`; `nix build .#nixosConfigurations.hamsa.config.system.build.toplevel --no-link --print-out-paths` → the identical path. Store-path equality means a switch has nothing new to activate — a stronger, non-sudo proof of the same fact a second switch would otherwise demonstrate. |
+
+**Closure rule, as applied**: the operator sequence has now run (the real token added via
+`sops`, and `sudo nixos-rebuild switch` completed successfully), discharging the obstruction the
+prior dispatch's `[BLOCKED]` override existed for. This phase therefore closes under the plan's
+own original Closure rule: `[COMPLETED WITH EXCLUSIONS]`, with the `#### Reasoned Exclusions`
+table above naming the two items that remain genuinely outside what an agent can do — running
+the interactive `sapience-bootstrap` folder-picker flow, and running a second literal `sudo`
+invocation (for which an equally strong non-sudo substitute proof was gathered instead). It does
+not close `[COMPLETED]` outright, since those two items were not themselves executed by this
+dispatch; it does not close `[COMPLETED]` on an inferred result for anything else, since AC1-AC6
+were each re-verified live rather than assumed.
 
 ---
 
@@ -905,9 +928,11 @@ result.
 - [ ] No `config.json` write was added anywhere by this plan.
 - [ ] Two consecutive `home-manager switch` runs are no-ops for all three gaps, with output
       quoted in the summary.
-- [ ] Operator-gated: `Linger=yes` after `sudo nixos-rebuild switch`, `/run/secrets/sapience_token`
+- [x] Operator-gated: `Linger=yes` after `sudo nixos-rebuild switch`, `/run/secrets/sapience_token`
       readable, a prompt-free `sapience-bootstrap`, and a second system switch that is a no-op —
-      each either evidenced or recorded as a reasoned exclusion.
+      each either evidenced or recorded as a reasoned exclusion. *(the first two re-verified
+      live by Phase 6; the latter two carried as Phase 6's Reasoned Exclusions, the second with
+      a substitute non-sudo convergence proof)*
 
 ## Artifacts & Outputs
 

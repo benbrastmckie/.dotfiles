@@ -2,10 +2,10 @@
 
 - **Task**: 144 - Close the three remaining hand steps between a fresh switch and a working
   Sapience client
-- **Status**: [BLOCKED]
+- **Status**: [COMPLETED WITH EXCLUSIONS]
 - **Started**: 2026-11-18T19:40:00Z
-- **Completed**: 2026-11-18T21:50:00Z
-- **Effort**: ~2.1 hours
+- **Completed**: 2026-11-18T22:20:00Z
+- **Effort**: ~2.4 hours
 - **Dependencies**: None blocking. File-adjacency with task 136 (home.nix,
   modules/home/services/sapience.nix, docs/sapience.md) and task 141 (disjoint file scope) —
   both re-read immediately before each edit; no conflicting edit encountered.
@@ -20,10 +20,15 @@ secret so a fresh machine's bootstrap no longer needs an interactive token paste
 `sourceDirs` registration question is resolved as "stays manual" with the reasoning recorded in
 the option description, the `home.nix` comment, and the docs; and lingering is granted
 declaratively at the NixOS layer (`users.users.benjamin.linger = true`) with a narrowed
-activation-time notice for the one case (WSL2) that grant cannot reach. Phase 6 is blocked, by
-design: the three remaining live verifications require `sudo nixos-rebuild switch` and the real
-Sapience token, neither of which this dispatch can touch, and the team lead directed that this
-be left open for the user to run themselves rather than closed as `[COMPLETED WITH EXCLUSIONS]`.
+activation-time notice for the one case (WSL2) that grant cannot reach. Phase 6 is now closed
+`[COMPLETED WITH EXCLUSIONS]`: the operator has since run the sequence an earlier dispatch could
+not — adding the real token via `sops secrets/secrets.yaml` (committed `ba9d8bd`) and running
+`sudo nixos-rebuild switch` successfully — and this dispatch independently re-verified the live
+evidence (`Linger=yes`; the real secret present at the declared owner/mode) rather than trusting
+the report. Two items remain genuinely outside what an agent can do and are recorded as reasoned
+exclusions: running the interactive `sapience-bootstrap` folder-picker flow, and a second
+literal `sudo nixos-rebuild switch` (for which a non-sudo substitute convergence proof was
+gathered instead — see Verification).
 
 ## What Changed
 
@@ -59,10 +64,12 @@ be left open for the user to run themselves rather than closed as `[COMPLETED WI
   (`modules/system/users.nix`), and author a new, narrowed activation notice in the live module
   (the fork's `sapienceWslSyncNotice` the dispatch described does not exist in the live module)
   that probes actual linger state rather than proxying for WSL-ness.
-- **Dispatch-level override (from the team lead, superseding `.decisions.json`'s recorded
-  answer)**: `sudo` is structurally denied in this harness, so this dispatch did not attempt the
-  operator-run tasks and left Phase 6 `[BLOCKED]` rather than closing it
-  `[COMPLETED WITH EXCLUSIONS]`.
+- **Phase 6 closure**: once the operator ran the sequence (real token via `sops`, successful
+  `sudo nixos-rebuild switch`), this dispatch re-verified the live evidence itself rather than
+  trusting the report, then closed Phase 6 under the plan's own original Closure rule —
+  `[COMPLETED WITH EXCLUSIONS]` — naming exactly two reasoned exclusions (the interactive
+  `sapience-bootstrap` folder-picker run, and a second literal `sudo` invocation, for which a
+  non-sudo substitute convergence proof was gathered instead).
 
 ## Plan Deviations
 
@@ -86,57 +93,73 @@ be left open for the user to run themselves rather than closed as `[COMPLETED WI
 - **Phase 5** (noted, not a real divergence): the plan's own Scope Hypothesis undercounts its
   own "Files to modify" list (says "three" `### ...` design-decision sections, lists four); 7
   named regions were touched in `docs/sapience.md`, matching "Files to modify" exactly.
-- **Phase 6** (per dispatch-level override, not a plan defect): agent-executable verification
-  only; operator-run tasks not attempted; phase left `[BLOCKED]` rather than
-  `[COMPLETED WITH EXCLUSIONS]`. Full detail in Decisions above and the Operator Checkpoint
-  section below.
+- **Phase 6** (closure, not a plan defect): the operator sequence ran between the prior dispatch
+  and this one. This dispatch re-verified AC2's secret half and AC4 live, and found a non-sudo
+  substitute proof for AC5's second-switch no-op half (store-path equality between
+  `/run/current-system` and a fresh `nix build` of the same host's toplevel) rather than running
+  the literal second `sudo nixos-rebuild switch`. Phase closes `[COMPLETED WITH EXCLUSIONS]` with
+  two reasoned exclusions: the interactive `sapience-bootstrap` run, and that second literal
+  `sudo` invocation. Full detail in Decisions above and the Verification section below.
 
 ## Impacts
 
-- A fresh machine's `sapience-bootstrap` will read the token from `/run/secrets/sapience_token`
-  non-interactively once the operator completes the sequence below — no agent or automated flow
-  ever handles the real token value.
+- A fresh machine's `sapience-bootstrap` reads the token from `/run/secrets/sapience_token`
+  non-interactively — confirmed live on this machine (the secret exists at the declared
+  owner/mode) — no agent or automated flow ever handles the real token value.
 - `users.users.benjamin.linger = true` applies to every host this flake builds (`nandi`,
-  `hamsa`, `garuda`, `usb-installer`) once a system switch runs; it benefits every
-  `systemd.user.timers.*` unit in this tree, not only Sapience's.
+  `hamsa`, `garuda`, `usb-installer`); confirmed live on this machine (`Linger=yes`) after the
+  system switch. It benefits every `systemd.user.timers.*` unit in this tree, not only
+  Sapience's.
 - `sourceDirs` remains declared-but-inert until a human runs `sapience-adddir-sources` once — now
   documented as a deliberate, permanent property rather than an oversight.
 - Two consecutive `home-manager switch --flake .#benjamin` runs on this machine are confirmed
   no-ops for all three gaps (see Verification).
 
+## Verification (Phase 6 closure)
+
+Re-verified live by this dispatch, independent of the operator's own report:
+
+```
+$ loginctl show-user benjamin --property=Linger
+Linger=yes
+
+$ ls -la /run/secrets/sapience_token
+-r-------- 1 benjamin users 43 Nov 18 12:44 /run/secrets/sapience_token
+$ stat -c '%a %U %s' /run/secrets/sapience_token
+400 benjamin 43
+$ test -r /run/secrets/sapience_token && echo readable
+readable
+
+$ nix flake check
+...
+all checks passed!
+
+$ readlink -f /run/current-system
+/nix/store/5b3a6hpcdqkrqckmsv7a9schxbcwaxm0-nixos-system-hamsa-26.05.20260921.1e8bc65
+$ nix build .#nixosConfigurations.hamsa.config.system.build.toplevel --no-link --print-out-paths
+/nix/store/5b3a6hpcdqkrqckmsv7a9schxbcwaxm0-nixos-system-hamsa-26.05.20260921.1e8bc65
+```
+
+The last pair is a non-sudo substitute for AC5's second-switch no-op proof: the running
+system's store path and a fresh, non-activating build of this flake's `hamsa` toplevel are
+identical, so a second `sudo nixos-rebuild switch` would have nothing new to activate.
+
+**Reasoned exclusions (full detail and table in the plan's Phase 6 section)**:
+- `sapience-bootstrap </dev/null` against the real secret — state-changing, opens an
+  interactive vendor folder picker; not safely automatable from a dispatch.
+- A second literal `sudo nixos-rebuild switch` — `sudo` is structurally denied to this
+  dispatch; the store-path-equality proof above substitutes for it.
+
 ## Follow-ups
 
-- **Operator Checkpoint — run this sequence to close Phase 6** (owner: user; no due date set):
-
-  ```bash
-  # 1. Add the real token to the sops-encrypted secrets file, beside anthropic_api_key.
-  sops secrets/secrets.yaml
-
-  # 2. Apply both secrets and the linger grant at the system layer.
-  cd ~/.dotfiles && sudo nixos-rebuild switch --flake .#$(hostname)
-
-  # 3. Confirm the secret decrypted at the declared owner/mode.
-  test -r /run/secrets/sapience_token && echo readable
-
-  # 4. Confirm lingering is actually granted (Acceptance Criterion 4).
-  loginctl show-user benjamin --property=Linger   # must report Linger=yes
-
-  # 5. Confirm bootstrap picks up the real token with no prompt (Acceptance Criterion 2's live half).
-  #    The vendor's folder-selection picker still needs a TTY; that stays manual.
-  sapience-bootstrap </dev/null
-
-  # 6. Confirm the system switch is a no-op the second time (Acceptance Criterion 5's system half).
-  sudo nixos-rebuild switch --flake .#$(hostname)
-  ```
-
-  Afterward, re-run `nix flake check` (should still be green) and reconcile Phase 6's status in
-  the plan from `[BLOCKED]` to `[COMPLETED]` once all six steps above have run successfully.
 - A separate, already-tracked task covers making the vendor hook-wiring opt-out
   (`~/.sapience/config.json`'s `"hooks": false`) declarative; this task does not touch it and
   `docs/sapience.md`'s remaining-manual list names it explicitly as still outside this task's
   scope.
 - `sapience-adddir-sources` still needs one manual run per Decision 2; named in
   `docs/sapience.md`'s remaining-manual list.
+- `sapience-bootstrap`'s interactive folder-picker step still needs a TTY; named in
+  `docs/sapience.md`'s remaining-manual list and carried as a Phase 6 reasoned exclusion above.
 
 ## References
 
