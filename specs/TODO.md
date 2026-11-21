@@ -1,17 +1,17 @@
 ---
-next_project_number: 145
+next_project_number: 146
 ---
 
 # TODO
 
 ## Task Order
 
-*Updated 2026-11-18. Generated from state.json dependency graph.*
+*Updated 2026-11-21. Generated from state.json dependency graph.*
 
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,145 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -53,7 +53,21 @@ next_project_number: 145
 41 [BLOCKED] — reenable\_pdf2docx\_nixpkgs\_fix
 42 [BLOCKED] — reenable\_jupytext\_nixpkgs\_fix
 
+### Sapience
+
+145 [NOT STARTED] — Bring this machine's Sapience client up to the repo-link...
+
 ## Tasks
+
+### 145. Sapience client payload with repo link and capture map
+- **Status**: [NOT STARTED]
+- **Task Type**: nix
+- **Topic**: sapience
+- **Dependencies**: None
+
+**Description**: Bring this machine's Sapience client up to the repo-link feature. The vendor payload installed in ~/.sapience by the home-manager module (the ten Python files; docs/sapience.md lines 14-18 and 47-59) predates it: mcp.py and sapience_cli.py contain neither project_cid nor resolve_repo_link, so no MCP write, search or hook call from this machine carries a project id even in a repo that holds .sapience/project.json. (1) Establish how the module pins the payload and why the installed copy lags the app's mvp branch (pinned source versus the vendor's daily self-update), then update it to the first released client that carries the link resolver; the release is named by the sapience-app task repo_link_release_state_and_two_account_walkthrough, and until then record the interim (a pinned build from that branch, or waiting). (2) Add the linked repositories to the capture map (capture.projects in ~/.sapience/config.json, written by this module): today only sapience-app under ~/Projects/Sapience is listed, so sf1-engine transcripts are never extracted and the prompt and tool hooks return early through folder_allowed. Whether a link file should imply capture opt-in is ruled in the nvim extension's linked-repo write policy task; implement whichever it rules. (3) Re-check that the per-project MCP registration hook still writes a correct entry after the payload update and that no machine path leaks into a committed file. (4) Correct docs/sapience.md where it states eleven tool grants (the fragment grants seven). Done when sapience_search in a linked repo on this machine sends project_cid and a session in sf1-engine is captured.
+
+---
 
 ### 139. Reduce sapience classifier cost
 - **Status**: [COMPLETED]
