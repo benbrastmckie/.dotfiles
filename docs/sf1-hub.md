@@ -234,7 +234,7 @@ the sync works rather than silently disabling itself. Were any of that path to b
 read-only store link, sync would turn itself off and `status` would say why; the guard and the
 room would still carry the rulings.
 
-## Guard network knobs, and the fail-closed stall they fixed
+## Guard network knobs, and the Transient/Suspend split that governs a route fault
 
 The guard's admission path (`admit()` in `vendor/guard/guard.py`) consults the hosted rules
 route on nearly every controlled action, bounded by three knobs in each attached checkout's own
@@ -248,10 +248,24 @@ route on nearly every controlled action, bounded by three knobs in each attached
 
 `modules/home/services/sf1-hub-ben.nix`'s `home.activation.sf1HubBenGuardConfig` is where these
 are declared. `sf1-hub-ben attach` (and the vendored `install.sh`, were it used) writes the
-installer defaults — `coalesce_s=1.0`, `net_timeout_s=2.0`, `deadline_s=8.0` — into a fresh
-`config.json`; the activation step re-converges every attached checkout's `config.json` back to
-the declared values on every `home-manager switch`, so a re-`attach` cannot silently revert
-them.
+installer defaults — `coalesce_s=300.0`, `net_timeout_s=5.0`, `deadline_s=10.0`, preserving
+`net_timeout_s`/`deadline_s`/`retry_timeouts`/`transient_cooldown_s`/`cache_grace_s` from an
+existing `config.json` on a re-attach — into a fresh `config.json`; the activation step
+re-converges every attached checkout's `config.json` back to the declared values on every
+`home-manager switch`, so a re-`attach` cannot silently revert them. These three knobs are a
+**frequency lever only**: they bound how often the guard talks to the route and how long it
+waits, but they do not decide what happens on a failure. That decision belongs to a separate
+split in the guard's own source.
+
+**These knobs are a frequency lever, not the mechanism that decides a failure's outcome.** The
+guard's `Transient`/`Suspend` exception split is what governs that: on the engine-free rules
+route, a transport fault, a 5xx, a timeout, or a `DeadlineHit` raises `Transient`, which serves
+the last cached rules revision and logs a warning to `log.jsonl` — it never writes `stopped.json`
+and never blocks the action. An HTTP 401/403, a not-a-member response, a wrong-schema reply, or a
+missing local source raises `Suspend`, which does write the sticky `stopped.json`, exactly as a
+deliberate human `guard.py stop` does. A one-time migration (`migrations/nostall-1117.json`)
+moves aside any `stopped.json` or `breaker.json` a network error caused, leaving an authority
+stop in place; it fires once per checkout, on the first run of the fixed guard.
 
 **Freshness cost, paid deliberately**: at `coalesce_s=300`, a rule accepted in the room does not
 bind on this machine until the window expires — up to 5 minutes. Once the room's rule set stops
@@ -260,17 +274,19 @@ cutting the lag to at most 1 minute at roughly 5x the admission round trips. Nix
 cannot see the room's live rule count, so this stays a deliberate manual edit plus a switch, not
 something this module infers on its own.
 
-**Why these values**: the guard's own measured admission failures are transient `TimeoutError`s
-against a 2-second socket timeout on a hosted TLS endpoint that was reachable again within
-seconds — 3 initiating failures over roughly 1720 admission round trips (about 0.17%). Because
-the guard's fail-closed marker is sticky and nothing clears it automatically, those 3 failures
-produced 38 total blocked controlled actions and killed two full agent dispatches mid-flight on
-the same day, each needing a hand-run `guard.py unstop`. `net_timeout_s=15` gives the round trip
-real headroom against that kind of blip; `coalesce_s=300` cuts how often a dispatch makes the
-round trip at all, which is the lever on failure *volume* rather than on any single timeout. The
-vendored guard's own `MIN_PULL_GAP_S = 10` floor, and its docstring's "network pulls are at least
-10 s apart" claim, are enforced only in the legacy pre-attached code path — attached mode's
-`admit()` never references it, so it is not treated as a protective floor here.
+**Measured incident history**: ten distinct suspension episodes are recorded in this machine's
+`.git/oliver-ben-guard/outbox/*.json` `what: "suspended"`/`"unstopped"` pairs between
+2026-11-15T07:04Z and 2026-11-22T17:58Z, every one a transient network or server fault against
+`app.spnc.ai` and none an authority refusal: 5 `URLError`, 3 `TimeoutError`, 1 `DeadlineHit`, 1
+HTTP 502. Each episode latched `stopped.json` until a person ran `guard.py unstop`, which is the
+`Transient`/`Suspend` split's reason for existing: `net_timeout_s=15` gives the round trip real
+headroom against a blip like this, and `coalesce_s=300` cuts how often a dispatch makes the round
+trip at all (the lever on failure *volume*), but neither knob stops a failure that does happen
+from latching a stop — only the Transient/Suspend split does that, by not suspending on a
+transport/5xx/timeout/`DeadlineHit` failure in the first place. The vendored guard's own
+`MIN_PULL_GAP_S = 10` floor, and its docstring's "network pulls are at least 10 s apart" claim,
+are enforced only in the legacy pre-attached code path — attached mode's `admit()` never
+references it, so it is not treated as a protective floor here.
 
 ### Watch timer
 
@@ -301,14 +317,19 @@ from re-notifying on every two-minute tick once it has already been reported onc
   `ExecStartPre` chmod covers it — see [Upgrading](#upgrading).
 - An attached guard with an empty ruleset enforces nothing and looks identical to a working one
   at the point of use, which is also why staying attached in both repos costs nothing in false
-  positives right now. Whether and when real rules land in the room is the one open question put
-  to Oliver separately, alongside the upstream write-up of the knobs/stall history above.
-- The sender half of the guard (`send()`, `breaker.json`) has the identical no-retry shape as the
-  admission half: one sink error, sticky refusal, no automatic recovery. It has been open on both
-  attached checkouts here for several days at a time, silently stalling the commit-event
-  reporting consented to at [Consent](#4-consent), with the stranded events queued undelivered in
-  each checkout's `outbox/` rather than lost. See [Stopping it](#stopping-it) for the reset
-  command.
+  positives right now. Whether and when real rules land in the room is one open question for
+  Oliver. The other is server-side: `app.spnc.ai`'s rules route itself returns a 5xx or times out
+  often enough to be the dominant initiating cause behind every admission episode recorded in
+  [Guard network knobs](#guard-network-knobs-and-the-transientsuspend-split-that-governs-a-route-fault)
+  above; the client-side `Transient`/`Suspend` split makes that survivable (no stop latches), but
+  does not address the route's own failure rate, which is not reachable from this machine.
+- The sender half of the guard (`send()`, `breaker.json`) shares the same `Transient`/`Suspend`
+  split as the admission half: a sink timeout, connection error, or 5xx keeps the event in the
+  outbox and the next event (or the next successful rules read) re-attempts delivery, with no
+  sticky breaker opened and nothing lost. A sink's own HTTP 400 (a real protocol refusal, not a
+  transport fault) still opens the breaker, exactly as a commit-event authority refusal should.
+  `sf1-hub-ben send --reset` remains the way to force an immediate flush of everything still
+  queued in a checkout's `outbox/` — see [Stopping it](#stopping-it) for the command.
 
 ## Stopping it
 
@@ -362,3 +383,31 @@ Keep the unit's `ExecStartPre` chmod when editing the module. `prepare()` restag
 files on every start with `shutil.copy2`, so without it the first start after a rebuild succeeds
 and every later one fails with exit 78 — which reads as a consent fault rather than a
 permissions one.
+
+**The store path moving reaches the systemd unit automatically; it does not reach a Claude Code
+hook on its own.** `claudeBin` and the unit's `ExecStart` are declared against the Nix store or
+against `/home/benjamin/.nix-profile/...`, so the unit picks up a new store path on the next
+`home-manager switch` with no further action. A per-repo Claude Code hook command is different:
+its `PreToolUse`/`PostToolUse` entries in `<repo>/.claude/settings.local.json` are literal
+strings, each resolved once at `attach` time. Writing a fresh store path into that string
+(`/nix/store/<hash>-sf1-hub-ben-.../share/sf1-hub-ben/vendor/guard/guard.py`) would need
+re-pointing on every single re-vendor, because the derivation's output hash moves on every
+content change. Both attached checkouts here instead name the generation-tracking profile path —
+`/home/benjamin/.nix-profile/bin/python3` and
+`/home/benjamin/.nix-profile/share/sf1-hub-ben/vendor/guard/guard.py` — which resolves through
+the active home-manager generation and so follows every future `home-manager switch` without
+edit. A `sf1-hub-ben attach` re-run writes a literal store path back into the hook command
+(it does not know about the profile-path convention) and would need this same correction again.
+
+**Vendor-lineage drift.** `packages/sf1-hub-ben/vendor/guard/` here and the sf1-engine
+repository's own `hub/guard/` are separate lineages: a commit to the latter does nothing on this
+machine until it is re-vendored into the former with `vendor.lock.json`'s sha256 pins updated
+(see [What is installed](#what-is-installed)), and the two can silently diverge in the meantime.
+Check the live drift with:
+
+```bash
+cmp ~/Projects/Sapience/sf1-engine/hub/guard/guard.py $(readlink -f ~/.nix-profile/share/sf1-hub-ben/vendor/guard/guard.py)
+```
+
+No output means the two are byte-identical; any `differ` line means sf1-engine's `hub/guard/`
+carries a change this machine has not yet re-vendored.
