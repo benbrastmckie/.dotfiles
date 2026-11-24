@@ -3,7 +3,7 @@
 Nothing below was applied tonight. No settings file was changed.
 
 ## 1. Get the guard onto each machine
-- Oliver: it is at /Users/oz/data/oliver-ben-guard/ already.
+- Oliver: it is at $SF1_GUARD_DIR/ already.
 - Ben: he needs a copy of guard.py, install.sh and README.md. It is stdlib Python 3 with no dependencies.
   Sending it is a send, so Oliver decides how (for example, drop it on the jam branch in the room).
 
@@ -32,7 +32,7 @@ never lands in a PR. `.claude/settings.json` works the same way, but it is a tra
 }
 ```
 Restart Claude Code in that checkout, then run `/hooks` and check the entry is listed.
-Smoke test: ask Claude to write `logos-internal` into a scratch file. It should be blocked with a KO hash. Then
+Smoke test: ask Claude to write `acmeco-internal` into a scratch file. It should be blocked with a KO hash. Then
 delete the file.
 
 ## 4. Ben's setup (Neovim + Claude)
@@ -69,20 +69,26 @@ delete the file.
 
 # Phase A (2026-11-12): attached mode, fail closed
 
-    sh install.sh <checkout> <oliver|ben> hub-rules:/Users/oz/data/oliver-ben-guard/hub-rules-oliver-ben.json attached \
-       local-events:/Users/oz/data/oliver-ben-guard/hub-events-local.json
+    sh install.sh <checkout> <oliver|ben> hub-rules:$SF1_GUARD_DIR/hub-rules-oliver-ben.json attached \
+       local-events:$SF1_GUARD_DIR/hub-events-local.json
+
+A `hub-rules:` file is read on every action (a local read costs no network); the 300 s coalescing floor applies to
+`hub-route:` only. The rules route is recognised as `/v1/projects/<slug>/rules`, with or without a trailing slash and
+under one mount prefix (`/api/v1/...`); a rules read that fails on any other shape still never stops the guard (no-stall),
+it just gets no in-action retry. The PostToolUse late re-check on a hosted route makes one conditional read when the
+cached revision is older than `post_recheck_s` (30 s floor).
 
 Both sources above are LOCAL stand-ins until APP ships GET /v1/projects/<slug>/rules and POST /v1/rooms/<id>/events
-(spec: /Users/oz/data/sf1-reports/sf1-hub-phase-a-app-routes-spec-1112.md). Then switch to
+(spec: $SF1_REPORTS_DIR/sf1-hub-phase-a-app-routes-spec-1112.md). Then switch to
 `hub-route:<url>` and `hosted-events:<url>` with `key_file` in config.json.
 
 `.claude/settings.local.json` (restart Claude Code afterwards):
 - PreToolUse, matcher `Edit|Write|MultiEdit|NotebookEdit|Bash`:
-  `/opt/homebrew/bin/python3 /Users/oz/data/oliver-ben-guard/guard.py hook --attached || exit 2`
-- PostToolUse, same matcher: `/opt/homebrew/bin/python3 /Users/oz/data/oliver-ben-guard/guard.py posthook --attached`
+  `/opt/homebrew/bin/python3 $SF1_GUARD_DIR/guard.py hook --attached || exit 2`
+- PostToolUse, same matcher: `/opt/homebrew/bin/python3 $SF1_GUARD_DIR/guard.py posthook --attached`
 
 Why `|| exit 2`: Claude Code 2.1.322 runs the tool when a hook exits 1 or times out (tests/g1_results.json, G1a, G1c).
 
 Human-only commands (an agent's attempt is blocked while suspended, and always once `RULE guard-protect` is ruled):
-`guard.py unstop` (after a suspension), `guard.py detach`, `guard.py send --reset` (after the sender breaker trips).
+`guard.py stop [why]` / `guard.py unstop` (a person pauses or resumes the guard; network trouble never stops it since 2026-11-17), `guard.py detach`, `guard.py send --reset` (after the sender breaker trips).
 Tests: `python3 tests/run_hub_tests.py` (39 rows), `python3 tests/g1_claude_hooks.py` (6 headless runs, ~$0.02).

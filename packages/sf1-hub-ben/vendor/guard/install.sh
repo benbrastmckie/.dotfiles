@@ -24,8 +24,21 @@ if [ "$MODE" = attached ]; then
   put_hook pre-commit 'precommit --attached'
   put_hook post-commit 'postcommit'
   put_hook post-rewrite 'postrewrite "$1"'
-  printf '{"me": "%s", "mode": "attached", "source": "%s", "sink": "%s", "coalesce_s": 1.0, "net_timeout_s": 2.0, "deadline_s": 8.0, "require_accept": true, "since_ts": %s}\n' \
-    "$ME" "$SRC" "$SINK" "$(date +%s)" > "$GD/oliver-ben-guard/config.json"
+  # Re-attach keeps the person's own tuning (net_timeout_s, deadline_s, transient knobs) instead of resetting it
+  # (Ben, room #42, 11-13). Everything else is rewritten from the arguments.
+  "$PY" - "$GD/oliver-ben-guard/config.json" "$ME" "$SRC" "$SINK" "$(date +%s)" <<'PYEOF'
+import json, os, sys
+path, me, src, sink, since = sys.argv[1:6]
+keep = ('net_timeout_s', 'deadline_s', 'retry_timeouts', 'transient_cooldown_s', 'cache_grace_s')
+try: old = json.load(open(path))
+except Exception: old = {}
+c = {"me": me, "mode": "attached", "source": src, "sink": sink, "coalesce_s": 300.0, "net_timeout_s": 5.0,
+     "deadline_s": 10.0, "require_accept": True, "since_ts": int(since)}
+for k in keep:
+    if k in old: c[k] = old[k]
+tmp = path + '.tmp'
+open(tmp, 'w').write(json.dumps(c) + '\n'); os.replace(tmp, path)
+PYEOF
   echo "installed (attached): pre-commit, post-commit, post-rewrite -> $HOOKS ; config -> $GD/oliver-ben-guard/config.json"
   echo "Claude Code: $CO/.claude/settings.local.json needs PreToolUse and PostToolUse entries (INSTALL.md, phase A):"
   echo "  PreToolUse  command: \"$PY\" \"$GUARD\" hook --attached || exit 2"

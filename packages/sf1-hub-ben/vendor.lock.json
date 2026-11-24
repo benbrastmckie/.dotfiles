@@ -1,15 +1,15 @@
 {
  "files": {
-  "guard/INSTALL.md": "cf0863232ac698ab8f6b1350c5a865e14befac46074156ee8aa9875381d0e129",
-  "guard/README.md": "b82708db6168e3804c8eafc372893ae71d52e209d0b45be4f725e422341e2214",
-  "guard/guard.py": "994047d36aee9ac69c67ab91e2daf5f28754c598eb2166d56f3a9b764a492982",
-  "guard/install.sh": "b1a38583bc774017968ac2b1b4ba9eb5c5e38141832dbcb3a806ba8b9e0bf7ec",
+  "guard/INSTALL.md": "e26eb003dba73b2c8c52f62be52ccd3efbcb69afdde2dcfb3f905a9c1bed8e97",
+  "guard/README.md": "5f7f69b3c22a9e3d1f1c9825106ab054f518e4e213d7fa97152d1d0bbae3608e",
+  "guard/guard.py": "c34c386521c232e05a1db71386d5d481eab00e742aebbbd917ceeb450fbcef8e",
+  "guard/install.sh": "764ebc978282ca219a15f9307fc2e90af146a96d28f17bd2ebea072b14a31656",
   "hub-runner/deny_hook.py": "2a4923fdb95188d183bf0d90bcde4d3c0937c95f49372d2c1f44834a564dc20e",
   "hub-runner/room_member.py": "d9109a9461ccd4a361bb40b731c1042b87a35841c31ed6da328638cddc07f9be",
   "hub-runner/runner.py": "e83f3375690d4d5dd24a05f360e4516e0b00014fe3c177692baab5e84a49d31f"
  },
  "sources": {
-  "guard": "/Users/oz/data/oliver-ben-guard (git c813151)",
+  "guard": "sf1-engine hub/guard/ (git 2eb397d1bdad7bdba05450297f5788aca925a2a8, PR #29 merged 2026-11-21T08:02:38Z); guard.py, install.sh, INSTALL.md, README.md byte-identical to that commit's tree",
   "hub-runner": "/Users/oz/coretx-worktrees/sf1-hub-runner-oliver-1112 (git bb49e68c2; runner.py, deny_hook.py from sf1-v2/hub-runner, room_member.py from sf1-v2/room-member); byte-identical to Oliver installed ~/.sf1/hub/runner/bin"
  }
 }

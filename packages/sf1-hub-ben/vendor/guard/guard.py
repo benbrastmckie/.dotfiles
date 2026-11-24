@@ -10,7 +10,9 @@ A deterministic action-boundary check. Rules are KOs (type constraint or decisio
   guard.py card <id>     set the current task card (a change forces a rule refresh on the next action).
   guard.py status        print the rules in force, the superseded ones, the cache age and the revision.
   guard.py refresh       force one pull now (respects the 10 s spacing and the stop marker).
-  guard.py unstop        clear the stop marker after a 503/504/timeout (a human decides when to read again).
+  guard.py stop [why]    a person stops the guard on purpose (sticky until `unstop`). Attached mode: controlled actions
+                         block. Legacy mode: hosted rule reads pause and the last cache keeps enforcing.
+  guard.py unstop        clear a stop marker (a human decides when to read again).
 
 Phase A (2026-11-12, attached mode; see the hub section below):
   guard.py hook --attached       PreToolUse, fail closed        guard.py posthook --attached   PostToolUse late re-check
@@ -37,9 +39,10 @@ Sources:
   hosted-rules:<url>               PROPOSED app route returning {"kos": [...]} for one project (not built yet)
   hosted-clusters:oliver-ben       GET <host>/clusters.json, the project's cluster nodes (owner token only; timed out
                                    at 20 s on 2026-11-11, so unverified)
-Hosted reads use ~/.sapience/config.json host + token (never printed). On the first 503/504/429/timeout/connection
-error the guard writes stopped.json and makes no further network read until `guard.py unstop`; the last good cache
-keeps enforcing. Network pulls are at least 10 s apart.
+Hosted reads use ~/.sapience/config.json host + token (never printed). No-stall rule (2026-11-17, Ben's two stalls):
+a network failure (timeout, connection error, any HTTP status but 401/403, non-JSON) NEVER writes stopped.json; the last good cache keeps enforcing,
+a warning is logged, and the next hosted pull waits at least NOSTALL_MIN_FETCH_GAP_S (300 s). Only a person stops the
+guard (`guard.py stop`). A stop marker left by an older guard for a network error is cleared once (migration).
 """
 import hashlib
 import json
@@ -53,6 +56,18 @@ from pathlib import Path
 
 RULE_TYPES = ('constraint', 'decision')
 MIN_PULL_GAP_S = 10
+# ---- no-stall rule (2026-11-17). Ben's log 11-17: ~1,750 rules round trips, 35 failures (24 TimeoutError, 11 URLError),
+# each failure a sticky stopped.json, while the rules doc held zero KOs. A network failure now falls back to the last
+# cached rules and logs a warning; it never writes stopped.json. Pulls are coalesced to one per 300 s (ETag/304).
+NOSTALL_MIN_FETCH_GAP_S = 300.0
+NOSTALL_NET_TIMEOUT_S = 5.0
+LEGACY_STALL = False            # tests only: True restores the pre-11-17 legacy behaviour (negative control)
+# what an automatic (network) stop looks like, for the one-time migration; a stop written by `guard.py stop` has
+# by == "human" and is never cleared automatically, whatever its text says
+# 4xx other than 401/403 counts too (review #29 finding 6: a 404 stop could never be cleared); 401/403 are authority
+NETWORK_STOP_RE = re.compile(r'time[ds]?[ -]?out|timeout|unreachable|URLError|HTTP (?:40[0245-9]|4[1-9]\d|5\d\d)|Connection|'
+                             r'RemoteDisconnected|IncompleteRead|BrokenPipe|non-JSON|did not answer|socket|DeadlineHit',
+                             re.I)
 UA = 'Mozilla/5.0 (Macintosh) oliver-ben-guard/0.1'
 EDIT_TOOLS = ('Edit', 'Write', 'MultiEdit', 'NotebookEdit')
 
@@ -238,9 +253,9 @@ def fetch_source(src):
         url = arg if kind == 'hosted-rules' else c['host'].rstrip('/') + '/clusters.json'
         req = _URLREQ.Request(url, headers={'Authorization': 'Bearer ' + c['token'], 'User-Agent': UA})
         try:
-            body = _URLREQ.urlopen(req, timeout=20).read()
+            body = _URLREQ.urlopen(req, timeout=NOSTALL_NET_TIMEOUT_S).read()
         except urllib.error.HTTPError as e:
-            if e.code in (429, 502, 503, 504): raise SourceStop('HTTP %d' % e.code)
+            if e.code == 429 or e.code >= 500: raise SourceStop('HTTP %d' % e.code)
             raise
         except Exception as e:                           # timeout, refused, reset, DNS
             raise SourceStop(type(e).__name__)
@@ -272,22 +287,43 @@ def get_rules(root, force=False):
     meta = {'card': card, 'pulled': False, 'why': why, 'warn': ''}
     if why:
         hosted = cfg['source'].startswith('hosted')
+        mig = None
+        if hosted and not LEGACY_STALL:
+            # review #29 finding 9: pass root/cfg so a cleared stop is reported. A legacy config has no event sink, so
+            # the clearing is surfaced in this read's warning (and log.jsonl) instead of an outbox nobody drains.
+            mig = migrate_network_stop(sd, root, cfg if cfg.get('sink') else None)
         stopped = (sd / 'stopped.json').exists()
         too_soon = hosted and cache and now - cache.get('fetched_at', 0) < MIN_PULL_GAP_S
+        if hosted and not LEGACY_STALL and not too_soon:      # a failed pull also waits the full gap (no hammering)
+            try: last_try = float(json.loads((sd / 'pull_state.json').read_text()).get('failed_at', 0))
+            except Exception: last_try = 0.0
+            # review #29 finding 8: carry `force` itself (why == 'no cache' wins the chain above even when forced)
+            if now - last_try < NOSTALL_MIN_FETCH_GAP_S and not force: too_soon = True
         if not cfg['source']: meta['warn'] = 'no rule source configured'
-        elif hosted and stopped: meta['warn'] = 'network reads stopped after a failure (see stopped.json; `guard.py unstop`)'
-        elif too_soon: meta['warn'] = 'pull skipped: last pull < %d s ago' % MIN_PULL_GAP_S
+        elif hosted and stopped: meta['warn'] = 'network reads stopped by a person (see stopped.json; `guard.py unstop`)'
+        elif too_soon: meta['warn'] = 'pull skipped: last pull or failed pull too recent'
         else:
             try:
                 kos = fetch_source(cfg['source'])
                 cache = {'fetched_at': now, 'card': card, 'source': cfg['source'], 'kos': kos}
                 atomic_write(sd / 'cache.json', json.dumps(cache))
                 meta['pulled'] = True
+                try: (sd / 'pull_state.json').unlink()
+                except FileNotFoundError: pass
             except SourceStop as e:
-                atomic_write(sd / 'stopped.json', json.dumps({'at': now, 'error': str(e), 'source': cfg['source']}))
-                meta['warn'] = 'hosted read failed (%s): STOPPED, no retry; using last cache' % e
+                if LEGACY_STALL:                                  # pre-11-17 behaviour, negative control only
+                    atomic_write(sd / 'stopped.json', json.dumps({'at': now, 'error': str(e), 'source': cfg['source']}))
+                    meta['warn'] = 'hosted read failed (%s): STOPPED, no retry; using last cache' % e
+                else:
+                    try: atomic_write(sd / 'pull_state.json', json.dumps({'failed_at': now, 'error': str(e)[:200]}))
+                    except OSError: pass
+                    meta['warn'] = 'hosted read failed (%s): using last cache; next try in %d s, nothing stopped' % (
+                        e, NOSTALL_MIN_FETCH_GAP_S)
             except Exception as e:
                 meta['warn'] = 'rule source error (%s): using last cache' % str(e)[:120]
+        if mig and 'cleared' in mig:
+            meta['migration'] = mig
+            meta['warn'] = ('auto-cleared an old network stop: %s' % mig[:160]) + ('; ' + meta['warn'] if meta['warn'] else '')
     kos = (cache or {}).get('kos')
     if kos is None:
         meta['no_rules'] = True; kos = []
@@ -414,12 +450,16 @@ def evaluate_tool_legacy(payload):
 
 
 # ==================================================================================================================
-# SF-1 shared hub, phase A (2026-11-12). Attached mode. Prereg: /Users/oz/data/sf1-reports/sf1-hub-phase-a-prereg-1112.md
+# SF-1 shared hub, phase A (2026-11-12). Attached mode. Prereg: $SF1_REPORTS_DIR/sf1-hub-phase-a-prereg-1112.md
 #
 # Attached mode is selected by config.json {"mode": "attached"} AND the hook flag --attached. In attached mode:
-#  - every CONTROLLED action is admitted against the current rules revision (coalescing window coalesce_s, default 1 s);
-#  - unknown authority (source missing / unreadable / wrong schema / not a member / timeout / 401 / 403 / 429 / 5xx)
-#    SUSPENDS: block, stop marker, one "suspended" event, no retry on a timer; a human runs `guard.py unstop`;
+#  - every CONTROLLED action is admitted against the cached rules revision; the rules route is read at most once per
+#    coalesce_s (>= 300 s outside the test dir) with If-None-Match, so a 304 costs nothing;
+#  - NO-STALL (2026-11-17): a NETWORK failure on the engine-free rules route (timeout, connection error, 429, 5xx,
+#    non-JSON) falls back to the last cached rules (none cached yet = nothing to enforce) and logs a warning. It never
+#    blocks, never writes stopped.json, never opens the sender breaker. An empty rules doc means no checks at all;
+#  - unknown authority (source missing / unreadable / wrong schema / not a member / 401 / 403) still SUSPENDS: block,
+#    stop marker, one "suspended" event, no retry on a timer; a human runs `guard.py unstop`. So does `guard.py stop`;
 #  - a guard crash or the internal deadline blocks (the settings command adds `|| exit 2`), never admits;
 #  - read-only Bash never needs admission and is never slowed by the network;
 #  - blocks come only from RULE lines in the rules source (plus the fail-closed cases above). Self-protection and the
@@ -455,6 +495,52 @@ def iso(ts=None):
 
 
 class Suspend(Exception): pass
+
+
+class Transient(Suspend):
+    """A failure that clears by itself (timeout, connection error, HTTP 429/502/503/504). Still blocks the action
+    (fail closed) because it subclasses Suspend, but never writes stopped.json or opens the sender breaker
+    (Ben, room #42, 11-13; prereg-guard-transient-1114). timeout=True marks the timeout class (client timeout, 503,
+    504): ONE recheck >= 10 s later, then a sticky stop (Oliver's ruling 11-14, amendment A1)."""
+    def __init__(self, msg='', timeout=False):
+        super().__init__(msg); self.timeout = bool(timeout)
+
+
+# Oliver's ruling 2026-11-14 (amendment A1): only these two routes never touch a user's Sapience engine, so only
+# they get the one-recheck-after-10-s exception. Every other route keeps stop-on-first-timeout.
+# review #29 finding 5: one optional mount prefix segment (/api/v1/...) and a trailing slash are the same route
+ENGINE_FREE_ROUTES = (('GET', re.compile(r'^(?:/[A-Za-z0-9_-]+)?/v1/projects/[A-Za-z0-9_-]+/rules/?$')),
+                      ('POST', re.compile(r'^(?:/[A-Za-z0-9_-]+)?/v1/rooms/[A-Za-z0-9_-]+/events/?$')))
+MIN_COOLDOWN_S = 10.0
+# review #29 finding 3: the PostToolUse late re-check on a hosted route makes one conditional read (If-None-Match, a 304
+# costs nothing) when the cached revision is older than this; a failed read still waits the full coalesce_s
+POST_RECHECK_S = 30.0
+
+
+def route_engine_free(url, method, sd=None):
+    """True only for the two allowlisted engine-free routes. Anything else (or an unparseable URL) is store-touching."""
+    if sd is not None and 'route-allow-all' in knobs(sd): return True       # NC knob, test dir only
+    try:
+        from urllib.parse import urlsplit
+        u = urlsplit(url)
+        if u.scheme not in ('http', 'https') or not u.netloc: return False
+        path = u.path
+    except Exception: return False
+    if '..' in path or '//' in path: return False
+    return any(m == method and rx.match(path) for m, rx in ENGINE_FREE_ROUTES)
+
+
+TRANSIENT_HTTP = (429, 502, 503, 504)
+RETRY_HTTP = (429, 502)                  # retried in the same action; 503/504 and timeouts are not (stop-on-timeout rule)
+TRANSIENT_ERR_NAMES = ('TimeoutError', 'timeout', 'URLError', 'ConnectionError', 'ConnectionRefusedError',
+                       'ConnectionResetError', 'RemoteDisconnected', 'IncompleteRead', 'BrokenPipeError')
+
+
+def is_timeout_exc(e):
+    if type(e).__name__ == 'DeadlineHit': return True        # a slow-drip reply that ran out the deadline (review F3)
+    r = getattr(e, 'reason', e)
+    return isinstance(e, (TimeoutError, socket.timeout)) or isinstance(r, (TimeoutError, socket.timeout)) or \
+        'timed out' in str(r).lower()
 class DeadlineHit(Exception): pass
 
 
@@ -507,8 +593,9 @@ def knobs(sd):
 def hub_cfg(root):
     cfg, sd = peek_cfg(root)
     if cfg is None: return None, sd
-    c = {'me': '', 'source': '', 'sink': '', 'mode': 'legacy', 'coalesce_s': 1.0, 'net_timeout_s': 2.0,
-         'deadline_s': 8.0, 'members': None, 'require_accept': True, 'refs': [], 'since_ts': 0, 'key_file': ''}
+    c = {'me': '', 'source': '', 'sink': '', 'mode': 'legacy', 'coalesce_s': NOSTALL_MIN_FETCH_GAP_S,
+         'net_timeout_s': NOSTALL_NET_TIMEOUT_S, 'deadline_s': 10.0, 'members': None, 'require_accept': True, 'refs': [], 'since_ts': 0, 'key_file': '',
+         'retry_timeouts': False, 'transient_cooldown_s': 10.0, 'cache_grace_s': 0.0}
     c.update(cfg)
     if in_test(sd):                                   # env overrides only inside the test dir (agents cannot use them)
         for k, e in (('me', 'GUARD_ME'), ('source', 'GUARD_SOURCE'), ('sink', 'GUARD_SINK')):
@@ -517,6 +604,20 @@ def hub_cfg(root):
         if os.environ.get('GUARD_DEADLINE_S'): c['deadline_s'] = float(os.environ['GUARD_DEADLINE_S'])
     c['coalesce_s'] = float(c['coalesce_s']); c['net_timeout_s'] = float(c['net_timeout_s'])
     c['deadline_s'] = float(c['deadline_s'])
+    c['transient_cooldown_s'] = float(c['transient_cooldown_s']); c['cache_grace_s'] = float(c['cache_grace_s'])
+    c['retry_timeouts'] = False                       # withdrawn by amendment A1: no same-action timeout retry, ever
+    if not in_test(sd): c['transient_cooldown_s'] = max(MIN_COOLDOWN_S, c['transient_cooldown_s'])   # A1.2 floor
+    c['post_recheck_s'] = float(c.get('post_recheck_s', POST_RECHECK_S))
+    if not in_test(sd):
+        if str(c['source']).startswith('hub-route:'):  # no-stall floors (11-17): installs from before carry 1 s / 2 s
+            c['coalesce_s'] = max(NOSTALL_MIN_FETCH_GAP_S, c['coalesce_s'])
+            c['net_timeout_s'] = max(NOSTALL_NET_TIMEOUT_S, c['net_timeout_s'])
+            c['deadline_s'] = max(c['deadline_s'], c['net_timeout_s'] + 3.0)    # one 5 s read must fit inside the hook deadline
+            c['post_recheck_s'] = max(POST_RECHECK_S, c['post_recheck_s'])
+        elif str(c['source']).startswith('hub-rules:'):
+            # review #29 finding 4: a local file costs no network and cannot hammer anything, so it is read on every
+            # action (a newly accepted rule binds on the next action, not up to 300 s later)
+            c['coalesce_s'] = 0.0
     return c, sd
 
 
@@ -534,8 +635,11 @@ def hub_token(cfg):
     return json.loads((Path.home() / '.sapience' / 'config.json').read_text())['token']
 
 
-def hub_fetch(cfg, cache):
-    """-> (doc or None if 304, etag). Raises Suspend on any unknown-authority condition."""
+def hub_fetch(cfg, cache, sd=None):
+    """-> (doc or None if 304, etag). Raises Suspend on any unknown-authority condition, Transient on a failure that
+    clears by itself. Engine-free route only: connection errors, 429 and 502 are retried up to twice inside
+    deadline_s; timeouts, 503 and 504 are never retried in the same action (Transient(timeout=True), one recheck by a
+    later action, amendment A1). A store-touching route keeps the pre-fix rule: any failure is a sticky Suspend."""
     src = cfg['source']
     if src.startswith('hub-rules:'):
         p = Path(src.split(':', 1)[1]).expanduser()
@@ -549,17 +653,44 @@ def hub_fetch(cfg, cache):
         except Exception: raise Suspend('no hub key available')
         h = {'Authorization': 'Bearer ' + tok, 'User-Agent': UA, 'Accept': 'application/json'}
         if cache and cache.get('etag'): h['If-None-Match'] = cache['etag']
-        try:
-            resp = _URLREQ.urlopen(_URLREQ.Request(url, headers=h), timeout=cfg['net_timeout_s'])
-            body, etag = resp.read(), resp.headers.get('ETag')
-        except urllib.error.HTTPError as e:
-            if e.code == 304: return None, cache.get('etag') if cache else None
-            if e.code in (401, 403): raise Suspend('rules route refused this key (HTTP %d): not a member?' % e.code)
-            raise Suspend('rules route HTTP %d' % e.code)
-        except Exception as e:
-            raise Suspend('rules route unreachable (%s)' % type(e).__name__)
+        k = knobs(sd) if sd is not None else set()
+        free = route_engine_free(url, 'GET', sd)
+        t_end = time.time() + cfg['deadline_s']
+        waits = [0.25, 0.5]
+        while True:
+            retry = False
+            try:
+                resp = _URLREQ.urlopen(_URLREQ.Request(url, headers=h), timeout=cfg['net_timeout_s'])
+                body, etag = resp.read(), resp.headers.get('ETag')
+                break
+            except urllib.error.HTTPError as e:
+                if e.code == 304: return None, cache.get('etag') if cache else None
+                if e.code in (401, 403): raise Suspend('rules route refused this key (HTTP %d): not a member?' % e.code)
+                # no-stall: any other status (404 included, review #29 finding 6) falls back to the cache; only 401/403
+                # say anything about authority
+                if e.code not in TRANSIENT_HTTP and not nostall(sd):
+                    raise Suspend('rules route HTTP %d' % e.code)
+                err = Transient('rules route HTTP %d' % e.code, timeout=e.code in (503, 504))
+                retry = e.code in RETRY_HTTP
+            except Exception as e:
+                to = is_timeout_exc(e)
+                err = Transient('rules route %s (%s)' % ('timed out' if to else 'unreachable', type(e).__name__), timeout=to)
+                retry = not to
+            if cfg.get('_recheck'): retry = False
+            if not free:                              # store-touching route: stop on the first failure, no recheck
+                if nostall(sd):                       # review #29 finding 5: no-stall covers every shape of the rules
+                    # source; one request per coalesce_s window and no in-action retry, so it cannot hammer an engine
+                    raise Transient('%s on a store-touching route (no retry)' % err, timeout=err.timeout)
+                raise Suspend('%s on a store-touching route (stop on first failure)' % err)
+            if 'sticky-transient' in k: raise Suspend(str(err))
+            if not retry or 'no-retry' in k or not waits: raise err
+            w = waits.pop(0)
+            if time.time() + w + cfg['net_timeout_s'] > t_end: raise err
+            time.sleep(w)
         try: d = json.loads(body)
-        except Exception: raise Suspend('rules route returned non-JSON')
+        except Exception:
+            if nostall(sd): raise Transient('rules route returned non-JSON (a proxy or error page?)')
+            raise Suspend('rules route returned non-JSON')
         return d, etag
     raise Suspend('attached mode needs a hub-rules: or hub-route: source (got %r)' % src[:40])
 
@@ -578,8 +709,141 @@ def suspend(root, sd, cfg, reason):
         enqueue(root, sd, cfg, guard_event(root, cfg, sd, 'suspended', reason=reason))
 
 
-def admit(root, sd, cfg):
-    """-> (cache, how). cache = {checked_at, etag, revision, doc}. Raises Suspend."""
+def transient_note(sd, reason):
+    """Record a transient failure (small atomic write; never stopped.json). Returns the record."""
+    try: prev = json.loads((sd / 'transient.json').read_text())
+    except Exception: prev = {}
+    rec = {'at': time.time(), 'error': str(reason)[:200], 'n': int(prev.get('n', 0)) + 1,
+           'timeout': bool(getattr(reason, 'timeout', False)) or bool(prev.get('timeout'))}   # sticky until a success (review F1)
+    try: atomic_write(sd / 'transient.json', json.dumps(rec))
+    except OSError: pass
+    return rec, prev
+
+
+def transient_recent(sd, cfg):
+    try: t = json.loads((sd / 'transient.json').read_text())
+    except Exception: return None
+    if time.time() - float(t.get('at', 0)) < cfg.get('transient_cooldown_s', 10.0): return t
+    return None
+
+
+def nostall(sd):
+    """The 11-17 no-stall rule is on unless the test-dir-only knob 'stall' restores the old behaviour (negative control)."""
+    return sd is None or 'stall' not in knobs(sd)
+
+
+def admit(root, sd, cfg, force=False, window=None):
+    """Serialized across processes (review F2: parallel PreToolUse hooks must not each make 'the one recheck').
+    window: no-stall only, a shorter staleness window for a successful cache (the PostToolUse late re-check)."""
+    fn = (lambda: _admit_nostall(root, sd, cfg, force, window)) if nostall(sd) else \
+        (lambda: _admit(root, sd, dict(cfg, coalesce_s=0) if force else cfg))
+    if 'no-admit-lock' in knobs(sd): return fn()
+    with open(sd / 'admit.lock', 'a') as lk:
+        fcntl.flock(lk, fcntl.LOCK_EX)                         # the hook deadline (SIGALRM) still bounds the wait
+        return fn()
+
+
+NO_RULES = {'revision': None, 'etag': None, 'doc': {'kos': []}, 'no_rules': True}
+MIGRATION_ID = 'nostall-1117'
+
+
+def migrate_network_stop(sd, root=None, cfg=None):
+    """One-time (marker migrations/nostall-1117.json): an older guard wrote a sticky stopped.json on a network error
+    (and the A1 sender a sticky breaker.json). Move such a marker aside (kept, lossless) so work resumes. A stop written
+    by a person (`guard.py stop`, by == "human") or for an authority reason (not a member, 401/403, missing source) is
+    left in place. Returns a short result string, or None when the migration already ran."""
+    if 'no-migrate' in knobs(sd): return None
+    mk = sd / 'migrations' / ('%s.json' % MIGRATION_ID)
+    if mk.exists(): return None
+    now = time.time(); results = []
+    for name in ('stopped.json', 'breaker.json'):
+        f = sd / name
+        if not f.exists(): continue
+        try: j = json.loads(f.read_text())
+        except Exception: j = {}
+        err = str(j.get('error', ''))
+        if j.get('by') != 'human' and NETWORK_STOP_RE.search(err):
+            keep = sd / ('%s.cleared-%s-%d' % (name, MIGRATION_ID, int(now)))
+            try: os.replace(f, keep)
+            except OSError as e: results.append('%s: could not move (%s)' % (name, type(e).__name__)); continue
+            results.append('%s cleared (network error: %s), kept as %s' % (name, err[:120], keep.name))
+        else:
+            results.append('%s kept (%s)' % (name, 'set by a person' if j.get('by') == 'human' else 'not a network error'))
+    res = '; '.join(results) or 'nothing to clear'
+    try:
+        mk.parent.mkdir(parents=True, exist_ok=True)
+        atomic_write(mk, json.dumps({'at': now, 'migration': MIGRATION_ID, 'result': res}))
+    except OSError: pass
+    log(sd, {'ts': now, 'schema': 'sf1-guard-decision/1', 'tool': 'migration', 'migration': MIGRATION_ID, 'result': res})
+    if root and cfg and 'cleared' in res and 'stopped.json cleared' in res:
+        try: enqueue(root, sd, cfg, guard_event(root, cfg, sd, 'unstopped', reason='auto: %s' % res))
+        except Exception: pass
+    return res
+
+
+def _fetch_state(sd):
+    try: return json.loads((sd / 'fetch.json').read_text())
+    except Exception: return {}
+
+
+def _admit_nostall(root, sd, cfg, force=False, window=None):
+    """-> (cache, how). Never raises on a network failure: falls back to the last cached rules (NO_RULES if none) and
+    logs a warning. Raises Suspend only for a stop a person set, or an authority failure (not a member, 401/403,
+    wrong schema, missing local source)."""
+    migrate_network_stop(sd, root, cfg)
+    k = knobs(sd)
+    stop = sd / 'stopped.json'
+    try: cache = json.loads((sd / 'hubcache.json').read_text())
+    except Exception: cache = None
+    if stop.exists() and 'suspend' not in k:
+        try: why = json.loads(stop.read_text()).get('error', '')
+        except Exception: why = 'stop marker'
+        raise Suspend('stopped earlier: %s' % why)
+    now = time.time()
+    if cache and 'revcheck' in k: return cache, 'cache(BROKEN revcheck)'
+    fs = _fetch_state(sd)
+    last = max(float((cache or {}).get('checked_at', 0) or 0), float(fs.get('attempted_at', 0) or 0))
+    win = cfg['coalesce_s'] if window is None else min(float(window), cfg['coalesce_s'])
+    if fs.get('error'): win = cfg['coalesce_s']        # a failed read waits the full gap
+    if not force and 'no-coalesce' not in k and now - last < win:
+        if cache: return cache, 'coalesced'
+        return NO_RULES, 'no rules (last read failed %ds ago: %s)' % (int(now - last), str(fs.get('error', ''))[:80])
+    try: atomic_write(sd / 'fetch.json', json.dumps({'attempted_at': now, 'n_fail': int(fs.get('n_fail', 0))}))
+    except OSError: pass
+    try:
+        d, etag = hub_fetch(dict(cfg, _recheck=True), cache, sd)         # exactly one request, no in-action retry
+        if d is None:
+            if not cache: raise Transient('rules route sent 304 with no cached revision')
+            cache['checked_at'] = now; atomic_write(sd / 'hubcache.json', json.dumps(cache))
+            try: atomic_write(sd / 'fetch.json', json.dumps({'attempted_at': now, 'ok': True}))
+            except OSError: pass
+            if (sd / 'outbox').exists() and any((sd / 'outbox').glob('*.json')): spawn_sender(root, sd)   # flush later
+            return cache, '304'
+        validate_doc(d, cfg)
+    except Transient as e:
+        n = int(fs.get('n_fail', 0)) + 1
+        try: atomic_write(sd / 'fetch.json', json.dumps({'attempted_at': now, 'error': str(e)[:200], 'n_fail': n}))
+        except OSError: pass
+        log(sd, {'ts': now, 'schema': 'sf1-guard-decision/1', 'tool': 'rules-fetch', 'warn': 'rules fetch failed: %s' % e,
+                 'fallback': 'cached r%s' % cache.get('revision') if cache else 'no rules cached', 'n_fail': n,
+                 'next_try_s': cfg['coalesce_s']})
+        if cache: return cache, 'cache (rules read failed: %s)' % str(e)[:80]
+        return NO_RULES, 'no rules (rules read failed: %s)' % str(e)[:80]
+    except Suspend as e:
+        if 'suspend' in k: return (cache or NO_RULES), 'BROKEN suspend'
+        suspend(root, sd, cfg, str(e)); raise
+    try: atomic_write(sd / 'fetch.json', json.dumps({'attempted_at': now, 'ok': True}))
+    except OSError: pass
+    old_rev = cache.get('revision') if cache else None
+    cache = {'checked_at': now, 'etag': etag, 'revision': d['revision'], 'doc': d}
+    atomic_write(sd / 'hubcache.json', json.dumps(cache))
+    if (sd / 'outbox').exists() and any((sd / 'outbox').glob('*.json')): spawn_sender(root, sd)        # flush later
+    return cache, ('pulled' if old_rev != d['revision'] else 'checked')
+
+
+def _admit(root, sd, cfg):
+    """-> (cache, how). cache = {checked_at, etag, revision, doc}. Raises Suspend (sticky: stopped.json) on an
+    authority failure, Transient (this action only) on a failure that clears by itself."""
     k = knobs(sd)
     stop = sd / 'stopped.json'
     try: cache = json.loads((sd / 'hubcache.json').read_text())
@@ -591,15 +855,48 @@ def admit(root, sd, cfg):
     now = time.time()
     if cache and ('revcheck' in k or now - cache.get('checked_at', 0) < cfg['coalesce_s']):
         return cache, 'coalesced' if 'revcheck' not in k else 'cache(BROKEN revcheck)'
+    grace = cfg.get('cache_grace_s', 0.0)
+    def graced(why):
+        if grace > 0 and cache and now - cache.get('checked_at', 0) < grace:
+            return cache, 'cache-grace (%s)' % why
+        return None
+    tr = transient_recent(sd, cfg)
+    if tr and 'no-cooldown' not in k:                 # cool-down: no network call while the route is struggling
+        g = graced('cool-down')
+        if g: return g
+        raise Transient('rule source did not answer %ds ago (%s); cool-down %ds' % (
+            int(now - tr['at']), tr.get('error', ''), int(cfg.get('transient_cooldown_s', 10))))
     try:
-        d, etag = hub_fetch(cfg, cache)
+        try: _ep = json.loads((sd / 'transient.json').read_text())
+        except Exception: _ep = {}
+        # the ONE recheck after a timeout is exactly one request: no in-action retry of any class
+        d, etag = hub_fetch(dict(cfg, _recheck=True) if _ep.get('timeout') and 'unlimited-recheck' not in k else cfg, cache, sd)
         if d is None:
             if not cache: raise Suspend('rules route sent 304 with no cached revision')
-            cache['checked_at'] = now; atomic_write(sd / 'hubcache.json', json.dumps(cache)); return cache, '304'
+            cache['checked_at'] = now; atomic_write(sd / 'hubcache.json', json.dumps(cache))
+            try: (sd / 'transient.json').unlink()          # a 304 is a successful recheck too: the episode ends (review F6)
+            except FileNotFoundError: pass
+            return cache, '304'
         validate_doc(d, cfg)
+    except Transient as e:
+        rec, prev = transient_note(sd, e)
+        if prev.get('timeout') and 'unlimited-recheck' not in k:
+            # A1.1: this was the ONE recheck after a timeout and it failed too (any transient class) -> sticky stop
+            if 'suspend' in k: return (cache or {'revision': -1, 'doc': {'kos': []}, 'etag': None}), 'BROKEN suspend'
+            suspend(root, sd, cfg, '%s (the one recheck after a timeout also failed)' % e)
+            try: (sd / 'transient.json').unlink()      # unstop starts a clean episode
+            except FileNotFoundError: pass
+            raise Suspend('%s; recheck also timed out, guard stopped' % e)
+        if not prev or now - float(prev.get('at', 0)) > 300:      # one room event per episode, not one per action
+            enqueue(root, sd, cfg, guard_event(root, cfg, sd, 'transient', reason=str(e)))
+        g = graced(str(e))
+        if g: return g
+        raise
     except Suspend as e:
         if 'suspend' in k: return (cache or {'revision': -1, 'doc': {'kos': []}, 'etag': None}), 'BROKEN suspend'
         suspend(root, sd, cfg, str(e)); raise
+    try: (sd / 'transient.json').unlink()
+    except FileNotFoundError: pass
     old_rev = cache.get('revision') if cache else None
     cache = {'checked_at': now, 'etag': etag, 'revision': d['revision'], 'doc': d}
     atomic_write(sd / 'hubcache.json', json.dumps(cache))
@@ -824,7 +1121,7 @@ SELFMOD_CMD_RES = [(re.compile(r'--no-verify\b'), 'git --no-verify skips the gua
                    (re.compile(r'\bgit\b[^;&|\n]*\bcommit\b[^;&|\n]*\s-[a-zA-Z]*n[a-zA-Z]*\b'), 'git commit -n skips the guard hooks'),
                    (re.compile(r'core\.hooksPath', re.I), 'changing core.hooksPath detaches the guard hooks'),
                    (re.compile(r'\bGUARD_[A-Z_]+'), 'GUARD_* environment variables change the guard'),
-                   (re.compile(r'guard\.py\s+(unstop|detach)\b'), 'unstop / detach is a human step in your own terminal'),
+                   (re.compile(r'guard\.py\s+(unstop|detach|stop)\b'), 'stop / unstop / detach is a human step in your own terminal'),
                    (re.compile(r'disableAllHooks'), 'disableAllHooks turns the guard off')]
 AUTH_RES = [(re.compile(r'\b(fly|flyctl)\s+deploy\b'), 'deploy', 'deploy (fly)'),
             (re.compile(r'\bvercel\b[^;&|\n]*--prod'), 'deploy', 'deploy (vercel --prod)'),
@@ -970,7 +1267,8 @@ def sink_post(cfg, sd, ev):
             'Authorization': 'Bearer ' + hub_token(cfg), 'Content-Type': 'application/json', 'User-Agent': UA,
             'Idempotency-Key': ev['event_id']})
         try:
-            _URLREQ.urlopen(req, timeout=3).read(); return 'ok'
+            _URLREQ.urlopen(req, timeout=(3.0 if not nostall(sd) else float((cfg or {}).get('net_timeout_s') or NOSTALL_NET_TIMEOUT_S))).read()
+            return 'ok'
         except urllib.error.HTTPError as e:
             if e.code == 409: return 'duplicate'
             raise
@@ -981,9 +1279,27 @@ def send(root, sd, reset=False):
     cfg, _ = hub_cfg(root)
     br = sd / 'breaker.json'
     if reset:
-        try: br.unlink()
-        except FileNotFoundError: pass
+        for f in (br, sd / 'send_transient.json'):
+            try: f.unlink()
+            except FileNotFoundError: pass
+    if nostall(sd): migrate_network_stop(sd, root, cfg)
+    _sink = (cfg or {}).get('sink') or ''
+    _free = _sink.startswith('hosted-events:') and route_engine_free(_sink.split(':', 1)[1], 'POST', sd)
+    if br.exists() and _free and 'breaker-transient' not in knobs(sd):
+        try: bj = json.loads(br.read_text())
+        except Exception: bj = {}
+        why = str(bj.get('error', ''))
+        # a breaker left by the OLD sender on a blip (no 'by' field) is cleared; one written by the A1 sender is sticky
+        if 'by' not in bj and why.split(':', 1)[0].strip() in TRANSIENT_ERR_NAMES:
+            try: br.unlink()
+            except FileNotFoundError: pass
     if br.exists(): print('sender breaker is open (%s); run `guard.py send --reset` after checking the sink' % br); return 1
+    try: st_tr = json.loads((sd / 'send_transient.json').read_text())
+    except Exception: st_tr = None
+    if st_tr and time.time() - float(st_tr.get('at', 0)) < (cfg or {}).get('transient_cooldown_s', 10.0) \
+            and 'no-cooldown' not in knobs(sd):
+        print('sender: sink did not answer %ds ago; the next event re-attempts the outbox' % int(time.time() - st_tr['at']))
+        return 1
     with open(sd / 'send.lock', 'a') as lk:
         try: fcntl.flock(lk, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError: return 0                                  # another sender is draining; it loops until empty
@@ -997,11 +1313,34 @@ def send(root, sd, reset=False):
                 except Exception: f.rename(sent / (f.name + '.bad')); continue
                 try: st = sink_post(cfg, sd, ev)
                 except Exception as e:
-                    atomic_write(br, json.dumps({'at': time.time(), 'error': '%s: %s' % (type(e).__name__, str(e)[:120]), 'event': ev['event_id']}))
+                    code = getattr(e, 'code', None)
+                    transient = (code in TRANSIENT_HTTP) if code is not None else (
+                        isinstance(e, (urllib.error.URLError, TimeoutError, socket.timeout, ConnectionError))
+                        or type(e).__name__ in ('RemoteDisconnected', 'IncompleteRead'))   # network only, never a local file error
+                    sink = (cfg or {}).get('sink') or ''
+                    free = sink.startswith('hosted-events:') and route_engine_free(sink.split(':', 1)[1], 'POST', sd)
+                    to_cls = (code in (503, 504)) if code is not None else is_timeout_exc(e)
+                    second = bool(st_tr and st_tr.get('timeout')) and 'unlimited-recheck' not in knobs(sd)   # any failed recheck after a timeout (F1)
+                    if nostall(sd): second = False          # 11-17: queue and flush later, never a sticky breaker on a blip
+                    if transient and free and not second and 'breaker-transient' not in knobs(sd):
+                        try: atomic_write(sd / 'send_transient.json', json.dumps({'at': time.time(), 'error': type(e).__name__,
+                                                                                   'event': ev['event_id'],
+                                                                                   'timeout': to_cls or bool(st_tr and st_tr.get('timeout'))}))
+                        except OSError: pass
+                        print('sender: sink did not answer (%s); event kept in outbox, the next event re-attempts' % type(e).__name__)
+                        return 1
+                    try: (sd / 'send_transient.json').unlink()
+                    except FileNotFoundError: pass
+                    atomic_write(br, json.dumps({'at': time.time(), 'error': '%s: %s' % (type(e).__name__, str(e)[:120]),
+                                                 'event': ev['event_id'], 'by': 'sender-a1',
+                                                 'route': 'engine-free' if free else 'store-touching'}))
                     print('sender stopped: %s (breaker open, no retry)' % type(e).__name__); return 1
                 if 'die-after-sink' in knobs(sd) and os.environ.get('_GUARD_DIE_ONCE') and not (sd / '_died').exists():
                     (sd / '_died').write_text('1'); os._exit(9)
                 os.replace(f, sent / f.name); n += 1
+                try: (sd / 'send_transient.json').unlink()
+                except FileNotFoundError: pass
+                st_tr = None                                      # a delivery ends the episode (review F4)
                 ack = {'at': time.time(), 'event_id': ev['event_id'], 'sha': ev.get('sha'), 'status': st}
                 with open(sd / 'acks.jsonl', 'a') as af: af.write(json.dumps(ack) + '\n')
         return 0
@@ -1135,6 +1474,13 @@ def evaluate_hub(payload, root, cfg, sd, phase='pre'):
     rec['layer'] = layer; rec['paths'] = paths[:20]
     try:
         cache, how = admit(root, sd, cfg)
+    except Transient as e:
+        rec.update(decision='block', reason='transient', violations=['rule source did not answer: %s' % e],
+                   latency_ms=round((time.time() - t0) * 1000, 1))
+        decision_log(sd, rec)
+        return 2, ('[oliver-ben guard] BLOCKED this one action: the rule source did not answer (%s). Nothing is '
+                   'stopped: the next action checks again (after a %ds cool-down). No unstop needed.' % (
+                       e, int(cfg.get('transient_cooldown_s', 10)))), ''
     except Suspend as e:
         rec.update(decision='block', reason='suspended', violations=['guard suspended: %s' % e],
                    latency_ms=round((time.time() - t0) * 1000, 1))
@@ -1142,6 +1488,18 @@ def evaluate_hub(payload, root, cfg, sd, phase='pre'):
         return 2, ('[oliver-ben guard] SUSPENDED: %s\nControlled actions (repo writes, commits, scripts) are paused until a person '
                    'checks the rule source and runs `python3 %s unstop` in their own terminal. Reads still work. '
                    'No automatic retry.' % (e, Path(__file__).resolve())), ''
+    if nostall(sd) and not ((cache.get('doc') or {}).get('kos')) and 'no-empty-skip' not in k:
+        # an empty rules doc (or none cached yet) means no enforcement checks at all: allow, still log
+        rec.update(decision='allow', how=how, revision=cache.get('revision'), etag=cache.get('etag'),
+                   enforcement='skipped (empty rules doc)' if not cache.get('no_rules') else 'skipped (no rules cached)',
+                   latency_ms=round((time.time() - t0) * 1000, 1))
+        if how.startswith(('cache (', 'no rules (')): rec['warn'] = how
+        aid = ulid(); rec['admission_id'] = aid
+        decision_log(sd, rec)
+        # review #29 finding 2: the admit record is written here too, so the PostToolUse late re-check still runs when
+        # a rule lands between admission (empty doc) and execution
+        if phase == 'pre' and payload.get('tool_use_id'): write_admit(sd, payload['tool_use_id'], aid, cache.get('revision'))
+        return 0, '', ''
     active, prose, superseded, rev = hub_rules(cache, cfg)
     gp, au = protect_rules(active, me)
     v = check_paths_and_text(active, me, paths, text, git_action)
@@ -1151,6 +1509,7 @@ def evaluate_hub(payload, root, cfg, sd, phase='pre'):
     rec.update(admission_id=aid, revision=cache.get('revision'), etag=cache.get('etag'), how=how, rules_sha=rev['sha'],
                enforced=sorted(set(h8(r['ko'].get('hash')) for r in active)), decision='block' if v else 'allow', violations=v,
                matched=sorted(set(re.findall(r'KO ([0-9a-z-]{6,8})', ' '.join(v)))), latency_ms=round((time.time() - t0) * 1000, 1))
+    if how.startswith(('cache (', 'no rules (')): rec['warn'] = how
     decision_log(sd, rec)
     head = '[oliver-ben guard] rules r%s (%s, %s, %d KOs)' % (cache.get('revision'), source_label(cfg['source']), how, rev['n_kos'])
     if v:
@@ -1158,14 +1517,23 @@ def evaluate_hub(payload, root, cfg, sd, phase='pre'):
                                            layer=layer, matched=rec['matched'], tool=tool))
         return 2, '\n'.join([head, 'BLOCKED by the oliver-ben rules:'] + ['  - ' + x for x in v] +
                             ['If the rule is wrong, change it in the room (a newer KO, Accepted by a person); do not work around it.']), ''
-    if phase == 'pre' and payload.get('tool_use_id'):
-        ad = sd / 'admits'; ad.mkdir(exist_ok=True)
-        atomic_write(ad / ('%s.json' % re.sub(r'[^A-Za-z0-9_-]', '_', payload['tool_use_id'])[:80]),
-                     json.dumps({'admission_id': aid, 'revision': cache.get('revision'), 'at': time.time()}))
+    if phase == 'pre' and payload.get('tool_use_id'): write_admit(sd, payload['tool_use_id'], aid, cache.get('revision'))
     msg = ''
     if how == 'pulled' and prose:
         msg = '\n'.join([head] + prose_lines(prose, superseded)[:12])
     return 0, '', msg
+
+
+def write_admit(sd, tool_use_id, aid, revision):
+    ad = sd / 'admits'; ad.mkdir(exist_ok=True)
+    atomic_write(ad / ('%s.json' % re.sub(r'[^A-Za-z0-9_-]', '_', tool_use_id)[:80]),
+                 json.dumps({'admission_id': aid, 'revision': revision, 'at': time.time()}))
+
+
+def write_precommit_record(root, sd, aid, revision):
+    _, tree, _ = git(['write-tree'], root)
+    atomic_write(sd / 'last_precommit.json', json.dumps({'tree': tree.strip(), 'admission_id': aid, 'revision': revision,
+                                                        'at': time.time()}))
 
 
 def evaluate_post(payload, root, cfg, sd):
@@ -1175,7 +1543,18 @@ def evaluate_post(payload, root, cfg, sd):
     f = sd / 'admits' / ('%s.json' % re.sub(r'[^A-Za-z0-9_-]', '_', tid)[:80])
     try: adm = json.loads(f.read_text()); f.unlink()
     except Exception: return 0, ''
-    try: cache, how = admit(root, sd, dict(cfg, coalesce_s=0))
+    # no-stall: the late re-check no longer forces a network read after EVERY action. A local hub-rules: file costs no
+    # network, so it is re-read right away. A hosted route (review #29 finding 3: with a 300 s coalesce the re-check
+    # always saw the admission's own cache, so it was dead) makes one conditional read (If-None-Match; 304 = no change)
+    # when the cached revision is older than post_recheck_s (30 s floor); a failed read still waits the full coalesce_s.
+    local = str(cfg.get('source') or '').startswith('hub-rules:')
+    try:
+        if not nostall(sd): cache, how = admit(root, sd, dict(cfg, coalesce_s=0))
+        elif local: cache, how = admit(root, sd, cfg, force=True)
+        else: cache, how = admit(root, sd, cfg, window=cfg.get('post_recheck_s', POST_RECHECK_S))
+    except Transient as e:
+        return 2, ('[oliver-ben guard] could not re-check the rules after this action (%s). Nothing is stopped; '
+                   'the pre-commit hook re-checks before any commit.' % e)
     except Suspend as e:
         return 2, '[oliver-ben guard] the rule source became unreachable while this action ran (%s); controlled actions are now suspended.' % e
     if cache.get('revision') == adm.get('revision'): return 0, ''
@@ -1196,10 +1575,24 @@ def precommit_hub(root, cfg, sd):
     rec = {'tool': 'pre-commit', 'me': me, 'phase': 'pre-commit', 'mode': 'attached', 'paths': paths[:20], 'layer': 'pre-commit',
            'surface': surface()}
     try: cache, how = admit(root, sd, cfg)
+    except Transient as e:
+        rec.update(decision='block', reason='transient', latency_ms=round((time.time() - t0) * 1000, 1)); decision_log(sd, rec)
+        print('COMMIT REFUSED for now: the rule source did not answer (%s). Nothing is stopped; try the commit again '
+              'in a few seconds.' % e, file=sys.stderr)
+        return 1
     except Suspend as e:
         rec.update(decision='block', reason='suspended', latency_ms=round((time.time() - t0) * 1000, 1)); decision_log(sd, rec)
         print('COMMIT REFUSED: the oliver-ben guard is SUSPENDED (%s). A person checks the source and runs `guard.py unstop`.' % e, file=sys.stderr)
         return 1
+    if nostall(sd) and not ((cache.get('doc') or {}).get('kos')) and 'no-empty-skip' not in knobs(sd):
+        aid = ulid()
+        rec.update(decision='allow', how=how, revision=cache.get('revision'), enforcement='skipped (empty or no rules)',
+                   admission_id=aid, latency_ms=round((time.time() - t0) * 1000, 1))
+        decision_log(sd, rec)
+        # review #29 finding 1 (blocker): write the admission record before returning, or commit_event reports this
+        # honest commit as 'NO ADMISSION RECORD', the --no-verify tell
+        write_precommit_record(root, sd, aid, cache.get('revision'))
+        return 0
     active, prose, superseded, rev = hub_rules(cache, cfg)
     v = check_paths_and_text(active, me, paths, added, 'commit')
     aid = ulid()
@@ -1212,8 +1605,7 @@ def precommit_hub(root, cfg, sd):
         print('COMMIT REFUSED by the oliver-ben rules:', file=sys.stderr)
         for x in v: print('  - ' + x, file=sys.stderr)
         return 1
-    _, tree, _ = git(['write-tree'], root)
-    atomic_write(sd / 'last_precommit.json', json.dumps({'tree': tree.strip(), 'admission_id': aid, 'revision': cache.get('revision'), 'at': time.time()}))
+    write_precommit_record(root, sd, aid, cache.get('revision'))
     return 0
 
 
@@ -1392,6 +1784,12 @@ def main():
         if a[0] == 'status': hub_status(root, hcfg, sd); return 0
         if a[0] == 'card':
             (sd / 'card').write_text((a[1] if len(a) > 1 else '').strip()); print('card =', a[1] if len(a) > 1 else ''); return 0
+        if a[0] == 'stop':
+            why = ' '.join(a[1:]).strip() or 'stopped by a person'
+            atomic_write(sd / 'stopped.json', json.dumps({'at': time.time(), 'error': why, 'source': hcfg.get('source'),
+                                                          'by': 'human'}))
+            enqueue(root, sd, hcfg, guard_event(root, hcfg, sd, 'stopped', reason=why))
+            print('stopped: controlled actions are blocked until `guard.py unstop`'); return 0
         if a[0] == 'unstop':
             try: (sd / 'stopped.json').unlink(); print('stop marker cleared; the next controlled action reads the source once')
             except FileNotFoundError: print('no stop marker')
@@ -1403,10 +1801,16 @@ def main():
             enqueue(root, sd, hcfg, guard_event(root, hcfg, sd, 'detached'))
             print('detached: the guard no longer enforces here; the room has been told (event queued)'); return 0
         if a[0] == 'refresh':
-            try: cache, how = admit(root, sd, dict(hcfg, coalesce_s=0)); print('revision', cache.get('revision'), how)
+            try: cache, how = admit(root, sd, hcfg, force=True); print('revision', cache.get('revision'), how)
             except Suspend as e: print('SUSPENDED:', e); return 1
             return 0
     sd = state_dir(root)
+    if a[0] == 'stop':           # review #29 finding 7: legacy mode had no `stop` (it printed usage and returned 1)
+        why = ' '.join(a[1:]).strip() or 'stopped by a person'
+        atomic_write(sd / 'stopped.json', json.dumps({'at': time.time(), 'error': why, 'source': load_cfg(sd).get('source'),
+                                                      'by': 'human'}))
+        print('stopped (legacy mode): hosted rule reads are paused, the last cache keeps enforcing, until `guard.py unstop`')
+        return 0
     if a[0] == 'card':
         (sd / 'card').write_text((a[1] if len(a) > 1 else '').strip()); print('card =', a[1] if len(a) > 1 else ''); return 0
     if a[0] == 'unstop':

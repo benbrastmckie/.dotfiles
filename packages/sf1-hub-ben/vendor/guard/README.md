@@ -10,7 +10,7 @@ else in a constraint or decision is shown to you as "check in the room" and neve
 |---|---|
 | `RULE owner: src/app/live/** = oliver` | Ben's edits and commits to those files are blocked. Oliver's pass. |
 | `RULE owner: src/app/live/chat.tsx = ben` | A newer owner rule wins: this hands one file to Ben (a handoff). |
-| `RULE ban-string: logos-internal` | Any added text containing it (any case) is blocked. |
+| `RULE ban-string: acmeco-internal` | Any added text containing it (any case) is blocked. |
 | `RULE ban-path: .env*` | Writing or committing a matching file is blocked. |
 | `RULE no-git: ben` | `git commit` / `git push` by that person is blocked. |
 
@@ -46,8 +46,8 @@ use that if you've both agreed in the room.
 
 ## Write rules like this
 
-- One `RULE` per line, and the reason in plain words above it: "Nothing from Logos goes in the project."
-  then `RULE ban-string: logos-internal`.
-- Pick strings that can't turn up in normal code. `logos` alone would block the word in comments.
+- One `RULE` per line, and the reason in plain words above it: "Nothing from Acmeco goes in the project."
+  then `RULE ban-string: acmeco-internal`.
+- Pick strings that can't turn up in normal code. `acmeco` alone would block the word in comments.
 - A rule the code can't check, like "founding terms never go in the project", stays as prose. The guard shows
   it at every commit and on each refresh, and it's up to you two to hold it.
