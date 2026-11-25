@@ -1,0 +1,16 @@
+{
+  "status": "planned",
+  "phase": "plan",
+  "summary": "Wrote a 4-phase, 3-hour sequential plan from the research report: a frozen nixpkgs-himalaya flake input plus overlay, a programs.msmtp module with envelope-from account selection, doc updates, and a final build, user-level activation, and hand-off phase. Description premises were re-checked against live files and confirmed. One issue was recorded: the mail-guard hook matches guarded tokens anywhere in a Bash command, which constrains how the implementer writes files and commit messages.",
+  "artifacts": [
+    {
+      "type": "plan",
+      "path": "specs/146_add_msmtp_config_and_pin_himalaya_cli/plans/01_msmtp-config-himalaya-pin.md",
+      "summary": "4-phase implementation plan for the himalaya pin and the declarative msmtp config."
+    }
+  ],
+  "phases_completed": 0,
+  "phases_total": 4,
+  "blockers": [],
+  "dispatch_seq": 2
+}
