@@ -50,6 +50,24 @@
 # Note that `application.process.binary` on the *node* is not usable for this: it is populated
 # for pipewire-pulse clients (Zoom) and null for native PipeWire clients, so a node-level test
 # silently misses whole classes of app. The client-object lookup is what makes it uniform.
+#
+# == The self-recording trap ==
+#
+# services/meeting-recorder.nix records a call by capturing the microphone, which means ITS OWN
+# capture stream satisfies the test above. Measured consequence, before the exclusion below
+# existed: the recorder started on a real call, the call ended, the monitor re-ran this predicate,
+# saw the recorder's own ffmpeg, kept the recording running, and the recording never stopped --
+# a 110-second call produced a 6m40s file still growing when it was killed by hand, and would
+# have run to the idle cap. The keepalive has the milder form of the same bug, holding the screen
+# lit after a call because the recorder is still recording.
+#
+# So the recorder marks its own stream with `media.role=meeting-recorder` (via `PULSE_PROP`, which
+# libpulse merges into the client proplist -- verified reaching the Client object in a live
+# `pw-dump`) and that marker is excluded here. This is the right place for it: the exclusion is
+# correct for EVERY consumer, since a recording made because a call was detected is never itself
+# evidence of a call. It is also structural rather than a binary-name blacklist -- excluding
+# `ffmpeg` by name would break any legitimate ffmpeg capture, which is exactly the failure mode
+# the daemon exclusion above is written to avoid.
 { pkgs }:
 let
   # Upper bound on the carve-out, in seconds of continuous *real input* idleness (keyboard and
@@ -92,10 +110,11 @@ pkgs.writeShellScript "video-call-active" ''
         | .info.props["client.id"] as $cid
         | ( [ $all[]
               | select(.type == "PipeWire:Interface:Client")
-              | select(.id == $cid)
-              | .info.props["application.process.binary"] ][0] ) as $bin
+              | select(.id == $cid) ][0] ) as $client
+        | ( $client.info.props["application.process.binary"] ) as $bin
         | select($bin != null)
         | select(["pipewire", "wireplumber", "pipewire-pulse"] | index($bin) | not)
+        | select(($client.info.props["media.role"] // "") == "meeting-recorder" | not)
         | $bin
       ] | unique | .[]
   ' 2>/dev/null) || holders=""

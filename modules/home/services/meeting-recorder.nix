@@ -195,6 +195,18 @@ in
             # this just gives it room to.
             TimeoutStopSec = "30s";
 
+            # ffmpeg exits 255 when it shuts down on SIGTERM, which is the NORMAL way this unit
+            # ends -- the monitor stops it at the end of every call. Without this, each recording
+            # leaves the unit `failed`, and a failed user unit degrades the whole `systemd --user`
+            # session rather than just itself (the same reason the transcriber never exits
+            # non-zero). Measured: `status=255/EXCEPTION` on an ordinary stop.
+            SuccessExitStatus = [ 255 ];
+
+            # Marks this capture stream so lib/video-call-active.nix can exclude it. Without the
+            # marker the recorder's own microphone capture reads as a call in progress and the
+            # recording never stops -- see that file's "self-recording trap" section.
+            Environment = [ "PULSE_PROP=media.role=meeting-recorder" ];
+
             ExecStart =
               let
                 script = pkgs.writeShellScript "meeting-record" ''
