@@ -1,0 +1,21 @@
+{
+  "status": "researched",
+  "dispatch_seq": 1,
+  "started_at": "2026-11-25T19:46:37Z",
+  "artifacts": [
+    {
+      "type": "report",
+      "path": "specs/146_add_msmtp_config_and_pin_himalaya_cli/reports/01_msmtp-config-himalaya-pin.md",
+      "summary": "Research report: himalaya v1.2.0 pin via a fixed-rev nixpkgs input (verified identical store path), msmtp via programs.msmtp.configContent, Proton Bridge STARTTLS/cert-trust findings from live probes, and the mail-guard constraint on msmtp verification"
+    }
+  ],
+  "next_steps": "Run /orchestrate 146 to create implementation plan",
+  "metadata": {
+    "session_id": "sess_1795635944_3e3b7a_146",
+    "agent_type": "nix-research-agent",
+    "duration_seconds": 700,
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "research", "nix-research-agent"],
+    "findings_count": 6
+  }
+}
