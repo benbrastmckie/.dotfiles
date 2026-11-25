@@ -1,4 +1,5 @@
-# Email client tooling: himalaya, cyrus-sasl/xoauth2, msmtp, and utilities
+# Email client tooling: himalaya, cyrus-sasl/xoauth2, and utilities.
+# The sendmail-style sender is installed and configured by modules/home/email/msmtp.nix.
 { pkgs, pkgs-unstable, ... }:
 {
   home.packages = with pkgs; [
@@ -30,7 +31,6 @@
     )
 
     pkgs.cyrus-sasl-xoauth2 # Keep for reference
-    msmtp # For sending emails via SMTP
     pass # Password manager for storing OAuth2 tokens
     gnupg # Required for pass to work
     w3m # Terminal web browser for viewing HTML emails

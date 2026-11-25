@@ -188,13 +188,13 @@ standalone `homeConfigurations.benjamin` generation and runs statix, deadnix, an
 
 ---
 
-### Phase 2: Declarative msmtp.nix Module for Gmail and Logos [NOT STARTED]
+### Phase 2: Declarative msmtp.nix Module for Gmail and Logos [COMPLETED]
 
 **Goal**: home-manager generates `~/.config/msmtp/config` with both accounts and installs the
 package from a single declaration.
 
 **Tasks**:
-- [ ] Create `modules/home/email/msmtp.nix` with the Write tool (its content contains tokens the
+- [x] Create `modules/home/email/msmtp.nix` with the Write tool (its content contains tokens the
   mail-guard hook denies inside Bash commands): `_: { programs.msmtp = { enable = true; configContent = '' ... ''; }; }`
   with exactly this rendered content:
 
@@ -223,22 +223,22 @@ package from a single declaration.
   account default : gmail
   ```
 
-- [ ] Give the module a Nix header comment (outside `configContent`) recording the cross-file
+- [x] Give the module a Nix header comment (outside `configContent`) recording the cross-file
   contract: the accounts mirror the outgoing settings in `modules/home/email/aerc.nix`; the
   `from` lines are what envelope-from selection matches on; the logos account must use
   `127.0.0.1` (IP-only SAN) and depends on the host trusting the Bridge CA as
   `hosts/hamsa/default.nix` does; the file holds no secret.
-- [ ] `git add -- modules/home/email/msmtp.nix`.
-- [ ] `modules/home/default.nix`: add `./email/msmtp.nix` to the imports next to
+- [x] `git add -- modules/home/email/msmtp.nix`.
+- [x] `modules/home/default.nix`: add `./email/msmtp.nix` to the imports next to
   `./email/aerc.nix`.
-- [ ] `modules/home/packages/email-tools.nix`: delete the bare msmtp package line (use the Edit
+- [x] `modules/home/packages/email-tools.nix`: delete the bare msmtp package line (use the Edit
   tool) and update the file's header comment so it does not claim to install it.
-- [ ] Run `nixfmt` on the touched files.
-- [ ] Build the standalone generation:
+- [x] Run `nixfmt` on the touched files.
+- [x] Build the standalone generation:
   `nix build .#homeConfigurations.benjamin.activationPackage -o <scratch>/hm-result`, then read
   `<scratch>/hm-result/home-files/.config/msmtp/config` and assert its contents (below). Use a
   scratch out-link outside the repository so no `result` symlink lands in the tree.
-- [ ] Verify (below), then commit.
+- [x] Verify (below), then commit.
 
 **Timing**: 0.75 hours
 
