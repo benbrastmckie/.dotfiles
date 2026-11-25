@@ -83,6 +83,44 @@ in the upstream package's default `buildInputs`.
 **Wired via**: `overlays/unstable-packages.nix`
 (`kooha = import ../packages/kooha.nix prev.kooha final.gst_all_1;`).
 
+### meetily.nix
+Meetily (`Zackriya-Solutions/meetily`), a local-first AI meeting assistant: records a call,
+transcribes it on-device with Whisper or Parakeet, and summarises it with a bundled llama.cpp
+sidecar or a local Ollama server. Not in nixpkgs.
+
+**Implementation**: repackages upstream's official x86_64 `.deb` release artifact via `dpkg-deb`
++ `autoPatchelfHook` + `wrapGAppsHook3` — the same prebuilt-over-source choice `piper-bin.nix`
+makes, for a stronger reason: a source build downloads a static ffmpeg tarball **with no checksum
+verification in upstream's own build script** and an ONNX Runtime binary from a vendor CDN, so
+neither fetch can be pinned reproducibly. The derivation's header comment states all four
+source-build obstacles in full.
+
+**Layout is load-bearing.** Three resolution mechanisms, each read out of the shipped binary's
+strings rather than from documented API, constrain where files may go:
+- Summary templates must sit at `$out/lib/meetily/templates`, because
+  `tauri_utils::platform::resource_dir` resolves `$EXE_DIR/../lib/<product-name>`. Verified at
+  runtime: the app logs `Bundled templates directory set to:` with the Nix store path.
+- `llama-helper` is passed explicitly through the `MEETILY_LLAMA_HELPER` environment variable
+  rather than relying on the binary's "relative to executable" search.
+- ffmpeg is supplied on the wrapper's own `PATH`, which also pre-empts the app's runtime
+  ffmpeg auto-*install* step.
+
+**Critical**: `$out/bin` deliberately holds `meetily` and nothing else. The `.deb` installs its
+bundled ffmpeg to `/usr/bin/ffmpeg`, and reproducing that would shadow the system `ffmpeg` from
+`modules/system/packages.nix` for every other consumer, since `home.packages` takes PATH
+priority. The bundled 79 MB static blob is dropped in favour of nixpkgs' ffmpeg — it only
+pre-converts container formats before transcription, it parses untrusted media so a
+security-supported build is worth more than bit-identity, and it keeps an unverifiable
+third-party re-upload out of the closure.
+
+**Runtime prerequisite**: PulseAudio or `pipewire-pulse` (already enabled in
+`modules/system/audio.nix`). Capture uses the PulseAudio protocol; PipeWire's native API alone
+gets the microphone only and no system audio.
+
+**Wired via**: `overlays/unstable-packages.nix`
+(`meetily = final.callPackage ../packages/meetily.nix { };`). Installed from
+`modules/home/packages/media-dictation.nix`. Full operational notes: `docs/meetily.md`.
+
 ### slidev.nix
 `writeShellScriptBin` wrapper that runs `npx @slidev/cli@latest`, giving a `slidev` command for
 building Markdown-based presentation slides without pinning a nixpkgs version.

@@ -24,6 +24,8 @@ usual `final: prev:` overlay signature.
 Currently provides:
 - `niri` — pulled directly from `pkgs-unstable` for active-development window manager fixes.
 - `gemini-cli` — pulled directly from `pkgs-unstable`.
+- `meetily` — local-first AI meeting assistant, repackaged from upstream's official `.deb`
+  (not in nixpkgs). See `packages/README.md` and `docs/meetily.md`.
 - `claude-code`, `opencode`, `loogle`, `aristotle`, `slidev`, `kooha` — custom packages/wrappers
   built via `final.callPackage ../packages/<name>.nix { }` (or, for `kooha`, an `overrideAttrs`
   wrapper around the existing `prev.kooha`). See `packages/README.md` for what each of these

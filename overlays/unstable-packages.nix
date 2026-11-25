@@ -16,6 +16,7 @@ pkgs-unstable: final: prev: {
   slidev = final.callPackage ../packages/slidev.nix { }; # Presentation slides from Markdown
   playwright-mcp = final.callPackage ../packages/playwright-mcp.nix { }; # Latest version, reuses cached browser (deliberately shadows nixpkgs' derivation)
   kooha = import ../packages/kooha.nix prev.kooha final.gst_all_1; # Screen recorder with full GStreamer plugin support
+  meetily = final.callPackage ../packages/meetily.nix { }; # AI meeting assistant (official .deb repackaged; not in nixpkgs)
   landrun = final.callPackage ../packages/landrun.nix { }; # Pinned v0.1.17 (deliberately shadows nixpkgs' 0.1.15 -- recursive ELF ldd resolution Comparator's sandboxed calls depend on; see packages/landrun.nix and packages/README.md)
   lean-toolchain-bin = final.callPackage ../packages/lean-toolchain-bin.nix { }; # Prebuilt Lean v4.34.0-rc2 (FOD fetch + offline unpack), pinned to Comparator's own lean-toolchain
   comparator-lean4export-resolve = final.callPackage ../packages/lean4export.nix { }; # Toolchain-keyed lean4export resolver (not a fixed binary) for Comparator's COMPARATOR_LEAN4EXPORT contract

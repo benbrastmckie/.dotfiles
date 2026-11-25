@@ -46,6 +46,7 @@ These dotfiles provide a complete NixOS setup with:
 │   ├── aristotle.nix              # AI theorem prover wrapper
 │   ├── slidev.nix                 # Presentation slides from Markdown
 │   ├── kooha.nix                  # Screen recorder (GStreamer override)
+│   ├── meetily.nix                # AI meeting notes (official .deb repackaged)
 │   ├── vosk-models.nix            # Vosk STT language models
 │   ├── piper-bin.nix              # Piper TTS engine (prebuilt binary)
 │   ├── piper-voices.nix           # Piper TTS voice models
@@ -90,6 +91,7 @@ These dotfiles provide a complete NixOS setup with:
 - [`docs/neovim.md`](docs/neovim.md): Neovim configuration, package choice, and sideloadInitLua gotcha
 - [`docs/packages.md`](docs/packages.md): Package management and custom packages
 - [`docs/screen-recording.md`](docs/screen-recording.md): Screen capture tools and the boosted-microphone PipeWire filter chain
+- [`docs/meetily.md`](docs/meetily.md): Local AI meeting notes, audio capture requirements, and summary backends
 - [`docs/testing.md`](docs/testing.md): Testing and validation procedures
 
 See [`docs/README.md`](docs/README.md) for complete documentation index.

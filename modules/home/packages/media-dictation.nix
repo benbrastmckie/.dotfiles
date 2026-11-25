@@ -5,6 +5,10 @@
     espeak-ng # Text-to-speech for notifications
     obs-studio
 
+    # Meeting capture. Custom derivation (overlay) -- not in nixpkgs; see docs/meetily.md for the
+    # pipewire-pulse dependency and the first-run model download.
+    meetily # Local AI meeting notes: records, transcribes and summarises on-device
+
     # Dictation tools
     whisper-cpp # Fast offline speech-to-text (renamed from openai-whisper-cpp)
     ydotool # Universal input tool (works with GNOME/Wayland)

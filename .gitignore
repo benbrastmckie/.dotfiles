@@ -67,6 +67,11 @@ specs/**/.stray-handoff-*.json
 specs/.return-meta-multi.json
 specs/.orchestrator-multi-state.json
 
+# Cached gate verdicts, keyed by a content hash and stamped with the time they were taken. A
+# restored copy asserts a verdict about a tree state that no longer exists, same hazard as the
+# loop-guard and handoff files above.
+specs/.gate-cache/
+
 # Per-task advisory lock directories (task-lock.sh).
 specs/**/.lock/
 /packages/sapience-flake/.agent-logs
