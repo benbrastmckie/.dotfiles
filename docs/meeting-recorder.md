@@ -98,6 +98,40 @@ It also pays for the second pass: with VAD, transcribing both channels separatel
 *faster* than one stereo pass over the whole file (2.4s vs 3.3s on a 100s fixture), because the
 silence is never decoded.
 
+## Dictation and push-to-talk do not trigger it
+
+The predicate fires on *any* microphone capture, which is what makes it work across Zoom, Meet
+and Jitsi without special-casing — and it originally meant speech-to-text looked like a meeting.
+Measured: with `whisper-dictate` running, the predicate reported `call active (pw-cat)` and the
+recorder started 12 seconds later, capturing the room and the system audio until dictation
+stopped.
+
+Two guards now prevent that, for two different kinds of capture.
+
+**Capture this configuration owns marks itself.** `whisper-dictate` tags its stream
+`media.role=dictation` and the predicate skips it, the same mechanism the recorder uses on its
+own ffmpeg. Anything else you want excluded can opt in the same way — but note the two audio APIs
+put the property in different places, and the predicate checks both:
+
+| How the capture is started | Tag with | Lands on |
+|---|---|---|
+| libpulse (`ffmpeg -f pulse`, most apps) | `PULSE_PROP=media.role=dictation` | the Client object |
+| native PipeWire (`pw-record`, `pw-cat`) | `-P '{ media.role = dictation }'` | the Node object |
+
+Add the value to the ignore list in `lib/video-call-active.nix` if you introduce a new one.
+
+**Capture this configuration does not own cannot be marked.** Claude Code's hold-to-talk voice
+mode opens the microphone itself and cannot be told to tag anything. `sustainedSeconds` (30s)
+covers it: a call must be detected continuously for that long before recording starts, so a
+hold-to-talk press never produces a recording. A meeting trivially clears it.
+
+This is a different guard from `minimumSeconds`, and the difference matters: `minimumSeconds`
+discards a short recording *after* it has been written to disk, while `sustainedSeconds` stops
+it being made. For audio you would rather never capture, only the second one helps.
+
+The cost is the opening of a real meeting — up to `sustainedSeconds` plus one `interval`, so
+about 45 seconds. Set `sustainedSeconds = 0` to record from the first tick instead.
+
 ## Output
 
 One file per meeting in `~/Meetings`, named for the recording's start time:
@@ -160,9 +194,10 @@ All under `services.meetingRecorder` in `home.nix`:
 | `model` | `base.en` | Or `small.en` — better on crosstalk and poor mics, ~3x the decode time |
 | `microphone` | `null` | `null` resolves the default source at start; set to `mic_boosted` for the boosted filter chain |
 | `threads` | `8` | Well under this host's 24 cores; the unit is also `Nice`d |
-| `minimumSeconds` | `90` | Floor below which a recording is not a meeting |
+| `minimumSeconds` | `90` | Floor below which a recording is discarded after the fact |
+| `sustainedSeconds` | `30` | How long a call must hold before recording starts; blocks push-to-talk |
 | `audioRetentionDays` | `3` | `0` discards audio immediately after transcription |
-| `interval` | `30s` | How often to re-check the call state |
+| `interval` | `15s` | How often to re-check the call state |
 
 ## Operating it
 
@@ -186,6 +221,9 @@ The monitor timer comes back on the next login or rebuild; to disable it durably
 `services.meetingRecorder.enable = false` in `home.nix`.
 
 ## Troubleshooting
+
+**A short call was not recorded at all.** Expected: `sustainedSeconds` requires 30 seconds of
+continuous detection before recording starts, so nothing under roughly 45 seconds is captured.
 
 **Nothing is being recorded.** Run `video-call-active --explain` during a call. If it reports
 nothing capturing the microphone, the conferencing app is not holding a capture stream the way
