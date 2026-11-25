@@ -72,6 +72,51 @@ of the freeze hazards (there is no mbsync systemd timer — the only trigger pat
 form while frozen). `email-thaw` reconciles with `mbsync gmail` and applies the same
 auth-failure fail-safe as the mutation wrappers.
 
+## Outgoing mail through msmtp
+
+`modules/home/email/msmtp.nix` declares `programs.msmtp`, which installs the package and
+generates `~/.config/msmtp/config`. The file holds no secret: each account's password is read
+from the keyring at send time by a `passwordeval` line. The accounts mirror the outgoing
+settings in `modules/home/email/aerc.nix`:
+
+| Account | Server | TLS | From / user |
+|---------|--------|-----|-------------|
+| `gmail` (default) | `smtp.gmail.com:465` | implicit TLS (`tls_starttls off`) | `benbrastmckie@gmail.com` |
+| `logos` | `127.0.0.1:1025` (Proton Bridge) | STARTTLS (`tls_starttls on`) | `benjamin@logos-labs.ai` |
+
+**Account selection is by envelope-from.** A caller that runs `msmtp -t --read-envelope-from`
+(as the notmuch.nvim send path does) gets the account whose `from` line equals the message's
+From address. An address matching neither account falls through to `gmail`, the default.
+
+**The logos account needs the Bridge CA.** Proton Bridge presents a self-signed certificate
+whose only subject alternative name is the IP address, so the account's `host` is the literal
+`127.0.0.1`, and verification succeeds only on a host whose system certificate bundle trusts
+the Bridge CA, as `hosts/hamsa/default.nix` does. On a host without it, a logos send fails at
+the TLS handshake; aerc behaves the same way there.
+
+### Checking the configuration (run by hand)
+
+None of these sends mail. `--serverinfo` contacts the server and prints its capabilities and
+certificate without authenticating; `--pretend` prints the settings that would be used and
+contacts nothing.
+
+```sh
+# Resolved settings per account
+msmtp --pretend --account=gmail test@example.com </dev/null
+msmtp --pretend --account=logos test@example.com </dev/null
+
+# TLS handshake and certificate trust per account (the logos one needs Proton Bridge running)
+msmtp --serverinfo --account=gmail
+msmtp --serverinfo --account=logos
+
+# Envelope-from selection: run once per From address against a draft whose headers
+# carry that address; the output's first lines name the account's host and port
+msmtp --pretend --read-envelope-from -t <draft.eml
+```
+
+These are operator commands. The mail-guard hook above denies any agent Bash command that
+contains `msmtp` or `secret-tool`, so an agent cannot run them or stand in for them.
+
 ## Further reading
 
 - `specs/072_email_workflow_infrastructure_prereqs/handoffs/wrapper-contract.md` — the FROZEN

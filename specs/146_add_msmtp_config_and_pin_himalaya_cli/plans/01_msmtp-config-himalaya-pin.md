@@ -269,26 +269,26 @@ list (every `mkHost` host and the standalone generation) and lints the new file.
 
 ---
 
-### Phase 3: Document the Himalaya Pin and the Sendmail-Style Config [NOT STARTED]
+### Phase 3: Document the Himalaya Pin and the Sendmail-Style Config [COMPLETED]
 
 **Goal**: The docs describe the package set and the msmtp configuration as they now are.
 
 **Tasks**:
-- [ ] `docs/himalaya.md`, "Package Configuration" snippet (around lines 90-118): show plain
+- [x] `docs/himalaya.md`, "Package Configuration" snippet (around lines 90-118): show plain
   `himalaya` supplied by `overlays/himalaya-pin.nix` from the frozen `nixpkgs-himalaya` input,
   remove the bare msmtp package line from the snippet, and add a short paragraph on why the CLI
   is held at v1.2.0 (feature set and command tree the wrappers depend on) and what must be true
   before the pin moves.
-- [ ] `docs/email-workflow.md`: add a short section on outgoing mail through msmtp: where the
+- [x] `docs/email-workflow.md`: add a short section on outgoing mail through msmtp: where the
   config is declared (`modules/home/email/msmtp.nix`), the two accounts, envelope-from selection
   with gmail as the fallback, the Bridge CA requirement for logos, and the user-run check
   commands (`--pretend` and `--serverinfo` per account, and a `--pretend --read-envelope-from -t`
   run against a draft per From address). Note there that agents cannot run these because of the
   mail-guard hook.
-- [ ] `overlays/README.md`: add an entry for `himalaya-pin.nix`.
-- [ ] Write these with the Write/Edit tools. State the current design only: no "previously",
+- [x] `overlays/README.md`: add an entry for `himalaya-pin.nix`.
+- [x] Write these with the Write/Edit tools. State the current design only: no "previously",
   "no longer", "formerly", or version-of-this-document language, and no task numbers.
-- [ ] Commit.
+- [x] Commit.
 
 **Timing**: 0.5 hours
 

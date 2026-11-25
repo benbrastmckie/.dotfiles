@@ -89,10 +89,8 @@ Himalaya is configured as the primary email client with dual-account support:
 
 ```nix
 home.packages = with pkgs; [
-  # Himalaya with OAuth2 and keyring support
-  (pkgs-unstable.himalaya.overrideAttrs (oldAttrs: {
-    cargoBuildFlags = (oldAttrs.cargoBuildFlags or []) ++ [ "--features=oauth2,keyring" ];
-  }))
+  # Himalaya v1.2.0 with OAuth2 and keyring support, supplied by overlays/himalaya-pin.nix
+  himalaya
 
   # Custom mbsync with XOAUTH2 support
   (let
@@ -113,7 +111,6 @@ home.packages = with pkgs; [
 
   # Supporting packages
   pkgs.cyrus-sasl-xoauth2
-  msmtp
   pass
   gnupg
   w3m
@@ -121,6 +118,25 @@ home.packages = with pkgs; [
   jq
 ];
 ```
+
+`himalaya` in that list is not the package from the stable or unstable channel. The
+`nixpkgs-himalaya` flake input in `flake.nix` names one exact nixpkgs revision, and
+`overlays/himalaya-pin.nix` takes `himalaya` from it and appends
+`--features=oauth2,keyring`. Because the input names a revision rather than a branch,
+`nix flake update` leaves it where it is.
+
+The CLI is held at v1.2.0 for two reasons. The `oauth2` and `keyring` cargo features that
+`config/himalaya-config.toml` relies on exist in the v1 line and not in later major releases.
+And the email wrappers in `modules/home/email/agent-tools/` call the v1 command tree directly
+(`himalaya message delete`, `himalaya folder expunge`, `himalaya envelope list -o json`,
+`himalaya message read -p -H`) and parse its JSON output; later major releases change both the
+commands and the JSON keys. Move the pin only after those wrappers and the config file are
+ported to the newer CLI, by changing the revision in `flake.nix` and running
+`nix flake lock`.
+
+The sendmail-style sender is installed by `programs.msmtp` in `modules/home/email/msmtp.nix`,
+which also generates its config; see "Outgoing mail through msmtp" in
+`docs/email-workflow.md`.
 
 ### Environment Variables
 

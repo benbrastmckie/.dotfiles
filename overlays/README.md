@@ -42,6 +42,17 @@ and `pymupdf` to skip
 their (flaky, in this environment) test suites via `overridePythonAttrs { doCheck = false; }`.
 Wired into `flake.nix` as `pythonPackagesOverlay = import ./overlays/python-packages.nix;`.
 
+### himalaya-pin.nix
+
+Supplies `himalaya` at v1.2.0 with the `oauth2` and `keyring` cargo features. This overlay is
+curried — it takes the package set of the `nixpkgs-himalaya` flake input as its first argument
+(partially applied in `flake.nix` as
+`himalayaPinOverlay = import ./overlays/himalaya-pin.nix nixpkgs-himalaya.legacyPackages.${system};`).
+That input names one exact nixpkgs revision, so `nix flake update` does not move it, and the
+package keeps the command tree and JSON output the email wrappers in
+`modules/home/email/agent-tools/` depend on. See `docs/himalaya.md`, "Package Configuration",
+for when the pin may move.
+
 ## Adding a New Overlay
 
 1. Create the overlay file under `overlays/`, following the `final: prev: { ... }` signature (or

@@ -1,0 +1,20 @@
+{
+  "phase": 3,
+  "phase_name": "Document the Himalaya Pin and the Sendmail-Style Config",
+  "started_at": "2026-11-25T20:03:33Z",
+  "last_updated": "2026-11-25T20:03:33Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Docs \u2014 file changes",
+      "status": "completed",
+      "files_touched": [
+        "docs/himalaya.md",
+        "docs/email-workflow.md",
+        "overlays/README.md"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}
