@@ -1,22 +1,16 @@
 {
-  "status": "planned",
-  "artifacts": [
-    {
-      "type": "plan",
-      "path": "specs/146_add_msmtp_config_and_pin_himalaya_cli/plans/01_msmtp-config-himalaya-pin.md",
-      "summary": "4-phase plan: pin himalaya v1.2.0 via a frozen flake input and overlay, add a programs.msmtp module with gmail and logos accounts, update docs, then build both home paths, activate the user generation, and hand off live checks."
-    }
-  ],
-  "next_steps": "Run /orchestrate 146 to execute the plan",
-  "memory_candidates": [],
-  "metadata": {
-    "session_id": "sess_1795635944_3e3b7a_146",
-    "agent_type": "planner-agent",
-    "delegation_depth": 1,
-    "delegation_path": ["orchestrator", "plan", "planner-agent"],
-    "phase_count": 4,
-    "estimated_hours": 3,
-    "dependency_waves": [[1], [2], [3], [4]]
+  "status": "in_progress",
+  "started_at": "2026-11-25T19:55:40Z",
+  "artifacts": [],
+  "partial_progress": {
+    "stage": "initializing",
+    "details": "Agent started, beginning work"
   },
-  "dispatch_seq": 2
+  "metadata": {
+    "session_id": "sess_1795635944_3e3b7a",
+    "agent_type": "nix-implementation-agent",
+    "delegation_depth": 1,
+    "delegation_path": ["orchestrator", "implement", "nix-implementation-agent"]
+  },
+  "dispatch_seq": 3
 }

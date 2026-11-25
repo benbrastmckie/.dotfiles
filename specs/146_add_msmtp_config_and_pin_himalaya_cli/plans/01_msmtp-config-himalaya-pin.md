@@ -1,7 +1,7 @@
 # Implementation Plan: Task #146
 
 - **Task**: 146 - Add msmtp config and pin Himalaya CLI
-- **Status**: [NOT STARTED]
+- **Status**: [IMPLEMENTING]
 - **Effort**: 3 hours
 - **Dependencies**: None (must land before the nvim repo's task 719 exercises its send path)
 - **Research Inputs**: specs/146_add_msmtp_config_and_pin_himalaya_cli/reports/01_msmtp-config-himalaya-pin.md
@@ -128,34 +128,34 @@ No roadmap context was supplied for this dispatch.
 
 Phases within the same wave can execute in parallel.
 
-### Phase 1: Pin Himalaya at v1.2.0 via Dedicated Flake Input [NOT STARTED]
+### Phase 1: Pin Himalaya at v1.2.0 via Dedicated Flake Input [COMPLETED]
 
 **Goal**: `pkgs.himalaya` comes from a frozen nixpkgs revision with the two cargo features, and
 `email-tools.nix` consumes it; the installed store path does not change.
 
 **Tasks**:
-- [ ] Record the baseline before editing: evaluate the out path of the current expression
+- [x] Record the baseline before editing: evaluate the out path of the current expression
   (`pkgs-unstable.himalaya` with the appended `--features=oauth2,keyring`) and the output of
   `himalaya --version`. Keep both for the after-comparison.
-- [ ] `flake.nix`: add input
+- [x] `flake.nix`: add input
   `nixpkgs-himalaya.url = "github:NixOS/nixpkgs/567a49d1913ce81ac6e9582e3553dd90a955875f";`
   with a comment stating that it is frozen on purpose, that `nix flake update` cannot move it,
   and that it may move only once the email wrappers (`modules/home/email/agent-tools/`) are
   ported to the newer CLI. State the current design only; no history narration.
-- [ ] `flake.nix`: add `nixpkgs-himalaya` to the `outputs` argument set; define
+- [x] `flake.nix`: add `nixpkgs-himalaya` to the `outputs` argument set; define
   `himalayaPinOverlay = import ./overlays/himalaya-pin.nix nixpkgs-himalaya.legacyPackages.${system};`
   next to the other overlay imports and append it to `nixpkgsConfig.overlays`.
-- [ ] Create `overlays/himalaya-pin.nix` (Write tool): header comment, then
+- [x] Create `overlays/himalaya-pin.nix` (Write tool): header comment, then
   `pkgs-himalaya: _final: _prev: { himalaya = pkgs-himalaya.himalaya.overrideAttrs (old: { cargoBuildFlags = (old.cargoBuildFlags or [ ]) ++ [ "--features=oauth2,keyring" ]; }); }`.
-- [ ] `git add -- overlays/himalaya-pin.nix` so flake evaluation sees it.
-- [ ] `nix flake lock` (not `nix flake update`) so only the `nixpkgs-himalaya` node is added to
+- [x] `git add -- overlays/himalaya-pin.nix` so flake evaluation sees it.
+- [x] `nix flake lock` (not `nix flake update`) so only the `nixpkgs-himalaya` node is added to
   `flake.lock`; confirm with `git diff --stat flake.lock` that no existing node's `rev` changed.
-- [ ] `modules/home/packages/email-tools.nix`: replace the
+- [x] `modules/home/packages/email-tools.nix`: replace the
   `pkgs-unstable.himalaya.overrideAttrs (...)` expression with plain `himalaya` and a comment
   pointing at `overlays/himalaya-pin.nix`. Keep `pkgs-unstable` in the argument set (still used
   by `isync`). Leave the bare msmtp line for Phase 2.
-- [ ] Run `nixfmt` on the touched `.nix` files.
-- [ ] Verify (below), then commit.
+- [x] Run `nixfmt` on the touched `.nix` files.
+- [x] Verify (below), then commit.
 
 **Timing**: 1 hour
 

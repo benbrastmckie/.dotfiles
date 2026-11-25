@@ -7,6 +7,12 @@
     # unstable to feed pkgs-unstable + nix-ai-tools.
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Frozen on purpose: this input names an exact nixpkgs revision, so `nix flake update`
+    # cannot move it. It exists only to supply the Himalaya CLI at v1.2.0 with its `oauth2`
+    # and `keyring` cargo features (overlays/himalaya-pin.nix); later upstream releases drop
+    # both features and change the command tree. Move it only once the email wrappers in
+    # modules/home/email/agent-tools/ are ported to the newer CLI.
+    nixpkgs-himalaya.url = "github:NixOS/nixpkgs/567a49d1913ce81ac6e9582e3553dd90a955875f";
     # NOTE: this input floats on leanprover/lean4's default branch and is NOT the toolchain
     # source for the Comparator proof-verification packaging (packages/comparator.nix,
     # packages/lean-toolchain-bin.nix). That packaging fetches a specific, pinned release
@@ -56,6 +62,7 @@
       self,
       nixpkgs,
       nixpkgs-unstable,
+      nixpkgs-himalaya,
       home-manager,
       niri,
       lectic,
@@ -87,6 +94,8 @@
       # unstable-packages overlay is curried: it needs pkgs-unstable partially applied
       unstablePackagesOverlay = import ./overlays/unstable-packages.nix pkgs-unstable;
       pythonPackagesOverlay = import ./overlays/python-packages.nix;
+      # himalaya-pin overlay is curried: it needs the frozen package set partially applied
+      himalayaPinOverlay = import ./overlays/himalaya-pin.nix nixpkgs-himalaya.legacyPackages.${system};
 
       # Common nixpkgs configuration
       nixpkgsConfig = {
@@ -98,6 +107,7 @@
           claudeSquadOverlay
           unstablePackagesOverlay
           pythonPackagesOverlay
+          himalayaPinOverlay
         ];
       };
 

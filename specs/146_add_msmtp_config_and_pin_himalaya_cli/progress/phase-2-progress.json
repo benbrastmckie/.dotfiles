@@ -1,0 +1,16 @@
+{
+  "phase": 2,
+  "phase_name": "Declarative msmtp.nix Module for Gmail and Logos",
+  "started_at": "2026-11-25T19:59:57Z",
+  "last_updated": "2026-11-25T19:59:57Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Declarative module for Gmail and Logos \u2014 file changes",
+      "status": "in_progress",
+      "files_touched": []
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

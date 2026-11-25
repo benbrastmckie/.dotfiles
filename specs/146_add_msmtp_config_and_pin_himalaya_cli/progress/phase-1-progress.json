@@ -1,0 +1,21 @@
+{
+  "phase": 1,
+  "phase_name": "Pin Himalaya at v1.2.0 via Dedicated Flake Input",
+  "started_at": "2026-11-25T19:55:40Z",
+  "last_updated": "2026-11-25T19:59:57Z",
+  "objectives": [
+    {
+      "id": 1,
+      "description": "Pin Himalaya at v1.2.0 via Dedicated Flake Input \u2014 file changes",
+      "status": "completed",
+      "files_touched": [
+        "flake.nix",
+        "flake.lock",
+        "overlays/himalaya-pin.nix",
+        "modules/home/packages/email-tools.nix"
+      ]
+    }
+  ],
+  "current_objective": 1,
+  "handoff_count": 0
+}

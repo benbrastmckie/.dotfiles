@@ -24,7 +24,7 @@ next_project_number: 147
 125 [PARTIAL] — Contain every Claude Code session in its own systemd user...
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the...
 133 [NOT STARTED] — Conduct systematic research, both locally (audit current...
-146 [PLANNED] — Add a declarative msmtp configuration and pin the Himalaya...
+146 [IMPLEMENTING] — Add a declarative msmtp configuration and pin the Himalaya...
 
 ### Nix Infrastructure
 
@@ -61,7 +61,7 @@ next_project_number: 147
 ## Tasks
 
 ### 146. Add msmtp config and pin himalaya cli
-- **Status**: [PLANNED]
+- **Status**: [IMPLEMENTING]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None

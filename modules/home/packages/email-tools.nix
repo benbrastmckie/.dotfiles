@@ -7,10 +7,9 @@
     mailutils # Email utilities
     # protonmail-bridge is now managed by services.protonmail-bridge
 
-    # Himalaya email client with full feature set
-    (pkgs-unstable.himalaya.overrideAttrs (oldAttrs: {
-      cargoBuildFlags = (oldAttrs.cargoBuildFlags or [ ]) ++ [ "--features=oauth2,keyring" ];
-    })) # Himalaya with OAuth2 support
+    # Himalaya email client, held at v1.2.0 with the oauth2 and keyring features by
+    # overlays/himalaya-pin.nix (frozen `nixpkgs-himalaya` flake input)
+    himalaya
 
     # Custom cyrus-sasl with XOAUTH2 plugin built-in and mbsync with proper linking
     (
