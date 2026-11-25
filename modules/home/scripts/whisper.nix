@@ -66,8 +66,18 @@
         touch "$LOCK_FILE"
         ${pkgs.libnotify}/bin/notify-send "Dictation" "Recording... (press again to stop)" -t 2000 -i audio-input-microphone
 
-        # Record audio (using PipeWire)
-        ${pkgs.pipewire}/bin/pw-record --format=s16 --rate=16000 --channels=1 "$AUDIO_FILE" &
+        # Record audio (using PipeWire).
+        #
+        # Critical: `media.role = dictation` marks this capture so
+        # services/lib/video-call-active.nix does not read it as a call in progress. Without the
+        # marker, pressing the dictation key starts the unattended meeting recorder (measured:
+        # the predicate reported `call active (pw-cat)` and the recorder started 12s later),
+        # which then records the room and the system audio until dictation stops.
+        #
+        # `-P` sets it on the NODE. The meeting recorder marks itself through `PULSE_PROP`,
+        # which lands on the CLIENT instead; the predicate checks both, so either API works.
+        ${pkgs.pipewire}/bin/pw-record -P '{ media.role = dictation }' \
+          --format=s16 --rate=16000 --channels=1 "$AUDIO_FILE" &
       fi
     '')
 

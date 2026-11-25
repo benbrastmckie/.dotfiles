@@ -68,6 +68,27 @@
 # evidence of a call. It is also structural rather than a binary-name blacklist -- excluding
 # `ffmpeg` by name would break any legitimate ffmpeg capture, which is exactly the failure mode
 # the daemon exclusion above is written to avoid.
+#
+# == Dictation is not a call either ==
+#
+# The same trap, one step out: scripts/whisper.nix dictates by capturing the microphone, so it
+# satisfies this test too. Measured: with `pw-record` running, this predicate reported
+# `call active (pw-cat)` and the recorder started 12 seconds later -- a push-to-talk key was
+# enough to start recording the room and the system audio. The 90-second floor in
+# services/meeting-recorder.nix discards a short one AFTER the fact, which is not the same as
+# not recording it.
+#
+# Dictation opts out through the same marker, so the ignore list is a list rather than one value.
+# Both halves of the lookup are load-bearing, because the two mechanisms land the property in
+# DIFFERENT places (verified in a live `pw-dump`):
+#   - `PULSE_PROP=media.role=...` (libpulse apps, e.g. the recorder's ffmpeg) -> the CLIENT object.
+#   - `pw-record -P '{ media.role = ... }'` (native PipeWire clients) -> the NODE object.
+# Checking only one silently misses every consumer that uses the other API.
+#
+# Not every capture can be marked: an application that opens the microphone on its own, such as
+# Claude Code's hold-to-talk voice mode, cannot be told to tag itself from here. That is what
+# `sustainedSeconds` in services/meeting-recorder.nix is for -- a separate, app-agnostic guard
+# that a brief press cannot satisfy.
 { pkgs }:
 let
   # Upper bound on the carve-out, in seconds of continuous *real input* idleness (keyboard and
@@ -102,11 +123,13 @@ pkgs.writeShellScript "video-call-active" ''
   # ----------------------------------------------------------------------------------------
   holders=$("$pw_dump" 2>/dev/null | "$jq" -r '
     . as $all
+    | ["meeting-recorder", "dictation"] as $ignore
     | [ $all[]
         | select(.type == "PipeWire:Interface:Node")
         | select(.info.props["media.class"] == "Stream/Input/Audio")
         | select(.info.state == "running")
         | select((.info.props["node.link-group"] // "") | test("^(filter-chain|loopback)") | not)
+        | ( .info.props["media.role"] // "" ) as $noderole
         | .info.props["client.id"] as $cid
         | ( [ $all[]
               | select(.type == "PipeWire:Interface:Client")
@@ -114,7 +137,9 @@ pkgs.writeShellScript "video-call-active" ''
         | ( $client.info.props["application.process.binary"] ) as $bin
         | select($bin != null)
         | select(["pipewire", "wireplumber", "pipewire-pulse"] | index($bin) | not)
-        | select(($client.info.props["media.role"] // "") == "meeting-recorder" | not)
+        | ( $client.info.props["media.role"] // "" ) as $clientrole
+        | select($ignore | index($noderole) | not)
+        | select($ignore | index($clientrole) | not)
         | $bin
       ] | unique | .[]
   ' 2>/dev/null) || holders=""

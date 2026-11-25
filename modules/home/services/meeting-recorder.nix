@@ -150,11 +150,35 @@ in
 
     interval = lib.mkOption {
       type = lib.types.str;
-      default = "30s";
+      default = "15s";
       description = ''
-        How often to re-check whether a call is in progress. Looser than the keepalive's 15s
-        because nothing here is racing a 5-minute screen blank -- the cost of a slow tick is
-        only up to this much missing from the start of a recording.
+        How often to re-check whether a call is in progress. Matches the keepalive's cadence so
+        `sustainedSeconds` below can be enforced at a useful resolution; the probe is one
+        `pw-dump` plus one DBus call.
+      '';
+    };
+
+    sustainedSeconds = lib.mkOption {
+      type = lib.types.int;
+      default = 30;
+      description = ''
+        How long a call must have been detected CONTINUOUSLY before recording starts. A brief
+        microphone capture never reaches this, so it never produces a recording at all.
+
+        This exists for captures that cannot be marked. Dictation opts out of detection
+        directly (scripts/whisper.nix tags its stream, see lib/video-call-active.nix), but an
+        application that opens the microphone on its own -- Claude Code's hold-to-talk voice
+        mode is the case in hand -- cannot be told to tag itself from here. Hold-to-talk bursts
+        last seconds; a meeting trivially clears 30.
+
+        The cost is stated plainly: the opening of a real meeting is lost, up to
+        `sustainedSeconds` plus one `interval`. Set it to 0 to record from the first tick that
+        sees a call, which is the behaviour before this option existed.
+
+        Note this is a different guard from `minimumSeconds`, and the difference is the point:
+        `minimumSeconds` discards a short recording AFTER it has been written to disk, while
+        this one prevents the recording from starting. For audio you would rather not capture
+        at all, only this one helps.
       '';
     };
   };
@@ -291,12 +315,37 @@ in
                 script = pkgs.writeShellScript "meeting-record-monitor" ''
                   set -u
                   systemctl=${pkgs.systemd}/bin/systemctl
+                  date=${pkgs.coreutils}/bin/date
+                  rm=${pkgs.coreutils}/bin/rm
+
+                  # When the current run of call-detection began. In the runtime directory, so a
+                  # reboot or a logout starts the count over rather than resuming a stale run.
+                  seen="''${XDG_RUNTIME_DIR:-/tmp}/meeting-record-first-seen"
 
                   # start/stop are idempotent and silent on a no-op, so this runs every tick
                   # without logging churn -- systemd records only a real state transition.
                   if ${videoCallActive}; then
-                    exec "$systemctl" --user start meeting-record.service
+                    now="$("$date" +%s)"
+                    [ -f "$seen" ] || printf '%s\n' "$now" > "$seen"
+                    first="$(cat "$seen" 2>/dev/null)"
+                    # A truncated or garbled stamp restarts the count rather than being treated
+                    # as "long ago", which would start recording immediately.
+                    case "$first" in
+                      "" | *[!0-9]*)
+                        first="$now"
+                        printf '%s\n' "$now" > "$seen"
+                        ;;
+                    esac
+                    if [ "$(( now - first ))" -ge ${toString cfg.sustainedSeconds} ]; then
+                      exec "$systemctl" --user start meeting-record.service
+                    fi
+                    # Detected, but not yet sustained: record nothing and leave the stamp for
+                    # the next tick. Deliberately NOT a stop -- a recording already running is
+                    # past this gate and must not be torn down by it.
+                    exit 0
                   fi
+
+                  "$rm" -f "$seen"
                   exec "$systemctl" --user stop meeting-record.service
                 '';
               in
