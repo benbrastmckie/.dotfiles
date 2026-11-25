@@ -1,6 +1,7 @@
 # VoxCPM2 voice-cloning TTS — GPU access and the `voxcpm` CLI.
-# Optional/host-toggled module: opt in explicitly per host via programs.voxcpm.enable
-# (see hosts/nandi/default.nix + flake.nix extraModules), following the same arrangement as
+# Optional/host-toggled module: opt in explicitly per host via programs.voxcpm.enable, which
+# any host with an AMD GPU can do by importing this file -- hosts/hamsa/default.nix does so
+# today (see also flake.nix extraModules). Follows the same arrangement as
 # optional/discord-bot.nix.
 #
 # It is opt-in rather than part of modules/system/packages.nix because of what it weighs. The

@@ -10,8 +10,12 @@
 # 6.x, which fails on this iGPU with `HIP error: invalid device function`. It is not true of the
 # 7.2.3 that this repo's pinned nixpkgs carries. Two facts, both checkable:
 #
-#   nix eval  .#nixosConfigurations.nandi.pkgs.rocmPackages.clr.gpuTargets  -> includes gfx1150
-#   grep PYTORCH_ROCM_ARCH <the torch drv>                                 -> includes gfx1150
+#   nix eval .#nixosConfigurations."$(hostname)".pkgs.rocmPackages.clr.gpuTargets
+#       -> the ROCm runtime's target list, which includes gfx1150
+#   the torch .drv, grepped for its semicolon-joined arch list -- NOT for PYTORCH_ROCM_ARCH,
+#   whose value is backslash-escaped there, so a match from the variable name stops at the
+#   escape; docs/voxcpm.md has the working one-liner
+#       -> the list torch was compiled for, which also includes gfx1150
 #
 # So the Radeon 890M (gfx1150) is a first-class target in a torch that Hydra already built:
 # `nix build --dry-run` on this derivation's python env fetches ~5.1 GiB and compiles nothing.

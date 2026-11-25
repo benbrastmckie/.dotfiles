@@ -50,14 +50,15 @@ Chatterbox was also considered and is retired upstream as of August 2026.
 Search results will tell you ROCm does not support Strix Point. That was true of ROCm 6.x, which
 fails on this iGPU with `HIP error: invalid device function`, and it is the single most
 misleading thing you will read about this hardware. This repository's pinned nixpkgs carries
-ROCm 7.2.3, where `gfx1150` is a first-class target. Both halves are checkable:
+ROCm 7.2.3, where `gfx1150` is a first-class target. Both halves are checkable, on whichever
+host of this flake you are on:
 
 ```bash
 # The ROCm runtime's target list
-nix eval .#nixosConfigurations.hamsa.pkgs.rocmPackages.clr.gpuTargets   # includes gfx1150
+nix eval .#nixosConfigurations."$(hostname)".pkgs.rocmPackages.clr.gpuTargets  # has gfx1150
 
 # The arch list torch itself was compiled for
-nix eval --raw .#nixosConfigurations.hamsa.pkgs.python3Packages.torchWithRocm.drvPath \
+nix eval --raw .#nixosConfigurations."$(hostname)".pkgs.python3Packages.torchWithRocm.drvPath \
   | xargs grep -ao 'gfx[0-9]*;[^\\"]*' | head -1
 # -> gfx900;gfx906;...;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201
 ```
