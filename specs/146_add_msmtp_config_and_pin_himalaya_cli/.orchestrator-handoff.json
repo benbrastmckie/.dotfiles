@@ -1,16 +1,26 @@
 {
-  "status": "planned",
-  "phase": "plan",
-  "summary": "Wrote a 4-phase, 3-hour sequential plan from the research report: a frozen nixpkgs-himalaya flake input plus overlay, a programs.msmtp module with envelope-from account selection, doc updates, and a final build, user-level activation, and hand-off phase. Description premises were re-checked against live files and confirmed. One issue was recorded: the mail-guard hook matches guarded tokens anywhere in a Bash command, which constrains how the implementer writes files and commit messages.",
+  "status": "implemented",
+  "phase": "implement",
+  "summary": "All 4 phases done. Himalaya is held at v1.2.0 by a frozen nixpkgs-himalaya flake input plus overlays/himalaya-pin.nix (out path identical to the pre-change one), and modules/home/email/msmtp.nix generates ~/.config/msmtp/config with gmail and logos accounts selected by envelope-from. nix flake check, the standalone home build and the hamsa system build all pass; the user-level generation is activated. verify-touched.sh exited 1 on agent-system suites under .claude/scripts with a touched set of two specs paths only; the full gate is deferred to the batch stage. Live sender checks and sudo nixos-rebuild switch remain user steps.",
   "artifacts": [
     {
-      "type": "plan",
-      "path": "specs/146_add_msmtp_config_and_pin_himalaya_cli/plans/01_msmtp-config-himalaya-pin.md",
-      "summary": "4-phase implementation plan for the himalaya pin and the declarative msmtp config."
+      "type": "implementation",
+      "path": "overlays/himalaya-pin.nix",
+      "summary": "Curried overlay supplying himalaya v1.2.0 with oauth2 and keyring features from the frozen input"
+    },
+    {
+      "type": "implementation",
+      "path": "modules/home/email/msmtp.nix",
+      "summary": "Home Manager module generating the sendmail-style config with gmail and logos accounts"
+    },
+    {
+      "type": "summary",
+      "path": "specs/146_add_msmtp_config_and_pin_himalaya_cli/summaries/01_msmtp-config-himalaya-pin-summary.md",
+      "summary": "Implementation summary with verification results and user-run steps"
     }
   ],
-  "phases_completed": 0,
+  "phases_completed": 4,
   "phases_total": 4,
   "blockers": [],
-  "dispatch_seq": 2
+  "dispatch_seq": 3
 }

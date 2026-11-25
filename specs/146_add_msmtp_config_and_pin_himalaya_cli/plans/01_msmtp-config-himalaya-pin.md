@@ -314,28 +314,28 @@ at the final phase.
 
 ---
 
-### Phase 4: Build Both Home Paths, Activate User Generation, Hand Off Live Checks [NOT STARTED]
+### Phase 4: Build Both Home Paths, Activate User Generation, Hand Off Live Checks [COMPLETED]
 
 **Goal**: Whole-configuration verification, user-level activation, and an explicit hand-off of
 the checks only the user can run.
 
 **Tasks**:
-- [ ] `nix flake check` on the final tree.
-- [ ] `nixos-rebuild build --flake .#hamsa` (build only, no sudo) with the out-link in a scratch
+- [x] `nix flake check` on the final tree.
+- [x] `nixos-rebuild build --flake .#hamsa` (build only, no sudo) with the out-link in a scratch
   directory, or equivalently
   `nix build .#nixosConfigurations.hamsa.config.system.build.toplevel -o <scratch>/sys-result`.
-- [ ] `nix build .#homeConfigurations.benjamin.activationPackage -o <scratch>/hm-result` and
+- [x] `nix build .#homeConfigurations.benjamin.activationPackage -o <scratch>/hm-result` and
   re-assert the rendered config as in Phase 2.
-- [ ] Confirm the email wrapper binaries are present in `<scratch>/hm-result/home-path/bin/`
+- [x] Confirm the email wrapper binaries are present in `<scratch>/hm-result/home-path/bin/`
   and that `git diff <phase-1-parent>..HEAD --stat` touches none of
   `modules/home/email/agent-tools/`, `modules/home/email/aerc.nix`, `mbsync.nix`,
   `mail-sync.nix`, `config/himalaya-config.toml`, or `.claude/hooks/mail-guard.sh`.
-- [ ] Before activating, check `~/.config/msmtp/config`: if it exists and is not a symlink into
+- [x] Before activating, check `~/.config/msmtp/config`: if it exists and is not a symlink into
   the Nix store, stop, report it as a blocker, and do not move or overwrite it.
-- [ ] `home-manager switch --flake .#benjamin`.
-- [ ] After the switch: `himalaya --version` reports v1.2.0 with `+oauth2 +keyring`, matching the
+- [x] `home-manager switch --flake .#benjamin`.
+- [x] After the switch: `himalaya --version` reports v1.2.0 with `+oauth2 +keyring`, matching the
   Phase 1 baseline; `readlink -f ~/.config/msmtp/config` resolves into the Nix store.
-- [ ] In the implementation summary, list for the user: the four per-account commands and the
+- [x] In the implementation summary, list for the user: the four per-account commands and the
   envelope-from command from the docs section added in Phase 3, the pending
   `sudo nixos-rebuild switch --flake .#hamsa`, and the note that the nvim repo's send path can
   now be exercised once those checks pass.
@@ -365,6 +365,8 @@ the built profile; report the enumerated names rather than asserting the count.
   notes. In a standalone, non-orchestrated run, run `bash .claude/scripts/verify-deploy.sh`
   directly.
 - The summary contains the user-run command list and the pending system-level switch.
+
+**Verification notes (this dispatch)**: the complete gate set was deferred to the batch stage and not run here. Scoped discharge: `nix flake check` run directly (exit 0) and `bash .claude/scripts/verify-touched.sh` (exit 1). The touched set it derived was `specs/.gitignore` and this plan file only; its selected pass was 16 of 19 and its OWED free-class fallback 73 of 86 with 10 skipped. Every failing suite tests deployed agent-system scripts under `.claude/scripts/`; causes were not established. See the summary's "Scoped gate" section.
 
 ## Testing & Validation
 
