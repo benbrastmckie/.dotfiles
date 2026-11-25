@@ -11,7 +11,7 @@ next_project_number: 147
 **Dependency Waves**:
 | Wave | Tasks | Blocked by | Topics |
 |------|-------|------------|--------|
-| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,145,146 | -- | nixos-config, nix-infrastructure, services, ... |
+| 1 | 15,19,23,41,42,43,46,67,68,77,124,125,126,131,133,145 | -- | nixos-config, nix-infrastructure, services, ... |
 | 2 | 117,120 | 77,124 | nixos-config, desktop |
 | 3 | 78 | 120 | desktop |
 
@@ -24,7 +24,6 @@ next_project_number: 147
 125 [PARTIAL] — Contain every Claude Code session in its own systemd user...
 126 [NOT STARTED] — Run the flake formatter over the whole tree and commit the...
 133 [NOT STARTED] — Conduct systematic research, both locally (audit current...
-146 [IMPLEMENTING] — Add a declarative msmtp configuration and pin the Himalaya...
 
 ### Nix Infrastructure
 
@@ -61,12 +60,13 @@ next_project_number: 147
 ## Tasks
 
 ### 146. Add msmtp config and pin himalaya cli
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Task Type**: nix
 - **Topic**: nixos-config
 - **Dependencies**: None
 - **Research**: [146_add_msmtp_config_and_pin_himalaya_cli/reports/01_msmtp-config-himalaya-pin.md]
 - **Plan**: [146_add_msmtp_config_and_pin_himalaya_cli/plans/01_msmtp-config-himalaya-pin.md]
+- **Summary**: [overlays/himalaya-pin.nix]
 
 **Description**: Add a declarative msmtp configuration and pin the Himalaya CLI at v1.2.0. (1) msmtp: declare ~/.config/msmtp/config via home-manager (new module under modules/home/email/, imported alongside mbsync.nix/notmuch.nix/aerc.nix) with two accounts mirroring aerc's outgoing settings in modules/home/email/aerc.nix: gmail (smtp.gmail.com:465, implicit TLS, user benbrastmckie@gmail.com, passwordeval `secret-tool lookup service gmail-app-password username benbrastmckie@gmail.com`) and logos (127.0.0.1:1025 Proton Bridge, user benjamin@logos-labs.ai, passwordeval `secret-tool lookup service protonmail-bridge username benjamin@logos-labs.ai`; research must determine the bridge's TLS/STARTTLS and cert-trust requirements rather than guess). Account selection must work by envelope-from, because the consumer (notmuch.nvim in the ~/.config/nvim repo) hardcodes `msmtp -t --read-envelope-from`; set a sensible default account. The msmtp binary is currently installed bare from modules/home/packages/email-tools.nix with no config file anywhere; avoid a duplicate package declaration if programs.msmtp is used. Verify without sending real mail (e.g. `msmtp --pretend` / `--serverinfo` per account). (2) Himalaya pin: modules/home/packages/email-tools.nix builds `pkgs-unstable.himalaya` with `--features=oauth2,keyring`; upstream v2.0.0 removed both features and changed commands (v3.0.0 also renames --json keys), while email-delete-confirmed and modules/home/email/agent-tools/lib.nix call the v1 CLI directly (`himalaya message delete`, `folder expunge`, `envelope list -o json`, `message read -p -H`). Pin the package to v1.2.0 so a nixpkgs-unstable bump cannot break the build or the email wrappers, choosing the pin mechanism in research (pinned nixpkgs rev input vs. overriding src/cargoHash), and leave config/himalaya-config.toml in place. Constraints: the five email wrapper binaries, the mail-guard hook, mbsync/mail-sync, and aerc must keep working unchanged; build-verify with the flake before completion. Cross-repo ordering note: this must land before the nvim repo's task 719 (install notmuch.nvim and build the data-layer adapter) exercises its send path
 

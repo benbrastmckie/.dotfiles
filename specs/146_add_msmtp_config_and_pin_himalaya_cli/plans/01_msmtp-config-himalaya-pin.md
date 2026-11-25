@@ -1,7 +1,7 @@
 # Implementation Plan: Task #146
 
 - **Task**: 146 - Add msmtp config and pin Himalaya CLI
-- **Status**: [IMPLEMENTING]
+- **Status**: [COMPLETED]
 - **Effort**: 3 hours
 - **Dependencies**: None (must land before the nvim repo's task 719 exercises its send path)
 - **Research Inputs**: specs/146_add_msmtp_config_and_pin_himalaya_cli/reports/01_msmtp-config-himalaya-pin.md
