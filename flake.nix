@@ -89,6 +89,23 @@
         };
       };
 
+      # A second nixpkgs instance with ROCm as the build default, for the one consumer that
+      # needs torch, torchaudio and torchcodec to agree on a single ROCm torch
+      # (overlays/voxcpm-rocm.nix explains why `torchWithRocm` alone cannot do that).
+      #
+      # Its config is spelled out here rather than derived from nixpkgsConfig below, which
+      # would be a cycle: nixpkgsConfig.overlays contains an overlay built FROM this instance.
+      # Laziness happens to survive it today, but only because recursiveUpdate does not force
+      # the overlay list's elements -- not a property to build on. No overlays are passed for
+      # the same reason, and because this instance needs stock python3Packages.
+      pkgs-rocm = import nixpkgs {
+        inherit system;
+        config = {
+          allowUnfree = true;
+          rocmSupport = true;
+        };
+      };
+
       # Import overlays from dedicated files
       claudeSquadOverlay = import ./overlays/claude-squad.nix;
       # unstable-packages overlay is curried: it needs pkgs-unstable partially applied
@@ -96,6 +113,8 @@
       pythonPackagesOverlay = import ./overlays/python-packages.nix;
       # himalaya-pin overlay is curried: it needs the frozen package set partially applied
       himalayaPinOverlay = import ./overlays/himalaya-pin.nix nixpkgs-himalaya.legacyPackages.${system};
+      # voxcpm-rocm overlay is curried the same way, with the rocmSupport package set above
+      voxcpmRocmOverlay = import ./overlays/voxcpm-rocm.nix pkgs-rocm;
 
       # Common nixpkgs configuration
       nixpkgsConfig = {
@@ -108,6 +127,7 @@
           unstablePackagesOverlay
           pythonPackagesOverlay
           himalayaPinOverlay
+          voxcpmRocmOverlay
         ];
       };
 
@@ -335,12 +355,51 @@
           '';
         };
 
-      devShells.${system}.default = pkgs.mkShellNoCC {
-        packages = [
-          pkgs.nixfmt
-          pkgs.statix
-          pkgs.deadnix
-        ];
+      devShells.${system} = {
+        default = pkgs.mkShellNoCC {
+          packages = [
+            pkgs.nixfmt
+            pkgs.statix
+            pkgs.deadnix
+          ];
+        };
+
+        # `nix develop .#voxcpm` -- for work that needs the interpreter itself rather than the
+        # `voxcpm` CLI: trying LoRA fine-tuning, reading the library's own source, or driving
+        # the model from a script of your own.
+        #
+        # It reuses the package's python env through passthru instead of restating the
+        # dependency list, so the shell and the CLI cannot drift apart. The venv bootstrap is
+        # NOT repeated here; run `voxcpm-benchmark` (or `voxcpm`) once to create it, then
+        # `source "$VOXCPM_VENV/bin/activate"` to get the five PyPI-only packages on sys.path
+        # too. Without that, `import voxcpm` fails and torch still works -- which is the right
+        # split for poking at torch/ROCm on its own.
+        voxcpm = pkgs-rocm.mkShellNoCC {
+          packages = [
+            pkgs.voxcpm
+            pkgs.voxcpm.passthru.pythonEnv
+            pkgs-rocm.rocmPackages.rocminfo
+            pkgs-rocm.rocmPackages.rocm-smi
+          ];
+
+          shellHook = ''
+            state="''${XDG_STATE_HOME:-$HOME/.local/state}/voxcpm"
+            export VOXCPM_VENV="$state/venv-${pkgs.voxcpm.version}"
+            export HF_HOME="$state/hf"
+            export MIOPEN_USER_DB_PATH="$state/miopen"
+            export MIOPEN_CUSTOM_CACHE_DIR="$state/miopen"
+            # Selects AOTriton's fused attention on RDNA 3.5; see packages/voxcpm.nix's
+            # prelude comment and docs/voxcpm.md for what it is and is not worth here.
+            export TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1
+            mkdir -p "$MIOPEN_USER_DB_PATH"
+
+            echo "voxcpm ${pkgs.voxcpm.version} dev shell (gfx1150 / ROCm)"
+            echo "  rocminfo | grep gfx            check the GPU is enumerated"
+            echo "  voxcpm-benchmark ref.wav       measure RTF (bootstraps the venv)"
+            echo "  voxcpm-benchmark ref.wav cpu   same, on CPU, to compare"
+            echo "  \$VOXCPM_VENV                   $VOXCPM_VENV"
+          '';
+        };
       };
     };
 }

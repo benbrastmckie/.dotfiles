@@ -37,6 +37,7 @@ This directory contains comprehensive documentation for the NixOS configuration 
 - **[sf1-hub.md](sf1-hub.md)** - SF-1 hub runner: room task cards run in worktrees behind a per-repo rule guard, the manual consent sequence, and the kill switch
 - **[terminal.md](terminal.md)** - WezTerm and Kitty terminal configuration
 - **[dictation.md](dictation.md)** - Whisper dictation system setup
+- **[voxcpm.md](voxcpm.md)** - Zero-shot voice cloning on the Radeon 890M via ROCm: why gfx1150 works, the two-instance nixpkgs arrangement, and the measured (power-capped, bimodal) performance
 - **[video-editing.md](video-editing.md)** - Video editing tools and workflow
 
 ### Development & Hardware

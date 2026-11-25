@@ -1,5 +1,12 @@
 # hamsa-specific NixOS configuration.
 _: {
+  # VoxCPM2 voice-cloning TTS on the Radeon 890M via ROCm. Enabled on hamsa only: this is the
+  # host with the gfx1150 iGPU the ROCm torch targets, and the closure is ~12.6 GiB unpacked,
+  # so it has no business on a host that cannot use it. See packages/voxcpm.nix and
+  # modules/system/optional/voxcpm.nix.
+  imports = [ ../../modules/system/optional/voxcpm.nix ];
+  programs.voxcpm.enable = true;
+
   # Optional Discord bot relay (discord-bot + opencode-serve services) -- currently DISABLED.
   # Uncomment both lines to re-enable (see modules/system/optional/discord-bot.nix,
   # docs/discord-bot.md, and .claude/rules/nix.md's Optional / Host-Toggled Modules convention).

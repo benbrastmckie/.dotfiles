@@ -94,6 +94,7 @@ These dotfiles provide a complete NixOS setup with:
 - [`docs/screen-recording.md`](docs/screen-recording.md): Screen capture tools and the boosted-microphone PipeWire filter chain
 - [`docs/meetily.md`](docs/meetily.md): Local AI meeting notes, audio capture requirements, and summary backends
 - [`docs/meeting-recorder.md`](docs/meeting-recorder.md): Unattended meeting capture and local transcription into `~/Meetings`
+- [`docs/voxcpm.md`](docs/voxcpm.md): Zero-shot voice cloning on the Radeon 890M via ROCm, and its measured performance limits
 - [`docs/testing.md`](docs/testing.md): Testing and validation procedures
 
 See [`docs/README.md`](docs/README.md) for complete documentation index.
@@ -172,6 +173,16 @@ Offline TTS and STT tools for AI assistant integration with declaratively manage
 - **Use cases**: Claude Code notifications, Neovim voice input, WezTerm integration
 
 Models are reproducibly installed to `~/.local/share/` after `home-manager switch`. See [`docs/applications.md`](docs/applications.md#text-to-speech--speech-to-text) for usage.
+
+### Voice Cloning (VoxCPM)
+Zero-shot voice cloning on hamsa's Radeon 890M iGPU through ROCm: 5-30 seconds of reference
+audio and a sentence in, 48 kHz speech in that voice out, with no training step and no
+transcript of the reference. Apache-2.0 on both code and weights, unlike the IndexTTS and
+F5-TTS alternatives.
+
+Enabled per host (`programs.voxcpm.enable`, hamsa only) because the ROCm closure is ~12.6 GiB.
+Works, but is power-capped to roughly 10x slower than real time with high variance — read
+[`docs/voxcpm.md`](docs/voxcpm.md) for the measured numbers before planning around it.
 
 ### Sapience (AI Knowledge Vault)
 Extracts durable facts from Claude Code and Codex session transcripts into a searchable vault,

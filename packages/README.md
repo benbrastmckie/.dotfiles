@@ -671,6 +671,61 @@ Home-manager symlinks to `~/.local/share/piper/`.
 **Update Process**: Re-run `nix-prefetch-url --type sha256 <url>` against the model/config URLs
 if HuggingFace content ever changes; update hashes accordingly.
 
+### voxcpm.nix
+Zero-shot voice-cloning TTS (OpenBMB VoxCPM2) running on this host's Radeon 890M through ROCm.
+Clones a voice from a 5–30 second reference clip with **no transcript and no training step**, and
+synthesises 48 kHz speech. Apache-2.0 on both code and weights — the reason it was chosen over
+IndexTTS (custom bilibili licence that forbids using it to improve any other model and covers
+your own LoRA fine-tunes) and F5-TTS (CC-BY-NC weights, from the scraped Emilia corpus).
+
+**Why the GPU path works at all**: the standing web advice that ROCm does not support Strix Point
+describes ROCm 6.x, which fails on this iGPU with `HIP error: invalid device function`. This
+repo's pinned nixpkgs carries 7.2.3, where `gfx1150` is in both `rocmPackages.clr.gpuTargets`
+and the torch derivation's `PYTORCH_ROCM_ARCH`. The full python env fetches ~5.1 GiB from the
+binary cache and compiles nothing. `HSA_OVERRIDE_GFX_VERSION` is deliberately **not** set —
+that override is for an arch absent from the build, and here the arch is natively supported.
+
+**Why a separate nixpkgs instance** (`overlays/voxcpm-rocm.nix`, curried like
+`himalaya-pin.nix`): `torchWithRocm` is `torch.override { rocmSupport = true; }`, so an env
+holding both it and `torchaudio` gets *two different torches* — torchaudio is built against the
+default one. Only `config.rocmSupport = true` across a whole package set makes torch, torchaudio
+and torchcodec agree. That flag is scoped to its own instance because putting it in flake.nix's
+shared `nixpkgsConfig` would mass-rebuild the system closure and silently turn the plain `torch`
+in `modules/home/packages/python.nix` into a 5 GiB ROCm build in every user profile.
+
+**Split dependency layer**: of voxcpm's 22 runtime deps, 18 are in nixpkgs including every
+compiled one, so they come from the cache. Four are packaged nowhere (`argbind`, `funasr`,
+`spaces`, `wetext`) and `datasets` is a real conflict (voxcpm needs `<4`, nixpkgs ships 4.5.0).
+Those five install from PyPI at first run into a venv created with `--system-site-packages`, so
+pip treats the Nix torch as satisfying `torch>=2.5.0` and does not pull its own CUDA wheel over
+the top. That shadowing is the one failure mode worth watching, which is why
+`voxcpm-benchmark` asserts `torch.version.hip` before measuring. Runtime-PyPI half follows the
+`aristotle.nix`/`zot.nix` precedent; it is explicitly not a reproducible build.
+
+**Entry points**: `voxcpm` (the CLI) and `voxcpm-benchmark <ref.wav> [cpu|cuda]`, which reports
+RTF over a warmup and a measured pass. The benchmark lives in this derivation rather than
+`scripts/` because it is useless without the wrapper's environment, and `writeShellApplication`
+shellchecks it at build time.
+
+**Measured performance**: RTF 6.4–30.6 across six passes (median 9.2), i.e. roughly 10x slower
+than real time at best, against upstream's ~0.3 on an RTX 4090. The spread is bimodal, not
+noise: the iGPU is capped at 24–25 W and oscillates between 600 MHz and ~1850 MHz against a
+2900 MHz ceiling, with the clock tracking inversely against CPU load. Full numbers, the clock
+telemetry behind them, and the levers not yet pulled (lower `inference_timesteps`, VoxCPM1.5,
+VoxCPM.cpp's Vulkan backend) are in `docs/voxcpm.md`.
+
+**Fine-tuning is not wired up**: upstream documents LoRA as needing ~20 GB VRAM at the default
+batch size, above what this GPU reaches through GTT (~15.3 GB, and that is system RAM). It needs
+a reduced `batch_size` and raised `grad_accum_steps` to fit. Zero-shot needs none of this.
+
+**Wired via**: `overlays/voxcpm-rocm.nix`, installed by the opt-in
+`modules/system/optional/voxcpm.nix` (`programs.voxcpm.enable`) — opt-in because the closure is
+~12.6 GiB unpacked and useless on a host with no AMD GPU. Dev shell: `nix develop .#voxcpm`.
+
+**Update Process**:
+1. `curl -sfL https://pypi.org/pypi/voxcpm/json | jq -r .info.version`
+2. Bump `version` in `voxcpm.nix`; the next invocation discards the old venv and rebootstraps.
+
 ### neovim.nix
 A wrapper around Neovim unstable that fixes missing maintainers metadata to prevent build errors.
 
