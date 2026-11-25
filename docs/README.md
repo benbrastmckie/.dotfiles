@@ -21,6 +21,7 @@ This directory contains comprehensive documentation for the NixOS configuration 
 
 ### Applications & Desktop
 - **[applications.md](applications.md)** - Application-specific configurations
+- **[aerc.md](aerc.md)** - aerc mail client: account tabs, the amber theme, and the full key-mapping cheat sheet
 - **[discord-bot.md](discord-bot.md)** - Discord bot infrastructure and secrets management
 - **[email-workflow.md](email-workflow.md)** - Wrapper-only AI-assisted email triage workflow
 - **[gnome-settings.md](gnome-settings.md)** - GNOME desktop settings and configuration

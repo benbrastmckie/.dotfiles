@@ -124,3 +124,4 @@ contains `msmtp` or `secret-tool`, so an agent cannot run them or stand in for t
 - `specs/072_email_workflow_infrastructure_prereqs/handoffs/mail-29-runbook.md` — the runbook
   for the actual Gmail backlog purge.
 - `docs/himalaya.md` — general Himalaya/mbsync/aerc setup (not agent-specific).
+- `docs/aerc.md` — aerc accounts, theme, and key-mapping cheat sheet.

@@ -28,6 +28,11 @@ let
   # architecture is intentional.
   foldersExclude = "~^Gmail,~^Logos";
 
+  # folders-sort, shared by both accounts.conf blocks: the sidebar reads as
+  # live views, then storage, then triage, instead of alphabetically. Names an
+  # account's query-map lacks are simply skipped.
+  foldersSort = "INBOX,Unread,Flagged,Drafts,Sent,All_Mail,Archive,Spam,Trash,Proposed-Delete,Proposed-Archive,Proposed-Unsure";
+
   # Generator for the per-account aerc query-map files. Both accounts share the
   # same virtual-folder shape; the intentional asymmetries (Gmail's Spam folder
   # and the Proposed-* triage views) are visible as data at the call sites.
@@ -66,18 +71,31 @@ in
         default-save-path = "~/Downloads";
       };
       ui = {
-        index-columns = "date<20,name<20,flags>4,subject<*";
+        # Subject gets the flexible middle; the date sits flush right so the
+        # eye scans one ragged edge instead of two.
+        index-columns = "flags:4,name<22,subject<*,date>=";
         column-separator = "  ";
         timestamp-format = "2006-01-02 15:04";
         this-day-time-format = "15:04";
         this-week-time-format = "Mon 15:04";
         this-year-time-format = "Jan 02";
-        sidebar-width = 20;
+        # Wide enough for the longest query-map name (Proposed-Archive) plus
+        # its unread count.
+        sidebar-width = 24;
+        # Account tabs carry the INBOX unread count, so a glance at the tab
+        # strip shows which account needs attention.
+        tab-title-account = "{{.Account}}{{if .Unread \"INBOX\"}} ({{.Unread \"INBOX\"}}){{end}}";
+        # Replies nest under their parent; zt/zc/zo (see `messages` binds)
+        # toggle threading and fold or unfold the thread under the cursor.
+        threading-enabled = true;
+        msglist-scroll-offset = 3;
+        fuzzy-complete = true;
         empty-message = "(no messages)";
         empty-dirlist = "(no folders)";
         mouse-enabled = false;
         new-message-bell = true;
-        styleset-name = "default";
+        # Defined under `stylesets` below.
+        styleset-name = "amber";
       };
       viewer = {
         pager = "less -R";
@@ -115,6 +133,111 @@ in
         "image/*" = "imv";
       };
     };
+    # The `amber` styleset: the WezTerm/Kitty palette from config/wezterm.lua
+    # (background #202020, foreground #d0d0d0, amber #e5b566 accent), so aerc's
+    # selected tab matches the terminal's own active-tab colour. Backgrounds are
+    # left unset except on selections and bars, so the terminal's background
+    # opacity shows through.
+    stylesets.amber = ''
+      *.default=true
+      *.normal=true
+
+      default.fg=#d0d0d0
+
+      error.fg=#ac4142
+      error.bold=true
+      warning.fg=#e5b566
+      success.fg=#7e8d50
+
+      title.fg=#151515
+      title.bg=#e5b566
+      title.bold=true
+      header.fg=#6c99ba
+      header.bold=true
+
+      tab.fg=#808080
+      tab.bg=#1a1a1a
+      tab.selected.fg=#151515
+      tab.selected.bg=#e5b566
+      tab.selected.bold=true
+
+      border.fg=#404040
+      spinner.fg=#e5b566
+
+      msglist_read.fg=#909090
+      msglist_unread.fg=#f5f5f5
+      msglist_unread.bold=true
+      msglist_flagged.fg=#e5b566
+      msglist_answered.fg=#7e8d50
+      msglist_forwarded.fg=#7dd5cf
+      msglist_deleted.fg=#505050
+      msglist_marked.fg=#151515
+      msglist_marked.bg=#6c99ba
+      msglist_result.fg=#7dd5cf
+      msglist_result.bold=true
+      msglist_thread_folded.fg=#9e4e85
+      msglist_thread_context.fg=#606060
+      msglist_gutter.bg=#1a1a1a
+      msglist_pill.bg=#505050
+      msglist_*.selected.bg=#303030
+      msglist_*.selected.bold=true
+      msglist_marked.selected.bg=#4a6f8a
+
+      dirlist_default.fg=#a0a0a0
+      dirlist_unread.fg=#f5f5f5
+      dirlist_unread.bold=true
+      dirlist_recent.fg=#e5b566
+      dirlist_*.selected.fg=#e5b566
+      dirlist_*.selected.bg=#303030
+      dirlist_*.selected.bold=true
+
+      statusline_default.fg=#a0a0a0
+      statusline_default.bg=#2a2a2a
+      statusline_error.fg=#ac4142
+      statusline_error.bg=#2a2a2a
+      statusline_error.bold=true
+      statusline_success.fg=#7e8d50
+      statusline_success.bg=#2a2a2a
+
+      completion_default.bg=#2a2a2a
+      completion_default.selected.fg=#151515
+      completion_default.selected.bg=#e5b566
+      completion_description.fg=#808080
+      completion_description.bg=#2a2a2a
+      completion_gutter.bg=#2a2a2a
+      completion_pill.bg=#505050
+
+      part_switcher.fg=#808080
+      part_filename.fg=#a0a0a0
+      part_mimetype.fg=#606060
+      part_*.selected.fg=#e5b566
+      part_*.selected.bold=true
+
+      selector_default.fg=#a0a0a0
+      selector_focused.fg=#151515
+      selector_focused.bg=#e5b566
+      selector_focused.bold=true
+      selector_chooser.bold=true
+
+      [viewer]
+      url.fg=#6c99ba
+      url.underline=true
+      header.fg=#e5b566
+      header.bold=true
+      signature.fg=#606060
+      diff_meta.bold=true
+      diff_chunk.fg=#6c99ba
+      diff_chunk_func.fg=#6c99ba
+      diff_chunk_func.bold=true
+      diff_add.fg=#7e8d50
+      diff_del.fg=#ac4142
+      quote_1.fg=#6c99ba
+      quote_2.fg=#7e8d50
+      quote_3.fg=#9e4e85
+      quote_4.fg=#7dd5cf
+      quote_x.fg=#808080
+    '';
+
     extraBinds = {
       # Global bindings
       global = {
@@ -200,6 +323,12 @@ in
         # Marks
         m = ":mark ";
         M = ":unmark -a<Enter>";
+
+        # Threads
+        # A folded thread is acted on as a whole by d/a, so fold deliberately.
+        zt = ":toggle-threads<Enter>";
+        zc = ":fold<Enter>";
+        zo = ":unfold<Enter>";
       };
 
       # Message view bindings (Drafts folder)
@@ -365,6 +494,7 @@ in
       multi-file-strategy = act-dir
       query-map = ~/.config/aerc/querymap-gmail
       folders-exclude = ${foldersExclude}
+      folders-sort = ${foldersSort}
       default = INBOX
       from = Benjamin Brast-McKie <benbrastmckie@gmail.com>
       copy-to = Sent
@@ -381,6 +511,7 @@ in
       multi-file-strategy = act-dir
       query-map = ~/.config/aerc/querymap-logos
       folders-exclude = ${foldersExclude}
+      folders-sort = ${foldersSort}
       default = INBOX
       from = Benjamin Brast-McKie <benjamin@logos-labs.ai>
       copy-to = Sent
