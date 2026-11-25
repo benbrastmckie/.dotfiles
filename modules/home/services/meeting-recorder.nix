@@ -20,14 +20,17 @@
 #
 # == Shape ==
 #
-# Two units plus a timer, the pattern services/video-call-keepalive.nix establishes and for the
-# same reason: capturing needs a live process, deciding whether to capture does not.
+# Three units and two timers, the pattern services/video-call-keepalive.nix establishes and for
+# the same reason: capturing needs a live process, deciding whether to capture does not.
 #
 #   meeting-record.service          Holds the ffmpeg capture for as long as it is active. Never
 #                                   started by a target -- only by the monitor below.
 #   meeting-record-monitor.service  A oneshot, fired by a timer, that starts or stops the
 #                                   recorder to match the current call state.
+#   meeting-record-monitor.timer    Fires every `interval`.
 #   meeting-transcribe.service      A oneshot that drains the staging directory.
+#   meeting-transcribe.timer        Backstop only -- the recorder's own ExecStopPost is the
+#                                   normal trigger. This catches audio a crash left behind.
 #
 # Letting systemd own the recorder's lifetime is what makes the stop reliable: `systemctl --user
 # stop` tears down the control group, so ffmpeg cannot be orphaned and left holding a capture
@@ -267,10 +270,12 @@ in
 
                   # Mic on the left channel, far-end on the right, 16 kHz s16 stereo.
                   #
-                  # The channel split is not cosmetic: whisper-cli's --diarize compares
-                  # per-channel energy to label segments, so this layout turns "which channel was
-                  # louder" into "me vs. everyone else" and the transcript comes out attributed.
-                  # Mixing to mono would throw that away for no saving that matters.
+                  # The channel split is not cosmetic: the transcriber below decodes each channel
+                  # SEPARATELY and merges the results by timestamp, so the channel IS the speaker
+                  # attribution and nothing has to be inferred from relative loudness. Mixing to
+                  # mono would throw that away for no saving that matters. (Whisper's own
+                  # --diarize over the stereo file is the shortcut that does not work -- see the
+                  # transcriber's comment for what was measured.)
                   #
                   # `join` rather than `amerge`: amerge warns about overlapping input layouts on
                   # every start and leaves the output layout implied by channel count, which is

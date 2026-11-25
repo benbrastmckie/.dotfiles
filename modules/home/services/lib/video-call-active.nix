@@ -1,10 +1,11 @@
 # Shared predicate: "is a video call in progress right now, and should the screen stay lit?"
 #
-# Imported by BOTH consumers so there is exactly one definition of "in a call":
+# Imported by ALL THREE consumers so there is exactly one definition of "in a call":
 #   - modules/home/services/video-call-keepalive.nix  (holds the inhibitors)
 #   - modules/home/services/screen-blank-watchdog.nix (stands down)
-# A second, drifting copy of this logic would let the two disagree, which shows up as a screen
-# that blanks while the inhibitors claim it should not.
+#   - modules/home/services/meeting-recorder.nix      (starts and stops the recorder)
+# A second, drifting copy of this logic would let them disagree, which shows up as a screen that
+# blanks while the inhibitors claim it should not, or a recording that outlives its call.
 #
 # Exit 0 = carve-out applies (a call is live AND the idle cap below has not been exceeded).
 # Exit 1 = it does not. Never exits non-zero for any other reason: an unreadable PipeWire or a

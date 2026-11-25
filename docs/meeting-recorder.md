@@ -52,7 +52,7 @@ reason: capturing needs a live process, deciding whether to capture does not.
 
 | Unit | Role |
 |------|------|
-| `meeting-record-monitor.timer` | Fires every 30s |
+| `meeting-record-monitor.timer` | Fires every `interval` (15s) |
 | `meeting-record-monitor.service` | Oneshot; starts or stops the recorder to match the call state |
 | `meeting-record.service` | Holds the `ffmpeg` capture for the duration of the call |
 | `meeting-transcribe.service` | Oneshot; drains the staging directory |
