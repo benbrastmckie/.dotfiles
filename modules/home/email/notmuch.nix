@@ -72,21 +72,24 @@
         # top-level non-maildir entries under ~/Mail. Silences "Ignoring
         # non-mail file" spam from `notmuch new` without risking any match inside a real
         # maildir folder (bare basenames would match at any depth; these are anchored).
+        # A literal dot is written `[.]`, never `\.`: the rendered config is a GLib
+        # key file, where a backslash starts an escape sequence and `\.` is an invalid
+        # one that makes every notmuch command fail with "unable to load config file".
         "/^specs$/"
-        "/^\\.claude$/"
-        "/^\\.git$/"
+        "/^[.]claude$/"
+        "/^[.]git$/"
         "/^docs$/"
         "/^email_plans$/"
         "/^email_reports$/"
-        "/^\\.memory$/"
-        "/^README\\.md$/"
-        "/^README_OLD\\.md$/"
-        "/^CLAUDE\\.md$/"
+        "/^[.]memory$/"
+        "/^README[.]md$/"
+        "/^README_OLD[.]md$/"
+        "/^CLAUDE[.]md$/"
         "/^Contacts$/"
-        "/^\\.gitignore$/"
-        "/^\\.logos-backup.*$/"
-        "/^\\.logos-presync.*$/"
-        "/^\\.syncstate-backups$/"
+        "/^[.]gitignore$/"
+        "/^[.]logos-backup.*$/"
+        "/^[.]logos-presync.*$/"
+        "/^[.]syncstate-backups$/"
       ];
     };
     search = {
