@@ -30,8 +30,8 @@ Currently provides:
   built via `final.callPackage ../packages/<name>.nix { }` (or, for `kooha`, an `overrideAttrs`
   wrapper around the existing `prev.kooha`). See `packages/README.md` for what each of these
   actually does.
-- `piper`, `piper-voice-en-us-lessac-medium`, `vosk-model-small-en-us` — TTS/STT binary and model
-  packages, also via `final.callPackage`.
+- `piper`, `piper-voice-en-us-lessac-medium`, `vosk-model-small-en-us`, `whisper-ggml-models` —
+  TTS/STT binary and model packages, also via `final.callPackage`.
 
 ### python-packages.nix
 

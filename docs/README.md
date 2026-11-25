@@ -25,6 +25,7 @@ This directory contains comprehensive documentation for the NixOS configuration 
 - **[email-workflow.md](email-workflow.md)** - Wrapper-only AI-assisted email triage workflow
 - **[gnome-settings.md](gnome-settings.md)** - GNOME desktop settings and configuration
 - **[himalaya.md](himalaya.md)** - Himalaya email client setup and configuration
+- **[meeting-recorder.md](meeting-recorder.md)** - Unattended meeting capture: call detection via the shared predicate, per-channel transcription with VAD, and what gets discarded
 - **[meetily.md](meetily.md)** - Local AI meeting notes: the PulseAudio-protocol capture requirement, monitor-source routing, summary backends, and the GNOME tray gap
 - **[neovim.md](neovim.md)** - Neovim configuration, package choice, and sideloadInitLua gotcha
 - **[niri.md](niri.md)** - Niri window manager keybindings and configuration

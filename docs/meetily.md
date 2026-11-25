@@ -18,6 +18,17 @@ the full argument, the short version being that a source build pulls an **unchec
 tarball and an ONNX Runtime binary from vendor CDNs at build time, neither of which can be pinned
 reproducibly. Same reasoning as `packages/piper-bin.nix`.
 
+## Recording without clicking record
+
+Meetily cannot do this: its recording starts only from the GUI. `meetily --help` prints nothing
+and exits 0, the tray offers stop/pause/resume but no start, and the only external IPC
+(`org.SingleInstance.DBus` `ExecuteCallback`) just forwards argv to focus the window.
+
+Unattended capture is handled instead by `modules/home/services/meeting-recorder.nix`, which
+records and transcribes locally into `~/Meetings` — see
+[meeting-recorder.md](meeting-recorder.md). Recordings it keeps can be imported here afterwards
+for Meetily's summaries and templates, which is the intended division of labour.
+
 ## How it captures a meeting
 
 There is no Zoom or Google Meet integration, and that is the point: Meetily never joins the

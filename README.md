@@ -49,6 +49,7 @@ These dotfiles provide a complete NixOS setup with:
 │   ├── meetily.nix                # AI meeting notes (official .deb repackaged)
 │   ├── vosk-models.nix            # Vosk STT language models
 │   ├── piper-bin.nix              # Piper TTS engine (prebuilt binary)
+│   ├── whisper-ggml-models.nix    # Whisper ggml weights + silero VAD (meeting recorder)
 │   ├── piper-voices.nix           # Piper TTS voice models
 │   ├── python-cvc5.nix            # CVC5 Python bindings
 │   ├── pymupdf4llm.nix            # PyMuPDF4LLM Python package
@@ -92,6 +93,7 @@ These dotfiles provide a complete NixOS setup with:
 - [`docs/packages.md`](docs/packages.md): Package management and custom packages
 - [`docs/screen-recording.md`](docs/screen-recording.md): Screen capture tools and the boosted-microphone PipeWire filter chain
 - [`docs/meetily.md`](docs/meetily.md): Local AI meeting notes, audio capture requirements, and summary backends
+- [`docs/meeting-recorder.md`](docs/meeting-recorder.md): Unattended meeting capture and local transcription into `~/Meetings`
 - [`docs/testing.md`](docs/testing.md): Testing and validation procedures
 
 See [`docs/README.md`](docs/README.md) for complete documentation index.

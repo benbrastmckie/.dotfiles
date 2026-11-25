@@ -35,6 +35,7 @@ pkgs-unstable: final: prev: {
   piper = final.callPackage ../packages/piper-bin.nix { }; # Piper TTS prebuilt binary (no onnxruntime compile)
   piper-voice-en-us-lessac-medium = final.callPackage ../packages/piper-voices.nix { }; # Piper TTS voice model
   vosk-model-small-en-us = final.callPackage ../packages/vosk-models.nix { }; # Vosk STT language model
+  whisper-ggml-models = final.callPackage ../packages/whisper-ggml-models.nix { }; # Whisper ggml weights (base.en, small.en) for the meeting recorder
 
   # Add other packages that benefit from using unstable below
   # Format: package-name = pkgs-unstable.package-name; # Reason for using unstable

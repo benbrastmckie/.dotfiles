@@ -51,6 +51,7 @@
     ./services/zotero-env.nix
     ./services/screen-blank-watchdog.nix
     ./services/video-call-keepalive.nix
+    ./services/meeting-recorder.nix
 
     # Memory monitoring (co-located: scripts + systemd services, three-tier system)
     ./memory/monitor.nix

@@ -17,13 +17,41 @@
   #
   # Worth a look if nothing else here wants it: the daemon loads no weights and sits at roughly
   # 20 MB resident, so it is cheap, but it is not load-bearing for anything in this file.
-  services.ollamaModels = {
-    enable = true;
+  # Note: one `services` attribute rather than separate dotted paths. statix's repeated-keys
+  # check rejects re-opening the same top-level key three times, and `services.sf1-hub-ben`
+  # below is the third (same constraint services/video-call-keepalive.nix documents).
+  services = {
+    ollamaModels = {
+      enable = true;
 
-    # Empty: nothing in this configuration asks the daemon to serve a model, so the loader has
-    # nothing to pull. The loader only ever pulls, so `ollama rm llama3.1:latest` is what
-    # reclaims the 4.9 GB that model still occupies on disk.
-    load = [ ];
+      # Empty: nothing in this configuration asks the daemon to serve a model, so the loader has
+      # nothing to pull. The loader only ever pulls, so `ollama rm llama3.1:latest` is what
+      # reclaims the 4.9 GB that model still occupies on disk.
+      load = [ ];
+    };
+
+    # Unattended meeting capture (modules/home/services/meeting-recorder.nix). Records while
+    # lib/video-call-active.nix says a call is live, then transcribes locally with whisper.cpp
+    # into transcriptDir. Everything stays on this machine: the weights are a store path
+    # (packages/whisper-ggml-models.nix) and no model is contacted over the network.
+    #
+    # Deliberately NOT routed through Meetily, which cannot be made to start recording from
+    # outside its GUI -- the module header states what was checked. Meetily still earns its keep
+    # on the other end, importing a retained .wav for its summaries and templates; see
+    # docs/meetily.md.
+    meetingRecorder = {
+      enable = true;
+
+      # transcriptDir is left at its default, ~/Meetings -- a plain directory, not a Nix-managed
+      # tree, because these are documents to read, edit and move and home-manager has no
+      # business owning their lifetime.
+
+      # Three days rather than 0. The ask was to discard audio once transcribed, but discarding
+      # it immediately also forecloses the Meetily import that makes the summaries reachable --
+      # the two goals are in direct tension, so this keeps the window just wide enough to notice
+      # a meeting mattered and act on it. Set to 0 to discard as soon as the transcript lands.
+      audioRetentionDays = 3;
+    };
   };
 
   # Sapience knowledge vault (modules/home/services/sapience.nix). "relay" is ruled out on

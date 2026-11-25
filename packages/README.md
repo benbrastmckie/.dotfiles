@@ -635,6 +635,32 @@ runtime). Only external runtime dependency beyond glibc is `libstdc++.so.6`
 2. `nix hash to-sri --type sha256 <output>`
 3. Update `version`/`url`/`hash` in `piper-bin.nix`
 
+### whisper-ggml-models.nix
+Whisper ggml model weights for `whisper.cpp` (`base.en`, `small.en`) plus the Silero VAD model,
+consumed by `modules/home/services/meeting-recorder.nix`. Model data, not a buildable package —
+same reasoning as `vosk-models.nix` and `piper-voices.nix`.
+
+**Why a derivation rather than the downloader**: `whisper-cpp` ships
+`whisper-cpp-download-ggml-model`, which fetches into a mutable directory on first use. A systemd
+unit built on that has a silent network dependency on its first run and no way to state which
+weights it got. Here the store path *is* the version.
+
+**Two pinned revisions, deliberately**: the transcription models come from
+`ggerganov/whisper.cpp` and the VAD model from `ggml-org/whisper-vad`, because the former
+predates whisper.cpp's VAD support and carries no VAD weights at all. Both pin a revision rather
+than tracking `main` — a hash taken against a moving ref is a hash against whatever that branch
+pointed at that day.
+
+**The VAD model is not an optional nicety.** Whisper hallucinates over silence (a measured case:
+an invented " Thank you." in a quiet stretch), and the meeting recorder transcribes each audio
+channel separately, so each pass sees mostly silence by construction. `--vad` makes Whisper skip
+it instead of inventing dialogue, and pays for itself — two VAD passes measured faster than one
+non-VAD pass over the same file.
+
+**Wired via**: `overlays/unstable-packages.nix`
+(`whisper-ggml-models = final.callPackage ../packages/whisper-ggml-models.nix { };`). See
+`docs/meeting-recorder.md`.
+
 ### piper-voices.nix
 Declarative Piper voice model package for the `en_US-lessac-medium` neural voice. Downloads the
 ONNX model and its JSON config from HuggingFace (`rhasspy/piper-voices`).

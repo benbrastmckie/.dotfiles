@@ -80,7 +80,8 @@ concrete example already present in this tree.
 - `packages/` — `dev-tools.nix`, `email-tools.nix`, `media-dictation.nix`, `misc.nix`,
   `python.nix`, `rust.nix`
 - `scripts/` — `gmail-oauth2.nix`, `sioyek-theme.nix`, `whisper.nix`
-- `services/` — `cache-cleanup.nix`, `gmail-oauth2.nix`, `screenshot.nix`, `ydotool.nix`
+- `services/` — `cache-cleanup.nix`, `gmail-oauth2.nix`, `meeting-recorder.nix`,
+  `screenshot.nix`, `ydotool.nix`
 - `misc.nix` — top-level miscellaneous settings (activation, autoExpire, sessionVariables,
   startServices)
 
