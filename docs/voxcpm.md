@@ -6,6 +6,8 @@ this laptop's Radeon 890M iGPU through ROCm.
 
 Read the [performance](#performance-measured-not-estimated) section before planning anything
 around it. It works, and it is roughly ten times slower than real time at best.
+[First-time setup](#first-time-setup) walks the whole path from an unenabled host to a first
+cloned sentence.
 
 ## Where it is declared
 
@@ -115,6 +117,124 @@ This half is **not a reproducible build**, which is a deliberate trade following
 version, so a `version` bump rebootstraps cleanly, but those five packages float. Closing the
 gap means packaging them in `overlays/python-packages.nix`; `funasr` alone pulls a dozen further
 undeclared dependencies, which is why it has not been done.
+
+## First-time setup
+
+There is no voice-configuration step, and nothing is stored in the model. Zero-shot means the
+reference clip **is** the configuration, so setting up your voice amounts to curating one good
+15-25 second wav and keeping it at a stable path.
+
+### 1. Enable it on the host
+
+Import the module and set the flag, as `hosts/hamsa/default.nix` does:
+
+```nix
+imports = [ ../../modules/system/optional/voxcpm.nix ];
+programs.voxcpm.enable = true;
+```
+
+Then rebuild. Everything comes from the binary cache, so this fetches rather than compiles, but
+it is ~5.1 GiB the first time:
+
+```bash
+sudo nixos-rebuild switch --flake ~/.dotfiles#"$(hostname)"
+```
+
+### 2. Log out and back in
+
+The module adds you to `render` and `video`, and group membership only takes effect in a fresh
+session. `newgrp render` gets a shell with the group sooner if you want to test before logging
+out.
+
+### 3. Check that the GPU is reachable
+
+```bash
+command -v voxcpm            # the CLI is on PATH
+ls -ld /opt/rocm             # the tmpfiles symlink HIP resolves device code through
+id -nG | tr ' ' '\n' | grep -E 'render|video'
+```
+
+All three must pass. A missing `/opt/rocm` or absent groups both mean activation has not
+happened, and the symptom downstream is `torch.cuda.is_available()` returning false with no
+diagnostic.
+
+### 4. Record a reference clip
+
+Any format torchaudio reads will do, but 16 kHz mono is what the model wants and costs nothing
+to capture directly. Target the source by node **name**: the numeric ids `wpctl status` prints
+are per-session and will not survive a reboot.
+
+```bash
+pw-dump | jq -r '.[].info.props | select(."media.class" == "Audio/Source") | ."node.name"'
+
+mkdir -p ~/.local/share/voices
+pw-record --target <node.name> --rate 16000 --channels 1 --format s16 \
+  ~/.local/share/voices/ref-raw.wav
+# Ctrl-C to stop
+```
+
+Aim for 15-25 seconds. What governs the result, heaviest factor first:
+
+- **Register and pace.** The clip sets prosody, not just timbre. Read it the way you want
+  generated speech to sound, because that is what gets cloned.
+- **Continuous speech.** Gaps over about a second teach it to pause.
+- **A quiet room** -- no fan, no keyboard, constant distance from the mic. Noise is reproduced
+  as faithfully as voice.
+- **Varied phonetics** across a couple of full sentences rather than one short phrase.
+
+Record the raw device, not a boosted or otherwise filtered source: a gain filter's noise floor
+and compression both end up in the clone. On a host with the
+[boosted-microphone filter chain](screen-recording.md), that means the underlying
+`alsa_input.*` node rather than `mic_boosted`.
+
+### 5. Trim and normalise
+
+```bash
+sox ~/.local/share/voices/ref-raw.wav ~/.local/share/voices/me.wav \
+  silence 1 0.1 1% reverse silence 1 0.1 1% reverse \
+  norm -3
+soxi ~/.local/share/voices/me.wav
+```
+
+That strips leading and trailing silence and normalises to -3 dBFS. Confirm `soxi` reports
+16000 Hz, 1 channel and 15-30 seconds, then listen to the file. Any flaw here recurs in every
+generation made from it.
+
+### 6. First generation
+
+The first invocation bootstraps the PyPI layer and fetches the checkpoint, so it is far slower
+than steady state and needs the network. Start with a short sentence -- at the RTF measured
+below, four seconds of audio is upwards of forty seconds of compute:
+
+```bash
+voxcpm clone --text "This is a test of the cloned voice." \
+  --reference-audio ~/.local/share/voices/me.wav \
+  --output /tmp/out.wav --device cuda
+```
+
+Then confirm nothing fell back to CPU. `voxcpm-benchmark` refuses to report a number unless
+`torch.version.hip` is set, so getting a figure at all is the check passing:
+
+```bash
+voxcpm-benchmark ~/.local/share/voices/me.wav
+```
+
+### If the clone disappoints
+
+In increasing order of effort:
+
+- **Re-record.** By far the highest-leverage fix; most poor clones are poor clips.
+- **`--denoise`** runs the reference through ZipEnhancer, downloaded on first use. Worth trying
+  before re-recording if the room was noisy.
+- **Hi-Fi mode** -- `--prompt-audio` with an exact `--prompt-text` transcript alongside the
+  reference, at the cost of typing out what you said.
+- **`--cfg-value`** (default 2.0, useful 1.0-3.0). Higher tracks the reference harder, at some
+  cost in naturalness.
+- **`--inference-timesteps`** (default 10, upstream documents 4-30). Lowering it is the main
+  speed lever at an unevaluated quality cost; raising it is the reverse trade.
+
+Past those the next step is LoRA, which is not wired up -- see
+[fine-tuning](#fine-tuning-is-not-wired-up) for why.
 
 ## Usage
 
