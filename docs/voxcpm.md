@@ -262,7 +262,9 @@ once first, then `source "$VOXCPM_VENV/bin/activate"` to get the PyPI-only packa
 
 **Expect RTF around 8-11 at best, and 25-31 when the GPU is down-clocked.** RTF is
 wall-clock divided by audio duration, so 10 means ten seconds of compute per second of speech.
-Upstream reports ~0.3 on an RTX 4090.
+Upstream reports ~0.3 on an RTX 4090. RTF covers generation alone; a one-shot CLI run pays a
+large fixed startup on top of it, measured under
+[per-invocation overhead](#per-invocation-overhead) below.
 
 Measured on hamsa, six passes in one process with warm caches and the model already loaded:
 
@@ -278,6 +280,33 @@ Measured on hamsa, six passes in one process with warm caches and the model alre
 Median 9.20, min 6.37, max 30.62. The spread is not noise and not a warmup artefact -- it is
 **bimodal**, with a fast cluster near 6-9 and a slow one near 25-31, alternating between
 identical calls in a single process.
+
+### Per-invocation overhead
+
+Those RTF figures measure generation only, inside a process that has already loaded the model.
+A one-shot `voxcpm clone` pays roughly **eight and a half minutes of fixed startup** first, and
+for a short sentence that cost dominates everything else. One invocation on this host,
+producing 2.40 s of audio from a 17 s reference:
+
+| Stage | Wall |
+|-------|------|
+| Model load: AudioVAE, safetensors, denoiser | ~319 s (by subtraction) |
+| `torch.compile` warmup, 10 steps -- the first alone 167 s | 189 s |
+| Generation (RTF 17.1) | 41 s |
+| **Total** | **549 s** |
+
+So about 93% of that run was setup. **Plan around the total, not the RTF**: a single sentence
+costs roughly nine minutes whatever its length, because length only moves the 41 s.
+
+Two consequences worth acting on:
+
+- **Use `voxcpm batch` for more than one line.** It pays the startup once across every line of
+  the input file, which is the only way to bring the amortised per-sentence cost anywhere near
+  the RTF.
+- **`--no-optimize` skips the `torch.compile` warmup**, and `--no-denoiser` skips loading the
+  denoiser, which is loaded by default even when no ZipEnhancer path is set (`enable_denoiser:
+  True, zipenhancer_model_path: None` in the startup log). Between them they target most of the
+  508 s. Neither is measured here, and `--no-optimize` trades against steady-state speed.
 
 ### Why it is bimodal
 
@@ -330,8 +359,10 @@ run continues unaffected. It is not set.
 ### Levers not yet pulled
 
 - `inference_timesteps` defaults to 10 and upstream documents 4-30. The generation loop runs at
-  roughly one second per step, so dropping it is the most direct speed lever available, at a
-  quality cost that has not been evaluated here.
+  roughly one second per step, so dropping it is the most direct lever on generation time, at a
+  quality cost that has not been evaluated here. For a one-shot run it is the wrong lever
+  though: startup dominates, so `--no-optimize`, `--no-denoiser` and `voxcpm batch` all pay
+  better. See [per-invocation overhead](#per-invocation-overhead).
 - **VoxCPM1.5** (750M against VoxCPM2's 2B) reports ~0.15 RTF on a 4090 versus VoxCPM2's ~0.3,
   so roughly twice as fast, and its LoRA fits in this GPU's memory where VoxCPM2's does not.
 - **VoxCPM.cpp** is a ggml/GGUF build with a **Vulkan** backend, which would drive this iGPU
